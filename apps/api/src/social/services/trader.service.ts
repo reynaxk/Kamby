@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import {
   MIN_TRADES_FOR_TRADER_RANKING,
   normalizeEvmAddress,
   type TopTrader,
   type TraderProfile,
   type TraderTokenStat,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { toTopTrader, toTraderProfile, toTraderStats, toTraderSummary, toTraderTokenStat } from '../social.mapper';
 import { FollowService } from './follow.service';
 
@@ -17,7 +17,7 @@ export interface CursorPage<T> {
 
 /**
  * Trader identity: profiles, stats computed from indexed swaps, and follower/following
- * lists. See docs/SOCIAL.md#trader-identity. Never computes profit/ROI/win rate — Fomo
+ * lists. See docs/SOCIAL.md#trader-identity. Never computes profit/ROI/win rate — Kamby
  * doesn't track cost basis, so Phase 2 only surfaces what can be computed correctly.
  */
 @Injectable()
@@ -175,7 +175,7 @@ export class TraderService {
   /**
    * Ranked by real, measured 24h trading volume among wallets clearing the minimum
    * trade-count floor — "Most Active" / "Highest Volume," never "smart money" or
-   * "profitable" (Fomo has no cost-basis data to back that claim). See
+   * "profitable" (Kamby has no cost-basis data to back that claim). See
    * docs/SOCIAL.md#trader-discovery.
    */
   async getTopTraders(limit: number): Promise<TopTrader[]> {

@@ -1,7 +1,7 @@
 'use client';
 
-import type { PersonalizedFeedItem } from '@fomo/domain';
-import { Button } from '@fomo/ui';
+import type { PersonalizedFeedItem } from '@kamby/domain';
+import { Button } from '@kamby/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';

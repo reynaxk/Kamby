@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import { Prisma, prisma } from '@fomo/db';
+import { Prisma, prisma } from '@kamby/db';
 import { WatchlistService } from './watchlist.service';
 
-jest.mock('@fomo/db', () => {
+jest.mock('@kamby/db', () => {
   const actual = jest.requireActual('@prisma/client');
   return {
     Prisma: actual.Prisma,

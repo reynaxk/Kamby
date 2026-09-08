@@ -30,7 +30,7 @@ export type Wallet = z.infer<typeof WalletSchema>;
 /**
  * Trading statistics computed directly from indexed `swaps` — only metrics that can be
  * computed correctly from what's actually indexed. Deliberately no profit/ROI/PnL/win
- * rate: Fomo doesn't track cost basis, so any of those would be fabricated. See
+ * rate: Kamby doesn't track cost basis, so any of those would be fabricated. See
  * docs/SOCIAL.md#trader-stats and docs/TRADER_INTELLIGENCE.md (Phase 5) for the richer
  * fields added below and their exact formulas.
  */
@@ -89,7 +89,7 @@ export type TraderProfile = z.infer<typeof TraderProfileSchema>;
  * One row of the "Top Traders" ranking — ranked by real, measured 24h volume among traders
  * clearing a minimum trade-count floor (a single huge trade shouldn't win "most active" any
  * more than it should win trending — see TrendingService). Deliberately no "smart money" /
- * "profitable trader" claim: Fomo doesn't track cost basis, so it never labels anyone by
+ * "profitable trader" claim: Kamby doesn't track cost basis, so it never labels anyone by
  * performance it can't compute. See docs/SOCIAL.md#trader-discovery.
  */
 export const TopTraderSchema = z.object({

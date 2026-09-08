@@ -1,5 +1,5 @@
-import type { Prisma } from '@fomo/db';
-import { notificationDeepLink, type NotificationDto } from '@fomo/domain';
+import type { Prisma } from '@kamby/db';
+import { notificationDeepLink, type NotificationDto } from '@kamby/domain';
 
 /**
  * Every field this mapper needs, resolved in a single query via nested `include` (never a

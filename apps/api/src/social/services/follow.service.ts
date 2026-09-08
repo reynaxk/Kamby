@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, prisma } from '@fomo/db';
-import { normalizeEvmAddress } from '@fomo/domain';
+import { Prisma, prisma } from '@kamby/db';
+import { normalizeEvmAddress } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { NotificationService } from '../../notifications/notification.service';
 
@@ -36,7 +36,7 @@ export class FollowService {
     }
 
     // Only on a genuine new follow (not the P2002 idempotent-success branch above) — see
-    // followDedupeKey in @fomo/domain for why a repeated unfollow/refollow still wouldn't
+    // followDedupeKey in @kamby/domain for why a repeated unfollow/refollow still wouldn't
     // renotify even if this were reached again. A notification failure must never surface
     // as a failed follow — the follow itself already succeeded above.
     try {

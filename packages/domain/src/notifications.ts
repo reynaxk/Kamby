@@ -30,7 +30,7 @@ export const NOTIFICATION_DEFAULTS = {
    *  docs/NOTIFICATIONS.md#whale-trades. */
   whaleTradeCooldownMinutes: 15,
   /** Every preference defaults to enabled — see docs/NOTIFICATIONS.md#preferences for why
-   *  an opt-out model fits a "make Fomo feel alive" product better than opt-in. */
+   *  an opt-out model fits a "make Kamby feel alive" product better than opt-in. */
   preferenceDefaults: {
     follows: true,
     likes: true,
@@ -196,7 +196,7 @@ export type NotificationPage = z.infer<typeof NotificationPageSchema>;
  * normal authenticated REST endpoint on receiving one, same "ping, then refetch" pattern
  * Phase 2's activity stream already established.
  */
-export const NOTIFICATION_REALTIME_CHANNEL = 'fomo:notifications:new';
+export const NOTIFICATION_REALTIME_CHANNEL = 'kamby:notifications:new';
 export interface NotificationPing {
   userId: string;
   notificationId: string;

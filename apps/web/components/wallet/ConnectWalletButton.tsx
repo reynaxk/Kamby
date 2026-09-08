@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@fomo/ui';
+import { Button } from '@kamby/ui';
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { truncateAddress } from '@/lib/format';

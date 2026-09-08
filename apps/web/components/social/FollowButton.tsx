@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@fomo/ui';
+import { Button } from '@kamby/ui';
 import { useEffect, useState, useTransition } from 'react';
 import { checkFollowStatus, followTrader, unfollowTrader } from '@/lib/social-client';
 

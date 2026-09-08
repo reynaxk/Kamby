@@ -1,6 +1,6 @@
 'use client';
 
-import type { SocialActivity } from '@fomo/domain';
+import type { SocialActivity } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**

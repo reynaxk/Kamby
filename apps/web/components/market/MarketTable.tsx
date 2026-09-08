@@ -1,4 +1,4 @@
-import type { MarketSummary } from '@fomo/domain';
+import type { MarketSummary } from '@kamby/domain';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { EmptyState } from './EmptyState';

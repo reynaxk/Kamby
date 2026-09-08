@@ -1,5 +1,5 @@
-import type { TradeStatus } from '@fomo/domain';
-import { cn } from '@fomo/ui';
+import type { TradeStatus } from '@kamby/domain';
+import { cn } from '@kamby/ui';
 
 const LABEL: Record<TradeStatus, string> = {
   PENDING: 'Pending',

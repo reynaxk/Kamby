@@ -1,7 +1,7 @@
 'use client';
 
-import type { TradeTransactionDto } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import type { TradeTransactionDto } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
@@ -69,7 +69,7 @@ export function TransactionDetail({ id }: { id: string }) {
       <dl className="mt-4 space-y-2 font-body text-sm">
         <Row label="You paid" value={`${transaction.inputAmountFormatted} ${inputSymbol ?? ''}`} />
         <Row label="You received" value={`${transaction.expectedOutputAmountFormatted} ${outputSymbol ?? ''}`} />
-        <Row label="Fomo fee" value={`${transaction.platformFeeAmountFormatted} ${outputSymbol ?? ''}`} />
+        <Row label="Kamby fee" value={`${transaction.platformFeeAmountFormatted} ${outputSymbol ?? ''}`} />
         <Row label="Submitted" value={formatDateTime(transaction.submittedAt)} />
         {transaction.confirmedAt && <Row label="Confirmed" value={formatDateTime(transaction.confirmedAt)} />}
         {transaction.failureReason && <Row label="Reason" value={transaction.failureReason} />}

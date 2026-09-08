@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Button, cn } from '@fomo/ui';
-import { isQuoteExpired, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@fomo/domain';
+import { Button, cn } from '@kamby/ui';
+import { isQuoteExpired, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
 import { base } from 'wagmi/chains';
@@ -202,7 +202,7 @@ export function TradePanel({
   if (!isConnected) {
     return (
       <Panel title="Trade" onClose={onClose}>
-        <p className="font-body text-sm text-ink-600">Connect a wallet to trade — Fomo never holds your funds or signs on your behalf.</p>
+        <p className="font-body text-sm text-ink-600">Connect a wallet to trade — Kamby never holds your funds or signs on your behalf.</p>
         <ConnectWalletButton />
       </Panel>
     );

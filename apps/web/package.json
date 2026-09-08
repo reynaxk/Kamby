@@ -1,5 +1,5 @@
 {
-  "name": "@fomo/web",
+  "name": "@kamby/web",
   "version": "0.0.0",
   "private": true,
   "license": "UNLICENSED",
@@ -13,8 +13,8 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
-    "@fomo/domain": "workspace:*",
-    "@fomo/ui": "workspace:*",
+    "@kamby/domain": "workspace:*",
+    "@kamby/ui": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "next": "14.2.35",
     "react": "^18.3.1",
@@ -24,7 +24,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@fomo/config": "workspace:*",
+    "@kamby/config": "workspace:*",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",

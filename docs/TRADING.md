@@ -1,9 +1,9 @@
 # Phase 3: wallet and trading architecture
 
-Phase 1 made Fomo see the market. Phase 2 made it social. Phase 3 closes the loop —
+Phase 1 made Kamby see the market. Phase 2 made it social. Phase 3 closes the loop —
 **Discover → See activity → FOMO → Connect wallet → Get quote → Review trade → User signs →
 Transaction submitted → Blockchain confirms → Phase 1 indexer detects the swap → Social
-activity appears** — without Fomo's backend ever holding a private key, a seed phrase, or
+activity appears** — without Kamby's backend ever holding a private key, a seed phrase, or
 the ability to move a user's funds. See `docs/SOURCE_OF_TRUTH.md` and `docs/WALLET_SECURITY.md`
 first; this document assumes both and doesn't repeat their general rules.
 
@@ -11,20 +11,20 @@ first; this document assumes both and doesn't repeat their general rules.
 User's own wallet (browser extension / mobile / WalletConnect)
         │  1. connects (wagmi) — an address, not yet a proven identity
         ▼
-Fomo API — wallet ownership challenge (EIP-4361 message + single-use nonce)
-        │  2. the WALLET signs the challenge — Fomo never touches this key
+Kamby API — wallet ownership challenge (EIP-4361 message + single-use nonce)
+        │  2. the WALLET signs the challenge — Kamby never touches this key
         ▼
-Fomo API — verifies the signature, links the wallet to the session's User
+Kamby API — verifies the signature, links the wallet to the session's User
         │  3. wallet is now "verified" — trading is unlocked for it
         ▼
-Fomo API — quote (Trade Router → 0x aggregator → real DEX liquidity)
+Kamby API — quote (Trade Router → 0x aggregator → real DEX liquidity)
         │  4. server prepares an UNSIGNED transaction; never signs it
         ▼
 User's own wallet — reviews and SIGNS the prepared transaction
         │  5. wallet broadcasts the signed transaction itself
         ▼
 Blockchain (Base) — the transaction executes on-chain
-        │  6a. Fomo records the tx hash, polls the chain for a real receipt
+        │  6a. Kamby records the tx hash, polls the chain for a real receipt
         │  6b. independently —
         ▼
 Phase 1 Indexer (apps/workers/src/market/ingestion.ts) — detects the Swap event
@@ -38,21 +38,21 @@ an accident.
 
 ## Non-custodial security
 
-Structural, not a policy: Fomo's database has nowhere to put a private key or a seed
+Structural, not a policy: Kamby's database has nowhere to put a private key or a seed
 phrase, and no code path ever asks a wallet for one.
 
 - **`WalletChallenge`, `TradeQuote`, and `TradeTransaction`** (`packages/db/prisma/schema.prisma`)
   store an address, a nonce, a message, a prepared-but-unsigned transaction, and (once
   broadcast) a transaction hash — never a signature's private inputs, never a key.
-- **The one signature Fomo ever verifies** (wallet-ownership) is checked, not stored raw —
+- **The one signature Kamby ever verifies** (wallet-ownership) is checked, not stored raw —
   see [Wallet ownership](#wallet-ownership). There's no column for it.
 - **Every transaction the API builds is unsigned** (`TradeQuote.unsignedTx`:
   `{to, data, value, gas, maxFeePerGas, maxPriorityFeePerGas}`) and stays that way until the
   user's own wallet signs and broadcasts it client-side
   (`apps/web/components/trading/TradePanel.tsx`, via wagmi's `sendTransaction`/
-  `writeContract`). Fomo's backend calls neither.
+  `writeContract`). Kamby's backend calls neither.
 - **The platform fee is collected atomically inside the swap itself** (see
-  [Fees](#fees)) — there is no intermediate step where Fomo's backend holds the user's
+  [Fees](#fees)) — there is no intermediate step where Kamby's backend holds the user's
   money, even briefly.
 
 ## Chain scope
@@ -94,7 +94,7 @@ silently executing against a chain the user didn't intend.
 ## Wallet ownership
 
 A connected address is a **claim**, never proof. Ownership is only established by signing a
-message Fomo itself generated, over a nonce Fomo itself issued and consumed exactly once.
+message Kamby itself generated, over a nonce Kamby itself issued and consumed exactly once.
 
 ```http
 POST /identity/wallet/challenge   { address }         → { nonce, message, expiresAt }
@@ -181,7 +181,7 @@ which cannot represent an 18-decimal token amount exactly. Concretely:
 7. Returns a `TradeQuoteDto` — every figure the UI shows (`docs` below) comes from this one
    response; nothing is recomputed client-side except unit-safe display formatting.
 
-Trading is scoped to **markets Fomo already tracks** — a token page only exists for one of
+Trading is scoped to **markets Kamby already tracks** — a token page only exists for one of
 these — so "does this token exist / have decimals / have a route" reduces to "is it one of
 our tracked, healthy `TokenMarket` rows," reusing Phase 1's own gates rather than a second
 safety system (see [Token safety](#token-safety)).
@@ -195,10 +195,10 @@ provider can change later without touching `QuoteService`.
 
 `ZeroExSwapRouter` (`apps/api/src/trading/router/zero-ex-router.service.ts`) is the only
 implementation: 0x's Swap API, Allowance-Holder quote endpoint
-(`/swap/allowance-holder/quote`). Fomo never implements its own AMM math or invents a
+(`/swap/allowance-holder/quote`). Kamby never implements its own AMM math or invents a
 price — every number in a quote traces back to 0x's response. The platform fee is passed as
 `swapFeeRecipient`/`swapFeeBps`/`swapFeeToken` query params so 0x collects it **inside the
-same transaction the user signs**, atomically, with Fomo's backend never touching the funds
+same transaction the user signs**, atomically, with Kamby's backend never touching the funds
 in between (see [Fees](#fees)). `requiresApproval`/`approvalSpender` are read from 0x's
 `issues.allowance` field and surfaced to the client so the trading UI can show an explicit
 ERC-20 approval step before the swap itself, when one is needed.
@@ -224,7 +224,7 @@ The fee is denominated in the trade's **output** token and is either:
 - **computed the same way, from the quote's own output amount**, when the provider doesn't
   echo one back.
 
-Either way, the number shown in the trading UI (`QuoteSummary`'s "Fomo fee" row) is read
+Either way, the number shown in the trading UI (`QuoteSummary`'s "Kamby fee" row) is read
 directly from the persisted `TradeQuote.platformFeeAmount` — there is no separate
 client-side fee calculation to drift from what's actually encoded in the transaction the
 user signs. **No fixed-dollar minimum fee is applied** — a flat `$0.50` minimum would create
@@ -251,7 +251,7 @@ quote (see [Quote system](#quote-system), step 5).
 ## Price impact
 
 Read directly from the aggregator's own response (0x's `estimatedPriceImpact`, a decimal
-percentage converted to bps) — Fomo never estimates it independently.
+percentage converted to bps) — Kamby never estimates it independently.
 `classifyPriceImpactBps` (`packages/domain/src/trading.ts`) buckets it into `normal` /
 `high` (≥ 500 bps, a visible warning) / `extreme` (≥ 1500 bps, a stronger warning) without
 blocking the trade outright at either threshold — the user can still choose to proceed, but
@@ -272,7 +272,7 @@ price impact — this trade may move the market by X%").
    applies) — 422 if stale.
 
 This deliberately reuses Phase 1's discovery gates rather than building a second, parallel
-safety system. **Fomo never claims a token is "safe."** Every quote and review screen shows
+safety system. **Kamby never claims a token is "safe."** Every quote and review screen shows
 the fixed, honest disclosure `SAFETY_DISCLAIMER` — *"No known issues detected by available
 checks."* — never "Safe," never "Verified." The checks are real (liquidity, staleness, that
 a route exists) but bounded; they are not a security audit.
@@ -281,7 +281,7 @@ a route exists) but bounded; they are not a security audit.
 
 A quote's `unsignedTx` is exactly what an EVM wallet expects to sign:
 `{to, data, value, gas, maxFeePerGas, maxPriorityFeePerGas}` — sourced verbatim from the
-aggregator's own prepared calldata (Fomo does not construct calldata itself). The web client
+aggregator's own prepared calldata (Kamby does not construct calldata itself). The web client
 (`TradePanel#handleConfirmAndSign`) hands this straight to wagmi's `sendTransaction`,
 converting each numeric field to a `bigint` via `BigInt(...)` (which accepts both decimal
 and `0x`-prefixed hex strings, matching either encoding a provider might use) — never a
@@ -310,9 +310,9 @@ reasoning missed the actual attack it needs to defend against: a stale, expired 
 being replayed later against a **different, unrelated transaction hash** — not the honest
 "my own broadcast raced past a 30-second timer" case. Combined with the on-chain match
 check in [Transaction integrity](#transaction-integrity), the expiry check closes off
-reusing an old quote as a container to attach a hash that was never the trade Fomo actually
+reusing an old quote as a container to attach a hash that was never the trade Kamby actually
 reviewed at that price. It still cannot and does not attempt to undo a transaction the
-wallet already broadcast — it only refuses to let Fomo's own records treat an expired
+wallet already broadcast — it only refuses to let Kamby's own records treat an expired
 quote's stale price/terms as the reviewed trade going forward.
 
 ## Transaction integrity
@@ -321,7 +321,7 @@ quote's stale price/terms as the reviewed trade going forward.
 receipt only proves *some* transaction with a given hash succeeded — it says nothing about
 *which* trade that was. Without checking further, nothing would stop a client from
 submitting any arbitrary, unrelated transaction hash it can find with a successful receipt
-(its own past transaction, someone else's, even a well-known public one) and having Fomo
+(its own past transaction, someone else's, even a well-known public one) and having Kamby
 eventually mark the associated quote CONFIRMED, fabricating a trade that never actually
 happened as quoted.
 
@@ -342,14 +342,14 @@ four:
   anything else is either a wrong hash or a forged one.
 
 Chain correctness is implicit rather than a separate field check: `getTransactionDetails`
-reads from the one RPC configured for Fomo's single supported chain
+reads from the one RPC configured for Kamby's single supported chain
 (see [Chain scope](#chain-scope)), so a hash that only exists on a different chain simply
 resolves to "not found" here.
 
 This check runs in two places, for two different reasons:
 
 1. **At submission** (`TransactionService#submitTransaction`) — best-effort and fail-fast.
-   If the transaction is already visible to Fomo's RPC (mined, or already propagated to
+   If the transaction is already visible to Kamby's RPC (mined, or already propagated to
    that node's mempool), a mismatch is rejected immediately, before a `TradeTransaction`
    row is ever created — the fastest, clearest feedback, and the smallest possible window
    for a bad row to exist at all. If the transaction isn't visible yet (a very recent
@@ -481,18 +481,18 @@ contrast `apps/api/src/trading/trading.controller.ts`'s class-level `@UseGuards(
 
 ## Indexer integration
 
-**This is the part of Phase 3 most worth reading carefully.** Fomo never creates a second,
+**This is the part of Phase 3 most worth reading carefully.** Kamby never creates a second,
 "successful trade" social-activity record when a trade confirms. The only thing that ever
 produces a Phase 2 activity item is the Phase 1 indexer detecting a real `Swap` event on
 Base and writing a `swaps` row (`apps/workers/src/market/ingestion.ts`) — completely
 unmodified by Phase 3. A user-executed trade becomes visible in the social feed exactly the
 same way any other wallet's trade does: because the chain emitted a Swap event and the
-indexer picked it up, not because Fomo's trading subsystem told the social system "a trade
+indexer picked it up, not because Kamby's trading subsystem told the social system "a trade
 happened."
 
 This is a deliberate separation, not an oversight:
 
-- **Trade status** (`PENDING`/`CONFIRMED`/`FAILED`/`EXPIRED`) is Fomo's own bookkeeping,
+- **Trade status** (`PENDING`/`CONFIRMED`/`FAILED`/`EXPIRED`) is Kamby's own bookkeeping,
   answering "did *this specific* API call's tracked transaction succeed" — it comes from a
   direct `eth_getTransactionReceipt` call, independent of whether or when the indexer's
   swap-scanning tick happens to run.
@@ -598,12 +598,12 @@ whatever session/wallet a browser has, which a Server Component structurally can
   ERC-1271, so a smart-contract wallet (a Safe, some smart-account setups) will fail
   verification even when it does legitimately control the address. Disclosed, not silent:
   the endpoint returns 401, not a false "verified."
-- **Indexed social-activity pickup for a Fomo-executed trade is not guaranteed** — see
+- **Indexed social-activity pickup for a Kamby-executed trade is not guaranteed** — see
   [Indexer integration](#indexer-integration). Trade status itself is never affected by
   this; only whether the trade also shows up as a feed item tied to a specific tracked pool.
 - **The submission-time transaction-integrity check is best-effort, not a guarantee** — see
   [Transaction integrity](#transaction-integrity). A transaction that hasn't yet propagated
-  to Fomo's configured RPC at the moment of submission can't be checked at that instant; it
+  to Kamby's configured RPC at the moment of submission can't be checked at that instant; it
   is instead checked, authoritatively, the moment it's actually mined (before any CONFIRMED
   transition). This means a mismatched hash could very briefly exist as a `PENDING` row
   before resolving to `FAILED` — it can never reach `CONFIRMED` regardless — a deliberate
@@ -629,16 +629,16 @@ whatever session/wallet a browser has, which a Server Component structurally can
 ## Security assumptions
 
 - The connected wallet software itself is trusted to correctly display what it's signing —
-  Fomo cannot prevent a compromised wallet extension from lying to its own user, only
+  Kamby cannot prevent a compromised wallet extension from lying to its own user, only
   ensure it always sends the wallet the *true* transaction it intends to have signed.
 - 0x's Allowance-Holder contract is trusted to execute the swap and fee split as
   configured. [Transaction integrity](#transaction-integrity)'s calldata match proves the
   transaction that succeeded is byte-for-byte the one 0x prepared for this exact quote
-  (amounts, minimum output, and fee split all encoded in that calldata) — Fomo does not
+  (amounts, minimum output, and fee split all encoded in that calldata) — Kamby does not
   additionally decode ERC-20 `Transfer` logs from the receipt to independently re-derive the
   amounts actually received. A successful receipt for that exact, matched calldata is
   trusted to mean 0x's own contract logic enforced its encoded minimum-output constraint;
-  Fomo does not re-implement or re-verify that enforcement itself.
+  Kamby does not re-implement or re-verify that enforcement itself.
 - The configured `CHAIN_RPC_URL` is trusted for receipt lookups; a malicious or compromised
   RPC endpoint could theoretically misreport a transaction's status. This is the same trust
   boundary Phase 1's ingestion already accepts for reading swap events.

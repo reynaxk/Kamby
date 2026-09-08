@@ -9,18 +9,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: 'rgb(var(--fomo-bg) / <alpha-value>)',
-        surface: 'rgb(var(--fomo-surface) / <alpha-value>)',
-        'surface-raised': 'rgb(var(--fomo-surface-raised) / <alpha-value>)',
-        line: 'rgb(var(--fomo-line) / <alpha-value>)',
+        bg: 'rgb(var(--kamby-bg) / <alpha-value>)',
+        surface: 'rgb(var(--kamby-surface) / <alpha-value>)',
+        'surface-raised': 'rgb(var(--kamby-surface-raised) / <alpha-value>)',
+        line: 'rgb(var(--kamby-line) / <alpha-value>)',
         ink: {
-          900: 'rgb(var(--fomo-ink-900) / <alpha-value>)',
-          600: 'rgb(var(--fomo-ink-600) / <alpha-value>)',
-          400: 'rgb(var(--fomo-ink-400) / <alpha-value>)',
+          900: 'rgb(var(--kamby-ink-900) / <alpha-value>)',
+          600: 'rgb(var(--kamby-ink-600) / <alpha-value>)',
+          400: 'rgb(var(--kamby-ink-400) / <alpha-value>)',
         },
-        accent: 'rgb(var(--fomo-accent) / <alpha-value>)',
-        up: 'rgb(var(--fomo-up) / <alpha-value>)',
-        down: 'rgb(var(--fomo-down) / <alpha-value>)',
+        accent: 'rgb(var(--kamby-accent) / <alpha-value>)',
+        up: 'rgb(var(--kamby-up) / <alpha-value>)',
+        down: 'rgb(var(--kamby-down) / <alpha-value>)',
       },
       fontFamily: {
         display: ['var(--font-manrope)', 'system-ui', 'sans-serif'],

@@ -1,5 +1,5 @@
 {
-  "extends": "@fomo/config/tsconfig.nextjs.json",
+  "extends": "@kamby/config/tsconfig.nextjs.json",
   "compilerOptions": {
     "paths": {
       "@/*": [

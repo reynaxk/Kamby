@@ -1,6 +1,6 @@
-import type { EvmChainDataProvider } from '@fomo/chain-adapters';
-import { prisma } from '@fomo/db';
-import { parseUnsignedTx, TRADING_DEFAULTS, transactionMatchesQuote } from '@fomo/domain';
+import type { EvmChainDataProvider } from '@kamby/chain-adapters';
+import { prisma } from '@kamby/db';
+import { parseUnsignedTx, TRADING_DEFAULTS, transactionMatchesQuote } from '@kamby/domain';
 import type { Logger } from 'pino';
 
 /** Bounds one sweep tick's RPC work — a large backlog simply continues over several ticks,

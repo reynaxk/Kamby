@@ -1,6 +1,6 @@
 'use client';
 
-import type { SavedSearchDto } from '@fomo/domain';
+import type { SavedSearchDto } from '@kamby/domain';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {

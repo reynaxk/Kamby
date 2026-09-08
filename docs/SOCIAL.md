@@ -1,6 +1,6 @@
 # Phase 2: social architecture
 
-Phase 1 made Fomo a market-data product. Phase 2 makes it a *social* one — real trading
+Phase 1 made Kamby a market-data product. Phase 2 makes it a *social* one — real trading
 activity, trader identity, and follows, on top of the same indexed data, without touching
 Phase 1's ingestion model, chain adapter, or API structure. See `docs/SOURCE_OF_TRUTH.md`
 first if you haven't; everything below follows the same rule (one authoritative owner per
@@ -21,7 +21,7 @@ API (apps/api/src/identity, apps/api/src/social)
     ↓
 Redis (pub/sub ping only — no activity data lives in Redis)  /  Realtime (SSE)
     ↓
-Fomo Web (apps/web)
+Kamby Web (apps/web)
 ```
 
 ## Activity model
@@ -88,7 +88,7 @@ re-fetching those exact logs). Every swap indexed from this migration onward has
 `TraderService#getProfile` / `getStats` compute only what's correctly derivable from
 indexed `swaps`: total swap count, buy/sell counts, total volume, first-seen and
 last-active timestamps. **Deliberately absent: profit, ROI, win rate, portfolio value,
-PnL.** Fomo does not track cost basis (the price at which a trader's current holdings were
+PnL.** Kamby does not track cost basis (the price at which a trader's current holdings were
 acquired), so any of those numbers would be fabricated. This is the same non-fabrication
 principle Phase 1 applies to `priceChange24hPct`/`volume24hUsd` (null, not a guess, until
 the data genuinely supports it) — see `docs/SOURCE_OF_TRUTH.md`.
@@ -205,7 +205,7 @@ possible.
 ```text
 Ingestion worker (new swaps persisted)
    ↓
-Redis PUBLISH fomo:activity:new  { tokenMarketId, count, atIso }   (ACTIVITY_REALTIME_CHANNEL)
+Redis PUBLISH kamby:activity:new  { tokenMarketId, count, atIso }   (ACTIVITY_REALTIME_CHANNEL)
    ↓
 API: RealtimeService (dedicated `redis.duplicate()` subscriber, one per process)
    ↓

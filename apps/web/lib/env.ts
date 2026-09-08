@@ -1,4 +1,4 @@
-import { parseEnv } from '@fomo/domain';
+import { parseEnv } from '@kamby/domain';
 import { z } from 'zod';
 
 /**

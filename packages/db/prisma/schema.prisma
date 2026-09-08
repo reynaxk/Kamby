@@ -234,7 +234,7 @@ model IngestionCursor {
 // or not anyone ever signs up; `User` is the optional account layered on top of it.
 // ---------------------------------------------------------------------------------------
 
-/// A blockchain address with observed public trading activity — Fomo's "trader," tracked
+/// A blockchain address with observed public trading activity — Kamby's "trader," tracked
 /// independent of whether anyone has ever signed up (docs/WALLET_SECURITY.md's
 /// wallet-first identity model). Rows are created lazily — by the ingestion worker the
 /// first time an address appears as a swap's trader, or by Phase 3's wallet-verification
@@ -255,12 +255,12 @@ model Wallet {
   /// Set only once a linked User chooses a display identity — never inferred or guessed.
   displayName String?   @map("display_name")
   avatarUrl   String?   @map("avatar_url")
-  /// The first time Fomo became aware of this wallet in *any* capacity — its first indexed
+  /// The first time Kamby became aware of this wallet in *any* capacity — its first indexed
   /// trade, or the moment a user verified ownership of it, whichever happened first. Never
   /// backdated, never a guess.
   firstSeenAt DateTime  @map("first_seen_at")
   /// Non-null only after a signature has proven this address's owner controls it — see
-  /// docs/TRADING.md#wallet-ownership. Null forever for a wallet Fomo has only observed
+  /// docs/TRADING.md#wallet-ownership. Null forever for a wallet Kamby has only observed
   /// trading and no one has claimed.
   verifiedAt  DateTime? @map("verified_at")
   /// Last time this wallet was used for an authenticated action (verification refresh, a
@@ -281,11 +281,11 @@ model Wallet {
   @@map("wallets")
 }
 
-/// An authenticated Fomo account — the optional layer on top of Wallet (see
+/// An authenticated Kamby account — the optional layer on top of Wallet (see
 /// docs/WALLET_SECURITY.md). Phase 2 issued only anonymous sessions; Phase 3 adds real
 /// wallet ownership (`docs/TRADING.md#wallet-ownership`) on the same session — one `User`
 /// can hold several verified `Wallet`s (see the back-relation on `Wallet.userId`), matching
-/// a person who uses more than one wallet with Fomo.
+/// a person who uses more than one wallet with Kamby.
 model User {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now()) @map("created_at")
@@ -298,7 +298,7 @@ model User {
   /// final value.
   lastDiscoverySeenAt DateTime? @map("last_discovery_seen_at")
   /// Consecutive UTC calendar days with at least one `mark-seen` call — see
-  /// computeStreak in @fomo/domain for the exact rule. Deliberately the only "engagement"
+  /// computeStreak in @kamby/domain for the exact rule. Deliberately the only "engagement"
   /// number in this product — no points, no XP, no badges.
   currentStreakDays   Int       @default(0) @map("current_streak_days")
   longestStreakDays   Int       @default(0) @map("longest_streak_days")
@@ -514,11 +514,11 @@ enum NotificationType {
 /// session server-side, never a client-supplied id; see docs/NOTIFICATIONS.md#security).
 /// Deliberately stores only references, never a precomputed title/body/deep-link string —
 /// those are derived at read time from the referenced rows (see
-/// docs/SOURCE_OF_TRUTH.md and the NotificationDto comment in @fomo/domain), the same
+/// docs/SOURCE_OF_TRUTH.md and the NotificationDto comment in @kamby/domain), the same
 /// "read-time projection" pattern `Swap` → social-activity already uses.
 ///
 /// `actorUserId`/`actorWalletAddress` are two different flavors of "who caused this,"
-/// populated depending on `type` (see NOTIFICATION_PREFERENCE_FIELD in @fomo/domain):
+/// populated depending on `type` (see NOTIFICATION_PREFERENCE_FIELD in @kamby/domain):
 /// FOLLOW/LIKE reference the acting *User* (a follow/like is a session action, and the
 /// actor may not even have a wallet yet); FOLLOWED_TRADER_TRADE/WHALE_TRADE reference the
 /// acting *Wallet* (the trader who made the swap, which is a wallet-level fact). Both are
@@ -527,7 +527,7 @@ enum NotificationType {
 /// `dedupeKey` + the unique constraint below is the idempotency guarantee required by
 /// docs/NOTIFICATIONS.md#idempotency — every creation path (API for follow/like, worker
 /// for trade/whale/trending) must build its key with the matching helper in
-/// @fomo/domain/notifications so retries, indexer re-runs, and concurrent workers can never
+/// @kamby/domain/notifications so retries, indexer re-runs, and concurrent workers can never
 /// create a duplicate, without relying on any in-memory dedup.
 model Notification {
   id        String           @id @default(uuid())
@@ -562,7 +562,7 @@ model Notification {
 }
 
 /// Per-user opt-out toggles — see docs/NOTIFICATIONS.md#preferences. No row means "every
-/// default applies" (see NOTIFICATION_DEFAULTS.preferenceDefaults in @fomo/domain); a row
+/// default applies" (see NOTIFICATION_DEFAULTS.preferenceDefaults in @kamby/domain); a row
 /// is created lazily on first write, not eagerly for every signup, matching this schema's
 /// "don't duplicate data unnecessarily" convention elsewhere. Read and written only via the
 /// authenticated session's own `userId` — never a client-supplied id, and never trusted for
@@ -586,7 +586,7 @@ model NotificationPreference {
 }
 
 /// Whether each token market is *currently* trending per `computeTrendingScore` (see
-/// @fomo/domain/social) — tracked purely so the worker can detect a false→true transition
+/// @kamby/domain/social) — tracked purely so the worker can detect a false→true transition
 /// and notify only on genuine entry into trending, never on every tick's score fluctuation
 /// (docs/NOTIFICATIONS.md#trending-tokens). Never a second trending algorithm or a stored
 /// score: this table is a rebuildable cache of one boolean, derived the same way
@@ -595,7 +595,7 @@ model TokenTrendingState {
   tokenMarketId    String    @id @map("token_market_id")
   isTrending       Boolean   @default(false) @map("is_trending")
   /// Set when `isTrending` last flipped false→true; this is what makes the dedupe key for
-  /// the resulting notification (see trendingTokenDedupeKey in @fomo/domain) unique to that
+  /// the resulting notification (see trendingTokenDedupeKey in @kamby/domain) unique to that
   /// specific entry into trending, so a later re-entry can notify again.
   becameTrendingAt DateTime? @map("became_trending_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -634,7 +634,7 @@ model TokenWatch {
 /// Phase 6 — see docs/PHASE6_RETENTION_SOCIAL.md#saved-searches. A lightweight bookmark of a
 /// discovery/market query string, nothing more — no stored result set, no scheduled re-run,
 /// no analytics. `SavedSearchService` enforces a max-per-user cap (see MAX_SAVED_SEARCHES in
-/// @fomo/domain) at the service layer rather than in the schema, the same way other
+/// @kamby/domain) at the service layer rather than in the schema, the same way other
 /// business-rule bounds in this codebase are enforced above the DB.
 model SavedSearch {
   id          String   @id @default(uuid())

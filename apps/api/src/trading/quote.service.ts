@@ -1,6 +1,6 @@
 import { ForbiddenException, Inject, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import {
   calculateFeeAmount,
   calculateMinOutputAmount,
@@ -10,7 +10,7 @@ import {
   TRADING_DEFAULTS,
   type TradeQuoteDto,
   type TradeSide,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { formatUnits, parseUnits } from 'viem';
 import type { Env } from '../config/env';

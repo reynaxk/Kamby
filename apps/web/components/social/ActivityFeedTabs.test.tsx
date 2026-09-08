@@ -1,4 +1,4 @@
-import type { SocialActivity } from '@fomo/domain';
+import type { SocialActivity } from '@kamby/domain';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';

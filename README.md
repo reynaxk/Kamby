@@ -1,4 +1,4 @@
-# Fomo (working title)
+# Kamby (working title)
 
 A social crypto discovery and trading platform. Phase 0 built the production foundation;
 Phase 1 added the first real product surface — market discovery for a curated set of real
@@ -7,7 +7,7 @@ tokens on Base, with genuine on-chain price/liquidity/volume, not mock data (see
 feed, wallet-first trader identity and profiles, follows, and activity-based trending — on
 the same indexed data. **Phase 3 closes the loop**: connect a wallet, prove ownership with a
 real signature (SIWE), get a real executable quote, review it, sign and broadcast the
-transaction yourself, and watch it confirm — all non-custodially, Fomo's backend never
+transaction yourself, and watch it confirm — all non-custodially, Kamby's backend never
 holding a key or signing anything. See `docs/TRADING.md` for exactly how, `docs/SOCIAL.md`
 for Phase 2's, and the architecture spec for the product vision and roadmap beyond this.
 
@@ -78,7 +78,7 @@ pnpm dev                          # runs web, api, and workers together, via Tur
 - Workers: no HTTP surface — watch the logs for seeding/ingestion progress.
 
 Run a single app instead of all three with Turborepo's filter flag, e.g.
-`pnpm --filter @fomo/api dev`.
+`pnpm --filter @kamby/api dev`.
 
 ## Environment variables
 
@@ -120,7 +120,7 @@ for the Phase 1 tables, `docs/SOCIAL.md` for Phase 2's, and `docs/TRADING.md` fo
 ```bash
 pnpm test                            # every package's unit tests (now includes component
                                       # tests in apps/web via @testing-library/react + jsdom)
-pnpm --filter @fomo/api test:e2e     # API e2e tests — requires docker compose up -d
+pnpm --filter @kamby/api test:e2e     # API e2e tests — requires docker compose up -d
 ```
 
 See `docs/TESTING.md` for what's covered where and why the e2e suite is a separate step.

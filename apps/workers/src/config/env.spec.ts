@@ -1,9 +1,9 @@
-import { parseEnv } from '@fomo/domain';
+import { parseEnv } from '@kamby/domain';
 import { describe, expect, it } from 'vitest';
 import { EnvSchema } from './env';
 
 const valid = {
-  DATABASE_URL: 'postgresql://user:pass@localhost:5432/fomo',
+  DATABASE_URL: 'postgresql://user:pass@localhost:5432/kamby',
   REDIS_URL: 'redis://localhost:6379',
   CHAIN_IDENTIFIER: 'eip155:8453',
   CHAIN_NAME: 'Base',

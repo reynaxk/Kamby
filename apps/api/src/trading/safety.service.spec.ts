@@ -1,9 +1,9 @@
 import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
-import { DISCOVERY_RANKING } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import { DISCOVERY_RANKING } from '@kamby/domain';
 import { SafetyService } from './safety.service';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     tokenMarket: {
       findFirst: jest.fn(),

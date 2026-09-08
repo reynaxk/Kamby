@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import { ReturnLoopService } from './return-loop.service';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     user: { findUnique: jest.fn(), update: jest.fn() },
     notification: { findMany: jest.fn(), count: jest.fn() },

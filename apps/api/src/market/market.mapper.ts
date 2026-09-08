@@ -1,6 +1,6 @@
-import type { MarketSummary } from '@fomo/domain';
-import { isPriceStale } from '@fomo/domain';
-import type { Prisma } from '@fomo/db';
+import type { MarketSummary } from '@kamby/domain';
+import { isPriceStale } from '@kamby/domain';
+import type { Prisma } from '@kamby/db';
 
 export type MarketRow = Prisma.TokenMarketGetPayload<{
   include: { token: true; quoteToken: true; chain: true };

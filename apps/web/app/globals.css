@@ -8,34 +8,34 @@
  * premium-fintech-terminal direction, not the ember placeholder from the Phase 0 shell.
  */
 :root {
-  --fomo-bg: 241 242 245;
-  --fomo-surface: 255 255 255;
-  --fomo-surface-raised: 232 234 239;
-  --fomo-line: 219 222 229;
-  --fomo-ink-900: 20 22 28;
-  --fomo-ink-600: 75 79 90;
-  --fomo-ink-400: 110 114 128;
-  --fomo-accent: 12 140 130;
-  --fomo-up: 28 154 99;
-  --fomo-down: 216 55 90;
+  --kamby-bg: 241 242 245;
+  --kamby-surface: 255 255 255;
+  --kamby-surface-raised: 232 234 239;
+  --kamby-line: 219 222 229;
+  --kamby-ink-900: 20 22 28;
+  --kamby-ink-600: 75 79 90;
+  --kamby-ink-400: 110 114 128;
+  --kamby-accent: 12 140 130;
+  --kamby-up: 28 154 99;
+  --kamby-down: 216 55 90;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fomo-bg: 10 11 14;
-    --fomo-surface: 19 21 27;
-    --fomo-surface-raised: 27 30 38;
-    --fomo-line: 39 43 52;
-    --fomo-ink-900: 237 238 242;
-    --fomo-ink-600: 171 175 187;
-    --fomo-ink-400: 121 126 140;
-    --fomo-accent: 45 212 197;
-    --fomo-up: 53 192 129;
-    --fomo-down: 240 89 111;
+    --kamby-bg: 10 11 14;
+    --kamby-surface: 19 21 27;
+    --kamby-surface-raised: 27 30 38;
+    --kamby-line: 39 43 52;
+    --kamby-ink-900: 237 238 242;
+    --kamby-ink-600: 171 175 187;
+    --kamby-ink-400: 121 126 140;
+    --kamby-accent: 45 212 197;
+    --kamby-up: 53 192 129;
+    --kamby-down: 240 89 111;
   }
 }
 
 body {
-  background-color: rgb(var(--fomo-bg));
-  color: rgb(var(--fomo-ink-900));
+  background-color: rgb(var(--kamby-bg));
+  color: rgb(var(--kamby-ink-900));
 }

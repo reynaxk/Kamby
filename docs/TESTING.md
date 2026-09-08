@@ -17,7 +17,7 @@
 
 ```bash
 pnpm test          # every package's unit tests, via Turborepo
-pnpm --filter @fomo/api test:e2e   # requires docker compose up -d first
+pnpm --filter @kamby/api test:e2e   # requires docker compose up -d first
 ```
 
 The e2e suite boots the real `AppModule`, so it needs a reachable `DATABASE_URL` and
@@ -89,7 +89,7 @@ Worth recording, since it's the point of testing rather than a formality:
 - `@nestjs/jwt@12` (the latest at the time) ships an ESM build; Jest's default CJS
   transform couldn't load it (`Cannot use import statement outside a module`). Pinned to
   `^10.2.0`, the release aligned with this project's Nest v10 — caught immediately by
-  `pnpm --filter @fomo/api test` failing to even parse, not a runtime surprise.
+  `pnpm --filter @kamby/api test` failing to even parse, not a runtime surprise.
 - `ActivityFeed` was first written taking a `fetchPage` function as a prop, set by the
   Server Component page that renders it. Server Components cannot pass a function to a
   Client Component — React strips it at the RSC boundary. Caught before it shipped by
@@ -143,10 +143,10 @@ Worth recording, since it's the point of testing rather than a formality:
 
 ## What Phase 3 caught during development
 
-- `apps/api` never had `@fomo/chain-adapters` as a declared dependency — Phase 1/2 only
+- `apps/api` never had `@kamby/chain-adapters` as a declared dependency — Phase 1/2 only
   used it from `apps/workers`. `WalletService` (signature verification) and
   `TransactionService` (receipt reads) both need it directly; `pnpm typecheck` failed with
-  `Cannot find module '@fomo/chain-adapters'` immediately, before either service was ever
+  `Cannot find module '@kamby/chain-adapters'` immediately, before either service was ever
   exercised at runtime.
 - A quote/transaction-fixture test private key one character short of 64 hex chars
   (`invalid private key, expected hex or 32 bytes, got string`) — the same class of mistake

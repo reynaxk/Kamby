@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Surface } from '@fomo/ui';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ActivityFeed } from '@/components/social/ActivityFeed';
@@ -24,11 +24,11 @@ export async function generateMetadata({
   params: { address: string };
 }): Promise<Metadata> {
   const profile = await fetchTraderProfile(params.address);
-  if (!profile) return { title: 'Trader not found — Fomo' };
+  if (!profile) return { title: 'Trader not found — Kamby' };
 
   const name = profile.displayName ?? truncateAddress(profile.address);
-  const title = `${name} — Fomo`;
-  const description = `${name}'s trading activity on Fomo: ${profile.stats.totalSwaps} trades, ${formatCompactUsd(profile.stats.volumeUsd)} volume.`;
+  const title = `${name} — Kamby`;
+  const description = `${name}'s trading activity on Kamby: ${profile.stats.totalSwaps} trades, ${formatCompactUsd(profile.stats.volumeUsd)} volume.`;
   return {
     title,
     description,
@@ -67,7 +67,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
           <div className="flex items-center gap-2">
             <FollowButton address={profile.address} initialFollowing={profile.isFollowedByMe} />
             <ShareButton
-              title={`${profile.displayName ?? truncateAddress(profile.address)} on Fomo`}
+              title={`${profile.displayName ?? truncateAddress(profile.address)} on Kamby`}
               path={`/trader/${profile.address}`}
             />
           </div>

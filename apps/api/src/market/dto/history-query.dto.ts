@@ -1,5 +1,5 @@
 import { IsIn, IsOptional } from 'class-validator';
-import { TIMEFRAMES, type Timeframe } from '@fomo/domain';
+import { TIMEFRAMES, type Timeframe } from '@kamby/domain';
 
 export class HistoryQueryDto {
   @IsOptional()

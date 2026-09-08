@@ -1,6 +1,6 @@
 # Market data — Phase 1
 
-How Fomo knows what a token is worth, how liquid it is, and why it's ranked where it is.
+How Kamby knows what a token is worth, how liquid it is, and why it's ranked where it is.
 Read this before touching `packages/db/prisma/schema.prisma`'s market tables,
 `apps/workers/src/market/`, or `apps/api/src/market/`.
 
@@ -37,7 +37,7 @@ placeholder set. Each pool address was read directly on-chain (`token0`/`token1`
 confirmed initialized) against the live Base public RPC during development, and
 cross-checked for genuine liquidity via DexScreener's public API before being added.
 **DexScreener was used only to discover which pools have real liquidity worth tracking —
-never as a source for the price, liquidity, or token metadata Fomo actually publishes.**
+never as a source for the price, liquidity, or token metadata Kamby actually publishes.**
 All of that is read directly from the contracts by the ingestion worker; the seed file
 itself stores nothing but addresses, deliberately, so there's no stale "fact" about a
 token sitting in source control.
@@ -90,7 +90,7 @@ Null, not a fabricated total, when either side's price is unresolved.
 ## Market cap
 
 `computeFullyDilutedMarketCapUsd()`: on-chain `totalSupply()` × price. This is **FDV
-(fully diluted valuation), not circulating market cap** — Fomo has no way to know which
+(fully diluted valuation), not circulating market cap** — Kamby has no way to know which
 tokens are locked, burned, or held by a treasury versus genuinely circulating. Labeled
 "FDV" in the UI (token detail page) for exactly this reason, rather than "Market cap" —
 if a genuine circulating-market-cap figure ever becomes product-relevant, it needs a real

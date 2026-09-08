@@ -1,5 +1,5 @@
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
-import { ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, type NotificationPing } from '@fomo/domain';
+import { ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, type NotificationPing } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { Subject } from 'rxjs';

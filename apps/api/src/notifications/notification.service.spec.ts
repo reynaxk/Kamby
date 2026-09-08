@@ -1,9 +1,9 @@
-import { Prisma, prisma } from '@fomo/db';
-import { NOTIFICATION_REALTIME_CHANNEL } from '@fomo/domain';
+import { Prisma, prisma } from '@kamby/db';
+import { NOTIFICATION_REALTIME_CHANNEL } from '@kamby/domain';
 import type { PinoLogger } from 'nestjs-pino';
 import { NotificationService } from './notification.service';
 
-jest.mock('@fomo/db', () => {
+jest.mock('@kamby/db', () => {
   const actual = jest.requireActual('@prisma/client');
   return {
     Prisma: actual.Prisma,

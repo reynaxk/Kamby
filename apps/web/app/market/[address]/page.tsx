@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { TIMEFRAMES, type Timeframe } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import { TIMEFRAMES, type Timeframe } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AutoRefresh } from '@/components/market/AutoRefresh';
@@ -36,10 +36,10 @@ export async function generateMetadata({
   params: { address: string };
 }): Promise<Metadata> {
   const market = await fetchToken(params.address);
-  if (!market) return { title: 'Token not found — Fomo' };
+  if (!market) return { title: 'Token not found — Kamby' };
 
   const name = market.symbol ?? market.name ?? truncateAddress(market.tokenAddress);
-  const title = `${name} — ${formatPrice(market.priceUsd)} — Fomo`;
+  const title = `${name} — ${formatPrice(market.priceUsd)} — Kamby`;
   const description = `${name} on ${market.chainIdentifier}: price, 24h volume, liquidity, and live trading activity.`;
   return {
     title,
@@ -99,7 +99,7 @@ export default async function TokenDetailPage({
           <div className="flex items-center gap-2">
             <WatchButton address={market.tokenAddress} initialWatching={null} />
             <ShareButton
-              title={`${market.symbol ?? market.name ?? 'Token'} on Fomo`}
+              title={`${market.symbol ?? market.name ?? 'Token'} on Kamby`}
               path={`/market/${market.tokenAddress}`}
             />
           </div>

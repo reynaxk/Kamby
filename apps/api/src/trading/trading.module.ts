@@ -10,7 +10,7 @@ import { TransactionService } from './transaction.service';
 /**
  * Owns swap quoting, transaction preparation/tracking, and trading fees — see
  * docs/TRADING.md. Never signs a transaction (see docs/WALLET_SECURITY.md); the router
- * adapter is the only place that knows which aggregator Fomo integrates with — see
+ * adapter is the only place that knows which aggregator Kamby integrates with — see
  * docs/TRADING.md#provider.
  */
 @Module({

@@ -1,5 +1,5 @@
-import type { RisingTrader, RisingToken } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import type { RisingTrader, RisingToken } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { EmptyState } from '@/components/market/EmptyState';
 import { TokenCard } from '@/components/market/TokenCard';
@@ -9,7 +9,7 @@ import { formatRelativeTime } from '@/lib/format';
 /**
  * "Rising" — a measurable increase in activity, never a vibe. Tokens are ones that
  * recently entered trending (reusing Phase 4's own trending-transition state — see
- * isRecentlyRisingToken in @fomo/domain); traders are ones trading well above their own
+ * isRecentlyRisingToken in @kamby/domain); traders are ones trading well above their own
  * historical pace (see isRisingTrader). See docs/TRADER_INTELLIGENCE.md#rising.
  */
 export function RisingSection({ tokens, traders }: { tokens: RisingToken[]; traders: RisingTrader[] }) {

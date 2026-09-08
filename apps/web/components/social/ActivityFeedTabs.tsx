@@ -1,7 +1,7 @@
 'use client';
 
-import type { SocialActivity } from '@fomo/domain';
-import { cn } from '@fomo/ui';
+import type { SocialActivity } from '@kamby/domain';
+import { cn } from '@kamby/ui';
 import { useEffect, useState } from 'react';
 import { fetchLatestFollowingActivity, hasStoredSession } from '@/lib/social-client';
 import { ActivityFeed } from './ActivityFeed';

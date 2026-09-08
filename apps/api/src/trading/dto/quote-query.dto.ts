@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
-import { TRADING_DEFAULTS } from '@fomo/domain';
+import { TRADING_DEFAULTS } from '@kamby/domain';
 
 const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 

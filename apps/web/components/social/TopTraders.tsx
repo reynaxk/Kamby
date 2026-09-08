@@ -1,5 +1,5 @@
-import type { TopTrader } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import type { TopTrader } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { formatCompactUsd } from '@/lib/format';
 import { TraderIdentity } from './TraderIdentity';

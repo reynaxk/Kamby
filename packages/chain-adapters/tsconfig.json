@@ -1,5 +1,5 @@
 {
-  "extends": "@fomo/config/tsconfig.package.json",
+  "extends": "@kamby/config/tsconfig.package.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"

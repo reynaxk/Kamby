@@ -60,7 +60,7 @@ that the process is up.
 1. Create a Neon Postgres project; enable the `timescaledb` extension (Neon supports it —
    check the current list of supported extensions if this ever changes) or point
    `DATABASE_URL` at any Postgres 16 instance with `timescaledb` installed.
-2. Run the migration against it once: `DATABASE_URL=... pnpm --filter @fomo/db migrate:deploy`.
+2. Run the migration against it once: `DATABASE_URL=... pnpm --filter @kamby/db migrate:deploy`.
 3. Create an Upstash Redis database and use its connection string as `REDIS_URL`.
 
 ## What Phase 0 does NOT do

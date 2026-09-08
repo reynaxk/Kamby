@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, prisma } from '@fomo/db';
+import { Prisma, prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
 import { NotificationService } from '../../notifications/notification.service';
 
@@ -32,7 +32,7 @@ export class LikeService {
     }
 
     // Only on a genuine new like (not the P2002 branch above); see likeDedupeKey in
-    // @fomo/domain for why re-liking after an unlike still wouldn't renotify if reached
+    // @kamby/domain for why re-liking after an unlike still wouldn't renotify if reached
     // again. A notification failure must never surface as a failed like.
     try {
       await this.notifications.notifyLike(userId, swap);

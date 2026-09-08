@@ -1,6 +1,6 @@
 'use client';
 
-import type { NotificationDto, NotificationPreferences } from '@fomo/domain';
+import type { NotificationDto, NotificationPreferences } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk } from './session-client';
 
 /**
@@ -43,7 +43,7 @@ export async function markAllNotificationsRead(): Promise<void> {
   broadcastLocalRead();
 }
 
-const LOCAL_READ_EVENT = 'fomo:notifications-read';
+const LOCAL_READ_EVENT = 'kamby:notifications-read';
 
 /** This app has no shared state layer (see app/providers.tsx's own comment on that), so the
  *  bell and the full /notifications page — two independent component instances that can

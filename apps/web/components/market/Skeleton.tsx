@@ -1,4 +1,4 @@
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn('animate-pulse rounded-md bg-surface-raised', className)} />;

@@ -5,7 +5,7 @@ import type {
   PersonalizedToken,
   SavedSearchDto,
   WhatsMissed,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**

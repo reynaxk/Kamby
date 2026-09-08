@@ -1,8 +1,8 @@
 import { JwtService } from '@nestjs/jwt';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import { IdentityService } from './identity.service';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     user: {
       create: jest.fn(),

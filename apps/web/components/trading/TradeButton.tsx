@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, type ButtonProps } from '@fomo/ui';
-import type { TradeSide } from '@fomo/domain';
+import { Button, type ButtonProps } from '@kamby/ui';
+import type { TradeSide } from '@kamby/domain';
 import { TradeModal } from './TradeModal';
 import { TradePanel } from './TradePanel';
 

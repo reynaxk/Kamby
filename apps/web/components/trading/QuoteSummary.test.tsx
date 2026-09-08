@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { TradeQuoteDto } from '@fomo/domain';
+import type { TradeQuoteDto } from '@kamby/domain';
 import { QuoteSummary } from './QuoteSummary';
 
 function baseQuote(overrides: Partial<TradeQuoteDto> = {}): TradeQuoteDto {
@@ -42,7 +42,7 @@ describe('QuoteSummary', () => {
     expect(screen.getByText('1.0 WETH')).toBeInTheDocument();
     expect(screen.getByText('You receive')).toBeInTheDocument();
     expect(screen.getByText('100.0 FOO')).toBeInTheDocument();
-    expect(screen.getByText('0.5 FOO')).toBeInTheDocument(); // Fomo fee, in the output token
+    expect(screen.getByText('0.5 FOO')).toBeInTheDocument(); // Kamby fee, in the output token
     expect(screen.getByText('0.42%')).toBeInTheDocument(); // priceImpactBps -> percent
     expect(screen.getByText('0.5%')).toBeInTheDocument(); // slippageBps -> percent
   });

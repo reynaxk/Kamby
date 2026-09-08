@@ -13,7 +13,7 @@ to, but because it structurally cannot:
   `apps/api`'s `TradingModule` (built in Phase 3 — see `docs/TRADING.md`) builds unsigned
   transactions and hands them to the client; it never holds a signing key. The client
   (`apps/web/components/trading/TradePanel.tsx`) hands that unsigned transaction to wagmi's
-  `sendTransaction`/`writeContract`, which delegate to whatever wallet is connected — Fomo's
+  `sendTransaction`/`writeContract`, which delegate to whatever wallet is connected — Kamby's
   own code is never in the signing path.
 
 If a future change ever appears to require server-side signing or key storage, that is a

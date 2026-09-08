@@ -1,5 +1,5 @@
 {
-  "extends": "@fomo/config/tsconfig.node.json",
+  "extends": "@kamby/config/tsconfig.node.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"

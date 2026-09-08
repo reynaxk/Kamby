@@ -19,7 +19,7 @@ export function MarketHeader({ searchValue }: { searchValue?: string }) {
             🔥
           </span>
           <span className="font-display text-lg font-extrabold tracking-tight text-ink-900">
-            Fomo
+            Kamby
           </span>
         </Link>
         <span className="rounded-full bg-accent/10 px-2.5 py-1 font-mono text-[0.7rem] uppercase tracking-wide text-accent">

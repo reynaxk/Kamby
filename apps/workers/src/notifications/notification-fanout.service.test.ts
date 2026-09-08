@@ -3,7 +3,7 @@ import {
   NOTIFICATION_REALTIME_CHANNEL,
   watchedTokenActivityDedupeKey,
   whaleTradeDedupeKey,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +21,7 @@ const mockPrisma = vi.hoisted(() => ({
   user: { findMany: vi.fn() },
 }));
 
-vi.mock('@fomo/db', () => ({ prisma: mockPrisma }));
+vi.mock('@kamby/db', () => ({ prisma: mockPrisma }));
 
 const fakeLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as Logger;
 const WHALE_THRESHOLD = 25_000;

@@ -1,5 +1,5 @@
-import type { SocialActivity } from '@fomo/domain';
-import { Surface, cn } from '@fomo/ui';
+import type { SocialActivity } from '@kamby/domain';
+import { Surface, cn } from '@kamby/ui';
 import Link from 'next/link';
 import { TradeButton } from '@/components/trading/TradeButton';
 import { formatCompactUsd, formatPrice, formatRelativeTime, truncateAddress } from '@/lib/format';
@@ -103,7 +103,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           />
           <ShareButton
             compact
-            title={`${isBuy ? 'Bought' : 'Sold'} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Fomo`}
+            title={`${isBuy ? 'Bought' : 'Sold'} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Kamby`}
             path={`/market/${activity.token.address}`}
           />
         </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseEnv } from '@fomo/domain';
+import { parseEnv } from '@kamby/domain';
 import { ClientEnvSchema, ServerEnvSchema } from './env';
 
 describe('web server env schema', () => {

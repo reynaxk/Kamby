@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 import { useState, useTransition } from 'react';
 import { likeActivity, unlikeActivity } from '@/lib/social-client';
 

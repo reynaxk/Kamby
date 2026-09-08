@@ -10,7 +10,7 @@ import { clientEnv } from './env';
  * neither wallet nor trading code needs to import "social" to get a session.
  */
 
-const TOKEN_STORAGE_KEY = 'fomo:session-token';
+const TOKEN_STORAGE_KEY = 'kamby:session-token';
 const API_BASE = clientEnv.NEXT_PUBLIC_API_BASE_URL;
 
 function readStoredToken(): string | null {

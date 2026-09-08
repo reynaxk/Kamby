@@ -1,4 +1,4 @@
-import type { Candle, DiscoverSort, MarketSummary, Timeframe } from '@fomo/domain';
+import type { Candle, DiscoverSort, MarketSummary, Timeframe } from '@kamby/domain';
 import { env } from './env';
 
 /**

@@ -1,5 +1,5 @@
-import type { MarketSummary } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import type { MarketSummary } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { PriceChange } from './PriceChange';

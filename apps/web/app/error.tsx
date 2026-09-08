@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Surface } from '@fomo/ui';
+import { Button, Surface } from '@kamby/ui';
 import { useEffect } from 'react';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {

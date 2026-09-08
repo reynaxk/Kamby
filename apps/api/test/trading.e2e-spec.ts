@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import request from 'supertest';
 import { createPublicClient, http as viemHttp } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
@@ -12,7 +12,7 @@ const CHAIN_RPC_URL = 'https://mainnet.base.org';
 
 /**
  * Real, already-mined, genuinely-successful Base mainnet transaction hashes — used to prove
- * that a real successful receipt is not, by itself, enough to confirm a Fomo trade (see
+ * that a real successful receipt is not, by itself, enough to confirm a Kamby trade (see
  * docs/TRADING.md#transaction-integrity). Walks back through recent blocks (this chain is
  * busy enough that a handful of blocks always contain several successful transactions)
  * rather than hardcoding a specific hash, so this doesn't depend on one address/tx staying

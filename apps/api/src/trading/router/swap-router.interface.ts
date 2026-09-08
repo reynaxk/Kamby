@@ -1,4 +1,4 @@
-import type { UnsignedTransaction } from '@fomo/domain';
+import type { UnsignedTransaction } from '@kamby/domain';
 
 /**
  * Every provider-specific detail (0x's exact endpoints, headers, response shape) lives

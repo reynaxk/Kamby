@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 
 interface SessionPayload {
   sub: string;

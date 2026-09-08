@@ -1,5 +1,5 @@
 {
-  "extends": "@fomo/config/tsconfig.nestjs.json",
+  "extends": "@kamby/config/tsconfig.nestjs.json",
   "compilerOptions": {
     "baseUrl": "./"
   },

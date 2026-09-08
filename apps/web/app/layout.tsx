@@ -20,8 +20,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Fomo (working title)',
-  description: 'A social crypto discovery and trading platform — foundation build.',
+  title: 'Kamby',
+  description: 'A social crypto discovery and trading platform.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

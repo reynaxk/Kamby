@@ -82,14 +82,14 @@ like every other use of Redis in this codebase (pub/sub delivery, SSE tickets).
 
 Phase 3's `trade_transactions` is a deliberate **exception** to "rebuildable from raw
 history, never written directly": a trade transaction's `status` cannot be derived from
-anything else Fomo stores — it exists only by asking the chain itself for a receipt (or,
+anything else Kamby stores — it exists only by asking the chain itself for a receipt (or,
 for a background sweep, polling it) — so it's the one place Phase 3 writes an authoritative
 fact directly rather than caching a value computed from other rows. This doesn't relax the
 core rule so much as name its edge: a real external system (the blockchain) is still the
-actual source of truth, `trade_transactions.status` is just where Fomo's own database
+actual source of truth, `trade_transactions.status` is just where Kamby's own database
 records the answer it got back, exactly like `ingestion_cursors` records ingestion progress
 rather than deriving it. Trader stats in Phase 2 (`docs/SOCIAL.md#trader-stats`) still stop
-short of PnL/ROI/win-rate for the original reason: Fomo has no cost-basis data, so those
+short of PnL/ROI/win-rate for the original reason: Kamby has no cost-basis data, so those
 numbers aren't rebuildable from anything real, in Phase 3 or otherwise.
 
 ## Never fabricate a chain-derived value

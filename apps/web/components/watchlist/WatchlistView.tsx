@@ -1,7 +1,7 @@
 'use client';
 
-import type { WatchedToken } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import type { WatchedToken } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '@/components/market/EmptyState';

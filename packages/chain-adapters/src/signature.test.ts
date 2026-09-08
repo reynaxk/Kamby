@@ -9,7 +9,7 @@ const account = privateKeyToAccount(TEST_PRIVATE_KEY);
 
 describe('verifyEvmSignature', () => {
   it('accepts a real signature from the address that actually signed it', async () => {
-    const message = 'fomo.app wants you to sign in with your Ethereum account';
+    const message = 'kamby.app wants you to sign in with your Ethereum account';
     const signature = await account.signMessage({ message });
 
     await expect(verifyEvmSignature({ address: account.address, message, signature })).resolves.toBe(true);
@@ -24,7 +24,7 @@ describe('verifyEvmSignature', () => {
   });
 
   it("rejects a valid signature checked against an address that isn't the signer", async () => {
-    const message = 'fomo.app sign-in';
+    const message = 'kamby.app sign-in';
     const signature = await account.signMessage({ message });
     const someoneElse = '0x000000000000000000000000000000000000dEaD';
 

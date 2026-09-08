@@ -1,7 +1,7 @@
 'use client';
 
-import type { SocialActivity } from '@fomo/domain';
-import { Button } from '@fomo/ui';
+import type { SocialActivity } from '@kamby/domain';
+import { Button } from '@kamby/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   fetchLatestActivity,

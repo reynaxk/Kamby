@@ -1,7 +1,7 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { WatchlistView } from '@/components/watchlist/WatchlistView';
 
-export const metadata = { title: 'Your watchlist — Fomo' };
+export const metadata = { title: 'Your watchlist — Kamby' };
 
 /**
  * Entirely client-rendered below the header — a watchlist is personal to whatever session

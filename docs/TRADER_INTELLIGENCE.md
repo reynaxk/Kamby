@@ -6,7 +6,7 @@ personalized-discovery layer — no new indexing, no new tables, entirely derive
 `swaps`, `follows`, `activity_likes`, and `trade_transactions` the platform already owns.
 
 **The hard rule governing every metric below: never fabricate a financial performance
-number.** If a statistic can't be derived correctly from data Fomo actually has, it's
+number.** If a statistic can't be derived correctly from data Kamby actually has, it's
 listed under [Deferred metrics](#deferred-metrics) instead of being approximated.
 
 ```text
@@ -20,7 +20,7 @@ Redis cache-aside for public rankings only (explicit TTL; Postgres remains autho
     ↓
 API (apps/api/src/social, apps/api/src/market, apps/api/src/discovery)
     ↓
-Fomo Web (apps/web)
+Kamby Web (apps/web)
 ```
 
 ## Trader statistics
@@ -89,7 +89,7 @@ Three bounded queries total, never a loop over traders.
 
 ## Trader discovery
 
-Two complementary, transparently-labeled rankings — never "best trader," since Fomo has no
+Two complementary, transparently-labeled rankings — never "best trader," since Kamby has no
 cost-basis data to back a profitability claim (see [Deferred metrics](#deferred-metrics)):
 
 - **Top Traders** (`GET /social/traders/top`, Phase 2, unchanged) — ranked by real 24h
@@ -98,7 +98,7 @@ cost-basis data to back a profitability claim (see [Deferred metrics](#deferred-
   `COUNT(*)` instead. Both share the same `MIN_TRADES_FOR_TRADER_RANKING` floor (2 trades)
   so a single huge or one-off trade can't win either ranking — this constant used to be a
   private copy inside `trader.service.ts`; Phase 5 centralized it into
-  `@fomo/domain` so both rankings can never quietly disagree on the floor.
+  `@kamby/domain` so both rankings can never quietly disagree on the floor.
 
 ## Large trades
 
@@ -229,20 +229,20 @@ tracked-market scale — the same assumption `MarketService#discover` already do
 ## Deferred metrics
 
 **PnL, ROI, and win rate are not implemented.** Before any of them could be computed
-correctly, Fomo's data model would need:
+correctly, Kamby's data model would need:
 
 - **Matched entries and exits** — which specific buy(s) a given sell closes out (FIFO,
   LIFO, or average-cost; `swaps` records each trade independently with no linkage between
   them).
 - **Full wallet inventory** — every token a wallet holds, including balances acquired
-  *before* Fomo ever indexed a pool the wallet traded on, or via a plain transfer that never
+  *before* Kamby ever indexed a pool the wallet traded on, or via a plain transfer that never
   touched an indexed pool at all. `swaps` only sees activity on tracked Uniswap V3 pools.
 - **Cost basis per unit acquired** — the USD price paid at each entry, correctly weighted
   across multiple partial entries.
 - **Fees** — gas and any protocol/platform fee, to get a *realized* number instead of a
   gross one.
-- **A clear distinction between Fomo-originated trades and a wallet's full on-chain
-  activity** — `trade_transactions` (Phase 3) only records trades placed *through* Fomo
+- **A clear distinction between Kamby-originated trades and a wallet's full on-chain
+  activity** — `trade_transactions` (Phase 3) only records trades placed *through* Kamby
   itself, a small subset of what a real wallet does on-chain; `swaps` is indexed pool
   activity generally, with no ownership/inventory model layered on top.
 

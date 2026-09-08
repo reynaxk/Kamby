@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
-import { computeStreak, WHATS_MISSED_MAX_ITEMS, type WhatsMissed } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import { computeStreak, WHATS_MISSED_MAX_ITEMS, type WhatsMissed } from '@kamby/domain';
 import { NOTIFICATION_INCLUDE, toNotificationDto } from '../../notifications/notification.mapper';
 
 /**
@@ -8,7 +8,7 @@ import { NOTIFICATION_INCLUDE, toNotificationDto } from '../../notifications/not
  * docs/PHASE6_RETENTION_SOCIAL.md#return-loop. Deliberately a thin read over the *existing*
  * `Notification` table (`createdAt > lastDiscoverySeenAt`, bounded `LIMIT`), never a new
  * parallel event-sourcing model — the spec's own explicit instruction. The streak itself is
- * the only "engagement" number this product tracks; see computeStreak in @fomo/domain for
+ * the only "engagement" number this product tracks; see computeStreak in @kamby/domain for
  * why a plain read-then-overwrite is race-safe here without a transaction or CAS.
  */
 @Injectable()

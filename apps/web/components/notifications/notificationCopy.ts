@@ -1,10 +1,10 @@
-import type { NotificationDto } from '@fomo/domain';
+import type { NotificationDto } from '@kamby/domain';
 import { formatCompactUsd, truncateAddress } from '@/lib/format';
 
 /**
  * Renders human copy from a notification's structured fields — never trusts a
  * server-composed sentence, since the API deliberately never sends one (see
- * docs/NOTIFICATIONS.md#data-model and NotificationDto in @fomo/domain). Pure and
+ * docs/NOTIFICATIONS.md#data-model and NotificationDto in @kamby/domain). Pure and
  * unit-testable on its own, same reasoning as lib/format.ts.
  */
 export function notificationCopy(n: NotificationDto): string {

@@ -1,4 +1,4 @@
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import {
   computeTrendingScore,
   followedTraderTradeDedupeKey,
@@ -10,7 +10,7 @@ import {
   type NotificationPing,
   type NotificationPreferences,
   type NotificationType,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 
@@ -36,7 +36,7 @@ export interface InsertedSwap {
  * (the trader) while FOLLOW/LIKE (apps/api/src/notifications) reference a User.
  *
  * Every write here goes through the same `dedupeKey` + unique-constraint idempotency
- * FollowService/LikeService use on the API side (see @fomo/domain/notifications), so a
+ * FollowService/LikeService use on the API side (see @kamby/domain/notifications), so a
  * crashed-and-retried tick, or the same swap seen twice across worker restarts, can never
  * duplicate a notification. Every public method is wrapped in try/catch by its caller in
  * ingestion.ts — a notification failure here must never break indexing.
@@ -303,7 +303,7 @@ export class NotificationFanoutService {
 
   /**
    * Detects a false -> true transition in `computeTrendingScore` (reused directly from
-   * @fomo/domain/social — never a second trending algorithm) for one token market, and
+   * @kamby/domain/social — never a second trending algorithm) for one token market, and
    * notifies on genuine entry into trending only, never on every tick's fluctuation or on
    * exit. Called once per market per tick, right after that market's own rollup recompute
    * (see ingestion.ts), since the score depends only on that market's own now-fresh stats.

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { parseEnv } from '@fomo/domain';
+import { parseEnv } from '@kamby/domain';
 import { LoggerModule, type Params } from 'nestjs-pino';
 import { EnvSchema, type Env } from './config/env';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';

@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { verifyEvmSignature } from '@fomo/chain-adapters';
-import { prisma } from '@fomo/db';
+import { verifyEvmSignature } from '@kamby/chain-adapters';
+import { prisma } from '@kamby/db';
 import {
   buildSiweMessage,
   isEvmAddress,
@@ -10,7 +10,7 @@ import {
   WALLET_CHALLENGE_TTL_MINUTES,
   type LinkedWallet,
   type WalletChallenge,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
 
@@ -48,7 +48,7 @@ export class WalletService {
     const message = buildSiweMessage({
       domain: this.domain,
       address: normalized,
-      statement: 'Sign in to Fomo to verify wallet ownership. This request will not trigger a blockchain transaction or cost any gas.',
+      statement: 'Sign in to Kamby to verify wallet ownership. This request will not trigger a blockchain transaction or cost any gas.',
       uri: this.domain,
       chainId: this.chainId,
       nonce,

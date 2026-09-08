@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import {
   computeActivityFrequencyPerDay,
   computeDiscoveryScore,
@@ -22,7 +22,7 @@ import {
   type RisingTrader,
   type SocialActivity,
   type TopTrader,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -138,7 +138,7 @@ export class DiscoveryService {
 
   /**
    * Wallets trading well above their own historical daily pace — see isRisingTrader in
-   * @fomo/domain. Bounded to a candidate pool of at most RISING_TRADER_CANDIDATE_LIMIT
+   * @kamby/domain. Bounded to a candidate pool of at most RISING_TRADER_CANDIDATE_LIMIT
    * wallets clearing an absolute 24h floor (one raw aggregate query), then one further
    * bounded groupBy for their all-time totals — never "for every trader, query all swaps"
    * (see docs/TRADER_INTELLIGENCE.md#performance).

@@ -45,7 +45,7 @@ export const TRADING_DEFAULTS = {
 } as const;
 
 /** The exact, honest wording for every trade surface — see docs/TRADING.md#token-safety.
- *  Never "Safe" or "Verified": Fomo's checks are real but bounded (liquidity, staleness,
+ *  Never "Safe" or "Verified": Kamby's checks are real but bounded (liquidity, staleness,
  *  that a route exists), not a security audit. */
 export const SAFETY_DISCLAIMER = 'No known issues detected by available checks.';
 
@@ -132,7 +132,7 @@ export interface ExpectedTransaction {
  * quote is CONFIRMED" — see docs/TRADING.md#transaction-integrity. A receipt's success
  * alone proves nothing about *which* trade happened; it only proves *some* transaction with
  * this hash succeeded. Only a transaction whose real on-chain sender, destination, value,
- * and calldata all match exactly what was quoted is the trade Fomo actually reviewed with
+ * and calldata all match exactly what was quoted is the trade Kamby actually reviewed with
  * the user — never an unrelated, if genuinely successful, transaction hash.
  */
 export function transactionMatchesQuote(actual: OnChainTransactionDetails, expected: ExpectedTransaction): boolean {

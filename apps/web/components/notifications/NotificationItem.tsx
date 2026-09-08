@@ -1,5 +1,5 @@
-import type { NotificationDto } from '@fomo/domain';
-import { cn } from '@fomo/ui';
+import type { NotificationDto } from '@kamby/domain';
+import { cn } from '@kamby/ui';
 import Link from 'next/link';
 import { formatRelativeTime } from '@/lib/format';
 import { notificationCopy, notificationKindLabel } from './notificationCopy';

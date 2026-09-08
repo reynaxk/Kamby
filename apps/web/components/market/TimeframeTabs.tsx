@@ -1,5 +1,5 @@
-import { TIMEFRAMES, type Timeframe } from '@fomo/domain';
-import { cn } from '@fomo/ui';
+import { TIMEFRAMES, type Timeframe } from '@kamby/domain';
+import { cn } from '@kamby/ui';
 import Link from 'next/link';
 
 /** Plain links updating ?timeframe= — each tab is a real server-rendered page, no client state. */

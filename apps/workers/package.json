@@ -1,5 +1,5 @@
 {
-  "name": "@fomo/workers",
+  "name": "@kamby/workers",
   "version": "0.0.0",
   "private": true,
   "license": "UNLICENSED",
@@ -13,15 +13,15 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "@fomo/chain-adapters": "workspace:*",
-    "@fomo/db": "workspace:*",
-    "@fomo/domain": "workspace:*",
+    "@kamby/chain-adapters": "workspace:*",
+    "@kamby/db": "workspace:*",
+    "@kamby/domain": "workspace:*",
     "ioredis": "^5.4.1",
     "pino": "^9.4.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@fomo/config": "workspace:*",
+    "@kamby/config": "workspace:*",
     "@types/node": "^20.14.0",
     "eslint": "^8.57.1",
     "pino-pretty": "^11.2.2",

@@ -1,12 +1,12 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import type { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
 import { WalletService } from './wallet.service';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     walletChallenge: {
       create: jest.fn(),
@@ -32,7 +32,7 @@ function fakeLogger(): PinoLogger {
 }
 
 function fakeConfig(): ConfigService<Env, true> {
-  const values: Record<string, unknown> = { CORS_ORIGIN: 'https://fomo.app,https://staging.fomo.app', CHAIN_ID: 8453 };
+  const values: Record<string, unknown> = { CORS_ORIGIN: 'https://kamby.app,https://staging.kamby.app', CHAIN_ID: 8453 };
   return { get: (key: string) => values[key] } as unknown as ConfigService<Env, true>;
 }
 
@@ -56,7 +56,7 @@ describe('WalletService', () => {
       const challenge = await service.createChallenge('user-1', TEST_ACCOUNT.address);
 
       expect(challenge.nonce).toHaveLength(32); // 16 bytes hex-encoded
-      expect(challenge.message).toContain('fomo.app wants you to sign in');
+      expect(challenge.message).toContain('kamby.app wants you to sign in');
       expect(challenge.message).toContain(TEST_ACCOUNT.address.toLowerCase());
       expect(new Date(challenge.expiresAt).getTime()).toBeGreaterThan(Date.now());
       expect(mockedPrisma.walletChallenge.create).toHaveBeenCalledWith(

@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 import { useEffect, useState, useTransition, type MouseEvent } from 'react';
 import { checkWatchStatus, unwatchToken, watchToken } from '@/lib/watchlist-client';
 

@@ -11,7 +11,7 @@ export * from '@prisma/client';
  */
 declare global {
   // eslint-disable-next-line no-var
-  var __fomoPrisma__: PrismaClient | undefined;
+  var __kambyPrisma__: PrismaClient | undefined;
 }
 
 function createPrismaClient(): PrismaClient {
@@ -20,8 +20,8 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient = globalThis.__fomoPrisma__ ?? createPrismaClient();
+export const prisma: PrismaClient = globalThis.__kambyPrisma__ ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== 'production') {
-  globalThis.__fomoPrisma__ = prisma;
+  globalThis.__kambyPrisma__ = prisma;
 }

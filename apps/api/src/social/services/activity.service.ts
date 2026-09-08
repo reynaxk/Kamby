@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
-import type { Prisma } from '@fomo/db';
-import { DISCOVERY_RANKING, decodeActivityCursor, encodeActivityCursor, normalizeEvmAddress, type SocialActivity } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import type { Prisma } from '@kamby/db';
+import { DISCOVERY_RANKING, decodeActivityCursor, encodeActivityCursor, normalizeEvmAddress, type SocialActivity } from '@kamby/domain';
 import { toSocialActivity, type ActivityRow } from '../social.mapper';
 
 export interface ActivityPage {

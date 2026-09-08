@@ -1,7 +1,7 @@
 'use client';
 
-import type { NotificationPreferences } from '@fomo/domain';
-import { Surface } from '@fomo/ui';
+import type { NotificationPreferences } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/market/Skeleton';
 import {

@@ -1,4 +1,4 @@
-import type { SocialActivity } from '@fomo/domain';
+import type { SocialActivity } from '@kamby/domain';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ActivityCard } from './ActivityCard';

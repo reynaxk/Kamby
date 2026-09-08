@@ -1,14 +1,14 @@
 import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EvmChainDataProvider } from '@fomo/chain-adapters';
-import { Prisma, prisma } from '@fomo/db';
+import { EvmChainDataProvider } from '@kamby/chain-adapters';
+import { Prisma, prisma } from '@kamby/db';
 import {
   normalizeEvmAddress,
   parseUnsignedTx,
   TRADING_DEFAULTS,
   transactionMatchesQuote,
   type TradeTransactionDto,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { formatUnits } from 'viem';
 import type { Env } from '../config/env';
@@ -96,9 +96,9 @@ export class TransactionService {
     // Quote freshness — see docs/TRADING.md#quote-expiration. A submission against an
     // expired quoteId is rejected here, not just checked client-side: this closes the
     // specific replay this gate exists for — reusing an old, stale quoteId to attach a
-    // later, unrelated transaction hash to a trade Fomo never actually reviewed at that
+    // later, unrelated transaction hash to a trade Kamby never actually reviewed at that
     // price. It does not (and structurally cannot) undo a transaction the wallet already
-    // broadcast; it only refuses to let Fomo's own records treat that broadcast as the
+    // broadcast; it only refuses to let Kamby's own records treat that broadcast as the
     // reviewed trade.
     if (quote.expiresAt.getTime() <= Date.now()) {
       throw new UnprocessableEntityException('This quote has expired — request a new one before submitting');

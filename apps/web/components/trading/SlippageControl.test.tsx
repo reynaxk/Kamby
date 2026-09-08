@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { TRADING_DEFAULTS } from '@fomo/domain';
+import { TRADING_DEFAULTS } from '@kamby/domain';
 import { SlippageControl } from './SlippageControl';
 
 afterEach(() => vi.clearAllMocks());

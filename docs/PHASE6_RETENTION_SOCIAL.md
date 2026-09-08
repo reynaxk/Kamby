@@ -17,7 +17,7 @@ NotificationFanoutService#notifyWatchedTokenActivity    computeStreak (packages/
     ↓
 Existing Notification table + Phase 4 Redis pub/sub + SSE (no second realtime system)
     ↓
-Fomo Web (apps/web) — watch button, watchlist page, saved searches, "what you missed", share
+Kamby Web (apps/web) — watch button, watchlist page, saved searches, "what you missed", share
 ```
 
 ## Watchlists

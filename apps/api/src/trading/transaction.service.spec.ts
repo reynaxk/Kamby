@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
-import { Prisma, prisma } from '@fomo/db';
-import { TRADING_DEFAULTS } from '@fomo/domain';
+import { Prisma, prisma } from '@kamby/db';
+import { TRADING_DEFAULTS } from '@kamby/domain';
 import type { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
 import { TransactionService } from './transaction.service';
@@ -9,14 +9,14 @@ import { TransactionService } from './transaction.service';
 const mockGetReceiptStatus = jest.fn();
 const mockGetTransactionDetails = jest.fn();
 
-jest.mock('@fomo/chain-adapters', () => ({
+jest.mock('@kamby/chain-adapters', () => ({
   EvmChainDataProvider: jest.fn().mockImplementation(() => ({
     getTransactionReceiptStatus: mockGetReceiptStatus,
     getTransactionDetails: mockGetTransactionDetails,
   })),
 }));
 
-jest.mock('@fomo/db', () => {
+jest.mock('@kamby/db', () => {
   const actual = jest.requireActual('@prisma/client');
   return {
     Prisma: actual.Prisma,

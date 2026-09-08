@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { cn } from '@fomo/ui';
-import { isValidSlippageBps, TRADING_DEFAULTS } from '@fomo/domain';
+import { cn } from '@kamby/ui';
+import { isValidSlippageBps, TRADING_DEFAULTS } from '@kamby/domain';
 
 const PRESETS_BPS = [10, 50, 100]; // 0.1% / 0.5% / 1%
 

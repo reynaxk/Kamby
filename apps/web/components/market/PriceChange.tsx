@@ -1,4 +1,4 @@
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 import { formatPercent, priceDirection } from '@/lib/format';
 
 export function PriceChange({ value, className }: { value: number | null; className?: string }) {

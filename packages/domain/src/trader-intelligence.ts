@@ -13,7 +13,7 @@ import { SocialActivitySchema } from './social';
  * Everything here is derived from indexed `swaps` (and the viewer's own follows/likes/
  * trades) — nothing here computes or implies PnL, ROI, win rate, or "smart money." See
  * docs/TRADER_INTELLIGENCE.md#deferred-metrics for exactly why those are out of scope
- * until Fomo's data model can support them correctly.
+ * until Kamby's data model can support them correctly.
  */
 
 // ---------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ export const PERSONALIZATION_WEIGHTS = {
   marketActivity: 0.3,
   /** A trader the viewer follows traded this token within FOLLOWED_TRADER_SIGNAL_WINDOW_HOURS. */
   followedTrader: 0.3,
-  /** The viewer has personally traded this token before (any confirmed Fomo trade). */
+  /** The viewer has personally traded this token before (any confirmed Kamby trade). */
   tradingInterest: 0.2,
   /** The viewer has liked activity involving this token — log-scaled so a handful of likes
    *  can't dominate the score the way raw volume/liquidity can't in computeDiscoveryScore. */

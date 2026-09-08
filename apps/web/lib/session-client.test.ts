@@ -61,7 +61,7 @@ describe('session-client', () => {
     });
 
     it('reuses an existing session instead of minting a new one', async () => {
-      window.localStorage.setItem('fomo:session-token', 'existing-token');
+      window.localStorage.setItem('kamby:session-token', 'existing-token');
       const fetchMock = vi.fn();
       vi.stubGlobal('fetch', fetchMock);
 
@@ -74,7 +74,7 @@ describe('session-client', () => {
 
   describe('authedFetch', () => {
     it('attaches a bearer token to every request', async () => {
-      window.localStorage.setItem('fomo:session-token', 'my-token');
+      window.localStorage.setItem('kamby:session-token', 'my-token');
       const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}, 200));
       vi.stubGlobal('fetch', fetchMock);
 

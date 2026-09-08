@@ -1,6 +1,6 @@
-import type { SocialActivity, TopTrader, TraderProfile, TraderStats, TraderTokenStat } from '@fomo/domain';
-import { computeActivityFrequencyPerDay, computeBuyRatio, computeConcentrationIndex } from '@fomo/domain';
-import type { Prisma } from '@fomo/db';
+import type { SocialActivity, TopTrader, TraderProfile, TraderStats, TraderTokenStat } from '@kamby/domain';
+import { computeActivityFrequencyPerDay, computeBuyRatio, computeConcentrationIndex } from '@kamby/domain';
+import type { Prisma } from '@kamby/db';
 
 export type ActivityRow = Prisma.SwapGetPayload<{
   include: { tokenMarket: { include: { token: true; quoteToken: true; chain: true } }; trader: true };

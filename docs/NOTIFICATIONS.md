@@ -1,6 +1,6 @@
 # Phase 4: notifications architecture
 
-Phase 2 made Fomo social (follows, likes, a realtime activity feed). Phase 3 made it
+Phase 2 made Kamby social (follows, likes, a realtime activity feed). Phase 3 made it
 tradeable. Phase 4 makes it *feel alive* — a real notification domain, backed by
 PostgreSQL, delivered live over the same Redis+SSE plumbing Phase 2 already built. See
 `docs/SOURCE_OF_TRUTH.md` first; everything below follows the same rule (one authoritative
@@ -11,11 +11,11 @@ Domain event (follow, like, indexed swap, trending transition)
     ↓
 Notification created (PostgreSQL — the only source of truth, never Redis)
     ↓
-Realtime ping published (Redis — fomo:notifications:new)
+Realtime ping published (Redis — kamby:notifications:new)
     ↓
 SSE stream (apps/api/src/notifications, per-connection, filtered to one userId)
     ↓
-Fomo Web (notification bell / center — refetches on ping, never trusts the ping's payload)
+Kamby Web (notification bell / center — refetches on ping, never trusts the ping's payload)
 ```
 
 Persist, *then* publish — never the other way around. A Redis outage or a dropped SSE
@@ -51,7 +51,7 @@ confirmed settlement.
 
 This mirrors Phase 3's own precedent exactly: `TransactionService` (apps/api) and
 `TradeSweepService` (apps/workers) are two independent orchestrators sharing pure logic from
-`@fomo/domain`, each with its own thin Prisma-touching implementation. Notifications follow
+`@kamby/domain`, each with its own thin Prisma-touching implementation. Notifications follow
 the same shape — `NotificationService` (apps/api, for FOLLOW/LIKE) and
 `NotificationFanoutService` (apps/workers, for the other three), both built on the same
 dedupe-key/preference/deep-link helpers in `packages/domain/src/notifications.ts`.
@@ -60,7 +60,7 @@ dedupe-key/preference/deep-link helpers in `packages/domain/src/notifications.ts
 
 Every notification carries a `dedupeKey`, scoped within `(userId, type)` by
 `@@unique([userId, type, dedupeKey])` on the `notifications` table. Every creation path
-builds its key with the matching pure helper in `@fomo/domain/notifications`:
+builds its key with the matching pure helper in `@kamby/domain/notifications`:
 
 - `followDedupeKey(followerUserId)` — scoped to the follower alone, not the follow event.
   Unfollowing and re-following the same trader must never re-notify; there's exactly one
@@ -85,7 +85,7 @@ API requests.
 ## Whale trades
 
 `WHALE_TRADE_USD_THRESHOLD` (default `$25,000`, see `NOTIFICATION_DEFAULTS` in
-`@fomo/domain/notifications`) is defined in exactly one place and consumed by
+`@kamby/domain/notifications`) is defined in exactly one place and consumed by
 `apps/workers`' env schema (`WHALE_TRADE_USD_THRESHOLD`, overridable per environment) —
 never hardcoded at more than one call site.
 
@@ -141,7 +141,7 @@ is irrelevant to authorization).
 
 ## Deep links
 
-`notificationDeepLink(type, ctx)` in `@fomo/domain/notifications` — a pure function, so
+`notificationDeepLink(type, ctx)` in `@kamby/domain/notifications` — a pure function, so
 apps/api and apps/web can never disagree on what a notification points to. Uses the app's
 **real, existing routes**: `/trader/[address]` for `FOLLOW`, `/market/[address]` for
 everything else (`LIKE`, `FOLLOWED_TRADER_TRADE`, `WHALE_TRADE`, `TRENDING_TOKEN`) —
@@ -178,8 +178,8 @@ B-tree handles `IS NULL` lookups on an indexed column), `@@index([swapId])` /
 
 Extends Phase 2's existing `RealtimeService`/SSE machinery rather than building a second
 realtime path: one Redis subscriber connection for the whole API process
-(`redis.duplicate()`), now subscribed to both `fomo:activity:new` (Phase 2) and
-`fomo:notifications:new` (Phase 4), fanned out via two separate RxJS `Subject`s. Because
+(`redis.duplicate()`), now subscribed to both `kamby:activity:new` (Phase 2) and
+`kamby:notifications:new` (Phase 4), fanned out via two separate RxJS `Subject`s. Because
 this service is now used by two feature modules (`SocialModule` and `NotificationsModule`)
 that otherwise have no reason to depend on each other, it lives in its own
 `apps/api/src/realtime` module rather than being owned by either.

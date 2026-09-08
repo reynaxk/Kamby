@@ -1,4 +1,4 @@
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 import { truncateAddress } from '@/lib/format';
 
 /**

@@ -25,13 +25,13 @@ describe('ShareButton', () => {
 
     it('invokes the native share sheet directly on click, with no dropdown', async () => {
       const user = userEvent.setup();
-      render(<ShareButton title="Some token on Fomo" path="/market/0xabc" />);
+      render(<ShareButton title="Some token on Kamby" path="/market/0xabc" />);
 
       await user.click(screen.getByRole('button', { name: 'Share' }));
 
       await waitFor(() =>
         expect(navigator.share).toHaveBeenCalledWith(
-          expect.objectContaining({ title: 'Some token on Fomo' }),
+          expect.objectContaining({ title: 'Some token on Kamby' }),
         ),
       );
       expect(screen.queryByText('Copy link')).not.toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('ShareButton', () => {
 
     it('shares a URL built from the given path and the current origin', async () => {
       const user = userEvent.setup();
-      render(<ShareButton title="Some token on Fomo" path="/market/0xabc" />);
+      render(<ShareButton title="Some token on Kamby" path="/market/0xabc" />);
 
       await user.click(screen.getByRole('button', { name: 'Share' }));
 
@@ -53,7 +53,7 @@ describe('ShareButton', () => {
     it('does not treat a cancelled share sheet as an error', async () => {
       stubNavigatorShare(vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError')));
       const user = userEvent.setup();
-      render(<ShareButton title="Some token on Fomo" path="/market/0xabc" />);
+      render(<ShareButton title="Some token on Kamby" path="/market/0xabc" />);
 
       await expect(
         user.click(screen.getByRole('button', { name: 'Share' })),
@@ -68,7 +68,7 @@ describe('ShareButton', () => {
 
     it('opens a copy-link panel instead of the native share sheet', async () => {
       const user = userEvent.setup();
-      render(<ShareButton title="Some token on Fomo" path="/market/0xabc" />);
+      render(<ShareButton title="Some token on Kamby" path="/market/0xabc" />);
 
       await user.click(screen.getByRole('button', { name: 'Share' }));
 
@@ -82,7 +82,7 @@ describe('ShareButton', () => {
       const user = userEvent.setup();
       const writeText = vi.fn().mockResolvedValue(undefined);
       stubClipboard(writeText);
-      render(<ShareButton title="Some token on Fomo" path="/market/0xabc" />);
+      render(<ShareButton title="Some token on Kamby" path="/market/0xabc" />);
 
       await user.click(screen.getByRole('button', { name: 'Share' }));
       await user.click(await screen.findByText('Copy link'));
@@ -95,7 +95,7 @@ describe('ShareButton', () => {
 
     it('closes the panel on Escape', async () => {
       const user = userEvent.setup();
-      render(<ShareButton title="Some token on Fomo" path="/market/0xabc" />);
+      render(<ShareButton title="Some token on Kamby" path="/market/0xabc" />);
 
       await user.click(screen.getByRole('button', { name: 'Share' }));
       expect(await screen.findByText('Copy link')).toBeInTheDocument();

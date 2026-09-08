@@ -5,15 +5,15 @@ services:
     image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: fomo
-      POSTGRES_PASSWORD: fomo
-      POSTGRES_DB: fomo
+      POSTGRES_USER: kamby
+      POSTGRES_PASSWORD: kamby
+      POSTGRES_DB: kamby
     ports:
       - '5432:5432'
     volumes:
-      - fomo_postgres_data:/var/lib/postgresql/data
+      - kamby_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U fomo -d fomo']
+      test: ['CMD-SHELL', 'pg_isready -U kamby -d kamby']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -24,7 +24,7 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - fomo_redis_data:/data
+      - kamby_redis_data:/data
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -32,5 +32,5 @@ services:
       retries: 10
 
 volumes:
-  fomo_postgres_data:
-  fomo_redis_data:
+  kamby_postgres_data:
+  kamby_redis_data:

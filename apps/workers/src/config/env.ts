@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NOTIFICATION_DEFAULTS } from '@fomo/domain';
+import { NOTIFICATION_DEFAULTS } from '@kamby/domain';
 
 /**
  * V1 runs on exactly one chain (see /docs/CHAIN_ADAPTERS.md) — these four CHAIN_* variables
@@ -29,7 +29,7 @@ export const EnvSchema = z.object({
 
   /** The one configurable knob behind "whale trade" alerts (see
    *  docs/NOTIFICATIONS.md#whale-trades) — centralized here rather than hardcoded at each
-   *  call site, and defaulted from the same @fomo/domain constant apps/api would use if it
+   *  call site, and defaulted from the same @kamby/domain constant apps/api would use if it
    *  ever needed to display this threshold, so the two processes can never disagree. */
   WHALE_TRADE_USD_THRESHOLD: z.coerce.number().positive().default(NOTIFICATION_DEFAULTS.whaleTradeUsdThreshold),
 });

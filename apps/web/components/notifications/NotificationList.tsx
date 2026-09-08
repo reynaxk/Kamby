@@ -1,6 +1,6 @@
 'use client';
 
-import type { NotificationDto } from '@fomo/domain';
+import type { NotificationDto } from '@kamby/domain';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';

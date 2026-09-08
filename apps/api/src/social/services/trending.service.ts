@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { prisma } from '@fomo/db';
-import { computeTrendingScore, type TrendingToken } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import { computeTrendingScore, type TrendingToken } from '@kamby/domain';
 import { toMarketSummary, type MarketRow } from '../../market/market.mapper';
 
 const toNumber = (value: MarketRow['liquidityUsd']): number | null => (value === null ? null : Number(value));

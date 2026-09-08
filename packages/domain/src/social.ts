@@ -11,7 +11,7 @@ export type ActivityAction = z.infer<typeof ActivityActionSchema>;
  * the worker doesn't know the API's response shape, and a client that misses a message
  * just catches up on its next poll/reconnect.
  */
-export const ACTIVITY_REALTIME_CHANNEL = 'fomo:activity:new';
+export const ACTIVITY_REALTIME_CHANNEL = 'kamby:activity:new';
 
 /**
  * One social activity feed item — a read-time projection of an indexed `Swap` (see the

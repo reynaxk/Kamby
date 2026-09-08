@@ -1,10 +1,10 @@
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import type { PinoLogger } from 'nestjs-pino';
 import type { WatchlistService } from '../market/watchlist.service';
 import type { ActivityService } from '../social/services/activity.service';
 import { DiscoveryService } from './discovery.service';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     $queryRaw: jest.fn(),
     wallet: { findMany: jest.fn() },

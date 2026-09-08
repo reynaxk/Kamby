@@ -1,4 +1,4 @@
-import type { TokenTraderConnection } from '@fomo/domain';
+import type { TokenTraderConnection } from '@kamby/domain';
 import Link from 'next/link';
 import { EmptyState } from '@/components/market/EmptyState';
 import { TraderIdentity } from '@/components/social/TraderIdentity';

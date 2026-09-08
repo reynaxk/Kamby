@@ -1,7 +1,7 @@
 import { ForbiddenException, UnprocessableEntityException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
-import { prisma } from '@fomo/db';
-import { calculateFeeAmount, TRADING_DEFAULTS } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import { calculateFeeAmount, TRADING_DEFAULTS } from '@kamby/domain';
 import type { PinoLogger } from 'nestjs-pino';
 import { parseUnits } from 'viem';
 import type { Env } from '../config/env';
@@ -9,7 +9,7 @@ import { QuoteService } from './quote.service';
 import type { SafetyService, TradableMarket } from './safety.service';
 import type { SwapRouter, SwapRouterQuote } from './router/swap-router.interface';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     wallet: { findUnique: jest.fn() },
     tradeQuote: { create: jest.fn() },

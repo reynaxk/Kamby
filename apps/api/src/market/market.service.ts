@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import {
   CandleSchema,
   computeDiscoveryScore,
@@ -8,7 +8,7 @@ import {
   type MarketSummary,
   type Timeframe,
   type TokenTraderConnection,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { toSocialActivity } from '../social/social.mapper';
 import type { DiscoverQueryDto } from './dto/discover-query.dto';
 import type { SearchQueryDto } from './dto/search-query.dto';

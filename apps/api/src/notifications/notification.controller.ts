@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Sse, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { MessageEvent } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import type { NotificationPing } from '@fomo/domain';
+import type { NotificationPing } from '@kamby/domain';
 import { filter, map, merge, interval, type Observable } from 'rxjs';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';

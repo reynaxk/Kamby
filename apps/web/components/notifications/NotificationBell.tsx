@@ -1,6 +1,6 @@
 'use client';
 
-import { Surface } from '@fomo/ui';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {

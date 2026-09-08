@@ -1,4 +1,4 @@
-import { Surface } from '@fomo/ui';
+import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { AutoRefresh } from '@/components/market/AutoRefresh';
 import { EmptyState } from '@/components/market/EmptyState';

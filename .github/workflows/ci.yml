@@ -11,7 +11,7 @@ concurrency:
 
 env:
   NODE_ENV: test
-  DATABASE_URL: postgresql://fomo:fomo@localhost:5432/fomo?schema=public
+  DATABASE_URL: postgresql://kamby:kamby@localhost:5432/kamby?schema=public
   REDIS_URL: redis://localhost:6379
   JWT_SECRET: ci-test-secret-not-for-production-use
   CHAIN_ID: 8453
@@ -31,13 +31,13 @@ jobs:
       postgres:
         image: timescale/timescaledb:latest-pg16
         env:
-          POSTGRES_USER: fomo
-          POSTGRES_PASSWORD: fomo
-          POSTGRES_DB: fomo
+          POSTGRES_USER: kamby
+          POSTGRES_PASSWORD: kamby
+          POSTGRES_DB: kamby
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U fomo -d fomo"
+          --health-cmd "pg_isready -U kamby -d kamby"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -78,14 +78,14 @@ jobs:
 
       - name: Validate schema and apply migrations
         run: |
-          pnpm --filter @fomo/db exec prisma validate
-          pnpm --filter @fomo/db exec prisma migrate deploy
+          pnpm --filter @kamby/db exec prisma validate
+          pnpm --filter @kamby/db exec prisma migrate deploy
 
       - name: Unit tests
         run: pnpm test
 
       - name: API e2e tests (health, market, social, identity, trade — against live Postgres + Redis)
-        run: pnpm --filter @fomo/api test:e2e
+        run: pnpm --filter @kamby/api test:e2e
 
       - name: Build
         run: pnpm build

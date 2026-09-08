@@ -1,9 +1,9 @@
-import { parseEnv } from '@fomo/domain';
+import { parseEnv } from '@kamby/domain';
 import { EnvSchema } from './env';
 
 describe('API env schema', () => {
   const validBase = {
-    DATABASE_URL: 'postgresql://user:pass@localhost:5432/fomo',
+    DATABASE_URL: 'postgresql://user:pass@localhost:5432/kamby',
     REDIS_URL: 'redis://localhost:6379',
     JWT_SECRET: 'a-test-secret-at-least-16-chars',
     CHAIN_ID: '8453',

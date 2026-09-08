@@ -1,4 +1,4 @@
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 
 /**
  * No token in Phase 1 has a `logoUrl` — see docs/MARKET_DATA.md#token-discovery, the

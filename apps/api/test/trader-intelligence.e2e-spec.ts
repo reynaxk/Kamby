@@ -1,8 +1,8 @@
 import type { INestApplication } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { prisma } from '@fomo/db';
-import { LARGE_TRADE_USD_THRESHOLD } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import { LARGE_TRADE_USD_THRESHOLD } from '@kamby/domain';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { createTestApp } from './test-app';
@@ -49,7 +49,7 @@ describe('Trader intelligence & discovery (e2e) — public reads', () => {
   const tokenB = { base: '0xc000000000000000000000000000000000000b01', quote: '0xc000000000000000000000000000000000000b02', pool: '0xc000000000000000000000000000000000000b03' };
   // Lowercase, deliberately — Wallet.address is looked up by exact primary-key match after
   // the API normalizes an incoming address param to lowercase (see normalizeEvmAddress in
-  // @fomo/domain); a mixed-case literal here would insert a row the endpoint could never find.
+  // @kamby/domain); a mixed-case literal here would insert a row the endpoint could never find.
   const traderAddress = '0xc00000000000000000000000000000000000dead';
   let marketAId: string;
   let marketBId: string;
@@ -291,7 +291,7 @@ describe('Trader intelligence & discovery (e2e) — personalized', () => {
     expect(item.reasonCode).toBe('FOLLOWED_TRADER');
     // linkVerifiedWallet only proves ownership via signature — it never sets a displayName,
     // so the reason correctly falls back to the generic phrasing (see feedReasonText in
-    // @fomo/domain) rather than naming a trader Fomo has no real display identity for.
+    // @kamby/domain) rather than naming a trader Kamby has no real display identity for.
     expect(item.reason).toBe('From a trader you follow');
 
     const discovery = await request(app.getHttpServer()).get('/v1/discovery/personalized?limit=20').set(followerAuth);

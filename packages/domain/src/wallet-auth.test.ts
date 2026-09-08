@@ -3,10 +3,10 @@ import { buildSiweMessage } from './wallet-auth';
 
 describe('buildSiweMessage', () => {
   const base = {
-    domain: 'fomo.app',
+    domain: 'kamby.app',
     address: '0x1111111111111111111111111111111111aaaa',
-    statement: 'Sign in to Fomo to verify wallet ownership.',
-    uri: 'https://fomo.app',
+    statement: 'Sign in to Kamby to verify wallet ownership.',
+    uri: 'https://kamby.app',
     chainId: 8453,
     nonce: 'abc123nonce',
     issuedAt: new Date('2026-01-01T12:00:00.000Z'),
@@ -17,12 +17,12 @@ describe('buildSiweMessage', () => {
     const message = buildSiweMessage(base);
     expect(message).toBe(
       [
-        'fomo.app wants you to sign in with your Ethereum account:',
+        'kamby.app wants you to sign in with your Ethereum account:',
         '0x1111111111111111111111111111111111aaaa',
         '',
-        'Sign in to Fomo to verify wallet ownership.',
+        'Sign in to Kamby to verify wallet ownership.',
         '',
-        'URI: https://fomo.app',
+        'URI: https://kamby.app',
         'Version: 1',
         'Chain ID: 8453',
         'Nonce: abc123nonce',

@@ -1,13 +1,13 @@
-import { EvmChainDataProvider, UniswapV3PoolReader } from '@fomo/chain-adapters';
+import { EvmChainDataProvider, UniswapV3PoolReader } from '@kamby/chain-adapters';
 import {
   computeFullyDilutedMarketCapUsd,
   computePoolLiquidityUsd,
   priceFromSqrtPriceX96,
   rawAmountToDecimal,
-} from '@fomo/chain-adapters';
-import type { Prisma } from '@fomo/db';
-import { prisma } from '@fomo/db';
-import { ACTIVITY_REALTIME_CHANNEL, normalizeEvmAddress } from '@fomo/domain';
+} from '@kamby/chain-adapters';
+import type { Prisma } from '@kamby/db';
+import { prisma } from '@kamby/db';
+import { ACTIVITY_REALTIME_CHANNEL, normalizeEvmAddress } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import {

@@ -1,4 +1,4 @@
-import type { SocialActivity, TopTrader, TraderProfile, TrendingToken } from '@fomo/domain';
+import type { SocialActivity, TopTrader, TraderProfile, TrendingToken } from '@kamby/domain';
 import { apiGet } from './market-api';
 
 /**

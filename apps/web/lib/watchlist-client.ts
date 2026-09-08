@@ -1,6 +1,6 @@
 'use client';
 
-import type { WatchlistPage } from '@fomo/domain';
+import type { WatchlistPage } from '@kamby/domain';
 import { authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**

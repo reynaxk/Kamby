@@ -1,5 +1,5 @@
-import { ACTIVITY_REALTIME_CHANNEL } from '@fomo/domain';
-import { UniswapV3PoolReader } from '@fomo/chain-adapters';
+import { ACTIVITY_REALTIME_CHANNEL } from '@kamby/domain';
+import { UniswapV3PoolReader } from '@kamby/chain-adapters';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -56,9 +56,9 @@ const mockPrisma = vi.hoisted(() => ({
 }));
 
 // `vi.mock` calls are hoisted above every import in this file, including the
-// `MarketIngestionService` one above — by the time it runs, `@fomo/db` already resolves
-// to this mock, so ingestion.ts's `import { prisma } from '@fomo/db'` gets it too.
-vi.mock('@fomo/db', () => ({ prisma: mockPrisma }));
+// `MarketIngestionService` one above — by the time it runs, `@kamby/db` already resolves
+// to this mock, so ingestion.ts's `import { prisma } from '@kamby/db'` gets it too.
+vi.mock('@kamby/db', () => ({ prisma: mockPrisma }));
 
 const fakeLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as Logger;
 const fakeRedis = { publish: vi.fn().mockResolvedValue(1) } as unknown as Redis;

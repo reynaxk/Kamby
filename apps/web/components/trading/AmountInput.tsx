@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@fomo/ui';
+import { cn } from '@kamby/ui';
 import { formatUnits } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
 
@@ -9,7 +9,7 @@ const PRESET_FRACTIONS = [0.25, 0.5, 1] as const;
 /**
  * Amount presets are fractions of the connected wallet's *real* balance of the input token
  * for this side (read live from-chain via wagmi, never assumed) — never a fixed dollar
- * amount, since Fomo doesn't have a live USD conversion input here and a hardcoded
+ * amount, since Kamby doesn't have a live USD conversion input here and a hardcoded
  * "$10/$50/$100" would be meaningless for an 18-decimal token priced at a fraction of a
  * cent. See docs/TRADING.md#trading-ui.
  */

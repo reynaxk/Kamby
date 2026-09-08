@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { Prisma, prisma } from '@fomo/db';
+import { Prisma, prisma } from '@kamby/db';
 import {
   decodeNotificationCursor,
   encodeNotificationCursor,
@@ -12,7 +12,7 @@ import {
   type NotificationPing,
   type NotificationPreferences,
   type NotificationType,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -210,7 +210,7 @@ export class NotificationService {
 
   // ---------------------------------------------------------------------------------------
   // Preferences — no row means every default applies (see NOTIFICATION_DEFAULTS in
-  // @fomo/domain); a row is created lazily on first write only.
+  // @kamby/domain); a row is created lazily on first write only.
   // ---------------------------------------------------------------------------------------
 
   async getPreferences(userId: string): Promise<NotificationPreferences> {

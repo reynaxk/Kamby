@@ -1,6 +1,6 @@
 'use client';
 
-import type { TradeQuoteDto, TradeSide, TradeTransactionDto } from '@fomo/domain';
+import type { TradeQuoteDto, TradeSide, TradeTransactionDto } from '@kamby/domain';
 import { authedFetch, expectOk } from './session-client';
 
 /**

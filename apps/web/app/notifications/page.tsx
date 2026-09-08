@@ -1,7 +1,7 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { NotificationsPageClient } from '@/components/notifications/NotificationsPageClient';
 
-export const metadata = { title: 'Notifications — Fomo' };
+export const metadata = { title: 'Notifications — Kamby' };
 
 /**
  * Entirely client-rendered below the header, same reasoning as app/trades/page.tsx:

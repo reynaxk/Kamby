@@ -1,7 +1,7 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { TradeHistoryList } from '@/components/trading/TradeHistoryList';
 
-export const metadata = { title: 'Your trades — Fomo' };
+export const metadata = { title: 'Your trades — Kamby' };
 
 /**
  * Entirely client-rendered below the header — trade history is personal to whatever

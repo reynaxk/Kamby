@@ -13,7 +13,7 @@ export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required (postgres connection string)'),
   REDIS_URL: z.string().min(1, 'REDIS_URL is required (redis connection string)'),
 
-  /** Comma-separated list of allowed origins, e.g. "https://fomo.app,http://localhost:3000". */
+  /** Comma-separated list of allowed origins, e.g. "https://kamby.app,http://localhost:3000". */
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
@@ -33,7 +33,7 @@ export const EnvSchema = z.object({
    * apps/workers/src/config/env.ts's CHAIN_IDENTIFIER (a CAIP-2 string, e.g. "eip155:8453")
    * already indexes; see docs/TRADING.md#chain-scope. A plain number here (rather than
    * parsing it back out of a CAIP-2 string) because every trading-provider API and every
-   * wallet library expects a bare EVM chain id, not Fomo's own chain identifier format.
+   * wallet library expects a bare EVM chain id, not Kamby's own chain identifier format.
    */
   CHAIN_ID: z.coerce.number().int().positive(),
   /** Used only for on-chain reads Phase 3 needs directly (transaction receipt status) —
@@ -54,7 +54,7 @@ export const EnvSchema = z.object({
    */
   PLATFORM_FEE_BPS: z.coerce.number().int().min(0).max(1000).default(50),
   /** Where the platform fee lands, collected atomically by the swap transaction itself —
-   *  Fomo's backend never custodies it in between. See docs/TRADING.md#fees. */
+   *  Kamby's backend never custodies it in between. See docs/TRADING.md#fees. */
   PLATFORM_FEE_RECIPIENT_ADDRESS: z
     .string()
     .regex(/^0x[a-fA-F0-9]{40}$/, 'PLATFORM_FEE_RECIPIENT_ADDRESS must be a valid EVM address'),

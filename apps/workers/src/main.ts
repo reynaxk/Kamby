@@ -1,6 +1,6 @@
-import { parseEnv } from '@fomo/domain';
-import { EvmChainDataProvider } from '@fomo/chain-adapters';
-import { prisma } from '@fomo/db';
+import { parseEnv } from '@kamby/domain';
+import { EvmChainDataProvider } from '@kamby/chain-adapters';
+import { prisma } from '@kamby/db';
 import { Redis } from 'ioredis';
 import { EnvSchema } from './config/env';
 import { createLogger } from './lib/logger';

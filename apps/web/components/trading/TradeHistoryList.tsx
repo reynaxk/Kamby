@@ -1,7 +1,7 @@
 'use client';
 
-import type { TradeTransactionDto } from '@fomo/domain';
-import { Surface, cn } from '@fomo/ui';
+import type { TradeTransactionDto } from '@kamby/domain';
+import { Surface, cn } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '@/components/market/EmptyState';

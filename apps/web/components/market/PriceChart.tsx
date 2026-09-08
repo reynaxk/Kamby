@@ -1,4 +1,4 @@
-import type { Candle } from '@fomo/domain';
+import type { Candle } from '@kamby/domain';
 import { formatPrice } from '@/lib/format';
 import { EmptyState } from './EmptyState';
 
@@ -44,17 +44,17 @@ export function PriceChart({ candles }: { candles: Candle[] }) {
   const last = candles[candles.length - 1]!;
   const trendUp = last.close >= first.close;
   const strokeClass = trendUp ? 'stroke-up' : 'stroke-down';
-  const fillId = trendUp ? 'fomo-chart-fill-up' : 'fomo-chart-fill-down';
+  const fillId = trendUp ? 'kamby-chart-fill-up' : 'kamby-chart-fill-down';
 
   return (
     <div>
       <svg width="100%" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label="Price chart" className="overflow-visible">
         <defs>
-          <linearGradient id="fomo-chart-fill-up" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="kamby-chart-fill-up" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" className="text-up" stopColor="currentColor" stopOpacity={0.22} />
             <stop offset="100%" className="text-up" stopColor="currentColor" stopOpacity={0} />
           </linearGradient>
-          <linearGradient id="fomo-chart-fill-down" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="kamby-chart-fill-down" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" className="text-down" stopColor="currentColor" stopOpacity={0.22} />
             <stop offset="100%" className="text-down" stopColor="currentColor" stopOpacity={0} />
           </linearGradient>

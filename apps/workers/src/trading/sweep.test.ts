@@ -1,4 +1,4 @@
-import { TRADING_DEFAULTS } from '@fomo/domain';
+import { TRADING_DEFAULTS } from '@kamby/domain';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TradeSweepService } from './sweep';
@@ -10,7 +10,7 @@ const mockPrisma = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@fomo/db', () => ({ prisma: mockPrisma }));
+vi.mock('@kamby/db', () => ({ prisma: mockPrisma }));
 
 const fakeLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as Logger;
 const CHAIN_ID = 8453;

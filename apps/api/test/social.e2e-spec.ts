@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { createTestApp } from './test-app';

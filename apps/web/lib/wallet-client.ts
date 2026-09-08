@@ -1,6 +1,6 @@
 'use client';
 
-import type { LinkedWallet, WalletChallenge } from '@fomo/domain';
+import type { LinkedWallet, WalletChallenge } from '@kamby/domain';
 import { authedFetch, expectOk } from './session-client';
 
 /**

@@ -1,9 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
-import { MAX_SAVED_SEARCHES_PER_USER } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import { MAX_SAVED_SEARCHES_PER_USER } from '@kamby/domain';
 import { SavedSearchService } from './saved-search.service';
 
-jest.mock('@fomo/db', () => ({
+jest.mock('@kamby/db', () => ({
   prisma: {
     savedSearch: { count: jest.fn(), create: jest.fn(), findMany: jest.fn(), deleteMany: jest.fn() },
   },

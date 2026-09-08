@@ -5,7 +5,7 @@ import type {
   TokenTraderConnection,
   TopTrader,
   TraderTokenStat,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { apiGet } from './market-api';
 
 /**

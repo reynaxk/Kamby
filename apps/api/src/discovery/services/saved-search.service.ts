@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { prisma } from '@fomo/db';
+import { prisma } from '@kamby/db';
 import {
   MAX_SAVED_SEARCHES_PER_USER,
   SavedSearchDisplayNameSchema,
   SavedSearchQuerySchema,
   type CreateSavedSearchInput,
   type SavedSearchDto,
-} from '@fomo/domain';
+} from '@kamby/domain';
 
 /**
  * Owns saved searches — a lightweight bookmark of a query string, nothing more (no stored
@@ -16,7 +16,7 @@ import {
  */
 @Injectable()
 export class SavedSearchService {
-  /** Enforced here, not as a DB constraint — see MAX_SAVED_SEARCHES_PER_USER in @fomo/domain.
+  /** Enforced here, not as a DB constraint — see MAX_SAVED_SEARCHES_PER_USER in @kamby/domain.
    *  Query/display name are re-validated (and trimmed) against the domain schema here rather
    *  than trusting the DTO layer alone, the same defense-in-depth every other service in
    *  this codebase applies at its own boundary. */

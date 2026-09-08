@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, prisma } from '@fomo/db';
+import { Prisma, prisma } from '@kamby/db';
 import {
   decodeWatchlistCursor,
   encodeWatchlistCursor,
   isEvmAddress,
   type WatchedToken,
   type WatchlistPage,
-} from '@fomo/domain';
+} from '@kamby/domain';
 import { toMarketSummary } from './market.mapper';
 
 const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
@@ -65,7 +65,7 @@ export class WatchlistService {
   }
 
   /**
-   * Cursor-paginated, newest-watched-first — see WatchlistCursor in @fomo/domain, same
+   * Cursor-paginated, newest-watched-first — see WatchlistCursor in @kamby/domain, same
    * keyset-pagination shape as ActivityService's own feed. Bounded `take`, one join query,
    * never an unbounded `findMany` over a user's whole watchlist.
    */

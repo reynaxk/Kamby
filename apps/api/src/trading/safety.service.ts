@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { prisma } from '@fomo/db';
-import type { Prisma } from '@fomo/db';
-import { DISCOVERY_RANKING, isPriceStale, normalizeEvmAddress } from '@fomo/domain';
+import { prisma } from '@kamby/db';
+import type { Prisma } from '@kamby/db';
+import { DISCOVERY_RANKING, isPriceStale, normalizeEvmAddress } from '@kamby/domain';
 
 export type TradableMarket = Prisma.TokenMarketGetPayload<{
   include: { token: true; quoteToken: true; chain: true };
@@ -9,7 +9,7 @@ export type TradableMarket = Prisma.TokenMarketGetPayload<{
 
 /**
  * Gatekeeps which markets Phase 3 will quote/trade at all — see
- * docs/TRADING.md#token-safety and #chain-scope. Trading is scoped to markets Fomo already
+ * docs/TRADING.md#token-safety and #chain-scope. Trading is scoped to markets Kamby already
  * tracks (a token page only exists for one of these), so "does this token exist / have a
  * route / have liquidity" reduces to "is it one of our tracked markets, in good standing" —
  * reusing Phase 1's own discovery gates (`DISCOVERY_RANKING.minLiquidityUsd`,
