@@ -132,6 +132,7 @@ describe('API env schema', () => {
       SOLANA_RPC_URL: 'https://api.mainnet-beta.solana.com',
       SOLANA_TREASURY_USDC_ATA: 'FakeAtaAddressForTestingOnly1111111111111',
       SOLANA_TOPUP_FUNDING_SECRET_KEY: 'fake-base58-secret-key-for-testing-only',
+      SOLANA_JUPITER_API_KEY: 'fake-jupiter-api-key-for-testing-only',
     };
 
     it('fails clearly when SOLANA_ENABLED is true but SOLANA_RPC_URL is missing', () => {
@@ -148,6 +149,12 @@ describe('API env schema', () => {
       );
     });
 
+    it('fails clearly when SOLANA_ENABLED is true but SOLANA_JUPITER_API_KEY is missing', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, omit(solanaBase, 'SOLANA_JUPITER_API_KEY'))).toThrowError(
+        /SOLANA_JUPITER_API_KEY/,
+      );
+    });
+
     it('defaults SOLANA_JUPITER_PLATFORM_FEE_BPS to 50 (0.50%), matching the EVM side', () => {
       const env = parseEnv(ValidatedEnvSchema, solanaBase);
       expect(env.SOLANA_JUPITER_PLATFORM_FEE_BPS).toBe(50);
@@ -161,6 +168,7 @@ describe('API env schema', () => {
         jupiterPlatformFeeBps: 50,
         newWalletTopupSol: 0.01,
         topupFundingSecretKey: 'fake-base58-secret-key-for-testing-only',
+        jupiterApiKey: 'fake-jupiter-api-key-for-testing-only',
       });
     });
   });

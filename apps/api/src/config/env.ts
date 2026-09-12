@@ -118,6 +118,10 @@ export const EnvSchema = z.object({
    *  wallet address here is a real, easy-to-make mistake this doc comment exists to
    *  prevent. See docs/TRADING.md#solana-fees. */
   SOLANA_TREASURY_USDC_ATA: z.string().min(1, 'SOLANA_TREASURY_USDC_ATA is required when SOLANA_ENABLED').optional(),
+  /** Required by Jupiter even on its free tier (1 req/sec) — see JupiterQuoteService's own
+   *  doc comment for why this exists (their old keyless domain stopped resolving in
+   *  production on 2026-09-12). Get one at https://portal.jup.ag. */
+  SOLANA_JUPITER_API_KEY: z.string().min(1, 'SOLANA_JUPITER_API_KEY is required when SOLANA_ENABLED').optional(),
   /** See docs/TRADING.md#fees — matches the EVM side's 0.50% default, not the 0.75% first
    *  floated for this feature before the actual configured platform fee was checked. */
   SOLANA_JUPITER_PLATFORM_FEE_BPS: z.coerce.number().int().min(0).max(1000).default(50),
@@ -173,6 +177,9 @@ export const ValidatedEnvSchema = EnvSchema.superRefine((env, ctx) => {
   if (env.SOLANA_TOPUP_FUNDING_SECRET_KEY === undefined) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['SOLANA_TOPUP_FUNDING_SECRET_KEY'], message: 'SOLANA_TOPUP_FUNDING_SECRET_KEY is required when SOLANA_ENABLED is true' });
   }
+  if (env.SOLANA_JUPITER_API_KEY === undefined) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['SOLANA_JUPITER_API_KEY'], message: 'SOLANA_JUPITER_API_KEY is required when SOLANA_ENABLED is true' });
+  }
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -208,6 +215,7 @@ export function getConfiguredChains(get: <K extends keyof Env>(key: K) => Env[K]
 export interface SolanaConfig {
   rpcUrl: string;
   treasuryUsdcAta: string;
+  jupiterApiKey: string;
   jupiterPlatformFeeBps: number;
   newWalletTopupSol: number;
   topupFundingSecretKey: string;
@@ -226,6 +234,7 @@ export function getSolanaConfig(get: <K extends keyof Env>(key: K) => Env[K]): S
   return {
     rpcUrl: get('SOLANA_RPC_URL')!,
     treasuryUsdcAta: get('SOLANA_TREASURY_USDC_ATA')!,
+    jupiterApiKey: get('SOLANA_JUPITER_API_KEY')!,
     jupiterPlatformFeeBps: get('SOLANA_JUPITER_PLATFORM_FEE_BPS'),
     newWalletTopupSol: get('SOLANA_NEW_WALLET_TOPUP_SOL'),
     topupFundingSecretKey: get('SOLANA_TOPUP_FUNDING_SECRET_KEY')!,

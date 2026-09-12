@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
+import { getSolanaConfig, type Env } from '../config/env';
 
-const JUPITER_QUOTE_URL = 'https://quote-api.jup.ag/v6/quote';
-const JUPITER_SWAP_URL = 'https://quote-api.jup.ag/v6/swap';
+// Jupiter's old free/keyless `quote-api.jup.ag/v6/*` domain no longer resolves at all
+// (confirmed live: DNS lookup failure, not a rate limit or rejection) — Jupiter
+// restructured onto `api.jup.ag`, which requires an `x-api-key` even on its free tier
+// (1 req/sec). See docs/TRADING.md#solana.
+const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
+const JUPITER_SWAP_URL = 'https://api.jup.ag/swap/v1/swap';
 
 export interface JupiterQuoteParams {
   inputMint: string;
@@ -44,8 +50,8 @@ export interface JupiterQuoteResult {
 }
 
 /**
- * Jupiter's V6 Quote + Swap API (`quote-api.jup.ag/v6/{quote,swap}`) — see
- * docs/TRADING.md#solana for why this provider. Unlike the EVM `SwapRouter` interface
+ * Jupiter's Swap API (`api.jup.ag/swap/v1/{quote,swap}`) — see docs/TRADING.md#solana for
+ * why this provider. Unlike the EVM `SwapRouter` interface
  * (`apps/api/src/trading/router/swap-router.interface.ts`), this is quote *and*
  * transaction-building combined into one call — Jupiter's `/swap` endpoint is what
  * actually produces the serialized transaction the client signs, so splitting "get a
@@ -55,19 +61,32 @@ export interface JupiterQuoteResult {
  * construction — see the multi-chain/Solana planning notes for why a shared interface
  * was rejected rather than forced.
  *
- * Written against Jupiter's V6 API as documented at the time this was built (their
- * Referral Program is confirmed no longer required as of Jan 2025 — `platformFeeBps` +
- * `feeAccount` alone is sufficient); re-verify field/param names against Jupiter's current
- * docs (https://dev.jup.ag) before depending on this in production, same caveat
+ * The base URL and `x-api-key` requirement were only confirmed live on 2026-09-12, after
+ * the originally-integrated `quote-api.jup.ag/v6/*` domain (keyless, no longer requiring
+ * the Referral Program as of Jan 2025) stopped resolving in production — a real DNS
+ * failure, not a rate limit or rejection. Jupiter has restructured this API before and
+ * will likely again; re-verify against Jupiter's current docs
+ * (https://developers.jup.ag) before depending on this further, same caveat
  * `LiFiSwapRouter` carries for LI.FI.
  */
 @Injectable()
 export class JupiterQuoteService {
-  constructor(private readonly logger: PinoLogger) {
+  private readonly apiKey: string | null;
+
+  constructor(
+    config: ConfigService<Env, true>,
+    private readonly logger: PinoLogger,
+  ) {
+    this.apiKey = getSolanaConfig((key) => config.get(key, { infer: true }))?.jupiterApiKey ?? null;
     this.logger.setContext('JupiterQuoteService');
   }
 
   async getQuote(params: JupiterQuoteParams): Promise<JupiterQuoteResult | null> {
+    if (this.apiKey === null) {
+      this.logger.error('no Jupiter API key configured — cannot request a quote');
+      return null;
+    }
+
     const startedAt = Date.now();
     const quote = await this.fetchQuote(params);
     if (!quote) {
@@ -106,7 +125,7 @@ export class JupiterQuoteService {
 
     const url = `${JUPITER_QUOTE_URL}?${query.toString()}`;
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { headers: { 'x-api-key': this.apiKey! } });
       if (!response.ok) {
         // Never leak the raw provider body (may echo request params back) — log status only.
         this.logger.warn({ status: response.status }, 'quote endpoint rejected the request');
@@ -126,7 +145,7 @@ export class JupiterQuoteService {
     try {
       const response = await fetch(JUPITER_SWAP_URL, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', 'x-api-key': this.apiKey! },
         body: JSON.stringify({
           quoteResponse: quote,
           userPublicKey: params.userPublicKey,

@@ -1,8 +1,24 @@
+import type { ConfigService } from '@nestjs/config';
 import type { PinoLogger } from 'nestjs-pino';
+import type { Env } from '../config/env';
 import { JupiterQuoteService, type JupiterQuoteParams } from './jupiter-quote.service';
 
 function fakeLogger(): PinoLogger {
   return { setContext: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as PinoLogger;
+}
+
+function fakeConfig(overrides: Partial<Record<string, unknown>> = {}): ConfigService<Env, true> {
+  const values: Record<string, unknown> = {
+    SOLANA_ENABLED: true,
+    SOLANA_RPC_URL: 'https://api.mainnet-beta.solana.com',
+    SOLANA_TREASURY_USDC_ATA: 'TreasuryUsdcAtaForTestingOnly11111111111',
+    SOLANA_JUPITER_PLATFORM_FEE_BPS: 50,
+    SOLANA_NEW_WALLET_TOPUP_SOL: 0.01,
+    SOLANA_TOPUP_FUNDING_SECRET_KEY: 'fake-secret-key',
+    SOLANA_JUPITER_API_KEY: 'fake-jupiter-api-key',
+    ...overrides,
+  };
+  return { get: (key: string) => values[key] } as unknown as ConfigService<Env, true>;
 }
 
 function jsonResponse(body: unknown, ok = true, status = 200): Response {
@@ -34,7 +50,7 @@ describe('JupiterQuoteService', () => {
   let fetchMock: jest.Mock;
 
   beforeEach(() => {
-    service = new JupiterQuoteService(fakeLogger());
+    service = new JupiterQuoteService(fakeConfig(), fakeLogger());
     fetchMock = jest.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
   });
