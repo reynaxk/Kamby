@@ -9,7 +9,7 @@ import { base } from 'wagmi/chains';
 import { sendTransaction, waitForTransactionReceipt, writeContract } from 'wagmi/actions';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
-import { getQuote, getTransaction, submitTransaction } from '@/lib/trading-client';
+import { getQuote, getTransaction, submitFeeTransaction, submitTransaction } from '@/lib/trading-client';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
 import { SlippageControl } from './SlippageControl';
@@ -26,7 +26,7 @@ export interface TradePanelProps {
   onClose?: () => void;
 }
 
-type Step = 'form' | 'review' | 'approving' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed';
+type Step = 'form' | 'review' | 'approving' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
 
 function friendlyError(err: unknown): string {
   if (err && typeof err === 'object' && 'shortMessage' in err && typeof (err as { shortMessage?: unknown }).shortMessage === 'string') {
@@ -69,9 +69,26 @@ export function TradePanel({
 
   const [step, setStep] = useState<Step>('form');
   const [approved, setApproved] = useState(false);
+  // Gates signing on an 'extreme' price-impact quote — see docs/TRADING.md#price-impact.
+  // Reset alongside `approved` whenever a fresh quote comes in, so an acknowledgement never
+  // silently carries over to a different (possibly worse) quote.
+  const [priceImpactAcknowledged, setPriceImpactAcknowledged] = useState(false);
   const [flowError, setFlowError] = useState<string | null>(null);
   const [transaction, setTransaction] = useState<TradeTransactionDto | null>(null);
+  // Set the moment the wallet successfully broadcasts, cleared only on a fresh trade — see
+  // handleConfirmAndSign's comment on why a real on-chain hash must never be discarded just
+  // because *recording* it afterward failed.
+  const [pendingHash, setPendingHash] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // The separate guaranteed-USDC fee transfer — see docs/TRADING.md#guaranteed-usdc-fees.
+  // Entirely inert when quote.feeUnsignedTx is null (a non-USDC-quoted market): nothing
+  // here ever fires, and the flow behaves exactly as it did before this existed.
+  const [feeSignState, setFeeSignState] = useState<'idle' | 'signing' | 'record-failed'>('idle');
+  const [feeSignError, setFeeSignError] = useState<string | null>(null);
+  // Same reasoning as `pendingHash` above: set only once the fee transfer has actually
+  // broadcast, so a recording failure retries the record, never re-signs or re-broadcasts.
+  const [feePendingHash, setFeePendingHash] = useState<string | null>(null);
 
   const inputTokenAddress = side === 'BUY' ? quoteTokenAddress : tokenAddress;
   const inputTokenSymbol = side === 'BUY' ? quoteTokenSymbol : tokenSymbol;
@@ -93,6 +110,7 @@ export function TradePanel({
     setQuoteStatus('loading');
     setQuoteError(null);
     setApproved(false);
+    setPriceImpactAcknowledged(false);
     const timeout = setTimeout(() => {
       getQuote({ side, tokenAddress, walletAddress: address, amount, slippageBps })
         .then((result) => {
@@ -122,15 +140,26 @@ export function TradePanel({
 
   const isExpired = quote !== null && isQuoteExpired(new Date(quote.expiresAt), new Date(now));
 
+  /** Polls until the swap resolves *and* (if this trade has a guaranteed-USDC fee) the fee
+   *  transfer also resolves — see docs/TRADING.md#guaranteed-usdc-fees. The swap's own
+   *  status still drives which top-level step renders the instant it resolves; the fee's
+   *  status is read straight off the same polled `transaction` and shown inline (see the
+   *  fee section below), never gating the swap's own confirmed/failed outcome. Clears any
+   *  previous interval first so a fresh fee submission can safely restart polling even
+   *  after the swap side already stopped it. */
   function pollTransactionStatus(id: string) {
+    if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(() => {
       getTransaction(id)
         .then((updated) => {
           if (!updated) return; // transient — try again next tick rather than erroring
           setTransaction(updated);
           if (updated.status !== 'PENDING') {
-            if (pollRef.current) clearInterval(pollRef.current);
             setStep(updated.status === 'CONFIRMED' ? 'confirmed' : 'failed');
+          }
+          const feeStillPending = updated.feeStatus === 'PENDING';
+          if (updated.status !== 'PENDING' && !feeStillPending && pollRef.current) {
+            clearInterval(pollRef.current);
           }
         })
         .catch(() => {
@@ -168,8 +197,10 @@ export function TradePanel({
     }
     setFlowError(null);
     setStep('signing');
+
+    let hash: `0x${string}`;
     try {
-      const hash = await sendTransaction(wagmiConfig, {
+      hash = await sendTransaction(wagmiConfig, {
         to: quote.unsignedTx.to as `0x${string}`,
         data: quote.unsignedTx.data as `0x${string}`,
         value: BigInt(quote.unsignedTx.value),
@@ -177,15 +208,103 @@ export function TradePanel({
         maxFeePerGas: quote.unsignedTx.maxFeePerGas ? BigInt(quote.unsignedTx.maxFeePerGas) : undefined,
         maxPriorityFeePerGas: quote.unsignedTx.maxPriorityFeePerGas ? BigInt(quote.unsignedTx.maxPriorityFeePerGas) : undefined,
       });
-      setStep('submitted');
-      const recorded = await submitTransaction({ quoteId: quote.id, walletAddress: address, txHash: hash });
+    } catch (err) {
+      // Nothing was broadcast — no real trade exists yet, so it's genuinely safe to send
+      // the user back to Review and let them try signing again.
+      setFlowError(friendlyError(err));
+      setStep('review');
+      return;
+    }
+
+    // The wallet broadcast successfully — a real, irreversible on-chain transaction now
+    // exists. From this point on, a failure must NEVER route back to a step that offers
+    // "Confirm & sign" again: that would broadcast a second, separate transaction for the
+    // same trade (see docs/TRADING.md's audit note on this exact failure mode).
+    setStep('submitted');
+    await recordSubmittedTransaction(hash, quote.id, address);
+  }
+
+  /** Records an already-broadcast transaction with the backend — split out from
+   *  handleConfirmAndSign so a retry (from the record-failed step) can call this directly
+   *  with the same hash, never re-signing or re-broadcasting. Safe to call more than once:
+   *  submission is idempotent on (quoteId, txHash) — see
+   *  docs/TRADING.md#transaction-submission. */
+  async function recordSubmittedTransaction(hash: string, quoteId: string, walletAddress: string) {
+    try {
+      const recorded = await submitTransaction({ quoteId, walletAddress, txHash: hash });
       setTransaction(recorded);
+      setPendingHash(null);
       setStep('pending');
       pollTransactionStatus(recorded.id);
     } catch (err) {
+      // The trade WAS broadcast — only recording it failed. Keep the hash so the user can
+      // verify it themselves and so a retry never needs a new signature.
+      setPendingHash(hash);
       setFlowError(friendlyError(err));
-      setStep('review');
+      setStep('record-failed');
     }
+  }
+
+  function handleRetryRecording() {
+    if (!pendingHash || !quote || !address) return;
+    setFlowError(null);
+    setStep('submitted');
+    void recordSubmittedTransaction(pendingHash, quote.id, address);
+  }
+
+  /** The second signature for a guaranteed-USDC-fee trade — see
+   *  docs/TRADING.md#guaranteed-usdc-fees. A user-initiated action (an explicit button, not
+   *  auto-fired after the swap), so a second wallet popup never appears as a surprise. Only
+   *  ever reachable once `transaction` exists, i.e. after the swap itself has broadcast. */
+  async function handleSignFeeTransfer() {
+    if (!quote?.feeUnsignedTx || !transaction) return;
+    setFeeSignError(null);
+    setFeeSignState('signing');
+
+    let hash: `0x${string}`;
+    try {
+      hash = await sendTransaction(wagmiConfig, {
+        to: quote.feeUnsignedTx.to as `0x${string}`,
+        data: quote.feeUnsignedTx.data as `0x${string}`,
+        value: BigInt(quote.feeUnsignedTx.value),
+        gas: quote.feeUnsignedTx.gas ? BigInt(quote.feeUnsignedTx.gas) : undefined,
+        maxFeePerGas: quote.feeUnsignedTx.maxFeePerGas ? BigInt(quote.feeUnsignedTx.maxFeePerGas) : undefined,
+        maxPriorityFeePerGas: quote.feeUnsignedTx.maxPriorityFeePerGas ? BigInt(quote.feeUnsignedTx.maxPriorityFeePerGas) : undefined,
+      });
+    } catch (err) {
+      // Nothing was broadcast — safe to let the user try signing the fee transfer again.
+      setFeeSignError(friendlyError(err));
+      setFeeSignState('idle');
+      return;
+    }
+
+    await recordFeeTransaction(hash, transaction.id);
+  }
+
+  /** Same split-out-for-retry reasoning as recordSubmittedTransaction above: once the fee
+   *  transfer has actually broadcast, a recording failure must only ever retry the record,
+   *  never re-sign or re-broadcast a second fee transfer. */
+  async function recordFeeTransaction(hash: string, transactionId: string) {
+    try {
+      const updated = await submitFeeTransaction(transactionId, hash);
+      setTransaction(updated);
+      setFeePendingHash(null);
+      setFeeSignState('idle');
+      // Restarts polling if the swap side already stopped it (e.g. the swap confirmed
+      // before the user got around to signing the fee transfer) so this fee's own
+      // confirmation still gets picked up.
+      pollTransactionStatus(transactionId);
+    } catch (err) {
+      setFeePendingHash(hash);
+      setFeeSignError(friendlyError(err));
+      setFeeSignState('record-failed');
+    }
+  }
+
+  function handleRetryFeeRecording() {
+    if (!feePendingHash || !transaction) return;
+    setFeeSignError(null);
+    void recordFeeTransaction(feePendingHash, transaction.id);
   }
 
   function resetToForm() {
@@ -193,8 +312,12 @@ export function TradePanel({
     setQuote(null);
     setQuoteStatus('idle');
     setTransaction(null);
+    setPendingHash(null);
     setFlowError(null);
     setAmount('');
+    setFeeSignState('idle');
+    setFeeSignError(null);
+    setFeePendingHash(null);
   }
 
   // --- Gating states: connect -> right network -> verify ---------------------------------
@@ -241,6 +364,44 @@ export function TradePanel({
     return (
       <Panel title="Trade" onClose={onClose}>
         <TradeStatusView step={step} transaction={transaction} chainId={base.id} onDone={resetToForm} />
+        {quote?.feeUnsignedTx && transaction && (
+          <FeeTransferSection
+            transaction={transaction}
+            feeSignState={feeSignState}
+            feeSignError={feeSignError}
+            feePendingHash={feePendingHash}
+            chainId={base.id}
+            onSign={() => void handleSignFeeTransfer()}
+            onRetryRecording={handleRetryFeeRecording}
+          />
+        )}
+      </Panel>
+    );
+  }
+
+  // Deliberately its own branch, not folded into TradeStatusView above: there is no
+  // TradeTransactionDto yet (recording it is exactly what failed), only the raw hash the
+  // wallet returned. No "Done"/dismiss action on purpose — a broadcast-but-unrecorded trade
+  // shouldn't be casually walked away from; retrying is cheap and safe (idempotent on the
+  // backend), so that's the only way forward from here.
+  if (step === 'record-failed') {
+    const explorerUrl = pendingHash ? explorerTxUrl(base.id, pendingHash) : null;
+    return (
+      <Panel title="Trade" onClose={onClose}>
+        <div className="space-y-3 text-center">
+          <p className="font-body text-sm font-semibold text-down">
+            Your trade was sent to the network, but we couldn&apos;t record it.
+          </p>
+          {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
+          {explorerUrl && (
+            <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
+              View on Basescan
+            </a>
+          )}
+          <Button type="button" onClick={handleRetryRecording} className="w-full">
+            Retry
+          </Button>
+        </div>
       </Panel>
     );
   }
@@ -258,6 +419,17 @@ export function TradePanel({
           </div>
         )}
         {flowError && <p className="font-body text-xs text-down">{flowError}</p>}
+        {quote.priceImpactLevel === 'extreme' && (
+          <label className="flex items-start gap-2 rounded-lg bg-down/10 px-2.5 py-2 font-body text-xs text-down">
+            <input
+              type="checkbox"
+              checked={priceImpactAcknowledged}
+              onChange={(e) => setPriceImpactAcknowledged(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>I understand this trade has an extreme price impact and want to proceed anyway.</span>
+          </label>
+        )}
         {quote.requiresApproval && !approved && (
           <Button type="button" onClick={() => void handleApprove()} disabled={step === 'approving' || isExpired}>
             {step === 'approving' ? 'Approving…' : `1. Approve ${side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol}`}
@@ -266,7 +438,12 @@ export function TradePanel({
         <Button
           type="button"
           onClick={() => void handleConfirmAndSign()}
-          disabled={isExpired || step === 'signing' || (quote.requiresApproval && !approved)}
+          disabled={
+            isExpired ||
+            step === 'signing' ||
+            (quote.requiresApproval && !approved) ||
+            (quote.priceImpactLevel === 'extreme' && !priceImpactAcknowledged)
+          }
         >
           {step === 'signing' ? 'Confirm in your wallet…' : quote.requiresApproval ? '2. Confirm & sign' : 'Confirm & sign'}
         </Button>
@@ -374,6 +551,80 @@ function TradeStatusView({
         <Button type="button" variant="secondary" onClick={onDone} className="w-full">
           Done
         </Button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The separate guaranteed-USDC fee transfer's own status and controls — see
+ * docs/TRADING.md#guaranteed-usdc-fees. Rendered alongside (never inside) TradeStatusView:
+ * the swap above it is the authoritative "did my trade happen," this is purely about
+ * whether Kamby has collected its fee yet, which never blocks or reverses the trade
+ * itself.
+ */
+function FeeTransferSection({
+  transaction,
+  feeSignState,
+  feeSignError,
+  feePendingHash,
+  chainId,
+  onSign,
+  onRetryRecording,
+}: {
+  transaction: TradeTransactionDto;
+  feeSignState: 'idle' | 'signing' | 'record-failed';
+  feeSignError: string | null;
+  feePendingHash: string | null;
+  chainId: number;
+  onSign: () => void;
+  onRetryRecording: () => void;
+}) {
+  if (feeSignState === 'record-failed') {
+    const explorerUrl = feePendingHash ? explorerTxUrl(chainId, feePendingHash) : null;
+    return (
+      <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
+        <p className="font-body text-xs font-semibold text-down">The platform fee was sent, but we couldn&apos;t record it.</p>
+        {feeSignError && <p className="font-body text-xs text-ink-600">{feeSignError}</p>}
+        {explorerUrl && (
+          <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
+            View on Basescan
+          </a>
+        )}
+        <Button type="button" variant="secondary" onClick={onRetryRecording} className="w-full">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!transaction.feeTxHash) {
+    return (
+      <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
+        <p className="font-body text-xs text-ink-600">Kamby&apos;s fee hasn&apos;t been sent yet — a separate signature.</p>
+        {feeSignError && <p className="font-body text-xs text-down">{feeSignError}</p>}
+        <Button type="button" variant="secondary" onClick={onSign} disabled={feeSignState === 'signing'} className="w-full">
+          {feeSignState === 'signing' ? 'Confirm in your wallet…' : 'Send platform fee'}
+        </Button>
+      </div>
+    );
+  }
+
+  const explorerUrl = explorerTxUrl(chainId, transaction.feeTxHash);
+  return (
+    <div className="space-y-1 rounded-lg bg-surface-raised p-3 text-center">
+      {transaction.feeStatus === 'PENDING' && <p className="font-body text-xs text-ink-600">Platform fee sent — waiting for confirmation…</p>}
+      {transaction.feeStatus === 'CONFIRMED' && <p className="font-body text-xs font-semibold text-up">Platform fee confirmed ✓</p>}
+      {(transaction.feeStatus === 'FAILED' || transaction.feeStatus === 'EXPIRED') && (
+        <p className="font-body text-xs font-semibold text-down">
+          {transaction.feeStatus === 'EXPIRED' ? 'The fee transfer never confirmed in time.' : 'The fee transfer failed on-chain.'}
+        </p>
+      )}
+      {transaction.feeFailureReason && <p className="font-body text-xs text-ink-600">{transaction.feeFailureReason}</p>}
+      {explorerUrl && (
+        <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
+          View fee transfer on Basescan
+        </a>
       )}
     </div>
   );

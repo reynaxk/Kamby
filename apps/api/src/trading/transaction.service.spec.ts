@@ -8,11 +8,13 @@ import { TransactionService } from './transaction.service';
 
 const mockGetReceiptStatus = jest.fn();
 const mockGetTransactionDetails = jest.fn();
+const mockGetConfirmationCount = jest.fn();
 
 jest.mock('@kamby/chain-adapters', () => ({
   EvmChainDataProvider: jest.fn().mockImplementation(() => ({
     getTransactionReceiptStatus: mockGetReceiptStatus,
     getTransactionDetails: mockGetTransactionDetails,
+    getConfirmationCount: mockGetConfirmationCount,
   })),
 }));
 
@@ -38,12 +40,25 @@ const UNSIGNED_TX = { to: '0xcccccccccccccccccccccccccccccccccccccccc', data: '0
 /** Exactly matches WALLET/UNSIGNED_TX above — the "everything lines up" on-chain reading. */
 const MATCHING_ON_CHAIN = { from: WALLET, to: UNSIGNED_TX.to, value: 0n, data: UNSIGNED_TX.data };
 
+// The separate guaranteed-USDC fee transfer — see docs/TRADING.md#guaranteed-usdc-fees.
+// Deliberately a different `to`/`data` than the swap's UNSIGNED_TX above, since it's a
+// plain ERC20 transfer(feeRecipient, amount) against the USDC contract, not a swap call.
+const FEE_TX_HASH = `0x${'b'.repeat(64)}`;
+const FEE_UNSIGNED_TX = { to: '0xdddddddddddddddddddddddddddddddddddddddd', data: '0xfeefeefee', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null };
+const MATCHING_FEE_ON_CHAIN = { from: WALLET, to: FEE_UNSIGNED_TX.to, value: 0n, data: FEE_UNSIGNED_TX.data };
+
 function fakeLogger(): PinoLogger {
   return { setContext: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as PinoLogger;
 }
 
 function fakeConfig(): ConfigService<Env, true> {
-  const values: Record<string, unknown> = { CHAIN_ID, CHAIN_RPC_URL: 'https://mainnet.base.org' };
+  const values: Record<string, unknown> = {
+    CHAINS: 'base',
+    DEFAULT_CHAIN_SLUG: 'base',
+    CHAIN_BASE_ID: CHAIN_ID,
+    CHAIN_BASE_RPC_URL: 'https://mainnet.base.org',
+    CHAIN_BASE_USDC_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  };
   return { get: (key: string) => values[key] } as unknown as ConfigService<Env, true>;
 }
 
@@ -86,13 +101,24 @@ function fakeTransactionRow(overrides: Partial<Record<string, unknown>> = {}) {
     failureReason: null,
     submittedAt: new Date(),
     confirmedAt: null,
+    feeTxHash: null,
+    feeStatus: null,
+    feeFailureReason: null,
+    feeSubmittedAt: null,
+    feeConfirmedAt: null,
     tokenMarket: {
       token: { contractAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', symbol: 'FOO', decimals: 18 },
       quoteToken: { contractAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', symbol: 'WETH', decimals: 18 },
     },
-    quote: { unsignedTx: UNSIGNED_TX },
+    quote: { unsignedTx: UNSIGNED_TX, feeUnsignedTx: null },
     ...overrides,
   };
+}
+
+/** A row whose trade is eligible for the guaranteed-USDC-fee flow — its quote carries a
+ *  feeUnsignedTx, so submitFeeTransaction/refreshFeeStatus have something to act on. */
+function fakeGuaranteedFeeRow(overrides: Partial<Record<string, unknown>> = {}) {
+  return fakeTransactionRow({ quote: { unsignedTx: UNSIGNED_TX, feeUnsignedTx: FEE_UNSIGNED_TX }, ...overrides });
 }
 
 describe('TransactionService', () => {
@@ -105,6 +131,9 @@ describe('TransactionService', () => {
     // override just the one mock that needs to fail.
     (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeVerifiedWallet());
     mockGetTransactionDetails.mockResolvedValue(MATCHING_ON_CHAIN);
+    // Comfortably above TRADING_DEFAULTS.minConfirmations — tests targeting the
+    // confirmation-depth gate itself override this explicitly.
+    mockGetConfirmationCount.mockResolvedValue(TRADING_DEFAULTS.minConfirmations + 5);
   });
 
   describe('submitTransaction', () => {
@@ -294,6 +323,122 @@ describe('TransactionService', () => {
     });
   });
 
+  describe('submitFeeTransaction', () => {
+    it('rejects a malformed transaction hash before touching the database', async () => {
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: '0xnothex' }),
+      ).rejects.toThrow(UnprocessableEntityException);
+      expect(mockedPrisma.tradeTransaction.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('404s on an unknown transaction id', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'missing', txHash: FEE_TX_HASH }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('404s a transaction that belongs to a different user — never leaks that it exists', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeGuaranteedFeeRow({ userId: 'someone-else' }));
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('rejects when the trade has no guaranteed-USDC fee to submit — the quote never got a feeUnsignedTx', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow()); // default quote.feeUnsignedTx is null
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH }),
+      ).rejects.toThrow(UnprocessableEntityException);
+      expect(mockedPrisma.tradeTransaction.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects submission when the wallet is no longer verified — re-checked from the database, not trusted from the row', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeGuaranteedFeeRow());
+      (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockedPrisma.tradeTransaction.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects an already-visible fee transaction whose on-chain details do not match the expected transfer', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeGuaranteedFeeRow());
+      mockGetTransactionDetails.mockResolvedValue({ ...MATCHING_FEE_ON_CHAIN, to: '0x0000000000000000000000000000000000dead' });
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockedPrisma.tradeTransaction.update).not.toHaveBeenCalled();
+    });
+
+    it('records a PENDING fee transaction from a valid, verified submission', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeGuaranteedFeeRow());
+      mockGetTransactionDetails.mockResolvedValue(MATCHING_FEE_ON_CHAIN);
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: new Date() }),
+      );
+
+      const dto = await service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH });
+
+      expect(dto.feeTxHash).toBe(FEE_TX_HASH);
+      expect(dto.feeStatus).toBe('PENDING');
+      expect(mockedPrisma.tradeTransaction.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING' }) }),
+      );
+    });
+
+    it('allows submission through when the fee transaction is not yet visible to our RPC — refreshFeeStatus is the authoritative gate', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeGuaranteedFeeRow());
+      mockGetTransactionDetails.mockResolvedValue(null);
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING' }),
+      );
+
+      const dto = await service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH });
+
+      expect(dto.feeStatus).toBe('PENDING');
+    });
+
+    it('is idempotent on an identical retry — returns the existing row instead of erroring or double-recording', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING' }),
+      );
+
+      const dto = await service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH });
+
+      expect(dto.feeTxHash).toBe(FEE_TX_HASH);
+      expect(mockedPrisma.tradeTransaction.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects a conflicting retry that supplies a different hash than what was already recorded', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING' }),
+      );
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: `0x${'c'.repeat(64)}` }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockedPrisma.tradeTransaction.update).not.toHaveBeenCalled();
+    });
+
+    it('recovers from a (chainId, feeTxHash) unique-constraint race by rejecting as a real conflict, not silently attaching an unrelated hash to this trade', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeGuaranteedFeeRow());
+      mockGetTransactionDetails.mockResolvedValue(MATCHING_FEE_ON_CHAIN);
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: '5.22.0' }),
+      );
+
+      await expect(
+        service.submitFeeTransaction({ userId: USER_ID, transactionId: 'tx-1', txHash: FEE_TX_HASH }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
   describe('getTransaction / refreshStatus', () => {
     it('404s when the transaction does not belong to the caller', async () => {
       (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow({ userId: 'someone-else' }));
@@ -312,6 +457,30 @@ describe('TransactionService', () => {
       expect(mockedPrisma.tradeTransaction.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ status: 'CONFIRMED' }) }),
       );
+    });
+
+    it('leaves a matching, successful receipt PENDING (never CONFIRMED) until minConfirmations is reached — the reorg-protection gate', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow());
+      mockGetReceiptStatus.mockResolvedValue('success');
+      mockGetConfirmationCount.mockResolvedValue(TRADING_DEFAULTS.minConfirmations - 1);
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.status).toBe('PENDING');
+      const updateCalls = (mockedPrisma.tradeTransaction.update as jest.Mock).mock.calls;
+      expect(updateCalls).toHaveLength(0);
+    });
+
+    it('never confirms when the confirmation depth cannot be read at all, even with a matching successful receipt', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow());
+      mockGetReceiptStatus.mockResolvedValue('success');
+      mockGetConfirmationCount.mockResolvedValue(null);
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.status).toBe('PENDING');
+      const updateCalls = (mockedPrisma.tradeTransaction.update as jest.Mock).mock.calls;
+      expect(updateCalls.every((call) => call[0].data.status !== 'CONFIRMED')).toBe(true);
     });
 
     it('never confirms a successful receipt for an unrelated transaction — the core transaction-integrity guarantee', async () => {
@@ -385,6 +554,115 @@ describe('TransactionService', () => {
       const dto = await service.getTransaction(USER_ID, 'tx-1');
 
       expect(dto.status).toBe('EXPIRED');
+    });
+  });
+
+  describe('getTransaction / refreshFeeStatus', () => {
+    // Every row here is already CONFIRMED on the swap side, so getTransaction's own
+    // refreshStatus call is a no-op and only the fee-refresh path under test runs — see
+    // docs/TRADING.md#guaranteed-usdc-fees: a confirmed swap is a fully successful trade
+    // regardless of what its separate fee transfer is doing.
+
+    it('does nothing when there is no fee transaction submitted yet', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date() }),
+      );
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.status).toBe('CONFIRMED');
+      expect(dto.feeStatus).toBeNull();
+      expect(mockGetReceiptStatus).not.toHaveBeenCalled();
+    });
+
+    it('confirms the fee transfer once its receipt matches and reaches minConfirmations', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date(), feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: new Date() }),
+      );
+      mockGetReceiptStatus.mockResolvedValue('success');
+      mockGetTransactionDetails.mockResolvedValue(MATCHING_FEE_ON_CHAIN);
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', feeTxHash: FEE_TX_HASH, feeStatus: 'CONFIRMED', feeConfirmedAt: new Date() }),
+      );
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.feeStatus).toBe('CONFIRMED');
+      expect(mockedPrisma.tradeTransaction.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ feeStatus: 'CONFIRMED' }) }),
+      );
+    });
+
+    it('leaves a matching, successful fee receipt PENDING until minConfirmations is reached', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date(), feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: new Date() }),
+      );
+      mockGetReceiptStatus.mockResolvedValue('success');
+      mockGetTransactionDetails.mockResolvedValue(MATCHING_FEE_ON_CHAIN);
+      mockGetConfirmationCount.mockResolvedValue(TRADING_DEFAULTS.minConfirmations - 1);
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.feeStatus).toBe('PENDING');
+      expect(mockedPrisma.tradeTransaction.update).not.toHaveBeenCalled();
+    });
+
+    it('marks the fee FAILED (never CONFIRMED) when a successful receipt does not match the expected transfer', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date(), feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: new Date() }),
+      );
+      mockGetReceiptStatus.mockResolvedValue('success');
+      mockGetTransactionDetails.mockResolvedValue({ ...MATCHING_FEE_ON_CHAIN, to: '0x0000000000000000000000000000000000dead' });
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', feeTxHash: FEE_TX_HASH, feeStatus: 'FAILED' }),
+      );
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.feeStatus).toBe('FAILED');
+      const updateCalls = (mockedPrisma.tradeTransaction.update as jest.Mock).mock.calls;
+      expect(updateCalls.every((call) => call[0].data.feeStatus !== 'CONFIRMED')).toBe(true);
+    });
+
+    it('marks a reverted fee receipt as FAILED, never a silent success', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date(), feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: new Date() }),
+      );
+      mockGetReceiptStatus.mockResolvedValue('reverted');
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', feeTxHash: FEE_TX_HASH, feeStatus: 'FAILED', feeFailureReason: 'Fee transfer reverted on-chain' }),
+      );
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.feeStatus).toBe('FAILED');
+    });
+
+    it('expires a fee transfer that has waited past the configured timeout with no receipt', async () => {
+      const staleSubmittedAt = new Date(Date.now() - (TRADING_DEFAULTS.pendingTransactionTimeoutMinutes + 5) * 60_000);
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date(), feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: staleSubmittedAt }),
+      );
+      mockGetReceiptStatus.mockResolvedValue(null);
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', feeTxHash: FEE_TX_HASH, feeStatus: 'EXPIRED' }),
+      );
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.feeStatus).toBe('EXPIRED');
+    });
+
+    it('a confirmed swap with a still-pending fee transfer is reported as a fully successful trade regardless', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(
+        fakeGuaranteedFeeRow({ status: 'CONFIRMED', confirmedAt: new Date(), feeTxHash: FEE_TX_HASH, feeStatus: 'PENDING', feeSubmittedAt: new Date() }),
+      );
+      mockGetReceiptStatus.mockResolvedValue(null); // fee tx still not mined anywhere yet
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.status).toBe('CONFIRMED'); // the trade itself is never gated on the fee
+      expect(dto.feeStatus).toBe('PENDING');
     });
   });
 

@@ -406,38 +406,62 @@ export class NotificationFanoutService {
    * for `swap.createMany`), so recovering them for realtime publishing costs one follow-up
    * query keyed on the natural `(userId, type, dedupeKey)` unique index.
    */
+  /**
+   * Caps every write, re-fetch, and publish in `bulkCreate` below to this many candidates
+   * at a time — see that method's own comment. Distinct from (and doesn't touch) the
+   * documented "every preference-enabled user" TRENDING_TOKEN audience decision (see
+   * docs/NOTIFICATIONS.md#trending-tokens) — this is purely about how a large fan-out gets
+   * executed safely, not who it reaches.
+   */
+  private static readonly FANOUT_BATCH_SIZE = 500;
+
   private async bulkCreate(
     type: NotificationType,
     candidates: { userId: string; dedupeKey: string; swapId?: string; tokenMarketId?: string }[],
   ): Promise<void> {
-    const result = await prisma.notification.createMany({
-      data: candidates.map((c) => ({
-        userId: c.userId,
-        type,
-        dedupeKey: c.dedupeKey,
-        swapId: c.swapId,
-        tokenMarketId: c.tokenMarketId,
-      })),
-      skipDuplicates: true,
-    });
+    let totalCreated = 0;
+    // Chunked rather than one unbounded call: the re-fetch below builds one `OR` condition
+    // per candidate to recover the IDs `createMany` doesn't return, so an unchunked
+    // audience of thousands (TRENDING_TOKEN's "every preference-enabled user" reach, in
+    // particular) would build a single query with thousands of OR clauses. Batching keeps
+    // every query's size bounded regardless of how large the candidate list gets.
+    for (let i = 0; i < candidates.length; i += NotificationFanoutService.FANOUT_BATCH_SIZE) {
+      const batch = candidates.slice(i, i + NotificationFanoutService.FANOUT_BATCH_SIZE);
+      const result = await prisma.notification.createMany({
+        data: batch.map((c) => ({
+          userId: c.userId,
+          type,
+          dedupeKey: c.dedupeKey,
+          swapId: c.swapId,
+          tokenMarketId: c.tokenMarketId,
+        })),
+        skipDuplicates: true,
+      });
+      totalCreated += result.count;
+      if (result.count === 0) continue;
+
+      const created = await prisma.notification.findMany({
+        where: { type, OR: batch.map((c) => ({ userId: c.userId, dedupeKey: c.dedupeKey })) },
+        select: { id: true, userId: true, type: true, createdAt: true },
+      });
+      // Parallel within a batch (bounded at FANOUT_BATCH_SIZE concurrent Redis publishes,
+      // not one-at-a-time for the whole audience) — `publish` never fails the tick either
+      // way, see its own comment.
+      await Promise.all(
+        created.map((row) =>
+          this.publish({
+            userId: row.userId,
+            notificationId: row.id,
+            type: row.type,
+            atIso: row.createdAt.toISOString(),
+          }),
+        ),
+      );
+    }
     this.logger.info(
-      { type, attempted: candidates.length, created: result.count },
+      { type, attempted: candidates.length, created: totalCreated },
       'Notification fan-out complete',
     );
-    if (result.count === 0) return;
-
-    const created = await prisma.notification.findMany({
-      where: { type, OR: candidates.map((c) => ({ userId: c.userId, dedupeKey: c.dedupeKey })) },
-      select: { id: true, userId: true, type: true, createdAt: true },
-    });
-    for (const row of created) {
-      await this.publish({
-        userId: row.userId,
-        notificationId: row.id,
-        type: row.type,
-        atIso: row.createdAt.toISOString(),
-      });
-    }
   }
 
   /** Never allowed to fail the tick — a down Redis means the recipient finds out on their

@@ -70,6 +70,18 @@ export class TradeSweepService {
             continue;
           }
 
+          // A matching, successful receipt is still not enough on its own — see
+          // TRADING_DEFAULTS.minConfirmations. Too shallow (or unreadable) just leaves the
+          // row PENDING for the next tick; it's neither confirmed nor failed yet.
+          const confirmations = await this.chainReader.getConfirmationCount(row.txHash);
+          if (confirmations === null || confirmations < TRADING_DEFAULTS.minConfirmations) {
+            this.logger.info(
+              { transactionId: row.id, txHash: row.txHash, confirmations },
+              'trade sweep: receipt matches but has not reached minConfirmations yet — leaving PENDING',
+            );
+            continue;
+          }
+
           await prisma.tradeTransaction.update({
             where: { id: row.id },
             data: { status: 'CONFIRMED', confirmedAt: new Date() },
@@ -95,6 +107,94 @@ export class TradeSweepService {
       } catch (error) {
         // One bad row (a transient RPC hiccup) never aborts the rest of the batch.
         this.logger.error({ err: error, transactionId: row.id }, 'trade sweep: failed to refresh one transaction — will retry next tick');
+      }
+    }
+    return result;
+  }
+
+  /**
+   * The fee-leg twin of `sweepPendingTransactions` above — see
+   * docs/TRADING.md#guaranteed-usdc-fees. Independent of the swap's own `status`: a row
+   * only shows up here once its fee transfer has actually been submitted (`feeStatus`
+   * PENDING), regardless of whether the swap itself has confirmed yet. Same integrity gate
+   * (receipt alone is never enough — the real on-chain sender/destination/value/calldata
+   * must match `quote.feeUnsignedTx`), same `minConfirmations` gate, same eventual
+   * `EXPIRED` after `pendingTransactionTimeoutMinutes` with no receipt.
+   */
+  async sweepPendingFeeTransactions(): Promise<TradeSweepResult> {
+    const pending = await prisma.tradeTransaction.findMany({
+      where: { feeStatus: 'PENDING', chainId: this.chainId },
+      orderBy: { feeSubmittedAt: 'asc' },
+      take: BATCH_SIZE,
+      include: { quote: true },
+    });
+
+    const result: TradeSweepResult = { checked: 0, confirmed: 0, failed: 0, expired: 0 };
+    for (const row of pending) {
+      // feeStatus PENDING implies both are set — but this codebase never proceeds on an
+      // assumption it hasn't actually verified, even one it just guaranteed elsewhere.
+      if (!row.feeTxHash || !row.feeSubmittedAt) continue;
+      result.checked += 1;
+      try {
+        const expectedFeeUnsignedTx = parseUnsignedTx(row.quote.feeUnsignedTx);
+        if (!expectedFeeUnsignedTx) {
+          this.logger.error({ transactionId: row.id }, 'fee sweep: fee transaction has no parseable feeUnsignedTx to verify against');
+          continue;
+        }
+
+        const receiptStatus = await this.chainReader.getTransactionReceiptStatus(row.feeTxHash);
+        if (receiptStatus === 'success') {
+          const onChain = await this.chainReader.getTransactionDetails(row.feeTxHash);
+          const matches =
+            onChain !== null &&
+            transactionMatchesQuote(onChain, { walletAddress: row.walletAddress, unsignedTx: expectedFeeUnsignedTx });
+
+          if (!matches) {
+            this.logger.error(
+              { transactionId: row.id, feeTxHash: row.feeTxHash },
+              'fee sweep: receipt succeeded but the on-chain transaction does not match the expected transfer — marking FAILED, not CONFIRMED',
+            );
+            await prisma.tradeTransaction.update({
+              where: { id: row.id },
+              data: { feeStatus: 'FAILED', feeFailureReason: 'On-chain transaction does not match the expected fee transfer' },
+            });
+            result.failed += 1;
+            continue;
+          }
+
+          const confirmations = await this.chainReader.getConfirmationCount(row.feeTxHash);
+          if (confirmations === null || confirmations < TRADING_DEFAULTS.minConfirmations) {
+            this.logger.info(
+              { transactionId: row.id, feeTxHash: row.feeTxHash, confirmations },
+              'fee sweep: receipt matches but has not reached minConfirmations yet — leaving PENDING',
+            );
+            continue;
+          }
+
+          await prisma.tradeTransaction.update({
+            where: { id: row.id },
+            data: { feeStatus: 'CONFIRMED', feeConfirmedAt: new Date() },
+          });
+          result.confirmed += 1;
+        } else if (receiptStatus === 'reverted') {
+          await prisma.tradeTransaction.update({
+            where: { id: row.id },
+            data: { feeStatus: 'FAILED', feeFailureReason: 'Fee transfer reverted on-chain' },
+          });
+          result.failed += 1;
+        } else {
+          const ageMinutes = (Date.now() - row.feeSubmittedAt.getTime()) / 60_000;
+          if (ageMinutes > TRADING_DEFAULTS.pendingTransactionTimeoutMinutes) {
+            await prisma.tradeTransaction.update({
+              where: { id: row.id },
+              data: { feeStatus: 'EXPIRED', feeFailureReason: 'No confirmation received within the expected time' },
+            });
+            result.expired += 1;
+          }
+          // Otherwise: no receipt yet and not stale — left PENDING, tried again next tick.
+        }
+      } catch (error) {
+        this.logger.error({ err: error, transactionId: row.id }, 'fee sweep: failed to refresh one fee transaction — will retry next tick');
       }
     }
     return result;

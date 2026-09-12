@@ -10,6 +10,16 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
   const impactColor =
     quote.priceImpactLevel === 'extreme' ? 'text-down' : quote.priceImpactLevel === 'high' ? 'text-down' : 'text-ink-900';
 
+  // The fee's currency — see docs/TRADING.md#guaranteed-usdc-fees. Under the guaranteed
+  // flow it's always quoteToken (confirmed USDC); otherwise it rides the aggregator's own
+  // cut, taken from whichever token the trade actually outputs (token for BUY, quoteToken
+  // for SELL) — never always quote.token, which would mislabel a SELL's fee currency.
+  const feeTokenSymbol = quote.feeUnsignedTx
+    ? quote.quoteToken.symbol
+    : quote.side === 'BUY'
+      ? quote.token.symbol
+      : quote.quoteToken.symbol;
+
   return (
     <dl className="space-y-2 rounded-xl bg-surface-raised p-3 font-body text-sm">
       <Row label="You pay" value={`${quote.inputAmountFormatted} ${quote.side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol}`} />
@@ -21,9 +31,16 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
         valueClassName={impactColor}
       />
       <Row label="Slippage tolerance" value={`${(quote.slippageBps / 100).toFixed(quote.slippageBps % 100 === 0 ? 0 : 1)}%`} />
-      <Row label={`Kamby fee (${(quote.platformFeeBps / 100).toFixed(2)}%)`} value={`${quote.platformFeeAmountFormatted} ${quote.token.symbol}`} />
+      <Row label={`Kamby fee (${(quote.platformFeeBps / 100).toFixed(2)}%)`} value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
       <Row label="Provider" value={quote.provider} />
       {quote.requiresApproval && <Row label="Token approval" value="Required before this trade" />}
+
+      {quote.feeUnsignedTx && (
+        <p className="!mt-3 rounded-lg bg-surface px-2.5 py-2 text-xs text-ink-600">
+          This trade needs two signatures — the swap itself, then a separate {feeTokenSymbol} transfer for Kamby&apos;s
+          fee, guaranteed to land in {feeTokenSymbol} rather than a mix of tokens.
+        </p>
+      )}
 
       {quote.priceImpactLevel === 'extreme' && (
         <p className="!mt-3 rounded-lg bg-down/10 px-2.5 py-2 text-xs text-down">

@@ -57,15 +57,25 @@ phrase, and no code path ever asks a wallet for one.
 
 ## Chain scope
 
-Exactly one chain: Base (`eip155:8453`), the same chain Phase 1/2 already index. Phase 3
-does not add multi-chain execution or bridging. `apps/api`'s numeric `CHAIN_ID` env var
-names it directly (rather than parsing `CHAIN_IDENTIFIER` at request time); `apps/web`'s
-matching `NEXT_PUBLIC_CHAIN_ID`/`NEXT_PUBLIC_CHAIN_RPC_URL` drive wagmi's single-chain
-config (`apps/web/lib/wagmi-config.ts`). Because the chain is singular and server-fixed,
-there is no client-suppliable "chain id" parameter anywhere in the trading API for a
-malicious or careless client to get wrong — the wrong-network failure mode only exists on
-the wallet side (see [Wrong network](#wallet-connectivity)), and it's caught there before a
-quote is ever requested.
+Every chain this deployment trades on is named in `apps/api`'s `CHAINS` env var (a
+comma-separated list of slugs from `@kamby/domain`'s `CHAIN_REGISTRY`, e.g. `base,arbitrum`)
+— each slug's own `CHAIN_<SLUG>_ID`/`CHAIN_<SLUG>_RPC_URL`/`CHAIN_<SLUG>_USDC_ADDRESS` block
+is validated as present at boot (`apps/api/src/config/env.ts`'s `ValidatedEnvSchema`), never
+discovered dynamically. `GET /trade/quote` accepts an optional `chainId` query param,
+validated against every chain id this codebase knows about (`SUPPORTED_CHAIN_IDS`) — a
+value outside that set is rejected at the DTO boundary, never silently coerced. Omitting it
+resolves to `DEFAULT_CHAIN_SLUG` (Base) — the one back-compat default every
+pre-multi-chain caller implicitly meant. A `chainId` that's a real, known chain but not one
+*this* deployment has configured (not yet in `CHAINS`) is rejected deeper in the stack, by
+`QuoteService`/`TransactionService`/`LiFiSwapRouter`'s own per-chain lookups (see
+[Transaction integrity](#transaction-integrity) below) — never silently routed to a
+different chain's config.
+
+`apps/web` (`apps/web/lib/wagmi-config.ts`, `trading-client.ts`) has not been updated to
+send a `chainId` yet — see the multi-chain rollout plan's Stage 5 — so every request from
+the current frontend still implicitly resolves to Base. The wrong-network failure mode
+(a wallet connected to a chain Kamby isn't trading on) is still caught wallet-side before a
+quote is ever requested — see [Wrong network](#wallet-connectivity).
 
 ## Wallet connectivity
 
@@ -152,10 +162,11 @@ which cannot represent an 18-decimal token amount exactly. Concretely:
 - **Display only**: a raw `bigint` is converted to a human string via `formatUnits` purely
   for rendering (`*Formatted` fields on the DTOs, `QuoteSummary`/`TransactionDetail` in
   `apps/web`) — the underlying exact value is never derived *from* that display string.
-- **The one sanctioned exception**: `estimatedPriceImpact`, a small display percentage from
-  0x (never a token amount), is parsed with `Number.parseFloat` in
-  `zero-ex-router.service.ts#parsePriceImpactBps` — explicitly justified there as outside
-  the token/fee-math rule this section describes.
+- Neither LI.FI's Quote API nor 1inch's Swap API returns a price-impact figure —
+  `priceImpactBps` is always `null` regardless of which provider's quote wins the race, an
+  honest "not provided" rather than a computed or fabricated estimate. (0x's API, an
+  earlier provider, did return one as a display percentage; see git history for the
+  `Number.parseFloat` exception that applied then.)
 
 ## Quote system
 
@@ -193,20 +204,44 @@ interface — `getQuote()` returning a normalized `SwapRouterQuote` or `null` �
 token (`SWAP_ROUTER`, mirroring the existing `REDIS_CLIENT` pattern) so the concrete
 provider can change later without touching `QuoteService`.
 
-`ZeroExSwapRouter` (`apps/api/src/trading/router/zero-ex-router.service.ts`) is the only
-implementation: 0x's Swap API, Allowance-Holder quote endpoint
-(`/swap/allowance-holder/quote`). Kamby never implements its own AMM math or invents a
-price — every number in a quote traces back to 0x's response. The platform fee is passed as
-`swapFeeRecipient`/`swapFeeBps`/`swapFeeToken` query params so 0x collects it **inside the
-same transaction the user signs**, atomically, with Kamby's backend never touching the funds
-in between (see [Fees](#fees)). `requiresApproval`/`approvalSpender` are read from 0x's
-`issues.allowance` field and surfaced to the client so the trading UI can show an explicit
-ERC-20 approval step before the swap itself, when one is needed.
+`MetaAggregatorSwapRouter` (`apps/api/src/trading/router/meta-aggregator-router.service.ts`)
+is the bound implementation — it never talks to a provider API itself. Every quote request
+races `LiFiSwapRouter` and `OneInchSwapRouter` in parallel (`Promise.allSettled`, each
+capped at a 4s timeout — a real, honest ceiling for "how long a user will wait for a quote,"
+not a marketing SLA number) and returns whichever succeeds with the **higher raw
+`buyAmountRaw`** — never a fixed "primary" provider. If one times out, errors, or has no
+route, the other's result is used automatically; if both fail, the whole quote returns
+`null`, the same "never fabricate" behavior as either provider alone. Deliberately only two
+providers, not three: 0x's paid tier runs $1,000+/mo, and racing a provider Kamby would need
+to pay for defeats the point of a cost-conscious meta-aggregator (see git history for the
+0x integration this replaced).
 
-This adapter is written against 0x's long-standing Allowance-Holder contract as documented
-publicly; it could not be exercised against a live 0x API key in this environment (see
-[Known limitations](#known-limitations)) — re-verify field names against 0x's current docs
-before depending on this in production.
+Kamby never implements its own AMM math or invents a price — every number in a quote traces
+back to whichever provider's response won the race.
+
+**LI.FI** (`li-fi-router.service.ts`, `/v1/quote`): the platform fee is passed as `fee` (a
+decimal percentage) plus an `integrator` string identifying Kamby; unlike 0x/1inch, the fee
+*recipient* isn't a per-request parameter at all — it's whatever wallet is registered
+against that integrator name at https://portal.li.fi, so `PLATFORM_FEE_RECIPIENT_ADDRESS`
+must actually match what's configured there for fees to land anywhere. LI.FI's `/quote`
+response also doesn't say whether an ERC-20 approval is still needed, and there's no
+documented allowance-check endpoint to ask instead — `LiFiSwapRouter` reads the wallet's
+actual on-chain allowance directly via viem (the same per-chain RPC clients
+`TransactionService` uses for transaction-receipt reads, keyed by `request.chainId` — see
+[Chain scope](#chain-scope)) rather than trusting a second uncertain API contract.
+
+**1inch** (`one-inch-router.service.ts`, Classic Swap v6.1 `/swap`): the platform fee is
+passed as `fee`/`referrer` query params (percentage + a real recipient address, unlike
+LI.FI). Approval status comes from a second call to 1inch's own `/approve/allowance`
+endpoint, comparing the wallet's current on-chain allowance against the sell amount.
+
+Both adapters collect the fee **inside the same transaction the user signs**, atomically,
+with Kamby's backend never touching the funds in between (see [Fees](#fees)). Both also
+share the same rule: if an approval check fails or is unreachable, that provider's whole
+quote returns `null` rather than ever fabricating `requiresApproval` — it directly gates
+whether the trading UI shows an approval step before real money moves, and
+`MetaAggregatorSwapRouter` simply treats that provider as having lost the race, falling back
+to the other rather than surfacing the failure.
 
 ## Fees
 
@@ -250,13 +285,21 @@ quote (see [Quote system](#quote-system), step 5).
 
 ## Price impact
 
-Read directly from the aggregator's own response (0x's `estimatedPriceImpact`, a decimal
-percentage converted to bps) — Kamby never estimates it independently.
+Read directly from the aggregator's own response when it provides one (never estimated
+independently by Kamby — LI.FI and 1inch, the current providers, don't return this figure
+at all, so `priceImpactBps` is `null` today; see [Provider](#provider)).
 `classifyPriceImpactBps` (`packages/domain/src/trading.ts`) buckets it into `normal` /
-`high` (≥ 500 bps, a visible warning) / `extreme` (≥ 1500 bps, a stronger warning) without
-blocking the trade outright at either threshold — the user can still choose to proceed, but
-never without seeing the number. `QuoteSummary` renders the literal warning copy ("⚠ High
-price impact — this trade may move the market by X%").
+`high` (≥ 500 bps) / `extreme` (≥ 1500 bps), and the two tiers get different UI treatment,
+not just different copy:
+
+- **`high`** — `QuoteSummary` shows a visible warning ("⚠ High price impact — this trade may
+  move the market by X%"), but the trade proceeds without any extra step.
+- **`extreme`** — the same warning, plus `TradePanel` requires an explicit checkbox
+  ("I understand this trade has an extreme price impact and want to proceed anyway") before
+  "Confirm & sign" is even clickable — the same disabled-until-acknowledged pattern already
+  used for `requiresApproval`. The acknowledgement is tied to the specific quote it was
+  given for: a fresh quote (a different amount, a price that moved) resets it, so an old
+  acknowledgement can never silently carry over to a worse trade.
 
 ## Token safety
 
@@ -341,10 +384,17 @@ four:
   without ever modifying it, a real, honest submission's calldata always matches exactly;
   anything else is either a wrong hash or a forged one.
 
-Chain correctness is implicit rather than a separate field check: `getTransactionDetails`
-reads from the one RPC configured for Kamby's single supported chain
-(see [Chain scope](#chain-scope)), so a hash that only exists on a different chain simply
-resolves to "not found" here.
+Chain correctness is now an explicit lookup, not an accident of there being only one RPC in
+the process: `TransactionService` holds one `EvmChainDataProvider` per configured chain
+(`this.chainReaders: Map<number, EvmChainDataProvider>`, built once at construction from
+`CHAINS` — see [Chain scope](#chain-scope)), and every read above resolves the reader from
+the row's own persisted `chainId` (`quote.chainId` at submission, `row.chainId` thereafter)
+via `resolveReader()`, which throws rather than falling back to a different chain's reader
+on a miss. This matters more than it might look: a misrouted reader doesn't fail loudly —
+`getTransactionDetails` on the *wrong* chain's RPC for a given hash looks identical to "not
+found yet" on the *right* chain, so a lookup-key bug here would silently masquerade as an
+unconfirmed transaction rather than an obvious error. `LiFiSwapRouter`'s on-chain allowance
+check (`needsApproval`) follows the identical pattern, keyed off `request.chainId`.
 
 This check runs in two places, for two different reasons:
 
@@ -549,7 +599,8 @@ trader-attribution heuristic, not a new kind of dishonesty.
 
 ## Observability
 
-`QuoteService`/`ZeroExSwapRouter`/`TransactionService`/`WalletService` log (via
+`QuoteService`/`MetaAggregatorSwapRouter` (and the `LiFiSwapRouter`/`OneInchSwapRouter` legs
+it races)/`TransactionService`/`WalletService` log (via
 `nestjs-pino`, honoring the existing redaction config): quote creation and provider latency,
 quote failures (no-liquidity, malformed response, network error — distinguished in the log
 line, never conflated), the slippage-floor rejection path, trade submission and status
@@ -588,12 +639,29 @@ whatever session/wallet a browser has, which a Server Component structurally can
 
 ## Known limitations
 
-- **The 0x adapter was written without live verification against a real API key** in this
-  environment — see [Provider](#provider). Field names should be re-checked against 0x's
-  current docs before depending on this in production; if 0x has changed its Allowance-
-  Holder response shape, `parseZeroExQuote` will correctly return `null` (an honest "no
-  quote") rather than silently misparsing, but that's a worse user experience than it
-  should be.
+- **Neither the LI.FI nor the 1inch adapter was written with live verification against a
+  real API key** in this environment — see [Provider](#provider). Field/param names
+  (LI.FI's `fee`/`estimate`/`transactionRequest`; 1inch's `fee`/`referrer`/
+  `/approve/allowance`) should be re-checked against each provider's current docs before
+  depending on this in production; if either has changed its response shape, that
+  provider's parser will correctly return `null` (an honest "no quote" — the other
+  provider's leg of the race just wins by default) rather than silently misparsing, but
+  that's a worse outcome than it should be. `PLATFORM_FEE_RECIPIENT_ADDRESS` must also
+  actually match the wallet registered against `LIFI_INTEGRATOR` at https://portal.li.fi —
+  that agreement can't be validated at boot the way the rest of config is, since LI.FI's
+  portal is a separate system this app has no API access to.
+- **`MetaAggregatorSwapRouter`'s 4s race timeout is a first guess, not a value tuned
+  against real provider latency** — see [Provider](#provider). If both providers routinely
+  respond well under that, it's needlessly generous (a genuinely dead provider makes every
+  quote wait the full 4s before falling back); if either routinely takes longer, real
+  quotes will be lost to a timeout that a longer window would have caught. Revisit once
+  this has run against real traffic.
+- **Only `TRENDING_HOLDERS` is implemented on `GET /tokens/trenches`** — the other three
+  categories (`FRESH`/`NEAR_GRADUATED`/`JUST_GRADUATED`) return a `501 Not Implemented`,
+  not an empty result, since Kamby has no bonding-curve/migration data pipeline for any
+  chain it currently supports — see `TrenchesCategory`'s doc comment. `TRENDING_HOLDERS`
+  itself is a proxy: `uniqueTraders24h`/`volume24hUsd` (what Kamby's indexer actually
+  tracks), not the literal `holder_count`/`volume_1h` fields from the original spec.
 - **Wallet-ownership verification is EOA-only** — `verifyEvmSignature` doesn't check
   ERC-1271, so a smart-contract wallet (a Safe, some smart-account setups) will fail
   verification even when it does legitimately control the address. Disclosed, not silent:
@@ -639,6 +707,7 @@ whatever session/wallet a browser has, which a Server Component structurally can
   amounts actually received. A successful receipt for that exact, matched calldata is
   trusted to mean 0x's own contract logic enforced its encoded minimum-output constraint;
   Kamby does not re-implement or re-verify that enforcement itself.
-- The configured `CHAIN_RPC_URL` is trusted for receipt lookups; a malicious or compromised
-  RPC endpoint could theoretically misreport a transaction's status. This is the same trust
-  boundary Phase 1's ingestion already accepts for reading swap events.
+- Each configured chain's `CHAIN_<SLUG>_RPC_URL` is trusted for that chain's receipt
+  lookups; a malicious or compromised RPC endpoint could theoretically misreport a
+  transaction's status. This is the same trust boundary Phase 1's ingestion already accepts
+  for reading swap events.

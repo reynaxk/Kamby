@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 const EVM_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+/** Base58 (Bitcoin alphabet — no 0, O, I, l), 32-44 chars: the real length range of a
+ *  base58-encoded 32-byte Solana public key. Format only, same caveat as isEvmAddress —
+ *  never proof of ownership or that the address has ever been used on-chain. */
+const SOLANA_ADDRESS_PATTERN = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 /** True for a syntactically valid EVM address (0x + 40 hex chars) — format only, never
  *  proof of ownership or that the address has ever been used on-chain. */
@@ -12,6 +16,14 @@ export function isEvmAddress(address: string): boolean {
  *  "0xabc…" are always the same wallet — see docs/SOCIAL.md#trader-identity. */
 export function normalizeEvmAddress(address: string): string {
   return address.toLowerCase();
+}
+
+/** True for a syntactically plausible Solana address — format only, same caveat as
+ *  isEvmAddress. Unlike EVM addresses, Solana base58 is already case-sensitive/canonical
+ *  by construction — there is no normalizeSolanaAddress equivalent, lowercasing would
+ *  actively corrupt a valid address. */
+export function isSolanaAddress(address: string): boolean {
+  return SOLANA_ADDRESS_PATTERN.test(address);
 }
 
 /**

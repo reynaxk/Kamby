@@ -74,7 +74,7 @@ async function linkVerifiedWallet(app: INestApplication, token: string) {
 /**
  * Requires a reachable Postgres (DATABASE_URL) and Redis (REDIS_URL), same as
  * market.e2e-spec.ts / social.e2e-spec.ts. CI runs this against a real Base RPC and the
- * real 0x API using a placeholder key (see .github/workflows/ci.yml) — this deliberately
+ * real LI.FI API using a placeholder key (see .github/workflows/ci.yml) — this deliberately
  * never fabricates a quote to work around that: a request that would need a real quote
  * asserts the honest 422 failure path instead. Wallet ownership is exercised with real
  * ECDSA signatures (fresh keypairs, never funded, never reused across tests) — never
@@ -163,7 +163,7 @@ describe('Trading (e2e)', () => {
         slippageBps: 50,
         platformFeeBps: 50,
         platformFeeAmount: '500000000000000000',
-        provider: '0x',
+        provider: 'li.fi',
         unsignedTx: { to: '0x000000000000000000000000000000deadbeef', data: '0xbeef', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null },
         expiresAt: new Date(Date.now() + 60_000),
         ...overrides,

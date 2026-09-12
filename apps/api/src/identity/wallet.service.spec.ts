@@ -32,7 +32,7 @@ function fakeLogger(): PinoLogger {
 }
 
 function fakeConfig(): ConfigService<Env, true> {
-  const values: Record<string, unknown> = { CORS_ORIGIN: 'https://kamby.app,https://staging.kamby.app', CHAIN_ID: 8453 };
+  const values: Record<string, unknown> = { CORS_ORIGIN: 'https://kamby.app,https://staging.kamby.app' };
   return { get: (key: string) => values[key] } as unknown as ConfigService<Env, true>;
 }
 

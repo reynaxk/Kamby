@@ -65,10 +65,14 @@ export class MarketService {
     return scored.slice(0, query.limit).map(({ row, score }) => toMarketSummary(row, score));
   }
 
-  async getToken(address: string): Promise<MarketSummary> {
+  /** `chainId` is required and never defaulted here — see SafetyService.assertTradable's
+   *  comment for why: `TokenMarket` is only unique per `(chainId, contractAddress)`, so an
+   *  unscoped lookup could silently resolve to the wrong chain's market once the same
+   *  address exists on two chains. */
+  async getToken(address: string, chainId: number): Promise<MarketSummary> {
     assertAddressShape(address);
     const row = await prisma.tokenMarket.findFirst({
-      where: { token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       include: MARKET_INCLUDE,
       orderBy: { liquidityUsd: 'desc' },
     });
@@ -82,10 +86,10 @@ export class MarketService {
    * token in the last 24h, and this token's own recent large trades. `uniqueTraders24h` is
    * read straight off TokenMarket's own cached column — never recomputed here.
    */
-  async getTokenTraders(address: string, limit: number): Promise<TokenTraderConnection> {
+  async getTokenTraders(address: string, chainId: number, limit: number): Promise<TokenTraderConnection> {
     assertAddressShape(address);
     const market = await prisma.tokenMarket.findFirst({
-      where: { token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       include: MARKET_INCLUDE,
       orderBy: { liquidityUsd: 'desc' },
     });
@@ -168,10 +172,10 @@ export class MarketService {
     };
   }
 
-  async getHistory(address: string, timeframe: Timeframe): Promise<Candle[]> {
+  async getHistory(address: string, chainId: number, timeframe: Timeframe): Promise<Candle[]> {
     assertAddressShape(address);
     const market = await prisma.tokenMarket.findFirst({
-      where: { token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       orderBy: { liquidityUsd: 'desc' },
     });
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
@@ -213,6 +217,11 @@ export class MarketService {
     );
   }
 
+  /** Deliberately not chain-scoped: unlike getToken/getTokenTraders/getHistory (a single
+   *  "the" answer via findFirst, where a cross-chain collision would silently pick the
+   *  wrong one), this returns a list — matches from every chain are all legitimate results,
+   *  each self-identifying its own chain via `chainIdentifier` in the response. Same
+   *  reasoning as `discover()` below. */
   async search(query: SearchQueryDto): Promise<MarketSummary[]> {
     const rows = await prisma.tokenMarket.findMany({
       where: {

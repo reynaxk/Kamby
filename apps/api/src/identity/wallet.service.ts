@@ -5,6 +5,7 @@ import { verifyEvmSignature } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import {
   buildSiweMessage,
+  DEFAULT_CHAIN_ID,
   isEvmAddress,
   normalizeEvmAddress,
   WALLET_CHALLENGE_TTL_MINUTES,
@@ -23,7 +24,6 @@ import type { Env } from '../config/env';
 @Injectable()
 export class WalletService {
   private readonly domain: string;
-  private readonly chainId: number;
 
   constructor(
     config: ConfigService<Env, true>,
@@ -32,7 +32,6 @@ export class WalletService {
     // The first configured CORS origin is the web app's own public URL — reused here
     // rather than adding a second, redundant "what's our public URL" env var.
     this.domain = config.get('CORS_ORIGIN', { infer: true }).split(',')[0]!.trim();
-    this.chainId = config.get('CHAIN_ID', { infer: true });
     this.logger.setContext('WalletService');
   }
 
@@ -50,7 +49,10 @@ export class WalletService {
       address: normalized,
       statement: 'Sign in to Kamby to verify wallet ownership. This request will not trigger a blockchain transaction or cost any gas.',
       uri: this.domain,
-      chainId: this.chainId,
+      // Purely informational context in the signed message, not a chain-specific authority
+      // check — proving control of `address` is identical on every EVM chain, so this
+      // never needs to vary with which chain a later trade happens to be on.
+      chainId: DEFAULT_CHAIN_ID,
       nonce,
       issuedAt,
       expirationTime: expiresAt,

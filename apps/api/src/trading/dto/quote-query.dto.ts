@@ -1,10 +1,19 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
-import { TRADING_DEFAULTS } from '@kamby/domain';
+import { SUPPORTED_CHAIN_IDS, TRADING_DEFAULTS } from '@kamby/domain';
 
 const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 
 export class QuoteQueryDto {
+  /** Omitted means "whichever chain this deployment defaults to" — see
+   *  TradingController.getQuote, which substitutes DEFAULT_CHAIN_ID. Rejected outright
+   *  (not silently ignored) when present but not one of this deployment's configured
+   *  chains — never guessed at deeper in the stack. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsIn(SUPPORTED_CHAIN_IDS)
+  chainId?: number;
+
   @IsIn(['BUY', 'SELL'])
   side!: 'BUY' | 'SELL';
 

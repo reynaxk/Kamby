@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { PrivyProvider } from '@privy-io/react-auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
+import { privyAppId, privyConfig } from '@/lib/privy-config';
+import { captureReferralCodeFromUrl } from '@/lib/referral-capture';
 import { wagmiConfig } from '@/lib/wagmi-config';
 
 /**
@@ -15,9 +18,26 @@ import { wagmiConfig } from '@/lib/wagmi-config';
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
-  return (
+  // Runs once, on first mount — the earliest point a `?ref=` in the URL can be captured
+  // before client-side navigation strips it. See lib/referral-capture.ts.
+  useEffect(() => {
+    captureReferralCodeFromUrl();
+  }, []);
+
+  const app = (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
+  );
+
+  // Additive, not a replacement for WagmiProvider above — Privy owns Solana embedded-wallet
+  // auth only; the existing EVM wallet flow (wagmi) is completely untouched either way. See
+  // docs/TRADING.md#solana. Omitted entirely (not half-initialized) when
+  // NEXT_PUBLIC_PRIVY_APP_ID isn't configured — see lib/privy-config.ts.
+  if (!privyAppId) return app;
+  return (
+    <PrivyProvider appId={privyAppId} config={privyConfig}>
+      {app}
+    </PrivyProvider>
   );
 }

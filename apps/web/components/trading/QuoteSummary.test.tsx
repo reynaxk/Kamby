@@ -23,10 +23,11 @@ function baseQuote(overrides: Partial<TradeQuoteDto> = {}): TradeQuoteDto {
     platformFeeBps: 50,
     platformFeeAmount: '500000000000000000',
     platformFeeAmountFormatted: '0.5',
-    provider: '0x',
+    provider: 'li.fi',
     expiresAt: '2026-01-01T00:00:30.000Z',
     createdAt: '2026-01-01T00:00:00.000Z',
     unsignedTx: { to: '0xdead', data: '0xbeef', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null },
+    feeUnsignedTx: null,
     safetyNote: 'No known issues detected by available checks.',
     requiresApproval: false,
     approvalSpender: null,
@@ -71,5 +72,32 @@ describe('QuoteSummary', () => {
   it('surfaces when a token approval is required before this trade can be signed', () => {
     render(<QuoteSummary quote={baseQuote({ requiresApproval: true, approvalSpender: '0xspender' })} />);
     expect(screen.getByText('Required before this trade')).toBeInTheDocument();
+  });
+
+  it('labels a SELL trade\'s fee with the quote token it actually lands in, not the token being sold', () => {
+    render(<QuoteSummary quote={baseQuote({ side: 'SELL' })} />);
+    // Same platformFeeAmountFormatted ('0.5') as the BUY fixture, but the currency label
+    // must follow the output side (quoteToken/WETH for a SELL), never quote.token (FOO).
+    expect(screen.getByText('0.5 WETH')).toBeInTheDocument();
+  });
+
+  it('shows the two-signature disclosure and labels the fee in USDC when the quote carries a guaranteed-USDC feeUnsignedTx', () => {
+    const feeUnsignedTx = { to: '0xusdc', data: '0xtransfer', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null };
+    render(
+      <QuoteSummary
+        quote={baseQuote({
+          quoteToken: { address: '0xusdc', symbol: 'USDC', decimals: 6 },
+          feeUnsignedTx,
+        })}
+      />,
+    );
+
+    expect(screen.getByText('0.5 USDC')).toBeInTheDocument();
+    expect(screen.getByText(/two signatures/i)).toBeInTheDocument();
+  });
+
+  it('shows no two-signature disclosure when the fee rides the aggregator\'s own embedded cut', () => {
+    render(<QuoteSummary quote={baseQuote()} />); // feeUnsignedTx: null
+    expect(screen.queryByText(/two signatures/i)).not.toBeInTheDocument();
   });
 });

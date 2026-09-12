@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getQuote, getTradeHistory, getTransaction, submitTransaction } from './trading-client';
+import { getQuote, getTradeHistory, getTransaction, submitFeeTransaction, submitTransaction } from './trading-client';
 
 const { authedFetch, expectOk } = vi.hoisted(() => ({
   authedFetch: vi.fn(),
@@ -40,6 +40,17 @@ describe('trading-client', () => {
         method: 'POST',
         body: JSON.stringify({ quoteId: 'q1', walletAddress: '0xwallet', txHash: '0xhash' }),
       }),
+    );
+  });
+
+  it('submits a fee transaction as JSON against the transaction-specific fee route', async () => {
+    authedFetch.mockResolvedValue(fakeResponse({}));
+
+    await submitFeeTransaction('tx-1', '0xfeehash');
+
+    expect(authedFetch).toHaveBeenCalledWith(
+      '/trade/transactions/tx-1/fee',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ txHash: '0xfeehash' }) }),
     );
   });
 

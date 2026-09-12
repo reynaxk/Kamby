@@ -18,14 +18,23 @@ import { BASE_SEED_MARKETS, USDC_ADDRESS_BASE, type SeedMarket } from './seed-ma
 
 /** Raw candle granularity — see the Candle model comment in schema.prisma. */
 const BUCKET_MINUTES = 5;
-/** How far back the very first tick backfills real swap history for a newly-seeded market. */
-const INITIAL_BACKFILL_BLOCKS = 43_200n; // ~24h on Base at ~2s/block
+/** How far back the very first tick backfills real swap history for a newly-seeded market.
+ *  Deliberately modest (~2h, not a full day) given LOG_CHUNK_BLOCKS below — see its comment. */
+const INITIAL_BACKFILL_BLOCKS = 3_600n; // ~2h on Base at ~2s/block
 /** Upper bound on how far one tick advances a market's cursor — keeps a single tick
- *  bounded and RPC-friendly; a large backfill simply continues over several ticks. */
-const MAX_BLOCKS_PER_TICK = 20_000n;
-/** eth_getLogs range per request — the public Base RPC starts failing above ~10-50k. */
-const LOG_CHUNK_BLOCKS = 5_000n;
-/** Space out RPC calls so the free public endpoint doesn't rate-limit us mid-tick. */
+ *  bounded and RPC-friendly; a large backfill simply continues over several ticks. Sized
+ *  against LOG_CHUNK_BLOCKS so one tick's worst case (all 4 seed markets simultaneously
+ *  backfilling, every chunk hitting real events) stays under the tick interval: 150 / 5 =
+ *  30 getLogs calls per market, ~10.5s at RPC_CALL_DELAY_MS each, ×4 markets ≈ 42s — see
+ *  the note on LOG_CHUNK_BLOCKS. */
+const MAX_BLOCKS_PER_TICK = 150n;
+/** eth_getLogs range per request. QuickNode's free "Discover" plan hard-caps this at 5
+ *  blocks per call (confirmed directly: "eth_getLogs is limited to a 5 range, upgrade from
+ *  discover plan...") — far stricter than the public Base RPC this used to run against.
+ *  Paying for a higher-tier plan (see docs/MARKET_DATA.md) is the real fix for backfill
+ *  speed; until then this stays small so calls succeed rather than fail outright. */
+const LOG_CHUNK_BLOCKS = 5n;
+/** Space out RPC calls so the free endpoint doesn't rate-limit us mid-tick. */
 const RPC_CALL_DELAY_MS = 350;
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -84,11 +93,40 @@ export class MarketIngestionService {
 
     let seeded = 0;
     for (const seedMarket of BASE_SEED_MARKETS) {
+      if (await this.isFullySeeded(chain.id, seedMarket.poolAddress)) {
+        seeded += 1;
+        continue; // nothing read from the RPC — no need to pace against it either
+      }
       const ok = await this.seedOneMarket(chain.id, seedMarket);
       if (ok) seeded += 1;
       await sleep(RPC_CALL_DELAY_MS);
     }
     this.logger.info({ attempted: BASE_SEED_MARKETS.length, seeded }, 'Market seeding complete');
+  }
+
+  /**
+   * A market whose tokens are both fully resolved and whose cursor already exists needs
+   * nothing further from `seed()` — a Uniswap V3 pool's fee tier is fixed at creation, so
+   * there's nothing left to re-read. Checked by `seed()`'s loop before it calls
+   * `seedOneMarket` at all, so a fully-resolved market makes no RPC calls and isn't paced
+   * with `RPC_CALL_DELAY_MS` either: re-reading pool state and both tokens' metadata every
+   * tick regardless of whether anything could have changed was pure waste on a
+   * rate-limited free RPC, competing for the same budget the markets that are still
+   * genuinely unresolved need.
+   */
+  private async isFullySeeded(chainId: number, poolAddress: string): Promise<boolean> {
+    const existing = await prisma.tokenMarket.findUnique({
+      where: { chainId_pairAddress: { chainId, pairAddress: poolAddress } },
+      include: { token: true, quoteToken: true, cursor: true },
+    });
+    return (
+      existing !== null &&
+      existing.cursor !== null &&
+      existing.token.decimals !== null &&
+      existing.token.symbol !== null &&
+      existing.quoteToken.decimals !== null &&
+      existing.quoteToken.symbol !== null
+    );
   }
 
   private async seedOneMarket(chainId: number, seed: SeedMarket): Promise<boolean> {

@@ -20,6 +20,11 @@ export function SlippageControl({ valueBps, onChange }: { valueBps: number; onCh
   const isPreset = PRESETS_BPS.includes(valueBps);
   const [customOpen, setCustomOpen] = useState(!isPreset);
   const [customInput, setCustomInput] = useState(isPreset ? '' : (valueBps / 100).toString());
+  // Previously: an out-of-range or malformed custom value was silently ignored — `onChange`
+  // just never fired, so the trade still used whatever the last *valid* value was while the
+  // input box kept showing the rejected text, with nothing telling the user the two had
+  // diverged. Now tracked explicitly so that mismatch is always visible rather than silent.
+  const [customError, setCustomError] = useState<string | null>(null);
 
   return (
     <div>
@@ -34,6 +39,7 @@ export function SlippageControl({ valueBps, onChange }: { valueBps: number; onCh
             type="button"
             onClick={() => {
               setCustomOpen(false);
+              setCustomError(null);
               onChange(preset);
             }}
             className={cn(
@@ -66,16 +72,31 @@ export function SlippageControl({ valueBps, onChange }: { valueBps: number; onCh
               const raw = event.target.value;
               setCustomInput(raw);
               const percent = Number.parseFloat(raw);
-              if (Number.isFinite(percent)) {
-                const bps = Math.round(percent * 100);
-                if (isValidSlippageBps(bps)) onChange(bps);
+              const bps = Number.isFinite(percent) ? Math.round(percent * 100) : null;
+              if (bps !== null && isValidSlippageBps(bps)) {
+                setCustomError(null);
+                onChange(bps);
+              } else {
+                // Never call onChange for an invalid value — the last valid slippage stays
+                // in effect for the actual trade — but say so, rather than leaving the
+                // input showing text that silently doesn't match what will be used.
+                setCustomError(
+                  raw.trim() === ''
+                    ? `Enter a value between ${TRADING_DEFAULTS.minSlippageBps / 100}% and ${TRADING_DEFAULTS.maxSlippageBps / 100}%`
+                    : `Must be between ${TRADING_DEFAULTS.minSlippageBps / 100}% and ${TRADING_DEFAULTS.maxSlippageBps / 100}% — still using ${formatBpsAsPercent(valueBps)}`,
+                );
               }
             }}
-            className="w-full rounded-lg border border-line bg-bg px-2 py-1.5 font-mono text-xs text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
+            aria-invalid={customError !== null}
+            className={cn(
+              'w-full rounded-lg border bg-bg px-2 py-1.5 font-mono text-xs text-ink-900 focus:outline-none focus:ring-1',
+              customError ? 'border-down focus:ring-down' : 'border-line focus:ring-accent',
+            )}
           />
           <span className="font-body text-xs text-ink-600">%</span>
         </div>
       )}
+      {customError && <p className="mt-1 font-body text-xs text-down">{customError}</p>}
       {/* A UI-only heuristic (not a server-enforced threshold) — the API's actual bound is
           TRADING_DEFAULTS.maxSlippageBps, enforced regardless of this warning. */}
       {valueBps >= 300 && (

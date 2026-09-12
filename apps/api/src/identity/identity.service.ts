@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { prisma } from '@kamby/db';
+import { Prisma, prisma } from '@kamby/db';
+import { randomBytes } from 'node:crypto';
 
 interface SessionPayload {
   sub: string;
@@ -8,6 +9,25 @@ interface SessionPayload {
 
 export interface SessionUser {
   id: string;
+}
+
+/** Unambiguous 31-symbol alphabet (digits 2-9, letters A-Z excluding I/L/O) — a referral
+ *  code is meant to be typed or read aloud from a shared link, so avoiding lookalike
+ *  characters is worth the small entropy cost. 8 symbols from this alphabet is
+ *  31^8 ≈ 8.5 * 10^11 combinations — the bounded-retry collision handling in
+ *  createAnonymousSession below is defensive, not something expected to ever actually
+ *  retry in practice. */
+const REFERRAL_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+const REFERRAL_CODE_LENGTH = 8;
+const MAX_REFERRAL_CODE_ATTEMPTS = 5;
+
+function generateReferralCode(): string {
+  const bytes = randomBytes(REFERRAL_CODE_LENGTH);
+  let code = '';
+  for (let i = 0; i < REFERRAL_CODE_LENGTH; i++) {
+    code += REFERRAL_CODE_ALPHABET[bytes[i]! % REFERRAL_CODE_ALPHABET.length];
+  }
+  return code;
 }
 
 /**
@@ -21,8 +41,33 @@ export interface SessionUser {
 export class IdentityService {
   constructor(private readonly jwt: JwtService) {}
 
-  async createAnonymousSession(): Promise<{ token: string; userId: string }> {
-    const user = await prisma.user.create({ data: {} });
+  /**
+   * `referredByCode`, if given, is the referral code from the link the browser first
+   * arrived on — see docs/REFERRALS.md#attribution. Resolved to a real user id here, at
+   * the one moment a new identity is actually created; an unknown or malformed code is
+   * silently ignored (a broken referral link should never block someone from using the
+   * app) rather than rejecting session creation over it.
+   */
+  async createAnonymousSession(referredByCode?: string): Promise<{ token: string; userId: string }> {
+    const referrer = referredByCode
+      ? await prisma.user.findUnique({ where: { referralCode: referredByCode.toUpperCase() }, select: { id: true } })
+      : null;
+
+    let user: { id: string } | null = null;
+    for (let attempt = 0; attempt < MAX_REFERRAL_CODE_ATTEMPTS && !user; attempt++) {
+      try {
+        user = await prisma.user.create({
+          data: { referralCode: generateReferralCode(), referredByUserId: referrer?.id ?? null },
+          select: { id: true },
+        });
+      } catch (error) {
+        // P2002: unique constraint — only ever the referral_code collision this loop
+        // exists to retry; any other create failure is a real error and must propagate.
+        if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') throw error;
+      }
+    }
+    if (!user) throw new Error('Could not generate a unique referral code after several attempts');
+
     const payload: SessionPayload = { sub: user.id };
     const token = await this.jwt.signAsync(payload);
     return { token, userId: user.id };

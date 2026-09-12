@@ -20,11 +20,15 @@ const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
  */
 @Injectable()
 export class WatchlistService {
-  private async resolveTokenMarketId(address: string): Promise<string> {
+  /** `chainId` required, never defaulted here — same reasoning as
+   *  SafetyService.assertTradable: `TokenMarket` is only unique per `(chainId,
+   *  contractAddress)`, so an unscoped lookup could silently watch/unwatch the wrong
+   *  chain's market once the same address exists on two chains. */
+  private async resolveTokenMarketId(address: string, chainId: number): Promise<string> {
     if (!isEvmAddress(address))
       throw new BadRequestException(`"${address}" is not a valid contract address`);
     const market = await prisma.tokenMarket.findFirst({
-      where: { token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       orderBy: { liquidityUsd: 'desc' },
       select: { id: true },
     });
@@ -32,8 +36,8 @@ export class WatchlistService {
     return market.id;
   }
 
-  async watch(userId: string, address: string): Promise<void> {
-    const tokenMarketId = await this.resolveTokenMarketId(address);
+  async watch(userId: string, address: string, chainId: number): Promise<void> {
+    const tokenMarketId = await this.resolveTokenMarketId(address, chainId);
     try {
       await prisma.tokenWatch.create({ data: { userId, tokenMarketId } });
     } catch (error) {
@@ -47,16 +51,16 @@ export class WatchlistService {
   /** Idempotent by construction: deleting zero matching rows is not an error. Resolves the
    *  address to a market first (same 404 as `watch` on an unknown/typo'd address) rather
    *  than silently no-op'ing on garbage input. */
-  async unwatch(userId: string, address: string): Promise<void> {
-    const tokenMarketId = await this.resolveTokenMarketId(address);
+  async unwatch(userId: string, address: string, chainId: number): Promise<void> {
+    const tokenMarketId = await this.resolveTokenMarketId(address, chainId);
     await prisma.tokenWatch.deleteMany({ where: { userId, tokenMarketId } });
   }
 
   /** `null` when there is no viewer to check against (unauthenticated) — same contract as
    *  FollowService#isFollowing/TraderProfile.isFollowedByMe: never a fabricated `false`. */
-  async isWatching(userId: string | null, address: string): Promise<boolean | null> {
+  async isWatching(userId: string | null, address: string, chainId: number): Promise<boolean | null> {
     if (!userId) return null;
-    const tokenMarketId = await this.resolveTokenMarketId(address);
+    const tokenMarketId = await this.resolveTokenMarketId(address, chainId);
     const existing = await prisma.tokenWatch.findUnique({
       where: { userId_tokenMarketId: { userId, tokenMarketId } },
       select: { id: true },

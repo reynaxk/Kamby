@@ -155,9 +155,28 @@ than leaving a stale figure in place. It's `0`, not `null`, once the market has 
 swap indexed but nothing falls in the current window; `null` is reserved for a market that
 has never had a swap indexed at all — see the `volume24hUsd` comment in `schema.prisma`.
 
-**Rate limiting:** the free public Base RPC throttles concurrent requests (observed
-directly during development — see `docs/TESTING.md`). Every RPC call in the ingestion
-path is sequenced with a small delay (`RPC_CALL_DELAY_MS`), not fired in parallel.
+**Rate limiting:** the free public Base RPC (`mainnet.base.org`) throttles concurrent
+requests — confirmed directly in production, not just during development: a diagnostic
+script run from inside the Railway container got an explicit `"over rate limit"` response
+from a burst of 4 simultaneous `readContract` calls for one pool, while the same calls
+issued one at a time succeeded. Two mitigations are in place, both real but bounded:
+
+- Every multi-field RPC read (`getPoolState`'s 4 calls, `getTokenMetadata`'s 3) is now
+  awaited sequentially, never via `Promise.all`/`allSettled`'s simultaneous kickoff — see
+  the doc comments on both methods in `packages/chain-adapters`. Between markets, `seed()`
+  and `refreshPricesAndLiquidity()` still pace themselves with `RPC_CALL_DELAY_MS`.
+- `seed()` skips a market entirely — no RPC calls, no `RPC_CALL_DELAY_MS` pause — once
+  its `tokenMarket` row, both tokens' `decimals`/`symbol`, and its `ingestionCursor` are
+  already resolved (see `isFullySeeded` in `ingestion.ts`). A Uniswap V3 pool's fee tier
+  never changes, so there's nothing left to re-read; re-fetching four markets' full state
+  every 60s forever, even the ones long since fully resolved, was pure waste competing
+  with the markets still genuinely unresolved for the same rate-limited budget.
+
+Both measurably helped in production (seeded-market count roughly doubled), but neither
+fully eliminates the underlying limit — some seed markets still fail most ticks with
+"pool state unreadable." The real fix is a dedicated RPC endpoint (e.g. QuickNode) in
+place of the free public one; until then, expect some tracked markets to take a long time
+to fully resolve, or to flap between resolved and unresolved.
 
 ## Candle granularity and timeframes
 

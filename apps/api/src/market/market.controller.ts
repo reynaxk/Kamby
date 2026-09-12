@@ -1,5 +1,6 @@
 import { Controller, Delete, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { DEFAULT_CHAIN_ID } from '@kamby/domain';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { OptionalAuthGuard } from '../identity/guards/optional-auth.guard';
@@ -15,6 +16,12 @@ import { WatchlistService } from './watchlist.service';
  * Prisma row, so there's one place controlling exactly what the web app can see. The
  * watch/unwatch/check routes are the one mutating exception (Phase 6) — see
  * docs/PHASE6_RETENTION_SOCIAL.md#watchlists.
+ *
+ * `DEFAULT_CHAIN_ID` below is a placeholder, not a permanent design choice: these routes
+ * don't yet accept a chainId from the request, so every call hardcodes the one chain Kamby
+ * runs on today. The services themselves are already chain-scoped and take chainId as a
+ * real parameter — only this controller layer needs to start reading it from the request
+ * once a second chain exists.
  */
 @Controller('market')
 export class MarketController {
@@ -38,12 +45,12 @@ export class MarketController {
 
   @Get('tokens/:address')
   getToken(@Param('address') address: string) {
-    return this.marketService.getToken(address);
+    return this.marketService.getToken(address, DEFAULT_CHAIN_ID);
   }
 
   @Get('tokens/:address/history')
   getHistory(@Param('address') address: string, @Query() query: HistoryQueryDto) {
-    return this.marketService.getHistory(address, query.timeframe);
+    return this.marketService.getHistory(address, DEFAULT_CHAIN_ID, query.timeframe);
   }
 
   /** Phase 5 — see docs/TRADER_INTELLIGENCE.md#token-to-trader. */
@@ -51,7 +58,7 @@ export class MarketController {
   getTokenTraders(@Param('address') address: string, @Query('limit') limit?: string) {
     const parsed = limit ? Number.parseInt(limit, 10) : 10;
     const bounded = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 25) : 10;
-    return this.marketService.getTokenTraders(address, bounded);
+    return this.marketService.getTokenTraders(address, DEFAULT_CHAIN_ID, bounded);
   }
 
   /** `null` for an unauthenticated caller — same contract as `isFollowedByMe`, never a
@@ -59,7 +66,7 @@ export class MarketController {
   @UseGuards(OptionalAuthGuard)
   @Get('tokens/:address/watch')
   async isWatching(@Param('address') address: string, @CurrentUser() user: SessionUser | null) {
-    return { watching: await this.watchlist.isWatching(user?.id ?? null, address) };
+    return { watching: await this.watchlist.isWatching(user?.id ?? null, address, DEFAULT_CHAIN_ID) };
   }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
@@ -67,7 +74,7 @@ export class MarketController {
   @HttpCode(200)
   @Post('tokens/:address/watch')
   async watch(@Param('address') address: string, @CurrentUser() user: SessionUser) {
-    await this.watchlist.watch(user.id, address);
+    await this.watchlist.watch(user.id, address, DEFAULT_CHAIN_ID);
     return { watching: true };
   }
 
@@ -76,7 +83,7 @@ export class MarketController {
   @HttpCode(200)
   @Delete('tokens/:address/watch')
   async unwatch(@Param('address') address: string, @CurrentUser() user: SessionUser) {
-    await this.watchlist.unwatch(user.id, address);
+    await this.watchlist.unwatch(user.id, address, DEFAULT_CHAIN_ID);
     return { watching: false };
   }
 }

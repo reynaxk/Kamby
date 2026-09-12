@@ -1,5 +1,6 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { erc20ExtraAbi, uniswapV3PoolAbi, uniswapV3SwapEvent } from './uniswap-v3-abi';
+import { retryRpcCall } from './retry';
 
 export interface UniswapV3ReaderConfig {
   rpcUrl: string;
@@ -63,15 +64,28 @@ export class UniswapV3PoolReader {
     }
   }
 
+  /**
+   * All four reads retried together as one unit (see `retryRpcCall`) rather than
+   * individually — unlike `getTokenMetadata`'s per-field independence, a pool's state is
+   * only meaningful as a whole, so there's no value in one field succeeding while another
+   * doesn't. Issued one at a time (awaited in sequence) rather than via `Promise.all`'s
+   * simultaneous kickoff: a burst of 4 parallel requests is exactly what trips a per-burst
+   * rate limit on a shared free RPC (confirmed in production against the public Base
+   * endpoint — concurrent reads for one pool came back "over rate limit" while the same
+   * calls issued sequentially succeeded). This keeps at most one request in flight at a
+   * time; the whole sequence still gets a few quick retry attempts before actually giving
+   * up for this tick.
+   */
   async getPoolState(poolAddress: string): Promise<PoolState | null> {
     const address = poolAddress as `0x${string}`;
     try {
-      const [slot0, token0, token1, fee] = await Promise.all([
-        this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'slot0' }),
-        this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'token0' }),
-        this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'token1' }),
-        this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'fee' }),
-      ]);
+      const [slot0, token0, token1, fee] = await retryRpcCall(async () => {
+        const slot0Result = await this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'slot0' });
+        const token0Result = await this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'token0' });
+        const token1Result = await this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'token1' });
+        const feeResult = await this.client.readContract({ address, abi: uniswapV3PoolAbi, functionName: 'fee' });
+        return [slot0Result, token0Result, token1Result, feeResult] as const;
+      });
       const [sqrtPriceX96, tick] = slot0;
       if (sqrtPriceX96 <= 0n) return null; // uninitialized pool — nothing honest to report
       return { token0, token1, feeTier: fee, sqrtPriceX96, tick };

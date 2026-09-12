@@ -38,6 +38,20 @@ export const ClientEnvSchema = z.object({
    *  addition to injected/Coinbase Wallet connectors. Get one at https://cloud.reown.com —
    *  wallet connect is simply omitted, not broken, when this isn't set. */
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().optional(),
+
+  /**
+   * Solana trading — see docs/TRADING.md#solana. All three below are optional and travel
+   * together: when any is missing, the Solana trading UI simply doesn't render (see
+   * lib/privy-config.ts / lib/solana-config.ts) rather than half-initializing with a
+   * missing piece. Mirrors apps/api's `SOLANA_ENABLED` gate — not literally read from the
+   * same env var (client and server env are separate trust boundaries), but the same
+   * "off means off, cleanly" intent.
+   */
+  NEXT_PUBLIC_PRIVY_APP_ID: z.string().optional(),
+  /** A public, read-only Solana RPC endpoint the *browser* reads from directly (balance
+   *  checks, confirmation polling) — never the same trust boundary as apps/api's own
+   *  SOLANA_RPC_URL, same reasoning as NEXT_PUBLIC_CHAIN_RPC_URL above. */
+  NEXT_PUBLIC_SOLANA_RPC_URL: z.string().url().optional(),
 });
 
 export type ClientEnv = z.infer<typeof ClientEnvSchema>;
@@ -47,4 +61,6 @@ export const clientEnv: ClientEnv = parseEnv(ClientEnvSchema, {
   NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
   NEXT_PUBLIC_CHAIN_RPC_URL: process.env.NEXT_PUBLIC_CHAIN_RPC_URL,
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+  NEXT_PUBLIC_PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
+  NEXT_PUBLIC_SOLANA_RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
 });

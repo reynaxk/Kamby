@@ -6,6 +6,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { IdentityController } from './identity.controller';
 import { IdentityService } from './identity.service';
+import { SolanaWalletService } from './solana-wallet.service';
 import { WalletService } from './wallet.service';
 
 /**
@@ -25,7 +26,7 @@ import { WalletService } from './wallet.service';
     }),
   ],
   controllers: [IdentityController],
-  providers: [IdentityService, WalletService, JwtAuthGuard, OptionalAuthGuard],
-  exports: [IdentityService, WalletService, JwtAuthGuard, OptionalAuthGuard],
+  providers: [IdentityService, WalletService, SolanaWalletService, JwtAuthGuard, OptionalAuthGuard],
+  exports: [IdentityService, WalletService, SolanaWalletService, JwtAuthGuard, OptionalAuthGuard],
 })
 export class IdentityModule {}

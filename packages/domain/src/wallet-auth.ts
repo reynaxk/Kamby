@@ -43,6 +43,38 @@ export function buildSiweMessage(params: SiweMessageParams): string {
   ].join('\n');
 }
 
+export interface SolanaSignInMessageParams {
+  domain: string;
+  address: string;
+  statement: string;
+  nonce: string;
+  issuedAt: Date;
+  expirationTime: Date;
+}
+
+/**
+ * A simple, clear plain-text challenge for Solana wallets — deliberately not a claim of
+ * compliance with any named standard (unlike EIP-4361 above). A "Sign In With Solana"
+ * (SIWS) convention exists with some wallet-adapter support, but its precise field format
+ * wasn't verified against a live spec in the time available for this build; this achieves
+ * the same real security property — a wallet signs a message containing a random,
+ * server-issued, single-use nonce — without claiming standard compliance it hasn't earned.
+ * Revisit if a wallet's signing UI ever specifically needs the structured SIWS format.
+ */
+export function buildSolanaSignInMessage(params: SolanaSignInMessageParams): string {
+  const { domain, address, statement, nonce, issuedAt, expirationTime } = params;
+  return [
+    `${domain} wants you to sign in with your Solana account:`,
+    address,
+    '',
+    statement,
+    '',
+    `Nonce: ${nonce}`,
+    `Issued At: ${issuedAt.toISOString()}`,
+    `Expiration Time: ${expirationTime.toISOString()}`,
+  ].join('\n');
+}
+
 export const WalletChallengeSchema = z.object({
   nonce: z.string().min(1),
   message: z.string().min(1),

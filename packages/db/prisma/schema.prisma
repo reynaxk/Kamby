@@ -9,6 +9,12 @@ generator client {
   // makes the generated client a source file tsc must account for under `rootDir`,
   // which stops being true the moment it's a normal package import instead.
   previewFeatures = ["postgresqlExtensions"]
+  // "native" for local dev; explicit musl+OpenSSL-3.0 target for the node:20-alpine
+  // Docker images (apps/api, apps/workers) — Prisma's own Alpine OpenSSL detection is
+  // unreliable and silently defaults to a 1.1.x-linked engine binary that doesn't exist
+  // on modern Alpine (3.17+, OpenSSL 3.x only), crashing at runtime with "Error loading
+  // shared library libssl.so.1.1: No such file or directory".
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -249,34 +255,53 @@ model IngestionCursor {
 /// verified wallets; a `Wallet` is claimed by at most one `User`. Never trust a client
 /// claim that a wallet belongs to the caller — only this column, set exclusively by
 /// `WalletService#verifyChallenge`, is authoritative.
+/// Which signature scheme/network a wallet address belongs to — EVM (secp256k1/ECDSA,
+/// 0x-hex) or Solana (Ed25519, base58). `Wallet.address` stays a bare, globally-unique
+/// `@id` rather than a composite `(chain, address)` key: reshaping the primary key would
+/// touch five dependent foreign keys (Follow, Swap, TradeQuote, TradeTransaction,
+/// Notification) for a collision risk that's astronomically unlikely in practice (base58
+/// and 0x-hex charsets barely overlap) — this column makes the discriminator real and
+/// queryable without that blast radius. A genuine cross-chain collision still fails loudly
+/// at insert via the existing @id uniqueness, never silently misattributes a wallet.
+enum WalletChain {
+  EVM
+  SOLANA
+}
+
 model Wallet {
-  address     String    @id
-  userId      String?   @map("user_id")
+  address     String      @id
+  /// See WalletChain's doc comment. Defaults to EVM since every wallet before this column
+  /// existed was, in fact, EVM.
+  chain       WalletChain @default(EVM)
+  userId      String?     @map("user_id")
   /// Set only once a linked User chooses a display identity — never inferred or guessed.
-  displayName String?   @map("display_name")
-  avatarUrl   String?   @map("avatar_url")
+  displayName String?     @map("display_name")
+  avatarUrl   String?     @map("avatar_url")
   /// The first time Kamby became aware of this wallet in *any* capacity — its first indexed
   /// trade, or the moment a user verified ownership of it, whichever happened first. Never
   /// backdated, never a guess.
-  firstSeenAt DateTime  @map("first_seen_at")
+  firstSeenAt DateTime    @map("first_seen_at")
   /// Non-null only after a signature has proven this address's owner controls it — see
   /// docs/TRADING.md#wallet-ownership. Null forever for a wallet Kamby has only observed
   /// trading and no one has claimed.
-  verifiedAt  DateTime? @map("verified_at")
+  verifiedAt  DateTime?   @map("verified_at")
   /// Last time this wallet was used for an authenticated action (verification refresh, a
   /// submitted trade) — distinct from `updatedAt`, which also ticks on unrelated field
   /// changes like `displayName`.
-  lastUsedAt  DateTime? @map("last_used_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  lastUsedAt  DateTime?   @map("last_used_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
 
-  user                 User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
-  trades               Swap[]
-  follows              Follow[]
-  tradeQuotes          TradeQuote[]
-  tradeTransactions    TradeTransaction[]
-  notificationActorFor Notification[]
+  user                    User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  trades                  Swap[]
+  follows                 Follow[]
+  tradeQuotes             TradeQuote[]
+  tradeTransactions       TradeTransaction[]
+  solanaTradeQuotes       SolanaTradeQuote[]
+  solanaTradeTransactions SolanaTradeTransaction[]
+  notificationActorFor    Notification[]
 
+  @@unique([chain, address])
   @@index([userId])
   @@map("wallets")
 }
@@ -303,17 +328,33 @@ model User {
   currentStreakDays   Int       @default(0) @map("current_streak_days")
   longestStreakDays   Int       @default(0) @map("longest_streak_days")
 
-  wallets                Wallet[]
-  follows                Follow[]
-  likes                  ActivityLike[]
-  walletChallenges       WalletChallenge[]
-  tradeQuotes            TradeQuote[]
-  tradeTransactions      TradeTransaction[]
-  notifications          Notification[]          @relation("NotificationRecipient")
-  notificationActorFor   Notification[]          @relation("NotificationActorUser")
-  notificationPreference NotificationPreference?
-  tokenWatches           TokenWatch[]
-  savedSearches          SavedSearch[]
+  /// Phase 7 — see docs/REFERRALS.md. Generated once at session creation, permanent for
+  /// the life of the row. Unique so a code always resolves to exactly one referrer.
+  referralCode     String  @unique @map("referral_code")
+  /// Set at most once, only at session creation, only from a code that resolved to a real
+  /// user — never overwritten afterward. Null means "not referred," not "referred by
+  /// someone since removed" (onDelete: SetNull would otherwise silently reattribute a
+  /// user's referral to nobody in a way indistinguishable from never having been referred;
+  /// left as the Prisma default — Restrict — so a referrer row can't be deleted while
+  /// still credited with referrals, surfacing that conflict instead of hiding it).
+  referredByUserId String? @map("referred_by_user_id")
+  referredBy       User?   @relation("Referrals", fields: [referredByUserId], references: [id])
+  referrals        User[]  @relation("Referrals")
+
+  wallets                 Wallet[]
+  follows                 Follow[]
+  likes                   ActivityLike[]
+  walletChallenges        WalletChallenge[]
+  solanaWalletChallenges  SolanaWalletChallenge[]
+  tradeQuotes             TradeQuote[]
+  tradeTransactions       TradeTransaction[]
+  solanaTradeQuotes       SolanaTradeQuote[]
+  solanaTradeTransactions SolanaTradeTransaction[]
+  notifications           Notification[]           @relation("NotificationRecipient")
+  notificationActorFor    Notification[]           @relation("NotificationActorUser")
+  notificationPreference  NotificationPreference?
+  tokenWatches            TokenWatch[]
+  savedSearches           SavedSearch[]
 
   @@map("users")
 }
@@ -384,6 +425,31 @@ model WalletChallenge {
   @@map("wallet_challenges")
 }
 
+/// Solana's counterpart to WalletChallenge, above — kept as a separate model rather than
+/// adding a chain branch to the shared one, since the two crypto schemes (Ed25519 here vs.
+/// ECDSA/secp256k1 there) verify completely differently, matching this codebase's existing
+/// preference for concrete separate classes over one forced-shared abstraction (see
+/// LiFiSwapRouter/OneInchSwapRouter in apps/api/src/trading/router/). No FK to Wallet, same
+/// as WalletChallenge — a challenge can be issued for an address no Wallet row exists for
+/// yet.
+model SolanaWalletChallenge {
+  id        String    @id @default(uuid())
+  address   String
+  /// Cryptographically random, unique, single-use.
+  nonce     String    @unique
+  message   String
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([address])
+  @@index([expiresAt])
+  @@map("solana_wallet_challenges")
+}
+
 /// A priced, time-boxed offer to swap `inputToken` for `outputToken`, obtained from a real
 /// swap aggregator (never invented — see docs/TRADING.md#quote-system) and never mutated
 /// after creation. Every token-amount field is the exact raw (pre-decimals) integer as a
@@ -418,12 +484,17 @@ model TradeQuote {
   platformFeeBps    Int    @map("platform_fee_bps")
   platformFeeAmount String @map("platform_fee_amount")
 
-  /// Which aggregator produced this quote (e.g. "0x") — see docs/TRADING.md#provider.
+  /// Which aggregator produced this quote (e.g. "li.fi") — see docs/TRADING.md#provider.
   provider        String
   providerQuoteId String? @map("provider_quote_id")
   /// {to, data, value, gas, maxFeePerGas, maxPriorityFeePerGas} — see
   /// docs/TRADING.md#transaction-construction. Never contains a signature.
   unsignedTx      Json    @map("unsigned_tx")
+  /// A second, separate `transfer(feeRecipient, amount)` call moving the platform fee as
+  /// plain USDC — present only when this trade's cash side is USDC, see
+  /// docs/TRADING.md#guaranteed-usdc-fees. `null` for a trade whose fee still rides along
+  /// inside `unsignedTx` via the aggregator's own fee mechanism.
+  feeUnsignedTx   Json?   @map("fee_unsigned_tx")
 
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
@@ -464,6 +535,18 @@ model TradeTransaction {
   status        TradeStatus @default(PENDING)
   failureReason String?     @map("failure_reason")
 
+  /// The separate USDC fee-transfer transaction — see docs/TRADING.md#guaranteed-usdc-fees.
+  /// `feeTxHash` stays null until the wallet actually submits it (never required for the
+  /// swap above to be considered done); `feeStatus` follows the same PENDING → CONFIRMED /
+  /// FAILED / EXPIRED lifecycle as `status`, tracked independently — a confirmed swap with
+  /// a still-pending (or never-submitted) fee transfer is a fully successful trade from the
+  /// user's side, just one Kamby hasn't collected its fee on yet.
+  feeTxHash        String?      @map("fee_tx_hash")
+  feeStatus        TradeStatus? @map("fee_status")
+  feeFailureReason String?      @map("fee_failure_reason")
+  feeSubmittedAt   DateTime?    @map("fee_submitted_at")
+  feeConfirmedAt   DateTime?    @map("fee_confirmed_at")
+
   submittedAt DateTime  @default(now()) @map("submitted_at")
   confirmedAt DateTime? @map("confirmed_at")
   createdAt   DateTime  @default(now()) @map("created_at")
@@ -475,8 +558,10 @@ model TradeTransaction {
   tokenMarket TokenMarket @relation(fields: [tokenMarketId], references: [id], onDelete: Restrict)
 
   @@unique([chainId, txHash])
+  @@unique([chainId, feeTxHash])
   @@index([userId, createdAt])
   @@index([status])
+  @@index([feeStatus])
   @@map("trade_transactions")
 }
 
@@ -486,6 +571,92 @@ enum TradeStatus {
   CONFIRMED
   FAILED
   EXPIRED
+}
+
+/// Solana's counterpart to TradeQuote — same "never mutated after creation, every amount a
+/// raw-integer string, never a JS number" discipline (see docs/TRADING.md#quote-system).
+/// Kept fully separate from TradeQuote rather than a shared polymorphic table — mints
+/// instead of EVM token addresses, no tokenMarketId (Solana trading isn't backed by
+/// Kamby's own market-discovery/ingestion pipeline, just a direct Jupiter quote for
+/// whatever mint the user is swapping). No fee-payer field yet: launch ships
+/// non-custodial — the user's own wallet pays its own gas — see
+/// docs/WALLET_SECURITY.md's Solana section. A fee-payer column lands in a later
+/// migration alongside the (deferred) gasless relayer, not spec'd here ahead of need.
+model SolanaTradeQuote {
+  id            String @id @default(uuid())
+  userId        String @map("user_id")
+  walletAddress String @map("wallet_address")
+  /// "BUY" or "SELL", same convention as TradeQuote.side.
+  side          String
+  inputMint     String @map("input_mint")
+  outputMint    String @map("output_mint")
+
+  /// Raw integer units (pre-decimals), as strings — see the model comment above.
+  inputAmount          String @map("input_amount")
+  expectedOutputAmount String @map("expected_output_amount")
+  minOutputAmount      String @map("min_output_amount")
+
+  priceUsd       Decimal? @map("price_usd") @db.Decimal(38, 18)
+  priceImpactBps Int?     @map("price_impact_bps")
+  slippageBps    Int      @map("slippage_bps")
+
+  /// Denormalized onto the quote, same reasoning as TradeQuote: a quote a user reviews and
+  /// later signs always executes at the fee it was quoted at.
+  platformFeeBps    Int    @map("platform_fee_bps")
+  platformFeeAmount String @map("platform_fee_amount")
+
+  /// Jupiter's own quote id, if any, plus the serialized (never signed) swap transaction it
+  /// returned — see docs/WALLET_SECURITY.md.
+  providerQuoteId String? @map("provider_quote_id")
+  unsignedTx      Json    @map("unsigned_tx")
+
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      Wallet                  @relation(fields: [walletAddress], references: [address], onDelete: Cascade)
+  transaction SolanaTradeTransaction?
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+  @@map("solana_trade_quotes")
+}
+
+/// Solana's counterpart to TradeTransaction — created only once a real signature exists;
+/// `status` moves only in response to a real on-chain confirmation, never a client's
+/// say-so. No feeTxHash/feeStatus pair: the guaranteed-USDC separate-fee-transfer flow is
+/// an EVM-specific mechanism (see TradeTransaction's own comment) — Jupiter's fee is
+/// deducted atomically inside the swap itself via platformFeeBps/feeAccount, so there is no
+/// second transaction to track here.
+model SolanaTradeTransaction {
+  id            String @id @default(uuid())
+  userId        String @map("user_id")
+  walletAddress String @map("wallet_address")
+  quoteId       String @unique @map("quote_id")
+  signature     String @unique
+  side          String
+
+  inputMint            String @map("input_mint")
+  outputMint           String @map("output_mint")
+  inputAmount          String @map("input_amount")
+  expectedOutputAmount String @map("expected_output_amount")
+  platformFeeAmount    String @map("platform_fee_amount")
+
+  status        TradeStatus @default(PENDING)
+  failureReason String?     @map("failure_reason")
+
+  submittedAt DateTime  @default(now()) @map("submitted_at")
+  confirmedAt DateTime? @map("confirmed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet Wallet           @relation(fields: [walletAddress], references: [address], onDelete: Cascade)
+  quote  SolanaTradeQuote @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("solana_trade_transactions")
 }
 
 // ---------------------------------------------------------------------------------------

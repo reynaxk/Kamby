@@ -18,10 +18,18 @@ export type TradableMarket = Prisma.TokenMarketGetPayload<{
  */
 @Injectable()
 export class SafetyService {
-  async assertTradable(tokenAddress: string): Promise<TradableMarket> {
+  /**
+   * `chainId` is a required, explicit parameter — never defaulted inside this service — so
+   * there is exactly one place (the caller) where "which chain" gets decided. Since
+   * `TokenMarket` is only unique per `(chainId, contractAddress)`, the same address can be a
+   * real, distinct market on two chains; omitting this filter would let `orderBy(liquidityUsd)`
+   * silently pick whichever chain's market happens to have more liquidity, and this method's
+   * whole job is gatekeeping what gets priced and traded.
+   */
+  async assertTradable(tokenAddress: string, chainId: number): Promise<TradableMarket> {
     const normalized = normalizeEvmAddress(tokenAddress);
     const market = await prisma.tokenMarket.findFirst({
-      where: { token: { contractAddress: { equals: normalized, mode: 'insensitive' } } },
+      where: { chainId, token: { contractAddress: { equals: normalized, mode: 'insensitive' } } },
       include: { token: true, quoteToken: true, chain: true },
       orderBy: { liquidityUsd: 'desc' },
     });

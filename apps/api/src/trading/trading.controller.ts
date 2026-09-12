@@ -1,11 +1,13 @@
 import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { Body } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { DEFAULT_CHAIN_ID } from '@kamby/domain';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { CursorQueryDto } from '../social/dto/cursor-query.dto';
 import { QuoteQueryDto } from './dto/quote-query.dto';
+import { SubmitFeeTransactionDto } from './dto/submit-fee-transaction.dto';
 import { SubmitTransactionDto } from './dto/submit-transaction.dto';
 import { QuoteService } from './quote.service';
 import { TransactionService } from './transaction.service';
@@ -34,6 +36,7 @@ export class TradingController {
       userId: user.id,
       walletAddress: query.walletAddress,
       tokenAddress: query.tokenAddress,
+      chainId: query.chainId ?? DEFAULT_CHAIN_ID,
       side: query.side,
       amount: query.amount,
       slippageBps: query.slippageBps,
@@ -54,6 +57,19 @@ export class TradingController {
   @Get('transactions/:id')
   getTransaction(@Param('id') id: string, @CurrentUser() user: SessionUser) {
     return this.transactions.getTransaction(user.id, id);
+  }
+
+  // See docs/TRADING.md#guaranteed-usdc-fees — the second, separate USDC transfer a
+  // guaranteed-USDC-fee trade's wallet signs after its swap. Same throttle reasoning as
+  // submitTransaction above.
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('transactions/:id/fee')
+  submitFeeTransaction(@Param('id') id: string, @Body() body: SubmitFeeTransactionDto, @CurrentUser() user: SessionUser) {
+    return this.transactions.submitFeeTransaction({
+      userId: user.id,
+      transactionId: id,
+      txHash: body.txHash,
+    });
   }
 
   // Deliberately no ?userId= — see docs/TRADING.md#authorization. The authenticated

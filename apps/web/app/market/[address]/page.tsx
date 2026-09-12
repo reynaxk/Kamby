@@ -39,7 +39,8 @@ export async function generateMetadata({
   if (!market) return { title: 'Token not found — Kamby' };
 
   const name = market.symbol ?? market.name ?? truncateAddress(market.tokenAddress);
-  const title = `${name} — ${formatPrice(market.priceUsd)} — Kamby`;
+  const title =
+    market.priceUsd === null ? `${name} — Kamby` : `${name} — ${formatPrice(market.priceUsd)} — Kamby`;
   const description = `${name} on ${market.chainIdentifier}: price, 24h volume, liquidity, and live trading activity.`;
   return {
     title,

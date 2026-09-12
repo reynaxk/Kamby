@@ -21,6 +21,7 @@ import {
   fetchTrending,
 } from '@/lib/social-api';
 import { fetchActiveTraders, fetchLargeTrades, fetchRising } from '@/lib/discovery-api';
+import { settledOr } from '@/lib/settled-fetch';
 
 export const revalidate = 15;
 
@@ -31,6 +32,10 @@ export default async function DiscoverPage({
 }) {
   const search = searchParams.search?.trim() || undefined;
 
+  // Each section below is independent — a backend blip on one (e.g. Large trades) must
+  // never take out an otherwise-fine page. `settledOr` degrades a failed section to its
+  // own empty state (same as "no data yet") instead of failing this whole Promise.all,
+  // which previously crashed the entire homepage on any single section's fetch error.
   const [
     ranked,
     movers,
@@ -43,16 +48,16 @@ export default async function DiscoverPage({
     largeTrades,
     rising,
   ] = await Promise.all([
-    fetchDiscoverMarkets({ sort: 'score', limit: 20, search }),
-    fetchDiscoverMarkets({ sort: 'priceChange', limit: 3, search }),
-    fetchDiscoverMarkets({ sort: 'volume', limit: 3, search }),
-    fetchGlobalActivity({ limit: 20 }),
-    fetchTrending(6),
-    fetchTopTraders(4),
-    search ? fetchTraderSearch(search, 5) : Promise.resolve([]),
-    fetchActiveTraders(4),
-    fetchLargeTrades(4),
-    fetchRising(6),
+    settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20, search }), []),
+    settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 3, search }), []),
+    settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 3, search }), []),
+    settledOr(fetchGlobalActivity({ limit: 20 }), { items: [], nextCursor: null }),
+    settledOr(fetchTrending(6), []),
+    settledOr(fetchTopTraders(4), []),
+    search ? settledOr(fetchTraderSearch(search, 5), []) : Promise.resolve([]),
+    settledOr(fetchActiveTraders(4), []),
+    settledOr(fetchLargeTrades(4), []),
+    settledOr(fetchRising(6), { tokens: [], traders: [] }),
   ]);
 
   return (

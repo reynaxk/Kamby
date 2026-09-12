@@ -46,6 +46,47 @@ describe('SlippageControl', () => {
     expect(onChange).toHaveBeenLastCalledWith(200);
   });
 
+  it('visibly says an out-of-range custom value was rejected, rather than silently ignoring it', async () => {
+    render(<SlippageControl valueBps={50} onChange={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Custom' }));
+    const input = screen.getByPlaceholderText(`${TRADING_DEFAULTS.minSlippageBps / 100}–${TRADING_DEFAULTS.maxSlippageBps / 100}`);
+    await userEvent.type(input, '999');
+
+    // The rejected text stays visible in the box (so the user sees exactly what they typed)
+    // alongside an explicit statement that it wasn't applied and what's actually in effect.
+    expect(input).toHaveValue('999');
+    expect(screen.getByText(/must be between/i)).toBeInTheDocument();
+    expect(screen.getByText(/still using 0\.5%/i)).toBeInTheDocument();
+  });
+
+  it('clears the rejection message once the custom value becomes valid again', async () => {
+    render(<SlippageControl valueBps={50} onChange={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Custom' }));
+    const input = screen.getByPlaceholderText(`${TRADING_DEFAULTS.minSlippageBps / 100}–${TRADING_DEFAULTS.maxSlippageBps / 100}`);
+    await userEvent.type(input, '999');
+    expect(screen.getByText(/must be between/i)).toBeInTheDocument();
+
+    await userEvent.clear(input);
+    await userEvent.type(input, '2');
+
+    expect(screen.queryByText(/must be between/i)).not.toBeInTheDocument();
+  });
+
+  it('clears the rejection message when a preset is chosen instead', async () => {
+    render(<SlippageControl valueBps={50} onChange={vi.fn()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Custom' }));
+    const input = screen.getByPlaceholderText(`${TRADING_DEFAULTS.minSlippageBps / 100}–${TRADING_DEFAULTS.maxSlippageBps / 100}`);
+    await userEvent.type(input, '999');
+    expect(screen.getByText(/must be between/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: '1%' }));
+
+    expect(screen.queryByText(/must be between/i)).not.toBeInTheDocument();
+  });
+
   it('shows a sandwich-attack warning above the UI heuristic threshold', () => {
     render(<SlippageControl valueBps={500} onChange={vi.fn()} />);
     expect(screen.getByText(/sandwich attacks/i)).toBeInTheDocument();

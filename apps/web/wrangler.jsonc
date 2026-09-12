@@ -1,0 +1,40 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "kamby-web",
+	"compatibility_date": "2025-12-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"routes": [
+		{ "pattern": "kambesh.com", "custom_domain": true },
+		{ "pattern": "www.kambesh.com", "custom_domain": true }
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"vars": {
+		"API_BASE_URL": "https://api-production-a88d.up.railway.app",
+		// Works around a known @opennextjs/cloudflare bug (opennextjs/opennextjs-cloudflare#1232):
+		// Next's getMiddlewareManifest() does a dynamic require() of middleware-manifest.json,
+		// which the Workers runtime can't support, crashing every request with "Dynamic require
+		// of ... is not supported" — happens even with zero custom middleware.ts. Minimal mode
+		// skips that code path entirely; this app has no middleware to lose.
+		"NEXT_PRIVATE_MINIMAL_MODE": "1"
+	},
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// above — see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "kamby-web"
+		}
+	],
+	"images": {
+		// Enables Cloudflare's image optimization — see
+		// https://opennext.js.org/cloudflare/howtos/image
+		"binding": "IMAGES"
+	}
+	// No r2_buckets / incremental cache binding yet — see open-next.config.ts's comment.
+	// To add one later: `npx wrangler r2 bucket create <name>`, then add:
+	// "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "<name>" }]
+}

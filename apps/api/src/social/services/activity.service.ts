@@ -26,14 +26,24 @@ export class ActivityService {
    *  here too (a global feed with no quality bar is just noise). Optionally scoped to one
    *  token, in which case the floor is skipped: a token's own page shows its own activity
    *  regardless of how it ranks. */
+  /** `chainId` is only consulted when `tokenAddress` is given (it scopes *that* filter to
+   *  one chain, same "unscoped findFirst-equivalent could silently match the wrong chain's
+   *  token" reasoning as SafetyService.assertTradable) — the unscoped global feed itself is
+   *  deliberately cross-chain, same as MarketService.discover(). */
   async getGlobalFeed(params: {
     cursor?: string;
     limit: number;
     tokenAddress?: string;
+    chainId: number;
     viewerUserId: string | null;
   }): Promise<ActivityPage> {
     const where: Prisma.SwapWhereInput = params.tokenAddress
-      ? { tokenMarket: { token: { contractAddress: { equals: normalizeEvmAddress(params.tokenAddress), mode: 'insensitive' } } } }
+      ? {
+          tokenMarket: {
+            chainId: params.chainId,
+            token: { contractAddress: { equals: normalizeEvmAddress(params.tokenAddress), mode: 'insensitive' } },
+          },
+        }
       : { tokenMarket: { liquidityUsd: { gte: DISCOVERY_RANKING.minLiquidityUsd } } };
 
     return this.fetchPage(where, params.cursor, params.limit, params.viewerUserId);

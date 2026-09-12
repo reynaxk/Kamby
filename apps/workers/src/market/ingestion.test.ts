@@ -7,13 +7,22 @@ import { MarketIngestionService } from './ingestion';
 import { USDC_ADDRESS_BASE } from './seed-markets';
 
 const mockPrisma = vi.hoisted(() => ({
+  chain: {
+    upsert: vi.fn(),
+  },
+  token: {
+    upsert: vi.fn(),
+  },
   tokenMarket: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
     update: vi.fn(),
+    upsert: vi.fn(),
     findUniqueOrThrow: vi.fn(),
   },
   ingestionCursor: {
     update: vi.fn(),
+    upsert: vi.fn(),
   },
   wallet: {
     createMany: vi.fn(),
@@ -144,13 +153,49 @@ beforeEach(() => {
   mockPrisma.user.findMany.mockResolvedValue([]);
 });
 
+describe('MarketIngestionService.seed — RPC budget', () => {
+  it('skips the RPC entirely for a market that is already fully seeded', async () => {
+    mockPrisma.chain.upsert.mockResolvedValue({ id: 1 });
+    mockPrisma.tokenMarket.findUnique.mockResolvedValue({
+      cursor: { lastProcessedBlock: 100n },
+      token: { decimals: 18, symbol: 'WETH' },
+      quoteToken: { decimals: 6, symbol: 'USDC' },
+    });
+    const getPoolState = vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState');
+
+    await newService().seed();
+
+    expect(getPoolState).not.toHaveBeenCalled();
+    expect(fakeLogger.info).toHaveBeenCalledWith(
+      expect.objectContaining({ seeded: 4 }),
+      'Market seeding complete',
+    );
+  });
+
+  it('still reads the RPC for a market that is not yet fully seeded', async () => {
+    mockPrisma.chain.upsert.mockResolvedValue({ id: 1 });
+    mockPrisma.tokenMarket.findUnique.mockResolvedValue(null); // nothing seeded yet
+    const getPoolState = vi
+      .spyOn(UniswapV3PoolReader.prototype, 'getPoolState')
+      .mockResolvedValue(null); // RPC unreachable in this test — only the call itself matters
+
+    await newService().seed();
+
+    expect(getPoolState).toHaveBeenCalled();
+    expect(fakeLogger.info).toHaveBeenCalledWith(
+      expect.objectContaining({ seeded: 0 }),
+      'Market seeding complete',
+    );
+  });
+});
+
 describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
   it('does not advance the cursor when eth_getLogs fails, so the range is retried next tick', async () => {
     const market = buildMarket(100n);
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue(null);
 
     await newService().ingestSwaps();
@@ -168,14 +213,14 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([]);
 
     await newService().ingestSwaps();
 
     expect(mockPrisma.ingestionCursor.update).toHaveBeenCalledWith({
       where: { tokenMarketId: market.id },
-      data: { lastProcessedBlock: 200n },
+      data: { lastProcessedBlock: 103n },
     });
     expect(mockPrisma.swap.createMany).not.toHaveBeenCalled();
   });
@@ -185,7 +230,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([FAKE_SWAP_EVENT]);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockResolvedValue({ count: 1 });
@@ -197,7 +242,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     );
     expect(mockPrisma.ingestionCursor.update).toHaveBeenCalledWith({
       where: { tokenMarketId: market.id },
-      data: { lastProcessedBlock: 200n },
+      data: { lastProcessedBlock: 103n },
     });
   });
 
@@ -206,7 +251,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([FAKE_SWAP_EVENT]);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockResolvedValue({ count: 1 });
@@ -224,7 +269,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([FAKE_SWAP_EVENT]);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockResolvedValue({ count: 1 });
@@ -235,7 +280,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     // cursor; only the best-effort realtime ping failed.
     expect(mockPrisma.ingestionCursor.update).toHaveBeenCalledWith({
       where: { tokenMarketId: market.id },
-      data: { lastProcessedBlock: 200n },
+      data: { lastProcessedBlock: 103n },
     });
   });
 
@@ -244,7 +289,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([FAKE_SWAP_EVENT]);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockResolvedValue({ count: 1 });
@@ -280,7 +325,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([FAKE_SWAP_EVENT]);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockResolvedValue({ count: 1 });
@@ -310,7 +355,7 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
     stubEmptyRollupState();
     vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
-    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(200n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([FAKE_SWAP_EVENT]);
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockRejectedValue(new Error('DB write failed'));

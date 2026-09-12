@@ -1,4 +1,5 @@
 export * from './chain';
+export * from './chain-registry';
 export * from './token';
 export * from './token-market';
 export * from './env';
@@ -10,3 +11,4 @@ export * from './trading';
 export * from './notifications';
 export * from './trader-intelligence';
 export * from './retention';
+export * from './referral';

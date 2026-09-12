@@ -11,7 +11,7 @@ import {
 } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { formatUnits } from 'viem';
-import type { Env } from '../config/env';
+import { getConfiguredChains, type Env } from '../config/env';
 
 const TRANSACTION_INCLUDE = {
   tokenMarket: { include: { token: true, quoteToken: true } },
@@ -38,19 +38,40 @@ export interface CursorPage<T> {
  */
 @Injectable()
 export class TransactionService {
-  private readonly chainReader: EvmChainDataProvider;
-  private readonly chainId: number;
+  /** One reader per configured chain, built once at construction — never per-request, which
+   *  would defeat each reader's own connection reuse. A `TradeTransaction`/`TradeQuote`
+   *  row's `chainId` is a persisted fact, not a request-time guess, so every lookup below is
+   *  keyed off the row's own column, never a service-level default. */
+  private readonly chainReaders: Map<number, EvmChainDataProvider>;
 
   constructor(
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
   ) {
-    this.chainId = config.get('CHAIN_ID', { infer: true });
-    this.chainReader = new EvmChainDataProvider({
-      chain: { identifier: `eip155:${this.chainId}`, name: 'chain', nativeSymbol: 'ETH' },
-      rpcUrl: config.get('CHAIN_RPC_URL', { infer: true }),
-    });
+    this.chainReaders = new Map(
+      getConfiguredChains((key) => config.get(key, { infer: true })).map((chain) => [
+        chain.chainId,
+        new EvmChainDataProvider({
+          chain: { identifier: `eip155:${chain.chainId}`, name: chain.slug, nativeSymbol: 'ETH' },
+          rpcUrl: chain.rpcUrl,
+        }),
+      ]),
+    );
     this.logger.setContext('TransactionService');
+  }
+
+  /** Never a silent fallback to another chain's reader — see docs/TRADING.md#chain-scope
+   *  for why a lookup miss here would otherwise be the most dangerous class of bug in this
+   *  file: `getTransactionDetails` treats "wrong RPC for this hash's chain" identically to
+   *  "not found yet," so a misrouted reader fails silently (looks like an unconfirmed
+   *  transaction) rather than loudly. */
+  private resolveReader(chainId: number): EvmChainDataProvider {
+    const reader = this.chainReaders.get(chainId);
+    if (!reader) {
+      this.logger.error({ chainId }, 'no chain reader configured for this chainId');
+      throw new UnprocessableEntityException(`Chain ${chainId} is not configured on this deployment`);
+    }
+    return reader;
   }
 
   /**
@@ -131,7 +152,7 @@ export class TransactionService {
     // can't be decided from here — that's fine: `refreshStatus` below is the authoritative,
     // race-free gate (it only runs this same check once the transaction is actually mined)
     // and never marks CONFIRMED without it passing.
-    const onChain = await this.chainReader.getTransactionDetails(params.txHash);
+    const onChain = await this.resolveReader(quote.chainId).getTransactionDetails(params.txHash);
     if (onChain && !transactionMatchesQuote(onChain, { walletAddress, unsignedTx: expectedUnsignedTx })) {
       this.logger.warn({ quoteId: quote.id, txHash: params.txHash }, 'submitted transaction does not match the reviewed quote');
       throw new ForbiddenException('This transaction does not match the trade you reviewed');
@@ -173,15 +194,78 @@ export class TransactionService {
     }
   }
 
+  /**
+   * Records the separate USDC fee-transfer transaction alongside an already-submitted
+   * trade — see docs/TRADING.md#guaranteed-usdc-fees. Mirrors `submitTransaction`'s
+   * verification exactly (ownership re-checked from the database, real on-chain sender/
+   * destination/value/calldata checked against the quote's `feeUnsignedTx` before ever
+   * being accepted), just against the fee leg instead of the swap.
+   */
+  async submitFeeTransaction(params: { userId: string; transactionId: string; txHash: string }): Promise<TradeTransactionDto> {
+    if (!/^0x[a-fA-F0-9]{64}$/.test(params.txHash)) {
+      throw new UnprocessableEntityException('txHash must be a well-formed 32-byte transaction hash');
+    }
+
+    const row = await prisma.tradeTransaction.findUnique({ where: { id: params.transactionId }, include: TRANSACTION_INCLUDE });
+    if (!row || row.userId !== params.userId) throw new NotFoundException(`No transaction "${params.transactionId}"`);
+
+    // Idempotent on an identical retry — same shape as submitTransaction's own idempotency.
+    if (row.feeTxHash) {
+      if (row.feeTxHash !== params.txHash) {
+        throw new ForbiddenException('A different fee transfer has already been recorded for this trade');
+      }
+      return toDto(row);
+    }
+
+    const expectedFeeUnsignedTx = parseUnsignedTx(row.quote.feeUnsignedTx);
+    if (!expectedFeeUnsignedTx) {
+      throw new UnprocessableEntityException('This trade does not have a guaranteed-USDC fee transfer to submit');
+    }
+
+    // Wallet ownership can change after the trade was submitted — re-derived from the
+    // database now rather than trusted from the row's frozen snapshot, same reasoning as
+    // submitTransaction above.
+    const wallet = await prisma.wallet.findUnique({ where: { address: row.walletAddress } });
+    if (!wallet || wallet.userId !== params.userId || wallet.verifiedAt === null) {
+      throw new ForbiddenException('This wallet is not verified as belonging to your account');
+    }
+
+    const onChain = await this.resolveReader(row.chainId).getTransactionDetails(params.txHash);
+    if (onChain && !transactionMatchesQuote(onChain, { walletAddress: row.walletAddress, unsignedTx: expectedFeeUnsignedTx })) {
+      this.logger.warn({ transactionId: row.id, txHash: params.txHash }, 'submitted fee transaction does not match the expected transfer');
+      throw new ForbiddenException('This transaction does not match the expected fee transfer');
+    }
+
+    try {
+      const updated = await prisma.tradeTransaction.update({
+        where: { id: row.id },
+        data: { feeTxHash: params.txHash, feeStatus: 'PENDING', feeSubmittedAt: new Date() },
+        include: TRANSACTION_INCLUDE,
+      });
+      this.logger.info({ transactionId: row.id, feeTxHash: params.txHash }, 'fee transfer submitted');
+      return toDto(updated);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        // Same (chainId, feeTxHash) already recorded — against a *different* row, since
+        // this row's own feeTxHash was confirmed null above. Rejected as a real conflict,
+        // not silently returned as if it were this trade's own fee transfer.
+        throw new ForbiddenException('This transaction hash is already recorded against a different trade');
+      }
+      throw error;
+    }
+  }
+
   /** Refreshes a still-PENDING transaction's status against a live receipt before
    *  returning it, so a user actively watching a trade sees it confirm promptly rather
-   *  than waiting for the worker's next background sweep. */
+   *  than waiting for the worker's next background sweep. Does the same for the separate
+   *  fee transfer, independently — see docs/TRADING.md#guaranteed-usdc-fees. */
   async getTransaction(userId: string, id: string): Promise<TradeTransactionDto> {
     const row = await prisma.tradeTransaction.findUnique({ where: { id }, include: TRANSACTION_INCLUDE });
     if (!row || row.userId !== userId) throw new NotFoundException(`No transaction "${id}"`);
 
-    const refreshed = row.status === 'PENDING' ? await this.refreshStatus(row) : row;
-    return toDto(refreshed);
+    const afterStatus = row.status === 'PENDING' ? await this.refreshStatus(row) : row;
+    const afterFeeStatus = afterStatus.feeStatus === 'PENDING' ? await this.refreshFeeStatus(afterStatus) : afterStatus;
+    return toDto(afterFeeStatus);
   }
 
   async getHistory(userId: string, cursor: string | undefined, limit: number): Promise<CursorPage<TradeTransactionDto>> {
@@ -215,10 +299,11 @@ export class TransactionService {
    * shown and asked to sign) is what CONFIRMED is actually checked against.
    */
   async refreshStatus(row: TransactionRow): Promise<TransactionRow> {
-    const receiptStatus = await this.chainReader.getTransactionReceiptStatus(row.txHash);
+    const reader = this.resolveReader(row.chainId);
+    const receiptStatus = await reader.getTransactionReceiptStatus(row.txHash);
     if (receiptStatus === 'success') {
       const expectedUnsignedTx = parseUnsignedTx(row.quote.unsignedTx);
-      const onChain = expectedUnsignedTx ? await this.chainReader.getTransactionDetails(row.txHash) : null;
+      const onChain = expectedUnsignedTx ? await reader.getTransactionDetails(row.txHash) : null;
       const matches =
         expectedUnsignedTx !== null &&
         onChain !== null &&
@@ -238,6 +323,20 @@ export class TransactionService {
           data: { status: 'FAILED', failureReason: 'On-chain transaction does not match the reviewed trade' },
           include: TRANSACTION_INCLUDE,
         });
+      }
+
+      // A matching, successful receipt is still not enough on its own — see
+      // TRADING_DEFAULTS.minConfirmations. A too-shallow (or unreadable) depth leaves the
+      // row PENDING, never CONFIRMED and never FAILED: the receipt could still be correct,
+      // it just hasn't settled enough yet, so the next check (on-demand or the next sweep
+      // tick) tries again rather than this call blocking on it.
+      const confirmations = await reader.getConfirmationCount(row.txHash);
+      if (confirmations === null || confirmations < TRADING_DEFAULTS.minConfirmations) {
+        this.logger.info(
+          { transactionId: row.id, txHash: row.txHash, confirmations },
+          'receipt matches but has not reached minConfirmations yet — leaving PENDING',
+        );
+        return row;
       }
 
       return prisma.tradeTransaction.update({
@@ -264,9 +363,95 @@ export class TransactionService {
     }
     return row;
   }
+
+  /**
+   * The fee-leg twin of `refreshStatus` above — same integrity gate (a receipt alone is
+   * never enough; the real on-chain sender/destination/value/calldata must match the
+   * quote's `feeUnsignedTx`), same `minConfirmations` gate, same eventual `EXPIRED` after
+   * `pendingTransactionTimeoutMinutes` of no receipt. Deliberately independent of the
+   * swap's own `status`/`submittedAt` — a trade whose swap already confirmed stays a fully
+   * successful trade for the user regardless of what happens to its fee transfer. A row
+   * with no `feeTxHash` yet (fee not eligible, or eligible but not yet submitted) is
+   * returned unchanged — never guessed at.
+   */
+  async refreshFeeStatus(row: TransactionRow): Promise<TransactionRow> {
+    if (!row.feeTxHash || !row.feeSubmittedAt) return row;
+
+    const expectedFeeUnsignedTx = parseUnsignedTx(row.quote.feeUnsignedTx);
+    if (!expectedFeeUnsignedTx) {
+      // Only possible for a corrupted row — this codebase is the only writer — but the
+      // same rule as everywhere else: never proceed on an assumption not actually verified.
+      this.logger.error({ transactionId: row.id }, 'fee transaction has no parseable feeUnsignedTx to verify against');
+      return row;
+    }
+
+    const reader = this.resolveReader(row.chainId);
+    const receiptStatus = await reader.getTransactionReceiptStatus(row.feeTxHash);
+    if (receiptStatus === 'success') {
+      const onChain = await reader.getTransactionDetails(row.feeTxHash);
+      const matches =
+        onChain !== null &&
+        transactionMatchesQuote(onChain, { walletAddress: row.walletAddress, unsignedTx: expectedFeeUnsignedTx });
+
+      if (!matches) {
+        this.logger.error(
+          { transactionId: row.id, feeTxHash: row.feeTxHash },
+          'fee receipt succeeded but the on-chain transaction does not match the expected transfer — marking FAILED, not CONFIRMED',
+        );
+        return prisma.tradeTransaction.update({
+          where: { id: row.id },
+          data: { feeStatus: 'FAILED', feeFailureReason: 'On-chain transaction does not match the expected fee transfer' },
+          include: TRANSACTION_INCLUDE,
+        });
+      }
+
+      const confirmations = await reader.getConfirmationCount(row.feeTxHash);
+      if (confirmations === null || confirmations < TRADING_DEFAULTS.minConfirmations) {
+        return row;
+      }
+
+      return prisma.tradeTransaction.update({
+        where: { id: row.id },
+        data: { feeStatus: 'CONFIRMED', feeConfirmedAt: new Date() },
+        include: TRANSACTION_INCLUDE,
+      });
+    }
+    if (receiptStatus === 'reverted') {
+      return prisma.tradeTransaction.update({
+        where: { id: row.id },
+        data: { feeStatus: 'FAILED', feeFailureReason: 'Fee transfer reverted on-chain' },
+        include: TRANSACTION_INCLUDE,
+      });
+    }
+
+    const ageMinutes = (Date.now() - row.feeSubmittedAt.getTime()) / 60_000;
+    if (ageMinutes > TRADING_DEFAULTS.pendingTransactionTimeoutMinutes) {
+      return prisma.tradeTransaction.update({
+        where: { id: row.id },
+        data: { feeStatus: 'EXPIRED', feeFailureReason: 'No confirmation received within the expected time' },
+        include: TRANSACTION_INCLUDE,
+      });
+    }
+    return row;
+  }
 }
 
 function toDto(row: TransactionRow): TradeTransactionDto {
+  // Whether this trade's fee rides a separate, guaranteed-USDC transfer (see
+  // docs/TRADING.md#guaranteed-usdc-fees) — the quote's own feeUnsignedTx is the single
+  // source of truth for this, set once at quote time and never re-derived from the side or
+  // token addresses again here.
+  const usesGuaranteedUsdcFee = row.quote.feeUnsignedTx !== null;
+  // Under the guaranteed flow the fee is always in market.quoteToken (USDC) — for a BUY
+  // that's the *input* token, not the token.decimals the non-guaranteed convention below
+  // uses for its output-side fee. Everywhere else, unchanged: fee formats with the output
+  // token's decimals, matching the aggregator's own embedded-fee convention.
+  const feeDecimals = usesGuaranteedUsdcFee
+    ? row.tokenMarket.quoteToken.decimals!
+    : row.side === 'BUY'
+      ? row.tokenMarket.token.decimals!
+      : row.tokenMarket.quoteToken.decimals!;
+
   return {
     id: row.id,
     chainId: row.chainId,
@@ -289,14 +474,15 @@ function toDto(row: TransactionRow): TradeTransactionDto {
       row.side === 'BUY' ? row.tokenMarket.token.decimals! : row.tokenMarket.quoteToken.decimals!,
     ),
     platformFeeAmount: row.platformFeeAmount,
-    platformFeeAmountFormatted: formatUnits(
-      BigInt(row.platformFeeAmount),
-      row.side === 'BUY' ? row.tokenMarket.token.decimals! : row.tokenMarket.quoteToken.decimals!,
-    ),
+    platformFeeAmountFormatted: formatUnits(BigInt(row.platformFeeAmount), feeDecimals),
     status: row.status,
     failureReason: row.failureReason,
     submittedAt: row.submittedAt.toISOString(),
     confirmedAt: row.confirmedAt ? row.confirmedAt.toISOString() : null,
+    feeTxHash: row.feeTxHash,
+    feeStatus: row.feeStatus,
+    feeFailureReason: row.feeFailureReason,
+    feeConfirmedAt: row.feeConfirmedAt ? row.feeConfirmedAt.toISOString() : null,
   };
 }
 

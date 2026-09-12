@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { parseEnv } from '@kamby/domain';
 import { LoggerModule, type Params } from 'nestjs-pino';
-import { EnvSchema, type Env } from './config/env';
+import { ValidatedEnvSchema, type Env } from './config/env';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
@@ -14,12 +14,15 @@ import { MarketModule } from './market/market.module';
 import { TradingModule } from './trading/trading.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DiscoveryModule } from './discovery/discovery.module';
+import { TokensModule } from './tokens/tokens.module';
+import { ReferralsModule } from './referrals/referrals.module';
+import { SolanaModule } from './solana/solana.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: (config) => parseEnv(EnvSchema, config),
+      validate: (config) => parseEnv(ValidatedEnvSchema, config),
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
@@ -66,6 +69,9 @@ import { DiscoveryModule } from './discovery/discovery.module';
     TradingModule,
     NotificationsModule,
     DiscoveryModule,
+    TokensModule,
+    ReferralsModule,
+    SolanaModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

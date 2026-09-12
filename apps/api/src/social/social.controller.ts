@@ -12,6 +12,7 @@ import {
 import type { MessageEvent } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { map, merge, interval, type Observable } from 'rxjs';
+import { DEFAULT_CHAIN_ID } from '@kamby/domain';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { OptionalAuthGuard } from '../identity/guards/optional-auth.guard';
@@ -52,6 +53,9 @@ export class SocialController {
       cursor: query.cursor,
       limit: query.limit,
       tokenAddress: query.tokenAddress,
+      // Placeholder until this route accepts chainId from the request — see
+      // MarketController's doc comment for why this hardcodes today's one chain.
+      chainId: DEFAULT_CHAIN_ID,
       viewerUserId: user?.id ?? null,
     });
   }

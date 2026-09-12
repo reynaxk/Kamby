@@ -42,45 +42,63 @@ describe('WatchlistService', () => {
     (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue({ id: MARKET_ID });
   });
 
+  const CHAIN_ID = 8453;
+
   describe('watch', () => {
     it('rejects a malformed address before ever touching the database', async () => {
-      await expect(service.watch(USER_ID, 'not-an-address')).rejects.toThrow();
+      await expect(service.watch(USER_ID, 'not-an-address', CHAIN_ID)).rejects.toThrow();
       expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
     });
 
     it('404s when the address has no tracked market', async () => {
       (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(null);
-      await expect(service.watch(USER_ID, TOKEN_ADDRESS)).rejects.toThrow(NotFoundException);
+      await expect(service.watch(USER_ID, TOKEN_ADDRESS, CHAIN_ID)).rejects.toThrow(NotFoundException);
     });
 
     it('creates a TokenWatch row scoped to the resolved market and the given user', async () => {
       (mockedPrisma.tokenWatch.create as jest.Mock).mockResolvedValue({});
-      await service.watch(USER_ID, TOKEN_ADDRESS);
+      await service.watch(USER_ID, TOKEN_ADDRESS, CHAIN_ID);
       expect(mockedPrisma.tokenWatch.create).toHaveBeenCalledWith({
         data: { userId: USER_ID, tokenMarketId: MARKET_ID },
       });
     });
 
+    it('resolves the market on the chain requested, not whichever chain answers first', async () => {
+      // Same address, two distinct markets on two chains — TokenMarket is only unique per
+      // (chainId, contractAddress), so this collision is real, not hypothetical.
+      (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockImplementation(
+        async ({ where }: { where: { chainId: number } }) =>
+          where.chainId === 8453 ? { id: 'market-base' } : where.chainId === 42161 ? { id: 'market-arbitrum' } : null,
+      );
+      (mockedPrisma.tokenWatch.create as jest.Mock).mockResolvedValue({});
+
+      await service.watch(USER_ID, TOKEN_ADDRESS, 42161);
+
+      expect(mockedPrisma.tokenWatch.create).toHaveBeenCalledWith({
+        data: { userId: USER_ID, tokenMarketId: 'market-arbitrum' },
+      });
+    });
+
     it('treats a duplicate watch (P2002) as an idempotent success, not an error', async () => {
       (mockedPrisma.tokenWatch.create as jest.Mock).mockRejectedValue(uniqueConstraintError());
-      await expect(service.watch(USER_ID, TOKEN_ADDRESS)).resolves.toBeUndefined();
+      await expect(service.watch(USER_ID, TOKEN_ADDRESS, CHAIN_ID)).resolves.toBeUndefined();
     });
 
     it('propagates a genuinely unexpected database error rather than swallowing it', async () => {
       (mockedPrisma.tokenWatch.create as jest.Mock).mockRejectedValue(new Error('connection lost'));
-      await expect(service.watch(USER_ID, TOKEN_ADDRESS)).rejects.toThrow('connection lost');
+      await expect(service.watch(USER_ID, TOKEN_ADDRESS, CHAIN_ID)).rejects.toThrow('connection lost');
     });
   });
 
   describe('unwatch', () => {
     it('is idempotent — deleting zero matching rows is a success, not an error', async () => {
       (mockedPrisma.tokenWatch.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
-      await expect(service.unwatch(USER_ID, TOKEN_ADDRESS)).resolves.toBeUndefined();
+      await expect(service.unwatch(USER_ID, TOKEN_ADDRESS, CHAIN_ID)).resolves.toBeUndefined();
     });
 
     it("scopes the delete to both the caller's own userId and the resolved market — never another user's row", async () => {
       (mockedPrisma.tokenWatch.deleteMany as jest.Mock).mockResolvedValue({ count: 1 });
-      await service.unwatch(USER_ID, TOKEN_ADDRESS);
+      await service.unwatch(USER_ID, TOKEN_ADDRESS, CHAIN_ID);
       expect(mockedPrisma.tokenWatch.deleteMany).toHaveBeenCalledWith({
         where: { userId: USER_ID, tokenMarketId: MARKET_ID },
       });
@@ -89,18 +107,18 @@ describe('WatchlistService', () => {
 
   describe('isWatching', () => {
     it('returns null (not false) for an unauthenticated caller — never a fabricated answer', async () => {
-      expect(await service.isWatching(null, TOKEN_ADDRESS)).toBeNull();
+      expect(await service.isWatching(null, TOKEN_ADDRESS, CHAIN_ID)).toBeNull();
       expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
     });
 
     it('returns true when a watch row exists for this user and market', async () => {
       (mockedPrisma.tokenWatch.findUnique as jest.Mock).mockResolvedValue({ id: 'watch-1' });
-      expect(await service.isWatching(USER_ID, TOKEN_ADDRESS)).toBe(true);
+      expect(await service.isWatching(USER_ID, TOKEN_ADDRESS, CHAIN_ID)).toBe(true);
     });
 
     it('returns false when no watch row exists', async () => {
       (mockedPrisma.tokenWatch.findUnique as jest.Mock).mockResolvedValue(null);
-      expect(await service.isWatching(USER_ID, TOKEN_ADDRESS)).toBe(false);
+      expect(await service.isWatching(USER_ID, TOKEN_ADDRESS, CHAIN_ID)).toBe(false);
     });
   });
 

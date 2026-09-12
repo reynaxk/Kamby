@@ -3,6 +3,7 @@
 import type { NotificationPreferences } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { useEffect, useState } from 'react';
+import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import {
   fetchNotificationPreferences,
@@ -61,8 +62,17 @@ export function NotificationPreferencesPanel() {
     }
   }
 
-  if (!hasStoredSession()) return null;
-  if (error) return null;
+  if (!hasStoredSession()) {
+    return (
+      <EmptyState
+        title="Verify a wallet to manage preferences."
+        detail="Sign in with a wallet to choose which notifications you get."
+      />
+    );
+  }
+  if (error) {
+    return <EmptyState title="Couldn't load your preferences." detail="Try again in a moment." />;
+  }
   if (!prefs) {
     return (
       <Surface className="flex flex-col gap-3 p-4">

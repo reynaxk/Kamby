@@ -1,6 +1,7 @@
 'use client';
 
 import { clientEnv } from './env';
+import { getCapturedReferralCode } from './referral-capture';
 
 /**
  * The one anonymous-session primitive every browser-side API client in this app builds on
@@ -31,12 +32,19 @@ function storeToken(token: string): void {
 }
 
 /** Lazily creates an anonymous session on first use — never on page load, so viewing the
- *  app never requires one (see docs/SOCIAL.md#authentication). */
+ *  app never requires one (see docs/SOCIAL.md#authentication). A previously-captured
+ *  referral code (see lib/referral-capture.ts) rides along on this one, one-time create
+ *  call — an existing session is never re-attributed after the fact. */
 export async function ensureSessionToken(): Promise<string> {
   const existing = readStoredToken();
   if (existing) return existing;
 
-  const res = await fetch(`${API_BASE}/v1/identity/session`, { method: 'POST' });
+  const referredByCode = getCapturedReferralCode();
+  const res = await fetch(`${API_BASE}/v1/identity/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(referredByCode ? { referredByCode } : {}),
+  });
   if (!res.ok) throw new Error('Could not start a session');
   const body = (await res.json()) as { token: string };
   storeToken(body.token);

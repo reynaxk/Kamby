@@ -12,6 +12,7 @@ import { TraderTokensList } from '@/components/discovery/TraderTokensList';
 import { formatCompactUsd, formatDateTime, truncateAddress } from '@/lib/format';
 import { fetchTraderActivity, fetchTraderProfile } from '@/lib/social-api';
 import { fetchTraderTokens } from '@/lib/discovery-api';
+import { settledOr } from '@/lib/settled-fetch';
 
 export const revalidate = 15;
 
@@ -41,9 +42,11 @@ export default async function TraderProfilePage({ params }: { params: { address:
   const profile = await fetchTraderProfile(params.address);
   if (!profile) notFound();
 
+  // Secondary sections — a failure here shouldn't take down a profile that otherwise
+  // loaded fine, so each degrades to its own empty state rather than crashing the page.
   const [activity, tokens] = await Promise.all([
-    fetchTraderActivity(params.address, { limit: 20 }),
-    fetchTraderTokens(params.address, 10),
+    settledOr(fetchTraderActivity(params.address, { limit: 20 }), { items: [], nextCursor: null }),
+    settledOr(fetchTraderTokens(params.address, 10), []),
   ]);
 
   return (

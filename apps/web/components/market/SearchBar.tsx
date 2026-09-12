@@ -19,7 +19,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
           id="market-search"
           name="search"
           type="text"
-          placeholder="Search symbol, name, or address"
+          placeholder="Search token or address"
           defaultValue={defaultValue}
           autoComplete="off"
           className="w-full bg-transparent font-body text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none"

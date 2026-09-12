@@ -70,6 +70,27 @@ describe('session-client', () => {
       expect(token).toBe('existing-token');
       expect(fetchMock).not.toHaveBeenCalled();
     });
+
+    it('sends a previously-captured referral code along with a new session', async () => {
+      window.localStorage.setItem('kamby:referral-code', 'ABCD2345');
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ token: 'jwt-123' }, 201));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await ensureSessionToken();
+
+      const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(JSON.parse(options.body as string)).toEqual({ referredByCode: 'ABCD2345' });
+    });
+
+    it('sends no referral code when this browser never captured one', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ token: 'jwt-123' }, 201));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await ensureSessionToken();
+
+      const [, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(JSON.parse(options.body as string)).toEqual({});
+    });
   });
 
   describe('authedFetch', () => {

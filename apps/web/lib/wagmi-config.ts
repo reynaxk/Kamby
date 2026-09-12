@@ -16,11 +16,19 @@ import { clientEnv } from './env';
  * fails trying to resolve statically — a real upstream packaging issue, not something this
  * app can silence via config, and not worth the dependency weight for a feature (in-wallet
  * payments) this app doesn't use. See docs/TRADING.md#wallet-connectivity.
+ *
+ * A named Trust Wallet target is added explicitly, alongside the generic `injected()`:
+ * confirmed live (see docs/TRADING.md#wallet-connectivity) that Trust Wallet's extension
+ * does not reliably announce itself via EIP-6963 the way every other tested wallet here
+ * does, so without this it never appears in the connector list at all — not a config
+ * omission, a real gap in that extension's own behavior. `isTrust`/`isTrustWallet` are
+ * Trust Wallet's own documented legacy-detection flags on the injected provider.
  */
 export const wagmiConfig = createConfig({
   chains: [base],
   connectors: [
     injected(),
+    injected({ target: { id: 'trustWallet', name: 'Trust Wallet', provider: 'isTrust' } }),
     ...(clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
       ? [walletConnect({ projectId: clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID })]
       : []),

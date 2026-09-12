@@ -73,10 +73,6 @@ async function main(): Promise<void> {
       env.WHALE_TRADE_USD_THRESHOLD,
     );
 
-    await ingestion.seed().catch((error: Error) => {
-      logger.error({ err: error }, 'Market seeding failed — will retry on the next tick boundary');
-    });
-
     let tickRunning = false;
     const runTick = async (): Promise<void> => {
       if (tickRunning) {
@@ -86,6 +82,15 @@ async function main(): Promise<void> {
       tickRunning = true;
       const startedAt = Date.now();
       try {
+        // `seed()` is documented as idempotent and safe to call every tick — previously it
+        // only ran once at process startup, so a single flaky RPC read during that one
+        // attempt (the free public Base RPC does this under load) permanently left a
+        // market unseeded or a token's metadata null for the container's entire lifetime,
+        // with no actual retry despite the error log below claiming one would happen. It's
+        // a small, fixed list of seed markets (BASE_SEED_MARKETS), so re-checking them
+        // every tick is cheap and lets a transient failure self-heal on a later tick
+        // instead of requiring a manual restart.
+        await ingestion.seed();
         await ingestion.refreshPricesAndLiquidity();
         await ingestion.ingestSwaps();
         logger.info({ durationMs: Date.now() - startedAt }, 'Market ingestion tick complete');
@@ -123,6 +128,11 @@ async function main(): Promise<void> {
       try {
         const result = await sweep.sweepPendingTransactions();
         logger.info({ ...result, durationMs: Date.now() - startedAt }, 'Trade sweep tick complete');
+        // See docs/TRADING.md#guaranteed-usdc-fees — a separate, independent sweep for the
+        // fee-transfer leg of trades on that flow. Never blocks or is blocked by the swap
+        // sweep above; a swap and its fee transfer confirm on their own timelines.
+        const feeResult = await sweep.sweepPendingFeeTransactions();
+        logger.info({ ...feeResult, durationMs: Date.now() - startedAt }, 'Fee transfer sweep tick complete');
       } catch (error) {
         logger.error({ err: error }, 'Trade sweep tick failed — will retry next tick');
       } finally {

@@ -48,6 +48,20 @@ export async function submitTransaction(params: SubmitTransactionParams): Promis
   return res.json();
 }
 
+/** Records the separate USDC fee-transfer transaction alongside an already-submitted
+ *  trade — see docs/TRADING.md#guaranteed-usdc-fees. Only ever called when the quote's
+ *  own `feeUnsignedTx` was non-null; the wallet signs and broadcasts it exactly like the
+ *  swap itself, this just tells the backend what hash to watch. */
+export async function submitFeeTransaction(transactionId: string, txHash: string): Promise<TradeTransactionDto> {
+  const res = await authedFetch(`/trade/transactions/${encodeURIComponent(transactionId)}/fee`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ txHash }),
+  });
+  await expectOk(res, 'record the fee transfer');
+  return res.json();
+}
+
 /** Returns `null` for a 404 — either the id doesn't exist or (indistinguishably, by
  *  design) it belongs to someone else. See docs/TRADING.md#authorization. */
 export async function getTransaction(id: string): Promise<TradeTransactionDto | null> {

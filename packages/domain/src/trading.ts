@@ -37,6 +37,15 @@ export const TRADING_DEFAULTS = {
    *  polling forever — see docs/TRADING.md#transaction-lifecycle. Base's block time is
    *  ~2s, so 30 minutes is generous, not tight. */
   pendingTransactionTimeoutMinutes: 30,
+  /** A successful receipt alone was previously treated as final the instant it was seen —
+   *  a real reorg gap on an OP-stack L2 like Base, where a just-mined block can still be
+   *  dropped/reordered before it's sufficiently settled. CONFIRMED now additionally
+   *  requires this many blocks mined on top of the transaction's own block — see
+   *  docs/TRADING.md#transaction-lifecycle. 2 is a deliberate small number: enough to rule
+   *  out the single-block reorgs that actually happen in practice, without adding
+   *  meaningful latency on a ~2s-block chain (worst case ~4-6s beyond the receipt itself).
+   */
+  minConfirmations: 2,
   /** Price impact at/above this warrants a visible warning but not blocking the trade. */
   highPriceImpactBps: 500,
   /** Price impact at/above this requires the explicit acknowledgement described in
@@ -183,6 +192,15 @@ export const TradeQuoteSchema = z.object({
   expiresAt: z.string().datetime(),
   createdAt: z.string().datetime(),
   unsignedTx: UnsignedTransactionSchema,
+  /** A second, separate transaction that moves the platform fee as a plain USDC transfer —
+   *  present only when this trade's cash side (input for BUY, quoted output for SELL) is
+   *  actually USDC, `null` otherwise. See docs/TRADING.md#guaranteed-usdc-fees: unlike
+   *  `unsignedTx`'s fee accounting (an aggregator-embedded cut that can land in whatever
+   *  token the swap produces), signing and broadcasting this guarantees the fee is
+   *  collected in USDC, never a mix. Built from the *quoted* amount, not a post-swap actual
+   *  — see the function comment on `calculateFeeAmount` callers in quote.service.ts for why
+   *  that's an intentional, economically negligible tradeoff against a much simpler design. */
+  feeUnsignedTx: UnsignedTransactionSchema.nullable(),
   /** See SAFETY_DISCLAIMER above — a fixed, honest disclosure string, never a "Safe" badge. */
   safetyNote: z.string(),
   requiresApproval: z.boolean(),
@@ -210,5 +228,70 @@ export const TradeTransactionSchema = z.object({
   failureReason: z.string().nullable(),
   submittedAt: z.string().datetime(),
   confirmedAt: z.string().datetime().nullable(),
+  /** The separate USDC fee-transfer transaction's own hash and status — see
+   *  docs/TRADING.md#guaranteed-usdc-fees. `null` for every field when this trade's fee
+   *  wasn't eligible for the guaranteed-USDC flow (feeUnsignedTx was null on the quote), or
+   *  when it was eligible but the wallet hasn't submitted it yet — the primary trade's own
+   *  `status` above is never gated on this: a swap that confirmed is a confirmed trade
+   *  regardless of whether its fee transfer has landed yet. */
+  feeTxHash: z.string().nullable(),
+  feeStatus: TradeStatusSchema.nullable(),
+  feeFailureReason: z.string().nullable(),
+  feeConfirmedAt: z.string().datetime().nullable(),
 });
 export type TradeTransactionDto = z.infer<typeof TradeTransactionSchema>;
+
+/** Solana's native USDC mint — see docs/TRADING.md#solana. The fixed anchor for the 1-tap
+ *  buy flow on both the API (SolanaQuoteService) and the frontend (UsdPresetAmountInput):
+ *  "BUY" always spends this to acquire the target mint, "SELL" always produces this.
+ *  Verified against Circle's own published mint address — single-sourced here rather than
+ *  duplicated per-consumer, same reasoning as the EVM side's per-chain USDC addresses
+ *  living in one place (getConfiguredChains) rather than copy-pasted. */
+export const SOLANA_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+/**
+ * Solana's counterpart to TradeQuoteSchema — the API's `POST /solana/quote` response
+ * shape. Deliberately a separate, simpler schema rather than a shared/parameterized one:
+ * Solana trading uses mints instead of EVM token addresses, has no chainId (one deployment
+ * runs at most one Solana cluster) and no `feeUnsignedTx` (Jupiter's `platformFeeBps`/
+ * `feeAccount` deduct the platform fee atomically inside the swap itself — see
+ * docs/TRADING.md#solana), and — for the non-custodial launch scope — no
+ * `requiresApproval`/`approvalSpender` (there is no ERC-20-style allowance concept on
+ * Solana). `unsignedTxBase64` is Jupiter's own base64-serialized `VersionedTransaction`,
+ * never signed by this backend — see docs/WALLET_SECURITY.md.
+ */
+export const SolanaTradeQuoteSchema = z.object({
+  id: z.string().uuid(),
+  side: TradeSideSchema,
+  inputMint: z.string(),
+  outputMint: z.string(),
+  inputAmountRaw: z.string(),
+  outputAmountRaw: z.string(),
+  minOutputAmountRaw: z.string(),
+  priceImpactBps: z.number().int().nullable(),
+  platformFeeBps: z.number().int(),
+  platformFeeAmountRaw: z.string().nullable(),
+  unsignedTxBase64: z.string(),
+  expiresAt: z.string().datetime(),
+  createdAt: z.string().datetime(),
+});
+export type SolanaTradeQuoteDto = z.infer<typeof SolanaTradeQuoteSchema>;
+
+/** Solana's counterpart to TradeTransactionSchema — the API's `GET /solana/history` /
+ *  `GET /solana/transactions/:id` response shape. No separate fee-transfer tracking (see
+ *  SolanaTradeQuoteSchema's own comment on why) — `status` alone is the whole picture. */
+export const SolanaTradeTransactionSchema = z.object({
+  id: z.string().uuid(),
+  signature: z.string(),
+  side: TradeSideSchema,
+  inputMint: z.string(),
+  outputMint: z.string(),
+  inputAmount: z.string(),
+  expectedOutputAmount: z.string(),
+  platformFeeAmount: z.string(),
+  status: TradeStatusSchema,
+  failureReason: z.string().nullable(),
+  submittedAt: z.string().datetime(),
+  confirmedAt: z.string().datetime().nullable(),
+});
+export type SolanaTradeTransactionDto = z.infer<typeof SolanaTradeTransactionSchema>;

@@ -4,6 +4,8 @@ node_modules/
 
 # build outputs
 .next/
+.open-next/
+.wrangler/
 dist/
 build/
 out/
@@ -34,3 +36,10 @@ Thumbs.db
 # misc
 *.pem
 .vercel
+
+# local tool state — machine-specific, never shared
+.claude/
+.railway/
+
+# scratch screenshots from manual/Playwright verification
+.screens/
