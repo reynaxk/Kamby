@@ -21,6 +21,7 @@ module.exports = {
         accent: 'rgb(var(--kamby-accent) / <alpha-value>)',
         up: 'rgb(var(--kamby-up) / <alpha-value>)',
         down: 'rgb(var(--kamby-down) / <alpha-value>)',
+        warn: 'rgb(var(--kamby-warn) / <alpha-value>)',
       },
       fontFamily: {
         display: ['var(--font-manrope)', 'system-ui', 'sans-serif'],

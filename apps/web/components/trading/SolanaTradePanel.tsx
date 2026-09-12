@@ -6,18 +6,20 @@ import { useSignAndSendTransaction, useWallets } from '@privy-io/react-auth/sola
 import { Button, cn } from '@kamby/ui';
 import { isQuoteExpired, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
 import bs58 from 'bs58';
+import { ArrowLeft, CheckCircle2, TrendingDown, TrendingUp, XCircle } from 'lucide-react';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
+import { RpcStatusBar } from '@/components/terminal/RpcStatusBar';
+import { useTerminalToast } from '@/components/terminal/ToastProvider';
 import { getSolanaQuote, getSolanaTransaction, submitSolanaTransaction } from '@/lib/solana-trading-client';
 import { SlippageControl } from './SlippageControl';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
-import { UsdPresetAmountInput } from './UsdPresetAmountInput';
+import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
 
 export interface SolanaTradePanelProps {
   tokenMint: string;
   tokenSymbol: string | null;
   initialSide?: TradeSide;
-  onClose?: () => void;
 }
 
 type Step = 'form' | 'review' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
@@ -50,13 +52,21 @@ function base64ToUint8Array(base64: string): Uint8Array {
  * EVM flow's `sendTransaction`, this is the wallet broadcasting on its own, paying its own
  * (tiny) network fee. Only the resulting signature is reported to the backend afterward,
  * to record.
+ *
+ * Rendered inside the `.kamby-terminal` scope (see app/solana/page.tsx and globals.css) —
+ * every shared token (`bg-surface`, `text-accent`, `text-up`/`text-down`, ...) resolves to
+ * the Void terminal palette there, so nothing in this file hardcodes a terminal color
+ * directly except where BUY/SELL need to diverge from the single shared `accent` (a toggle
+ * where both sides used the same highlight color would defeat the point of the color
+ * coding), via the `up`/`down` tokens instead.
  */
-export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', onClose }: SolanaTradePanelProps) {
+export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }: SolanaTradePanelProps) {
   const { ready, authenticated, login } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
   const walletVerification = useSolanaWalletVerification();
   const { signAndSendTransaction } = useSignAndSendTransaction();
+  const toast = useTerminalToast();
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
@@ -73,6 +83,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const [transaction, setTransaction] = useState<SolanaTradeTransactionDto | null>(null);
   const [pendingSignature, setPendingSignature] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeToastIdRef = useRef<string | null>(null);
 
   const canQuote = walletVerification.status === 'verified' && Boolean(wallet);
 
@@ -115,9 +126,25 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         setTransaction(tx);
         if (tx.status === 'CONFIRMED') {
           setStep('confirmed');
+          if (activeToastIdRef.current) {
+            toast.update(activeToastIdRef.current, {
+              variant: 'success',
+              title: 'Trade confirmed',
+              description: `${tx.expectedOutputAmount} ${tx.side === 'BUY' ? '' : 'USDC'}`.trim(),
+              solscanUrl: `https://solscan.io/tx/${tx.signature}`,
+            });
+          }
           if (pollRef.current) clearInterval(pollRef.current);
         } else if (tx.status === 'FAILED' || tx.status === 'EXPIRED') {
           setStep('failed');
+          if (activeToastIdRef.current) {
+            toast.update(activeToastIdRef.current, {
+              variant: 'error',
+              title: 'Trade failed',
+              description: tx.failureReason ?? undefined,
+              solscanUrl: `https://solscan.io/tx/${tx.signature}`,
+            });
+          }
           if (pollRef.current) clearInterval(pollRef.current);
         } else {
           setStep('pending');
@@ -127,6 +154,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, transaction?.id]);
 
   const isExpired = quote !== null && isQuoteExpired(new Date(quote.expiresAt), new Date(now));
@@ -135,6 +163,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     if (!quote || !wallet) return;
     setFlowError(null);
     setStep('signing');
+    const toastId = toast.push({ variant: 'pending', title: 'Confirm in your wallet…', description: 'Waiting for your signature.' });
+    activeToastIdRef.current = toastId;
     try {
       const transactionBytes = base64ToUint8Array(quote.unsignedTxBase64);
       const result = await signAndSendTransaction({ transaction: transactionBytes, wallet });
@@ -142,14 +172,20 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       // A real, broadcast signature must never be discarded just because *recording* it
       // afterward fails — same reasoning as TradePanel's own pendingHash handling.
       setPendingSignature(signature);
-      await recordSubmittedTransaction(signature, quote.id, wallet.address);
+      toast.update(toastId, {
+        title: 'Trade submitted',
+        description: 'Waiting for network confirmation…',
+        solscanUrl: `https://solscan.io/tx/${signature}`,
+      });
+      await recordSubmittedTransaction(signature, quote.id, wallet.address, toastId);
     } catch (err) {
       setStep('review');
       setFlowError(friendlyError(err));
+      toast.update(toastId, { variant: 'error', title: 'Trade failed', description: friendlyError(err) });
     }
   }
 
-  async function recordSubmittedTransaction(signature: string, quoteId: string, walletAddress: string) {
+  async function recordSubmittedTransaction(signature: string, quoteId: string, walletAddress: string, toastId?: string) {
     try {
       const tx = await submitSolanaTransaction({ quoteId, walletAddress, signature });
       setTransaction(tx);
@@ -157,13 +193,21 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     } catch (err) {
       setStep('record-failed');
       setFlowError(friendlyError(err));
+      if (toastId) {
+        toast.update(toastId, {
+          variant: 'error',
+          title: "Sent, but couldn't record it",
+          description: friendlyError(err),
+          solscanUrl: `https://solscan.io/tx/${signature}`,
+        });
+      }
     }
   }
 
   function handleRetryRecording() {
     if (!pendingSignature || !quote || !wallet) return;
     setFlowError(null);
-    void recordSubmittedTransaction(pendingSignature, quote.id, wallet.address);
+    void recordSubmittedTransaction(pendingSignature, quote.id, wallet.address, activeToastIdRef.current ?? undefined);
   }
 
   function resetToForm() {
@@ -174,13 +218,23 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     setPendingSignature(null);
     setFlowError(null);
     setAmount('');
+    activeToastIdRef.current = null;
+  }
+
+  /** Mobile speed dock — populates the amount and jumps straight to the review step so a
+   *  one-thumb trader never scrolls past a chart to get there, but still lands on the same
+   *  explicit review-then-sign flow as desktop; a real quote still has to come back and the
+   *  user still has to tap "Confirm & sign" themselves — this is a shortcut to review, not
+   *  a way to skip it. */
+  function handleQuickPreset(dollars: number) {
+    setAmount(usdToRawUsdc(dollars));
   }
 
   // --- Gating states: connect -> verify ----------------------------------------------------
 
   if (!wallet) {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade">
         <p className="font-body text-sm text-ink-600">
           Sign in to trade — Kamby creates a wallet for you automatically, no extension or seed phrase needed. It
           never holds your funds or signs on your behalf.
@@ -194,7 +248,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (walletVerification.status !== 'verified') {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade">
         <p className="font-body text-sm text-ink-600">Verify this wallet with a free signature (no gas, no transaction) before trading with it.</p>
         <Button
           type="button"
@@ -214,7 +268,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade">
         <SolanaTradeStatusView step={step} transaction={transaction} signature={pendingSignature} onDone={resetToForm} />
       </Panel>
     );
@@ -222,7 +276,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (step === 'record-failed') {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade">
         <div className="space-y-3 text-center">
           <p className="font-body text-sm font-semibold text-down">Your trade was sent to the network, but we couldn&apos;t record it.</p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
@@ -244,7 +298,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   if (step === 'review' || step === 'signing') {
     if (!quote) return null;
     return (
-      <Panel title="Review trade" onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined}>
+      <Panel title="Review trade" onBack={step === 'review' ? () => setStep('form') : undefined}>
         <SolanaQuoteSummary quote={quote} />
         {isExpired && (
           <div className="rounded-lg bg-down/10 px-3 py-2 font-body text-xs text-down">
@@ -256,8 +310,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           </div>
         )}
         {flowError && <p className="font-body text-xs text-down">{flowError}</p>}
-        <Button type="button" className="w-full" disabled={isExpired || step === 'signing'} onClick={() => void handleConfirmAndSign()}>
-          {step === 'signing' ? 'Confirm in your wallet…' : 'Confirm & sign'}
+        <Button
+          type="button"
+          variant={side === 'BUY' ? 'buy' : 'sell'}
+          className="w-full text-base font-bold uppercase tracking-wide"
+          disabled={isExpired || step === 'signing'}
+          onClick={() => void handleConfirmAndSign()}
+        >
+          {step === 'signing' ? 'Confirm in your wallet…' : `Confirm & ${side === 'BUY' ? 'buy' : 'sell'}`}
         </Button>
       </Panel>
     );
@@ -266,64 +326,112 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   // --- Form step -----------------------------------------------------------------------------
 
   return (
-    <Panel title="Trade" onClose={onClose}>
-      <div className="flex gap-1.5">
-        {(['BUY', 'SELL'] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setSide(s)}
-            className={cn(
-              'flex-1 rounded-lg px-2 py-1.5 font-body text-xs font-semibold uppercase tracking-wide',
-              side === s ? 'bg-accent text-white' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
-            )}
-          >
-            {s === 'BUY' ? `Buy ${tokenSymbol ?? 'token'}` : `Sell ${tokenSymbol ?? 'token'}`}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center justify-between rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
-        <span className="truncate">
-          Your wallet:{' '}
-          <span className="font-mono text-ink-900">
-            {wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}
+    <>
+      <Panel title="Trade" headerRight={<RpcStatusBar />}>
+        <div className="flex gap-1.5">
+          {(['BUY', 'SELL'] as const).map((s) => {
+            const isActive = side === s;
+            const Icon = s === 'BUY' ? TrendingUp : TrendingDown;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSide(s)}
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors',
+                  isActive
+                    ? s === 'BUY'
+                      ? 'bg-up text-black'
+                      : 'bg-down text-white'
+                    : 'bg-surface-raised text-ink-600 hover:text-ink-900',
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {s === 'BUY' ? `Buy ${tokenSymbol ?? 'token'}` : `Sell ${tokenSymbol ?? 'token'}`}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between rounded-lg border border-line bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
+          <span className="truncate">
+            Your wallet:{' '}
+            <span className="font-mono text-ink-900">
+              {wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}
+            </span>
+            {' — send USDC (Solana network) here to trade.'}
           </span>
-          {' — send USDC (Solana network) here to trade.'}
-        </span>
-        <CopyAddressButton address={wallet.address} />
+          <CopyAddressButton address={wallet.address} />
+        </div>
+        <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+        <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
+        {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} compact />}
+        {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
+        <Button
+          type="button"
+          variant={side === 'BUY' ? 'buy' : 'sell'}
+          className="w-full text-base font-bold uppercase tracking-wide"
+          disabled={quoteStatus !== 'ready' || !quote}
+          onClick={() => setStep('review')}
+        >
+          {quoteStatus === 'loading' ? 'Getting quote…' : `Review ${side === 'BUY' ? 'buy' : 'sell'}`}
+        </Button>
+      </Panel>
+
+      {/* Mobile speed dock — see handleQuickPreset's own doc comment on why this still
+          lands on the review step rather than executing directly. `pb-[env(safe-area-inset-bottom)]`
+          keeps it clear of a phone's home-bar gesture area. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden">
+        <div className="flex gap-1.5">
+          {USD_PRESETS.map((dollars) => (
+            <button
+              key={dollars}
+              type="button"
+              onClick={() => handleQuickPreset(dollars)}
+              className="flex-1 rounded-full border border-line bg-surface-raised px-2 py-1.5 font-mono text-xs font-semibold text-ink-600 active:border-accent/60"
+            >
+              ${dollars}
+            </button>
+          ))}
+        </div>
+        <Button
+          type="button"
+          variant={side === 'BUY' ? 'buy' : 'sell'}
+          className="mt-1.5 w-full text-sm font-bold uppercase tracking-wide"
+          disabled={quoteStatus !== 'ready' || !quote}
+          onClick={() => setStep('review')}
+        >
+          {quoteStatus === 'loading' ? 'Getting quote…' : `Instant ${side === 'BUY' ? 'buy' : 'sell'}`}
+        </Button>
       </div>
-      <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
-      <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
-      {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
-      <Button
-        type="button"
-        className="w-full"
-        disabled={quoteStatus !== 'ready' || !quote}
-        onClick={() => setStep('review')}
-      >
-        {quoteStatus === 'loading' ? 'Getting quote…' : 'Review trade'}
-      </Button>
-    </Panel>
+      {/* Keeps the dock from covering the bottom of the form on mobile. */}
+      <div className="h-24 md:hidden" aria-hidden />
+    </>
   );
 }
 
-function Panel({ title, onClose, onBack, children }: { title: string; onClose?: () => void; onBack?: () => void; children: React.ReactNode }) {
+function Panel({
+  title,
+  onBack,
+  headerRight,
+  children,
+}: {
+  title: string;
+  onBack?: () => void;
+  headerRight?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onBack && (
             <button type="button" onClick={onBack} aria-label="Back" className="text-ink-600 hover:text-ink-900">
-              ←
+              <ArrowLeft className="h-4 w-4" />
             </button>
           )}
           <h2 className="font-display text-base font-semibold text-ink-900">{title}</h2>
         </div>
-        {onClose && (
-          <button type="button" onClick={onClose} aria-label="Close" className="text-ink-600 hover:text-ink-900">
-            ✕
-          </button>
-        )}
+        {headerRight}
       </div>
       {children}
     </div>
@@ -347,10 +455,14 @@ function SolanaTradeStatusView({
   const label =
     step === 'confirmed' ? 'Trade confirmed' : step === 'failed' ? 'Trade failed' : 'Waiting for confirmation…';
   const color = step === 'confirmed' ? 'text-up' : step === 'failed' ? 'text-down' : 'text-ink-600';
+  const Icon = step === 'confirmed' ? CheckCircle2 : step === 'failed' ? XCircle : null;
 
   return (
     <div className="space-y-3 text-center">
-      <p className={cn('font-body text-sm font-semibold', color)}>{label}</p>
+      <div className="flex items-center justify-center gap-2">
+        {Icon && <Icon className={cn('h-5 w-5', color)} />}
+        <p className={cn('font-body text-sm font-semibold', color)}>{label}</p>
+      </div>
       {transaction?.failureReason && <p className="font-body text-xs text-ink-600">{transaction.failureReason}</p>}
       {explorerUrl && (
         <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">

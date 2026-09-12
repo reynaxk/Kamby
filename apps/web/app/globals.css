@@ -18,6 +18,7 @@
   --kamby-accent: 12 140 130;
   --kamby-up: 28 154 99;
   --kamby-down: 216 55 90;
+  --kamby-warn: 180 120 12;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,10 +33,37 @@
     --kamby-accent: 45 212 197;
     --kamby-up: 53 192 129;
     --kamby-down: 240 89 111;
+    --kamby-warn: 235 179 64;
   }
 }
 
 body {
   background-color: rgb(var(--kamby-bg));
   color: rgb(var(--kamby-ink-900));
+}
+
+/*
+ * "Void" terminal theme — scoped to the Solana trading surface only (see
+ * app/solana/page.tsx), not a site-wide reskin. Every shared component (Button, Surface,
+ * SlippageControl, CopyAddressButton, ...) already draws its colors from these same
+ * --kamby-* custom properties, so overriding them inside this one class reskins the whole
+ * trading terminal — buy/sell pills, panels, borders, numbers — without touching a single
+ * shared component's source or risking the EVM trade flow, Discover feed, or any other
+ * page that never renders inside this scope. A deliberate, committed dark identity (not
+ * prefers-color-scheme-driven) — same reasoning artifact-design gives for a single-theme
+ * design that commits to one visual world.
+ */
+.kamby-terminal {
+  --kamby-bg: 6 7 9;
+  --kamby-surface: 14 16 23;
+  --kamby-surface-raised: 22 25 33;
+  --kamby-line: 26 29 38;
+  --kamby-ink-900: 237 239 245;
+  --kamby-ink-600: 148 152 166;
+  --kamby-ink-400: 96 100 114;
+  --kamby-accent: 0 255 135;
+  --kamby-up: 0 255 135;
+  --kamby-down: 255 0 85;
+  --kamby-warn: 255 184 0;
+  color-scheme: dark;
 }

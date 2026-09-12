@@ -1,4 +1,5 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
+import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 
 export const metadata = { title: 'Solana — Kamby' };
@@ -10,20 +11,27 @@ export const metadata = { title: 'Solana — Kamby' };
  * sign & send → confirm), not as the final placement. A proper per-token entry point
  * (mirroring how TradeButton/TradeModal work for EVM markets) is follow-up work once
  * Solana has its own tracked markets to link from.
+ *
+ * `kamby-terminal` scopes the Void dark theme (see globals.css) to this page only — the
+ * rest of the product (Discover, Trades, Watchlist, Referrals) keeps its existing
+ * light/dark palette untouched. `ToastProvider` is likewise scoped here rather than in the
+ * root `app/providers.tsx`, since the trade panel is its only consumer so far.
  */
 export default function SolanaPage() {
   return (
-    <>
-      <MarketHeader />
-      <main className="mx-auto max-w-md px-6 py-10">
-        <h1 className="font-display text-xl font-bold text-ink-900">Trade on Solana</h1>
-        <p className="mt-1 font-body text-sm text-ink-600">
-          Sign in with email — no wallet app needed. Kamby creates one for you.
-        </p>
-        <div className="mt-6 rounded-2xl border border-line bg-surface p-4">
-          <SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />
-        </div>
-      </main>
-    </>
+    <ToastProvider>
+      <div className="kamby-terminal min-h-screen bg-bg">
+        <MarketHeader />
+        <main className="mx-auto max-w-md px-6 py-10">
+          <h1 className="font-display text-xl font-bold text-ink-900">Trade on Solana</h1>
+          <p className="mt-1 font-body text-sm text-ink-600">
+            Sign in with email — no wallet app needed. Kamby creates one for you.
+          </p>
+          <div className="mt-6 rounded-2xl border border-line bg-surface p-4">
+            <SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />
+          </div>
+        </main>
+      </div>
+    </ToastProvider>
   );
 }

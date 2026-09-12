@@ -3,12 +3,20 @@
 import { useEffect, useState } from 'react';
 import { getAssociatedTokenAddress, getAccount, TokenAccountNotFoundError } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
+import { Wallet } from 'lucide-react';
 import { SOLANA_USDC_MINT } from '@kamby/domain';
 import { cn } from '@kamby/ui';
+import { GlowValue } from '@/components/terminal/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 
-const USD_PRESETS = [10, 25, 50, 100] as const;
+export const USD_PRESETS = [10, 25, 50, 100] as const;
 const USDC_DECIMALS = 6;
+
+/** Shared with the mobile speed dock (SolanaTradePanel) so the $ → raw-USDC conversion
+ *  lives in exactly one place. */
+export function usdToRawUsdc(dollars: number): string {
+  return (dollars * 10 ** USDC_DECIMALS).toString();
+}
 
 /**
  * The 1-tap preset row for Solana's BUY flow — see docs/TRADING.md#solana. Unlike
@@ -54,7 +62,7 @@ export function UsdPresetAmountInput({
   }, [walletAddress]);
 
   const applyUsd = (dollars: number) => {
-    onChange((dollars * 10 ** USDC_DECIMALS).toString());
+    onChange(usdToRawUsdc(dollars));
   };
 
   const applyMax = () => {
@@ -65,9 +73,17 @@ export function UsdPresetAmountInput({
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span>Amount (USDC)</span>
+        <span className="uppercase tracking-wide">Amount (USDC)</span>
         {usdcBalanceRaw !== null && (
-          <span>Balance: ${(Number(usdcBalanceRaw) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
+          <span className="inline-flex items-center gap-1">
+            <Wallet className="h-3 w-3" />
+            Balance:{' '}
+            <GlowValue
+              value={usdcBalanceRaw.toString()}
+              display={`$${(Number(usdcBalanceRaw) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })}`}
+              className="font-mono"
+            />
+          </span>
         )}
       </div>
       <input
@@ -83,29 +99,34 @@ export function UsdPresetAmountInput({
             onChange(Math.round(Number(raw) * 10 ** USDC_DECIMALS).toString());
           }
         }}
-        className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-lg text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
+        className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-3 font-mono text-2xl font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-accent"
       />
       <div className="mt-1.5 flex gap-1.5">
-        {USD_PRESETS.map((dollars) => (
-          <button
-            key={dollars}
-            type="button"
-            onClick={() => applyUsd(dollars)}
-            className={cn(
-              'flex-1 rounded-lg bg-surface-raised px-2 py-1.5 font-body text-xs font-medium text-ink-600',
-              'hover:text-ink-900',
-            )}
-          >
-            ${dollars}
-          </button>
-        ))}
+        {USD_PRESETS.map((dollars) => {
+          const isActive = value === usdToRawUsdc(dollars);
+          return (
+            <button
+              key={dollars}
+              type="button"
+              onClick={() => applyUsd(dollars)}
+              className={cn(
+                'flex-1 rounded-full border px-2 py-1.5 font-mono text-xs font-semibold transition-colors',
+                isActive
+                  ? 'border-accent bg-accent/15 text-accent'
+                  : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
+              )}
+            >
+              ${dollars}
+            </button>
+          );
+        })}
         <button
           type="button"
           disabled={usdcBalanceRaw === null || usdcBalanceRaw === 0n}
           onClick={applyMax}
           className={cn(
-            'flex-1 rounded-lg bg-surface-raised px-2 py-1.5 font-body text-xs font-medium text-ink-600',
-            'hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
+            'flex-1 rounded-full border border-line bg-surface-raised px-2 py-1.5 font-mono text-xs font-semibold text-ink-600',
+            'hover:border-accent/60 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
           )}
         >
           Max
