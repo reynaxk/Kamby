@@ -1,3 +1,4 @@
+import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
 import { clientEnv } from './env';
 
 /**
@@ -13,8 +14,19 @@ import { clientEnv } from './env';
  * re-verify the config shape against Privy's current docs (https://docs.privy.io) before
  * depending on this in production, same caveat this codebase already carries for
  * LiFiSwapRouter/JupiterQuoteService's third-party API integrations.
+ *
+ * `solana.rpcs` — confirmed live on 2026-09-13, required and separate from
+ * `lib/solana-config.ts`'s own read-only `Connection`: Privy's `useSignAndSendTransaction`
+ * (and the other Solana standard-wallet hooks) build their own `@solana/kit` RPC client
+ * internally and throw `No RPC configuration found for chain solana:mainnet` if this isn't
+ * supplied, rather than falling back to some public default. Reuses the same
+ * NEXT_PUBLIC_SOLANA_RPC_URL already configured for the read-only connection — Helius (and
+ * most providers) serve the websocket subscription API off the same host, just `wss://`
+ * instead of `https://`.
  */
 export const privyAppId = clientEnv.NEXT_PUBLIC_PRIVY_APP_ID ?? null;
+
+const solanaRpcUrl = clientEnv.NEXT_PUBLIC_SOLANA_RPC_URL;
 
 export const privyConfig = {
   embeddedWallets: {
@@ -22,4 +34,15 @@ export const privyConfig = {
       createOnLogin: 'users-without-wallets' as const,
     },
   },
+  ...(solanaRpcUrl && {
+    solana: {
+      rpcs: {
+        'solana:mainnet': {
+          rpc: createSolanaRpc(solanaRpcUrl),
+          rpcSubscriptions: createSolanaRpcSubscriptions(solanaRpcUrl.replace(/^http/, 'ws')),
+          blockExplorerUrl: 'https://solscan.io',
+        },
+      },
+    },
+  }),
 };

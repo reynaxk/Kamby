@@ -26,6 +26,16 @@ function friendlyError(err: unknown): string {
   return 'Something went wrong — please try again.';
 }
 
+/** `Buffer` is a Node global — nothing polyfills it in this browser bundle (Next's
+ *  webpack 5 base config dropped automatic Node polyfills), so decode base64 the
+ *  browser-native way instead of reaching for it. */
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
 /**
  * Solana's counterpart to TradePanel.tsx — see that component's own doc comment for the
  * shared "never a false success" principle. Deliberately simpler than the EVM flow: no
@@ -125,7 +135,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     setFlowError(null);
     setStep('signing');
     try {
-      const transactionBytes = new Uint8Array(Buffer.from(quote.unsignedTxBase64, 'base64'));
+      const transactionBytes = base64ToUint8Array(quote.unsignedTxBase64);
       const result = await signAndSendTransaction({ transaction: transactionBytes, wallet });
       const signature = bs58.encode(result.signature);
       // A real, broadcast signature must never be discarded just because *recording* it
