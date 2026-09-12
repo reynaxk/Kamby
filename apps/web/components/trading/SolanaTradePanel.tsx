@@ -7,6 +7,7 @@ import { Button, cn } from '@kamby/ui';
 import { isQuoteExpired, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
 import bs58 from 'bs58';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
+import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { getSolanaQuote, getSolanaTransaction, submitSolanaTransaction } from '@/lib/solana-trading-client';
 import { SlippageControl } from './SlippageControl';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
@@ -280,6 +281,16 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
             {s === 'BUY' ? `Buy ${tokenSymbol ?? 'token'}` : `Sell ${tokenSymbol ?? 'token'}`}
           </button>
         ))}
+      </div>
+      <div className="flex items-center justify-between rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
+        <span className="truncate">
+          Your wallet:{' '}
+          <span className="font-mono text-ink-900">
+            {wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}
+          </span>
+          {' — send USDC (Solana network) here to trade.'}
+        </span>
+        <CopyAddressButton address={wallet.address} />
       </div>
       <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
       <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
