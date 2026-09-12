@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import { useSignAndSendTransaction, useWallets } from '@privy-io/react-auth/solana';
 import { Button, cn } from '@kamby/ui';
 import { isQuoteExpired, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
@@ -40,6 +41,7 @@ function friendlyError(err: unknown): string {
  * to record.
  */
 export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', onClose }: SolanaTradePanelProps) {
+  const { ready, authenticated, login } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
   const walletVerification = useSolanaWalletVerification();
@@ -168,7 +170,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   if (!wallet) {
     return (
       <Panel title="Trade" onClose={onClose}>
-        <p className="font-body text-sm text-ink-600">Connect a Solana wallet to trade — Kamby never holds your funds or signs on your behalf.</p>
+        <p className="font-body text-sm text-ink-600">
+          Sign in to trade — Kamby creates a wallet for you automatically, no extension or seed phrase needed. It
+          never holds your funds or signs on your behalf.
+        </p>
+        <Button type="button" className="w-full" disabled={!ready || authenticated} onClick={() => login()}>
+          {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
+        </Button>
       </Panel>
     );
   }

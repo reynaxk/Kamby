@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '/trades', label: 'Trades' },
   { href: '/watchlist', label: 'Watchlist' },
   { href: '/referrals', label: 'Referrals' },
+  { href: '/solana', label: 'Solana' },
 ] as const;
 
 /**

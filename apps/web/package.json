@@ -18,6 +18,7 @@
   "dependencies": {
     "@kamby/domain": "workspace:*",
     "@kamby/ui": "workspace:*",
+    "@farcaster/mini-app-solana": "^1.0.7",
     "@privy-io/react-auth": "^3.42.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
