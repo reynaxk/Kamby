@@ -45,6 +45,14 @@ export function useSolanaWalletVerification() {
       const linkedWallets = await listLinkedSolanaWallets();
       const linked = linkedWallets.some((w) => w.address === address);
       setStatus(linked ? 'verified' : 'unverified');
+      // Covers a wallet linked before this top-up call existed, or one where a previous
+      // attempt failed (e.g. the funding wallet running dry) — `verify()` below only ever
+      // fires on a *fresh* verification, so without this, an already-linked wallet has no
+      // path that ever retries funding it. The backend endpoint is idempotent (a live
+      // balance check, not a one-time flag), so calling it again here on every mount that
+      // finds an already-verified wallet is cheap and safe, same reasoning as `verify()`'s
+      // own call.
+      if (linked) void ensureSolanaWalletFunded(address).catch(() => undefined);
     } catch {
       setStatus('unverified');
     }
