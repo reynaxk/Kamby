@@ -16,6 +16,9 @@ export interface CreateSolanaQuoteParams {
    *  this side — USDC (6 decimals) for BUY, tokenMint for SELL. Never a JS number. */
   amount: string;
   slippageBps: number;
+  /** See JupiterQuoteService's own doc comment — the user's own wallet pays this, passed
+   *  straight through to Jupiter's native jitoTipLamports support. 0/undefined omits it. */
+  jitoTipLamports?: number;
 }
 
 export interface SolanaQuoteResult {
@@ -85,6 +88,7 @@ export class SolanaQuoteService {
       userPublicKey: params.walletAddress,
       platformFeeBps,
       feeAccount: this.treasuryUsdcAta,
+      jitoTipLamports: params.jitoTipLamports,
     });
     if (!quote) {
       throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');

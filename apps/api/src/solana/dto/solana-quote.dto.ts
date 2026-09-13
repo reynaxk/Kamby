@@ -28,4 +28,17 @@ export class SolanaQuoteDto {
   @Min(TRADING_DEFAULTS.minSlippageBps)
   @Max(TRADING_DEFAULTS.maxSlippageBps)
   slippageBps: number = TRADING_DEFAULTS.defaultSlippageBps;
+
+  /** Lamports for Jupiter's own built-in Jito tip instruction (`prioritizationFeeLamports.
+   *  jitoTipLamports` on their /swap call) — the user's own wallet pays this as part of the
+   *  same transaction it already signs, never a backend-sponsored amount. Optional and
+   *  0 by default: nothing about Jito submission is forced on. Capped at 10_000_000 lamports
+   *  (0.01 SOL) — the top of the priority range this was scoped against; a larger tip needs
+   *  a deliberate config change, not a client-supplied number without an upper bound. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(10_000_000)
+  jitoTipLamports: number = 0;
 }

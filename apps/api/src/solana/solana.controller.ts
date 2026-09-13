@@ -39,6 +39,7 @@ export class SolanaController {
       tokenMint: body.tokenMint,
       amount: body.amount,
       slippageBps: body.slippageBps,
+      jitoTipLamports: body.jitoTipLamports,
     });
   }
 

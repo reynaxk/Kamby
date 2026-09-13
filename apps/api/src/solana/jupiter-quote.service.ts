@@ -29,6 +29,16 @@ export interface JupiterQuoteParams {
    *  since the input mint here is always USDC, this must be a USDC ATA. Passed on the
    *  /swap call, per Jupiter's docs. */
   feeAccount: string;
+  /** Lamports for Jupiter's own built-in Jito tip instruction — confirmed live 2026-09-13
+   *  against Jupiter's current docs: passing `prioritizationFeeLamports.jitoTipLamports`
+   *  on /swap makes Jupiter build the tip instruction (to one of Jito's real, rotating tip
+   *  accounts) directly into the returned transaction — this service never constructs that
+   *  instruction itself. `undefined`/0 omits the field entirely, same as platformFeeBps'
+   *  own >0 gating below. Note: the tip instruction alone does nothing until the *signed*
+   *  transaction is actually submitted through Jito's own endpoint
+   *  (mainnet.block-engine.jito.wtf) rather than a normal RPC — that broadcast-path change
+   *  is a separate, not-yet-made frontend change; see docs/TRADING.md#solana. */
+  jitoTipLamports?: number;
 }
 
 export interface JupiterQuoteResult {
@@ -170,6 +180,7 @@ export class JupiterQuoteService {
           quoteResponse: quote,
           userPublicKey: params.userPublicKey,
           feeAccount: params.platformFeeBps > 0 ? params.feeAccount : undefined,
+          prioritizationFeeLamports: params.jitoTipLamports ? { jitoTipLamports: params.jitoTipLamports } : undefined,
           // The user's own wallet pays its own network fee — launch ships non-custodial,
           // see docs/WALLET_SECURITY.md's Solana section. This flag stays false until the
           // (not yet built) gasless relayer exists; flipping it on ahead of that relayer

@@ -101,6 +101,24 @@ describe('JupiterQuoteService', () => {
     expect(swapBody.feeAccount).toBeUndefined();
   });
 
+  it('sends prioritizationFeeLamports.jitoTipLamports on the swap call when a tip is requested', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(validQuoteBody)).mockResolvedValueOnce(jsonResponse(validSwapBody));
+
+    await service.getQuote({ ...baseParams, jitoTipLamports: 5_000 });
+
+    const swapBody = JSON.parse(fetchMock.mock.calls[1][1].body as string) as Record<string, unknown>;
+    expect(swapBody.prioritizationFeeLamports).toEqual({ jitoTipLamports: 5_000 });
+  });
+
+  it('omits prioritizationFeeLamports entirely when no tip is requested', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(validQuoteBody)).mockResolvedValueOnce(jsonResponse(validSwapBody));
+
+    await service.getQuote(baseParams); // baseParams carries no jitoTipLamports
+
+    const swapBody = JSON.parse(fetchMock.mock.calls[1][1].body as string) as Record<string, unknown>;
+    expect(swapBody.prioritizationFeeLamports).toBeUndefined();
+  });
+
   it('returns null (never guesses) when the quote endpoint rejects the request', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ error: 'bad request' }, false, 400));
 

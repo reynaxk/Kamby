@@ -177,6 +177,15 @@ describe('SolanaQuoteService', () => {
     expect(jupiter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ platformFeeBps: 75 }));
   });
 
+  it('passes jitoTipLamports straight through to Jupiter when the caller requests a tip', async () => {
+    const jupiter = fakeJupiter();
+    const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
+
+    await service.createQuote({ ...baseParams, jitoTipLamports: 10_000 });
+
+    expect(jupiter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ jitoTipLamports: 10_000 }));
+  });
+
   it('SELL: falls back to the higher (never the lower) tier when the trade size can\'t actually be discovered', async () => {
     const jupiter = fakeJupiter(fakeJupiterResult(), null); // Jupiter unreachable for the preliminary call
     const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
