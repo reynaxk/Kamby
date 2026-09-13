@@ -52,8 +52,13 @@ function fakeJupiterResult(overrides: Partial<JupiterQuoteResult> = {}): Jupiter
   };
 }
 
-function fakeJupiter(result: JupiterQuoteResult | null = fakeJupiterResult()) {
-  return { getQuote: jest.fn().mockResolvedValue(result) };
+function fakeJupiter(result: JupiterQuoteResult | null = fakeJupiterResult(), estimatedOutputRaw: string | null = '50000000') {
+  return {
+    getQuote: jest.fn().mockResolvedValue(result),
+    // Default '50000000' = $50 — exactly the boundary where the tier flips to 75bps; SELL
+    // tests that care about a specific tier override this explicitly.
+    getEstimatedOutputRaw: jest.fn().mockResolvedValue(estimatedOutputRaw),
+  };
 }
 
 const baseParams: CreateSolanaQuoteParams = {
@@ -122,11 +127,22 @@ describe('SolanaQuoteService', () => {
     const jupiter = fakeJupiter();
     const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
 
+    // baseParams.amount ('10' raw units = $0.00001) is well under the $50 tier boundary.
     await service.createQuote({ ...baseParams, side: 'BUY' });
 
     expect(jupiter.getQuote).toHaveBeenCalledWith(
-      expect.objectContaining({ inputMint: SOLANA_USDC_MINT, outputMint: TOKEN_MINT, feeAccount: TREASURY_ATA, platformFeeBps: 50 }),
+      expect.objectContaining({ inputMint: SOLANA_USDC_MINT, outputMint: TOKEN_MINT, feeAccount: TREASURY_ATA, platformFeeBps: 100 }),
     );
+  });
+
+  it('BUY: a $50+ trade gets the lower, uncapped 75bps tier, resolved from the input amount directly', async () => {
+    const jupiter = fakeJupiter();
+    const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
+
+    await service.createQuote({ ...baseParams, side: 'BUY', amount: '60000000' }); // $60 raw USDC
+
+    expect(jupiter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ platformFeeBps: 75 }));
+    expect(jupiter.getEstimatedOutputRaw).not.toHaveBeenCalled(); // BUY never needs the extra round trip
   });
 
   it('SELL: sells tokenMint to produce USDC', async () => {
@@ -138,6 +154,36 @@ describe('SolanaQuoteService', () => {
     expect(jupiter.getQuote).toHaveBeenCalledWith(
       expect.objectContaining({ inputMint: TOKEN_MINT, outputMint: SOLANA_USDC_MINT }),
     );
+  });
+
+  it('SELL: discovers the trade\'s USD size via a fee-free, swap-free preliminary quote before resolving the real fee tier', async () => {
+    const jupiter = fakeJupiter(fakeJupiterResult(), '30000000'); // $30 estimated output — under $50
+    const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
+
+    await service.createQuote({ ...baseParams, side: 'SELL', amount: '999999999' }); // input side is irrelevant to the tier here
+
+    expect(jupiter.getEstimatedOutputRaw).toHaveBeenCalledWith(
+      expect.objectContaining({ inputMint: TOKEN_MINT, outputMint: SOLANA_USDC_MINT }),
+    );
+    expect(jupiter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ platformFeeBps: 100 }));
+  });
+
+  it('SELL: a $50+ estimated output gets the lower, uncapped 75bps tier', async () => {
+    const jupiter = fakeJupiter(fakeJupiterResult(), '75000000'); // $75 estimated output
+    const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
+
+    await service.createQuote({ ...baseParams, side: 'SELL' });
+
+    expect(jupiter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ platformFeeBps: 75 }));
+  });
+
+  it('SELL: falls back to the higher (never the lower) tier when the trade size can\'t actually be discovered', async () => {
+    const jupiter = fakeJupiter(fakeJupiterResult(), null); // Jupiter unreachable for the preliminary call
+    const service = new SolanaQuoteService(jupiter as never, fakeConfig(), fakeLogger());
+
+    await service.createQuote({ ...baseParams, side: 'SELL' });
+
+    expect(jupiter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ platformFeeBps: 100 }));
   });
 
   it('rejects when Jupiter cannot produce a live quote', async () => {

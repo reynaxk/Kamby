@@ -114,7 +114,27 @@ export class JupiterQuoteService {
     };
   }
 
-  private async fetchQuote(params: JupiterQuoteParams): Promise<JupiterQuoteResponse | null> {
+  /**
+   * A lighter-weight quote-only call — no swap transaction is built, and no platform fee is
+   * requested (Jupiter's own fee accounting would otherwise shrink the output this exists
+   * to measure). Used by `SolanaQuoteService` to discover a SELL trade's USD size — the
+   * *output* side, unknown until Jupiter actually prices the trade — before it knows which
+   * fee tier applies; a BUY's size is already known upfront (the input is always USDC), so
+   * this is never needed there. See `SolanaQuoteService#resolvePlatformFeeBps`.
+   */
+  async getEstimatedOutputRaw(params: { inputMint: string; outputMint: string; amountRaw: string; slippageBps: number }): Promise<string | null> {
+    if (this.apiKey === null) return null;
+    const quote = await this.fetchQuote({ ...params, platformFeeBps: 0 });
+    return quote?.outAmount ?? null;
+  }
+
+  // Only reads inputMint/outputMint/amountRaw/slippageBps/platformFeeBps — narrowed to
+  // exactly those (rather than the full JupiterQuoteParams, which also carries
+  // userPublicKey/feeAccount for fetchSwapTransaction's own use) so getEstimatedOutputRaw
+  // above never has to fake values for fields this method doesn't actually touch.
+  private async fetchQuote(
+    params: Pick<JupiterQuoteParams, 'inputMint' | 'outputMint' | 'amountRaw' | 'slippageBps' | 'platformFeeBps'>,
+  ): Promise<JupiterQuoteResponse | null> {
     const query = new URLSearchParams({
       inputMint: params.inputMint,
       outputMint: params.outputMint,

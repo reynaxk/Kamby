@@ -4,6 +4,7 @@ import { prisma } from '@kamby/db';
 import { SOLANA_USDC_MINT, TRADING_DEFAULTS, type TradeSide } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { getSolanaConfig, type Env } from '../config/env';
+import { resolveJupiterPlatformFeeBps } from './jupiter-fee-schedule';
 import { JupiterQuoteService } from './jupiter-quote.service';
 
 export interface CreateSolanaQuoteParams {
@@ -42,10 +43,14 @@ export interface SolanaQuoteResult {
  * or separate guaranteed-USDC-fee-transfer concept here (see JupiterQuoteService's own
  * doc comment on why quote + transaction-building are one call for Jupiter, unlike the
  * EVM SwapRouter interface).
+ *
+ * `SOLANA_JUPITER_PLATFORM_FEE_BPS` is no longer read here as of 2026-09-13 — the fee is
+ * now resolved per-trade from `resolveJupiterPlatformFeeBps` (see
+ * `resolvePlatformFeeBps` below), not a single static configured value. The env var is
+ * left defined (harmless if set) but has no effect on this service any more.
  */
 @Injectable()
 export class SolanaQuoteService {
-  private readonly platformFeeBps: number;
   private readonly treasuryUsdcAta: string | null;
 
   constructor(
@@ -54,7 +59,6 @@ export class SolanaQuoteService {
     private readonly logger: PinoLogger,
   ) {
     const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
-    this.platformFeeBps = solanaConfig?.jupiterPlatformFeeBps ?? 0;
     this.treasuryUsdcAta = solanaConfig?.treasuryUsdcAta ?? null;
     this.logger.setContext('SolanaQuoteService');
   }
@@ -71,13 +75,15 @@ export class SolanaQuoteService {
       ? { inputMint: SOLANA_USDC_MINT, outputMint: params.tokenMint }
       : { inputMint: params.tokenMint, outputMint: SOLANA_USDC_MINT };
 
+    const platformFeeBps = await this.resolvePlatformFeeBps(params.side, inputMint, outputMint, params.amount, params.slippageBps);
+
     const quote = await this.jupiter.getQuote({
       inputMint,
       outputMint,
       amountRaw: params.amount,
       slippageBps: params.slippageBps,
       userPublicKey: params.walletAddress,
-      platformFeeBps: this.platformFeeBps,
+      platformFeeBps,
       feeAccount: this.treasuryUsdcAta,
     });
     if (!quote) {
@@ -120,6 +126,27 @@ export class SolanaQuoteService {
       expiresAt: expiresAt.toISOString(),
       createdAt: row.createdAt.toISOString(),
     };
+  }
+
+  /**
+   * BUY: the trade's USD size is exactly the input amount (always USDC) — known upfront,
+   * no extra call needed. SELL: the USD size is the *output* (also always USDC), which
+   * Jupiter only reveals once it actually prices the trade — a lightweight quote-only call
+   * (no fee requested, no swap transaction built) discovers it first, at the cost of one
+   * extra round trip Jupiter's rate limit already accounts for (see
+   * JupiterQuoteService's own doc comment). Falls back to the higher, under-$50 tier on
+   * any failure to discover the real size — this must never silently apply the *lower*
+   * institutional rate to a trade whose real size was never actually confirmed.
+   */
+  private async resolvePlatformFeeBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
+    if (side === 'BUY') {
+      const tradeSizeUsd = Number(amount) / 10 ** 6;
+      return resolveJupiterPlatformFeeBps(tradeSizeUsd);
+    }
+    const estimatedOutputRaw = await this.jupiter.getEstimatedOutputRaw({ inputMint, outputMint, amountRaw: amount, slippageBps });
+    if (estimatedOutputRaw === null) return resolveJupiterPlatformFeeBps(0);
+    const tradeSizeUsd = Number(estimatedOutputRaw) / 10 ** 6;
+    return resolveJupiterPlatformFeeBps(tradeSizeUsd);
   }
 
   /** Same ownership contract as QuoteService#assertWalletOwnership — a client-supplied
