@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SocialFeed } from '@/components/trading/SocialFeed';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 import { DataHub } from './DataHub';
 import { KambyChart } from './KambyChart';
@@ -20,6 +21,10 @@ import { TrendingTokensSidebar } from './TrendingTokensSidebar';
  * the left — selecting a mock trending token changes what the chart/metrics/overview show,
  * not what the widget actually trades, since there's no real market behind any mock ticker
  * to trade against yet.
+ *
+ * `SocialFeed` in the right column is a genuine exception to all of that: it's real,
+ * already-live activity data (see SocialFeed.tsx's own doc comment) — Base (EVM) swaps
+ * specifically, not Solana, since that's the only chain with this data pipeline built.
  */
 export function KambyTerminal() {
   const [selectedId, setSelectedId] = useState(DEFAULT_MOCK_TOKEN.id);
@@ -58,6 +63,9 @@ export function KambyTerminal() {
               </p>
             </div>
             <TokenOverviewCard token={selectedToken} />
+            <div className="h-[360px]">
+              <SocialFeed />
+            </div>
           </div>
         </div>
       </div>
