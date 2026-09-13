@@ -58,8 +58,23 @@ async function main(): Promise<void> {
   }, env.HEARTBEAT_INTERVAL_SECONDS * 1000);
   heartbeat.unref();
 
+  // Informational only, logged once at startup — NOT used to gate whether the tickers
+  // below ever start. Confirmed in production (2026-09-13): a startup-moment RPC outage
+  // (a provider's daily quota exhausted, mid-provider-migration flakiness, etc.) used to
+  // set `chainReady` false exactly once and permanently disable market ingestion and trade
+  // sweep for the container's entire lifetime — quietly "Online" in Railway, doing nothing,
+  // until someone noticed and manually restarted it. Each tick already retries on its own
+  // schedule and self-heals via its own try/catch (see `ingestion.seed()`'s identical
+  // reasoning below) once the underlying outage clears, exactly like a mid-lifetime DB or
+  // RPC hiccup already does — there's no reason a hiccup at t=0 should be treated
+  // differently from one at t=+5min.
+  if (!dbReady) logger.warn('Database was not reachable at startup — ticks below will retry on their own schedule');
+  if (!chainReady) {
+    logger.warn('Chain adapter was not reachable at startup (RPC outage/quota) — ticks below will retry on their own schedule');
+  }
+
   let marketTicker: NodeJS.Timeout | undefined;
-  if (dbReady && chainReady) {
+  {
     const ingestion = new MarketIngestionService(
       {
         chainIdentifier: env.CHAIN_IDENTIFIER,
@@ -104,8 +119,6 @@ async function main(): Promise<void> {
     await runTick();
     marketTicker = setInterval(() => void runTick(), env.MARKET_INGESTION_INTERVAL_SECONDS * 1000);
     marketTicker.unref();
-  } else {
-    logger.warn({ dbReady, chainReady }, 'Market ingestion disabled this run: a required dependency is down');
   }
 
   // The real numeric EVM chain id (e.g. 8453) that TradeTransaction.chainId is stored
@@ -114,7 +127,7 @@ async function main(): Promise<void> {
   const tradeChainId = Number(env.CHAIN_IDENTIFIER.split(':')[1]);
 
   let tradeSweepTicker: NodeJS.Timeout | undefined;
-  if (dbReady && chainReady && Number.isInteger(tradeChainId)) {
+  if (Number.isInteger(tradeChainId)) {
     const sweep = new TradeSweepService(tradeChainId, chainAdapter, logger);
 
     let sweepRunning = false;
@@ -144,7 +157,7 @@ async function main(): Promise<void> {
     tradeSweepTicker = setInterval(() => void runSweep(), env.TRADE_SWEEP_INTERVAL_SECONDS * 1000);
     tradeSweepTicker.unref();
   } else {
-    logger.warn({ dbReady, chainReady, tradeChainId }, 'Trade sweep disabled this run: a required dependency is down or CHAIN_IDENTIFIER is not a parseable eip155 chain id');
+    logger.warn({ tradeChainId }, 'Trade sweep disabled: CHAIN_IDENTIFIER is not a parseable eip155 chain id');
   }
 
   logger.info('Worker ready');
