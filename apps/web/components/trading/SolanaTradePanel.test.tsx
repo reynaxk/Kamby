@@ -12,6 +12,8 @@ const {
   useWalletsMock,
   useSignAndSendTransactionMock,
   signAndSendTransaction,
+  useSignTransactionMock,
+  signTransaction,
   useSolanaWalletVerificationMock,
   verifyMock,
   loginMock,
@@ -21,10 +23,12 @@ const {
   getSolanaQuoteMock,
   getSolanaTransactionMock,
   submitSolanaTransactionMock,
+  sendRawTransactionMock,
 } = vi.hoisted(() => {
   const loginMock = vi.fn();
   const verifyMock = vi.fn();
   const signAndSendTransaction = vi.fn();
+  const signTransaction = vi.fn();
   const pushMock = vi.fn(() => 'toast-1');
   const updateMock = vi.fn();
   return {
@@ -32,6 +36,8 @@ const {
     useWalletsMock: vi.fn(() => ({ wallets: [{ address: WALLET_ADDRESS }] })),
     useSignAndSendTransactionMock: vi.fn(() => ({ signAndSendTransaction })),
     signAndSendTransaction,
+    useSignTransactionMock: vi.fn(() => ({ signTransaction })),
+    signTransaction,
     useSolanaWalletVerificationMock: vi.fn((): {
       status: SolanaWalletVerificationStatus;
       error: string | null;
@@ -53,6 +59,7 @@ const {
     getSolanaQuoteMock: vi.fn(),
     getSolanaTransactionMock: vi.fn(),
     submitSolanaTransactionMock: vi.fn(),
+    sendRawTransactionMock: vi.fn(),
   };
 });
 
@@ -60,6 +67,12 @@ vi.mock('@privy-io/react-auth', () => ({ usePrivy: usePrivyMock }));
 vi.mock('@privy-io/react-auth/solana', () => ({
   useWallets: useWalletsMock,
   useSignAndSendTransaction: useSignAndSendTransactionMock,
+  useSignTransaction: useSignTransactionMock,
+}));
+// Only the Jito broadcast path ever constructs a Connection — a real one would attempt a
+// genuine network call to Jito's mainnet endpoint from inside a unit test.
+vi.mock('@solana/web3.js', () => ({
+  Connection: vi.fn().mockImplementation(() => ({ sendRawTransaction: sendRawTransactionMock })),
 }));
 vi.mock('@/hooks/useSolanaWalletVerification', () => ({ useSolanaWalletVerification: useSolanaWalletVerificationMock }));
 vi.mock('@/components/terminal/ToastProvider', () => ({ useTerminalToast: useTerminalToastMock }));
@@ -218,6 +231,24 @@ describe('SolanaTradePanel', () => {
         signature: expect.any(String),
       }),
     );
+    expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
+  });
+
+  it('opting into a Jito tip signs only (never sign-and-send) and broadcasts via Jito, not the normal RPC path', async () => {
+    const quote = fakeQuote();
+    getSolanaQuoteMock.mockResolvedValue(quote);
+    signTransaction.mockResolvedValue({ signedTransaction: new Uint8Array([9, 9, 9]) });
+    sendRawTransactionMock.mockResolvedValue('a-real-looking-signature');
+    submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
+
+    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Low' })); // JitoTipControl preset
+    await fillAmountAndWaitForQuote();
+    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+
+    await waitFor(() => expect(sendRawTransactionMock).toHaveBeenCalledWith(new Uint8Array([9, 9, 9])));
+    expect(signAndSendTransaction).not.toHaveBeenCalled();
     expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
   });
 

@@ -17,6 +17,9 @@ export interface GetSolanaQuoteParams {
   walletAddress: string;
   amount: string;
   slippageBps: number;
+  /** See SolanaTradeDto's own doc comment — 0/undefined omits Jito tip support entirely,
+   *  same as the backend's own default. */
+  jitoTipLamports?: number;
 }
 
 export async function getSolanaQuote(params: GetSolanaQuoteParams): Promise<SolanaTradeQuoteDto> {

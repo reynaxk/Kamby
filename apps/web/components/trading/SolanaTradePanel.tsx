@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { useSignAndSendTransaction, useWallets } from '@privy-io/react-auth/solana';
+import { useSignAndSendTransaction, useSignTransaction, useWallets, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana';
+import { Connection } from '@solana/web3.js';
 import { Button, cn } from '@kamby/ui';
 import { isQuoteExpired, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
 import bs58 from 'bs58';
@@ -12,9 +13,16 @@ import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { RpcStatusBar } from '@/components/terminal/RpcStatusBar';
 import { useTerminalToast } from '@/components/terminal/ToastProvider';
 import { getSolanaQuote, getSolanaTransaction, submitSolanaTransaction } from '@/lib/solana-trading-client';
+import { JitoTipControl } from './JitoTipControl';
 import { SlippageControl } from './SlippageControl';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
+
+// Confirmed live 2026-09-13 against Jito's own docs — this specific domain, not the
+// similar-looking one first floated in conversation, which doesn't resolve. Acts as a
+// direct proxy to Solana's own `sendTransaction` RPC method, so a plain `Connection`
+// pointed here works exactly like pointing one at any other RPC.
+const JITO_TRANSACTIONS_URL = 'https://mainnet.block-engine.jito.wtf/api/v1/transactions';
 
 export interface SolanaTradePanelProps {
   tokenMint: string;
@@ -46,12 +54,16 @@ function base64ToUint8Array(base64: string): Uint8Array {
  * USDC-fee-transfer step (Jupiter's `platformFeeBps`/`feeAccount` deduct the platform fee
  * atomically inside the swap itself — see docs/TRADING.md#solana).
  *
- * Launch scope is non-custodial (see docs/WALLET_SECURITY.md's Solana section): this
- * component signs *and sends* the transaction itself via Privy's embedded wallet
- * (`useSignAndSendTransaction`) — there is no backend co-signer/relayer yet, so unlike the
- * EVM flow's `sendTransaction`, this is the wallet broadcasting on its own, paying its own
- * (tiny) network fee. Only the resulting signature is reported to the backend afterward,
- * to record.
+ * Launch scope is non-custodial (see docs/WALLET_SECURITY.md's Solana section): the user's
+ * own wallet always signs the entire transaction, always pays its own network fee, and this
+ * component never has a backend co-signer/relayer to lean on. Two broadcast paths, chosen
+ * by `jitoTipLamports` (see JitoTipControl and the two `signAndBroadcastVia*` helpers
+ * below) — the default path signs *and sends* in one step via Privy's own hook
+ * (`useSignAndSendTransaction`); opting into a Jito tip signs only (`useSignTransaction`),
+ * then this component broadcasts the already-fully-signed bytes to Jito's own endpoint
+ * itself, since that's the one thing that makes the tip (built into the transaction
+ * server-side) actually matter. Either way, only the resulting signature is reported to
+ * the backend afterward, to record.
  *
  * Rendered inside the `.kamby-terminal` scope (see app/solana/page.tsx and globals.css) —
  * every shared token (`bg-surface`, `text-accent`, `text-up`/`text-down`, ...) resolves to
@@ -66,11 +78,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const wallet = wallets[0];
   const walletVerification = useSolanaWalletVerification();
   const { signAndSendTransaction } = useSignAndSendTransaction();
+  const { signTransaction } = useSignTransaction();
   const toast = useTerminalToast();
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
   const [slippageBps, setSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
+  const [jitoTipLamports, setJitoTipLamports] = useState(0);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
@@ -96,7 +110,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     setQuoteStatus('loading');
     setQuoteError(null);
     const handle = setTimeout(() => {
-      getSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps })
+      getSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps, jitoTipLamports })
         .then((result) => {
           setQuote(result);
           setQuoteStatus('ready');
@@ -109,7 +123,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     }, 500);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, tokenMint, amount, slippageBps, canQuote, refreshTick]);
+  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, canQuote, refreshTick]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -159,6 +173,24 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
 
   const isExpired = quote !== null && isQuoteExpired(new Date(quote.expiresAt), new Date(now));
 
+  /** The existing, unchanged path — Privy's own hook signs and broadcasts to the
+   *  configured Solana RPC (`privyConfig.solana.rpcs`) in one step. */
+  async function signAndBroadcastViaRpc(transactionBytes: Uint8Array, wallet: ConnectedStandardSolanaWallet): Promise<string> {
+    const result = await signAndSendTransaction({ transaction: transactionBytes, wallet });
+    return bs58.encode(result.signature);
+  }
+
+  /** Signs only (Privy never broadcasts here), then submits the fully-signed bytes
+   *  directly to Jito's own endpoint — a plain `sendTransaction`-proxy, so a plain
+   *  `Connection` pointed at it behaves exactly like pointing one at any normal RPC. This
+   *  is the one thing that actually makes the tip instruction (already built into the
+   *  transaction server-side) matter — see JITO_TRANSACTIONS_URL's own doc comment. */
+  async function signAndBroadcastViaJito(transactionBytes: Uint8Array, wallet: ConnectedStandardSolanaWallet): Promise<string> {
+    const { signedTransaction } = await signTransaction({ transaction: transactionBytes, wallet });
+    const jitoConnection = new Connection(JITO_TRANSACTIONS_URL);
+    return jitoConnection.sendRawTransaction(signedTransaction);
+  }
+
   async function handleConfirmAndSign() {
     if (!quote || !wallet) return;
     setFlowError(null);
@@ -167,8 +199,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     activeToastIdRef.current = toastId;
     try {
       const transactionBytes = base64ToUint8Array(quote.unsignedTxBase64);
-      const result = await signAndSendTransaction({ transaction: transactionBytes, wallet });
-      const signature = bs58.encode(result.signature);
+      // The tip *instruction* was already built into this transaction server-side (see
+      // JupiterQuoteService's own doc comment) when jitoTipLamports > 0 — it only actually
+      // does anything once the *signed* transaction is broadcast through Jito's own
+      // endpoint instead of the normal RPC, which is the one thing this branch changes.
+      // Either path: the user's own wallet signs the whole thing, exactly the same as
+      // before this existed — nothing here changes custody.
+      const signature =
+        jitoTipLamports > 0 ? await signAndBroadcastViaJito(transactionBytes, wallet) : await signAndBroadcastViaRpc(transactionBytes, wallet);
       // A real, broadcast signature must never be discarded just because *recording* it
       // afterward fails — same reasoning as TradePanel's own pendingHash handling.
       setPendingSignature(signature);
@@ -364,6 +402,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
         </div>
         <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
         <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
+        <JitoTipControl valueLamports={jitoTipLamports} onChange={setJitoTipLamports} />
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} compact />}
         {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
         <Button
