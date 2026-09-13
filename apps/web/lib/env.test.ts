@@ -25,11 +25,12 @@ describe('web server env schema', () => {
 });
 
 describe('web client env schema', () => {
-  it('defaults NEXT_PUBLIC_API_BASE_URL, chain id, and chain RPC URL when unset', () => {
+  it('defaults NEXT_PUBLIC_API_BASE_URL, chain id, chain RPC URL, and the Jito endpoint when unset', () => {
     expect(parseEnv(ClientEnvSchema, {})).toEqual({
       NEXT_PUBLIC_API_BASE_URL: 'http://localhost:4000',
       NEXT_PUBLIC_CHAIN_ID: 8453,
       NEXT_PUBLIC_CHAIN_RPC_URL: 'https://mainnet.base.org',
+      NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: 'https://mainnet.block-engine.jito.wtf/api/v1/transactions',
     });
   });
 
@@ -53,5 +54,14 @@ describe('web client env schema', () => {
 
   it('rejects a malformed NEXT_PUBLIC_SOLANA_RPC_URL rather than silently accepting it', () => {
     expect(() => parseEnv(ClientEnvSchema, { NEXT_PUBLIC_SOLANA_RPC_URL: 'not-a-url' })).toThrow();
+  });
+
+  it('overrides NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL to a specific regional endpoint when set', () => {
+    const result = parseEnv(ClientEnvSchema, { NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: 'https://frankfurt.mainnet.block-engine.jito.wtf/api/v1/transactions' });
+    expect(result.NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL).toBe('https://frankfurt.mainnet.block-engine.jito.wtf/api/v1/transactions');
+  });
+
+  it('rejects a malformed NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL rather than silently accepting it', () => {
+    expect(() => parseEnv(ClientEnvSchema, { NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: 'not-a-url' })).toThrow();
   });
 });

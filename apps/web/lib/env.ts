@@ -52,6 +52,14 @@ export const ClientEnvSchema = z.object({
    *  checks, confirmation polling) — never the same trust boundary as apps/api's own
    *  SOLANA_RPC_URL, same reasoning as NEXT_PUBLIC_CHAIN_RPC_URL above. */
   NEXT_PUBLIC_SOLANA_RPC_URL: z.string().url().optional(),
+  /** Where a signed transaction actually gets broadcast when the user opts into a Jito
+   *  tip — see SolanaTradePanel.tsx's `signAndBroadcastViaJito`. Defaults to the real,
+   *  verified mainnet endpoint (confirmed live against Jito's own docs, 2026-09-13) rather
+   *  than requiring configuration — unlike the Solana fields above, this doesn't gate
+   *  whether Solana trading renders at all; it only matters once a user is already inside
+   *  that flow and picks a non-"Off" priority level. Overridable to point at a specific
+   *  regional Block Engine cluster (amsterdam/frankfurt/ny/tokyo) if that's ever needed. */
+  NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: z.string().url().default('https://mainnet.block-engine.jito.wtf/api/v1/transactions'),
 });
 
 export type ClientEnv = z.infer<typeof ClientEnvSchema>;
@@ -63,4 +71,5 @@ export const clientEnv: ClientEnv = parseEnv(ClientEnvSchema, {
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   NEXT_PUBLIC_PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
   NEXT_PUBLIC_SOLANA_RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
+  NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: process.env.NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL,
 });

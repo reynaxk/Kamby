@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SolanaTradeQuoteDto, SolanaTradeTransactionDto } from '@kamby/domain';
 import type { SolanaWalletVerificationStatus } from '@/hooks/useSolanaWalletVerification';
 import { SolanaTradePanel } from './SolanaTradePanel';
+import type * as UsdPresetAmountInputModule from './UsdPresetAmountInput';
 
 const WALLET_ADDRESS = '8nTncbaJ8gc8ooDWRFt9TKjog7743iHC43iEcesAbAee';
 
@@ -86,7 +87,7 @@ vi.mock('@/components/terminal/RpcStatusBar', () => ({ RpcStatusBar: () => null 
 // covered by its own test file. Stubbed here to a plain input so this file can drive
 // `amount` directly without also mocking @solana/spl-token/solanaConnection.
 vi.mock('./UsdPresetAmountInput', async () => {
-  const actual = await vi.importActual<typeof import('./UsdPresetAmountInput')>('./UsdPresetAmountInput');
+  const actual = await vi.importActual<typeof UsdPresetAmountInputModule>('./UsdPresetAmountInput');
   return {
     ...actual,
     UsdPresetAmountInput: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
@@ -232,6 +233,9 @@ describe('SolanaTradePanel', () => {
       }),
     );
     expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
+    // The toast is updated as the trade progresses (signature obtained, then recorded) —
+    // never left stuck on its initial "Confirm in your wallet…" pending state.
+    expect(updateMock).toHaveBeenCalledWith('toast-1', expect.objectContaining({ title: 'Trade submitted' }));
   });
 
   it('opting into a Jito tip signs only (never sign-and-send) and broadcasts via Jito, not the normal RPC path', async () => {

@@ -15,14 +15,9 @@ import { useTerminalToast } from '@/components/terminal/ToastProvider';
 import { getSolanaQuote, getSolanaTransaction, submitSolanaTransaction } from '@/lib/solana-trading-client';
 import { JitoTipControl } from './JitoTipControl';
 import { SlippageControl } from './SlippageControl';
+import { clientEnv } from '@/lib/env';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
-
-// Confirmed live 2026-09-13 against Jito's own docs — this specific domain, not the
-// similar-looking one first floated in conversation, which doesn't resolve. Acts as a
-// direct proxy to Solana's own `sendTransaction` RPC method, so a plain `Connection`
-// pointed here works exactly like pointing one at any other RPC.
-const JITO_TRANSACTIONS_URL = 'https://mainnet.block-engine.jito.wtf/api/v1/transactions';
 
 export interface SolanaTradePanelProps {
   tokenMint: string;
@@ -181,13 +176,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   }
 
   /** Signs only (Privy never broadcasts here), then submits the fully-signed bytes
-   *  directly to Jito's own endpoint — a plain `sendTransaction`-proxy, so a plain
-   *  `Connection` pointed at it behaves exactly like pointing one at any normal RPC. This
-   *  is the one thing that actually makes the tip instruction (already built into the
-   *  transaction server-side) matter — see JITO_TRANSACTIONS_URL's own doc comment. */
+   *  directly to Jito's own endpoint (`NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL`, defaulting to
+   *  the real, verified mainnet endpoint — see lib/env.ts) — a plain `sendTransaction`-
+   *  proxy, so a plain `Connection` pointed at it behaves exactly like pointing one at any
+   *  normal RPC. This is the one thing that actually makes the tip instruction (already
+   *  built into the transaction server-side) matter. */
   async function signAndBroadcastViaJito(transactionBytes: Uint8Array, wallet: ConnectedStandardSolanaWallet): Promise<string> {
     const { signedTransaction } = await signTransaction({ transaction: transactionBytes, wallet });
-    const jitoConnection = new Connection(JITO_TRANSACTIONS_URL);
+    const jitoConnection = new Connection(clientEnv.NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL);
     return jitoConnection.sendRawTransaction(signedTransaction);
   }
 
