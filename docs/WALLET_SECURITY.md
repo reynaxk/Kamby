@@ -76,3 +76,36 @@ already does — so it stays a documented option rather than a committed one.
 - Every required environment variable is validated at boot (`zod`, via
   `packages/domain`'s `parseEnv`) — a missing secret fails loudly at startup, not silently
   at the point of use.
+
+## Solana: non-custodial launch, one deliberate, named exception
+
+Solana trading (added 2026-09-12/13, live at `/solana`) follows the exact same principle as
+the EVM flow above, with the same non-negotiable line: the server never signs a transaction
+that moves a user's funds. `apps/api/src/solana/` builds unsigned transactions (via
+`JupiterQuoteService`) and hands them to the client; `apps/web/components/trading/
+SolanaTradePanel.tsx` signs *and broadcasts* them itself, through the user's own Privy
+embedded wallet (`useSignAndSendTransaction`) — Kamby's backend is never in the signing path
+for the swap itself. A real trade confirmed this way, live, on 2026-09-13 (signature
+`32cxp7j5rxS2RemJ49f4f1o46ESiDqwGpgNtT97nk279PfuWBtve2PczgUQJqYeRT2hPwXeUty55Z3nAf3G5ipNf`).
+
+**The one named exception, designed but deliberately not deployed**: `GasRelayerService`
+(`apps/api/src/solana/gas-relayer.service.ts`) sponsors network fees so users never need to
+hold SOL — see `docs/GAS_RELAYER_PLAN.md` for the full design. This key never signs
+anything that moves a user's tokens or USDC; it only ever occupies the transaction's
+*fee-payer* slot, on a transaction the user's own wallet has already signed in its own
+signer slot first (`GasRelayerService` refuses to ever be the first or only signer — see
+`assertUserAlreadySigned`). Its blast radius is capped by its own small, manually-funded
+balance and a hard per-transaction lamports ceiling checked before every broadcast, and its
+instruction surface is allowlisted exhaustively (`gas-relayer-instruction-guard.ts`),
+rejecting anything outside a small set of known-safe programs and, specifically and by name,
+any `CloseAccount` instruction — the named mitigation for ATA rent-draining, a real attack
+Privy's own documentation warns sponsors of this exact pattern about.
+
+This is the "stop and reconsider the flow" moment the rule above describes — and the
+resolution here is that this one narrow, heavily-guarded case (paying a network fee, never
+touching token custody, always co-signing second) is judged an acceptable, deliberately
+scoped exception to the general rule, not a reason to abandon it generally. The code exists
+(written and tested 2026-09-13) but is **not wired into any module, route, or the app's
+required environment schema** — see that file's own doc comment for exactly what "not wired
+up" means concretely. Wiring it up is real, scoped, post-launch work, not a same-session
+add-on to a live, working, non-custodial swap flow.

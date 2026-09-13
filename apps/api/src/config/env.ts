@@ -140,6 +140,19 @@ export const EnvSchema = z.object({
    * `*.privateKey` path.
    */
   SOLANA_TOPUP_FUNDING_SECRET_KEY: z.string().min(1, 'SOLANA_TOPUP_FUNDING_SECRET_KEY is required when SOLANA_ENABLED').optional(),
+  /**
+   * Only read by `GasRelayerService` (apps/api/src/solana/gas-relayer.service.ts), which is
+   * NOT wired into any module yet — see that file's own doc comment. Deliberately optional
+   * even when SOLANA_ENABLED is true, unlike every other SOLANA_* field above: nothing
+   * constructs GasRelayerService today, so requiring this would block every Solana deploy
+   * for a feature that isn't running. Never logged — see the `redact` config in
+   * app.module.ts.
+   */
+  SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY: z.string().min(1).optional(),
+  /** ~one signature fee + one ATA-creation rent, with headroom — the hard ceiling
+   *  `GasRelayerService` checks a simulated transaction's cost against before ever
+   *  co-signing for real. See that file's own doc comment. */
+  SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING: z.coerce.number().int().positive().optional(),
 });
 
 const CHAIN_ENV_BLOCKS: Record<ChainSlug, { id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID'; rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL'; usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' }> = {
@@ -219,6 +232,11 @@ export interface SolanaConfig {
   jupiterPlatformFeeBps: number;
   newWalletTopupSol: number;
   topupFundingSecretKey: string;
+  /** `null` unless `GasRelayerService` (unwired — see its own doc comment) is actually
+   *  deployed and configured; unlike every other field above, these two are genuinely
+   *  optional even when Solana itself is enabled. */
+  gasRelayerFeePayerSecretKey: string | null;
+  gasRelayerMaxLamportsCeiling: number | null;
 }
 
 /**
@@ -238,5 +256,7 @@ export function getSolanaConfig(get: <K extends keyof Env>(key: K) => Env[K]): S
     jupiterPlatformFeeBps: get('SOLANA_JUPITER_PLATFORM_FEE_BPS'),
     newWalletTopupSol: get('SOLANA_NEW_WALLET_TOPUP_SOL'),
     topupFundingSecretKey: get('SOLANA_TOPUP_FUNDING_SECRET_KEY')!,
+    gasRelayerFeePayerSecretKey: get('SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY') ?? null,
+    gasRelayerMaxLamportsCeiling: get('SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING') ?? null,
   };
 }

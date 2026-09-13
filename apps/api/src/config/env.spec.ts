@@ -169,7 +169,20 @@ describe('API env schema', () => {
         newWalletTopupSol: 0.01,
         topupFundingSecretKey: 'fake-base58-secret-key-for-testing-only',
         jupiterApiKey: 'fake-jupiter-api-key-for-testing-only',
+        gasRelayerFeePayerSecretKey: null,
+        gasRelayerMaxLamportsCeiling: null,
       });
+    });
+
+    it('gasRelayer* fields resolve when set, unlike every other required SOLANA_* field — GasRelayerService is unwired and these stay genuinely optional', () => {
+      const env = parseEnv(ValidatedEnvSchema, {
+        ...solanaBase,
+        SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY: 'fake-relayer-secret-key',
+        SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING: '3000000',
+      });
+      const config = getSolanaConfig(envGetter(env));
+      expect(config?.gasRelayerFeePayerSecretKey).toBe('fake-relayer-secret-key');
+      expect(config?.gasRelayerMaxLamportsCeiling).toBe(3_000_000);
     });
   });
 
