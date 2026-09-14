@@ -1,33 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import type { SocialActivity } from '@kamby/domain';
+import type { SolanaSocialActivity } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { fetchLatestActivity, subscribeToActivityStream, type RealtimeStatus } from '@/lib/social-client';
+import { fetchLatestSolanaActivity, subscribeToSolanaActivityStream } from '@/lib/solana-social-client';
+import type { RealtimeStatus } from '@/lib/social-client';
 import { formatCompactUsd, truncateAddress } from '@/lib/format';
 
+const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+
 /**
- * Compact, terminal-styled live activity feed — reuses the same real, already-live SSE
- * infrastructure as the full ActivityFeed (see lib/social-client.ts and
- * docs/SOCIAL.md#realtime), just a denser row layout for a narrow sidebar slot instead of
- * ActivityCard's full padded card. No new backend — `GET /social/activity` and
- * `GET /social/activity/stream` already exist and are already public.
+ * Compact, terminal-styled live activity feed for Kamby's own real Solana trades — see
+ * lib/solana-social-client.ts and SocialController's own comments on the backend side. No
+ * mock data: every row is a real, confirmed `SolanaTradeTransaction` (see
+ * SolanaTransactionService#getGlobalFeed), never a random on-chain firehose — subscribing
+ * to raw Jupiter program logs platform-wide would show anonymous Solana-wide activity
+ * unrelated to Kamby users, not a "social" feed of this product's own traders, which is
+ * why this deliberately reuses the same DB-backed, Kamby-scoped pattern the EVM activity
+ * feed already established rather than a new on-chain-log subscription pipeline.
  *
- * Deliberately labeled by chain in the header: this feed is real, but real activity data
- * only exists for Base (EVM) swaps today (`SocialController.getActivity` hardcodes
- * `DEFAULT_CHAIN_ID` — see that file's own comment on why). Never presented as Solana
- * activity just because it's rendered next to a Solana trade panel.
+ * No trader-profile link on the handle: `/trader/:address` (TraderService) is an EVM-only
+ * system with no knowledge of Solana wallets — linking there would 404 or show wrong data,
+ * so the wallet address renders as plain text until Solana has its own profile system.
  */
 export function SocialFeed() {
-  const [items, setItems] = useState<SocialActivity[]>([]);
+  const [items, setItems] = useState<SolanaSocialActivity[]>([]);
   const [status, setStatus] = useState<RealtimeStatus>('connecting');
   const [pendingCount, setPendingCount] = useState(0);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetchLatestActivity({ limit: 15 })
+    fetchLatestSolanaActivity({ limit: 15 })
       .then((page) => {
         if (!cancelled) setItems(page.items);
       })
@@ -40,7 +44,7 @@ export function SocialFeed() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = subscribeToActivityStream(
+    const unsubscribe = subscribeToSolanaActivityStream(
       () => setPendingCount((count) => count + 1),
       setStatus,
     );
@@ -49,7 +53,7 @@ export function SocialFeed() {
 
   async function revealNew() {
     try {
-      const page = await fetchLatestActivity({ limit: 15 });
+      const page = await fetchLatestSolanaActivity({ limit: 15 });
       setItems(page.items);
       setPendingCount(0);
     } catch {
@@ -61,7 +65,7 @@ export function SocialFeed() {
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
         <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-400">
-          Live Activity <span className="normal-case text-ink-400/70">— Base network</span>
+          Live Activity <span className="normal-case text-ink-400/70">— Solana</span>
         </span>
         <RealtimeDot status={status} />
       </div>
@@ -88,29 +92,25 @@ export function SocialFeed() {
   );
 }
 
-function SocialFeedRow({ activity }: { activity: SocialActivity }) {
-  const isBuy = activity.action === 'BUY';
-  const handle = activity.trader.displayName ?? (activity.trader.address ? truncateAddress(activity.trader.address) : 'Unknown');
-  const traderHref = activity.trader.address ? `/trader/${activity.trader.address}` : null;
+function tokenLabel(mint: string): string {
+  return mint === WSOL_MINT ? 'SOL' : truncateAddress(mint);
+}
+
+function SocialFeedRow({ activity }: { activity: SolanaSocialActivity }) {
+  const isBuy = activity.side === 'BUY';
 
   return (
     <div className="flex items-center gap-2 border-b border-line/50 px-3 py-2 font-mono text-xs">
       <span className={cn('shrink-0 font-semibold uppercase', isBuy ? 'text-up' : 'text-down')}>{isBuy ? 'BUY' : 'SELL'}</span>
-      {traderHref ? (
-        <Link href={traderHref} className="min-w-0 flex-1 truncate text-ink-600 hover:text-accent">
-          {handle}
-        </Link>
-      ) : (
-        <span className="min-w-0 flex-1 truncate text-ink-600">{handle}</span>
-      )}
+      <span className="min-w-0 flex-1 truncate text-ink-600">{truncateAddress(activity.walletAddress)}</span>
       <span className="shrink-0 text-ink-900">{formatCompactUsd(activity.amountUsd)}</span>
-      <span className="shrink-0 truncate text-ink-400">{activity.token.symbol ?? truncateAddress(activity.token.address)}</span>
+      <span className="shrink-0 truncate text-ink-400">{tokenLabel(activity.tokenMint)}</span>
       <a
-        href={`https://basescan.org/tx/${activity.txHash}`}
+        href={`https://solscan.io/tx/${activity.signature}`}
         target="_blank"
         rel="noreferrer noopener"
         className="shrink-0 text-ink-400 hover:text-accent"
-        title={activity.txHash}
+        title={activity.signature}
       >
         ↗
       </a>

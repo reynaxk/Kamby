@@ -3,6 +3,7 @@ import { IdentityModule } from '../identity/identity.module';
 import { MarketModule } from '../market/market.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { SolanaModule } from '../solana/solana.module';
 import { ActivityService } from './services/activity.service';
 import { FollowService } from './services/follow.service';
 import { LikeService } from './services/like.service';
@@ -26,9 +27,14 @@ import { SocialController } from './social.controller';
  *
  * `MarketModule` (Phase 6) so `GET /social/watchlist` can reuse `WatchlistService` rather
  * than a second TokenWatch query implementation — see docs/PHASE6_RETENTION_SOCIAL.md#watchlists.
+ *
+ * `SolanaModule` so the Solana activity feed (`GET /social/solana-activity`,
+ * `GET /social/solana-activity/stream`) can live alongside the EVM one and reuse this
+ * controller's existing public-feed/SSE conventions rather than a second implementation —
+ * a one-way dependency, SolanaModule doesn't import this module back.
  */
 @Module({
-  imports: [IdentityModule, RealtimeModule, NotificationsModule, MarketModule],
+  imports: [IdentityModule, RealtimeModule, NotificationsModule, MarketModule, SolanaModule],
   controllers: [SocialController],
   providers: [ActivityService, FollowService, LikeService, TraderService, TrendingService],
   exports: [ActivityService],

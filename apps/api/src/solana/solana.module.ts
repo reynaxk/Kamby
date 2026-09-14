@@ -16,5 +16,10 @@ import { SolanaTransactionService } from './solana-transaction.service';
   imports: [IdentityModule],
   controllers: [SolanaController],
   providers: [JupiterQuoteService, SolanaQuoteService, SolanaTransactionService, SolanaTopupService],
+  // SolanaTransactionService's public getGlobalFeed — SocialModule's own controller hosts
+  // the Solana activity routes alongside the EVM ones, same reasoning ActivityService is
+  // already exported for DiscoveryModule's reuse (see social.module.ts's own comment): a
+  // one-way dependency, SolanaModule has no need to import SocialModule back.
+  exports: [SolanaTransactionService],
 })
 export class SolanaModule {}

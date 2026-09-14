@@ -1,5 +1,10 @@
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
-import { ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, type NotificationPing } from '@kamby/domain';
+import {
+  ACTIVITY_REALTIME_CHANNEL,
+  NOTIFICATION_REALTIME_CHANNEL,
+  SOLANA_ACTIVITY_REALTIME_CHANNEL,
+  type NotificationPing,
+} from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { Subject } from 'rxjs';
@@ -8,6 +13,13 @@ import { REDIS_CLIENT } from '../redis/redis.module';
 export interface ActivityPing {
   tokenMarketId: string;
   count: number;
+  atIso: string;
+}
+
+/** Bare signal, same contract as `ActivityPing` — see SOLANA_ACTIVITY_REALTIME_CHANNEL's
+ *  own doc comment in @kamby/domain. */
+export interface SolanaActivityPing {
+  transactionId: string;
   atIso: string;
 }
 
@@ -28,6 +40,7 @@ export interface ActivityPing {
 export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly activitySubject = new Subject<ActivityPing>();
   private readonly notificationSubject = new Subject<NotificationPing>();
+  private readonly solanaActivitySubject = new Subject<SolanaActivityPing>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -46,13 +59,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.activitySubject.next(JSON.parse(message) as ActivityPing);
         } else if (channel === NOTIFICATION_REALTIME_CHANNEL) {
           this.notificationSubject.next(JSON.parse(message) as NotificationPing);
+        } else if (channel === SOLANA_ACTIVITY_REALTIME_CHANNEL) {
+          this.solanaActivitySubject.next(JSON.parse(message) as SolanaActivityPing);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -71,5 +86,9 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
 
   get notificationEvents$() {
     return this.notificationSubject.asObservable();
+  }
+
+  get solanaActivityEvents$() {
+    return this.solanaActivitySubject.asObservable();
   }
 }

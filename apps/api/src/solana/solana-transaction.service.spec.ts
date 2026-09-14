@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { Prisma, prisma } from '@kamby/db';
+import type { Redis } from 'ioredis';
 import type { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
 import { SolanaTransactionService } from './solana-transaction.service';
@@ -33,6 +34,10 @@ const SIGNATURE = 'FakeSignatureForTestingOnly1111111111111111111111111111111111
 
 function fakeLogger(): PinoLogger {
   return { setContext: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as PinoLogger;
+}
+
+function fakeRedis(): Redis {
+  return { publish: jest.fn().mockResolvedValue(1) } as unknown as Redis;
 }
 
 function fakeConfig(): ConfigService<Env, true> {
@@ -95,7 +100,7 @@ describe('SolanaTransactionService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new SolanaTransactionService(fakeConfig(), fakeLogger());
+    service = new SolanaTransactionService(fakeConfig(), fakeLogger(), fakeRedis());
   });
 
   describe('submitTransaction', () => {
@@ -103,6 +108,7 @@ describe('SolanaTransactionService', () => {
       const disabledService = new SolanaTransactionService(
         { get: () => undefined } as unknown as ConfigService<Env, true>,
         fakeLogger(),
+        fakeRedis(),
       );
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(null);
       (mockedPrisma.solanaTradeQuote.findUnique as jest.Mock).mockResolvedValue(fakeQuote());
@@ -117,6 +123,7 @@ describe('SolanaTransactionService', () => {
       const disabledService = new SolanaTransactionService(
         { get: () => undefined } as unknown as ConfigService<Env, true>,
         fakeLogger(),
+        fakeRedis(),
       );
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
 
@@ -255,6 +262,110 @@ describe('SolanaTransactionService', () => {
       await service.getTransaction(USER_ID, 'tx-1');
 
       expect(mockGetSignatureStatuses).not.toHaveBeenCalled();
+    });
+
+    it('publishes a realtime ping to the Solana activity channel once a transaction confirms', async () => {
+      const redis = fakeRedis();
+      const confirmingService = new SolanaTransactionService(fakeConfig(), fakeLogger(), redis);
+      (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
+      mockGetSignatureStatuses.mockResolvedValue({ value: [{ err: null, confirmationStatus: 'confirmed' }] });
+      (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date() }),
+      );
+
+      await confirmingService.getTransaction(USER_ID, 'tx-1');
+
+      expect(redis.publish).toHaveBeenCalledWith('kamby:solana-activity:new', expect.stringContaining('tx-1'));
+    });
+
+    it('never fails the confirmation itself when the realtime publish fails', async () => {
+      const redis = { publish: jest.fn().mockRejectedValue(new Error('redis down')) } as unknown as Redis;
+      const confirmingService = new SolanaTransactionService(fakeConfig(), fakeLogger(), redis);
+      (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
+      mockGetSignatureStatuses.mockResolvedValue({ value: [{ err: null, confirmationStatus: 'confirmed' }] });
+      (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date() }),
+      );
+
+      const result = await confirmingService.getTransaction(USER_ID, 'tx-1');
+      expect(result.status).toBe('CONFIRMED');
+    });
+
+    it('never publishes for a transaction that only reached FAILED, not CONFIRMED', async () => {
+      const redis = fakeRedis();
+      const failingService = new SolanaTransactionService(fakeConfig(), fakeLogger(), redis);
+      (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
+      mockGetSignatureStatuses.mockResolvedValue({ value: [{ err: { InstructionError: [0, 'Custom'] }, confirmationStatus: 'confirmed' }] });
+      (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeTransaction({ status: 'FAILED', failureReason: 'Transaction failed on-chain' }),
+      );
+
+      await failingService.getTransaction(USER_ID, 'tx-1');
+
+      expect(redis.publish).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getGlobalFeed', () => {
+    it('computes the USD amount from the input side for a BUY (exact, not subject to slippage)', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([
+        fakeTransaction({ side: 'BUY', inputAmount: '25000000', status: 'CONFIRMED', confirmedAt: new Date() }),
+      ]);
+
+      const result = await service.getGlobalFeed(undefined, 20);
+
+      expect(result.items[0]?.amountUsd).toBe(25);
+      expect(result.items[0]?.side).toBe('BUY');
+    });
+
+    it('computes the USD amount from the expected output side for a SELL', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([
+        fakeTransaction({
+          side: 'SELL',
+          inputMint: 'So11111111111111111111111111111111111111112',
+          outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          expectedOutputAmount: '12500000',
+          status: 'CONFIRMED',
+          confirmedAt: new Date(),
+        }),
+      ]);
+
+      const result = await service.getGlobalFeed(undefined, 20);
+
+      expect(result.items[0]?.amountUsd).toBe(12.5);
+      expect(result.items[0]?.side).toBe('SELL');
+    });
+
+    it('only ever queries for CONFIRMED transactions, never PENDING/FAILED ones', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([]);
+
+      await service.getGlobalFeed(undefined, 20);
+
+      expect(mockedPrisma.solanaTradeTransaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ status: 'CONFIRMED' }) }),
+      );
+    });
+
+    it('returns a null cursor when there are fewer rows than the page limit', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([
+        fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date() }),
+      ]);
+
+      const result = await service.getGlobalFeed(undefined, 20);
+
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it('returns a real cursor when more rows exist past the page limit', async () => {
+      const rows = Array.from({ length: 3 }, (_, i) =>
+        fakeTransaction({ id: `tx-${i}`, status: 'CONFIRMED', confirmedAt: new Date(Date.now() - i * 1000) }),
+      );
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue(rows);
+
+      const result = await service.getGlobalFeed(undefined, 2);
+
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).not.toBeNull();
     });
   });
 });

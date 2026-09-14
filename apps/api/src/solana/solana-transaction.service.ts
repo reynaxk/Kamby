@@ -1,10 +1,12 @@
-import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Connection } from '@solana/web3.js';
 import { Prisma, prisma } from '@kamby/db';
-import type { TradeSide, TradeStatus } from '@kamby/domain';
+import { SOLANA_ACTIVITY_REALTIME_CHANNEL, type SolanaSocialActivity, type TradeSide, type TradeStatus } from '@kamby/domain';
+import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { getSolanaConfig, type Env } from '../config/env';
+import { REDIS_CLIENT } from '../redis/redis.module';
 
 export interface SolanaTradeTransactionDto {
   id: string;
@@ -51,6 +53,7 @@ export class SolanaTransactionService {
   constructor(
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {
     const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
     this.connection = solanaConfig ? new Connection(solanaConfig.rpcUrl, 'confirmed') : null;
@@ -166,13 +169,75 @@ export class SolanaTransactionService {
       });
     }
     if (status.confirmationStatus === 'confirmed' || status.confirmationStatus === 'finalized') {
-      return prisma.solanaTradeTransaction.update({
+      const confirmed = await prisma.solanaTradeTransaction.update({
         where: { id: row.id },
         data: { status: 'CONFIRMED', confirmedAt: new Date() },
       });
+      await this.publishConfirmed(confirmed);
+      return confirmed;
     }
     return row;
   }
+
+  /** Bare ping, same "never the activity itself" contract as the EVM ingestion worker's
+   *  own publish — see SOLANA_ACTIVITY_REALTIME_CHANNEL's doc comment in @kamby/domain. A
+   *  publish failure only delays a live viewer seeing it; the transaction itself already
+   *  persisted above, and the global feed will show it on the next fetch/reconnect
+   *  regardless — same degradation NotificationService's own publish already accepts. */
+  private async publishConfirmed(row: SolanaTradeTransactionRow): Promise<void> {
+    try {
+      await this.redis.publish(SOLANA_ACTIVITY_REALTIME_CHANNEL, JSON.stringify({ transactionId: row.id, atIso: new Date().toISOString() }));
+    } catch (error) {
+      this.logger.warn({ err: error, transactionId: row.id }, 'Failed to publish realtime solana activity ping');
+    }
+  }
+
+  /**
+   * Public, cross-user feed of confirmed Solana trades — Solana's counterpart to
+   * SocialController's global EVM activity feed. Deliberately exposes other users' wallet
+   * activity, same as the EVM feed already does: on-chain trade activity is public and
+   * pseudonymous by nature (anyone can already see it via a block explorer), not a new
+   * privacy boundary this introduces. Cursor-paginated on (confirmedAt, id) — same keyset
+   * reasoning as getHistory's own cursor, just without the userId filter.
+   */
+  async getGlobalFeed(cursor: string | undefined, limit: number): Promise<CursorPage<SolanaSocialActivity>> {
+    const decoded = cursor ? decodeCursor(cursor) : null;
+    const rows = await prisma.solanaTradeTransaction.findMany({
+      where: {
+        status: 'CONFIRMED',
+        ...(decoded
+          ? { OR: [{ confirmedAt: { lt: new Date(decoded.createdAt) } }, { confirmedAt: new Date(decoded.createdAt), id: { lt: decoded.id } }] }
+          : {}),
+      },
+      orderBy: [{ confirmedAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+    });
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const last = page[page.length - 1];
+    const nextCursor = hasMore && last && last.confirmedAt ? encodeCursor({ createdAt: last.confirmedAt.toISOString(), id: last.id }) : null;
+
+    return { items: page.map(toSocialActivity), nextCursor };
+  }
+}
+
+/** BUY's input is always USDC (exact, not subject to slippage); SELL's output is always
+ *  USDC (Jupiter's expected/target amount — see SolanaSocialActivitySchema's own comment).
+ *  Either way, the USDC leg is the trade's real USD size — never guessed from a price. */
+function toSocialActivity(row: SolanaTradeTransactionRow): SolanaSocialActivity {
+  const usdRaw = row.side === 'BUY' ? row.inputAmount : row.expectedOutputAmount;
+  return {
+    id: row.id,
+    walletAddress: row.walletAddress,
+    side: row.side as TradeSide,
+    tokenMint: row.side === 'BUY' ? row.outputMint : row.inputMint,
+    amountUsd: Number(usdRaw) / 10 ** 6,
+    signature: row.signature,
+    // Only ever called for status: 'CONFIRMED' rows, which always have confirmedAt set —
+    // the `!` here documents that invariant rather than silently coercing null to a string.
+    confirmedAt: row.confirmedAt!.toISOString(),
+  };
 }
 
 type SolanaTradeTransactionRow = Awaited<ReturnType<typeof prisma.solanaTradeTransaction.findUniqueOrThrow>>;

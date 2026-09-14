@@ -295,3 +295,36 @@ export const SolanaTradeTransactionSchema = z.object({
   confirmedAt: z.string().datetime().nullable(),
 });
 export type SolanaTradeTransactionDto = z.infer<typeof SolanaTradeTransactionSchema>;
+
+/**
+ * Solana's counterpart to social.ts's `ACTIVITY_REALTIME_CHANNEL` — same "bare ping, never
+ * the activity itself" contract (see that constant's own doc comment): a client that misses
+ * one just catches up on its next fetch/reconnect. Deliberately a separate channel from the
+ * EVM one, not a shared one with a chain discriminator: publishing a Solana confirmation
+ * happens directly in `SolanaTransactionService` (apps/api), not from a separate ingestion
+ * worker the way EVM swaps are — keeping the channel names untangled makes it obvious which
+ * side of the codebase owns which publish, at a glance, without reading the publisher.
+ */
+export const SOLANA_ACTIVITY_REALTIME_CHANNEL = 'kamby:solana-activity:new';
+
+/**
+ * One Solana activity feed item — a read-time projection of a confirmed `SolanaTradeTransaction`
+ * (see that model's comment in schema.prisma), the same relationship `SocialActivity` has to
+ * an indexed EVM `Swap`. Deliberately simpler than `SocialActivity`: Solana trading launched
+ * with no per-token metadata table (see SolanaQuoteResult's own doc comment on why the non-
+ * USDC leg is shown in raw units), so `tokenMint` is a bare mint address here, not a resolved
+ * symbol/name/logo object — never fabricated past what's actually known.
+ */
+export const SolanaSocialActivitySchema = z.object({
+  id: z.string().uuid(),
+  walletAddress: z.string(),
+  side: TradeSideSchema,
+  tokenMint: z.string(),
+  /** The USDC-denominated side of the trade — the input amount for BUY (exact, not subject
+   *  to slippage) or the expected output amount for SELL (Jupiter's target, not a post-fill
+   *  guarantee — see SolanaTradeTransactionSchema's own `expectedOutputAmount` comment). */
+  amountUsd: z.number(),
+  signature: z.string(),
+  confirmedAt: z.string().datetime(),
+});
+export type SolanaSocialActivity = z.infer<typeof SolanaSocialActivitySchema>;

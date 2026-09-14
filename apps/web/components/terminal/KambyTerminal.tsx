@@ -22,9 +22,9 @@ import { TrendingTokensSidebar } from './TrendingTokensSidebar';
  * not what the widget actually trades, since there's no real market behind any mock ticker
  * to trade against yet.
  *
- * `SocialFeed` in the right column is a genuine exception to all of that: it's real,
- * already-live activity data (see SocialFeed.tsx's own doc comment) — Base (EVM) swaps
- * specifically, not Solana, since that's the only chain with this data pipeline built.
+ * `SocialFeed` in the right column is a genuine exception to all of that: it's real, live
+ * Solana activity — Kamby's own confirmed trades (see SocialFeed.tsx and
+ * SolanaTransactionService#getGlobalFeed), not a mock or an anonymous on-chain firehose.
  */
 export function KambyTerminal() {
   const [selectedId, setSelectedId] = useState(DEFAULT_MOCK_TOKEN.id);

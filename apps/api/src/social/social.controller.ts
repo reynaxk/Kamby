@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { OptionalAuthGuard } from '../identity/guards/optional-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { WatchlistService } from '../market/watchlist.service';
+import { SolanaTransactionService } from '../solana/solana-transaction.service';
 import { AddressParamDto } from './dto/address-param.dto';
 import { ActivityQueryDto } from './dto/activity-query.dto';
 import { CursorQueryDto } from './dto/cursor-query.dto';
@@ -25,7 +26,7 @@ import { TraderSearchQueryDto } from './dto/trader-search-query.dto';
 import { ActivityService } from './services/activity.service';
 import { FollowService } from './services/follow.service';
 import { LikeService } from './services/like.service';
-import { RealtimeService, type ActivityPing } from '../realtime/realtime.service';
+import { RealtimeService, type ActivityPing, type SolanaActivityPing } from '../realtime/realtime.service';
 import { TraderService } from './services/trader.service';
 import { TrendingService } from './services/trending.service';
 
@@ -44,6 +45,7 @@ export class SocialController {
     private readonly trending: TrendingService,
     private readonly realtime: RealtimeService,
     private readonly watchlist: WatchlistService,
+    private readonly solanaTransactions: SolanaTransactionService,
   ) {}
 
   @UseGuards(OptionalAuthGuard)
@@ -89,6 +91,28 @@ export class SocialController {
     // Idle SSE connections get silently dropped by some proxies/load balancers; a periodic
     // heartbeat lets the client tell "quietly live" apart from "actually disconnected"
     // instead of pretending the feed is live when it isn't (docs/SOCIAL.md#error-states).
+    const heartbeat$ = interval(20_000).pipe(
+      map((): MessageEvent => ({ type: 'heartbeat', data: { atIso: new Date().toISOString() } })),
+    );
+    return merge(activity$, heartbeat$);
+  }
+
+  /** Public — Solana's counterpart to `getActivity` above. Confirmed Solana trades only
+   *  (see SolanaTransactionService#getGlobalFeed's own comment on why); every field is
+   *  already public/pseudonymous on-chain data, same reasoning the EVM feed already
+   *  established. */
+  @Get('solana-activity')
+  getSolanaActivity(@Query() query: CursorQueryDto) {
+    return this.solanaTransactions.getGlobalFeed(query.cursor, query.limit);
+  }
+
+  /** Public — Solana's counterpart to `streamActivity` above, same bare-ping-plus-
+   *  heartbeat contract. */
+  @Sse('solana-activity/stream')
+  streamSolanaActivity(): Observable<MessageEvent> {
+    const activity$ = this.realtime.solanaActivityEvents$.pipe(
+      map((ping: SolanaActivityPing): MessageEvent => ({ type: 'solana-activity', data: ping })),
+    );
     const heartbeat$ = interval(20_000).pipe(
       map((): MessageEvent => ({ type: 'heartbeat', data: { atIso: new Date().toISOString() } })),
     );
