@@ -212,6 +212,33 @@ user's own wallet accepted, close to a third party rejected, close of a non-WSOL
 rejected, a close referencing a later instruction rejected, a close matched only to
 `RecoverNested` rejected, more than 2 closes rejected).
 
+### The WSOL rent leak — found live in production, closed 2026-09-18
+
+The gate above stops an *attacker* from draining rent via a smuggled close. It does not,
+by itself, guarantee the relayer's own rent comes back — and in production, it didn't:
+Jupiter's real `cleanupInstruction` unconditionally refunds a closed WSOL account's rent to
+the *user's* wallet, correct for a self-paid swap (the user funded the create, the user
+gets the refund) but a pure loss for a sponsored one, where the *relayer* is the one who
+paid to create that account (`setupInstructions` are built with `payer: relayerPubkey`).
+Confirmed by pulling the real, on-chain transaction for the first two gasless trades ever
+run in production (2026-09-18): the relayer's balance dropped by ~1.49M lamports beyond
+the real network fee on *each* trade — traced to exactly this, not a Jito tip (the
+sponsored path has never used Jito at all) and not network congestion.
+
+Fixed the same day in `gas-relayer-transaction-builder.ts`: `redirectWsolCloseToRelayer`
+rewrites a `cleanupInstruction`'s destination account to the relayer's own pubkey *before*
+compiling the transaction, but only when it can prove — via the exact same structural match
+`gas-relayer-instruction-guard.ts`'s own WSOL-unwrap exception already requires (reusing
+its now-exported `isAtaCreateInstruction`, not a second implementation that could drift out
+of sync) — that this specific close is for an account the relayer itself just paid to
+create in this same instruction list. Anything that doesn't match that exact shape is left
+completely untouched. Since the relayer's own pubkey was already one of
+`gas-relayer-instruction-guard.ts`'s two `acceptableCloseDestinations`, this needed no
+change to the guard itself — the redirected transaction was already something the guard
+would accept. 7 new tests in `gas-relayer-transaction-builder.spec.ts` (previously zero
+coverage), including a full round-trip: build the transaction, decode it back out, confirm
+the compiled message's real destination account is the relayer's.
+
 ## Remaining work before this can deploy
 
 Reordered 2026-09-17 to reflect real progress — see
@@ -272,16 +299,24 @@ task breakdown this list summarizes.
       wallet(s) before opening this to every user, per this plan's own recommendation.
       Removing the env var later is the entire "go live to everyone" step. 7 new tests
       across `env.spec.ts`/`solana-quote.service.spec.ts`/`gas-relayer.service.spec.ts`.
-- [ ] **Operational, not code — needs the user.** Fund a real relayer keypair, set
-      `SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY` (and its public half,
-      `SOLANA_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY`, on the workers deployment, for monitoring)
-      on Railway — small, manually replenished (~0.5–1 SOL to start), same "fund by hand,
-      monitor the balance" operational model already used for the EVM platform-fee address
-      and the Solana top-up funding wallet, not a new pattern. Set
-      `SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES` to your own wallet(s) first (see the gate
-      above) — don't open this to every user on the very first real cycle. Then set
-      `SOLANA_GAS_RELAYER_ENABLED=true` on the api deployment — the devnet adversarial pass
-      below has already run (6/6 passed, 2026-09-18).
+- [x] **Operational rollout — done for real, 2026-09-18.** Relayer funded (~$10 in SOL,
+      deliberately small to start), `SOLANA_GAS_RELAYER_ENABLED=true` and
+      `SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY` set on the `api` service,
+      `SOLANA_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY` set on `workers` for monitoring. Deployed
+      without the test-wallet gate (an explicit choice — open to every user from the start,
+      not gated to internal accounts first). **Two real gasless trades confirmed live on
+      mainnet the same day** — a BUY and a SELL, both fully confirmed on-chain, the relayer
+      genuinely co-signing and paying real SOL network fees on the user's behalf (see "The
+      WSOL rent leak" above for the real cost investigation that followed). This is the
+      "run live through real usage" proof the plan's own sequencing rule for Piece 4 asked
+      for — still owed: an actual balance *replenishment* (a second top-up after this first
+      real spend), to close the full spend-then-refill cycle, not just the spend half.
+      Along the way, two unrelated but blocking production issues were found and fixed:
+      production had never had `prisma migrate deploy` run for two pending migrations
+      (`users.username`, `sponsored_by_relayer` — silently breaking trade recording
+      entirely, gasless or not, until fixed), and `apps/api` was missing `multer` as a real
+      dependency (only its types were declared, worked locally by accident via hoisting,
+      crashed production outright). Both fixed and redeployed the same session.
 - [x] **A periodic balance check.** Closed 2026-09-17. New
       `apps/workers/src/solana/treasury-balance-monitor.ts` (`checkTreasuryBalances`) covers
       *both* this relayer wallet and the existing Solana top-up wallet (which had no
