@@ -1,4 +1,5 @@
-import { verifyMessage } from 'viem';
+import { verifyMessage, verifyTypedData } from 'viem';
+import type { TypedData } from 'viem';
 import bs58 from 'bs58';
 import nacl from 'tweetnacl';
 
@@ -21,6 +22,44 @@ export async function verifyEvmSignature(params: { address: string; message: str
       message: params.message,
       signature: params.signature as `0x${string}`,
     });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Verifies an EIP-712 typed-data signature — the EVM gas relayer's real-time-consent proof
+ * (see docs/GAS_RELAYER_PLAN.md's EVM section and packages/domain/src/evm-relayer.ts's
+ * `buildRelayedSwapTypedData`, the one function that builds this exact `{domain, types,
+ * primaryType, message}` shape for both what the client signs and what this verifies
+ * against — never construct it a second, independent way, or the two can drift apart).
+ * Unlike `verifyEvmSignature` (EIP-191, a flat string), EIP-712 signs a structured object,
+ * which is what lets a wallet's signing UI render the actual fields being consented to
+ * rather than an opaque blob. Same never-throws-on-garbage-input contract as
+ * `verifyEvmSignature`: a malformed signature/address/typed-data shape is a `false`, not an
+ * exception to handle separately from a genuine mismatch.
+ */
+export async function verifyEvmTypedDataSignature(params: {
+  address: string;
+  /** Plain strings, not viem's own branded `0x${string}` domain type — the caller
+   *  (`packages/domain`'s `buildRelayedSwapTypedData`) deliberately has zero dependency on
+   *  viem, so its output can only ever produce plain `string` fields. Cast to viem's real
+   *  `TypedDataDomain` internally, at the one call site that actually needs it. */
+  domain: { name?: string; version?: string; chainId?: number; verifyingContract?: string; salt?: string };
+  types: TypedData;
+  primaryType: string;
+  message: Record<string, unknown>;
+  signature: string;
+}): Promise<boolean> {
+  try {
+    return await verifyTypedData({
+      address: params.address as `0x${string}`,
+      domain: params.domain,
+      types: params.types,
+      primaryType: params.primaryType,
+      message: params.message,
+      signature: params.signature as `0x${string}`,
+    } as Parameters<typeof verifyTypedData>[0]);
   } catch {
     return false;
   }

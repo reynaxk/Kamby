@@ -2,23 +2,11 @@ import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityE
 import { ConfigService } from '@nestjs/config';
 import { EvmChainDataProvider } from '@kamby/chain-adapters';
 import { Prisma, prisma } from '@kamby/db';
-import {
-  normalizeEvmAddress,
-  parseUnsignedTx,
-  TRADING_DEFAULTS,
-  transactionMatchesQuote,
-  type TradeTransactionDto,
-} from '@kamby/domain';
+import { normalizeEvmAddress, parseUnsignedTx, TRADING_DEFAULTS, transactionMatchesQuote, type TradeTransactionDto } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
-import { formatUnits } from 'viem';
 import { getConfiguredChains, type Env } from '../config/env';
-
-const TRANSACTION_INCLUDE = {
-  tokenMarket: { include: { token: true, quoteToken: true } },
-  quote: true,
-} as const;
-
-type TransactionRow = Prisma.TradeTransactionGetPayload<{ include: typeof TRANSACTION_INCLUDE }>;
+import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
+import { TRANSACTION_INCLUDE, toDto, type TransactionRow } from './transaction-dto';
 
 export interface CursorPage<T> {
   items: T[];
@@ -47,6 +35,7 @@ export class TransactionService {
   constructor(
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
+    private readonly gasRelayer: EvmGasRelayerQuoteService,
   ) {
     this.chainReaders = new Map(
       getConfiguredChains((key) => config.get(key, { infer: true })).map((chain) => [
@@ -259,12 +248,20 @@ export class TransactionService {
   /** Refreshes a still-PENDING transaction's status against a live receipt before
    *  returning it, so a user actively watching a trade sees it confirm promptly rather
    *  than waiting for the worker's next background sweep. Does the same for the separate
-   *  fee transfer, independently — see docs/TRADING.md#guaranteed-usdc-fees. */
+   *  fee transfer, independently — see docs/TRADING.md#guaranteed-usdc-fees. For a
+   *  sponsored (relayer-paid) trade whose swap has just been observed CONFIRMED, this is
+   *  also the one place that triggers the fee leg's own broadcast — see
+   *  `EvmGasRelayerQuoteService#submitFeeLegIfDue`'s own doc comment for why it must run
+   *  here (the same process that owns the relayer's nonce manager) rather than from
+   *  apps/workers' background sweep. A no-op for every non-sponsored trade. */
   async getTransaction(userId: string, id: string): Promise<TradeTransactionDto> {
     const row = await prisma.tradeTransaction.findUnique({ where: { id }, include: TRANSACTION_INCLUDE });
     if (!row || row.userId !== userId) throw new NotFoundException(`No transaction "${id}"`);
 
     const afterStatus = row.status === 'PENDING' ? await this.refreshStatus(row) : row;
+    if (afterStatus.status === 'CONFIRMED') {
+      await this.gasRelayer.submitFeeLegIfDue(afterStatus);
+    }
     const afterFeeStatus = afterStatus.feeStatus === 'PENDING' ? await this.refreshFeeStatus(afterStatus) : afterStatus;
     return toDto(afterFeeStatus);
   }
@@ -435,56 +432,6 @@ export class TransactionService {
     }
     return row;
   }
-}
-
-function toDto(row: TransactionRow): TradeTransactionDto {
-  // Whether this trade's fee rides a separate, guaranteed-USDC transfer (see
-  // docs/TRADING.md#guaranteed-usdc-fees) — the quote's own feeUnsignedTx is the single
-  // source of truth for this, set once at quote time and never re-derived from the side or
-  // token addresses again here.
-  const usesGuaranteedUsdcFee = row.quote.feeUnsignedTx !== null;
-  // Under the guaranteed flow the fee is always in market.quoteToken (USDC) — for a BUY
-  // that's the *input* token, not the token.decimals the non-guaranteed convention below
-  // uses for its output-side fee. Everywhere else, unchanged: fee formats with the output
-  // token's decimals, matching the aggregator's own embedded-fee convention.
-  const feeDecimals = usesGuaranteedUsdcFee
-    ? row.tokenMarket.quoteToken.decimals!
-    : row.side === 'BUY'
-      ? row.tokenMarket.token.decimals!
-      : row.tokenMarket.quoteToken.decimals!;
-
-  return {
-    id: row.id,
-    chainId: row.chainId,
-    txHash: row.txHash,
-    side: row.side as 'BUY' | 'SELL',
-    token: { address: row.tokenMarket.token.contractAddress, symbol: row.tokenMarket.token.symbol, decimals: row.tokenMarket.token.decimals! },
-    quoteToken: {
-      address: row.tokenMarket.quoteToken.contractAddress,
-      symbol: row.tokenMarket.quoteToken.symbol,
-      decimals: row.tokenMarket.quoteToken.decimals!,
-    },
-    inputAmount: row.inputAmount,
-    expectedOutputAmount: row.expectedOutputAmount,
-    inputAmountFormatted: formatUnits(
-      BigInt(row.inputAmount),
-      row.side === 'BUY' ? row.tokenMarket.quoteToken.decimals! : row.tokenMarket.token.decimals!,
-    ),
-    expectedOutputAmountFormatted: formatUnits(
-      BigInt(row.expectedOutputAmount),
-      row.side === 'BUY' ? row.tokenMarket.token.decimals! : row.tokenMarket.quoteToken.decimals!,
-    ),
-    platformFeeAmount: row.platformFeeAmount,
-    platformFeeAmountFormatted: formatUnits(BigInt(row.platformFeeAmount), feeDecimals),
-    status: row.status,
-    failureReason: row.failureReason,
-    submittedAt: row.submittedAt.toISOString(),
-    confirmedAt: row.confirmedAt ? row.confirmedAt.toISOString() : null,
-    feeTxHash: row.feeTxHash,
-    feeStatus: row.feeStatus,
-    feeFailureReason: row.feeFailureReason,
-    feeConfirmedAt: row.feeConfirmedAt ? row.feeConfirmedAt.toISOString() : null,
-  };
 }
 
 interface HistoryCursor {

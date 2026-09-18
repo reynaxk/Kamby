@@ -292,6 +292,12 @@ export class QuoteService {
       safetyNote: SAFETY_DISCLAIMER,
       requiresApproval: routerQuote.requiresApproval,
       approvalSpender: routerQuote.approvalSpender,
+      // Always false here — this service has no relayer awareness. TradingController's
+      // getQuote route immediately re-derives the real value via
+      // EvmGasRelayerQuoteService#attachSponsorshipIfEligible before this ever reaches a
+      // client; see that method's own doc comment for why it's split out rather than
+      // computed here.
+      sponsorshipAvailable: false,
     };
   }
 

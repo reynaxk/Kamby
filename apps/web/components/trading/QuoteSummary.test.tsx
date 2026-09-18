@@ -31,6 +31,7 @@ function baseQuote(overrides: Partial<TradeQuoteDto> = {}): TradeQuoteDto {
     safetyNote: 'No known issues detected by available checks.',
     requiresApproval: false,
     approvalSpender: null,
+    sponsorshipAvailable: false,
     ...overrides,
   };
 }

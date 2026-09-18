@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
 import { SUPPORTED_CHAIN_IDS, TRADING_DEFAULTS } from '@kamby/domain';
 
 const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
@@ -35,4 +35,15 @@ export class QuoteQueryDto {
   @Min(TRADING_DEFAULTS.minSlippageBps)
   @Max(TRADING_DEFAULTS.maxSlippageBps)
   slippageBps: number = TRADING_DEFAULTS.defaultSlippageBps;
+
+  /** Asks the EVM gas relayer to sponsor this trade's gas — see
+   *  docs/GAS_RELAYER_PLAN.md's EVM section. Never itself a guarantee: the response only
+   *  carries `consentTypedData` when the request is both this flag AND actually eligible
+   *  (relayer configured for this chain, wallet allowlisted if a rollout allowlist is
+   *  set) — omitted (indistinguishable from `false`) otherwise, same non-distinguishable-
+   *  rejection discipline the Solana relayer's own test-wallet gate already established. */
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  sponsorshipRequested: boolean = false;
 }

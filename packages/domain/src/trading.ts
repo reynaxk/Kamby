@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { normalizeEvmAddress } from './wallet';
+import { RelayedSwapTypedDataWireSchema } from './evm-relayer';
 
 /**
  * Phase 3 trading domain: quotes, fees, slippage, and the transaction lifecycle. See
@@ -250,6 +251,22 @@ export const TradeQuoteSchema = z.object({
    *  — see the function comment on `calculateFeeAmount` callers in quote.service.ts for why
    *  that's an intentional, economically negligible tradeoff against a much simpler design. */
   feeUnsignedTx: UnsignedTransactionSchema.nullable(),
+  /** Whether the EVM gas relayer *could* sponsor this trade if asked — computed and
+   *  present on every quote, independent of whether sponsorship was actually requested.
+   *  `false` whenever the relayer isn't configured for this chain, or (when a rollout
+   *  allowlist is set) this wallet isn't on it. See
+   *  `EvmGasRelayerQuoteService#attachSponsorshipIfEligible`'s own doc comment for why
+   *  this is split from `consentTypedData` below — it's what lets the frontend decide
+   *  whether to even show a gasless toggle at all. */
+  sponsorshipAvailable: z.boolean(),
+  /** Present only when this quote was both requested-as-sponsored
+   *  (`POST /trade/quote`'s `sponsorshipRequested`) AND actually eligible (the EVM gas
+   *  relayer is configured for this chain, and — when a rollout allowlist is set — this
+   *  wallet is on it) — absent otherwise, indistinguishably from "sponsorship wasn't
+   *  requested at all." See docs/GAS_RELAYER_PLAN.md's EVM section. The exact EIP-712
+   *  typed-data object the wallet must sign (Privy's `useSignTypedData`) to prove
+   *  real-time consent to this specific quote before `POST /trade/relay`. */
+  consentTypedData: RelayedSwapTypedDataWireSchema.optional(),
   /** See SAFETY_DISCLAIMER above — a fixed, honest disclosure string, never a "Safe" badge. */
   safetyNote: z.string(),
   requiresApproval: z.boolean(),
@@ -287,6 +304,14 @@ export const TradeTransactionSchema = z.object({
   feeStatus: TradeStatusSchema.nullable(),
   feeFailureReason: z.string().nullable(),
   feeConfirmedAt: z.string().datetime().nullable(),
+  /** True only for a transaction the EVM gas relayer itself broadcast (the relayer paid
+   *  the network fee) — false for every self-paid trade, which is still the entire
+   *  launch-scope flow. Mirrors SolanaTradeTransactionDto's own field exactly — see
+   *  docs/GAS_RELAYER_PLAN.md's EVM section. */
+  sponsoredByRelayer: z.boolean(),
+  /** The relayer's own address at the time this transaction was sponsored — null whenever
+   *  sponsoredByRelayer is false. */
+  relayerFeePayer: z.string().nullable(),
 });
 export type TradeTransactionDto = z.infer<typeof TradeTransactionSchema>;
 

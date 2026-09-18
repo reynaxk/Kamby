@@ -4,6 +4,7 @@ import { Prisma, prisma } from '@kamby/db';
 import { TRADING_DEFAULTS } from '@kamby/domain';
 import type { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
+import type { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
 import { TransactionService } from './transaction.service';
 
 const mockGetReceiptStatus = jest.fn();
@@ -49,6 +50,10 @@ const MATCHING_FEE_ON_CHAIN = { from: WALLET, to: FEE_UNSIGNED_TX.to, value: 0n,
 
 function fakeLogger(): PinoLogger {
   return { setContext: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as PinoLogger;
+}
+
+function fakeGasRelayer(): EvmGasRelayerQuoteService {
+  return { submitFeeLegIfDue: jest.fn().mockResolvedValue(undefined) } as unknown as EvmGasRelayerQuoteService;
 }
 
 function fakeConfig(): ConfigService<Env, true> {
@@ -106,6 +111,8 @@ function fakeTransactionRow(overrides: Partial<Record<string, unknown>> = {}) {
     feeFailureReason: null,
     feeSubmittedAt: null,
     feeConfirmedAt: null,
+    sponsoredByRelayer: false,
+    relayerFeePayer: null,
     tokenMarket: {
       token: { contractAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', symbol: 'FOO', decimals: 18 },
       quoteToken: { contractAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', symbol: 'WETH', decimals: 18 },
@@ -123,10 +130,12 @@ function fakeGuaranteedFeeRow(overrides: Partial<Record<string, unknown>> = {}) 
 
 describe('TransactionService', () => {
   let service: TransactionService;
+  let gasRelayer: EvmGasRelayerQuoteService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new TransactionService(fakeConfig(), fakeLogger());
+    gasRelayer = fakeGasRelayer();
+    service = new TransactionService(fakeConfig(), fakeLogger(), gasRelayer);
     // Sensible "everything checks out" defaults — tests targeting a specific rejection
     // override just the one mock that needs to fail.
     (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeVerifiedWallet());
@@ -554,6 +563,53 @@ describe('TransactionService', () => {
       const dto = await service.getTransaction(USER_ID, 'tx-1');
 
       expect(dto.status).toBe('EXPIRED');
+    });
+
+    it('triggers the sponsored trade fee leg once a relayer-sponsored swap is observed CONFIRMED', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow({ sponsoredByRelayer: true }));
+      mockGetReceiptStatus.mockResolvedValue('success');
+      const confirmedRow = fakeTransactionRow({ sponsoredByRelayer: true, status: 'CONFIRMED', confirmedAt: new Date() });
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(confirmedRow);
+
+      const dto = await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(dto.status).toBe('CONFIRMED');
+      expect(gasRelayer.submitFeeLegIfDue).toHaveBeenCalledWith(expect.objectContaining({ id: 'tx-1', status: 'CONFIRMED' }));
+    });
+
+    it('never triggers the fee leg for a transaction that is not sponsored by the relayer', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow({ sponsoredByRelayer: false }));
+      mockGetReceiptStatus.mockResolvedValue('success');
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(fakeTransactionRow({ status: 'CONFIRMED', confirmedAt: new Date() }));
+
+      await service.getTransaction(USER_ID, 'tx-1');
+
+      // submitFeeLegIfDue is still called (it's cheap and idempotent for a non-sponsored
+      // row — see its own doc comment), but only ever with a CONFIRMED row; the real
+      // no-op-for-non-sponsored logic lives inside EvmGasRelayerQuoteService itself, not
+      // duplicated here.
+      expect(gasRelayer.submitFeeLegIfDue).toHaveBeenCalled();
+    });
+
+    it('never triggers the fee leg while a transaction is still PENDING', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow({ sponsoredByRelayer: true }));
+      mockGetReceiptStatus.mockResolvedValue(null);
+
+      await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(gasRelayer.submitFeeLegIfDue).not.toHaveBeenCalled();
+    });
+
+    it('never triggers the fee leg for a transaction that just failed or reverted', async () => {
+      (mockedPrisma.tradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransactionRow({ sponsoredByRelayer: true }));
+      mockGetReceiptStatus.mockResolvedValue('reverted');
+      (mockedPrisma.tradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeTransactionRow({ sponsoredByRelayer: true, status: 'FAILED', failureReason: 'Transaction reverted on-chain' }),
+      );
+
+      await service.getTransaction(USER_ID, 'tx-1');
+
+      expect(gasRelayer.submitFeeLegIfDue).not.toHaveBeenCalled();
     });
   });
 

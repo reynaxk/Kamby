@@ -7,9 +7,11 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { CursorQueryDto } from '../social/dto/cursor-query.dto';
 import { QuoteQueryDto } from './dto/quote-query.dto';
+import { RelaySwapDto } from './dto/relay-swap.dto';
 import { SubmitFeeTransactionDto } from './dto/submit-fee-transaction.dto';
 import { SubmitTransactionDto } from './dto/submit-transaction.dto';
 import { QuoteService } from './quote.service';
+import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
 import { TransactionService } from './transaction.service';
 
 /**
@@ -24,6 +26,7 @@ export class TradingController {
   constructor(
     private readonly quotes: QuoteService,
     private readonly transactions: TransactionService,
+    private readonly gasRelayer: EvmGasRelayerQuoteService,
   ) {}
 
   // Real aggregator calls are expensive and rate-limited upstream — tighter than the
@@ -31,15 +34,35 @@ export class TradingController {
   // rapid re-quoting as a user adjusts an amount.
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Get('quote')
-  getQuote(@Query() query: QuoteQueryDto, @CurrentUser() user: SessionUser) {
-    return this.quotes.createQuote({
+  async getQuote(@Query() query: QuoteQueryDto, @CurrentUser() user: SessionUser) {
+    const chainId = query.chainId ?? DEFAULT_CHAIN_ID;
+    const quote = await this.quotes.createQuote({
       userId: user.id,
       walletAddress: query.walletAddress,
       tokenAddress: query.tokenAddress,
-      chainId: query.chainId ?? DEFAULT_CHAIN_ID,
+      chainId,
       side: query.side,
       amount: query.amount,
       slippageBps: query.slippageBps,
+    });
+    return this.gasRelayer.attachSponsorshipIfEligible(quote, {
+      chainId,
+      walletAddress: query.walletAddress,
+      sponsorshipRequested: query.sponsorshipRequested,
+    });
+  }
+
+  // See docs/GAS_RELAYER_PLAN.md's EVM section. Same throttle reasoning as the other
+  // mutating routes here — this one additionally spends the relayer's own gas per call, so
+  // it's never looser than submitTransaction's own limit.
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('relay')
+  relaySwap(@Body() body: RelaySwapDto, @CurrentUser() user: SessionUser) {
+    return this.gasRelayer.relay({
+      userId: user.id,
+      walletAddress: body.walletAddress,
+      quoteId: body.quoteId,
+      signature: body.signature,
     });
   }
 

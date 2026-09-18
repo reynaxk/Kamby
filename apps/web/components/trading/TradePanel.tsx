@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSignTypedData } from '@privy-io/react-auth';
 import { Button, cn } from '@kamby/ui';
 import { CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
 import { erc20Abi } from 'viem';
@@ -9,9 +10,10 @@ import { sendTransaction, writeContract } from 'wagmi/actions';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { explorerName, explorerTxUrl } from '@/lib/explorer';
-import { getQuote, getTransaction, submitFeeTransaction, submitTransaction } from '@/lib/trading-client';
+import { getQuote, getTransaction, relaySwap, submitFeeTransaction, submitTransaction } from '@/lib/trading-client';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
+import { GaslessToggle } from './GaslessToggle';
 import { SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
 
@@ -103,12 +105,18 @@ export function TradePanel({
 }: TradePanelProps) {
   const { address, isConnected, chainId: walletChainId } = useAccount();
   const walletVerification = useWalletVerification();
+  const { signTypedData } = useSignTypedData();
   const chainSlug = slugForChainId(chainId);
   const chainName = chainSlug ? CHAIN_REGISTRY[chainSlug].name : 'the right chain';
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
   const [slippageBps, setSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
+  // Opt-in gas sponsorship — see docs/GAS_RELAYER_PLAN.md's EVM section. Whether a given
+  // quote actually ends up sponsored is never decided by this flag alone: it only *asks*;
+  // `quote.consentTypedData` (present only when the backend confirms both "requested" AND
+  // "eligible") is the single source of truth every later branch below reads instead.
+  const [gasless, setGasless] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [quote, setQuote] = useState<TradeQuoteDto | null>(null);
@@ -161,7 +169,7 @@ export function TradePanel({
     setApproved(false);
     setPriceImpactAcknowledged(false);
     const timeout = setTimeout(() => {
-      getQuote({ chainId, side, tokenAddress, walletAddress: address, amount, slippageBps })
+      getQuote({ chainId, side, tokenAddress, walletAddress: address, amount, slippageBps, sponsorshipRequested: gasless })
         .then((result) => {
           setQuote(result);
           setQuoteStatus('ready');
@@ -174,7 +182,7 @@ export function TradePanel({
     }, 500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick]);
+  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick, gasless]);
 
   // Ticks once a second only while a quote is live, purely to re-render the expiry check.
   useEffect(() => {
@@ -265,6 +273,16 @@ export function TradePanel({
     setFlowError(null);
     setStep('signing');
 
+    // Gasless branch — see handleConfirmAndRelay's own doc comment. quote.consentTypedData
+    // (never a client-side guess) is the single source of truth for whether *this specific
+    // quote* is sponsored; approving a token (if quote.requiresApproval) still happens
+    // through the unchanged self-paid handleApprove above regardless — sponsorship never
+    // covers that leg, see GaslessToggle's own doc comment.
+    if (quote.consentTypedData) {
+      await handleConfirmAndRelay(quote, address);
+      return;
+    }
+
     let hash: `0x${string}`;
     try {
       hash = await sendTransaction(wagmiConfig, {
@@ -289,6 +307,55 @@ export function TradePanel({
     // same trade (see docs/TRADING.md's audit note on this exact failure mode).
     setStep('submitted');
     await recordSubmittedTransaction(hash, quote.id, address);
+  }
+
+  /**
+   * The gasless counterpart to handleConfirmAndSign's self-paid branch — see
+   * docs/GAS_RELAYER_PLAN.md's EVM section. Signs the EIP-712 consent object the quote
+   * response already carried (`quote.consentTypedData`, never constructed client-side —
+   * the server rebuilds and verifies the identical object from its own persisted quote row,
+   * see `EvmGasRelayerQuoteService#relay`'s own doc comment), then POSTs it to
+   * `/trade/relay`, which broadcasts server-side. There is no already-broadcast hash to
+   * fall back to displaying on a failure here (the relayer, not this client, broadcasts)
+   * and so no separate record-failed retry state either — a plain retry from the review
+   * step is always safe regardless of whether the original attempt's own broadcast landed,
+   * since `/trade/relay` is idempotent on `quoteId`.
+   *
+   * `consentTypedData`'s uint256 fields (`value`/`chainId`/`expiry`) arrive from the API as
+   * decimal strings — see `RelayedSwapTypedDataWire`'s own doc comment (`@kamby/domain`)
+   * for why (`bigint` cannot survive `JSON.stringify`) — and must be converted back to real
+   * `bigint`s before Privy's typed-data signer will accept them; the `types` array is
+   * likewise spread into a fresh, mutable array, since the API's own value is `readonly`
+   * (matching the same shape the server itself hashes against) but Privy's own type expects
+   * a plain mutable array.
+   */
+  async function handleConfirmAndRelay(currentQuote: TradeQuoteDto, walletAddress: string) {
+    const consent = currentQuote.consentTypedData;
+    if (!consent) return; // unreachable — only ever called once this is already known non-null
+    try {
+      const { signature } = await signTypedData(
+        {
+          domain: consent.domain,
+          types: { RelayedSwap: [...consent.types.RelayedSwap] },
+          primaryType: consent.primaryType,
+          message: {
+            ...consent.message,
+            value: BigInt(consent.message.value),
+            chainId: BigInt(consent.message.chainId),
+            expiry: BigInt(consent.message.expiry),
+          },
+        },
+        { address: walletAddress },
+      );
+      setStep('submitted');
+      const recorded = await relaySwap({ quoteId: currentQuote.id, walletAddress, signature });
+      setTransaction(recorded);
+      setStep('pending');
+      pollTransactionStatus(recorded.id);
+    } catch (err) {
+      setFlowError(friendlyError(err));
+      setStep('review');
+    }
   }
 
   /** Records an already-broadcast transaction with the backend — split out from
@@ -500,12 +567,20 @@ export function TradePanel({
     return (
       <Panel title="Review trade" onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined}>
         <QuoteSummary quote={quote} />
-        {quote.feeUnsignedTx && (
+        {quote.consentTypedData ? (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
             {quote.requiresApproval
-              ? "This trade needs up to 3 quick wallet approvals — token approval (once), the swap, and Kamby's platform fee."
-              : "This trade needs 2 quick wallet approvals — the swap, then Kamby's platform fee."}
+              ? 'This trade needs 1 quick wallet approval, then a free signature to confirm — Kamby pays the network fee.'
+              : 'Gasless — Kamby pays the network fee for this trade. Just one free signature, no gas needed.'}
           </p>
+        ) : (
+          quote.feeUnsignedTx && (
+            <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
+              {quote.requiresApproval
+                ? "This trade needs up to 3 quick wallet approvals — token approval (once), the swap, and Kamby's platform fee."
+                : "This trade needs 2 quick wallet approvals — the swap, then Kamby's platform fee."}
+            </p>
+          )
         )}
         {isExpired && (
           <div className="rounded-lg bg-down/10 px-3 py-2 font-body text-xs text-down">
@@ -581,6 +656,13 @@ export function TradePanel({
       />
 
       <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
+
+      {/* Rendered only once a real quote has confirmed sponsorship is actually available —
+          see TradeQuoteDto.sponsorshipAvailable's own doc comment (@kamby/domain). Keeps
+          this control invisible on a deployment where the relayer isn't configured yet
+          (every production deployment today), rather than showing a toggle that would
+          silently do nothing when switched on. */}
+      {quote?.sponsorshipAvailable && <GaslessToggle value={gasless} onChange={setGasless} label="Gasless (no gas needed)" />}
 
       {quoteStatus === 'error' && <p className="font-body text-xs text-down">{quoteError}</p>}
 
@@ -697,6 +779,17 @@ function FeeTransferSection({
   }
 
   if (!transaction.feeTxHash) {
+    // A sponsored trade's fee leg is broadcast by the relayer itself, reactively, once the
+    // swap confirms — see EvmGasRelayerQuoteService#submitFeeLegIfDue's own doc comment.
+    // There is nothing for this client to sign; showing the self-paid "Send platform fee"
+    // button here would offer an action that does not apply to this trade at all.
+    if (transaction.sponsoredByRelayer) {
+      return (
+        <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
+          <p className="font-body text-xs text-ink-600">Kamby is sending the platform fee — no action needed.</p>
+        </div>
+      );
+    }
     return (
       <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
         <p className="font-body text-xs text-ink-600">Kamby&apos;s fee hasn&apos;t been sent yet — a separate signature.</p>

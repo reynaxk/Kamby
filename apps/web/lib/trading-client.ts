@@ -24,6 +24,12 @@ export interface GetQuoteParams {
   walletAddress: string;
   amount: string;
   slippageBps: number;
+  /** Asks the EVM gas relayer to sponsor this trade — see docs/GAS_RELAYER_PLAN.md's EVM
+   *  section. The response only carries `consentTypedData` when this is both `true` AND
+   *  actually eligible; omitted (falsy) is indistinguishable from never having asked, by
+   *  design — see `EvmGasRelayerQuoteService#attachSponsorshipIfEligible`'s own doc
+   *  comment. Optional, defaults to no request sent (the existing self-paid behavior). */
+  sponsorshipRequested?: boolean;
 }
 
 export async function getQuote(params: GetQuoteParams): Promise<TradeQuoteDto> {
@@ -35,8 +41,33 @@ export async function getQuote(params: GetQuoteParams): Promise<TradeQuoteDto> {
     amount: params.amount,
     slippageBps: String(params.slippageBps),
   });
+  if (params.sponsorshipRequested) query.set('sponsorshipRequested', 'true');
   const res = await authedFetch(`/trade/quote?${query.toString()}`);
   await expectOk(res, 'get a quote');
+  return res.json();
+}
+
+export interface RelaySwapParams {
+  quoteId: string;
+  walletAddress: string;
+  /** The EIP-712 signature over `quote.consentTypedData` — never constructed client-side,
+   *  see docs/GAS_RELAYER_PLAN.md's EVM section. */
+  signature: string;
+}
+
+/** Submits a sponsored trade for the relayer to broadcast — the gasless counterpart to
+ *  `submitTransaction` above. Unlike that function, this client never broadcasts anything
+ *  itself first; the server does, so there is no txHash to pass in and no separate
+ *  record-failed retry state on the caller's side either — a plain retry is always safe,
+ *  see `EvmGasRelayerQuoteService#relay`'s own doc comment on why this is idempotent on
+ *  `quoteId`. */
+export async function relaySwap(params: RelaySwapParams): Promise<TradeTransactionDto> {
+  const res = await authedFetch('/trade/relay', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  await expectOk(res, 'relay the sponsored trade');
   return res.json();
 }
 

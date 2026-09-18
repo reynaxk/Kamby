@@ -1,5 +1,5 @@
 import { parseEnv } from '@kamby/domain';
-import { EnvSchema, ValidatedEnvSchema, getConfiguredChains, getSolanaConfig, type Env } from './env';
+import { EnvSchema, ValidatedEnvSchema, getConfiguredChains, getSolanaConfig, getEvmGasRelayerConfig, type Env } from './env';
 
 /** A real generic function declaration (not an arrow lambda) so it satisfies
  *  getConfiguredChains' `<K extends keyof Env>(key: K) => Env[K]` parameter type — a plain
@@ -274,6 +274,118 @@ describe('API env schema', () => {
         it('is entirely independent of SOLANA_GAS_RELAYER_ENABLED — never required, never validated against it', () => {
           expect(() => parseEnv(ValidatedEnvSchema, { ...solanaBase, SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES: 'WalletA111' })).not.toThrow();
         });
+      });
+    });
+  });
+
+  describe('EVM gas relayer (EVM_GAS_RELAYER_ENABLED)', () => {
+    it('requires nothing relayer-shaped when EVM_GAS_RELAYER_ENABLED is left at its default (false)', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, validBase)).not.toThrow();
+      expect(getEvmGasRelayerConfig(envGetter(parseEnv(ValidatedEnvSchema, validBase)))).toBeNull();
+    });
+
+    const relayerBase = {
+      ...validBase,
+      EVM_GAS_RELAYER_ENABLED: 'true',
+      EVM_GAS_RELAYER_PRIVATE_KEY: 'fake-relayer-private-key',
+      EVM_GAS_RELAYER_CHAINS: 'base',
+      EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE: '5',
+      EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE: '3000000000000000',
+    };
+
+    it('accepts a fully-configured, enabled relayer for a chain already listed in CHAINS', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, relayerBase)).not.toThrow();
+    });
+
+    it('fails clearly when EVM_GAS_RELAYER_ENABLED is true but EVM_GAS_RELAYER_PRIVATE_KEY is missing', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'EVM_GAS_RELAYER_PRIVATE_KEY'))).toThrowError(
+        /EVM_GAS_RELAYER_PRIVATE_KEY/,
+      );
+    });
+
+    it('fails clearly when EVM_GAS_RELAYER_ENABLED is true but EVM_GAS_RELAYER_CHAINS is missing', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'EVM_GAS_RELAYER_CHAINS'))).toThrowError(
+        /EVM_GAS_RELAYER_CHAINS is required/,
+      );
+    });
+
+    it('fails clearly when a relayer chain is not listed in CHAINS at all — the relayer cannot sponsor a chain self-paid trading is not even configured for', () => {
+      expect(() =>
+        parseEnv(ValidatedEnvSchema, { ...relayerBase, EVM_GAS_RELAYER_CHAINS: 'arbitrum' }),
+      ).toThrowError(/"arbitrum" is listed in EVM_GAS_RELAYER_CHAINS but not in CHAINS/);
+    });
+
+    it('fails clearly when a relayer chain is missing its own gas-price ceiling', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE'))).toThrowError(
+        /EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE/,
+      );
+    });
+
+    it('fails clearly when a relayer chain is missing its own wei ceiling', () => {
+      expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE'))).toThrowError(
+        /EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE/,
+      );
+    });
+
+    it('rejects an unknown chain slug in EVM_GAS_RELAYER_CHAINS', () => {
+      expect(() =>
+        parseEnv(ValidatedEnvSchema, { ...relayerBase, EVM_GAS_RELAYER_CHAINS: 'solana' }),
+      ).toThrowError(/"solana" is not a known chain slug/);
+    });
+
+    it('getEvmGasRelayerConfig resolves every field once enabled and fully configured', () => {
+      const env = parseEnv(ValidatedEnvSchema, relayerBase);
+      expect(getEvmGasRelayerConfig(envGetter(env))).toEqual({
+        privateKey: 'fake-relayer-private-key',
+        chains: [{ slug: 'base', maxGasPriceGwei: 5, maxWeiCeiling: 3_000_000_000_000_000 }],
+        testWalletAddresses: null,
+      });
+    });
+
+    describe('multiple relayer chains', () => {
+      const twoChainBase = {
+        ...relayerBase,
+        CHAINS: 'base,arbitrum',
+        DEFAULT_CHAIN_SLUG: 'base',
+        CHAIN_ARBITRUM_ID: '42161',
+        CHAIN_ARBITRUM_RPC_URL: 'https://arb1.arbitrum.io/rpc',
+        CHAIN_ARBITRUM_USDC_ADDRESS: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        EVM_GAS_RELAYER_CHAINS: 'base,arbitrum',
+        EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM: '2',
+        EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM: '1000000000000000',
+      };
+
+      it('accepts a relayer covering only a subset of chains self-paid trading supports', () => {
+        expect(() => parseEnv(ValidatedEnvSchema, { ...twoChainBase, EVM_GAS_RELAYER_CHAINS: 'base' })).not.toThrow();
+      });
+
+      it('resolves ceilings independently per relayer chain', () => {
+        const env = parseEnv(ValidatedEnvSchema, twoChainBase);
+        expect(getEvmGasRelayerConfig(envGetter(env))?.chains).toEqual([
+          { slug: 'base', maxGasPriceGwei: 5, maxWeiCeiling: 3_000_000_000_000_000 },
+          { slug: 'arbitrum', maxGasPriceGwei: 2, maxWeiCeiling: 1_000_000_000_000_000 },
+        ]);
+      });
+    });
+
+    describe('test-wallet rollout gate (EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES)', () => {
+      it('resolves to null (no restriction) when unset', () => {
+        const env = parseEnv(ValidatedEnvSchema, relayerBase);
+        expect(getEvmGasRelayerConfig(envGetter(env))?.testWalletAddresses).toBeNull();
+      });
+
+      it('parses a comma-separated list into a Set, trimming whitespace and dropping empty entries', () => {
+        const env = parseEnv(ValidatedEnvSchema, {
+          ...relayerBase,
+          EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES: ' 0xAAA , 0xBBB,,0xCCC ',
+        });
+        expect(getEvmGasRelayerConfig(envGetter(env))?.testWalletAddresses).toEqual(new Set(['0xAAA', '0xBBB', '0xCCC']));
+      });
+
+      it('is entirely independent of EVM_GAS_RELAYER_ENABLED — never required, never validated against it', () => {
+        expect(() =>
+          parseEnv(ValidatedEnvSchema, { ...validBase, EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES: '0xAAA' }),
+        ).not.toThrow();
       });
     });
   });

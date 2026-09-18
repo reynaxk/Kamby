@@ -192,6 +192,60 @@ export const EnvSchema = z.object({
   SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES: z.string().optional(),
 
   /**
+   * EVM gasless relayer — Piece 4 of docs/GAS_RELAYER_PLAN.md, the EVM analogue of the
+   * SOLANA_GAS_RELAYER_* block above. Deliberately a separate conditionally-required block,
+   * not folded into CHAINS/CHAIN_<SLUG>_* above: which chains self-paid trading supports
+   * (CHAINS) and which of those the relayer covers (EVM_GAS_RELAYER_CHAINS) are
+   * independent — a deployment can trade self-paid on three chains while sponsoring gas on
+   * only one. Same decoupling discipline as Solana's flag: this does NOT itself gate
+   * whether the relayer activates at runtime (that's still purely "is
+   * EVM_GAS_RELAYER_PRIVATE_KEY present") — it exists only so an enabled-but-misconfigured
+   * deploy fails loudly at boot rather than silently staying inert. See
+   * docs/WALLET_SECURITY.md's EVM section for the trust model this activates: unlike
+   * Solana's co-signing relayer, an EVM meta-tx relayer is the transaction's sole signer —
+   * see EvmRelayerConsentService's own doc comment for how real-time user consent is
+   * proven instead.
+   */
+  EVM_GAS_RELAYER_ENABLED: z.coerce.boolean().default(false),
+  /** One key, reused across every chain in EVM_GAS_RELAYER_CHAINS — an EVM private key
+   *  produces the same address on every EVM chain, unlike Solana's per-chain-by-necessity
+   *  keypairs. Required when EVM_GAS_RELAYER_ENABLED is true (fourth `superRefine` below).
+   *  Never logged — see the `redact` config in app.module.ts, which already anticipates a
+   *  `*.privateKey` path. */
+  EVM_GAS_RELAYER_PRIVATE_KEY: z.string().min(1).optional(),
+  /** Comma-separated subset of CHAINS this deployment actually sponsors gas on (e.g.
+   *  "base") — every slug named here must also be listed in CHAINS (a relayer can't
+   *  sponsor a chain self-paid trading isn't even configured for) and must have its own
+   *  EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_<SLUG>/EVM_GAS_RELAYER_MAX_WEI_CEILING_<SLUG> pair
+   *  populated (checked in superRefine). Required (non-empty) when EVM_GAS_RELAYER_ENABLED
+   *  is true. */
+  EVM_GAS_RELAYER_CHAINS: z.string().optional(),
+  /** Comma-separated EVM wallet addresses — see
+   *  SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES's own doc comment above for the exact
+   *  rollout intent (gate to internal test accounts first) and the non-distinguishable-
+   *  rejection discipline this mirrors exactly. Genuinely optional and independent of
+   *  EVM_GAS_RELAYER_ENABLED — unset means no restriction. */
+  EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES: z.string().optional(),
+
+  /** The pre-broadcast `eth_call` simulation's gas-price ceiling for this chain — the
+   *  relayer refuses to broadcast at a price above this regardless of what the network is
+   *  currently charging. See docs/GAS_RELAYER_PLAN.md's EVM section for why this has no
+   *  single cross-chain default (Base/Arbitrum/BNB gas economics differ materially) and is
+   *  deliberately left unset here rather than guessed — real values come from the Track 2
+   *  adversarial pass's live data. Required when this slug is listed in
+   *  EVM_GAS_RELAYER_CHAINS. */
+  EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE: z.coerce.number().positive().optional(),
+  /** The hard total-cost ceiling (gas units × gas price, in wei) a simulated relayed
+   *  transaction must stay under before the relayer will ever broadcast it for real — the
+   *  direct analogue of SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING. Required when this slug
+   *  is listed in EVM_GAS_RELAYER_CHAINS. */
+  EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE: z.coerce.number().int().positive().optional(),
+  EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM: z.coerce.number().positive().optional(),
+  EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM: z.coerce.number().int().positive().optional(),
+  EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB: z.coerce.number().positive().optional(),
+  EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB: z.coerce.number().int().positive().optional(),
+
+  /**
    * Cloudflare R2 (S3-compatible object storage) for profile-picture uploads — see
    * docs/TRADER_INTELLIGENCE.md#realized-pnl and R2StorageService's own doc comment.
    * Deliberately all-optional at the schema level, same convention every other
@@ -224,6 +278,18 @@ const CHAIN_ENV_BLOCKS: Record<
   base: { id: 'CHAIN_BASE_ID', rpcUrl: 'CHAIN_BASE_RPC_URL', rpcUrlFallback: 'CHAIN_BASE_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' },
   arbitrum: { id: 'CHAIN_ARBITRUM_ID', rpcUrl: 'CHAIN_ARBITRUM_RPC_URL', rpcUrlFallback: 'CHAIN_ARBITRUM_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_ARBITRUM_USDC_ADDRESS' },
   bnb: { id: 'CHAIN_BNB_ID', rpcUrl: 'CHAIN_BNB_RPC_URL', rpcUrlFallback: 'CHAIN_BNB_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BNB_USDC_ADDRESS' },
+};
+
+const EVM_GAS_RELAYER_CEILING_BLOCKS: Record<
+  ChainSlug,
+  {
+    maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE' | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM' | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB';
+    maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE' | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM' | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB';
+  }
+> = {
+  base: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE' },
+  arbitrum: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM' },
+  bnb: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB' },
 };
 
 export const ValidatedEnvSchema = EnvSchema.superRefine((env, ctx) => {
@@ -281,6 +347,44 @@ export const ValidatedEnvSchema = EnvSchema.superRefine((env, ctx) => {
       path: ['SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING'],
       message: 'SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING is required when SOLANA_GAS_RELAYER_ENABLED is true',
     });
+  }
+}).superRefine((env, ctx) => {
+  // The EVM gas relayer's own conditionally-required block — mirrors the Solana relayer
+  // block above (deliberately separate, fires regardless of whether SOLANA_* is
+  // configured on this deployment).
+  if (!env.EVM_GAS_RELAYER_ENABLED) return;
+  if (env.EVM_GAS_RELAYER_PRIVATE_KEY === undefined) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['EVM_GAS_RELAYER_PRIVATE_KEY'], message: 'EVM_GAS_RELAYER_PRIVATE_KEY is required when EVM_GAS_RELAYER_ENABLED is true' });
+  }
+  const relayerChains = (env.EVM_GAS_RELAYER_CHAINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (relayerChains.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['EVM_GAS_RELAYER_CHAINS'], message: 'EVM_GAS_RELAYER_CHAINS is required (non-empty) when EVM_GAS_RELAYER_ENABLED is true' });
+  }
+  const configuredChainSlugs = env.CHAINS.split(',').map((s) => s.trim());
+  for (const rawSlug of relayerChains) {
+    if (!SUPPORTED_CHAIN_SLUGS.includes(rawSlug as ChainSlug)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['EVM_GAS_RELAYER_CHAINS'], message: `"${rawSlug}" is not a known chain slug (expected one of: ${SUPPORTED_CHAIN_SLUGS.join(', ')})` });
+      continue;
+    }
+    if (!configuredChainSlugs.includes(rawSlug)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['EVM_GAS_RELAYER_CHAINS'],
+        message: `"${rawSlug}" is listed in EVM_GAS_RELAYER_CHAINS but not in CHAINS — the relayer can't sponsor a chain self-paid trading isn't even configured for`,
+      });
+      continue;
+    }
+    const slug = rawSlug as ChainSlug;
+    const block = EVM_GAS_RELAYER_CEILING_BLOCKS[slug];
+    if (env[block.maxGasPriceGwei] === undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [block.maxGasPriceGwei], message: `${block.maxGasPriceGwei} is required because "${slug}" is listed in EVM_GAS_RELAYER_CHAINS` });
+    }
+    if (env[block.maxWeiCeiling] === undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [block.maxWeiCeiling], message: `${block.maxWeiCeiling} is required because "${slug}" is listed in EVM_GAS_RELAYER_CHAINS` });
+    }
   }
 });
 
@@ -374,5 +478,49 @@ export function getSolanaConfig(get: <K extends keyof Env>(key: K) => Env[K]): S
     gasRelayerFeePayerSecretKey: get('SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY') ?? null,
     gasRelayerMaxLamportsCeiling: get('SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING') ?? null,
     gasRelayerTestWalletAddresses: parseTestWalletAllowlist(get('SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES')),
+  };
+}
+
+export interface ConfiguredEvmRelayerChain {
+  slug: ChainSlug;
+  maxGasPriceGwei: number;
+  maxWeiCeiling: number;
+}
+
+export interface EvmGasRelayerConfig {
+  privateKey: string;
+  /** Only the chains actually listed in EVM_GAS_RELAYER_CHAINS — a strict subset of
+   *  getConfiguredChains()'s result, never assume every configured EVM chain is
+   *  relayer-covered. */
+  chains: ConfiguredEvmRelayerChain[];
+  /** `null` means no restriction (every wallet eligible) — see
+   *  EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES's own doc comment above. */
+  testWalletAddresses: ReadonlySet<string> | null;
+}
+
+/**
+ * `null` when the EVM relayer isn't enabled on this deployment — every caller must handle
+ * that case explicitly, same reasoning as `getSolanaConfig`. Safe to call unconditionally
+ * once the app has booted: every field this reads when `EVM_GAS_RELAYER_ENABLED` is true is
+ * guaranteed present by `ValidatedEnvSchema`'s fourth `superRefine`.
+ */
+export function getEvmGasRelayerConfig(get: <K extends keyof Env>(key: K) => Env[K]): EvmGasRelayerConfig | null {
+  if (!get('EVM_GAS_RELAYER_ENABLED')) return null;
+  const chains = (get('EVM_GAS_RELAYER_CHAINS') ?? '')
+    .split(',')
+    .map((s) => s.trim() as ChainSlug)
+    .filter((s) => s.length > 0)
+    .map((slug) => {
+      const block = EVM_GAS_RELAYER_CEILING_BLOCKS[slug];
+      return {
+        slug,
+        maxGasPriceGwei: get(block.maxGasPriceGwei)!,
+        maxWeiCeiling: get(block.maxWeiCeiling)!,
+      };
+    });
+  return {
+    privateKey: get('EVM_GAS_RELAYER_PRIVATE_KEY')!,
+    chains,
+    testWalletAddresses: parseTestWalletAllowlist(get('EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES')),
   };
 }

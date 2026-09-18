@@ -19,6 +19,8 @@ const {
   getTransactionMock,
   submitTransactionMock,
   submitFeeTransactionMock,
+  relaySwapMock,
+  signTypedDataMock,
 } = vi.hoisted(() => ({
   useAccountMock: vi.fn(),
   sendTransactionMock: vi.fn(),
@@ -29,17 +31,21 @@ const {
   getTransactionMock: vi.fn(),
   submitTransactionMock: vi.fn(),
   submitFeeTransactionMock: vi.fn(),
+  relaySwapMock: vi.fn(),
+  signTypedDataMock: vi.fn(),
 }));
 
 vi.mock('wagmi', () => ({ useAccount: useAccountMock }));
 vi.mock('wagmi/actions', () => ({ sendTransaction: sendTransactionMock, writeContract: writeContractMock }));
 vi.mock('@/lib/wagmi-config', () => ({ wagmiConfig: {} }));
 vi.mock('@/hooks/useWalletVerification', () => ({ useWalletVerification: useWalletVerificationMock }));
+vi.mock('@privy-io/react-auth', () => ({ useSignTypedData: () => ({ signTypedData: signTypedDataMock }) }));
 vi.mock('@/lib/trading-client', () => ({
   getQuote: getQuoteMock,
   getTransaction: getTransactionMock,
   submitTransaction: submitTransactionMock,
   submitFeeTransaction: submitFeeTransactionMock,
+  relaySwap: relaySwapMock,
 }));
 vi.mock('@/components/wallet/ConnectWalletButton', () => ({ ConnectWalletButton: () => null }));
 // AmountInput reads the connected wallet's real balance live via wagmi's useBalance — out
@@ -84,6 +90,7 @@ function fakeQuote(overrides: Partial<TradeQuoteDto> = {}): TradeQuoteDto {
     safetyNote: 'No known issues detected by available checks.',
     requiresApproval: false,
     approvalSpender: null,
+    sponsorshipAvailable: false,
     ...overrides,
   };
 }
@@ -110,7 +117,18 @@ function fakeTransaction(overrides: Partial<TradeTransactionDto> = {}): TradeTra
     feeStatus: null,
     feeFailureReason: null,
     feeConfirmedAt: null,
+    sponsoredByRelayer: false,
+    relayerFeePayer: null,
     ...overrides,
+  };
+}
+
+function fakeConsentTypedData(quoteId = 'quote-1'): NonNullable<TradeQuoteDto['consentTypedData']> {
+  return {
+    domain: { name: 'Kamby', version: '1', chainId: CHAIN_ID, verifyingContract: '0xrelayer' },
+    types: { RelayedSwap: [{ name: 'quoteId', type: 'string' }, { name: 'value', type: 'uint256' }] },
+    primaryType: 'RelayedSwap',
+    message: { quoteId, wallet: WALLET_ADDRESS, to: '0xdead', data: '0xbeef', value: '0', chainId: String(CHAIN_ID), expiry: '1893456000' },
   };
 }
 
@@ -223,5 +241,99 @@ describe('TradePanel', () => {
     await waitFor(() => expect(submitTransactionMock).toHaveBeenCalled());
     expect(sendTransactionMock).toHaveBeenCalledTimes(1);
     expect(submitFeeTransactionMock).not.toHaveBeenCalled();
+  });
+
+  describe('gasless (EVM gas relayer)', () => {
+    it('never shows the gasless toggle when the quote reports sponsorship is not available — e.g. every production deployment before the relayer is enabled', async () => {
+      getQuoteMock.mockResolvedValue(fakeQuote({ sponsorshipAvailable: false }));
+      render(<TradePanel {...defaultProps} />);
+
+      await userEvent.type(screen.getByLabelText('Amount'), '1');
+      await waitFor(() => expect(getQuoteMock).toHaveBeenCalled());
+
+      expect(screen.queryByRole('button', { name: 'Gasless (no gas needed)' })).not.toBeInTheDocument();
+    });
+
+    it('shows the toggle once a quote confirms sponsorship is available, and requests it on the next fetch once switched on', async () => {
+      getQuoteMock.mockResolvedValue(fakeQuote({ sponsorshipAvailable: true }));
+      render(<TradePanel {...defaultProps} />);
+      await userEvent.type(screen.getByLabelText('Amount'), '1');
+      await waitFor(() => expect(getQuoteMock).toHaveBeenCalled());
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Gasless (no gas needed)' }));
+
+      await waitFor(() => expect(getQuoteMock).toHaveBeenLastCalledWith(expect.objectContaining({ sponsorshipRequested: true })));
+    });
+
+    it('shows the gasless disclosure, not the wallet-approvals count, when the quote comes back eligible', async () => {
+      await driveToReview(
+        fakeQuote({ requiresApproval: false, sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData(), feeUnsignedTx: { to: '0xfee', data: '0x', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null } }),
+      );
+
+      expect(screen.getByText(/Kamby pays the network fee/i)).toBeInTheDocument();
+      expect(screen.queryByText(/quick wallet approvals/i)).not.toBeInTheDocument();
+    });
+
+    it('shows the 1-approval-then-free-signature disclosure when the eligible quote still needs a token approval', async () => {
+      await driveToReview(fakeQuote({ requiresApproval: true, approvalSpender: '0xrouter', sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData() }));
+
+      expect(screen.getByText(/1 quick wallet approval, then a free signature/i)).toBeInTheDocument();
+    });
+
+    it('signs the EIP-712 consent object and relays instead of broadcasting a transaction itself', async () => {
+      const quote = fakeQuote({ requiresApproval: false, sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData() });
+      await driveToReview(quote);
+      signTypedDataMock.mockResolvedValue({ signature: '0xconsentsig' });
+      relaySwapMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true, relayerFeePayer: '0xrelayer' }));
+
+      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+
+      await waitFor(() => expect(relaySwapMock).toHaveBeenCalledWith({ quoteId: quote.id, walletAddress: WALLET_ADDRESS, signature: '0xconsentsig' }));
+      // The real uint256 fields must be reconstructed as bigint, never left as the wire strings.
+      expect(signTypedDataMock).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.objectContaining({ value: 0n, chainId: BigInt(CHAIN_ID), expiry: 1893456000n }) }),
+        { address: WALLET_ADDRESS },
+      );
+      expect(sendTransactionMock).not.toHaveBeenCalled();
+      expect(submitTransactionMock).not.toHaveBeenCalled();
+      expect(await screen.findByText(/waiting for confirmation on-chain/i)).toBeInTheDocument();
+    });
+
+    it('returns to review with the real error, never calling relay, when the consent signature is rejected', async () => {
+      const quote = fakeQuote({ requiresApproval: false, sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData() });
+      await driveToReview(quote);
+      signTypedDataMock.mockRejectedValue(new Error('User rejected the request'));
+
+      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+
+      expect(await screen.findByText(/User rejected the request/i)).toBeInTheDocument();
+      expect(relaySwapMock).not.toHaveBeenCalled();
+      expect(await screen.findByRole('button', { name: 'Confirm & sign' })).toBeInTheDocument();
+    });
+
+    it('falls through to the ordinary self-paid flow when the quote comes back ineligible even with the toggle on', async () => {
+      const quote = fakeQuote({ requiresApproval: false, consentTypedData: undefined });
+      await driveToReview(quote);
+      sendTransactionMock.mockResolvedValueOnce(`0x${'4'.repeat(64)}`);
+      submitTransactionMock.mockResolvedValue(fakeTransaction());
+
+      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+
+      await waitFor(() => expect(sendTransactionMock).toHaveBeenCalled());
+      expect(signTypedDataMock).not.toHaveBeenCalled();
+      expect(relaySwapMock).not.toHaveBeenCalled();
+    });
+
+    it("shows a passive status, never the self-paid 'Send platform fee' button, for a sponsored trade's fee leg", async () => {
+      const quote = fakeQuote({ requiresApproval: false, sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData(), feeUnsignedTx: { to: '0xfee', data: '0x', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null } });
+      await driveToReview(quote);
+      signTypedDataMock.mockResolvedValue({ signature: '0xconsentsig' });
+      relaySwapMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true, relayerFeePayer: '0xrelayer', feeTxHash: null }));
+
+      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+
+      expect(await screen.findByText(/Kamby is sending the platform fee/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Send platform fee' })).not.toBeInTheDocument();
+    });
   });
 });

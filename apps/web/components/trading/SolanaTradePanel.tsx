@@ -504,7 +504,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
         )}
         <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
-        <GaslessToggle value={gasless} onChange={setGasless} />
+        <GaslessToggle value={gasless} onChange={setGasless} label="Gasless (no SOL needed)" />
         {/* A sponsored transaction always broadcasts via the relayer's own RPC call, never
             through Jito — showing this control while gasless is on would offer a choice
             that silently does nothing, see GaslessToggle's own doc comment. */}

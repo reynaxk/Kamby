@@ -519,6 +519,37 @@ model TradeQuote {
   /// inside `unsignedTx` via the aggregator's own fee mechanism.
   feeUnsignedTx   Json?   @map("fee_unsigned_tx")
 
+  /// EVM gas relayer consent tracking — see docs/GAS_RELAYER_PLAN.md's EVM section.
+  /// Deliberately extends TradeQuote rather than a parallel table: `unsignedTx`,
+  /// `walletAddress`, `chainId`, and `expiresAt` above already carry everything the
+  /// EIP-712 consent flow needs to reconstruct what the user is being asked to sign, and
+  /// duplicating them into a second table would create exactly the "two sources of the
+  /// same fact" risk the relayer's whole design goes out of its way to avoid (see
+  /// EvmGasRelayerService's own doc comment). True only when this quote was both
+  /// requested-as-sponsored AND actually eligible (chain relayer-enabled, wallet
+  /// allowlisted if an allowlist is set) — never set from a client's bare request alone.
+  sponsorshipRequested Boolean @default(false) @map("sponsorship_requested")
+  /// Null until the wallet actually signs the EIP-712 consent object built from this row's
+  /// own unsignedTx/expiresAt — see verifyEvmTypedDataSignature (@kamby/chain-adapters).
+  relayerConsentSignature String? @map("relayer_consent_signature")
+  /// Null whenever sponsorshipRequested is false. Moves PENDING_CONSENT -> CONSENT_RECEIVED
+  /// (via a conditional update checked by affected-row count — the guard against a
+  /// concurrent duplicate /trade/relay call double-broadcasting) -> BROADCAST, at which
+  /// point the real TradeTransaction row (sponsoredByRelayer: true) is the source of truth
+  /// for everything downstream; or -> FAILED for a pre-broadcast rejection (simulation
+  /// revert, gas-ceiling exceeded, expired consent) that never reaches the chain at all.
+  relayerStatus EvmRelayerQuoteStatus? @map("relayer_status")
+  /// The nonce the relayer used (or attempted) for this quote's broadcast — diagnostic
+  /// only, for manually unsticking a stuck relayer nonce sequence (see
+  /// EvmRelayerNonceManagerService's own doc comment on why automatic recovery is
+  /// deliberately out of scope for launch). Null until BROADCAST is attempted.
+  relayerNonce Int? @map("relayer_nonce")
+  /// Set only when relayerStatus is FAILED — why the pre-broadcast simulation/ceiling/
+  /// consent check rejected this quote. Never set for a swap that reverted on-chain after
+  /// broadcast; that failure lives on the resulting TradeTransaction row instead, same as
+  /// every self-paid trade's failureReason.
+  relayerFailureReason String? @map("relayer_failure_reason")
+
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -530,6 +561,14 @@ model TradeQuote {
   @@index([userId, createdAt])
   @@index([expiresAt])
   @@map("trade_quotes")
+}
+
+/// See TradeQuote.relayerStatus's own doc comment for the exact transition rules.
+enum EvmRelayerQuoteStatus {
+  PENDING_CONSENT
+  CONSENT_RECEIVED
+  BROADCAST
+  FAILED
 }
 
 /// A transaction the user's own wallet signed and broadcast — created only once a real
@@ -557,6 +596,18 @@ model TradeTransaction {
 
   status        TradeStatus @default(PENDING)
   failureReason String?     @map("failure_reason")
+
+  /// True only for a transaction EvmGasRelayerService itself broadcast (the relayer paid
+  /// the network fee) — false for every self-paid trade, which is still the entire
+  /// launch-scope flow. Mirrors SolanaTradeTransaction.sponsoredByRelayer exactly — see
+  /// docs/GAS_RELAYER_PLAN.md's EVM section. This column exists ahead of the relayer
+  /// actually being enabled on any deployment, same "shovel-ready before it's live"
+  /// pattern the Solana relayer's own schema work already followed.
+  sponsoredByRelayer Boolean @default(false) @map("sponsored_by_relayer")
+  /// The relayer's own address at the time this transaction was sponsored — null whenever
+  /// sponsoredByRelayer is false. Recorded per-row (not just read from current env config)
+  /// so history stays accurate even after a relayer key rotation.
+  relayerFeePayer String? @map("relayer_fee_payer")
 
   /// The separate USDC fee-transfer transaction — see docs/TRADING.md#guaranteed-usdc-fees.
   /// `feeTxHash` stays null until the wallet actually submits it (never required for the

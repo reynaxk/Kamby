@@ -4,6 +4,10 @@ import { KyberSwapRouter } from './router/kyberswap-router.service';
 import { MultiChainSwapRouter } from './router/multi-chain-swap-router.service';
 import { OpenOceanRouter } from './router/openocean-router.service';
 import { SWAP_ROUTER } from './router/swap-router.token';
+import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
+import { EvmGasRelayerService } from './relayer/evm-gas-relayer.service';
+import { EvmRelayerNonceManagerService } from './relayer/evm-relayer-nonce-manager.service';
+import { EvmRelayerWalletService } from './relayer/evm-relayer-wallet.service';
 import { QuoteService } from './quote.service';
 import { SafetyService } from './safety.service';
 import { TradingController } from './trading.controller';
@@ -31,6 +35,10 @@ import { TransactionService } from './transaction.service';
     KyberSwapRouter,
     OpenOceanRouter,
     { provide: SWAP_ROUTER, useClass: MultiChainSwapRouter },
+    EvmRelayerNonceManagerService,
+    EvmRelayerWalletService,
+    EvmGasRelayerService,
+    EvmGasRelayerQuoteService,
   ],
 })
 export class TradingModule {}
