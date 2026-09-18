@@ -50,7 +50,12 @@ phrase, and no code path ever asks a wallet for one.
   `{to, data, value, gas, maxFeePerGas, maxPriorityFeePerGas}`) and stays that way until the
   user's own wallet signs and broadcasts it client-side
   (`apps/web/components/trading/TradePanel.tsx`, via wagmi's `sendTransaction`/
-  `writeContract`). Kamby's backend calls neither.
+  `writeContract`). Kamby's backend calls neither. **One named, narrow exception**: the EVM
+  gas relayer (built, not yet enabled on any real deployment — see
+  `docs/GAS_RELAYER_PLAN.md`'s EVM section) *does* broadcast the swap itself, once the
+  user's wallet has signed a separate EIP-712 consent object proving real-time approval of
+  that exact quote. It never gains custody of tokens either way — see
+  `docs/WALLET_SECURITY.md`'s EVM section for the full reasoning.
 - **The platform fee is collected atomically inside the swap itself** (see
   [Fees](#fees)) — there is no intermediate step where Kamby's backend holds the user's
   money, even briefly.

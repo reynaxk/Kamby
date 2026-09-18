@@ -88,24 +88,62 @@ embedded wallet (`useSignAndSendTransaction`) — Kamby's backend is never in th
 for the swap itself. A real trade confirmed this way, live, on 2026-09-13 (signature
 `32cxp7j5rxS2RemJ49f4f1o46ESiDqwGpgNtT97nk279PfuWBtve2PczgUQJqYeRT2hPwXeUty55Z3nAf3G5ipNf`).
 
-**The one named exception, designed but deliberately not deployed**: `GasRelayerService`
+**The one named exception, live in production since 2026-09-18**: `GasRelayerService`
 (`apps/api/src/solana/gas-relayer.service.ts`) sponsors network fees so users never need to
-hold SOL — see `docs/GAS_RELAYER_PLAN.md` for the full design. This key never signs
-anything that moves a user's tokens or USDC; it only ever occupies the transaction's
-*fee-payer* slot, on a transaction the user's own wallet has already signed in its own
-signer slot first (`GasRelayerService` refuses to ever be the first or only signer — see
+hold SOL — see `docs/GAS_RELAYER_PLAN.md` for the full design and rollout history,
+including a real fund-misdirection incident caught via on-chain balance verification,
+reverted within minutes, and correctly re-fixed the same day. This key never signs anything
+that moves a user's tokens or USDC; it only ever occupies the transaction's *fee-payer*
+slot, on a transaction the user's own wallet has already signed in its own signer slot
+first (`GasRelayerService` refuses to ever be the first or only signer — see
 `assertUserAlreadySigned`). Its blast radius is capped by its own small, manually-funded
 balance and a hard per-transaction lamports ceiling checked before every broadcast, and its
 instruction surface is allowlisted exhaustively (`gas-relayer-instruction-guard.ts`),
 rejecting anything outside a small set of known-safe programs and, specifically and by name,
-any `CloseAccount` instruction — the named mitigation for ATA rent-draining, a real attack
-Privy's own documentation warns sponsors of this exact pattern about.
+any `CloseAccount` instruction not provably tied to a same-transaction, relayer-paid,
+native-SOL wrap — the named mitigation for ATA rent-draining, a real attack Privy's own
+documentation warns sponsors of this exact pattern about.
 
 This is the "stop and reconsider the flow" moment the rule above describes — and the
 resolution here is that this one narrow, heavily-guarded case (paying a network fee, never
 touching token custody, always co-signing second) is judged an acceptable, deliberately
-scoped exception to the general rule, not a reason to abandon it generally. The code exists
-(written and tested 2026-09-13) but is **not wired into any module, route, or the app's
-required environment schema** — see that file's own doc comment for exactly what "not wired
-up" means concretely. Wiring it up is real, scoped, post-launch work, not a same-session
-add-on to a live, working, non-custodial swap flow.
+scoped exception to the general rule, not a reason to abandon it generally.
+
+## EVM: a second, differently-shaped named exception
+
+`EvmGasRelayerQuoteService`/`EvmGasRelayerService` (`apps/api/src/trading/relayer/`) sponsor
+EVM network fees the same way, but the trust model is genuinely different in kind from
+Solana's, not just the same pattern on a different chain — worth stating explicitly rather
+than assuming "we already reasoned about this once."
+
+On Solana, the relayer *co-signs*: the user's own signature is physically present in the
+same transaction, directly proving consent for that specific transaction. An EVM
+meta-transaction relayer **submits the entire transaction with only its own signature** —
+the user never signs the outer transaction at all, so co-signing cannot be the source of
+consent here. Two separately-established properties stand in for it:
+
+- **No new custody.** Verified directly against current code: `quote.service.ts:173` passes
+  `taker: walletAddress` (the user's own wallet) into the router; the router's own built
+  calldata (`kyberswap-router.service.ts:204-205`) sets `sender`/`recipient` to that same
+  address, never `msg.sender`. A relayer submitting the identical calldata as `from`/
+  gas-payer therefore gains zero new custody — token movement is authorized entirely by the
+  user's own standing `approve()` to the router contract, exactly as it already is for a
+  self-paid trade. The relayer only ever pays gas and holds the sole signature on the
+  *outer* transaction envelope; it never holds an approval, a balance, or any claim on the
+  user's tokens.
+- **Real-time consent to *this specific quote*, right now** — an EIP-712 typed-data
+  signature (`buildRelayedSwapTypedData`/`verifyEvmTypedDataSignature`,
+  `packages/domain/src/evm-relayer.ts` / `packages/chain-adapters/src/signature.ts`) the
+  user's wallet signs before the relayer ever spends gas. This is a consent gate, not a
+  token-movement authorization — the user's own approval remains the sole source of that
+  authorization, unchanged from today. See `docs/GAS_RELAYER_PLAN.md`'s EVM section for the
+  full design, including why this needed genuinely new cryptographic infrastructure Solana's
+  relayer never needed at all.
+
+Same resolution as Solana's exception: a narrow, heavily-guarded, blast-radius-capped case
+(a hard per-chain gas-price *and* gas-units ceiling, a pre-broadcast simulation gate, a
+rollout allowlist), judged acceptable for the same reason, not a reason to weaken the
+general rule. **Built (2026-09-18) but not yet enabled on any real deployment** —
+`EVM_GAS_RELAYER_ENABLED` stays unset in production pending a funded adversarial pass and
+an explicit rollout decision; see `docs/GAS_RELAYER_PLAN.md`'s "Remaining work" for exactly
+what's left.

@@ -145,11 +145,14 @@ work.
      one.
    - **"Seamless" ≠ zero signing steps.** Privy's embedded wallet still requires the user to
      approve each transaction inside Privy's own modal — the same non-custodial signing
-     step Solana already has, just without a browser extension. This is *not* the (still
-     separately deferred, still-designed-but-inert) gasless relayer — conflating the two
-     would mean the backend co-signing transactions, which is exactly the custody boundary
-     docs/WALLET_SECURITY.md says to stop and reconsider before crossing. Keep these two
-     ideas explicitly separate when this is eventually scoped for real.
+     step Solana already has, just without a browser extension. This is *not* the EVM
+     gasless relayer (built 2026-09-18, see `docs/GAS_RELAYER_PLAN.md`'s EVM section — no
+     longer "deferred," though still inert pending a funded adversarial pass and rollout)
+     — conflating the two would mean the backend co-signing transactions, which is exactly
+     the custody boundary docs/WALLET_SECURITY.md says to stop and reconsider before
+     crossing. The relayer resolves that boundary differently (EIP-712 real-time consent,
+     never a co-signature) — see that doc's own EVM section for the full reasoning. Keep
+     these two ideas explicitly separate regardless.
 
 ## Sprint scope, as proposed (still contingent on the decisions above)
 

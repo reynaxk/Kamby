@@ -1,23 +1,23 @@
 # Gas relayer implementation plan
 
-**Status (2026-09-18): fully wired, fully tested including a real live devnet pass, still
-inert on every real deployment pending funding.** Originally locked in 2026-09-13 as a
-deliberately-unwired, shovel-ready design. As of 2026-09-17's fee/1-click/gas-abstraction
-build (see `C:\Users\admin\.claude\plans\flickering-imagining-twilight.md`, Piece 3), the
-previously "still-undesigned" transaction-construction half was built, both HTTP routes
-went live, and `GasRelayerService` was registered in `solana.module.ts`. On 2026-09-18 the
-devnet adversarial pass in "Remaining work" below actually ran for real — 6/6 scenarios
-passed against live devnet RPC, full log at `docs/devnet-adversarial-pass-2026-09-18.log`.
-This is no longer just a code-complete-but-disconnected design or an unverified one — it's
-implemented, unit-tested (21 tests), and adversarially proven against a real network. It's
-still safely inert on any real deployment today, but for an operational reason, not a
-design or verification gap: `SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY` is unset in
-production, so `GasRelayerService.feePayerPublicKey`/`relayerConnection` are both `null`,
-and both `SolanaQuoteService#createSponsoredQuote` and `#submitSponsoredTransaction` throw
-`UnprocessableEntityException` immediately as a result — not because nothing calls them.
-What remains is purely: fund a real relayer keypair on Railway, set
-`SOLANA_GAS_RELAYER_ENABLED=true`, and watch it through one real balance-replenishment
-cycle before Piece 4 (EVM gas abstraction) begins — see "Remaining work" below. See
+**Status (2026-09-18): Solana relayer live in production; EVM relayer built (Piece
+4a-4f) and inert pending funded testnet/mainnet verification (4g) and rollout (4h).** See
+the "Solana" sections below for that relayer's full history (design → build → real
+production incident → fix → live), and the "EVM" section below for the second relayer's
+design and current status.
+
+## Solana — live in production
+
+Originally locked in 2026-09-13 as a deliberately-unwired, shovel-ready design. As of
+2026-09-17's fee/1-click/gas-abstraction build (see
+`C:\Users\admin\.claude\plans\flickering-imagining-twilight.md`, Piece 3), the previously
+"still-undesigned" transaction-construction half was built, both HTTP routes went live, and
+`GasRelayerService` was registered in `solana.module.ts`. On 2026-09-18 the devnet
+adversarial pass in "Remaining work" below actually ran for real — 6/6 scenarios passed
+against live devnet RPC, full log at `docs/devnet-adversarial-pass-2026-09-18.log`. Later
+the same day, the relayer was funded and enabled in production for real — see "Operational
+rollout" in "Remaining work" below for the full account, including a real fund-
+misdirection incident found, reverted, and correctly re-fixed the same day. See
 `docs/WALLET_SECURITY.md`'s "Solana" section for how this fits the platform's broader
 "server never signs" principle, and why this is judged an acceptable, narrow,
 heavily-guarded exception rather than a violation of it.
@@ -402,6 +402,185 @@ task breakdown this list summarizes.
       tests in `SolanaTradePanel.test.tsx` (sponsored quote fetched instead of the normal
       one and Jito hidden; sign-only + correct submit call on success; the real error shown,
       not a stuck state, on failure).
+
+## EVM — built (Piece 4a-4f), inert pending 4g/4h
+
+**Status (2026-09-18): schema, config, core mechanics, the `/trade/relay` endpoint, the
+fee-reimbursement leg, and the frontend are all shipped and deployed to production — but
+`EVM_GAS_RELAYER_ENABLED` stays unset everywhere real, so none of it is reachable yet.**
+Unlike Solana, this is a second relayer built from scratch (see
+`C:\Users\admin\.claude\plans\flickering-imagining-twilight.md`, Piece 4, for the full
+research and design writeup) — the two relayers share no code, only the same overall
+custody discipline. See `docs/WALLET_SECURITY.md`'s "EVM" section for why this is a
+different *kind* of exception than Solana's, not just the same one on a different chain.
+
+### Why this is a genuinely different trust model, not "Solana again"
+
+Solana's relayer *co-signs* — the user's own signature is physically present in the same
+transaction, directly proving consent for that specific transaction. An EVM meta-transaction
+relayer **submits the entire transaction with only its own signature** — the user never
+signs the outer transaction at all. Two independently-established safety properties are
+needed where Solana only needed one:
+
+1. **No new custody** — established by calldata shape, verified directly against current
+   code (not assumed from the original plan): `quote.service.ts:173` passes
+   `taker: walletAddress` into the router; KyberSwap's calldata
+   (`kyberswap-router.service.ts:204-205`) sets `sender`/`recipient` to that same address,
+   not `msg.sender` — a relayer submitting the identical calldata as `from`/gas-payer gains
+   zero new custody, since token movement is authorized entirely by the user's own standing
+   `approve()` to the router contract.
+2. **Real-time consent to *this specific quote*, right now** — has zero cryptographic proof
+   unless something new provides it. An EIP-712 typed-data signature closes this gap — see
+   "What's built" below.
+
+### What's built
+
+- `packages/db/prisma/schema.prisma` — `TradeQuote` extended with
+  `sponsorshipRequested`/`relayerConsentSignature`/`relayerStatus`
+  (`EvmRelayerQuoteStatus`: `PENDING_CONSENT` → `CONSENT_RECEIVED` → `BROADCAST`/`FAILED`)/
+  `relayerNonce`/`relayerFailureReason`; `TradeTransaction` extended with
+  `sponsoredByRelayer`/`relayerFeePayer`, mirroring `SolanaTradeTransaction`'s own two
+  fields exactly. One migration (`20260918000000_evm_gas_relayer`), applied to production.
+- `apps/api/src/config/env.ts` — `EVM_GAS_RELAYER_ENABLED`/`_PRIVATE_KEY`/`_CHAINS`/
+  `_TEST_WALLET_ADDRESSES` plus **per-chain** `_MAX_GAS_PRICE_GWEI_<SLUG>`/
+  `_MAX_WEI_CEILING_<SLUG>` (unlike Solana's single ceiling — Base/Arbitrum/BNB gas
+  economics differ), validated in a fourth `superRefine` mirroring the Solana relayer's own
+  pattern exactly (`ENABLED` decoupled from key-presence; allowlist independent of
+  `ENABLED`). `getEvmGasRelayerConfig()` is the boot-safe accessor.
+- `packages/chain-adapters/src/signature.ts` — `verifyEvmTypedDataSignature`, EIP-712
+  alongside the existing EIP-191 `verifyEvmSignature`.
+- `packages/domain/src/evm-relayer.ts` — `buildRelayedSwapTypedData` (the one function that
+  builds the exact same typed-data object for both what the client signs and what the
+  server verifies against, so the two can never independently drift), plus a JSON-safe wire
+  form (`toWireTypedData`/`parseRelayedSwapTypedDataWire`/`RelayedSwapTypedDataWireSchema`)
+  — a real bug caught and fixed during design: `bigint` cannot survive `JSON.stringify` at
+  all, so the quote response's `value`/`chainId`/`expiry` fields are decimal strings over
+  the wire, converted back to real `bigint` only for the actual signing/verification calls.
+- `apps/api/src/trading/relayer/evm-relayer-nonce-manager.service.ts` — a hand-rolled
+  promise-chain mutex per chain (no new dependency — the whole primitive is "run after
+  whatever's currently at the front of the line finishes," which a plain promise chain
+  already expresses). Serializes only *submission* order (read pending nonce → sign →
+  submit), never confirmation order — multiple relayed trades can have transactions in
+  flight in the mempool simultaneously as long as they were submitted in strict, gap-free
+  order. Deliberately out of scope for launch: stuck-nonce recovery, speed-up/replacement-tx
+  logic — acceptable only because the quote row's `relayerNonce`/`relayerStatus`/
+  `updatedAt` carry enough for a human to manually diagnose a stuck sequence.
+- `apps/api/src/trading/relayer/evm-relayer-wallet.service.ts` — one `{publicClient,
+  walletClient, account}` triple per relayer-covered chain, with two deliberate design
+  choices worth naming explicitly: (1) an explicit, hand-built `Chain` object is bound to
+  both clients at construction — never left to viem's own implicit `eth_chainId`
+  auto-detection, since this signs and broadcasts real transactions; (2) the wallet
+  client's transport is plain `http(rpcUrl)`, **not** `createEvmTransport`'s
+  fallback-capable transport every other caller in this codebase uses for reads — that
+  helper's own doc comment is explicit that its "always retry the fallback, even past a
+  real rejection" behavior is safe only because every existing caller is read-only; this is
+  the first real caller that calls `sendRawTransaction`, where blindly retrying a broadcast
+  against a second RPC endpoint (different mempool state, possibly already-accepted) is a
+  materially different risk than retrying a read.
+- `apps/api/src/trading/relayer/evm-gas-relayer.service.ts` — `simulate` (a pre-broadcast
+  `eth_call` dry run, **as the relayer's own address**, not the user's — a user-perspective
+  simulation could miss `msg.sender`-sensitive router logic), `checkGasCeiling` (a gas-price
+  ceiling *and* an independent gas-units ceiling — a technically-successful-but-
+  pathologically-expensive call would pass a price-only check), `broadcast` (nonce
+  acquisition + sign + submit, serialized via the nonce manager above).
+- `apps/api/src/trading/relayer/evm-gas-relayer-quote.service.ts` —
+  `attachSponsorshipIfEligible` (wraps `QuoteService#createQuote`'s already-built response;
+  computes a cheap `sponsorshipAvailable` boolean on *every* quote regardless of whether
+  sponsorship was requested — split out specifically so the frontend can decide whether to
+  even show a gasless toggle without a speculative extra request — and additionally attaches
+  the EIP-712 object plus persists consent-tracking state only when actually requested) and
+  `relay` (`POST /trade/relay`'s handler — verifies the EIP-712 signature against the
+  persisted row, never anything the client echoes back; a concurrency-safe conditional
+  update claims the row before any gas is spent; simulates; checks the ceiling; broadcasts;
+  persists a real `TradeTransaction` row via the exact same `toDto`/P2002-idempotency
+  machinery `TransactionService#submitTransaction` already uses for self-paid trades).
+  19 tests, including two real end-to-end EIP-712 signature verifications (a genuine
+  `viem` account signs, the genuine `verifyEvmTypedDataSignature` verifies — not a mocked
+  boolean either direction).
+- **Fee-reimbursement leg** (`EvmGasRelayerQuoteService#submitFeeLegIfDue`) — Option A,
+  confirmed via explicit product sign-off 2026-09-18 (two relayer-submitted transactions,
+  preserving the guaranteed-USDC-fee guarantee on both BUY and SELL, at roughly double the
+  relayer's gas cost per sponsored trade). The rejected alternative (KyberSwap's own
+  embedded `chargeFeeBy` fee mechanism — confirmed live and already used today for
+  non-guaranteed-USDC markets, `kyberswap-router.service.ts:207-209`) was ruled out
+  specifically because it charges the fee in the *input* token: that coincidentally
+  preserves the guarantee for BUY (input is already USDC) but breaks it for SELL (input is
+  the traded token) — a real, side-dependent product trade-off, not a wash.
+  Broadcasts the fee transaction only after the swap's own `CONFIRMED` transition has
+  already been observed for real — never speculatively — so a swap that ultimately reverts
+  never triggers a fee charge for a trade that didn't happen. Triggered reactively from
+  `TransactionService#getTransaction`'s existing on-demand status-refresh path, deliberately
+  **not** from `apps/workers`' background sweep even though that sweep does the equivalent
+  work for self-paid trades: `EvmRelayerNonceManagerService` only serializes broadcasts
+  *within one process* — a second process (workers) broadcasting from the same relayer key
+  would have no way to coordinate nonces with the API process and could race it. A
+  concurrency-safe claim (mirroring the consent-claim pattern above) guards against two
+  concurrent observers (e.g. two open tabs polling the same trade) both broadcasting the fee
+  leg. **Named, not silently accepted, gap**: this only runs reactively, when something
+  re-checks the row's status — a sponsored trade nobody ever re-checks after its swap
+  confirms never has its fee leg submitted, the same gap the self-paid guaranteed-USDC flow
+  already has today for an abandoned client-side fee submission. A periodic background
+  backstop closing this for both flows is a deliberate follow-up, not built here.
+- `apps/web/components/trading/TradePanel.tsx` — a `GaslessToggle` (the same component
+  `SolanaTradePanel.tsx` uses, given a `label` prop instead of hardcoded "no SOL needed"
+  text — Base/Arbitrum use ETH, BNB Chain uses BNB, so a single hardcoded token name would
+  have been a real, wrong-token-name bug), rendered **only once a quote has confirmed
+  `sponsorshipAvailable: true`** — invisible on every deployment today, since the relayer
+  isn't enabled anywhere yet, rather than showing a toggle that would silently do nothing
+  when switched on. Consent is signed via Privy's real `useSignTypedData` hook — verified
+  against the actual installed package's type declarations (`SignTypedDataParams`/
+  `TypedMessage`) before writing the call, not assumed from memory. Falls through
+  unconditionally to the existing, completely unmodified self-paid flow whenever a quote
+  isn't sponsorship-eligible. The separate guaranteed-USDC fee UI (`FeeTransferSection`)
+  shows a passive "Kamby is sending the platform fee" message with no button for a
+  sponsored trade, never the self-paid "Send platform fee" action (there's nothing for the
+  client to sign in that case). 13 gasless-specific tests.
+
+### Deployed, still fully inert — the same operational pattern as Solana's own rollout
+
+Deployed to production 2026-09-18 (`git` commit `c31d9f4`; Railway `api` + Cloudflare
+`kambesh.com`). One real, live-caught incident during that deploy, fixed the same session
+and worth recording here as precedent: Prisma selects every column of a model by default,
+so deploying the API with the new `TradeQuote`/`TradeTransaction` columns *before* running
+`prisma migrate deploy` put every EVM quote/trade request at real risk of a `P2022` "column
+does not exist" error — not just the new gasless path, the entire self-paid EVM flow too,
+the same class of incident the Solana relayer's own rollout hit with its own missing
+migrations. Caught before any real error was observed in production logs; the user ran the
+migration within minutes of the deploy completing. **Sequencing lesson, worth restating for
+whoever ships the next schema-touching deploy**: run the migration *before or immediately
+alongside* the code deploy that depends on it, never treat "the app boots cleanly" as proof
+the schema is caught up — a boot-time success only proves the app *starts*, not that every
+query it will actually run once real traffic arrives is schema-safe.
+
+### Remaining work
+
+- **4g — the real adversarial pass.** Two tracks, since KyberSwap has no testnet at all
+  (confirmed live against its own docs during planning — no Base Sepolia or any other
+  testnet in its documented chain list):
+  - **Track 1 (Base Sepolia, relayer mechanics only, no KyberSwap dependency)** — script
+    ready: `apps/api/scripts/evm-relayer-adversarial-pass-base-sepolia.ts` (gitignored
+    `.base-sepolia-keys/` directory, no database dependency at all — see the script's own
+    header comment for exactly why Track 1's scope needs none). Blocked on funding: a fresh
+    relayer keypair generated 2026-09-18, address printed to the operator, needs ~0.01 test
+    ETH from a Base Sepolia faucet before the real scenarios (a genuine broadcast +
+    on-chain confirmation, simulate catching an oversized-transfer revert with the
+    relayer's real balance proven unchanged, the gas-ceiling gate rejecting an
+    otherwise-legitimate transfer, 3 genuinely concurrent broadcasts cross-checked against
+    real on-chain nonces, and the real EIP-712 sign/verify round trip including
+    wrong-signer and tampered-message rejections) can run. Not yet funded as of this
+    writing.
+  - **Track 2 (Base mainnet, allowlist-gated, real tiny trades)** — the only way to prove
+    the actual KyberSwap-routed path for real, since that dependency simply isn't deployed
+    anywhere else. Needs its own explicit sign-off (real, if small, money deliberately at
+    risk) before it runs — see the Piece 4 plan's "Decisions needing explicit sign-off" #6.
+- **4h — rollout**: fund a real relayer key on the configured launch chain, set
+  `EVM_GAS_RELAYER_ENABLED=true` with `EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES` populated
+  from day one (learning directly from Solana's own sequencing, where the equivalent gate
+  was added only *after* already going live to everyone once), wire a balance-monitoring
+  alert, set final per-chain gas ceilings from 4g's real Track 2 data rather than guessing
+  them in advance. Several decisions the plan names explicitly rather than resolves
+  silently: which chain launches first (Base recommended), a shared vs. per-chain relayer
+  key, exact ceiling values.
 
 ## Explicitly out of scope for this plan
 
