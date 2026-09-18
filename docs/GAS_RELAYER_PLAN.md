@@ -576,11 +576,22 @@ query it will actually run once real traffic arrives is schema-safe.
 - **4h — rollout**: fund a real relayer key on the configured launch chain, set
   `EVM_GAS_RELAYER_ENABLED=true` with `EVM_GAS_RELAYER_TEST_WALLET_ADDRESSES` populated
   from day one (learning directly from Solana's own sequencing, where the equivalent gate
-  was added only *after* already going live to everyone once), wire a balance-monitoring
-  alert, set final per-chain gas ceilings from 4g's real Track 2 data rather than guessing
-  them in advance. Several decisions the plan names explicitly rather than resolves
-  silently: which chain launches first (Base recommended), a shared vs. per-chain relayer
-  key, exact ceiling values.
+  was added only *after* already going live to everyone once), set final per-chain gas
+  ceilings from 4g's real Track 2 data rather than guessing them in advance. Several
+  decisions the plan names explicitly rather than resolves silently: which chain launches
+  first (Base recommended), a shared vs. per-chain relayer key, exact ceiling values.
+  - [x] **Balance-monitoring alert.** Closed 2026-09-18, ahead of the rest of 4h since it
+        needed no funding or product decision. `apps/workers/src/trading/
+        evm-relayer-balance-monitor.ts` (`checkEvmRelayerBalance`) mirrors
+        `solana/treasury-balance-monitor.ts`'s own reasoning, deliberately scoped to this
+        workers deployment's own single configured EVM chain rather than a multi-chain map
+        (`apps/workers` runs one process per chain, unlike `apps/api`'s single multi-chain
+        process — see `main.ts`'s own `CHAIN_RPC_URL`/`CHAIN_IDENTIFIER` gating). New
+        `EVM_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY`/`_WARN_THRESHOLD_WEI`/
+        `_BALANCE_MONITOR_INTERVAL_SECONDS` env vars (`apps/workers/src/config/env.ts`),
+        reading only the public key, never the secret `apps/api` holds for the same wallet.
+        Required adding `viem` as a direct `apps/workers` dependency (previously only
+        available transitively through `@kamby/chain-adapters`). 5 new tests.
 
 ## Explicitly out of scope for this plan
 

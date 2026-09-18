@@ -11,6 +11,7 @@ import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
 import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
 import { SolanaSweepService } from './solana/solana-sweep';
 import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
+import { checkEvmRelayerBalance } from './trading/evm-relayer-balance-monitor';
 import { TradeSweepService } from './trading/sweep';
 
 /**
@@ -194,6 +195,43 @@ async function main(): Promise<void> {
     logger.warn({ tradeChainId }, 'Trade sweep disabled: CHAIN_IDENTIFIER is not a parseable eip155 chain id');
   }
 
+  // EVM gas relayer balance monitoring — see trading/evm-relayer-balance-monitor.ts's own
+  // doc comment. Independent of tradeSweepTicker's tradeChainId gating above (a relayer
+  // balance check needs only a chain id string for logging, not a parsed numeric one) and
+  // of the SOLANA_ENABLED block below — this deployment's own single configured EVM chain
+  // is all it ever watches. Opt-in via EVM_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY alone, same
+  // "unset = skip cleanly" convention every other optional monitor here already follows.
+  let evmRelayerBalanceMonitorTicker: NodeJS.Timeout | undefined;
+  if (env.EVM_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY) {
+    let evmRelayerMonitorRunning = false;
+    const runEvmRelayerMonitor = async (): Promise<void> => {
+      if (evmRelayerMonitorRunning) {
+        logger.warn('Skipped EVM gas relayer balance monitor tick: previous tick still running');
+        return;
+      }
+      evmRelayerMonitorRunning = true;
+      try {
+        await checkEvmRelayerBalance(
+          env.CHAIN_RPC_URL,
+          env.CHAIN_RPC_URL_FALLBACK ?? null,
+          env.EVM_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY!,
+          BigInt(env.EVM_GAS_RELAYER_WARN_THRESHOLD_WEI),
+          logger,
+        );
+      } catch (error) {
+        logger.error({ err: error }, 'EVM gas relayer balance monitor tick failed — will retry next tick');
+      } finally {
+        evmRelayerMonitorRunning = false;
+      }
+    };
+
+    void runEvmRelayerMonitor();
+    evmRelayerBalanceMonitorTicker = setInterval(() => void runEvmRelayerMonitor(), env.EVM_GAS_RELAYER_BALANCE_MONITOR_INTERVAL_SECONDS * 1000);
+    evmRelayerBalanceMonitorTicker.unref();
+  } else {
+    logger.info('EVM gas relayer balance monitoring disabled (EVM_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY unset)');
+  }
+
   // Solana's counterpart to the EVM trade sweep above — see solana/solana-sweep.ts's own
   // doc comment. Entirely independent of the EVM ticker's chainId gating; gated on
   // SOLANA_ENABLED alone, same convention apps/api's own Solana feature flag already uses.
@@ -319,6 +357,7 @@ async function main(): Promise<void> {
     clearInterval(heartbeat);
     if (marketTicker) clearInterval(marketTicker);
     if (tradeSweepTicker) clearInterval(tradeSweepTicker);
+    if (evmRelayerBalanceMonitorTicker) clearInterval(evmRelayerBalanceMonitorTicker);
     if (solanaSweepTicker) clearInterval(solanaSweepTicker);
     if (treasuryMonitorTicker) clearInterval(treasuryMonitorTicker);
     if (pnlSweepTicker) clearInterval(pnlSweepTicker);

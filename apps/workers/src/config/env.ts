@@ -72,6 +72,23 @@ export const EnvSchema = z.object({
   SOLANA_GAS_RELAYER_WARN_THRESHOLD_LAMPORTS: z.coerce.number().int().positive().default(100_000_000),
 
   /**
+   * EVM gas relayer balance monitoring — the EVM counterpart to the Solana treasury monitor
+   * above, see trading/evm-relayer-balance-monitor.ts's own doc comment for why this didn't
+   * exist until now. Deliberately scoped to a single public key, not a multi-chain map:
+   * this deployment only ever watches its own configured chain (CHAIN_RPC_URL/
+   * CHAIN_IDENTIFIER above). Reads only the public key, never the secret apps/api holds for
+   * the same wallet.
+   */
+  EVM_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY: z.string().min(1).optional(),
+  /** A placeholder default, not derived from a real per-chain ceiling the way Solana's own
+   *  default is: apps/api's EVM_GAS_RELAYER_MAX_WEI_CEILING_<SLUG> is deliberately left
+   *  unset pending real 4g adversarial-pass data (see docs/GAS_RELAYER_PLAN.md's EVM
+   *  section) — there's no single canonical per-trade ceiling to derive headroom from yet.
+   *  0.005 ETH — revisit once that data exists. */
+  EVM_GAS_RELAYER_WARN_THRESHOLD_WEI: z.coerce.number().int().positive().default(5_000_000_000_000_000),
+  EVM_GAS_RELAYER_BALANCE_MONITOR_INTERVAL_SECONDS: z.coerce.number().int().positive().default(300),
+
+  /**
    * Pump.fun bonding-curve ingestion (FRESH/NEAR_GRADUATED/JUST_GRADUATED trenches) — see
    * docs/TRADING.md#pump-fun-trenches. Deliberately a *separate* flag from SOLANA_ENABLED
    * above: this is a genuinely different, riskier subsystem (a persistent WebSocket log
