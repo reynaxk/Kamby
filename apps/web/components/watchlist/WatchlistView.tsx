@@ -1,6 +1,6 @@
 'use client';
 
-import type { WatchedToken } from '@kamby/domain';
+import { CHAIN_REGISTRY, DEFAULT_CHAIN_SLUG, type WatchedToken, slugForIdentifier } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -89,10 +89,13 @@ export function WatchlistView() {
 
   return (
     <div className="flex flex-col gap-3">
-      {items.map((item) => (
+      {items.map((item) => {
+        // Chain-aware as of 2026-09-16 (BNB Chain going live).
+        const chainSlug = slugForIdentifier(item.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
+        return (
         <Surface key={item.tokenAddress} className="flex items-center gap-3 p-4">
           <Link
-            href={`/market/${item.tokenAddress}`}
+            href={`/market/${chainSlug}/${item.tokenAddress}`}
             className="flex min-w-0 flex-1 items-center gap-4"
           >
             <TokenIdentity symbol={item.symbol} name={item.name} logoUrl={item.logoUrl} />
@@ -109,6 +112,7 @@ export function WatchlistView() {
           </Link>
           <WatchButton
             address={item.tokenAddress}
+            chainId={CHAIN_REGISTRY[chainSlug].numericId}
             initialWatching={true}
             compact
             className="ml-1"
@@ -117,7 +121,8 @@ export function WatchlistView() {
             }}
           />
         </Surface>
-      ))}
+        );
+      })}
       {cursor && (
         <button
           type="button"

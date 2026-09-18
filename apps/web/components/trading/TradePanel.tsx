@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button, cn } from '@kamby/ui';
-import { isQuoteExpired, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
+import { CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
-import { base } from 'wagmi/chains';
-import { sendTransaction, waitForTransactionReceipt, writeContract } from 'wagmi/actions';
+import { sendTransaction, writeContract } from 'wagmi/actions';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
+import { explorerName, explorerTxUrl } from '@/lib/explorer';
 import { getQuote, getTransaction, submitFeeTransaction, submitTransaction } from '@/lib/trading-client';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
@@ -16,6 +16,12 @@ import { SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
 
 export interface TradePanelProps {
+  /** The real chain this specific token trades on — see lib/explorer.ts and
+   *  ConnectWalletButton's own `expectedChainId` doc comment. Required, not defaulted to
+   *  Base: added 2026-09-16 for BNB Chain going live, deliberately forcing every call site
+   *  to be reviewed rather than silently inheriting a wrong Base assumption once real BNB
+   *  tokens exist. */
+  chainId: number;
   tokenAddress: string;
   tokenSymbol: string | null;
   tokenDecimals: number;
@@ -37,6 +43,46 @@ function friendlyError(err: unknown): string {
 }
 
 /**
+ * A 20% buffer on top of the quote provider's own gas estimate — real incident, 2026-09-16:
+ * two embedded-wallet BUY attempts both reverted on-chain after consuming ~98% of the
+ * *unbuffered* quoted gas limit (406,757/415,912 and 282,474/287,581 gas — confirmed via the
+ * real transaction receipts), the signature of running out of gas mid-route on a multi-hop
+ * aggregator swap, not genuine slippage. The same wallet's earlier trade via Trust Wallet
+ * (an external extension) succeeded the same night — extension wallets commonly apply their
+ * own gas-limit safety margin before broadcasting, independent of what a dApp requests;
+ * Privy's embedded signer does not, and sends the quote's raw `gas` value exactly as given.
+ * `null`/`undefined` (no quoted gas at all) stays `undefined`, letting wagmi fall back to its
+ * own `eth_estimateGas` call, unaffected by this fix.
+ */
+/** 50%, raised from 20% on 2026-09-17 — a real BNB Chain BUY reverted at 98% of its gas
+ *  limit (316,166 / 322,597 used) despite the 20% buffer, confirmed via an unconstrained
+ *  `eth_call` replay of the exact same transaction at the prior block: it succeeded with no
+ *  gas ceiling, proving the trade logic and on-chain state were both fine — this was purely
+ *  underfunded gas, the same failure shape as the 2026-09-16 Base incident this buffer was
+ *  built for, just needing more headroom on this chain/route. A generous limit costs nothing
+ *  real: EVM only charges for gas actually consumed, never the limit itself, so over-buffering
+ *  has no downside beyond the wallet needing enough native-token balance to cover the
+ *  worst-case ceiling. */
+function withGasBuffer(gas: string | null | undefined): bigint | undefined {
+  if (!gas) return undefined;
+  return (BigInt(gas) * 150n) / 100n;
+}
+
+/**
+ * Standard "infinite approval" pattern, added 2026-09-16 — approving exactly
+ * `quote.inputAmount` (the previous behavior) meant every single trade re-approved from
+ * scratch, since the allowance was always fully consumed by the trade it was set for. That
+ * compounded the wallet-interaction friction the user complained about the same night (see
+ * lib/privy-config.ts's `showWalletUIs` doc comment for the other half of that fix).
+ * Approving the max uint256 once means every later trade of the *same* input token skips
+ * the approve step entirely — the same pattern virtually every major DEX/aggregator uses.
+ * Real tradeoff, not free: the router contract (`quote.approvalSpender`) keeps standing
+ * permission to pull up to this amount, not just one trade's worth, for as long as the
+ * approval stands — accepted here as the standard, well-understood cost of that speedup.
+ */
+const MAX_UINT256 = 2n ** 256n - 1n;
+
+/**
  * The one shared trade flow every entry point (token page, activity "Trade" action) opens
  * — see docs/TRADING.md#trading-ui. Review → Confirm & sign → wallet popup → submitted →
  * pending → confirmed/failed, never skipping a step and never showing a false success.
@@ -45,6 +91,7 @@ function friendlyError(err: unknown): string {
  * thing that ever touches a private key. See docs/WALLET_SECURITY.md.
  */
 export function TradePanel({
+  chainId,
   tokenAddress,
   tokenSymbol,
   tokenDecimals,
@@ -54,8 +101,10 @@ export function TradePanel({
   initialSide = 'BUY',
   onClose,
 }: TradePanelProps) {
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected, chainId: walletChainId } = useAccount();
   const walletVerification = useWalletVerification();
+  const chainSlug = slugForChainId(chainId);
+  const chainName = chainSlug ? CHAIN_REGISTRY[chainSlug].name : 'the right chain';
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
@@ -94,8 +143,8 @@ export function TradePanel({
   const inputTokenSymbol = side === 'BUY' ? quoteTokenSymbol : tokenSymbol;
   const inputTokenDecimals = side === 'BUY' ? quoteTokenDecimals : tokenDecimals;
 
-  const onBase = chainId === base.id;
-  const canQuote = isConnected && onBase && walletVerification.status === 'verified';
+  const onCorrectChain = walletChainId === chainId;
+  const canQuote = isConnected && onCorrectChain && walletVerification.status === 'verified';
 
   // Debounced quote fetch — never fires for an empty/invalid amount, so opening the panel
   // never itself triggers an API call (see docs/TRADING.md#quote-system).
@@ -112,7 +161,7 @@ export function TradePanel({
     setApproved(false);
     setPriceImpactAcknowledged(false);
     const timeout = setTimeout(() => {
-      getQuote({ side, tokenAddress, walletAddress: address, amount, slippageBps })
+      getQuote({ chainId, side, tokenAddress, walletAddress: address, amount, slippageBps })
         .then((result) => {
           setQuote(result);
           setQuoteStatus('ready');
@@ -125,7 +174,7 @@ export function TradePanel({
     }, 500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canQuote, side, amount, slippageBps, address, tokenAddress, refreshTick]);
+  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick]);
 
   // Ticks once a second only while a quote is live, purely to re-render the expiry check.
   useEffect(() => {
@@ -166,27 +215,45 @@ export function TradePanel({
           // A transient read failure — the next tick tries again; the transaction record
           // itself is unaffected.
         });
-    }, 4000);
+    }, 1500); // was 4000 — Base's own block time is ~2s, so the longer interval meant the UI
+    // could lag a real on-chain confirmation by up to several extra perceived seconds.
   }
 
+  /**
+   * No longer waits for the approve transaction's own confirmation before moving on — real
+   * speedup, 2026-09-16, the other half of the "final fraction of a second" ask (see
+   * withGasBuffer's and the polling-interval doc comments for the rest of that night's
+   * work). Nonce ordering already guarantees the chain executes this wallet's approve
+   * before its swap regardless of how quickly they're submitted back to back — the same
+   * sender, sequential nonces, one block producer. Chains straight into
+   * `handleConfirmAndSign()` the moment the approve is *broadcast* (not confirmed), so a
+   * user only ever takes one action for an approve-then-swap trade instead of two. Real
+   * tradeoff, accepted deliberately: if the approve itself somehow reverts, the swap signed
+   * right after it will fail too (its expected allowance was never actually set) — a wasted
+   * bit of gas on a doomed transaction, versus the previous guarantee that the swap was
+   * never even attempted until the approve was proven to succeed. The manual "2. Confirm &
+   * sign" button below still exists as the fallback: if this auto-chained attempt fails for
+   * any reason, `handleConfirmAndSign`'s own catch returns to the `review` step with
+   * `approved` already `true`, so a retry never needs a second approval.
+   */
   async function handleApprove() {
     if (!quote?.approvalSpender) return;
     setFlowError(null);
     setStep('approving');
     try {
-      const hash = await writeContract(wagmiConfig, {
+      await writeContract(wagmiConfig, {
         address: inputTokenAddress as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
-        args: [quote.approvalSpender as `0x${string}`, BigInt(quote.inputAmount)],
+        args: [quote.approvalSpender as `0x${string}`, MAX_UINT256],
       });
-      await waitForTransactionReceipt(wagmiConfig, { hash });
       setApproved(true);
-      setStep('review');
     } catch (err) {
       setFlowError(friendlyError(err));
       setStep('review');
+      return;
     }
+    await handleConfirmAndSign();
   }
 
   async function handleConfirmAndSign() {
@@ -204,7 +271,7 @@ export function TradePanel({
         to: quote.unsignedTx.to as `0x${string}`,
         data: quote.unsignedTx.data as `0x${string}`,
         value: BigInt(quote.unsignedTx.value),
-        gas: quote.unsignedTx.gas ? BigInt(quote.unsignedTx.gas) : undefined,
+        gas: withGasBuffer(quote.unsignedTx.gas),
         maxFeePerGas: quote.unsignedTx.maxFeePerGas ? BigInt(quote.unsignedTx.maxFeePerGas) : undefined,
         maxPriorityFeePerGas: quote.unsignedTx.maxPriorityFeePerGas ? BigInt(quote.unsignedTx.maxPriorityFeePerGas) : undefined,
       });
@@ -228,7 +295,19 @@ export function TradePanel({
    *  handleConfirmAndSign so a retry (from the record-failed step) can call this directly
    *  with the same hash, never re-signing or re-broadcasting. Safe to call more than once:
    *  submission is idempotent on (quoteId, txHash) — see
-   *  docs/TRADING.md#transaction-submission. */
+   *  docs/TRADING.md#transaction-submission.
+   *
+   *  Real 1-click, added alongside approve→swap's own auto-chain: once the swap is
+   *  successfully recorded, immediately request the guaranteed-USDC fee signature too
+   *  (see docs/TRADING.md#guaranteed-usdc-fees) rather than waiting for a second explicit
+   *  click — this reverses the previous "never auto-fire, so a second popup never
+   *  surprises the user" choice, replaced by the upfront disclosure in the review step
+   *  below. On failure, `handleSignFeeTransfer` already falls back to exactly today's
+   *  manual "Send platform fee" button (`FeeTransferSection`), so the swap's own success
+   *  is never affected. Naturally covers the retry path too (`handleRetryRecording`),
+   *  since the trigger lives inside this function's own success branch either way — no
+   *  extra flag needed to avoid double-firing (a fee transfer can only ever reach this
+   *  point once, right after the *first* successful recording). */
   async function recordSubmittedTransaction(hash: string, quoteId: string, walletAddress: string) {
     try {
       const recorded = await submitTransaction({ quoteId, walletAddress, txHash: hash });
@@ -236,6 +315,9 @@ export function TradePanel({
       setPendingHash(null);
       setStep('pending');
       pollTransactionStatus(recorded.id);
+      if (quote?.feeUnsignedTx) {
+        await handleSignFeeTransfer(recorded);
+      }
     } catch (err) {
       // The trade WAS broadcast — only recording it failed. Keep the hash so the user can
       // verify it themselves and so a retry never needs a new signature.
@@ -253,11 +335,16 @@ export function TradePanel({
   }
 
   /** The second signature for a guaranteed-USDC-fee trade — see
-   *  docs/TRADING.md#guaranteed-usdc-fees. A user-initiated action (an explicit button, not
-   *  auto-fired after the swap), so a second wallet popup never appears as a surprise. Only
-   *  ever reachable once `transaction` exists, i.e. after the swap itself has broadcast. */
-  async function handleSignFeeTransfer() {
-    if (!quote?.feeUnsignedTx || !transaction) return;
+   *  docs/TRADING.md#guaranteed-usdc-fees. Takes the transaction explicitly rather than
+   *  reading the `transaction` state variable: this is auto-fired from
+   *  `recordSubmittedTransaction` the instant a trade is recorded, in the same tick
+   *  `setTransaction` is called — React state hasn't flushed yet at that point, so a
+   *  closure read of `transaction` would still see the *previous* (likely `null`) value.
+   *  The manual "Send platform fee" button (`FeeTransferSection`, only ever rendered once
+   *  `transaction` state is genuinely non-null) passes the same state value explicitly too,
+   *  so there's exactly one code path, not two. */
+  async function handleSignFeeTransfer(tx: TradeTransactionDto) {
+    if (!quote?.feeUnsignedTx) return;
     setFeeSignError(null);
     setFeeSignState('signing');
 
@@ -267,7 +354,7 @@ export function TradePanel({
         to: quote.feeUnsignedTx.to as `0x${string}`,
         data: quote.feeUnsignedTx.data as `0x${string}`,
         value: BigInt(quote.feeUnsignedTx.value),
-        gas: quote.feeUnsignedTx.gas ? BigInt(quote.feeUnsignedTx.gas) : undefined,
+        gas: withGasBuffer(quote.feeUnsignedTx.gas),
         maxFeePerGas: quote.feeUnsignedTx.maxFeePerGas ? BigInt(quote.feeUnsignedTx.maxFeePerGas) : undefined,
         maxPriorityFeePerGas: quote.feeUnsignedTx.maxPriorityFeePerGas ? BigInt(quote.feeUnsignedTx.maxPriorityFeePerGas) : undefined,
       });
@@ -278,7 +365,7 @@ export function TradePanel({
       return;
     }
 
-    await recordFeeTransaction(hash, transaction.id);
+    await recordFeeTransaction(hash, tx.id);
   }
 
   /** Same split-out-for-retry reasoning as recordSubmittedTransaction above: once the fee
@@ -326,16 +413,16 @@ export function TradePanel({
     return (
       <Panel title="Trade" onClose={onClose}>
         <p className="font-body text-sm text-ink-600">Connect a wallet to trade — Kamby never holds your funds or signs on your behalf.</p>
-        <ConnectWalletButton />
+        <ConnectWalletButton expectedChainId={chainId} />
       </Panel>
     );
   }
 
-  if (!onBase) {
+  if (!onCorrectChain) {
     return (
       <Panel title="Trade" onClose={onClose}>
-        <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade.</p>
-        <ConnectWalletButton />
+        <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade — it needs to be on {chainName}.</p>
+        <ConnectWalletButton expectedChainId={chainId} />
       </Panel>
     );
   }
@@ -363,15 +450,15 @@ export function TradePanel({
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
     return (
       <Panel title="Trade" onClose={onClose}>
-        <TradeStatusView step={step} transaction={transaction} chainId={base.id} onDone={resetToForm} />
+        <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} />
         {quote?.feeUnsignedTx && transaction && (
           <FeeTransferSection
             transaction={transaction}
             feeSignState={feeSignState}
             feeSignError={feeSignError}
             feePendingHash={feePendingHash}
-            chainId={base.id}
-            onSign={() => void handleSignFeeTransfer()}
+            chainId={chainId}
+            onSign={() => void handleSignFeeTransfer(transaction)}
             onRetryRecording={handleRetryFeeRecording}
           />
         )}
@@ -385,7 +472,7 @@ export function TradePanel({
   // shouldn't be casually walked away from; retrying is cheap and safe (idempotent on the
   // backend), so that's the only way forward from here.
   if (step === 'record-failed') {
-    const explorerUrl = pendingHash ? explorerTxUrl(base.id, pendingHash) : null;
+    const explorerUrl = pendingHash ? explorerTxUrl(chainId, pendingHash) : null;
     return (
       <Panel title="Trade" onClose={onClose}>
         <div className="space-y-3 text-center">
@@ -395,7 +482,7 @@ export function TradePanel({
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           {explorerUrl && (
             <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
-              View on Basescan
+              View on {explorerName(chainId)}
             </a>
           )}
           <Button type="button" onClick={handleRetryRecording} className="w-full">
@@ -413,6 +500,13 @@ export function TradePanel({
     return (
       <Panel title="Review trade" onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined}>
         <QuoteSummary quote={quote} />
+        {quote.feeUnsignedTx && (
+          <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
+            {quote.requiresApproval
+              ? "This trade needs up to 3 quick wallet approvals — token approval (once), the swap, and Kamby's platform fee."
+              : "This trade needs 2 quick wallet approvals — the swap, then Kamby's platform fee."}
+          </p>
+        )}
         {isExpired && (
           <div className="rounded-lg bg-down/10 px-3 py-2 font-body text-xs text-down">
             This quote expired. <button type="button" className="underline" onClick={() => { setRefreshTick((n) => n + 1); setStep('form'); }}>Refresh it</button> before continuing.
@@ -466,7 +560,11 @@ export function TradePanel({
             }}
             className={cn(
               'flex-1 rounded-md py-1.5 font-body text-sm font-semibold transition-colors',
-              side === option ? (option === 'BUY' ? 'bg-up text-white' : 'bg-down text-white') : 'text-ink-600',
+              // bg-up text-black, not text-white — same pairing as Button's own `buy`
+              // variant: Void's `up` is a bright neon green that white text can't sit on
+              // readably (~1.3:1 contrast). `down` stays white — its Void value is bright
+              // but saturated enough to still read at ~3.9:1.
+              side === option ? (option === 'BUY' ? 'bg-up text-black' : 'bg-down text-white') : 'text-ink-600',
             )}
           >
             {option === 'BUY' ? 'Buy' : 'Sell'}
@@ -544,7 +642,7 @@ function TradeStatusView({
       {transaction?.failureReason && <p className="font-body text-xs text-ink-600">{transaction.failureReason}</p>}
       {explorerUrl && (
         <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
-          View on Basescan
+          View on {explorerName(chainId)}
         </a>
       )}
       {(step === 'confirmed' || step === 'failed') && (
@@ -588,7 +686,7 @@ function FeeTransferSection({
         {feeSignError && <p className="font-body text-xs text-ink-600">{feeSignError}</p>}
         {explorerUrl && (
           <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
-            View on Basescan
+            View on {explorerName(chainId)}
           </a>
         )}
         <Button type="button" variant="secondary" onClick={onRetryRecording} className="w-full">
@@ -623,14 +721,9 @@ function FeeTransferSection({
       {transaction.feeFailureReason && <p className="font-body text-xs text-ink-600">{transaction.feeFailureReason}</p>}
       {explorerUrl && (
         <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
-          View fee transfer on Basescan
+          View fee transfer on {explorerName(chainId)}
         </a>
       )}
     </div>
   );
-}
-
-function explorerTxUrl(chainId: number, txHash: string): string | null {
-  if (chainId === base.id) return `https://basescan.org/tx/${txHash}`;
-  return null;
 }

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
-import { LiFiSwapRouter } from './router/li-fi-router.service';
-import { OneInchSwapRouter } from './router/one-inch-router.service';
-import { MetaAggregatorSwapRouter } from './router/meta-aggregator-router.service';
+import { KyberSwapRouter } from './router/kyberswap-router.service';
+import { MultiChainSwapRouter } from './router/multi-chain-swap-router.service';
+import { OpenOceanRouter } from './router/openocean-router.service';
 import { SWAP_ROUTER } from './router/swap-router.token';
 import { QuoteService } from './quote.service';
 import { SafetyService } from './safety.service';
@@ -12,11 +12,14 @@ import { TransactionService } from './transaction.service';
 /**
  * Owns swap quoting, transaction preparation/tracking, and trading fees — see
  * docs/TRADING.md. Never signs a transaction (see docs/WALLET_SECURITY.md); the router
- * adapter is the only place that knows which aggregator(s) Kamby integrates with — see
- * docs/TRADING.md#provider. `LiFiSwapRouter`/`OneInchSwapRouter` are registered as plain
- * providers (not bound to `SWAP_ROUTER` themselves) purely so `MetaAggregatorSwapRouter`
- * can have both injected and race them — nothing else in this module reaches either
- * directly.
+ * adapter is the only place that knows which aggregator Kamby integrates with — see
+ * docs/TRADING.md#provider. `MultiChainSwapRouter` is bound to `SWAP_ROUTER` as of
+ * 2026-09-15 — it dispatches each request to whichever of `KyberSwapRouter` (Base/Arbitrum)
+ * or `OpenOceanRouter` (BNB Chain, added the same day) actually covers that request's
+ * chain; see that class's own doc comment for why this is a per-chain split, not a race.
+ * `KyberSwapRouter` alone used to be bound directly here (2026-09-14, replacing the LI.FI/
+ * 1inch meta-aggregator race — see git history) back when Base/Arbitrum were the only
+ * chains Kamby traded on.
  */
 @Module({
   imports: [IdentityModule],
@@ -25,9 +28,9 @@ import { TransactionService } from './transaction.service';
     QuoteService,
     SafetyService,
     TransactionService,
-    LiFiSwapRouter,
-    OneInchSwapRouter,
-    { provide: SWAP_ROUTER, useClass: MetaAggregatorSwapRouter },
+    KyberSwapRouter,
+    OpenOceanRouter,
+    { provide: SWAP_ROUTER, useClass: MultiChainSwapRouter },
   ],
 })
 export class TradingModule {}

@@ -34,7 +34,7 @@ import { ActivityService } from '../social/services/activity.service';
 const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
 const ACTIVITY_INCLUDE = {
   tokenMarket: { include: { token: true, quoteToken: true, chain: true } },
-  trader: true,
+  trader: { include: { user: true } },
 } as const;
 /** Bounded candidate pool for "rising traders" — never "every trader in the database," see
  *  the query comment on risingTraders below. */
@@ -80,6 +80,7 @@ export class DiscoveryService {
 
       const wallets = await prisma.wallet.findMany({
         where: { address: { in: rows.map((r) => r.trader_address) } },
+        include: { user: true },
       });
       const byAddress = new Map(wallets.map((w) => [w.address, w]));
       return rows.map((r) =>
@@ -165,6 +166,7 @@ export class DiscoveryService {
         }),
         prisma.wallet.findMany({
           where: { address: { in: candidates.map((c) => c.trader_address) } },
+          include: { user: true },
         }),
       ]);
       const totalByAddress = new Map(totals.map((t) => [t.traderAddress!, t._count._all]));
@@ -180,8 +182,8 @@ export class DiscoveryService {
         return [
           {
             address: c.trader_address,
-            displayName: wallet.displayName,
-            avatarUrl: wallet.avatarUrl,
+            username: wallet.user?.username ?? null,
+            avatarUrl: wallet.user?.avatarUrl ?? null,
             tradeCount24h,
             activityFrequencyPerDay:
               computeActivityFrequencyPerDay(totalSwaps, wallet.firstSeenAt) ?? 0,
@@ -234,7 +236,7 @@ export class DiscoveryService {
               blockTimestamp: { gte: since },
             },
             orderBy: { blockTimestamp: 'desc' },
-            include: { trader: true },
+            include: { trader: { include: { user: true } } },
           })
         : Promise.resolve([]),
       prisma.tradeTransaction.findMany({
@@ -255,7 +257,7 @@ export class DiscoveryService {
     for (const swap of followedTraderSwaps) {
       if (followedTraderByToken.has(swap.tokenMarketId)) continue; // already have the most recent (query is newest-first)
       followedTraderByToken.set(swap.tokenMarketId, {
-        label: swap.trader?.displayName ?? null,
+        label: swap.trader?.user?.username ?? null,
         hoursSince: (Date.now() - swap.blockTimestamp.getTime()) / 3_600_000,
       });
     }

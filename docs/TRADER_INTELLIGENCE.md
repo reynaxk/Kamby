@@ -7,7 +7,9 @@ personalized-discovery layer — no new indexing, no new tables, entirely derive
 
 **The hard rule governing every metric below: never fabricate a financial performance
 number.** If a statistic can't be derived correctly from data Kamby actually has, it's
-listed under [Deferred metrics](#deferred-metrics) instead of being approximated.
+either left unimplemented or, where it since has been (see
+[Realized PnL](#realized-pnl)), scoped precisely to what the data actually supports rather
+than approximated.
 
 ```text
 swaps / follows / activity_likes / trade_transactions   (Postgres, already authoritative)
@@ -89,16 +91,24 @@ Three bounded queries total, never a loop over traders.
 
 ## Trader discovery
 
-Two complementary, transparently-labeled rankings — never "best trader," since Kamby has no
-cost-basis data to back a profitability claim (see [Deferred metrics](#deferred-metrics)):
+Three complementary, transparently-labeled rankings — never unqualified "best trader":
 
 - **Top Traders** (`GET /social/traders/top`, Phase 2, unchanged) — ranked by real 24h
-  `SUM(volume_usd)`.
+  `SUM(volume_usd)`. Activity, not profitability.
 - **Active Traders** (`GET /discovery/active-traders`, new) — ranked by real 24h
-  `COUNT(*)` instead. Both share the same `MIN_TRADES_FOR_TRADER_RANKING` floor (2 trades)
-  so a single huge or one-off trade can't win either ranking — this constant used to be a
-  private copy inside `trader.service.ts`; Phase 5 centralized it into
-  `@kamby/domain` so both rankings can never quietly disagree on the floor.
+  `COUNT(*)` instead. Also activity, not profitability.
+- **Leaderboard** (`GET /social/leaderboard`, see [Realized PnL](#realized-pnl)) — the one
+  ranking that *is* profitability, ranked by real, matched realized PnL over a rolling
+  window. Kept as a separate endpoint/ranking rather than folded into Top/Active Traders:
+  those two are wallet-scoped (any tracked wallet, no Kamby account required) and
+  all-chain-activity-derived; the leaderboard is User-scoped (a real Kamby account, since
+  PnL accrues per-account across a user's linked wallets) and Kamby-trade-derived only —
+  mixing the two would blur what each ranking actually measures.
+
+Top Traders and Active Traders share the same `MIN_TRADES_FOR_TRADER_RANKING` floor (2
+trades) so a single huge or one-off trade can't win either ranking — this constant used to
+be a private copy inside `trader.service.ts`; Phase 5 centralized it into
+`@kamby/domain` so both rankings can never quietly disagree on the floor.
 
 ## Large trades
 
@@ -210,6 +220,9 @@ where "why is this here" actually lives.
 | `GET /discovery/feed` | 20/min (authenticated) |
 | `GET /social/traders/:address/tokens` | inherits the module default |
 | `GET /market/tokens/:address/traders` | inherits the module default |
+| `GET /social/leaderboard` | 30/min |
+| `PATCH /identity/profile` | 20/min (authenticated) |
+| `POST /identity/profile/avatar` | 5/min (authenticated) — real I/O (an R2 upload), not a bounded DB query |
 
 ## Performance & caching
 
@@ -226,32 +239,135 @@ truth, and an outage never turns into a 500. Personalized endpoints are **not** 
 (they're inherently per-user, and cheap enough not to need to be at Phase 1's current
 tracked-market scale — the same assumption `MarketService#discover` already documents).
 
-## Deferred metrics
+## Realized PnL
 
-**PnL, ROI, and win rate are not implemented.** Before any of them could be computed
-correctly, Kamby's data model would need:
+Phase 5 deliberately left PnL, ROI, and win rate unimplemented. Computing them from
+`swaps` (all indexed pool activity, no ownership/inventory model, no linkage between an
+entry and the exit that closes it) would have meant guessing at cost basis or silently
+ignoring off-platform activity — exactly what this doc's hard rule prohibits. This section
+is the fix that reasoning predicted: a real, correct realized-PnL figure, scoped precisely
+to what Kamby's own data actually supports — see
+[What this still deliberately does not do](#what-this-still-deliberately-does-not-do) for
+what stays out of scope even now.
 
-- **Matched entries and exits** — which specific buy(s) a given sell closes out (FIFO,
-  LIFO, or average-cost; `swaps` records each trade independently with no linkage between
-  them).
-- **Full wallet inventory** — every token a wallet holds, including balances acquired
-  *before* Kamby ever indexed a pool the wallet traded on, or via a plain transfer that never
-  touched an indexed pool at all. `swaps` only sees activity on tracked Uniswap V3 pools.
-- **Cost basis per unit acquired** — the USD price paid at each entry, correctly weighted
-  across multiple partial entries.
-- **Fees** — gas and any protocol/platform fee, to get a *realized* number instead of a
-  gross one.
-- **A clear distinction between Kamby-originated trades and a wallet's full on-chain
-  activity** — `trade_transactions` (Phase 3) only records trades placed *through* Kamby
-  itself, a small subset of what a real wallet does on-chain; `swaps` is indexed pool
-  activity generally, with no ownership/inventory model layered on top.
+### Scope: Kamby-originated trades only
 
-None of these exist today. Computing PnL or win rate from what's actually indexed would
-mean guessing at cost basis or silently ignoring off-platform activity — exactly the kind
-of fabricated performance number this phase's hard rule prohibits. If a future phase adds
-proper wallet-inventory tracking (full transfer history, not just DEX swaps) and a defined
-lot-matching methodology, this section is where that gets documented and the schema/API
-surface for it gets designed.
+Realized PnL is computed **only** from `trade_transactions` / `solana_trade_transactions`
+(Phase 3's own record of trades placed *through* Kamby, `status = CONFIRMED`) — never
+`swaps` (indexed pool activity generally, with no per-wallet ownership model). A wallet's
+activity outside Kamby is invisible to this metric, and that's stated in the product UI,
+not hidden. This sidesteps the "full wallet inventory" trap the deferred-metrics reasoning
+above flagged: Kamby doesn't need to know everything a wallet has ever held, only what it
+bought and sold *through Kamby*, which is a small, exact, complete ledger.
+
+### Methodology: FIFO lot-matching, realized only
+
+- **Realized, not unrealized/mark-to-market.** Only PnL from a completed BUY→SELL pair
+  counts. An open position (bought, not yet sold through Kamby) contributes nothing until
+  it's sold — no live-price guess on unsold inventory.
+- **FIFO.** Each CONFIRMED BUY creates a `TokenLot` (`packages/db/prisma/schema.prisma`) —
+  raw quantity, cost basis in USD, acquisition time. Each CONFIRMED SELL consumes open lots
+  oldest-first via `matchFifoSell`/`computeFifoRealizedPnl`
+  (`packages/domain/src/pnl.ts`, pure functions, fully unit-tested) — partial-lot
+  consumption and multi-lot sells both handled; a lot's `quantityRemainingRaw` is
+  decremented, never `quantityOriginalRaw` (an already-partially-sold lot is never
+  double-spent).
+- **A sell exceeding known open lots is excluded from PnL, not fabricated as profit.** A
+  wallet that held the token before ever trading it through Kamby, or acquired more via a
+  transfer, produces an `unmatchedQuantityRaw` that `PnlLedgerSweepService`
+  (`apps/workers/src/pnl/pnl-ledger-sweep.ts`) simply never turns into a `RealizedPnlEvent`
+  — the same "skip rather than guess" discipline as every other metric in this doc.
+- **Token identity keys off `Token.id`, not `TokenMarket.id`.** The same fungible token can
+  trade through multiple pools; keying lots by market would silently fragment one real
+  position across non-matching pools.
+- **Gross, not fee-adjusted.** Gas and any platform fee are not subtracted — a disclosed
+  simplification, not an oversight, in the same category as the pricing approximation
+  below.
+
+### Pricing: quote-time, not settlement-time
+
+There is no ERC-20/SPL Transfer-log decoding anywhere in this codebase — adding one was out
+of scope here, so every dollar figure is priced off each trade's own **quote**, not a
+decoded on-chain settlement amount:
+
+- **EVM** — `TradeQuote.priceUsd` is always the *base token's own* USD price
+  (`TokenMarket.priceUsd` at quote time), regardless of trade side. Cost basis for a BUY
+  = `expectedOutputAmount` (base token, decimal-formatted) × `quote.priceUsd`; proceeds for
+  a SELL = `inputAmount` (base token) × `quote.priceUsd`. A null `quote.priceUsd` (a real,
+  documented possibility — see `docs/SOURCE_OF_TRUTH.md`) means the row is marked processed
+  and skipped, never priced at a guess.
+- **Solana** — `SolanaTradeQuote.priceUsd` is never populated anywhere in
+  `solana-quote.service.ts`, so EVM's approach doesn't apply. Every Solana trade through
+  Kamby is anchored to `SOLANA_USDC_MINT` on one side by construction (a BUY always spends
+  USDC, a SELL always produces USDC) — so that leg's raw amount (6 decimals) *is* the USD
+  figure directly, no price lookup needed. `PnlLedgerSweepService` defensively verifies this
+  invariant per row (`usdcLeg !== SOLANA_USDC_MINT` → mark processed, log, skip) rather than
+  assuming it silently.
+
+### Computation: an async, cross-chain sweep
+
+PnL is **not** computed inline with trade confirmation. `apps/workers` runs one replica
+*per EVM chain* by design (`CHAIN_IDENTIFIER`), but a PnL sweep spans all of a user's
+chains at once — hooking into the four existing CONFIRMED-status call sites
+(`TransactionService`/`SolanaTransactionService` in `apps/api`,
+`TradeSweepService`/`SolanaSweepService` in `apps/workers`) would duplicate financial logic
+across two runtimes and risk two chains' replicas double-processing the same user
+concurrently.
+
+Instead: `TradeTransaction`/`SolanaTradeTransaction` each carry a `pnlProcessedAt
+DateTime?` marker, and a fully decoupled `PnlLedgerSweepService` scans both tables for
+`status = CONFIRMED AND pnlProcessedAt IS NULL`, batched (`BATCH_SIZE`, per-row try/catch —
+one bad row never aborts the batch), enabled via `PNL_LEDGER_SWEEP_ENABLED` on exactly
+**one** workers deployment, not per-chain. A Postgres advisory lock
+(`pg_advisory_xact_lock(hashtext(userId || ':' || tokenKey))`, acquired on the same
+transaction client every read/write in that block uses) is the correctness backstop
+regardless of how many replicas end up running it.
+
+### Surfaces
+
+- **`GET /social/leaderboard?window=24h|7d|30d`** — one bounded `GROUP BY userId` over
+  `realized_pnl_events` (indexed `[userId, confirmedAt]`), then two small batched lookups
+  (User identity, most-recently-used verified wallet). Redis cache-aside, 30s TTL, same
+  pattern as `DiscoveryService#cached`.
+- **`GET /social/traders/:address`** — gained a `realizedPnl: { '24h', '7d', '30d' }`
+  block (`TraderService#computeRealizedPnl`), one further aggregate per window scoped to
+  that wallet's linked `userId`. `null` (the whole block) for a wallet with no linked
+  User — "no Kamby account" is real and common; a real object with `null` window stats
+  means "has an account, zero realized PnL so far."
+- **Null-vs-zero, once more.** `realizedPnlUsd`/`realizedPnlPct` are `null` — never a
+  fabricated `0` — when zero volume was matched in a window at all
+  (`toPnlWindowStats` in `packages/domain/src/pnl.ts`), the same discipline
+  `TraderStats.avgTradeSizeUsd`/`buyRatio` already establish elsewhere in this doc.
+
+### Identity: username + PFP
+
+Real identity moved from `Wallet` (`displayName`/`avatarUrl` — unused, zero writers,
+removed in the same migration) to `User.username`/`User.avatarUrl`: one consistent handle
+across a user's several verified wallets/chains, matching how a leaderboard entry is
+inherently a `User`, not a `Wallet`. `username` is validated app-side (`isValidUsername` in
+`packages/domain/src/wallet.ts`): 3–20 chars, `[a-z0-9_]`, stored lowercase, a small
+reserved-word blocklist for anti-impersonation. `PATCH /identity/profile` updates it (409
+on collision, never a silent truncation); `POST /identity/profile/avatar` uploads a
+PNG/JPEG/WebP (2MB cap; SVG deliberately excluded — a real XSS surface an avatar upload has
+no business opening) to Cloudflare R2 via `R2StorageService` and persists the resulting URL
+server-side in the same call — a client-supplied arbitrary `avatarUrl` is never accepted,
+closing a minor hotlinking/tracking-pixel abuse surface for free.
+
+### What this still deliberately does not do
+
+Before this section existed, Kamby's data model genuinely lacked matched entries/exits,
+full wallet inventory, and a Kamby-vs-off-platform distinction — the methodology above is
+the fix. What's still deliberately out of scope, even with realized PnL now real:
+
+- **Unrealized/mark-to-market PnL on open positions** — would need a live price for every
+  held token; realized-only avoids that entirely.
+- **Fee-adjusted PnL** — gross only, see above.
+- **A wallet's full on-chain inventory** — still genuinely out of reach without decoding
+  Transfer logs; Kamby-originated-only remains the honest scope.
+
+**Also out of scope, per the phase's own boundary:** AI recommendations, copy trading,
+automated trading, portfolio management, bridges, leverage/perps, lending, staking, fiat,
+subscriptions, DMs, native mobile, custody, and private-key handling.
 
 **Also out of scope, per the phase's own boundary:** AI recommendations, copy trading,
 automated trading, portfolio management, multi-chain, bridges, leverage/perps, lending,

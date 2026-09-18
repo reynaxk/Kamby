@@ -22,9 +22,11 @@ import { SolanaTransactionService } from '../solana/solana-transaction.service';
 import { AddressParamDto } from './dto/address-param.dto';
 import { ActivityQueryDto } from './dto/activity-query.dto';
 import { CursorQueryDto } from './dto/cursor-query.dto';
+import { LeaderboardQueryDto } from './dto/leaderboard-query.dto';
 import { TraderSearchQueryDto } from './dto/trader-search-query.dto';
 import { ActivityService } from './services/activity.service';
 import { FollowService } from './services/follow.service';
+import { LeaderboardService } from './services/leaderboard.service';
 import { LikeService } from './services/like.service';
 import { RealtimeService, type ActivityPing, type SolanaActivityPing } from '../realtime/realtime.service';
 import { TraderService } from './services/trader.service';
@@ -46,6 +48,7 @@ export class SocialController {
     private readonly realtime: RealtimeService,
     private readonly watchlist: WatchlistService,
     private readonly solanaTransactions: SolanaTransactionService,
+    private readonly leaderboard: LeaderboardService,
   ) {}
 
   @UseGuards(OptionalAuthGuard)
@@ -156,6 +159,14 @@ export class SocialController {
     const parsed = limit ? Number.parseInt(limit, 10) : 10;
     const bounded = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 25) : 10;
     return this.traders.getTopTraders(bounded);
+  }
+
+  /** Public, real-money-ranked leaderboard — see docs/TRADER_INTELLIGENCE.md#realized-pnl.
+   *  Same 30/min tier as the other public rankings above (traders/search, traders/top). */
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Get('leaderboard')
+  getLeaderboard(@Query() query: LeaderboardQueryDto) {
+    return this.leaderboard.getLeaderboard(query.window, query.limit);
   }
 
   @UseGuards(OptionalAuthGuard)

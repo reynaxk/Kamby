@@ -1,4 +1,4 @@
-import type { MarketSummary } from '@kamby/domain';
+import { DEFAULT_CHAIN_SLUG, type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { EmptyState } from './EmptyState';
@@ -33,7 +33,8 @@ export function MarketTable({ markets }: { markets: MarketSummary[] }) {
             <tr key={market.tokenAddress} className="group border-b border-line last:border-0">
               <td className="p-0">
                 <Link
-                  href={`/market/${market.tokenAddress}`}
+                  // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
+                  href={`/market/${slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG}/${market.tokenAddress}`}
                   className="flex items-center gap-3 px-4 py-3 transition-colors group-hover:bg-surface-raised"
                 >
                   <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" />

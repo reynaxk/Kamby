@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SolanaTradeQuoteDto, SolanaTradeTransactionDto } from '@kamby/domain';
 import type { SolanaWalletVerificationStatus } from '@/hooks/useSolanaWalletVerification';
+import type * as SolAmountInputModule from './SolAmountInput';
 import { SolanaTradePanel } from './SolanaTradePanel';
 import type * as UsdPresetAmountInputModule from './UsdPresetAmountInput';
 
@@ -24,6 +25,8 @@ const {
   getSolanaQuoteMock,
   getSolanaTransactionMock,
   submitSolanaTransactionMock,
+  getSponsoredSolanaQuoteMock,
+  submitSponsoredSolanaTransactionMock,
   sendRawTransactionMock,
 } = vi.hoisted(() => {
   const loginMock = vi.fn();
@@ -60,6 +63,8 @@ const {
     getSolanaQuoteMock: vi.fn(),
     getSolanaTransactionMock: vi.fn(),
     submitSolanaTransactionMock: vi.fn(),
+    getSponsoredSolanaQuoteMock: vi.fn(),
+    submitSponsoredSolanaTransactionMock: vi.fn(),
     sendRawTransactionMock: vi.fn(),
   };
 });
@@ -81,6 +86,8 @@ vi.mock('@/lib/solana-trading-client', () => ({
   getSolanaQuote: getSolanaQuoteMock,
   getSolanaTransaction: getSolanaTransactionMock,
   submitSolanaTransaction: submitSolanaTransactionMock,
+  getSponsoredSolanaQuote: getSponsoredSolanaQuoteMock,
+  submitSponsoredSolanaTransaction: submitSponsoredSolanaTransactionMock,
 }));
 vi.mock('@/components/terminal/RpcStatusBar', () => ({ RpcStatusBar: () => null }));
 // UsdPresetAmountInput does its own live RPC balance read (@solana/spl-token) — already
@@ -91,6 +98,20 @@ vi.mock('./UsdPresetAmountInput', async () => {
   return {
     ...actual,
     UsdPresetAmountInput: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+      // eslint-disable-next-line jsx-a11y/no-redundant-roles
+      <input aria-label="Amount" value={value} onChange={(event) => onChange(event.target.value)} />
+    ),
+  };
+});
+// SolAmountInput (the SELL-side counterpart, see its own doc comment) does its own live
+// RPC balance read — already covered by its own test file. Stubbed here the same way, so
+// this file can drive `amount` directly on either side without also mocking
+// @/lib/solana-config's solanaConnection.
+vi.mock('./SolAmountInput', async () => {
+  const actual = await vi.importActual<typeof SolAmountInputModule>('./SolAmountInput');
+  return {
+    ...actual,
+    SolAmountInput: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
       // eslint-disable-next-line jsx-a11y/no-redundant-roles
       <input aria-label="Amount" value={value} onChange={(event) => onChange(event.target.value)} />
     ),
@@ -130,6 +151,7 @@ function fakeTransaction(overrides: Partial<SolanaTradeTransactionDto> = {}): So
     failureReason: null,
     submittedAt: new Date().toISOString(),
     confirmedAt: null,
+    sponsoredByRelayer: false,
     ...overrides,
   };
 }
@@ -137,6 +159,11 @@ function fakeTransaction(overrides: Partial<SolanaTradeTransactionDto> = {}): So
 async function fillAmountAndWaitForQuote() {
   await userEvent.type(screen.getByLabelText('Amount'), '10000000');
   await waitFor(() => expect(getSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
+}
+
+async function fillAmountAndWaitForSponsoredQuote() {
+  await userEvent.type(screen.getByLabelText('Amount'), '10000000');
+  await waitFor(() => expect(getSponsoredSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
 }
 
 describe('SolanaTradePanel', () => {
@@ -214,6 +241,19 @@ describe('SolanaTradePanel', () => {
     expect(await screen.findByRole('button', { name: 'Review sell' })).toBeEnabled();
   });
 
+  it('clears a typed amount when switching sides, rather than reinterpreting it in the wrong unit', async () => {
+    // BUY's amount is raw USDC (6 decimals); SELL's is raw SOL (9 decimals) — carrying a
+    // stale value across the switch would silently misinterpret it in the new unit.
+    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+
+    await userEvent.type(screen.getByLabelText('Amount'), '10000000');
+    expect(screen.getByLabelText('Amount')).toHaveValue('10000000');
+
+    await userEvent.click(screen.getByRole('button', { name: /Sell SOL/i }));
+
+    expect(screen.getByLabelText('Amount')).toHaveValue('');
+  });
+
   it('confirm & sign broadcasts the real transaction, records it, and shows the submitted state', async () => {
     const quote = fakeQuote();
     getSolanaQuoteMock.mockResolvedValue(quote);
@@ -254,6 +294,62 @@ describe('SolanaTradePanel', () => {
     await waitFor(() => expect(sendRawTransactionMock).toHaveBeenCalledWith(new Uint8Array([9, 9, 9])));
     expect(signAndSendTransaction).not.toHaveBeenCalled();
     expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
+  });
+
+  it('turning on Gasless fetches a sponsored quote instead of the normal one', async () => {
+    getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
+    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
+    await fillAmountAndWaitForSponsoredQuote();
+
+    expect(getSolanaQuoteMock).not.toHaveBeenCalled();
+    expect(await screen.findByRole('button', { name: 'Review buy' })).toBeEnabled();
+    // A sponsored transaction always broadcasts via the relayer's own RPC call, never
+    // through Jito — the control offering a choice that would silently do nothing is
+    // hidden entirely while gasless is on.
+    expect(screen.queryByRole('button', { name: 'Low' })).not.toBeInTheDocument();
+  });
+
+  it('gasless confirm & sign signs only (never sign-and-send, never Jito) and submits the partially-signed bytes to the sponsored endpoint', async () => {
+    const quote = fakeQuote();
+    getSponsoredSolanaQuoteMock.mockResolvedValue(quote);
+    signTransaction.mockResolvedValue({ signedTransaction: new Uint8Array([9, 9, 9]) });
+    submitSponsoredSolanaTransactionMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true }));
+
+    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
+    await fillAmountAndWaitForSponsoredQuote();
+    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
+    expect(screen.getByText(/Kamby pays the Solana network fee/)).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+
+    await waitFor(() =>
+      expect(submitSponsoredSolanaTransactionMock).toHaveBeenCalledWith({
+        quoteId: quote.id,
+        walletAddress: WALLET_ADDRESS,
+        partiallySignedTxBase64: btoa(String.fromCharCode(9, 9, 9)), // base64 of bytes [9,9,9]
+      }),
+    );
+    expect(signAndSendTransaction).not.toHaveBeenCalled();
+    expect(sendRawTransactionMock).not.toHaveBeenCalled();
+    expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
+  });
+
+  it('a failed sponsored submission shows the real error on the review step, never a stuck or broken state', async () => {
+    const quote = fakeQuote();
+    getSponsoredSolanaQuoteMock.mockResolvedValue(quote);
+    signTransaction.mockResolvedValue({ signedTransaction: new Uint8Array([9, 9, 9]) });
+    submitSponsoredSolanaTransactionMock.mockRejectedValue(new Error('Gas sponsorship is not enabled on this deployment'));
+
+    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
+    await fillAmountAndWaitForSponsoredQuote();
+    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+
+    expect(await screen.findByText('Gas sponsorship is not enabled on this deployment')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm & buy' })).toBeInTheDocument();
   });
 
   it('keeps the user on the review step and shows the real error if signing is rejected', async () => {
@@ -324,6 +420,62 @@ describe('SolanaTradePanel', () => {
       expect(await screen.findByText('Trade confirmed', {}, { timeout: 5000 })).toBeInTheDocument();
       const solscanLink = screen.getByRole('link', { name: /View on Solscan/i });
       expect(solscanLink.getAttribute('href')).toBe('https://solscan.io/tx/sig123');
+    },
+    10000,
+  );
+
+  it(
+    "shows a real, decimal-scaled SOL amount in the confirmed toast for a BUY, never the bare raw lamport integer",
+    async () => {
+      getSolanaQuoteMock.mockResolvedValue(fakeQuote());
+      signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
+      submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
+      // expectedOutputAmount '98600000' raw lamports (BUY's output is always SOL, 9
+      // decimals) must render as '0.0986 SOL', not the bare raw integer — see
+      // formatReceivedAmount's own doc comment for why this toast can't reuse
+      // SolanaQuoteSummary's "N raw units" label.
+      getSolanaTransactionMock.mockResolvedValue(fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date().toISOString() }));
+
+      render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+      await fillAmountAndWaitForQuote();
+      await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+      await screen.findByText('Waiting for confirmation…');
+      await screen.findByText('Trade confirmed', {}, { timeout: 5000 });
+
+      expect(updateMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ title: 'Trade confirmed', description: '0.0986 SOL' }),
+      );
+    },
+    10000,
+  );
+
+  it(
+    'shows a real, decimal-scaled USDC amount in the confirmed toast for a SELL, never the bare raw micro-unit integer',
+    async () => {
+      getSolanaQuoteMock.mockResolvedValue(fakeQuote({ side: 'SELL' }));
+      signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
+      // '5000000' raw USDC micro-units (6 decimals) — SELL's output is always USDC — must
+      // render as '$5 USDC' (same maximumFractionDigits:2, no forced trailing zeros
+      // convention as SolanaQuoteSummary's own usdcDisplay), not the bare raw integer.
+      submitSolanaTransactionMock.mockResolvedValue(fakeTransaction({ side: 'SELL', expectedOutputAmount: '5000000' }));
+      getSolanaTransactionMock.mockResolvedValue(
+        fakeTransaction({ side: 'SELL', expectedOutputAmount: '5000000', status: 'CONFIRMED', confirmedAt: new Date().toISOString() }),
+      );
+
+      render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+      await userEvent.click(await screen.findByRole('button', { name: 'Sell SOL' }));
+      await fillAmountAndWaitForQuote();
+      await userEvent.click(await screen.findByRole('button', { name: 'Review sell' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Confirm & sell' }));
+      await screen.findByText('Waiting for confirmation…');
+      await screen.findByText('Trade confirmed', {}, { timeout: 5000 });
+
+      expect(updateMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ title: 'Trade confirmed', description: '$5 USDC' }),
+      );
     },
     10000,
   );

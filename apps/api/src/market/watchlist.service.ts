@@ -3,6 +3,7 @@ import { Prisma, prisma } from '@kamby/db';
 import {
   decodeWatchlistCursor,
   encodeWatchlistCursor,
+  identifierForChainId,
   isEvmAddress,
   type WatchedToken,
   type WatchlistPage,
@@ -27,8 +28,13 @@ export class WatchlistService {
   private async resolveTokenMarketId(address: string, chainId: number): Promise<string> {
     if (!isEvmAddress(address))
       throw new BadRequestException(`"${address}" is not a valid contract address`);
+    // chain: { identifier: ... }, not chainId: chainId — TokenMarket.chainId is Chain's own
+    // internal autoincrement id, not the real numeric EVM chain id this method receives.
+    // See identifierForChainId's own doc comment for the real incident this fixes.
+    const identifier = identifierForChainId(chainId);
+    if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
     const market = await prisma.tokenMarket.findFirst({
-      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chain: { identifier }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       orderBy: { liquidityUsd: 'desc' },
       select: { id: true },
     });

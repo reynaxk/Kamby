@@ -87,15 +87,20 @@ describe('SafetyService', () => {
     ).rejects.toThrow(UnprocessableEntityException);
   });
 
-  it('looks up the market by base-token address case-insensitively', async () => {
+  it('looks up the market by base-token address case-insensitively, filtered via the chain relation', async () => {
     (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(baseMarket());
 
     await safety.assertTradable('0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 8453);
 
+    // chain: { identifier: 'eip155:8453' }, not chainId: 8453 — TokenMarket.chainId is
+    // Chain's own internal autoincrement row id, not the real numeric EVM chain id this
+    // method receives. This exact mismatch was a real incident (2026-09-15): every quote
+    // request for every EVM token was silently 404ing because this filter never matched
+    // anything real. See identifierForChainId's own doc comment in @kamby/domain.
     expect(mockedPrisma.tokenMarket.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          chainId: 8453,
+          chain: { identifier: 'eip155:8453' },
           token: { contractAddress: { equals: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', mode: 'insensitive' } },
         },
       }),
@@ -103,14 +108,18 @@ describe('SafetyService', () => {
   });
 
   // TokenMarket is only unique per (chainId, contractAddress) — the same address is a real,
-  // distinct market on two chains, so the chainId filter must actually be honored by the
+  // distinct market on two chains, so the chain filter must actually be honored by the
   // (mocked) query, not merely present in the call shape asserted above.
   it('resolves a same-address market to the chain that was actually requested, not whichever chain answers first', async () => {
     const baseChainMarket = baseMarket({ id: 'market-base' });
     const arbitrumChainMarket = baseMarket({ id: 'market-arbitrum' });
     (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockImplementation(
-      async ({ where }: { where: { chainId: number } }) =>
-        where.chainId === 8453 ? baseChainMarket : where.chainId === 42161 ? arbitrumChainMarket : null,
+      async ({ where }: { where: { chain: { identifier: string } } }) =>
+        where.chain.identifier === 'eip155:8453'
+          ? baseChainMarket
+          : where.chain.identifier === 'eip155:42161'
+            ? arbitrumChainMarket
+            : null,
     );
 
     const base = await safety.assertTradable('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 8453);
@@ -122,11 +131,19 @@ describe('SafetyService', () => {
 
   it('404s for a chain that has no market at this address, even though another chain does', async () => {
     (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockImplementation(
-      async ({ where }: { where: { chainId: number } }) => (where.chainId === 8453 ? baseMarket() : null),
+      async ({ where }: { where: { chain: { identifier: string } } }) =>
+        where.chain.identifier === 'eip155:8453' ? baseMarket() : null,
     );
 
     await expect(
       safety.assertTradable('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 42161),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it('404s for an unconfigured chain id rather than querying with a meaningless filter', async () => {
+    await expect(
+      safety.assertTradable('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 999_999),
+    ).rejects.toThrow(NotFoundException);
+    expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
   });
 });

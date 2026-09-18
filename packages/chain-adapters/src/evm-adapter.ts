@@ -1,6 +1,7 @@
-import { createPublicClient, http, type PublicClient } from 'viem';
+import { createPublicClient, type PublicClient } from 'viem';
 import { erc20MetadataAbi } from './erc20-abi';
 import { retryRpcCall } from './retry';
+import { createEvmTransport } from './transport';
 import type { ChainDataProvider, ChainDescriptor, TokenMetadata } from './types';
 
 export interface EvmChainConfig {
@@ -11,6 +12,9 @@ export interface EvmChainConfig {
    * instance can't be traced back to how the URL was sourced.
    */
   rpcUrl: string;
+  /** Optional second endpoint — see createEvmTransport's own doc comment. `undefined`/`null`
+   *  means "no fallback," same as leaving it unset. */
+  rpcUrlFallback?: string | null;
 }
 
 /** ChainDataProvider for EVM-compatible chains (Ethereum, Base, Arbitrum, ...). */
@@ -20,7 +24,7 @@ export class EvmChainDataProvider implements ChainDataProvider {
 
   constructor(config: EvmChainConfig) {
     this.chain = config.chain;
-    this.client = createPublicClient({ transport: http(config.rpcUrl) });
+    this.client = createPublicClient({ transport: createEvmTransport(config.rpcUrl, config.rpcUrlFallback) });
   }
 
   async isHealthy(): Promise<boolean> {

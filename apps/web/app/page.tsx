@@ -13,7 +13,8 @@ import { PersonalizedSection } from '@/components/discovery/PersonalizedSection'
 import { RisingSection } from '@/components/discovery/RisingSection';
 import { SavedSearches } from '@/components/discovery/SavedSearches';
 import { WhatsMissedSection } from '@/components/discovery/WhatsMissedSection';
-import { fetchDiscoverMarkets } from '@/lib/market-api';
+import { TrenchesPanel } from '@/components/terminal/TrenchesPanel';
+import { fetchDiscoverMarkets, fetchSearch } from '@/lib/market-api';
 import {
   fetchGlobalActivity,
   fetchTopTraders,
@@ -48,7 +49,15 @@ export default async function DiscoverPage({
     largeTrades,
     rising,
   ] = await Promise.all([
-    settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20, search }), []),
+    // Ranked discovery (computeDiscoveryScore) deliberately excludes any market with no
+    // 24h volume/momentum data yet — real, correct behavior for "what's trending," but it
+    // means an explicit search for a token by name/symbol found NOTHING for any market that
+    // hadn't accumulated trade history, even an exact match (confirmed live 2026-09-17: a
+    // freshly-seeded BNB market, zero volume so far, was invisible to search even though it
+    // was genuinely tracked and tradable). `fetchSearch` — the dedicated, ranking-gate-free
+    // endpoint that already existed but was never actually wired up here — is what an
+    // explicit search should hit instead; the ranked feed stays ranked-only when browsing.
+    search ? settledOr(fetchSearch(search, 20), []) : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20 }), []),
     settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 3, search }), []),
     settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 3, search }), []),
     settledOr(fetchGlobalActivity({ limit: 20 }), { items: [], nextCursor: null }),
@@ -61,10 +70,26 @@ export default async function DiscoverPage({
   ]);
 
   return (
-    <>
+    // kamby-void — see globals.css's own doc comment. Discover is one of the two
+    // highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
+    // the other); the rest of the product still runs the original light/dark palette.
+    <div className="kamby-void min-h-screen bg-bg">
       <AutoRefresh intervalSeconds={30} />
       <MarketHeader searchValue={search} />
       <main className="mx-auto max-w-6xl px-6 py-10">
+        {!search && (
+          <section className="mb-12">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">Trenches</h1>
+            <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
+              Fresh Pump.fun bonding-curve launches, real graduations, and the EVM tokens trending
+              by real holder activity — updates live, never a stale snapshot.
+            </p>
+            <div className="mt-5 h-[440px] max-w-md">
+              <TrenchesPanel />
+            </div>
+          </section>
+        )}
+
         {!search && <WhatsMissedSection />}
 
         {search && (
@@ -84,7 +109,7 @@ export default async function DiscoverPage({
                   <Surface className="p-4 transition-colors hover:border-accent/50 hover:bg-surface-raised">
                     <TraderIdentity
                       address={trader.address}
-                      displayName={trader.displayName}
+                      displayName={trader.username}
                       avatarUrl={trader.avatarUrl}
                     />
                   </Surface>
@@ -98,9 +123,9 @@ export default async function DiscoverPage({
 
         {!search && (
           <section className="mb-12">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-ink-900">
               Live activity
-            </h1>
+            </h2>
             <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
               Real indexed trades from tracked markets, as they happen. See who&apos;s buying and
               selling right now.
@@ -255,6 +280,6 @@ export default async function DiscoverPage({
           </div>
         </section>
       </main>
-    </>
+    </div>
   );
 }

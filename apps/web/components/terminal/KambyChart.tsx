@@ -2,30 +2,44 @@
 
 import { useEffect, useRef } from 'react';
 import { CandlestickSeries, ColorType, createChart, type IChartApi, type UTCTimestamp } from 'lightweight-charts';
-import { MOCK_CANDLES } from './mock-data';
+import type { Candle } from '@kamby/domain';
+import { EmptyState } from '@/components/market/EmptyState';
 
 /** Reads a resolved `--kamby-*` token as an `rgb(...)` string lightweight-charts' canvas
  *  renderer can use directly — reading the actual computed value (rather than duplicating
  *  the terminal palette's hex codes here a second time) means this chart automatically
- *  matches `.kamby-terminal`'s colors with nothing to keep in sync by hand. */
+ *  matches `.kamby-void`'s colors with nothing to keep in sync by hand. */
 function readColor(varName: string, el: Element): string {
   const raw = getComputedStyle(el).getPropertyValue(varName).trim();
   return raw ? `rgb(${raw})` : '#000000';
 }
 
+function toSeriesData(candles: Candle[]) {
+  return candles.map((c) => ({
+    time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp,
+    open: c.open,
+    high: c.high,
+    low: c.low,
+    close: c.close,
+  }));
+}
+
 /**
  * A native candlestick chart via TradingView's own open-source `lightweight-charts` —
- * deliberately not an iframe/embedded widget. Feeds from `MOCK_CANDLES` (see
- * PreviewBanner/mock-data.ts): this proves the real chart engine renders correctly styled
- * candles, wicks, grid, and price scale — wiring it to a real OHLC feed is separate,
- * backend-dependent work (Solana price-history ingestion doesn't exist yet).
+ * deliberately not an iframe/embedded widget. Kamby's counterpart to
+ * components/market/PriceChart.tsx's SVG line chart: same real, persisted candle data (the
+ * same `candles` a caller already fetched via `fetchTokenHistory`), rendered with real
+ * wicks/OHLC and TradingView-grade interaction (crosshair, zoom/pan) instead of a flat line.
+ * As of 2026-09-15 this replaced PriceChart on the Market detail page; the two are no
+ * longer maintained in parallel. `candles` is a required prop — no hidden mock fallback —
+ * so every call site stays honest about whether what it's showing is real.
  */
-export function KambyChart() {
+export function KambyChart({ candles }: { candles: Candle[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || candles.length < 2) return;
 
     const bg = readColor('--kamby-bg', container);
     const line = readColor('--kamby-line', container);
@@ -58,7 +72,7 @@ export function KambyChart() {
       wickUpColor: up,
       wickDownColor: down,
     });
-    series.setData(MOCK_CANDLES.map((c) => ({ ...c, time: c.time as UTCTimestamp })));
+    series.setData(toSeriesData(candles));
     chart.timeScale().fitContent();
 
     const resizeObserver = new ResizeObserver((entries) => {
@@ -72,7 +86,16 @@ export function KambyChart() {
       resizeObserver.disconnect();
       chart.remove();
     };
-  }, []);
+  }, [candles]);
+
+  if (candles.length < 2) {
+    return (
+      <EmptyState
+        title="Not enough price history yet"
+        detail="The ingestion worker is still building up real history for this market. Check back once it's had more time to index."
+      />
+    );
+  }
 
   return <div ref={containerRef} className="h-full w-full" />;
 }

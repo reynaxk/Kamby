@@ -1,9 +1,12 @@
-import { createPublicClient, http, type PublicClient } from 'viem';
+import { createPublicClient, type PublicClient } from 'viem';
 import { erc20ExtraAbi, uniswapV3PoolAbi, uniswapV3SwapEvent } from './uniswap-v3-abi';
 import { retryRpcCall } from './retry';
+import { createEvmTransport } from './transport';
 
 export interface UniswapV3ReaderConfig {
   rpcUrl: string;
+  /** Optional second endpoint — see createEvmTransport's own doc comment. */
+  rpcUrlFallback?: string | null;
 }
 
 export interface PoolState {
@@ -48,7 +51,7 @@ export class UniswapV3PoolReader {
   private readonly client: PublicClient;
 
   constructor(config: UniswapV3ReaderConfig) {
-    this.client = createPublicClient({ transport: http(config.rpcUrl) });
+    this.client = createPublicClient({ transport: createEvmTransport(config.rpcUrl, config.rpcUrlFallback) });
   }
 
   async getLatestBlockNumber(): Promise<bigint> {

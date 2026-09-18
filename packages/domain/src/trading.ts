@@ -76,6 +76,55 @@ export function isValidSlippageBps(bps: number): boolean {
 }
 
 /**
+ * The platform's tiered fee — locked in for EVM 2026-09-16, superseding the flat
+ * `TRADING_DEFAULTS.platformFeeBps`/`PLATFORM_FEE_BPS` for `QuoteService` (see that file's
+ * own doc comment — the env var is left defined but no longer read for the fee rate
+ * itself). A percentage-of-trade-size schedule: smaller trades pay a higher rate to cover
+ * fixed per-trade overhead (routing, safety checks, gas), scaling down as size grows.
+ * `minUsd` is inclusive; entries must stay ordered ascending by `minUsd` for
+ * `resolveTierFeeBps` below to resolve correctly.
+ *
+ * As of the fee-tier reconciliation, this is the **single** source of truth for both
+ * chains — `SolanaQuoteService#resolvePlatformFeeBps` (`apps/api/src/solana/`) resolves
+ * through this exact table too, replacing Solana's own former two-tier schedule
+ * (`jupiter-fee-schedule.ts`, deleted). The two chains' fee rates are no longer allowed to
+ * drift apart silently.
+ */
+export const PLATFORM_FEE_TIERS: readonly { minUsd: number; feeBps: number }[] = [
+  { minUsd: 0, feeBps: 200 }, // up to $99.99…: 2.00%
+  { minUsd: 100, feeBps: 100 }, // $100–$499.99…: 1.00%
+  { minUsd: 500, feeBps: 75 }, // $500 and up: 0.75%
+];
+
+/** The tier `resolveTierFeeBps` falls back to when a trade's real USD size genuinely can't
+ *  be confirmed before a %-based fee must be decided — on EVM, a non-USDC-quoted BUY's
+ *  size needs a fee-free pre-quote that can, rarely, come back empty (see `QuoteService`'s
+ *  own doc comment); on Solana, a SELL's size-discovery pre-quote can likewise fail (see
+ *  `SolanaQuoteService#resolvePlatformFeeBps`). Deliberately the most expensive tier, never
+ *  a cheaper one — never silently apply an unconfirmed lower rate. */
+export const PLATFORM_FEE_FALLBACK_BPS = PLATFORM_FEE_TIERS[0]!.feeBps;
+
+/** Resolves a trade's USD size to its tier's fee, in basis points — walks `tiers` (ordered
+ *  ascending by `minUsd`) and returns the highest tier whose `minUsd` the amount meets or
+ *  exceeds. `tiers` is a parameter (defaulting to `PLATFORM_FEE_TIERS`) purely so tests can
+ *  exercise the resolution logic against a small fixture schedule without depending on the
+ *  real numbers above. */
+export function resolveTierFeeBps(
+  usdAmount: number,
+  tiers: readonly { minUsd: number; feeBps: number }[] = PLATFORM_FEE_TIERS,
+): number {
+  if (!Number.isFinite(usdAmount) || usdAmount < 0) {
+    throw new Error('usdAmount must be a non-negative finite number');
+  }
+  if (tiers.length === 0) throw new Error('tiers must not be empty');
+  let bps = tiers[0]!.feeBps;
+  for (const tier of tiers) {
+    if (usdAmount >= tier.minUsd) bps = tier.feeBps;
+  }
+  return bps;
+}
+
+/**
  * Exact integer basis-points math on raw token units — never floating point (see
  * docs/TRADING.md#financial-precision). `feeBps` is a parameter, not a hardcoded import, so
  * every caller must state which fee it's applying rather than assuming a global default.
@@ -249,6 +298,21 @@ export type TradeTransactionDto = z.infer<typeof TradeTransactionSchema>;
  *  living in one place (getConfiguredChains) rather than copy-pasted. */
 export const SOLANA_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
+/** Wrapped native SOL's own mint address — the standard representation of "native SOL" as
+ *  an SPL token wherever a mint address is required (a Jupiter route leg, a Pump.fun
+ *  bonding curve's default quote asset). A well-known Solana constant, not Kamby-specific,
+ *  single-sourced here for the same reason SOLANA_USDC_MINT is. */
+export const SOLANA_NATIVE_MINT = 'So11111111111111111111111111111111111111112';
+
+/** Pump.fun's documented bonding-curve graduation threshold — confirmed 2026-09-14 against
+ *  multiple independent sources (e.g. https://www.soltokencreator.io/blog/pump-fun-graduation-explained),
+ *  ~85 SOL raised. Used only to compute an informational "how close to graduating" progress
+ *  percentage (see PumpFunTokenSummarySchema's own doc comment) — never to independently
+ *  decide graduation itself; the program's own `complete` flag/CompleteEvent is the sole
+ *  source of truth for that. Shared between apps/api (trenches queries) and apps/workers
+ *  (ingestion) so the two can never disagree on the number. */
+export const PUMP_FUN_GRADUATION_THRESHOLD_LAMPORTS = 85_000_000_000n; // 85 SOL, in lamports
+
 /**
  * Solana's counterpart to TradeQuoteSchema — the API's `POST /solana/quote` response
  * shape. Deliberately a separate, simpler schema rather than a shared/parameterized one:
@@ -278,7 +342,9 @@ export const SolanaTradeQuoteSchema = z.object({
 export type SolanaTradeQuoteDto = z.infer<typeof SolanaTradeQuoteSchema>;
 
 /** Solana's counterpart to TradeTransactionSchema — the API's `GET /solana/history` /
- *  `GET /solana/transactions/:id` response shape. No separate fee-transfer tracking (see
+ *  `GET /solana/transactions/:id` response shape, also returned directly by both
+ *  `POST /solana/transactions` and (as of the gas-relayer completion work)
+ *  `POST /solana/transactions/sponsored`. No separate fee-transfer tracking (see
  *  SolanaTradeQuoteSchema's own comment on why) — `status` alone is the whole picture. */
 export const SolanaTradeTransactionSchema = z.object({
   id: z.string().uuid(),
@@ -293,6 +359,10 @@ export const SolanaTradeTransactionSchema = z.object({
   failureReason: z.string().nullable(),
   submittedAt: z.string().datetime(),
   confirmedAt: z.string().datetime().nullable(),
+  /** True only for a transaction the gas relayer itself broadcast — see
+   *  docs/GAS_RELAYER_PLAN.md. False for every self-paid trade, still the entire
+   *  launch-scope flow as of this field's addition. */
+  sponsoredByRelayer: z.boolean(),
 });
 export type SolanaTradeTransactionDto = z.infer<typeof SolanaTradeTransactionSchema>;
 

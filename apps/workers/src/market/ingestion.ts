@@ -14,26 +14,34 @@ import {
   NotificationFanoutService,
   type InsertedSwap,
 } from '../notifications/notification-fanout.service';
-import { BASE_SEED_MARKETS, USDC_ADDRESS_BASE, type SeedMarket } from './seed-markets';
+import type { SeedMarket } from './seed-markets';
 
 /** Raw candle granularity — see the Candle model comment in schema.prisma. */
 const BUCKET_MINUTES = 5;
 /** How far back the very first tick backfills real swap history for a newly-seeded market.
  *  Deliberately modest (~2h, not a full day) given LOG_CHUNK_BLOCKS below — see its comment. */
 const INITIAL_BACKFILL_BLOCKS = 3_600n; // ~2h on Base at ~2s/block
-/** Upper bound on how far one tick advances a market's cursor — keeps a single tick
- *  bounded and RPC-friendly; a large backfill simply continues over several ticks. Sized
- *  against LOG_CHUNK_BLOCKS so one tick's worst case (all 4 seed markets simultaneously
- *  backfilling, every chunk hitting real events) stays under the tick interval: 150 / 5 =
- *  30 getLogs calls per market, ~10.5s at RPC_CALL_DELAY_MS each, ×4 markets ≈ 42s — see
- *  the note on LOG_CHUNK_BLOCKS. */
+/** Upper bound on how far one tick advances a market's cursor — keeps a single tick's swap
+ *  scan bounded (a large backfill gap simply continues over several ticks rather than one
+ *  tick pulling an unbounded number of events) and each getLogs response a predictable size.
+ *  LOG_CHUNK_BLOCKS below is deliberately tied to this value, not an independent constant —
+ *  see its own comment for why. */
 const MAX_BLOCKS_PER_TICK = 150n;
-/** eth_getLogs range per request. QuickNode's free "Discover" plan hard-caps this at 5
- *  blocks per call (confirmed directly: "eth_getLogs is limited to a 5 range, upgrade from
- *  discover plan...") — far stricter than the public Base RPC this used to run against.
- *  Paying for a higher-tier plan (see docs/MARKET_DATA.md) is the real fix for backfill
- *  speed; until then this stays small so calls succeed rather than fail outright. */
-const LOG_CHUNK_BLOCKS = 5n;
+/** eth_getLogs range per request — deliberately equal to MAX_BLOCKS_PER_TICK, so the
+ *  chunking loop in ingestSwapsForMarket always resolves in exactly one iteration per
+ *  market per tick: chunkEnd = min(target, cursor + LOG_CHUNK_BLOCKS) can never need a
+ *  second pass when LOG_CHUNK_BLOCKS already covers everything a tick could ask for.
+ *
+ *  This used to be hard-pinned at 5n because QuickNode's free "Discover" plan capped
+ *  eth_getLogs at a 5-block range per call (confirmed directly via QuickNode's own error:
+ *  "eth_getLogs is limited to a 5 range, upgrade from discover plan..."). That turned what
+ *  should have been 1 getLogs call per market per tick into up to 30 (150 / 5) — the single
+ *  biggest driver behind burning ~6M QuickNode credits in the platform's first 5 days,
+ *  entirely from 24/7 background polling, independent of any real trading volume. Upgraded
+ *  off that plan 2026-09-15. If the new plan's real per-call block-range cap ever turns out
+ *  to be lower than MAX_BLOCKS_PER_TICK, pin this back down explicitly the same way it was
+ *  before — don't assume "paid" automatically means "uncapped." */
+const LOG_CHUNK_BLOCKS = MAX_BLOCKS_PER_TICK;
 /** Space out RPC calls so the free endpoint doesn't rate-limit us mid-tick. */
 const RPC_CALL_DELAY_MS = 350;
 
@@ -44,6 +52,15 @@ export interface MarketIngestionConfig {
   chainName: string;
   chainNativeSymbol: string;
   rpcConfigKey: string;
+  /** This deployment's own curated pool list — see SEED_MARKETS_BY_CHAIN_IDENTIFIER in
+   *  seed-markets.ts, resolved once in main.ts from env.CHAIN_IDENTIFIER. Threaded through
+   *  config (2026-09-16, BNB Chain going live) instead of importing BASE_SEED_MARKETS
+   *  directly, since apps/workers runs one chain per deployed instance and this class
+   *  needed to stop assuming that chain was always Base. */
+  seedMarkets: SeedMarket[];
+  /** This deployment's own pegged-to-$1 reference token — see resolveUsdPrice's seeding
+   *  below and SEED_MARKETS_BY_CHAIN_IDENTIFIER's matching quoteUsdcAddress. */
+  quoteUsdcAddress: string;
 }
 
 /**
@@ -64,8 +81,9 @@ export class MarketIngestionService {
     private readonly logger: Logger,
     private readonly redis: Redis,
     whaleTradeUsdThreshold: number,
+    rpcUrlFallback: string | null = null,
   ) {
-    this.poolReader = new UniswapV3PoolReader({ rpcUrl });
+    this.poolReader = new UniswapV3PoolReader({ rpcUrl, rpcUrlFallback });
     this.tokenReader = new EvmChainDataProvider({
       chain: {
         identifier: config.chainIdentifier,
@@ -73,6 +91,7 @@ export class MarketIngestionService {
         nativeSymbol: config.chainNativeSymbol,
       },
       rpcUrl,
+      rpcUrlFallback,
     });
     this.fanout = new NotificationFanoutService(redis, logger, whaleTradeUsdThreshold);
   }
@@ -92,7 +111,7 @@ export class MarketIngestionService {
     this.chainId = chain.id;
 
     let seeded = 0;
-    for (const seedMarket of BASE_SEED_MARKETS) {
+    for (const seedMarket of this.config.seedMarkets) {
       if (await this.isFullySeeded(chain.id, seedMarket.poolAddress)) {
         seeded += 1;
         continue; // nothing read from the RPC — no need to pace against it either
@@ -101,7 +120,7 @@ export class MarketIngestionService {
       if (ok) seeded += 1;
       await sleep(RPC_CALL_DELAY_MS);
     }
-    this.logger.info({ attempted: BASE_SEED_MARKETS.length, seeded }, 'Market seeding complete');
+    this.logger.info({ attempted: this.config.seedMarkets.length, seeded }, 'Market seeding complete');
   }
 
   /**
@@ -200,11 +219,11 @@ export class MarketIngestionService {
       include: { token: true, quoteToken: true },
     });
     const byPairAddress = new Map(markets.map((m) => [m.pairAddress.toLowerCase(), m]));
-    const resolvedUsdPrices = new Map<string, number>([[USDC_ADDRESS_BASE.toLowerCase(), 1]]);
+    const resolvedUsdPrices = new Map<string, number>([[this.config.quoteUsdcAddress.toLowerCase(), 1]]);
 
     let updated = 0;
     let skipped = 0;
-    for (const seed of BASE_SEED_MARKETS) {
+    for (const seed of this.config.seedMarkets) {
       const market = byPairAddress.get(seed.poolAddress.toLowerCase());
       if (!market) continue;
 
@@ -302,7 +321,7 @@ export class MarketIngestionService {
     // "Swap volume in USD" note in docs/MARKET_DATA.md for the limitation this implies
     // for non-USD-quoted markets (their historical swaps are priced at today's quote rate,
     // not the rate at the time of that trade).
-    const quoteUsdPrices = new Map<string, number>([[USDC_ADDRESS_BASE.toLowerCase(), 1]]);
+    const quoteUsdPrices = new Map<string, number>([[this.config.quoteUsdcAddress.toLowerCase(), 1]]);
     for (const m of markets) {
       if (m.priceUsd !== null)
         quoteUsdPrices.set(m.token.contractAddress.toLowerCase(), Number(m.priceUsd));

@@ -16,13 +16,11 @@ env:
   JWT_SECRET: ci-test-secret-not-for-production-use
   CHAIN_ID: 8453
   CHAIN_RPC_URL: https://mainnet.base.org
-  # Intentionally not real keys — CI never fetches a real live quote (no funded wallet or
-  # paid API key belongs in CI). The e2e suite verifies the resulting 401/403 from both
-  # providers is turned into an honest "quote unavailable" response, not a crash. See
-  # docs/TESTING.md.
-  LIFI_API_KEY: ci-placeholder-not-a-real-key
-  LIFI_INTEGRATOR: ci-placeholder-not-a-real-integrator
-  ONEINCH_API_KEY: ci-placeholder-not-a-real-key
+  # KyberSwap's Aggregator API needs no API key — KYBERSWAP_CLIENT_ID defaults to "kamby",
+  # nothing to set here. CI hits the real, keyless KyberSwap API; the e2e suite's fixture
+  # token addresses are synthetic (never deployed), so the real API legitimately has no
+  # route for them — the suite verifies that's turned into an honest "quote unavailable"
+  # response, not a crash. See docs/TESTING.md.
   PLATFORM_FEE_RECIPIENT_ADDRESS: '0x1234567890123456789012345678901234567890'
   USDC_CONTRACT_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 

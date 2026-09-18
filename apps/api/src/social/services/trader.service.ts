@@ -3,8 +3,12 @@ import { prisma } from '@kamby/db';
 import {
   MIN_TRADES_FOR_TRADER_RANKING,
   normalizeEvmAddress,
+  PNL_WINDOW_MS,
+  toPnlWindowStats,
+  type PnlWindow,
   type TopTrader,
   type TraderProfile,
+  type TraderRealizedPnl,
   type TraderTokenStat,
 } from '@kamby/domain';
 import { toTopTrader, toTraderProfile, toTraderStats, toTraderSummary, toTraderTokenStat } from '../social.mapper';
@@ -15,10 +19,15 @@ export interface CursorPage<T> {
   nextCursor: string | null;
 }
 
+const PNL_WINDOWS: PnlWindow[] = ['24h', '7d', '30d'];
+
 /**
  * Trader identity: profiles, stats computed from indexed swaps, and follower/following
- * lists. See docs/SOCIAL.md#trader-identity. Never computes profit/ROI/win rate — Kamby
- * doesn't track cost basis, so Phase 2 only surfaces what can be computed correctly.
+ * lists. See docs/SOCIAL.md#trader-identity. `TraderStats` itself still never computes
+ * profit/ROI/win rate — it's derived from all-chain swap activity, which Kamby doesn't
+ * have cost-basis data for (see TraderStats' own doc comment in wallet.ts). The separate
+ * `realizedPnl` block below *is* real profit/loss, deliberately scoped to Kamby-originated
+ * trades only — see docs/TRADER_INTELLIGENCE.md#realized-pnl.
  */
 @Injectable()
 export class TraderService {
@@ -26,12 +35,12 @@ export class TraderService {
 
   async getProfile(address: string, viewerUserId: string | null): Promise<TraderProfile> {
     const normalized = normalizeEvmAddress(address);
-    const wallet = await prisma.wallet.findUnique({ where: { address: normalized } });
+    const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, include: { user: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
 
     const since24h = new Date(Date.now() - 24 * 60 * 60_000);
 
-    const [agg, buyCount, sellCount, lastSwap, followerCount, followingCount, isFollowedByMe, perToken, largest, recent24h] =
+    const [agg, buyCount, sellCount, lastSwap, followerCount, followingCount, isFollowedByMe, perToken, largest, recent24h, realizedPnl] =
       await Promise.all([
         prisma.swap.aggregate({ where: { traderAddress: normalized }, _count: { _all: true }, _sum: { volumeUsd: true } }),
         prisma.swap.count({ where: { traderAddress: normalized, side: 'buy' } }),
@@ -57,6 +66,9 @@ export class TraderService {
           _count: { _all: true },
           _sum: { volumeUsd: true },
         }),
+        // `realizedPnl` is `null` (the whole block, not zeroed stats) for a wallet with no
+        // linked User — "no Kamby account" — see TraderRealizedPnlSchema's own comment.
+        wallet.userId ? this.computeRealizedPnl(wallet.userId) : Promise.resolve(null),
       ]);
 
     const stats = toTraderStats(
@@ -70,7 +82,38 @@ export class TraderService {
       },
     );
 
-    return toTraderProfile(wallet, stats, followerCount, followingCount, isFollowedByMe);
+    return toTraderProfile(wallet, stats, followerCount, followingCount, isFollowedByMe, realizedPnl);
+  }
+
+  /**
+   * The three rolling-window realized-PnL aggregates for one Kamby account — see
+   * docs/TRADER_INTELLIGENCE.md#realized-pnl. Three separate bounded, indexed
+   * (`@@index([userId, confirmedAt])`) aggregate queries rather than one fetch-and-bucket
+   * pass in JS, matching how `recent24h` above is its own query rather than derived from
+   * `agg` — Postgres does the summing, this layer only shapes the result.
+   */
+  private async computeRealizedPnl(userId: string): Promise<TraderRealizedPnl> {
+    const aggregates = await Promise.all(
+      PNL_WINDOWS.map((window) =>
+        prisma.realizedPnlEvent.aggregate({
+          where: { userId, confirmedAt: { gte: new Date(Date.now() - PNL_WINDOW_MS[window]) } },
+          _sum: { realizedPnlUsd: true, costBasisUsd: true, proceedsUsd: true },
+          _count: { _all: true },
+        }),
+      ),
+    );
+
+    const [stats24h, stats7d, stats30d] = PNL_WINDOWS.map((window, i) => {
+      const agg = aggregates[i]!;
+      return toPnlWindowStats(window, {
+        realizedPnlUsd: agg._sum.realizedPnlUsd === null ? 0 : Number(agg._sum.realizedPnlUsd),
+        costBasisUsd: agg._sum.costBasisUsd === null ? 0 : Number(agg._sum.costBasisUsd),
+        proceedsUsd: agg._sum.proceedsUsd === null ? 0 : Number(agg._sum.proceedsUsd),
+        matchedCount: agg._count._all,
+      });
+    });
+
+    return { '24h': stats24h!, '7d': stats7d!, '30d': stats30d! };
   }
 
   /**
@@ -143,7 +186,7 @@ export class TraderService {
     address: string,
     rawCursor: string | undefined,
     limit: number,
-  ): Promise<CursorPage<{ address: string; displayName: string | null; avatarUrl: string | null }>> {
+  ): Promise<CursorPage<{ address: string; username: string | null; avatarUrl: string | null }>> {
     const normalized = normalizeEvmAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, select: { userId: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
@@ -161,7 +204,7 @@ export class TraderService {
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
-      include: { wallet: true },
+      include: { wallet: { include: { user: true } } },
     });
 
     const hasMore = rows.length > limit;
@@ -191,7 +234,10 @@ export class TraderService {
     `;
     if (rows.length === 0) return [];
 
-    const wallets = await prisma.wallet.findMany({ where: { address: { in: rows.map((r) => r.trader_address) } } });
+    const wallets = await prisma.wallet.findMany({
+      where: { address: { in: rows.map((r) => r.trader_address) } },
+      include: { user: true },
+    });
     const walletByAddress = new Map(wallets.map((w) => [w.address, w]));
 
     return rows.map((r) =>
@@ -199,18 +245,21 @@ export class TraderService {
     );
   }
 
-  /** Address-prefix or display-name search — server-backed, indexed, bounded. See
-   *  docs/SOCIAL.md#search. */
-  async search(query: string, limit: number): Promise<{ address: string; displayName: string | null; avatarUrl: string | null }[]> {
+  /** Address-prefix or username search — server-backed, indexed, bounded. See
+   *  docs/SOCIAL.md#search. Usernames are always stored lowercase (see normalizeUsername
+   *  in wallet.ts), so a plain `contains` against the lowercased query is correct — no
+   *  `mode: 'insensitive'` needed on that side. */
+  async search(query: string, limit: number): Promise<{ address: string; username: string | null; avatarUrl: string | null }[]> {
     const wallets = await prisma.wallet.findMany({
       where: {
         OR: [
           { address: { contains: query.toLowerCase() } },
-          { displayName: { contains: query, mode: 'insensitive' } },
+          { user: { username: { contains: query.toLowerCase() } } },
         ],
       },
       take: limit,
       orderBy: { firstSeenAt: 'desc' },
+      include: { user: true },
     });
     return wallets.map(toTraderSummary);
   }

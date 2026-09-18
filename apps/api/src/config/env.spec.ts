@@ -19,9 +19,6 @@ describe('API env schema', () => {
     CHAIN_BASE_ID: '8453',
     CHAIN_BASE_RPC_URL: 'https://mainnet.base.org',
     CHAIN_BASE_USDC_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    LIFI_API_KEY: 'test-key',
-    LIFI_INTEGRATOR: 'kamby-test',
-    ONEINCH_API_KEY: 'test-key',
     PLATFORM_FEE_RECIPIENT_ADDRESS: '0x1234567890123456789012345678901234567890',
   };
 
@@ -107,6 +104,30 @@ describe('API env schema', () => {
     it("does not require Arbitrum's variables when only base is listed in CHAINS", () => {
       expect(() => parseEnv(ValidatedEnvSchema, validBase)).not.toThrow();
     });
+
+    it('accepts BNB Chain fully configured alongside Base', () => {
+      const env = parseEnv(ValidatedEnvSchema, {
+        ...validBase,
+        CHAINS: 'base,bnb',
+        CHAIN_BNB_ID: '56',
+        CHAIN_BNB_RPC_URL: 'https://bsc-dataseed.binance.org',
+        CHAIN_BNB_USDC_ADDRESS: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+      });
+      const chains = getConfiguredChains(envGetter(env));
+      expect(chains.map((c) => c.slug)).toEqual(['base', 'bnb']);
+      expect(chains.find((c) => c.slug === 'bnb')).toMatchObject({ chainId: 56, rpcUrl: 'https://bsc-dataseed.binance.org' });
+    });
+
+    it('fails clearly when bnb is listed in CHAINS but CHAIN_BNB_ID is missing', () => {
+      expect(() =>
+        parseEnv(ValidatedEnvSchema, {
+          ...validBase,
+          CHAINS: 'base,bnb',
+          CHAIN_BNB_RPC_URL: 'https://bsc-dataseed.binance.org',
+          CHAIN_BNB_USDC_ADDRESS: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+        }),
+      ).toThrowError(/CHAIN_BNB_ID/);
+    });
   });
 
   describe('getConfiguredChains', () => {
@@ -114,8 +135,20 @@ describe('API env schema', () => {
       const env = parseEnv(ValidatedEnvSchema, validBase);
       const chains = getConfiguredChains(envGetter(env));
       expect(chains).toEqual([
-        { slug: 'base', chainId: 8453, rpcUrl: 'https://mainnet.base.org', usdcAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' },
+        {
+          slug: 'base',
+          chainId: 8453,
+          rpcUrl: 'https://mainnet.base.org',
+          rpcUrlFallback: null,
+          usdcAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        },
       ]);
+    });
+
+    it('resolves a configured fallback RPC URL instead of null', () => {
+      const env = parseEnv(ValidatedEnvSchema, { ...validBase, CHAIN_BASE_RPC_URL_FALLBACK: 'https://base-fallback.example.com' });
+      const chains = getConfiguredChains(envGetter(env));
+      expect(chains[0]?.rpcUrlFallback).toBe('https://base-fallback.example.com');
     });
   });
 
@@ -164,6 +197,7 @@ describe('API env schema', () => {
       const env = parseEnv(ValidatedEnvSchema, solanaBase);
       expect(getSolanaConfig(envGetter(env))).toEqual({
         rpcUrl: 'https://api.mainnet-beta.solana.com',
+        rpcUrlFallback: null,
         treasuryUsdcAta: 'FakeAtaAddressForTestingOnly1111111111111',
         jupiterPlatformFeeBps: 50,
         newWalletTopupSol: 0.01,
@@ -171,10 +205,16 @@ describe('API env schema', () => {
         jupiterApiKey: 'fake-jupiter-api-key-for-testing-only',
         gasRelayerFeePayerSecretKey: null,
         gasRelayerMaxLamportsCeiling: null,
+        gasRelayerTestWalletAddresses: null,
       });
     });
 
-    it('gasRelayer* fields resolve when set, unlike every other required SOLANA_* field — GasRelayerService is unwired and these stay genuinely optional', () => {
+    it('resolves a configured Solana fallback RPC URL instead of null', () => {
+      const env = parseEnv(ValidatedEnvSchema, { ...solanaBase, SOLANA_RPC_URL_FALLBACK: 'https://solana-fallback.example.com' });
+      expect(getSolanaConfig(envGetter(env))?.rpcUrlFallback).toBe('https://solana-fallback.example.com');
+    });
+
+    it('gasRelayer* fields resolve when set, unlike every other required SOLANA_* field — genuinely optional unless SOLANA_GAS_RELAYER_ENABLED is true', () => {
       const env = parseEnv(ValidatedEnvSchema, {
         ...solanaBase,
         SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY: 'fake-relayer-secret-key',
@@ -184,18 +224,68 @@ describe('API env schema', () => {
       expect(config?.gasRelayerFeePayerSecretKey).toBe('fake-relayer-secret-key');
       expect(config?.gasRelayerMaxLamportsCeiling).toBe(3_000_000);
     });
+
+    describe('gas relayer (SOLANA_GAS_RELAYER_ENABLED)', () => {
+      it('requires nothing gas-relayer-shaped when SOLANA_GAS_RELAYER_ENABLED is left at its default (false)', () => {
+        expect(() => parseEnv(ValidatedEnvSchema, solanaBase)).not.toThrow();
+      });
+
+      const relayerBase = {
+        ...solanaBase,
+        SOLANA_GAS_RELAYER_ENABLED: 'true',
+        SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY: 'fake-relayer-secret-key',
+        SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING: '3000000',
+      };
+
+      it('accepts a fully-configured, enabled gas relayer', () => {
+        expect(() => parseEnv(ValidatedEnvSchema, relayerBase)).not.toThrow();
+      });
+
+      it('fails clearly when SOLANA_GAS_RELAYER_ENABLED is true but SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY is missing', () => {
+        expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY'))).toThrowError(
+          /SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY/,
+        );
+      });
+
+      it('fails clearly when SOLANA_GAS_RELAYER_ENABLED is true but SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING is missing', () => {
+        expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING'))).toThrowError(
+          /SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING/,
+        );
+      });
+
+      it('fails clearly when SOLANA_GAS_RELAYER_ENABLED is true but SOLANA_ENABLED is false — never a silent no-op', () => {
+        // z.coerce.boolean() treats any non-empty string (including the literal "false") as
+        // truthy — omitting the key is the only way to actually get SOLANA_ENABLED to
+        // resolve to its false default, same convention every other test in this file uses.
+        expect(() => parseEnv(ValidatedEnvSchema, omit(relayerBase, 'SOLANA_ENABLED'))).toThrowError(/SOLANA_GAS_RELAYER_ENABLED requires SOLANA_ENABLED/);
+      });
+
+      describe('test-wallet rollout gate (SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES)', () => {
+        it('resolves to null (no restriction) when unset', () => {
+          const env = parseEnv(ValidatedEnvSchema, relayerBase);
+          expect(getSolanaConfig(envGetter(env))?.gasRelayerTestWalletAddresses).toBeNull();
+        });
+
+        it('parses a comma-separated list into a Set, trimming whitespace and dropping empty entries', () => {
+          const env = parseEnv(ValidatedEnvSchema, { ...relayerBase, SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES: ' WalletA111 , WalletB222,,WalletC333 ' });
+          expect(getSolanaConfig(envGetter(env))?.gasRelayerTestWalletAddresses).toEqual(new Set(['WalletA111', 'WalletB222', 'WalletC333']));
+        });
+
+        it('is entirely independent of SOLANA_GAS_RELAYER_ENABLED — never required, never validated against it', () => {
+          expect(() => parseEnv(ValidatedEnvSchema, { ...solanaBase, SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES: 'WalletA111' })).not.toThrow();
+        });
+      });
+    });
   });
 
-  it('fails clearly when LIFI_API_KEY is missing', () => {
-    expect(() => parseEnv(ValidatedEnvSchema, omit(validBase, 'LIFI_API_KEY'))).toThrowError(/LIFI_API_KEY/);
+  it('defaults KYBERSWAP_CLIENT_ID to "kamby" when unset — KyberSwap requires no API key', () => {
+    const env = parseEnv(ValidatedEnvSchema, validBase);
+    expect(env.KYBERSWAP_CLIENT_ID).toBe('kamby');
   });
 
-  it('fails clearly when LIFI_INTEGRATOR is missing', () => {
-    expect(() => parseEnv(ValidatedEnvSchema, omit(validBase, 'LIFI_INTEGRATOR'))).toThrowError(/LIFI_INTEGRATOR/);
-  });
-
-  it('fails clearly when ONEINCH_API_KEY is missing', () => {
-    expect(() => parseEnv(ValidatedEnvSchema, omit(validBase, 'ONEINCH_API_KEY'))).toThrowError(/ONEINCH_API_KEY/);
+  it('accepts a custom KYBERSWAP_CLIENT_ID override', () => {
+    const env = parseEnv(ValidatedEnvSchema, { ...validBase, KYBERSWAP_CLIENT_ID: 'kamby-prod' });
+    expect(env.KYBERSWAP_CLIENT_ID).toBe('kamby-prod');
   });
 
   it('fails clearly when PLATFORM_FEE_RECIPIENT_ADDRESS is missing or malformed', () => {

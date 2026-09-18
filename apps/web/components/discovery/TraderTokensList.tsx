@@ -1,4 +1,4 @@
-import type { TraderTokenStat } from '@kamby/domain';
+import { DEFAULT_CHAIN_SLUG, type TraderTokenStat } from '@kamby/domain';
 import Link from 'next/link';
 import { EmptyState } from '@/components/market/EmptyState';
 import { TokenIdentity } from '@/components/market/TokenIdentity';
@@ -15,7 +15,12 @@ export function TraderTokensList({ tokens }: { tokens: TraderTokenStat[] }) {
       {tokens.map((entry) => (
         <Link
           key={entry.token.address}
-          href={`/market/${entry.token.address}`}
+          // TraderTokenStatSchema carries no chain info at all yet (unlike MarketSummary/
+          // SocialActivity) — falls back to DEFAULT_CHAIN_SLUG (Base) for now, same as
+          // this link's behavior before the /market/[chain]/[address] route existed. Not a
+          // regression, but a real gap to close whenever trader-intelligence itself needs
+          // multi-chain awareness (see docs/TRADER_INTELLIGENCE.md).
+          href={`/market/${DEFAULT_CHAIN_SLUG}/${entry.token.address}`}
           className="flex items-center justify-between gap-3 rounded-lg border border-line p-3 hover:border-accent/50 hover:bg-surface-raised"
         >
           <TokenIdentity symbol={entry.token.symbol} name={entry.token.name} logoUrl={entry.token.logoUrl} size="sm" />

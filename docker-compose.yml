@@ -8,6 +8,46 @@ services:
       POSTGRES_USER: kamby
       POSTGRES_PASSWORD: kamby
       POSTGRES_DB: kamby
+      # Real bug hit 2026-09-17, Docker Desktop for Windows specifically: connecting
+      # through the host-port-forwarding proxy below (0.0.0.0:5432->5432) to *any* client
+      # (Prisma, the plain `pg` driver — both tested) fails with a generic "password
+      # authentication failed" even with the exactly correct password, while the same
+      # credentials work fine from *inside* the container or from another container on
+      # this same Docker network (neither goes through that proxy). Tried both md5 and
+      # `trust` (zero round-trips after the startup packet — would have ruled out
+      # "multi-message exchange" as the cause) here: both still fail the exact same way
+      # from the host, re-verified 2026-09-17. `trust` failing too, with the identical
+      # "password authentication failed" message despite no password ever being checked,
+      # points at the startup packet itself (or its response) getting mangled by the
+      # proxy — not anything auth-method-specific. Don't spend more time on auth-method
+      # variations, this isn't that.
+      # Left as md5 since it's a strictly simpler, still-real password check with no
+      # downside versus scram-sha-256 (harmless local-only relaxation; production's
+      # managed Postgres is unaffected), but don't rely on it alone. The actual working
+      # workaround: run Prisma/tests/anything that needs a real DB connection from
+      # *inside* a throwaway container on this same Docker network instead of directly
+      # from the Windows host — e.g.
+      # `docker run --rm --network savingourlife_default -v
+      # "<repo>\packages\db:/db" -w /app -e
+      # DATABASE_URL="postgresql://kamby:kamby@savingourlife-postgres-1:5432/kamby?schema=public"
+      # node:20 sh -c "npm install prisma@5.22.0 --silent && npx prisma <command>
+      # --schema=/db/prisma/schema.prisma"` — confirmed working 2026-09-17 (applied a real
+      # migration this way, and again later the same day for a full workers e2e test run —
+      # see apps/workers/vitest.e2e.config.ts's own comment). Use `node:20` (glibc-based),
+      # not `node:20-alpine`: the alpine tag worked earlier in the day but later the same
+      # day failed with an OpenSSL-detection error inside Prisma's engine — alpine's `:20`
+      # tag is a moving target (musl/openssl version can change under you between pulls),
+      # so don't rely on it for this. Run from PowerShell, not git-bash — MSYS's automatic
+      # Unix-path-to-Windows-path rewriting mangles `-v`/`-w` arguments that contain `/`.
+      # For a run that needs the WHOLE workspace's node_modules (not just prisma) — e.g. an
+      # actual test suite — don't bind-mount the host's own node_modules into the
+      # container: several native deps (esbuild/vite among them) ship OS-specific binaries,
+      # and the host's are Windows ones, incompatible inside a Linux container. Instead
+      # bind-mount the repo read-only, `cp` it into the container's own filesystem, strip
+      # any copied node_modules, then run a fresh `pnpm install` inside the container —
+      # this produces a real Linux-native node_modules without ever touching the host's.
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: '--auth-host=md5'
     ports:
       - '5432:5432'
     volumes:

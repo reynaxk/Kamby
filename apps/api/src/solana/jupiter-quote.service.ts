@@ -9,6 +9,18 @@ import { getSolanaConfig, type Env } from '../config/env';
 // (1 req/sec). See docs/TRADING.md#solana.
 const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
 const JUPITER_SWAP_URL = 'https://api.jup.ag/swap/v1/swap';
+/** Confirmed live 2026-09-17 with a real quote + a real POST (not assumed from docs) — see
+ *  `getSwapInstructions`'s own doc comment for exactly what was verified. */
+const JUPITER_SWAP_INSTRUCTIONS_URL = 'https://api.jup.ag/swap/v1/swap-instructions';
+
+/** Jupiter's free tier is 1 req/sec — a 429 is an expected, normal response under any real
+ *  concurrent traffic (or even a single SELL quote's own extra fee-discovery call, see
+ *  SolanaQuoteService#resolvePlatformFeeBps), not a real failure. Retried with backoff
+ *  rather than surfaced as an immediate quote failure — see fetchWithRetry below. Capped
+ *  low enough that a still-rate-limited request still fails within a few seconds rather
+ *  than leaving a user staring at a spinner indefinitely. */
+const MAX_RETRY_ATTEMPTS = 3;
+const BASE_RETRY_DELAY_MS = 400;
 
 export interface JupiterQuoteParams {
   inputMint: string;
@@ -77,7 +89,7 @@ export interface JupiterQuoteResult {
  * failure, not a rate limit or rejection. Jupiter has restructured this API before and
  * will likely again; re-verify against Jupiter's current docs
  * (https://developers.jup.ag) before depending on this further, same caveat
- * `LiFiSwapRouter` carries for LI.FI.
+ * `KyberSwapRouter` carries for KyberSwap.
  */
 @Injectable()
 export class JupiterQuoteService {
@@ -125,6 +137,76 @@ export class JupiterQuoteService {
   }
 
   /**
+   * The gas relayer's transaction-construction half — see docs/GAS_RELAYER_PLAN.md and
+   * `GasRelayerService`'s own doc comment for the co-signing half this feeds. Returns raw,
+   * unassembled instructions (never a fully-built transaction) with `params.payer` — the
+   * relayer's own pubkey, never the user's — funding every setup/ATA-creation instruction;
+   * `gas-relayer-transaction-builder.ts` assembles the actual `VersionedTransaction` from
+   * this.
+   *
+   * Confirmed live 2026-09-17 against a real quote and a real POST to this endpoint —
+   * `docs/GAS_RELAYER_PLAN.md` originally flagged this shape as doc-derived and unverified;
+   * this is the real verification, not a repeat of that caveat. Response shape confirmed:
+   * `computeBudgetInstructions[]`, `setupInstructions[]`, `swapInstruction` (singular),
+   * `cleanupInstruction` (singular, nullable), `addressLookupTableAddresses[]` — each
+   * instruction as `{programId, accounts: [{pubkey, isSigner, isWritable}], data (base64)}`.
+   * `payer` genuinely does redirect the setup instructions' funding source: a real
+   * `setupInstructions[0]` (an ATA `CreateIdempotent`) had the passed-in `payer` value as
+   * its own account index 0, exactly as `GAS_RELAYER_PLAN.md` hoped. The `cleanupInstruction`
+   * for a SOL-output swap is a real `CloseAccount` on the exact same account
+   * `setupInstructions` created, refunding the *user's* own wallet (never the payer) — this
+   * is the real shape `gas-relayer-instruction-guard.ts`'s WSOL-unwrap exception was built
+   * to recognize, confirmed against a live response rather than assumed.
+   */
+  async getSwapInstructions(params: JupiterSwapInstructionsParams): Promise<JupiterSwapInstructionsResult | null> {
+    if (this.apiKey === null) {
+      this.logger.error('no Jupiter API key configured — cannot request swap instructions');
+      return null;
+    }
+
+    const quote = await this.fetchQuote(params);
+    if (!quote) return null;
+
+    try {
+      const response = await this.fetchWithRetry(JUPITER_SWAP_INSTRUCTIONS_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': this.apiKey },
+        body: JSON.stringify({
+          quoteResponse: quote,
+          userPublicKey: params.userPublicKey,
+          payer: params.payer,
+          feeAccount: params.platformFeeBps > 0 ? params.feeAccount : undefined,
+          wrapAndUnwrapSol: true,
+        }),
+      });
+      if (!response.ok) {
+        if (response.status === 429) {
+          this.logger.error({ status: response.status }, 'swap-instructions endpoint still rate-limited after retries');
+        } else {
+          this.logger.warn({ status: response.status }, 'swap-instructions endpoint rejected the request');
+        }
+        return null;
+      }
+      const body = (await response.json()) as JupiterSwapInstructionsResponse;
+      return {
+        inputAmountRaw: quote.inAmount,
+        outputAmountRaw: quote.outAmount,
+        minOutputAmountRaw: quote.otherAmountThreshold,
+        priceImpactBps: parsePriceImpactBps(quote.priceImpactPct),
+        platformFeeAmountRaw: quote.platformFee?.amount ?? null,
+        computeBudgetInstructions: body.computeBudgetInstructions,
+        setupInstructions: body.setupInstructions,
+        swapInstruction: body.swapInstruction,
+        cleanupInstruction: body.cleanupInstruction ?? null,
+        addressLookupTableAddresses: body.addressLookupTableAddresses,
+      };
+    } catch (error) {
+      this.logger.warn({ err: error }, 'swap-instructions endpoint unreachable');
+      return null;
+    }
+  }
+
+  /**
    * A lighter-weight quote-only call — no swap transaction is built, and no platform fee is
    * requested (Jupiter's own fee accounting would otherwise shrink the output this exists
    * to measure). Used by `SolanaQuoteService` to discover a SELL trade's USD size — the
@@ -155,10 +237,14 @@ export class JupiterQuoteService {
 
     const url = `${JUPITER_QUOTE_URL}?${query.toString()}`;
     try {
-      const response = await fetch(url, { headers: { 'x-api-key': this.apiKey! } });
+      const response = await this.fetchWithRetry(url, { headers: { 'x-api-key': this.apiKey! } });
       if (!response.ok) {
         // Never leak the raw provider body (may echo request params back) — log status only.
-        this.logger.warn({ status: response.status }, 'quote endpoint rejected the request');
+        if (response.status === 429) {
+          this.logger.error({ status: response.status }, 'quote endpoint still rate-limited after retries');
+        } else {
+          this.logger.warn({ status: response.status }, 'quote endpoint rejected the request');
+        }
         return null;
       }
       return (await response.json()) as JupiterQuoteResponse;
@@ -173,7 +259,7 @@ export class JupiterQuoteService {
     params: JupiterQuoteParams,
   ): Promise<JupiterSwapResponse | null> {
     try {
-      const response = await fetch(JUPITER_SWAP_URL, {
+      const response = await this.fetchWithRetry(JUPITER_SWAP_URL, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': this.apiKey! },
         body: JSON.stringify({
@@ -189,7 +275,11 @@ export class JupiterQuoteService {
         }),
       });
       if (!response.ok) {
-        this.logger.warn({ status: response.status }, 'swap endpoint rejected the request');
+        if (response.status === 429) {
+          this.logger.error({ status: response.status }, 'swap endpoint still rate-limited after retries');
+        } else {
+          this.logger.warn({ status: response.status }, 'swap endpoint rejected the request');
+        }
         return null;
       }
       return (await response.json()) as JupiterSwapResponse;
@@ -198,6 +288,34 @@ export class JupiterQuoteService {
       return null;
     }
   }
+
+  /**
+   * Wraps `fetch`, retrying only on 429 (Jupiter's own rate-limit status) — any other
+   * status (a malformed request, a genuine 5xx) is returned as-is on the first attempt,
+   * since retrying those would just repeat the same failure. Honors Jupiter's own
+   * `Retry-After` header when present; otherwise backs off exponentially with jitter so
+   * concurrent requests don't all retry in lockstep and re-collide on the next attempt.
+   */
+  private async fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+    let response = await fetch(url, init);
+    for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS && response.status === 429; attempt++) {
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfterSeconds = retryAfterHeader !== null ? Number(retryAfterHeader) : NaN;
+      const delayMs =
+        Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+          ? retryAfterSeconds * 1000
+          : BASE_RETRY_DELAY_MS * 2 ** attempt + Math.random() * 250;
+
+      this.logger.warn({ attempt: attempt + 1, delayMs: Math.round(delayMs) }, 'Jupiter rate limit (429) — retrying after backoff');
+      await sleep(delayMs);
+      response = await fetch(url, init);
+    }
+    return response;
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** The slice of Jupiter's `/quote` response this service actually reads — deliberately
@@ -214,6 +332,63 @@ interface JupiterQuoteResponse {
 
 interface JupiterSwapResponse {
   swapTransaction: string;
+}
+
+export interface JupiterSwapInstructionsParams {
+  inputMint: string;
+  outputMint: string;
+  amountRaw: string;
+  slippageBps: number;
+  userPublicKey: string;
+  platformFeeBps: number;
+  feeAccount: string;
+  /** The gas relayer's own pubkey — funds every setup/ATA-creation instruction Jupiter's
+   *  response includes. Never the user's own wallet; see `getSwapInstructions`'s own doc
+   *  comment for what this was confirmed to do against a real live call. */
+  payer: string;
+}
+
+/** One raw, unassembled instruction from Jupiter's `/swap-instructions` response —
+ *  deliberately not run through this codebase's own `ResolvedInstruction` shape
+ *  (`gas-relayer-instruction-guard.ts`) here: that shape needs base58 pubkeys and
+ *  ALT-resolved accounts, which only exist once `gas-relayer-transaction-builder.ts` has
+ *  actually assembled a real `VersionedTransaction` and `GasRelayerService` has resolved
+ *  it — converting twice would be redundant, not extra safety. */
+export interface JupiterRawInstruction {
+  programId: string;
+  accounts: { pubkey: string; isSigner: boolean; isWritable: boolean }[];
+  /** Base64-encoded instruction data. */
+  data: string;
+}
+
+export interface JupiterSwapInstructionsResult {
+  /** Same quote-derived fields `getQuote`'s own `JupiterQuoteResult` returns — read off the
+   *  same underlying `/quote` response this method already fetches internally, so callers
+   *  never need a second round trip just to persist a quote row. */
+  inputAmountRaw: string;
+  outputAmountRaw: string;
+  minOutputAmountRaw: string;
+  priceImpactBps: number | null;
+  platformFeeAmountRaw: string | null;
+  computeBudgetInstructions: JupiterRawInstruction[];
+  setupInstructions: JupiterRawInstruction[];
+  swapInstruction: JupiterRawInstruction;
+  /** `null` when this swap doesn't need any cleanup (e.g. no wrapped-SOL account to
+   *  unwrap) — most swaps that don't touch native SOL never have one. */
+  cleanupInstruction: JupiterRawInstruction | null;
+  addressLookupTableAddresses: string[];
+}
+
+/** The slice of Jupiter's real `/swap-instructions` response this service reads —
+ *  deliberately not a full, strict type of the whole response (it also carries
+ *  `tokenLedgerInstruction`, `otherInstructions`, `prioritizationFeeLamports`,
+ *  `computeUnitLimit`, and several other fields this codebase has no use for yet). */
+interface JupiterSwapInstructionsResponse {
+  computeBudgetInstructions: JupiterRawInstruction[];
+  setupInstructions: JupiterRawInstruction[];
+  swapInstruction: JupiterRawInstruction;
+  cleanupInstruction?: JupiterRawInstruction | null;
+  addressLookupTableAddresses: string[];
 }
 
 function parsePriceImpactBps(raw: string | undefined): number | null {

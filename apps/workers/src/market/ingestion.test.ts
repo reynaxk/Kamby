@@ -4,7 +4,7 @@ import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MarketIngestionService } from './ingestion';
-import { USDC_ADDRESS_BASE } from './seed-markets';
+import { BASE_SEED_MARKETS, USDC_ADDRESS_BASE } from './seed-markets';
 
 const mockPrisma = vi.hoisted(() => ({
   chain: {
@@ -110,7 +110,14 @@ const FAKE_SWAP_EVENT = {
 
 function newService() {
   const service = new MarketIngestionService(
-    { chainIdentifier: 'eip155:8453', chainName: 'Base', chainNativeSymbol: 'ETH', rpcConfigKey: 'CHAIN_RPC_URL' },
+    {
+      chainIdentifier: 'eip155:8453',
+      chainName: 'Base',
+      chainNativeSymbol: 'ETH',
+      rpcConfigKey: 'CHAIN_RPC_URL',
+      seedMarkets: BASE_SEED_MARKETS,
+      quoteUsdcAddress: USDC_ADDRESS_BASE,
+    },
     'http://127.0.0.1:0',
     fakeLogger,
     fakeRedis,

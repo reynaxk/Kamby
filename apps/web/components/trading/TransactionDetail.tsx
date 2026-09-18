@@ -5,6 +5,7 @@ import { Surface } from '@kamby/ui';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
+import { explorerName, explorerTxUrl } from '@/lib/explorer';
 import { formatDateTime, truncateAddress } from '@/lib/format';
 import { getTransaction } from '@/lib/trading-client';
 import { StatusPill } from './StatusPill';
@@ -76,14 +77,16 @@ export function TransactionDetail({ id }: { id: string }) {
         <Row label="Chain" value={`eip155:${transaction.chainId}`} />
       </dl>
 
-      <a
-        href={`https://basescan.org/tx/${transaction.txHash}`}
-        target="_blank"
-        rel="noreferrer noopener"
-        className="mt-4 inline-block font-mono text-xs text-accent underline"
-      >
-        View {truncateAddress(transaction.txHash)} on Basescan
-      </a>
+      {explorerTxUrl(transaction.chainId, transaction.txHash) && (
+        <a
+          href={explorerTxUrl(transaction.chainId, transaction.txHash)!}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="mt-4 inline-block font-mono text-xs text-accent underline"
+        >
+          View {truncateAddress(transaction.txHash)} on {explorerName(transaction.chainId)}
+        </a>
+      )}
     </Surface>
   );
 }

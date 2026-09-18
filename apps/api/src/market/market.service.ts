@@ -3,6 +3,7 @@ import { prisma } from '@kamby/db';
 import {
   CandleSchema,
   computeDiscoveryScore,
+  identifierForChainId,
   LARGE_TRADE_USD_THRESHOLD,
   type Candle,
   type MarketSummary,
@@ -18,7 +19,7 @@ import { WatchlistService } from './watchlist.service';
 const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
 const ACTIVITY_INCLUDE = {
   tokenMarket: { include: { token: true, quoteToken: true, chain: true } },
-  trader: true,
+  trader: { include: { user: true } },
 } as const;
 /** How many recent trades a token page's "active traders" section considers — kept small
  *  and time-boxed (24h) so this is always a cheap, bounded query, never a full-history scan. */
@@ -72,7 +73,7 @@ export class MarketService {
   async getToken(address: string, chainId: number): Promise<MarketSummary> {
     assertAddressShape(address);
     const row = await prisma.tokenMarket.findFirst({
-      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       include: MARKET_INCLUDE,
       orderBy: { liquidityUsd: 'desc' },
     });
@@ -89,7 +90,7 @@ export class MarketService {
   async getTokenTraders(address: string, chainId: number, limit: number): Promise<TokenTraderConnection> {
     assertAddressShape(address);
     const market = await prisma.tokenMarket.findFirst({
-      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       include: MARKET_INCLUDE,
       orderBy: { liquidityUsd: 'desc' },
     });
@@ -104,7 +105,7 @@ export class MarketService {
         orderBy: { blockTimestamp: 'desc' },
         distinct: ['traderAddress'],
         take: limit,
-        include: { trader: true },
+        include: { trader: { include: { user: true } } },
       }),
       prisma.swap.groupBy({
         by: ['traderAddress'],
@@ -131,6 +132,7 @@ export class MarketService {
       activeGrouped.length > 0
         ? await prisma.wallet.findMany({
             where: { address: { in: activeGrouped.map((g) => g.traderAddress!) } },
+            include: { user: true },
           })
         : [];
     const walletByAddress = new Map(activeWallets.map((w) => [w.address, w]));
@@ -144,8 +146,8 @@ export class MarketService {
           ? [
               {
                 address: row.traderAddress,
-                displayName: row.trader?.displayName ?? null,
-                avatarUrl: row.trader?.avatarUrl ?? null,
+                username: row.trader?.user?.username ?? null,
+                avatarUrl: row.trader?.user?.avatarUrl ?? null,
                 lastTradeAt: row.blockTimestamp.toISOString(),
                 tradeCount24h: null,
               },
@@ -158,8 +160,8 @@ export class MarketService {
         return [
           {
             address: g.traderAddress,
-            displayName: wallet?.displayName ?? null,
-            avatarUrl: wallet?.avatarUrl ?? null,
+            username: wallet?.user?.username ?? null,
+            avatarUrl: wallet?.user?.avatarUrl ?? null,
             lastTradeAt: g._max.blockTimestamp.toISOString(),
             tradeCount24h: g._count._all,
           },
@@ -175,7 +177,7 @@ export class MarketService {
   async getHistory(address: string, chainId: number, timeframe: Timeframe): Promise<Candle[]> {
     assertAddressShape(address);
     const market = await prisma.tokenMarket.findFirst({
-      where: { chainId, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+      where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
       orderBy: { liquidityUsd: 'desc' },
     });
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
@@ -245,6 +247,17 @@ function assertAddressShape(address: string): void {
   if (!EVM_ADDRESS_PATTERN.test(address)) {
     throw new BadRequestException(`"${address}" is not a valid contract address`);
   }
+}
+
+/** `TokenMarket.chainId` is Chain's own internal autoincrement id, not the real numeric EVM
+ *  chain id this file's methods receive — see identifierForChainId's own doc comment for
+ *  the real incident (every token detail/history/traders lookup silently 404ing) this
+ *  fixes. Every `TokenMarket` lookup below that needs to scope to one chain does it through
+ *  this — via the `chain` relation's real `identifier` — never a bare `chainId: chainId`. */
+function requireChainIdentifier(chainId: number): string {
+  const identifier = identifierForChainId(chainId);
+  if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
+  return identifier;
 }
 
 function matchesSearch(row: MarketRow, search: string): boolean {

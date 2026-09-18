@@ -1,4 +1,4 @@
-import type { MarketSummary } from '@kamby/domain';
+import { DEFAULT_CHAIN_SLUG, type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
@@ -7,8 +7,12 @@ import { StaleBadge } from './StaleBadge';
 import { TokenIdentity } from './TokenIdentity';
 
 export function TokenCard({ market }: { market: MarketSummary }) {
+  // Chain-aware URL as of 2026-09-16 (BNB Chain going live) — see
+  // app/market/[chain]/[address]/page.tsx. Falls back to DEFAULT_CHAIN_SLUG only if this
+  // market's own chainIdentifier is somehow unrecognized, never crashing the card.
+  const chainSlug = slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
   return (
-    <Link href={`/market/${market.tokenAddress}`} className="block">
+    <Link href={`/market/${chainSlug}/${market.tokenAddress}`} className="block">
       <Surface className="flex h-full flex-col gap-4 p-5 transition-colors hover:border-accent/50 hover:bg-surface-raised">
         <div className="flex items-start justify-between gap-2">
           <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} />

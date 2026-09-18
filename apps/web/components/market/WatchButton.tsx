@@ -17,12 +17,19 @@ import { checkWatchStatus, unwatchToken, watchToken } from '@/lib/watchlist-clie
  */
 export function WatchButton({
   address,
+  chainId,
   initialWatching,
   compact = false,
   className,
   onChange,
 }: {
   address: string;
+  /** Optional, added 2026-09-16 for BNB Chain going live — omitted means "whichever chain
+   *  this deployment defaults to" (Base), same convention as lib/watchlist-client.ts's own
+   *  optional chainId param. Callers with a real chain in scope (the market detail page)
+   *  should pass it, so a watched BNB token is never checked/toggled against Base by
+   *  mistake. */
+  chainId?: number;
   initialWatching: boolean | null;
   compact?: boolean;
   className?: string;
@@ -38,13 +45,13 @@ export function WatchButton({
   useEffect(() => {
     if (initialWatching !== null) return;
     let cancelled = false;
-    checkWatchStatus(address).then((isWatching) => {
+    checkWatchStatus(address, chainId).then((isWatching) => {
       if (!cancelled) setWatching(isWatching);
     });
     return () => {
       cancelled = true;
     };
-  }, [address, initialWatching]);
+  }, [address, chainId, initialWatching]);
 
   function toggle(event?: MouseEvent) {
     event?.preventDefault(); // compact star sits inside a card-level <Link> — never navigate
@@ -54,7 +61,7 @@ export function WatchButton({
     setError(false);
     startTransition(async () => {
       try {
-        await (next ? watchToken(address) : unwatchToken(address));
+        await (next ? watchToken(address, chainId) : unwatchToken(address, chainId));
         onChange?.(next);
       } catch {
         setWatching(!next); // roll back — the server never confirmed this state

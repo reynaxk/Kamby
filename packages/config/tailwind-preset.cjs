@@ -19,6 +19,12 @@ module.exports = {
           400: 'rgb(var(--kamby-ink-400) / <alpha-value>)',
         },
         accent: 'rgb(var(--kamby-accent) / <alpha-value>)',
+        // The text color safe to put ON TOP of an accent-colored background — not always
+        // white. --kamby-accent-ink's own doc comment in globals.css explains why this
+        // needs to be its own token rather than a hardcoded `text-white` at every call
+        // site: a bright, light-toned accent (like the Void theme's neon green) needs dark
+        // text, not white, to stay readable.
+        'accent-ink': 'rgb(var(--kamby-accent-ink) / <alpha-value>)',
         up: 'rgb(var(--kamby-up) / <alpha-value>)',
         down: 'rgb(var(--kamby-down) / <alpha-value>)',
         warn: 'rgb(var(--kamby-warn) / <alpha-value>)',

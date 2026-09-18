@@ -44,7 +44,7 @@ export function SlippageControl({ valueBps, onChange }: { valueBps: number; onCh
             }}
             className={cn(
               'flex-1 rounded-lg px-2 py-1.5 font-body text-xs font-medium transition-colors',
-              !customOpen && valueBps === preset ? 'bg-accent text-white' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
+              !customOpen && valueBps === preset ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
             )}
           >
             {formatBpsAsPercent(preset)}
@@ -55,7 +55,7 @@ export function SlippageControl({ valueBps, onChange }: { valueBps: number; onCh
           onClick={() => setCustomOpen(true)}
           className={cn(
             'flex-1 rounded-lg px-2 py-1.5 font-body text-xs font-medium transition-colors',
-            customOpen ? 'bg-accent text-white' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
+            customOpen ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
           )}
         >
           Custom

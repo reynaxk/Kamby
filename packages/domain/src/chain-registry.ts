@@ -23,6 +23,12 @@ export const CHAIN_REGISTRY = {
     name: 'Arbitrum',
     nativeSymbol: 'ETH',
   },
+  bnb: {
+    identifier: 'eip155:56',
+    numericId: 56,
+    name: 'BNB Chain',
+    nativeSymbol: 'BNB',
+  },
 } as const;
 
 export type ChainSlug = keyof typeof CHAIN_REGISTRY;
@@ -49,4 +55,19 @@ export function slugForChainId(chainId: number): ChainSlug | null {
 export function slugForIdentifier(identifier: string): ChainSlug | null {
   const found = SUPPORTED_CHAIN_SLUGS.find((slug) => CHAIN_REGISTRY[slug].identifier === identifier);
   return found ?? null;
+}
+
+/** The CAIP-2 identifier for a real numeric EVM chain id — the missing sibling of
+ *  slugForChainId/slugForIdentifier, added 2026-09-15 for querying `TokenMarket` by its
+ *  `chain` relation. `TokenMarket.chainId` is a plain FK to `Chain.id` — Prisma's own
+ *  autoincrement internal row id, NOT the real numeric EVM chain id `DEFAULT_CHAIN_ID`
+ *  carries — a distinction several call sites got wrong (see the incident notes on
+ *  SafetyService.assertTradable, MarketService.getToken/getHistory/getTokenTraders, and
+ *  WatchlistService.resolveTokenMarketId). Filtering via `chain: { identifier:
+ *  identifierForChainId(chainId) }` instead of a bare `chainId: chainId` sidesteps the
+ *  confusion entirely by going through the relation, whose `identifier` really is this
+ *  CAIP-2 string. */
+export function identifierForChainId(chainId: number): string | null {
+  const slug = slugForChainId(chainId);
+  return slug ? CHAIN_REGISTRY[slug].identifier : null;
 }

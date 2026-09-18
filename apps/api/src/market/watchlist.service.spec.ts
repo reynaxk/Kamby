@@ -66,9 +66,18 @@ describe('WatchlistService', () => {
     it('resolves the market on the chain requested, not whichever chain answers first', async () => {
       // Same address, two distinct markets on two chains — TokenMarket is only unique per
       // (chainId, contractAddress), so this collision is real, not hypothetical.
+      //
+      // Filters via chain.identifier (the CAIP-2 string), not a bare chainId — TokenMarket
+      // .chainId is Chain's own internal autoincrement row id, not the real numeric EVM
+      // chain id this method receives (see identifierForChainId's own doc comment for the
+      // real incident this shape fixes: every watch/unwatch/isWatching call 404ing).
       (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockImplementation(
-        async ({ where }: { where: { chainId: number } }) =>
-          where.chainId === 8453 ? { id: 'market-base' } : where.chainId === 42161 ? { id: 'market-arbitrum' } : null,
+        async ({ where }: { where: { chain: { identifier: string } } }) =>
+          where.chain.identifier === 'eip155:8453'
+            ? { id: 'market-base' }
+            : where.chain.identifier === 'eip155:42161'
+              ? { id: 'market-arbitrum' }
+              : null,
       );
       (mockedPrisma.tokenWatch.create as jest.Mock).mockResolvedValue({});
 
@@ -77,6 +86,11 @@ describe('WatchlistService', () => {
       expect(mockedPrisma.tokenWatch.create).toHaveBeenCalledWith({
         data: { userId: USER_ID, tokenMarketId: 'market-arbitrum' },
       });
+    });
+
+    it('404s for an unconfigured chain id rather than querying with a meaningless filter', async () => {
+      await expect(service.watch(USER_ID, TOKEN_ADDRESS, 999_999)).rejects.toThrow(NotFoundException);
+      expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
     });
 
     it('treats a duplicate watch (P2002) as an idempotent success, not an error', async () => {

@@ -1,14 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import type { SocialActivity } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import {
-  MOCK_CALLER_ALPHA,
-  MOCK_HOLDERS,
-  MOCK_TRANSACTIONS,
-  timeAgo,
-  type MockFeedRow,
-} from './mock-data';
+import { formatRelativeTime, truncateAddress } from '@/lib/format';
 
 type Tab = 'transactions' | 'holders' | 'caller-alpha';
 const TABS: { id: Tab; label: string }[] = [
@@ -17,38 +12,18 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'caller-alpha', label: 'Caller Alpha' },
 ];
 
-/** Bottom data hub in the terminal preview's center column — see PreviewBanner: every row
- *  here is mock data. The `transactions` tab appends one fake row every few seconds purely
- *  to demonstrate a "live streaming feed" visually; the random side/amount used for that is
- *  generated client-side in a `useEffect`, after hydration, specifically so it never
- *  produces a server/client markup mismatch (see mock-data.ts's own doc comment). */
-export function DataHub() {
+/**
+ * Bottom data hub in the terminal, ported to production 2026-09-16 — see KambyTerminal.tsx.
+ * `transactions` is real: `activity` is the same server-fetched `SocialActivity[]` the page
+ * already loads for this exact token (see app/market/[chain]/[address]/page.tsx), not a
+ * second client-side fetch and not the fake-stream `setInterval` this used to run in the
+ * mock preview. `holders` and `caller-alpha` show an honest "— soon" placeholder, matching
+ * SmartSlipGasBar's own Jito-tip/Anti-MEV pattern — no backend data source exists for
+ * either yet (holder-percentage tracking, or any caller-alpha feed at all), and a fake row
+ * next to real ones is worse than admitting the gap.
+ */
+export function DataHub({ activity }: { activity: SocialActivity[] }) {
   const [tab, setTab] = useState<Tab>('transactions');
-  const [rows, setRows] = useState<MockFeedRow[]>(MOCK_TRANSACTIONS);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(tick);
-  }, []);
-
-  useEffect(() => {
-    const stream = setInterval(() => {
-      setRows((prev) => {
-        const wallets = ['7xKX…q3Rp', 'Bq2m…8fWz', 'Hj9c…2vXe', 'D4mR…6tYs', 'Kp7w…1nBd'];
-        const next: MockFeedRow = {
-          id: `t-${Date.now()}`,
-          timestamp: Date.now(),
-          wallet: wallets[Math.floor(Math.random() * wallets.length)]!,
-          side: Math.random() > 0.5 ? 'BUY' : 'SELL',
-          amountUsd: Math.round(20 + Math.random() * 1500),
-          signature: `${Math.random().toString(36).slice(2, 6)}…${Math.random().toString(36).slice(2, 6)}`,
-        };
-        return [next, ...prev].slice(0, 12);
-      });
-    }, 5000);
-    return () => clearInterval(stream);
-  }, []);
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
@@ -69,46 +44,39 @@ export function DataHub() {
       </div>
       <div className="flex-1 overflow-y-auto font-mono text-xs">
         {tab === 'transactions' && (
-          <table className="w-full">
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-b border-line/50">
-                  <td className="px-3 py-1.5 text-ink-400">{timeAgo(row.timestamp, now)}</td>
-                  <td className="px-3 py-1.5 text-ink-600">{row.wallet}</td>
-                  <td className={cn('px-3 py-1.5 font-semibold', row.side === 'BUY' ? 'text-up' : 'text-down')}>{row.side}</td>
-                  <td className="px-3 py-1.5 text-right text-ink-900">${row.amountUsd.toLocaleString('en-US')}</td>
-                  <td className="px-3 py-1.5 text-ink-400">{row.signature}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          activity.length === 0 ? (
+            <p className="p-4 text-ink-400">No activity indexed yet for this token.</p>
+          ) : (
+            <table className="w-full">
+              <tbody>
+                {activity.map((row) => (
+                  <tr key={row.id} className="border-b border-line/50">
+                    <td className="px-3 py-1.5 text-ink-400">{formatRelativeTime(row.timestamp)}</td>
+                    <td className="px-3 py-1.5 text-ink-600">
+                      {row.trader.address ? truncateAddress(row.trader.address) : 'Unknown'}
+                    </td>
+                    <td className={cn('px-3 py-1.5 font-semibold', row.action === 'BUY' ? 'text-up' : 'text-down')}>
+                      {row.action}
+                    </td>
+                    <td className="px-3 py-1.5 text-right text-ink-900">
+                      ${row.amountUsd.toLocaleString('en-US')}
+                    </td>
+                    <td className="px-3 py-1.5 text-ink-400">{truncateAddress(row.txHash)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
         )}
         {tab === 'holders' && (
-          <table className="w-full">
-            <tbody>
-              {MOCK_HOLDERS.map((holder) => (
-                <tr key={holder.wallet} className="border-b border-line/50">
-                  <td className="px-3 py-1.5 text-ink-600">{holder.wallet}</td>
-                  <td className="px-3 py-1.5 text-ink-900">{holder.pct.toFixed(1)}%</td>
-                  <td className="px-3 py-1.5 text-right text-ink-900">${holder.amountUsd.toLocaleString('en-US')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <p className="p-4 text-ink-400">
+            Holder tracking <span className="text-ink-400">— soon</span>.
+          </p>
         )}
         {tab === 'caller-alpha' && (
-          <table className="w-full">
-            <tbody>
-              {MOCK_CALLER_ALPHA.map((caller) => (
-                <tr key={`${caller.handle}-${caller.timestamp}`} className="border-b border-line/50">
-                  <td className="px-3 py-1.5 text-ink-400">{timeAgo(caller.timestamp, now)}</td>
-                  <td className="px-3 py-1.5 text-ink-900">{caller.handle}</td>
-                  <td className={cn('px-3 py-1.5 font-semibold', caller.side === 'BUY' ? 'text-up' : 'text-down')}>{caller.side}</td>
-                  <td className="px-3 py-1.5 text-ink-400">{caller.wallet}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <p className="p-4 text-ink-400">
+            Caller alpha <span className="text-ink-400">— soon</span>.
+          </p>
         )}
       </div>
     </div>

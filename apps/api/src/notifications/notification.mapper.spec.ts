@@ -23,7 +23,7 @@ describe('toNotificationDto', () => {
       ...BASE,
       type: 'WHALE_TRADE',
       actorWalletAddress: '0xtrader',
-      actorWallet: { address: '0xtrader', displayName: 'Whale', avatarUrl: null },
+      actorWallet: { address: '0xtrader', user: { username: 'whale', avatarUrl: null } },
       swap: {
         volumeUsd: { toString: () => '50000' } as unknown as number,
         side: 'buy',
@@ -33,7 +33,7 @@ describe('toNotificationDto', () => {
 
     const dto = toNotificationDto(row);
 
-    expect(dto.actor).toEqual({ address: '0xtrader', displayName: 'Whale', avatarUrl: null });
+    expect(dto.actor).toEqual({ address: '0xtrader', displayName: 'whale', avatarUrl: null });
     expect(dto.token).toEqual({ address: '0xtoken', symbol: 'FOO', logoUrl: null });
     expect(dto.side).toBe('BUY');
     expect(dto.deepLink).toBe('/market/0xtoken');
@@ -44,12 +44,12 @@ describe('toNotificationDto', () => {
       ...BASE,
       type: 'FOLLOW',
       actorUserId: 'actor-1',
-      actorUser: { wallets: [{ address: '0xactor', displayName: 'Alex', avatarUrl: 'a.png' }] },
+      actorUser: { username: 'alex', avatarUrl: 'a.png', wallets: [{ address: '0xactor' }] },
     } as unknown as NotificationRow;
 
     const dto = toNotificationDto(row);
 
-    expect(dto.actor).toEqual({ address: '0xactor', displayName: 'Alex', avatarUrl: 'a.png' });
+    expect(dto.actor).toEqual({ address: '0xactor', displayName: 'alex', avatarUrl: 'a.png' });
     expect(dto.deepLink).toBe('/trader/0xactor');
   });
 

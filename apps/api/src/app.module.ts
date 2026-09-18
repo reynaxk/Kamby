@@ -6,6 +6,7 @@ import { parseEnv } from '@kamby/domain';
 import { LoggerModule, type Params } from 'nestjs-pino';
 import { ValidatedEnvSchema, type Env } from './config/env';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { ChainModule } from './chain/chain.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
 import { IdentityModule } from './identity/identity.module';
@@ -41,6 +42,7 @@ import { SolanaModule } from './solana/solana.module';
               'res.headers["set-cookie"]',
               '*.password',
               '*.secret',
+              '*.secretAccessKey',
               '*.token',
               '*.privateKey',
               '*.seedPhrase',
@@ -62,6 +64,7 @@ import { SolanaModule } from './solana/solana.module';
       }),
     }),
     RedisModule,
+    ChainModule,
     HealthModule,
     IdentityModule,
     SocialModule,

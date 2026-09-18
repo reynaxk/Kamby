@@ -34,7 +34,7 @@ describe('WatchButton', () => {
 
     expect(screen.getByRole('button')).toHaveTextContent('Watch');
     await waitFor(() => expect(screen.getByRole('button')).toHaveTextContent('Watching'));
-    expect(checkWatchStatus).toHaveBeenCalledWith(ADDRESS);
+    expect(checkWatchStatus).toHaveBeenCalledWith(ADDRESS, undefined);
   });
 
   it('clicking Watch calls watchToken and flips to Watching (optimistic)', async () => {
@@ -45,7 +45,7 @@ describe('WatchButton', () => {
     await user.click(screen.getByRole('button'));
 
     expect(screen.getByRole('button')).toHaveTextContent('Watching');
-    await waitFor(() => expect(watchToken).toHaveBeenCalledWith(ADDRESS));
+    await waitFor(() => expect(watchToken).toHaveBeenCalledWith(ADDRESS, undefined));
   });
 
   it('clicking Watching calls unwatchToken and flips back to Watch', async () => {
@@ -56,7 +56,17 @@ describe('WatchButton', () => {
     await user.click(screen.getByRole('button'));
 
     expect(screen.getByRole('button')).toHaveTextContent('Watch');
-    await waitFor(() => expect(unwatchToken).toHaveBeenCalledWith(ADDRESS));
+    await waitFor(() => expect(unwatchToken).toHaveBeenCalledWith(ADDRESS, undefined));
+  });
+
+  it('passes a real chainId through to watchToken when the caller knows it (BNB Chain going live)', async () => {
+    watchToken.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<WatchButton address={ADDRESS} chainId={56} initialWatching={false} />);
+
+    await user.click(screen.getByRole('button'));
+
+    await waitFor(() => expect(watchToken).toHaveBeenCalledWith(ADDRESS, 56));
   });
 
   it('rolls back to Watch and shows an error when the watch request fails', async () => {

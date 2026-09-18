@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: '/', label: 'Discover' },
   { href: '/trades', label: 'Trades' },
   { href: '/watchlist', label: 'Watchlist' },
+  { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/referrals', label: 'Referrals' },
   { href: '/solana', label: 'Solana' },
 ] as const;
@@ -21,13 +22,30 @@ const NAV_LINKS = [
  * link, since there's no trader *listing* page to point a nav item at yet. "Trades" (Phase 3),
  * "Watchlist" (Phase 6), and "Referrals" (Phase 7) are the exceptions: each is every user's
  * own private state, worth a permanent link even with no public listing page behind it.
+ * "Leaderboard" is the other exception — a real public trader-ranking *listing* page (see
+ * docs/TRADER_INTELLIGENCE.md#realized-pnl), the nav destination Discover's own doc comment
+ * above says doesn't exist yet for trader profiles generally.
  *
  * A Client Component (rather than composing a small nav-only client island) purely so
  * `usePathname()` can highlight whichever of the three links is actually current — every
  * child here (`SearchBar` aside) was already a Client Component anyway (wagmi/wallet
  * state), so this isn't giving up meaningful server rendering.
  */
-export function MarketHeader({ searchValue }: { searchValue?: string }) {
+export function MarketHeader({
+  searchValue,
+  expectedWalletChainId,
+}: {
+  searchValue?: string;
+  /** Real bug fixed 2026-09-17: this header renders its own `ConnectWalletButton` instance,
+   *  independent of any trade panel's — on the market detail page, that second instance
+   *  defaulted to expecting Base (`ConnectWalletButton`'s own fallback) even on a BNB token
+   *  page, so it kept fighting `TradePanel`'s instance to auto-switch the wallet back to
+   *  Base every time the user got it onto BNB Chain to actually trade. The visible symptom
+   *  was a permanently-stuck "Switching…" button and an unusable trade form underneath it.
+   *  The market detail page now passes its own resolved chainId through so both instances
+   *  agree on which chain the wallet should be on. */
+  expectedWalletChainId?: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -42,7 +60,14 @@ export function MarketHeader({ searchValue }: { searchValue?: string }) {
           </span>
         </Link>
         {NAV_LINKS.map((link) => {
-          const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+          // The Discover link stays a real, clickable link (never collapses to inert
+          // highlighted text) while a search is active, even though pathname alone already
+          // matches "/" — otherwise there's no way to get back to the unfiltered Discover
+          // view except editing the URL by hand. Real bug reported 2026-09-17: a search
+          // term the user could no longer clear because this nav item silently stopped
+          // being a link the moment they were on "/" at all, search or not.
+          const isActive =
+            link.href === '/' ? pathname === '/' && !searchValue : pathname.startsWith(link.href);
           return isActive ? (
             <span
               key={link.href}
@@ -63,7 +88,7 @@ export function MarketHeader({ searchValue }: { searchValue?: string }) {
         <div className="ml-auto flex items-center gap-3">
           <SearchBar defaultValue={searchValue} />
           <NotificationBell />
-          <ConnectWalletButton />
+          <ConnectWalletButton expectedChainId={expectedWalletChainId} />
         </div>
       </div>
     </header>

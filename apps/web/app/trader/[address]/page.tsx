@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ActivityFeed } from '@/components/social/ActivityFeed';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { FollowButton } from '@/components/social/FollowButton';
+import { PnlValue } from '@/components/social/PnlValue';
 import { ShareButton } from '@/components/social/ShareButton';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { MarketHeader } from '@/components/market/MarketHeader';
@@ -27,7 +28,7 @@ export async function generateMetadata({
   const profile = await fetchTraderProfile(params.address);
   if (!profile) return { title: 'Trader not found — Kamby' };
 
-  const name = profile.displayName ?? truncateAddress(profile.address);
+  const name = profile.username ?? truncateAddress(profile.address);
   const title = `${name} — Kamby`;
   const description = `${name}'s trading activity on Kamby: ${profile.stats.totalSwaps} trades, ${formatCompactUsd(profile.stats.volumeUsd)} volume.`;
   return {
@@ -38,9 +39,16 @@ export async function generateMetadata({
   };
 }
 
+const PNL_WINDOWS = ['24h', '7d', '30d'] as const;
+
 export default async function TraderProfilePage({ params }: { params: { address: string } }) {
   const profile = await fetchTraderProfile(params.address);
   if (!profile) notFound();
+
+  // Local const so JSX below narrows it past `null` inside the .map callback — `null`
+  // means this wallet has no linked Kamby account (real and common, see
+  // TraderRealizedPnlSchema's own comment in packages/domain/src/pnl.ts), not "loading".
+  const realizedPnl = profile.realizedPnl;
 
   // Secondary sections — a failure here shouldn't take down a profile that otherwise
   // loaded fine, so each degrades to its own empty state rather than crashing the page.
@@ -61,7 +69,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
           <div className="flex items-center gap-2">
             <TraderIdentity
               address={profile.address}
-              displayName={profile.displayName}
+              displayName={profile.username}
               avatarUrl={profile.avatarUrl}
               size="lg"
             />
@@ -70,7 +78,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
           <div className="flex items-center gap-2">
             <FollowButton address={profile.address} initialFollowing={profile.isFollowedByMe} />
             <ShareButton
-              title={`${profile.displayName ?? truncateAddress(profile.address)} on Kamby`}
+              title={`${profile.username ?? truncateAddress(profile.address)} on Kamby`}
               path={`/trader/${profile.address}`}
             />
           </div>
@@ -91,6 +99,36 @@ export default async function TraderProfilePage({ params }: { params: { address:
             <> · last active {formatDateTime(profile.stats.lastActiveAt)}</>
           )}
         </p>
+
+        {realizedPnl && (
+          <Surface className="mt-6 p-5">
+            <h2 className="mb-1 font-display text-sm font-semibold text-ink-900">
+              Realized PnL
+            </h2>
+            <p className="mb-4 font-body text-xs text-ink-400">
+              Only trades placed through Kamby itself, matched buy-to-sell — never this
+              wallet&apos;s full on-chain activity. See docs/TRADER_INTELLIGENCE.md#realized-pnl.
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {PNL_WINDOWS.map((window) => {
+                const stats = realizedPnl[window];
+                return (
+                  <div key={window} className="rounded-lg border border-line bg-surface p-4">
+                    <div className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-400">
+                      {window}
+                    </div>
+                    <div className="mt-1.5">
+                      <PnlValue usd={stats.realizedPnlUsd} pct={stats.realizedPnlPct} size="lg" />
+                    </div>
+                    <div className="mt-1 font-mono text-[0.65rem] text-ink-400">
+                      {formatCompactUsd(stats.volumeUsd)} matched
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Surface>
+        )}
 
         {profile.stats.totalSwaps > 0 && (
           <Surface className="mt-6 p-5">

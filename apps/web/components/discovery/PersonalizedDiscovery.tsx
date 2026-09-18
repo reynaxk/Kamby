@@ -1,6 +1,6 @@
 'use client';
 
-import type { PersonalizedToken } from '@kamby/domain';
+import { DEFAULT_CHAIN_SLUG, type PersonalizedToken, slugForIdentifier } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -55,7 +55,12 @@ export function PersonalizedDiscovery() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
-        <Link key={item.market.tokenAddress} href={`/market/${item.market.tokenAddress}`} className="block">
+        <Link
+          key={item.market.tokenAddress}
+          // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
+          href={`/market/${slugForIdentifier(item.market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG}/${item.market.tokenAddress}`}
+          className="block"
+        >
           <Surface className="flex h-full flex-col gap-3 p-5 transition-colors hover:border-accent/50 hover:bg-surface-raised">
             <TokenIdentity symbol={item.market.symbol} name={item.market.name} logoUrl={item.market.logoUrl} />
             <div className="flex items-end justify-between gap-2">

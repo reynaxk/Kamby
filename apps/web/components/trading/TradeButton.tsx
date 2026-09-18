@@ -7,6 +7,9 @@ import { TradeModal } from './TradeModal';
 import { TradePanel } from './TradePanel';
 
 export interface TradeButtonProps {
+  /** See TradePanel.tsx's own `chainId` doc comment — required for the same reason:
+   *  added 2026-09-16 for BNB Chain going live, deliberately not defaulted to Base. */
+  chainId: number;
   tokenAddress: string;
   tokenSymbol: string | null;
   tokenDecimals: number;
@@ -25,6 +28,7 @@ export interface TradeButtonProps {
  * props, never a bespoke per-page trading implementation. See docs/TRADING.md#trading-ui.
  */
 export function TradeButton({
+  chainId,
   tokenAddress,
   tokenSymbol,
   tokenDecimals,
@@ -45,6 +49,7 @@ export function TradeButton({
       </Button>
       <TradeModal open={open} onClose={() => setOpen(false)}>
         <TradePanel
+          chainId={chainId}
           tokenAddress={tokenAddress}
           tokenSymbol={tokenSymbol}
           tokenDecimals={tokenDecimals}

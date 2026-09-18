@@ -1,4 +1,4 @@
-import type { SocialActivity, TopTrader, TraderProfile, TrendingToken } from '@kamby/domain';
+import type { Leaderboard, PnlWindow, SocialActivity, TopTrader, TraderProfile, TrendingToken } from '@kamby/domain';
 import { apiGet } from './market-api';
 
 /**
@@ -52,7 +52,7 @@ export async function fetchTopTraders(limit = 8): Promise<TopTrader[]> {
 
 export interface TraderSummary {
   address: string;
-  displayName: string | null;
+  username: string | null;
   avatarUrl: string | null;
 }
 
@@ -60,4 +60,9 @@ export async function fetchTraderSearch(query: string, limit = 8): Promise<Trade
   if (!query.trim()) return [];
   const result = await apiGet<TraderSummary[]>(`/social/traders/search?q=${encodeURIComponent(query)}&limit=${limit}`, 10);
   return result ?? [];
+}
+
+export async function fetchLeaderboard(window: PnlWindow, limit = 25): Promise<Leaderboard> {
+  const result = await apiGet<Leaderboard>(`/social/leaderboard?window=${window}&limit=${limit}`, 30);
+  return result ?? { window, entries: [] };
 }

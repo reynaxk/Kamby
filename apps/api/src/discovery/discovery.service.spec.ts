@@ -73,13 +73,13 @@ describe('DiscoveryService', () => {
         { trader_address: WALLET_A, volume_usd: '500', trade_count: 3n },
       ]);
       (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([
-        { address: WALLET_A, displayName: 'Alex', avatarUrl: null },
+        { address: WALLET_A, user: { username: 'alex', avatarUrl: null } },
       ]);
 
       const result = await service.activeTraders(10);
 
       expect(result).toEqual([
-        { address: WALLET_A, displayName: 'Alex', avatarUrl: null, volumeUsd: 500, tradeCount: 3 },
+        { address: WALLET_A, username: 'alex', avatarUrl: null, volumeUsd: 500, tradeCount: 3 },
       ]);
       expect(redis.set).toHaveBeenCalledWith(
         expect.stringContaining('discovery:active-traders'),
@@ -92,7 +92,7 @@ describe('DiscoveryService', () => {
     it('returns the cached value without touching the database on a cache hit', async () => {
       redis.get.mockResolvedValue(
         JSON.stringify([
-          { address: WALLET_A, displayName: null, avatarUrl: null, volumeUsd: 1, tradeCount: 1 },
+          { address: WALLET_A, username: null, avatarUrl: null, volumeUsd: 1, tradeCount: 1 },
         ]),
       );
 
@@ -162,7 +162,7 @@ describe('DiscoveryService', () => {
         { traderAddress: WALLET_A, _count: { _all: 80 } },
       ]);
       (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([
-        { address: WALLET_A, displayName: null, avatarUrl: null, firstSeenAt: fortyDaysAgo },
+        { address: WALLET_A, user: null, firstSeenAt: fortyDaysAgo },
       ]);
 
       expect(await service.risingTraders(10)).toEqual([]);
@@ -178,7 +178,7 @@ describe('DiscoveryService', () => {
         { traderAddress: WALLET_B, _count: { _all: 10 } },
       ]);
       (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([
-        { address: WALLET_B, displayName: 'Bo', avatarUrl: null, firstSeenAt: tenDaysAgo },
+        { address: WALLET_B, user: { username: 'bo', avatarUrl: null }, firstSeenAt: tenDaysAgo },
       ]);
 
       const result = await service.risingTraders(10);

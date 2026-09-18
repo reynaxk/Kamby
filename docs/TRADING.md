@@ -79,12 +79,32 @@ quote is ever requested — see [Wrong network](#wallet-connectivity).
 
 ## Wallet connectivity
 
-`apps/web/lib/wagmi-config.ts` + `apps/web/components/wallet/ConnectWalletButton.tsx`.
-wagmi's `injected()` connector covers every desktop browser-extension wallet (MetaMask,
-Rabby, Coinbase Wallet's extension — they all inject the same EIP-1193 interface) and any
-mobile wallet's in-app browser. WalletConnect is additive and optional
-(`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`) for true QR-code mobile pairing — simply omitted,
-never broken, when that project id isn't configured.
+`apps/web/lib/wagmi-config.ts` + `apps/web/components/wallet/ConnectWalletButton.tsx` +
+`apps/web/lib/privy-config.ts` + `apps/web/app/providers.tsx`. As of 2026-09-15,
+`ConnectWalletButton` triggers Privy's own unified login modal (`usePrivy().login()`) rather
+than a bespoke connector-picker dropdown — the same entry point Solana trading already used
+(`SolanaTradePanel.tsx`), now shared across chains. `loginMethods` in `privy-config.ts`
+(`email`, `google`, `apple`, `wallet`) means a user can sign in via an embedded wallet
+(created automatically, `embeddedWallets.ethereum.createOnLogin: 'users-without-wallets'`)
+or connect an existing extension wallet through the *same* modal — both land as a synced
+wagmi connection via `@privy-io/wagmi`'s `useSyncPrivyWallets` (wired in `app/providers.tsx`,
+inside the `PrivyProvider`/`PrivyWagmiProvider` nesting), so `TradePanel.tsx`'s signing code
+and `useWalletVerification.ts`'s ownership-proof code needed zero changes — both already
+read from the shared `wagmiConfig` object / standard wagmi hooks, which `@privy-io/wagmi`'s
+`createConfig` is a documented drop-in-compatible replacement for.
+
+Underneath that modal, wagmi's `injected()` connector still covers every desktop
+browser-extension wallet (MetaMask, Rabby, Trust Wallet, Coinbase Wallet's extension — they
+all announce via EIP-6963) and any mobile wallet's in-app browser. WalletConnect is additive
+and optional (`NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`) for true QR-code mobile pairing —
+simply omitted, never broken, when that project id isn't configured. When
+`NEXT_PUBLIC_PRIVY_APP_ID` isn't configured (local dev/test only — it's required in
+production for the already-live Solana flow), `app/providers.tsx` falls back to plain
+wagmi's own `WagmiProvider` around the same `wagmiConfig`/connectors, and
+`ConnectWalletButton` degrades from Privy's modal to nothing else — Privy's `WagmiProvider`
+cannot render outside a `PrivyProvider` ancestor (its `PrivyWagmiConnector` child calls
+Privy's auth hooks unconditionally), so this fallback exists specifically to avoid that
+crash, not as a parallel supported connect path.
 
 `wagmi/connectors`' own `coinbaseWallet()` connector is deliberately **not** used: at the
 versions this monorepo pins, it pulls in `@coinbase/cdp-sdk`'s optional x402-payments code
@@ -95,11 +115,16 @@ file* re-exports `coinbaseWallet`/`baseAccount` unconditionally even though this
 constructs them, and ES module imports are resolved for the whole file graph before
 tree-shaking removes anything unused.
 
-`ConnectWalletButton` exposes address, chain id, connection status, disconnect, and —
-**critically** — a distinct "Wrong network — Switch to Base" state whenever the connected
-wallet is on any chain but Base. Nothing downstream (`TradePanel`) ever requests a quote
-while the wallet is on the wrong network; it shows the same connect/switch UI instead of
-silently executing against a chain the user didn't intend.
+`wagmiConfig.chains` also lists `bsc` (BNB Chain) alongside `base`, so wagmi *recognizes* a
+wallet already on BNB Chain rather than treating it as fully unknown — this does not enable
+BNB trading: `ConnectWalletButton`'s "wrong network" check still hardcodes `base.id`, and
+`apps/api`'s own `CHAINS` env var still excludes `"bnb"` (see [Chain scope](#chain-scope)
+above and `docs/MULTICHAIN_OCTOBER_PLAN.md`). `ConnectWalletButton` exposes address, chain
+id, connection status, sign-out (via `usePrivy().logout()`, ending the Privy session rather
+than only the wagmi connection), and — **critically** — a distinct "Wrong network — Switch
+to Base" state whenever the connected wallet is on any chain but Base. Nothing downstream
+(`TradePanel`) ever requests a quote while the wallet is on the wrong network; it shows the
+same connect/switch UI instead of silently executing against a chain the user didn't intend.
 
 ## Wallet ownership
 
@@ -204,52 +229,127 @@ interface — `getQuote()` returning a normalized `SwapRouterQuote` or `null` �
 token (`SWAP_ROUTER`, mirroring the existing `REDIS_CLIENT` pattern) so the concrete
 provider can change later without touching `QuoteService`.
 
-`MetaAggregatorSwapRouter` (`apps/api/src/trading/router/meta-aggregator-router.service.ts`)
-is the bound implementation — it never talks to a provider API itself. Every quote request
-races `LiFiSwapRouter` and `OneInchSwapRouter` in parallel (`Promise.allSettled`, each
-capped at a 4s timeout — a real, honest ceiling for "how long a user will wait for a quote,"
-not a marketing SLA number) and returns whichever succeeds with the **higher raw
-`buyAmountRaw`** — never a fixed "primary" provider. If one times out, errors, or has no
-route, the other's result is used automatically; if both fail, the whole quote returns
-`null`, the same "never fabricate" behavior as either provider alone. Deliberately only two
-providers, not three: 0x's paid tier runs $1,000+/mo, and racing a provider Kamby would need
-to pay for defeats the point of a cost-conscious meta-aggregator (see git history for the
-0x integration this replaced).
+**KyberSwap** (`kyberswap-router.service.ts`) is the bound implementation and Kamby's sole
+EVM execution provider as of 2026-09-14, replacing the LI.FI/1inch meta-aggregator race that
+preceded it (see git history) — there's exactly one provider now, so `SWAP_ROUTER` binds
+directly to `KyberSwapRouter`, no separate racing/meta-aggregator layer in between.
+
+Two calls per quote, not one: `GET .../api/v1/routes` prices the trade into a
+`routeSummary`, then `POST .../api/v1/route/build` turns that same `routeSummary` into
+encoded calldata. The fee (`chargeFeeBy: 'currency_in'`, `feeAmount`/`isInBps`/
+`feeReceiver`) and slippage protection (`slippageTolerance`, bps) are both applied on the
+second call, since that's what actually produces the transaction the wallet signs — the
+first call is price discovery only, and is never asked to also collect a fee (requesting
+one there would shrink the priced amount for no reason, since nothing signs off that call).
+`minBuyAmountRaw` is computed independently via integer math (`applySlippageFloor`), the
+same "never trust an uncertain response field" rule LI.FI/1inch's routers already followed
+— never assumed from KyberSwap's own response.
+
+KyberSwap's API needs no API key: only an `X-Client-Id` header (a plain identifying string,
+not a secret — `KYBERSWAP_CLIENT_ID`, defaulted to `"kamby"`) for rate-limit
+prioritization, per KyberSwap's own docs. This is a real, meaningful difference from the
+LI.FI/1inch setup it replaced: there's no "invalid key → honest 401/422" failure mode to
+rely on for testing, so `trading.e2e-spec.ts`'s honest-422 case now depends on its fixture
+token addresses being synthetic (never actually deployed), not on a rejected key — see that
+file's own doc comment.
+
+KyberSwap's `routeSummary`/route-build response doesn't return a price-impact figure —
+`priceImpactBps` is honestly `null`, never fabricated, same as 1inch's router already did
+(LI.FI's own classic Swap API never returned one either). It also doesn't echo the
+collected fee amount back separately, so `feeAmountRaw` is `null` too — the fee is still
+collected **inside the same transaction the user signs**, atomically, Kamby's backend never
+touching it in between (see [Fees](#fees)); this only means the amount isn't independently
+confirmed by the response.
+
+KyberSwap's API has no documented allowance-check endpoint either — `KyberSwapRouter` reads
+the wallet's actual on-chain allowance directly via viem (the same per-chain RPC clients
+`TransactionService` uses for transaction-receipt reads, keyed by `request.chainId` — see
+[Chain scope](#chain-scope)) rather than trusting a second uncertain API contract. Same rule
+as before: if that check fails or is unreachable, the whole quote returns `null` rather than
+ever fabricating `requiresApproval` — it directly gates whether the trading UI shows an
+approval step before real money moves.
 
 Kamby never implements its own AMM math or invents a price — every number in a quote traces
-back to whichever provider's response won the race.
+back to KyberSwap's own response.
 
-**LI.FI** (`li-fi-router.service.ts`, `/v1/quote`): the platform fee is passed as `fee` (a
-decimal percentage) plus an `integrator` string identifying Kamby; unlike 0x/1inch, the fee
-*recipient* isn't a per-request parameter at all — it's whatever wallet is registered
-against that integrator name at https://portal.li.fi, so `PLATFORM_FEE_RECIPIENT_ADDRESS`
-must actually match what's configured there for fees to land anywhere. LI.FI's `/quote`
-response also doesn't say whether an ERC-20 approval is still needed, and there's no
-documented allowance-check endpoint to ask instead — `LiFiSwapRouter` reads the wallet's
-actual on-chain allowance directly via viem (the same per-chain RPC clients
-`TransactionService` uses for transaction-receipt reads, keyed by `request.chainId` — see
-[Chain scope](#chain-scope)) rather than trusting a second uncertain API contract.
+## RPC failover
 
-**1inch** (`one-inch-router.service.ts`, Classic Swap v6.1 `/swap`): the platform fee is
-passed as `fee`/`referrer` query params (percentage + a real recipient address, unlike
-LI.FI). Approval status comes from a second call to 1inch's own `/approve/allowance`
-endpoint, comparing the wallet's current on-chain allowance against the sell amount.
+Every RPC client in this codebase (EVM and Solana alike) supports an optional second,
+fallback endpoint per chain — see `apps/api/src/config/env.ts`'s `CHAIN_BASE_RPC_URL_FALLBACK`
+/ `CHAIN_ARBITRUM_RPC_URL_FALLBACK` / `SOLANA_RPC_URL_FALLBACK`, and
+`apps/workers/src/config/env.ts`'s `CHAIN_RPC_URL_FALLBACK`. All are genuinely optional —
+running without one is valid, just unprotected against the primary provider's own
+outages/quota exhaustion, which is a real failure mode this has already hit in production
+(QuickNode's Base RPC exhausted its daily quota once, with nothing to fall back to).
 
-Both adapters collect the fee **inside the same transaction the user signs**, atomically,
-with Kamby's backend never touching the funds in between (see [Fees](#fees)). Both also
-share the same rule: if an approval check fails or is unreachable, that provider's whole
-quote returns `null` rather than ever fabricating `requiresApproval` — it directly gates
-whether the trading UI shows an approval step before real money moves, and
-`MetaAggregatorSwapRouter` simply treats that provider as having lost the race, falling back
-to the other rather than surfacing the failure.
+EVM and Solana take deliberately different approaches, because their underlying RPC
+libraries support different things natively:
+
+- **EVM** (`createEvmTransport`, `packages/chain-adapters/src/transport.ts`): built on
+  viem's own `fallback()` transport, which already retries each transport and moves to the
+  next one in the list on error (including a 429) — no second retry/circuit-breaker layer
+  is hand-rolled on top of it. Used by `EvmChainDataProvider`, `UniswapV3PoolReader`, and
+  `LiFiSwapRouter`'s own raw viem client for its allowance pre-check — every EVM RPC
+  consumer in both `apps/api` and `apps/workers`.
+- **Solana** (`SolanaConnectionPool`, `apps/api/src/chain/solana-connection-pool.ts`, bound
+  behind the `SOLANA_CONNECTION_POOL` DI token in `chain.module.ts`, `@Global()` like
+  `REDIS_CLIENT`): `@solana/web3.js`'s `Connection` has no built-in multi-endpoint failover,
+  so this hand-rolls one — a primary and optional fallback `Connection`, each gated by its
+  own `CircuitBreaker` (`circuit-breaker.ts`; CLOSED → OPEN after 3 consecutive failures →
+  HALF_OPEN probes after a 15s cooldown), so a struggling endpoint stops being hit on every
+  call rather than costing a full timeout per request. `SolanaTransactionService` and
+  `SolanaTopupService` both consume it via `pool.withFailover((connection) => ...)` instead
+  of holding their own `Connection`.
+
+`GasRelayerService` (unwired, see [Known limitations](#known-limitations)) does not use the
+pool — it isn't constructed by any module today, so there's nothing to wire.
 
 ## Fees
 
-`PLATFORM_FEE_BPS` (env-configured, default `50` = 0.50%) is the **only** source of the fee
-rate — never a hardcoded literal like `0.005` anywhere in the codebase, and never
-overridable by a client (there is no fee field anywhere in the request shape a client could
-even set). `calculateFeeAmount(amountRaw, feeBps)` (`packages/domain/src/trading.ts`) does
-exact `bigint` math (`(amount * feeBps) / 10_000n`) — never floating point.
+As of 2026-09-16, the EVM swap router (`QuoteService`) charges a **tiered** platform fee —
+`PLATFORM_FEE_TIERS` (`packages/domain/src/trading.ts`) is the **only** source of the fee
+rate, never a hardcoded literal like `0.02` anywhere in the codebase, and never overridable
+by a client (there is no fee field anywhere in the request shape a client could even set):
+
+| Trade size | Rate |
+|---|---|
+| up to $99.99… | 2.00% |
+| $100–$499.99… | 1.00% |
+| $500 and up | 0.75% |
+
+`resolveTierFeeBps(usdAmount)` picks the rate; `calculateFeeAmount(amountRaw, feeBps)` then
+does exact `bigint` math (`(amount * feeBps) / 10_000n`) on the chosen rate — never floating
+point. `PLATFORM_FEE_BPS` (env-configured) is left defined but no longer read by
+`QuoteService` — same precedent as Solana's own `SOLANA_JUPITER_PLATFORM_FEE_BPS` (see
+below). As of the fee-tier reconciliation, `PLATFORM_FEE_TIERS`/`resolveTierFeeBps` is the
+**single** source of the fee rate for both EVM and Solana — see below.
+
+A %-based fee needs the trade's real USD size known before it can be picked, which is
+resolved differently depending on which of `QuoteService`'s two fee mechanisms applies (see
+[Guaranteed USDC fees](#guaranteed-usdc-fees) below) and which side is trading:
+
+- **Guaranteed-USDC BUY**: the raw USDC input *is* the USD size — resolved instantly, no
+  extra call.
+- **Guaranteed-USDC SELL**: the USD size is the swap's gross USDC output, only known once
+  the real router quote comes back — resolved right after it.
+- **Aggregator-fee SELL** (a non-USDC-quoted market): the input is already the base token
+  being sold, and its cached `market.priceUsd` prices it directly — no extra call.
+- **Aggregator-fee BUY** (a non-USDC-quoted market): the input isn't USD-denominated and
+  has no cached price of its own, so a lightweight, fee-free pre-quote discovers the
+  base-token amount the real swap would produce first; `market.priceUsd` then prices that.
+  This is the one case that costs an extra router round-trip, mirroring
+  `SolanaQuoteService#resolvePlatformFeeBps`'s own SELL-side pre-quote. If that pre-quote
+  itself fails, the fee falls back to `PLATFORM_FEE_FALLBACK_BPS` — the most expensive
+  tier, never a cheaper, unconfirmed one.
+
+Solana trading resolves its platform fee through this exact same table —
+`SolanaQuoteService#resolvePlatformFeeBps` (`apps/api/src/solana/solana-quote.service.ts`)
+calls `resolveTierFeeBps` directly (BUY: the raw USDC input is the USD size, known
+instantly; SELL: a fee-free pre-quote discovers the USDC output first, same "extra
+round-trip, fall back to the most expensive tier on failure" shape as EVM's
+aggregator-fee-BUY case above). Solana previously ran its own, separate two-tier schedule
+(`jupiter-fee-schedule.ts`, under $50 → 1.00%, $50+ → 0.75%) — reconciled to this table so
+the two chains' rates can no longer drift apart silently.
 
 The fee is denominated in the trade's **output** token and is either:
 
@@ -483,6 +583,15 @@ for why the sweep isn't a lesser-checked backdoor around the same gate):
    watching — a closed tab, a backgrounded submission — so `PENDING` never lingers forever
    for those. A single row's RPC failure never aborts the rest of the batch.
 
+Solana has the same two-path shape (see docs/TRADING.md#solana): `SolanaTransactionService#
+refreshStatus` on-demand, and `apps/workers/src/solana/solana-sweep.ts#SolanaSweepService`
+as the background backstop, ticking every `SOLANA_SWEEP_INTERVAL_SECONDS` (default 30s).
+One real difference from the EVM sweep: the Solana sweep is also the only one of the two
+paths that ever marks a Solana transaction `EXPIRED` — `refreshStatus` itself never does
+(it just leaves an unseen signature `PENDING` indefinitely), so a trade whose tab was
+closed before Solana's RPC ever saw the signature relies entirely on this sweep to
+eventually resolve it, not just to catch a confirmation faster.
+
 **Never marks `CONFIRMED` because a wallet returned a hash, and never merely because a
 receipt says "success."** A status only ever changes in response to a real
 `eth_getTransactionReceipt` call (`EvmChainDataProvider#getTransactionReceiptStatus`,
@@ -639,23 +748,20 @@ whatever session/wallet a browser has, which a Server Component structurally can
 
 ## Known limitations
 
-- **Neither the LI.FI nor the 1inch adapter was written with live verification against a
-  real API key** in this environment — see [Provider](#provider). Field/param names
-  (LI.FI's `fee`/`estimate`/`transactionRequest`; 1inch's `fee`/`referrer`/
-  `/approve/allowance`) should be re-checked against each provider's current docs before
-  depending on this in production; if either has changed its response shape, that
-  provider's parser will correctly return `null` (an honest "no quote" — the other
-  provider's leg of the race just wins by default) rather than silently misparsing, but
-  that's a worse outcome than it should be. `PLATFORM_FEE_RECIPIENT_ADDRESS` must also
-  actually match the wallet registered against `LIFI_INTEGRATOR` at https://portal.li.fi —
-  that agreement can't be validated at boot the way the rest of config is, since LI.FI's
-  portal is a separate system this app has no API access to.
-- **`MetaAggregatorSwapRouter`'s 4s race timeout is a first guess, not a value tuned
-  against real provider latency** — see [Provider](#provider). If both providers routinely
-  respond well under that, it's needlessly generous (a genuinely dead provider makes every
-  quote wait the full 4s before falling back); if either routinely takes longer, real
-  quotes will be lost to a timeout that a longer window would have caught. Revisit once
-  this has run against real traffic.
+- **`KyberSwapRouter` was not written with live verification against a real response** in
+  this environment — see [Provider](#provider). Field names (`routeSummary`, `amountOut`,
+  `routerAddress`, `chargeFeeBy`/`feeAmount`/`isInBps`/`feeReceiver`) were confirmed against
+  KyberSwap's own current docs (https://docs.kyberswap.com) on 2026-09-14, not against a
+  live call; if KyberSwap has changed its response shape since, the parser will correctly
+  return `null` (an honest "no quote") rather than silently misparsing, but that's a worse
+  outcome than it should be. Re-verify before depending on this further in production. This
+  replaces the equivalent LI.FI/1inch caveat this doc carried before both were removed (see
+  git history).
+- **`KyberSwapRouter`'s 4s-per-call timeout (`FETCH_TIMEOUT_MS`) is the same untuned first
+  guess `MetaAggregatorSwapRouter`'s race timeout always was** — carried over rather than
+  re-derived from any real KyberSwap latency measurement, and now applied twice (once per
+  sequential call, `/routes` then `/route/build`), so a worst-case quote can take up to ~8s
+  before failing rather than ~4s. Revisit once this has run against real traffic.
 - **Only `TRENDING_HOLDERS` is implemented on `GET /tokens/trenches`** — the other three
   categories (`FRESH`/`NEAR_GRADUATED`/`JUST_GRADUATED`) return a `501 Not Implemented`,
   not an empty result, since Kamby has no bonding-curve/migration data pipeline for any

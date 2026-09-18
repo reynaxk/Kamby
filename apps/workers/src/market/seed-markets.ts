@@ -1,23 +1,37 @@
 /**
- * Phase 1's bounded, curated set of markets to track on Base (eip155:8453) — see
- * docs/MARKET_DATA.md#token-discovery for why a curated seed list rather than scanning
- * every pool the factory has ever created.
+ * Phase 1's bounded, curated set of markets to track — see docs/MARKET_DATA.md#token-discovery
+ * for why a curated seed list rather than scanning every pool a factory has ever created.
+ * One list per chain, keyed by that chain's real CAIP-2 identifier via
+ * `SEED_MARKETS_BY_CHAIN_IDENTIFIER` below — `apps/workers` runs one chain per deployed
+ * instance (see its own `.env.example`), so `main.ts` picks exactly one of these lists at
+ * startup from `env.CHAIN_IDENTIFIER`, never all of them.
  *
  * Deliberately minimal: only addresses. Every pool below was read directly on-chain
- * (token0/token1/slot0, all initialized) via the Base public RPC during development, and
- * cross-checked for real liquidity via DexScreener — but DexScreener was used only to
- * *find* candidate pools, never as a source for price, liquidity, or token metadata. All
- * of that — symbol, name, decimals — is resolved live from the contracts themselves by
- * the ingestion worker, never hardcoded here, so there is nothing in this file that could
- * be a stale or wrong "fact" about a token.
+ * (token0/token1/slot0, fee, liquidity, all initialized) via that chain's own public RPC
+ * during development, and cross-checked for real liquidity via DexScreener/GeckoTerminal or
+ * the DEX's own factory contract — but those sources were used only to *find* candidate
+ * pools, never as a source for price, liquidity, or token metadata. All of that — symbol,
+ * name, decimals — is resolved live from the contracts themselves by the ingestion worker,
+ * never hardcoded here, so there is nothing in this file that could be a stale or wrong
+ * "fact" about a token.
  *
- * Order matters: a market's quote token must already have a resolved USD price by the
- * time its own market is processed (see resolveUsdPrice in ingest.ts). USDC-quoted
- * markets can go in any order; WETH-quoted markets must come after the WETH/USDC market.
+ * Order matters within each chain's list: a market's quote token must already have a
+ * resolved USD price by the time its own market is processed (see `resolveUsdPrice` in
+ * ingestion.ts, seeded with that chain's own `CHAIN_QUOTE_USDC_ADDRESS` env var as the one
+ * pegged-to-$1 reference). USDC-quoted markets can go in any order; a market quoted in the
+ * chain's own wrapped-native token (WETH on Base, WBNB on BNB Chain) must come after that
+ * chain's own native/USDC market.
  */
 
-/** Treated as pegged 1:1 to USD — a Phase 1 simplification, not a depeg-aware oracle. */
+/** Base (eip155:8453) — treated as pegged 1:1 to USD, a Phase 1 simplification, not a
+ *  depeg-aware oracle. Must match `apps/workers/.env.example`'s `CHAIN_QUOTE_USDC_ADDRESS`
+ *  for a Base deployment. */
 export const USDC_ADDRESS_BASE = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
+/** BNB Chain (eip155:56) — the real Binance-Peg USDC address, confirmed via BscScan
+ *  2026-09-15/16 (same value already used in apps/api's own `CHAIN_BNB_USDC_ADDRESS`).
+ *  Same "pegged 1:1" simplification as USDC_ADDRESS_BASE above. */
+export const USDC_ADDRESS_BNB = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
 
 export interface SeedMarket {
   /** The pool contract to read price/liquidity/swaps from. */
@@ -25,7 +39,14 @@ export interface SeedMarket {
   /** Which of the pool's two tokens is the one being tracked ("discovered"); the other
    *  is this market's quote token. */
   baseTokenAddress: string;
-  dex: 'uniswap-v3';
+  /** Purely a display/analytics string (`MarketSummary.dex`, `z.string().nullable()` — see
+   *  packages/domain/src/market.ts) — the actual on-chain reading always goes through the
+   *  same `UniswapV3PoolReader` regardless of this value, since every DEX below is a
+   *  verified Uniswap-V3-ABI-compatible fork (confirmed live on-chain for PancakeSwap V3,
+   *  2026-09-16: slot0()/token0()/token1()/fee()/liquidity() all decode correctly against
+   *  real BNB Chain pools). Kept distinct from 'uniswap-v3' anyway so a BNB Chain token
+   *  never shows a factually wrong DEX name to a user. */
+  dex: 'uniswap-v3' | 'pancakeswap-v3';
 }
 
 export const BASE_SEED_MARKETS: SeedMarket[] = [
@@ -54,3 +75,39 @@ export const BASE_SEED_MARKETS: SeedMarket[] = [
     dex: 'uniswap-v3',
   },
 ];
+
+/**
+ * BNB Chain (eip155:56) — added 2026-09-16, real BNB Chain going live. Only 2 entries on
+ * purpose (same "curated, bounded, expand once real usage validates it" philosophy as
+ * Base's own 4-entry list, not an attempt at initial parity) — both pools verified live via
+ * PancakeSwap V3's own factory contract (`getPool(tokenA, tokenB, fee)` at
+ * `0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865`, not a block explorer/aggregator search
+ * result taken on faith) and their `liquidity()` read directly before being trusted.
+ */
+export const BNB_SEED_MARKETS: SeedMarket[] = [
+  {
+    // WBNB/USDC, 0.01% fee tier — by far the deepest of the 4 fee tiers checked
+    // (553,552,718,654,223,820,322,297 raw liquidity vs. the next tier's ~21.4e21 and two
+    // near-empty tiers below that). Resolves WBNB's USD price, which the USDT market below
+    // depends on.
+    poolAddress: '0xf2688Fb5B81049DFB7703aDa5e770543770612C4',
+    baseTokenAddress: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // USDT/WBNB, 0.05% fee tier — tracks Binance-Peg USDT itself (baseTokenAddress), quoted
+    // in WBNB rather than USDC, so this must stay ordered after the WBNB/USDC market above.
+    poolAddress: '0x36696169c63e42cd08ce11f5deebbcebae652050',
+    baseTokenAddress: '0x55d398326f99059fF775485246999027B3197955',
+    dex: 'pancakeswap-v3',
+  },
+];
+
+/** Which seed list + pegged-USDC address a deployment uses, keyed by its own
+ *  `env.CHAIN_IDENTIFIER` — see MarketIngestionConfig in ingestion.ts, which is what
+ *  actually consumes this (main.ts looks the entry up once at startup, never both at once,
+ *  matching apps/workers' one-chain-per-deployment architecture). */
+export const SEED_MARKETS_BY_CHAIN_IDENTIFIER: Record<string, { seedMarkets: SeedMarket[]; quoteUsdcAddress: string }> = {
+  'eip155:8453': { seedMarkets: BASE_SEED_MARKETS, quoteUsdcAddress: USDC_ADDRESS_BASE },
+  'eip155:56': { seedMarkets: BNB_SEED_MARKETS, quoteUsdcAddress: USDC_ADDRESS_BNB },
+};

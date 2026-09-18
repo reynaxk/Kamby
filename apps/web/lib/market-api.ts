@@ -44,21 +44,30 @@ export async function fetchDiscoverMarkets(params: DiscoverParams = {}): Promise
 }
 
 /** Returns null only when the token genuinely isn't tracked — callers should render a
- *  "not found" state, not conflate it with a backend error (that throws instead). */
-export async function fetchToken(address: string): Promise<MarketSummary | null> {
-  return apiGet<MarketSummary>(`/market/tokens/${encodeURIComponent(address)}`, 15);
+ *  "not found" state, not conflate it with a backend error (that throws instead).
+ *  `chainId` added 2026-09-16 for BNB Chain going live — omitted means "whichever chain
+ *  this deployment defaults to" (Base), mirroring `apps/api`'s own optional `chainId` DTO
+ *  field exactly (see `apps/api/src/market/dto/chain-id-query.dto.ts`). The real
+ *  `/market/[chain]/[address]` route always passes one explicitly. */
+export async function fetchToken(address: string, chainId?: number): Promise<MarketSummary | null> {
+  const suffix = chainId ? `?chainId=${chainId}` : '';
+  return apiGet<MarketSummary>(`/market/tokens/${encodeURIComponent(address)}${suffix}`, 15);
 }
 
-export async function fetchTokenHistory(address: string, timeframe: Timeframe): Promise<Candle[]> {
+export async function fetchTokenHistory(address: string, timeframe: Timeframe, chainId?: number): Promise<Candle[]> {
+  const query = new URLSearchParams({ timeframe });
+  if (chainId) query.set('chainId', String(chainId));
   const result = await apiGet<Candle[]>(
-    `/market/tokens/${encodeURIComponent(address)}/history?timeframe=${timeframe}`,
+    `/market/tokens/${encodeURIComponent(address)}/history?${query.toString()}`,
     30,
   );
   return result ?? [];
 }
 
-export async function fetchSearch(query: string): Promise<MarketSummary[]> {
+export async function fetchSearch(query: string, limit?: number): Promise<MarketSummary[]> {
   if (!query.trim()) return [];
-  const result = await apiGet<MarketSummary[]>(`/market/search?q=${encodeURIComponent(query)}`, 10);
+  const params = new URLSearchParams({ q: query });
+  if (limit) params.set('limit', String(limit));
+  const result = await apiGet<MarketSummary[]>(`/market/search?${params.toString()}`, 10);
   return result ?? [];
 }

@@ -10,12 +10,14 @@
     "lint": "eslint . --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "clean": "rimraf dist"
   },
   "dependencies": {
     "@kamby/chain-adapters": "workspace:*",
     "@kamby/db": "workspace:*",
     "@kamby/domain": "workspace:*",
+    "@solana/web3.js": "^1.99.0",
     "ioredis": "^5.4.1",
     "pino": "^9.4.0",
     "zod": "^3.23.8"

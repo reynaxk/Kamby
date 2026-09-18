@@ -104,6 +104,17 @@ describe('Market (e2e)', () => {
     expect(response.body.isStale).toBe(false);
   });
 
+  it('GET /v1/market/tokens/:address?chainId= returns the same seeded market when the chainId matches this deployment\'s default', async () => {
+    const response = await request(app.getHttpServer()).get(`/v1/market/tokens/${baseAddress}?chainId=8453`);
+    expect(response.status).toBe(200);
+    expect(response.body.symbol).toBe('WETH');
+  });
+
+  it('GET /v1/market/tokens/:address?chainId= rejects a chainId this codebase has never heard of, not silently ignoring it', async () => {
+    const response = await request(app.getHttpServer()).get(`/v1/market/tokens/${baseAddress}?chainId=999999`);
+    expect(response.status).toBe(400);
+  });
+
   it('GET /v1/market/tokens/:address is case-insensitive', async () => {
     const response = await request(app.getHttpServer()).get(`/v1/market/tokens/${baseAddress.toLowerCase()}`);
     expect(response.status).toBe(200);

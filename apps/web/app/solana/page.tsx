@@ -12,15 +12,16 @@ export const metadata = { title: 'Solana — Kamby' };
  * (mirroring how TradeButton/TradeModal work for EVM markets) is follow-up work once
  * Solana has its own tracked markets to link from.
  *
- * `kamby-terminal` scopes the Void dark theme (see globals.css) to this page only — the
- * rest of the product (Discover, Trades, Watchlist, Referrals) keeps its existing
- * light/dark palette untouched. `ToastProvider` is likewise scoped here rather than in the
- * root `app/providers.tsx`, since the trade panel is its only consumer so far.
+ * `kamby-void` scopes the Void dark theme (see globals.css) to this page — as of
+ * 2026-09-15 also applied to Discover and Market detail, with the rest of the product
+ * (Trades, Watchlist, Referrals, Notifications) still on the original light/dark palette.
+ * `ToastProvider` is likewise scoped here rather than in the root `app/providers.tsx`,
+ * since the trade panel is its only consumer so far.
  */
 export default function SolanaPage() {
   return (
     <ToastProvider>
-      <div className="kamby-terminal min-h-screen bg-bg">
+      <div className="kamby-void min-h-screen bg-bg">
         <MarketHeader />
         <main className="mx-auto max-w-md px-6 py-10">
           <h1 className="font-display text-xl font-bold text-ink-900">Trade on Solana</h1>

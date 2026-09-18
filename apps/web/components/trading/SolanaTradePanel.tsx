@@ -12,10 +12,18 @@ import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { RpcStatusBar } from '@/components/terminal/RpcStatusBar';
 import { useTerminalToast } from '@/components/terminal/ToastProvider';
-import { getSolanaQuote, getSolanaTransaction, submitSolanaTransaction } from '@/lib/solana-trading-client';
+import {
+  getSolanaQuote,
+  getSolanaTransaction,
+  getSponsoredSolanaQuote,
+  submitSolanaTransaction,
+  submitSponsoredSolanaTransaction,
+} from '@/lib/solana-trading-client';
+import { GaslessToggle } from './GaslessToggle';
 import { JitoTipControl } from './JitoTipControl';
 import { SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
+import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
 
@@ -42,6 +50,33 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
+/** The inverse of base64ToUint8Array — same "no Buffer in this bundle" reasoning. Needed to
+ *  hand the gas relayer a partially-signed transaction: the sign-only Solana wallet API
+ *  hands back raw bytes, but the backend's sponsored-submit endpoint expects base64 (same
+ *  shape every other unsigned/signed transaction this app moves over HTTP already uses). */
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
+  return btoa(binary);
+}
+
+const SOL_DECIMALS = 9;
+const USDC_DECIMALS = 6;
+
+/** The confirmed-trade toast needs a real, correctly-scaled amount — unlike
+ *  SolanaQuoteSummary's deliberate "N raw units" label elsewhere in this file's own review
+ *  step (honest about not resolving an arbitrary SPL mint's decimals), a success toast has
+ *  no room for that caveat and a bare 6-9-digit raw integer here would just look broken.
+ *  BUY's output is always SOL (fixed, known decimals, unlike an arbitrary mint); SELL's
+ *  output is always USDC — same "always one fixed leg" reasoning as toSocialActivity's own
+ *  comment on the backend. */
+function formatReceivedAmount(side: TradeSide, rawAmount: string): string {
+  if (side === 'BUY') {
+    return `${(Number(rawAmount) / 10 ** SOL_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 4 })} SOL`;
+  }
+  return `$${(Number(rawAmount) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })} USDC`;
+}
+
 /**
  * Solana's counterpart to TradePanel.tsx — see that component's own doc comment for the
  * shared "never a false success" principle. Deliberately simpler than the EVM flow: no
@@ -60,7 +95,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
  * server-side) actually matter. Either way, only the resulting signature is reported to
  * the backend afterward, to record.
  *
- * Rendered inside the `.kamby-terminal` scope (see app/solana/page.tsx and globals.css) —
+ * Rendered inside the `.kamby-void` scope (see app/solana/page.tsx and globals.css) —
  * every shared token (`bg-surface`, `text-accent`, `text-up`/`text-down`, ...) resolves to
  * the Void terminal palette there, so nothing in this file hardcodes a terminal color
  * directly except where BUY/SELL need to diverge from the single shared `accent` (a toggle
@@ -80,6 +115,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const [amount, setAmount] = useState('');
   const [slippageBps, setSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
   const [jitoTipLamports, setJitoTipLamports] = useState(0);
+  const [gasless, setGasless] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
@@ -105,7 +141,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     setQuoteStatus('loading');
     setQuoteError(null);
     const handle = setTimeout(() => {
-      getSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps, jitoTipLamports })
+      // Gasless quotes come from a dedicated endpoint (a different fee payer baked into the
+      // returned unsigned transaction, not just a broadcast-path choice like the Jito tip
+      // below) — jitoTipLamports is simply not sent on this path, since the relayer's own
+      // build never supports it (see SolanaController's own doc comment on the backend).
+      const fetchQuote = gasless
+        ? getSponsoredSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps })
+        : getSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps, jitoTipLamports });
+      fetchQuote
         .then((result) => {
           setQuote(result);
           setQuoteStatus('ready');
@@ -118,7 +161,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     }, 500);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, canQuote, refreshTick]);
+  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, gasless, canQuote, refreshTick]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -139,7 +182,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
             toast.update(activeToastIdRef.current, {
               variant: 'success',
               title: 'Trade confirmed',
-              description: `${tx.expectedOutputAmount} ${tx.side === 'BUY' ? '' : 'USDC'}`.trim(),
+              description: formatReceivedAmount(tx.side, tx.expectedOutputAmount),
               solscanUrl: `https://solscan.io/tx/${tx.signature}`,
             });
           }
@@ -159,7 +202,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           setStep('pending');
         }
       });
-    }, 3000);
+    }, 1500); // was 3000 — Solana confirms in well under a second, so the longer interval
+    // meant the UI could lag a real confirmation by seconds of perceived wait.
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
@@ -187,6 +231,16 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     return jitoConnection.sendRawTransaction(signedTransaction);
   }
 
+  /** The gas-relayer counterpart to the two broadcast paths above — signs only (reusing the
+   *  same useSignTransaction hook the Jito path already uses, no second signing mechanism
+   *  needed), but never broadcasts: the relayer still owes its own co-signature as fee
+   *  payer, so this hands the partially-signed bytes to the backend instead of a
+   *  Connection. See GasRelayerService#submitSponsoredTransaction's own doc comment. */
+  async function signOnlyForSponsorship(transactionBytes: Uint8Array, wallet: ConnectedStandardSolanaWallet): Promise<string> {
+    const { signedTransaction } = await signTransaction({ transaction: transactionBytes, wallet });
+    return uint8ArrayToBase64(signedTransaction);
+  }
+
   async function handleConfirmAndSign() {
     if (!quote || !wallet) return;
     setFlowError(null);
@@ -195,6 +249,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     activeToastIdRef.current = toastId;
     try {
       const transactionBytes = base64ToUint8Array(quote.unsignedTxBase64);
+      if (gasless) {
+        // No broadcast happens from this client at all here — the relayer still owes its
+        // own co-signature as fee payer before anything goes on-chain, so there's no
+        // signature to show yet, unlike the two self-paid paths below.
+        const partiallySignedTxBase64 = await signOnlyForSponsorship(transactionBytes, wallet);
+        await submitSponsoredTransactionAndRecord(partiallySignedTxBase64, quote.id, wallet.address, toastId);
+        return;
+      }
       // The tip *instruction* was already built into this transaction server-side (see
       // JupiterQuoteService's own doc comment) when jitoTipLamports > 0 — it only actually
       // does anything once the *signed* transaction is broadcast through Jito's own
@@ -216,6 +278,34 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
       setStep('review');
       setFlowError(friendlyError(err));
       toast.update(toastId, { variant: 'error', title: 'Trade failed', description: friendlyError(err) });
+    }
+  }
+
+  /** The gasless counterpart to recordSubmittedTransaction — one call, not two. There's no
+   *  already-broadcast signature to fall back to displaying on failure (the relayer, not
+   *  this client, broadcasts) and so no separate record-failed retry state either: a plain
+   *  retry from the review step is always safe regardless of whether the original attempt's
+   *  broadcast actually landed, since submitSponsoredTransaction is idempotent on quoteId
+   *  (see its own doc comment, apps/api) — it either returns the transaction that already
+   *  landed or genuinely submits for the first time, never a double-broadcast. */
+  async function submitSponsoredTransactionAndRecord(partiallySignedTxBase64: string, quoteId: string, walletAddress: string, toastId?: string) {
+    try {
+      const tx = await submitSponsoredSolanaTransaction({ quoteId, walletAddress, partiallySignedTxBase64 });
+      setTransaction(tx);
+      setStep('submitted');
+      if (toastId) {
+        toast.update(toastId, {
+          title: 'Trade submitted',
+          description: 'Waiting for network confirmation…',
+          solscanUrl: `https://solscan.io/tx/${tx.signature}`,
+        });
+      }
+    } catch (err) {
+      setStep('review');
+      setFlowError(friendlyError(err));
+      if (toastId) {
+        toast.update(toastId, { variant: 'error', title: 'Trade failed', description: friendlyError(err) });
+      }
     }
   }
 
@@ -259,9 +349,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
    *  one-thumb trader never scrolls past a chart to get there, but still lands on the same
    *  explicit review-then-sign flow as desktop; a real quote still has to come back and the
    *  user still has to tap "Confirm & sign" themselves — this is a shortcut to review, not
-   *  a way to skip it. */
-  function handleQuickPreset(dollars: number) {
-    setAmount(usdToRawUsdc(dollars));
+   *  a way to skip it. Presets are USD/USDC on BUY, SOL on SELL — same unit split as the
+   *  main form's amount input, see SolAmountInput's own doc comment for why. */
+  function handleQuickPreset(preset: number) {
+    setAmount(side === 'BUY' ? usdToRawUsdc(preset) : solToRawLamports(preset));
   }
 
   // --- Gating states: connect -> verify ----------------------------------------------------
@@ -334,6 +425,11 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     return (
       <Panel title="Review trade" onBack={step === 'review' ? () => setStep('form') : undefined}>
         <SolanaQuoteSummary quote={quote} />
+        {gasless && (
+          <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
+            Gasless — Kamby pays the Solana network fee for this trade. One signature, no SOL needed.
+          </p>
+        )}
         {isExpired && (
           <div className="rounded-lg bg-down/10 px-3 py-2 font-body text-xs text-down">
             This quote expired.{' '}
@@ -370,7 +466,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
               <button
                 key={s}
                 type="button"
-                onClick={() => setSide(s)}
+                onClick={() => {
+                  // BUY's amount is raw USDC (6 decimals); SELL's is raw SOL (9 decimals,
+                  // see SolAmountInput's own doc comment) — a stale value from the other
+                  // side would get silently reinterpreted in the wrong unit otherwise.
+                  setSide(s);
+                  setAmount('');
+                }}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors',
                   isActive
@@ -396,9 +498,17 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           </span>
           <CopyAddressButton address={wallet.address} />
         </div>
-        <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+        {side === 'BUY' ? (
+          <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+        ) : (
+          <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+        )}
         <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
-        <JitoTipControl valueLamports={jitoTipLamports} onChange={setJitoTipLamports} />
+        <GaslessToggle value={gasless} onChange={setGasless} />
+        {/* A sponsored transaction always broadcasts via the relayer's own RPC call, never
+            through Jito — showing this control while gasless is on would offer a choice
+            that silently does nothing, see GaslessToggle's own doc comment. */}
+        {!gasless && <JitoTipControl valueLamports={jitoTipLamports} onChange={setJitoTipLamports} />}
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} compact />}
         {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
         <Button
@@ -417,14 +527,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           keeps it clear of a phone's home-bar gesture area. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden">
         <div className="flex gap-1.5">
-          {USD_PRESETS.map((dollars) => (
+          {(side === 'BUY' ? USD_PRESETS : SOL_PRESETS).map((preset) => (
             <button
-              key={dollars}
+              key={preset}
               type="button"
-              onClick={() => handleQuickPreset(dollars)}
+              onClick={() => handleQuickPreset(preset)}
               className="flex-1 rounded-full border border-line bg-surface-raised px-2 py-1.5 font-mono text-xs font-semibold text-ink-600 active:border-accent/60"
             >
-              ${dollars}
+              {side === 'BUY' ? `$${preset}` : preset}
             </button>
           ))}
         </div>

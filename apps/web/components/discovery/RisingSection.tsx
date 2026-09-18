@@ -42,7 +42,7 @@ export function RisingSection({ tokens, traders }: { tokens: RisingToken[]; trad
             {traders.map((trader) => (
               <Link key={trader.address} href={`/trader/${trader.address}`} className="block">
                 <Surface className="flex h-full flex-col gap-3 p-4 transition-colors hover:border-accent/50 hover:bg-surface-raised">
-                  <TraderIdentity address={trader.address} displayName={trader.displayName} avatarUrl={trader.avatarUrl} />
+                  <TraderIdentity address={trader.address} displayName={trader.username} avatarUrl={trader.avatarUrl} />
                   <p className="mt-auto border-t border-line pt-3 font-mono text-xs text-ink-600">
                     {trader.tradeCount24h} trades today — well above their usual pace
                   </p>

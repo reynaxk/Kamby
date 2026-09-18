@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isEvmAddress, normalizeEvmAddress } from './wallet';
+import { isEvmAddress, isValidUsername, normalizeEvmAddress, normalizeUsername } from './wallet';
 
 describe('isEvmAddress', () => {
   it('accepts a well-formed 0x + 40 hex char address', () => {
@@ -41,5 +41,51 @@ describe('normalizeEvmAddress', () => {
   it('is idempotent on an already-lowercase address', () => {
     const lower = '0x4200000000000000000000000000000000000006';
     expect(normalizeEvmAddress(lower)).toBe(lower);
+  });
+});
+
+describe('normalizeUsername', () => {
+  it('lowercases a mixed-case username', () => {
+    expect(normalizeUsername('Alice')).toBe('alice');
+  });
+});
+
+describe('isValidUsername', () => {
+  it('accepts a well-formed username', () => {
+    expect(isValidUsername('trader_99')).toBe(true);
+  });
+
+  it('accepts a mixed-case username (validated after normalizing, same as storage)', () => {
+    expect(isValidUsername('Alice')).toBe(true);
+  });
+
+  it('rejects a username shorter than the minimum', () => {
+    expect(isValidUsername('ab')).toBe(false);
+  });
+
+  it('rejects a username longer than the maximum', () => {
+    expect(isValidUsername('a'.repeat(21))).toBe(false);
+  });
+
+  it('accepts exactly at the min and max length boundaries', () => {
+    expect(isValidUsername('abc')).toBe(true);
+    expect(isValidUsername('a'.repeat(20))).toBe(true);
+  });
+
+  it('rejects a username with disallowed characters', () => {
+    expect(isValidUsername('trader-99')).toBe(false); // hyphen not allowed
+    expect(isValidUsername('trader 99')).toBe(false); // space not allowed
+    expect(isValidUsername('trader.99')).toBe(false); // dot not allowed
+    expect(isValidUsername('trader😀')).toBe(false); // emoji not allowed
+  });
+
+  it('rejects a reserved/impersonation-prone name, case-insensitively', () => {
+    expect(isValidUsername('kamby')).toBe(false);
+    expect(isValidUsername('Admin')).toBe(false);
+    expect(isValidUsername('SUPPORT')).toBe(false);
+  });
+
+  it('rejects an empty string', () => {
+    expect(isValidUsername('')).toBe(false);
   });
 });

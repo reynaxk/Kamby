@@ -240,7 +240,7 @@ export type TraderTokenStat = z.infer<typeof TraderTokenStatSchema>;
  *  computed (see TokenTraderConnection.recentTraders) — never a misleading 0. */
 export const TokenTraderSchema = z.object({
   address: z.string(),
-  displayName: z.string().nullable(),
+  username: z.string().nullable(),
   avatarUrl: z.string().nullable(),
   lastTradeAt: z.string().datetime(),
   tradeCount24h: z.number().int().min(0).nullable(),
@@ -270,7 +270,7 @@ export type RisingToken = z.infer<typeof RisingTokenSchema>;
 
 export const RisingTraderSchema = z.object({
   address: z.string(),
-  displayName: z.string().nullable(),
+  username: z.string().nullable(),
   avatarUrl: z.string().nullable(),
   tradeCount24h: z.number().int().min(0),
   activityFrequencyPerDay: z.number().min(0),

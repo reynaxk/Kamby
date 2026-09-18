@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { prisma } from '@kamby/db';
 import type { Prisma } from '@kamby/db';
-import { DISCOVERY_RANKING, isPriceStale, normalizeEvmAddress } from '@kamby/domain';
+import { DISCOVERY_RANKING, identifierForChainId, isPriceStale, normalizeEvmAddress } from '@kamby/domain';
 
 export type TradableMarket = Prisma.TokenMarketGetPayload<{
   include: { token: true; quoteToken: true; chain: true };
@@ -28,8 +28,14 @@ export class SafetyService {
    */
   async assertTradable(tokenAddress: string, chainId: number): Promise<TradableMarket> {
     const normalized = normalizeEvmAddress(tokenAddress);
+    // chain: { identifier: ... }, not chainId: chainId — TokenMarket.chainId is Chain's own
+    // internal autoincrement id, not the real numeric EVM chain id this method receives.
+    // See identifierForChainId's own doc comment for the real incident this fixes: every
+    // quote request for every EVM token was silently 404ing before this.
+    const identifier = identifierForChainId(chainId);
+    if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
     const market = await prisma.tokenMarket.findFirst({
-      where: { chainId, token: { contractAddress: { equals: normalized, mode: 'insensitive' } } },
+      where: { chain: { identifier }, token: { contractAddress: { equals: normalized, mode: 'insensitive' } } },
       include: { token: true, quoteToken: true, chain: true },
       orderBy: { liquidityUsd: 'desc' },
     });

@@ -1,7 +1,8 @@
-import type { SocialActivity } from '@kamby/domain';
+import { DEFAULT_CHAIN_SLUG, type SocialActivity, slugForChainId } from '@kamby/domain';
 import { Surface, cn } from '@kamby/ui';
 import Link from 'next/link';
 import { TradeButton } from '@/components/trading/TradeButton';
+import { explorerName, explorerTxUrl } from '@/lib/explorer';
 import { formatCompactUsd, formatPrice, formatRelativeTime, truncateAddress } from '@/lib/format';
 import { LikeButton } from './LikeButton';
 import { ShareButton } from './ShareButton';
@@ -15,6 +16,11 @@ import { TraderIdentity } from './TraderIdentity';
 export function ActivityCard({ activity }: { activity: SocialActivity }) {
   const isBuy = activity.action === 'BUY';
   const traderHref = activity.trader.address ? `/trader/${activity.trader.address}` : null;
+  // Chain-aware as of 2026-09-16 (BNB Chain going live) — activity.chainId already carries
+  // the real numeric chain this trade happened on, no derivation needed.
+  const chainSlug = slugForChainId(activity.chainId) ?? DEFAULT_CHAIN_SLUG;
+  const marketHref = `/market/${chainSlug}/${activity.token.address}`;
+  const explorerUrl = explorerTxUrl(activity.chainId, activity.txHash);
 
   return (
     <Surface className="flex flex-col gap-3 p-4">
@@ -63,7 +69,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           {formatCompactUsd(activity.amountUsd)}
         </span>
         <Link
-          href={`/market/${activity.token.address}`}
+          href={marketHref}
           className="truncate font-display text-sm font-semibold text-ink-600 hover:text-accent"
         >
           {activity.token.symbol ?? truncateAddress(activity.token.address)}
@@ -73,19 +79,22 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
       <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
         <div className="flex items-center gap-3 font-mono text-xs text-ink-400">
           <span className="tabular-nums">{formatPrice(activity.priceUsd)}</span>
-          <a
-            href={`https://basescan.org/tx/${activity.txHash}`}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-accent"
-            title={activity.txHash}
-          >
-            {truncateAddress(activity.txHash)}
-          </a>
+          {explorerUrl && (
+            <a
+              href={explorerUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-accent"
+              title={`View on ${explorerName(activity.chainId)}`}
+            >
+              {truncateAddress(activity.txHash)}
+            </a>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {activity.token.decimals !== null && activity.token.quoteDecimals !== null && (
             <TradeButton
+              chainId={activity.chainId}
               label="Trade"
               variant="ghost"
               tokenAddress={activity.token.address}
@@ -104,7 +113,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           <ShareButton
             compact
             title={`${isBuy ? 'Bought' : 'Sold'} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Kamby`}
-            path={`/market/${activity.token.address}`}
+            path={marketHref}
           />
         </div>
       </div>

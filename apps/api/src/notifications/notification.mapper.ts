@@ -13,7 +13,7 @@ export const NOTIFICATION_INCLUDE = {
       wallets: { where: { verifiedAt: { not: null } }, orderBy: { verifiedAt: 'asc' }, take: 1 },
     },
   },
-  actorWallet: true,
+  actorWallet: { include: { user: true } },
   swap: { include: { tokenMarket: { include: { token: true } } } },
   tokenMarket: { include: { token: true } },
 } satisfies Prisma.NotificationInclude;
@@ -29,12 +29,20 @@ export type NotificationRow = Prisma.NotificationGetPayload<{ include: typeof NO
  */
 export function toNotificationDto(row: NotificationRow): NotificationDto {
   const actorWalletRow = row.actorWallet ?? row.actorUser?.wallets[0] ?? null;
+  // Prefer the direct actorUser (a FOLLOW/LIKE's real acting session) over the wallet's own
+  // linked user — a wallet-level actor (FOLLOWED_TRADER_TRADE/WHALE_TRADE) only ever has the
+  // latter. See Wallet's own doc comment in packages/domain/src/wallet.ts for why identity
+  // now lives on User, not Wallet. Resolved from row.actorWallet directly (not
+  // actorWalletRow) since the wallets[0] fallback in NOTIFICATION_INCLUDE doesn't itself
+  // nest `user` — it doesn't need to, because that branch only exists when actorUser is
+  // already set directly.
+  const actorUser = row.actorUser ?? row.actorWallet?.user ?? null;
   const hasActor = row.actorUserId !== null || row.actorWalletAddress !== null;
   const actor = hasActor
     ? {
         address: actorWalletRow?.address ?? null,
-        displayName: actorWalletRow?.displayName ?? null,
-        avatarUrl: actorWalletRow?.avatarUrl ?? null,
+        displayName: actorUser?.username ?? null,
+        avatarUrl: actorUser?.avatarUrl ?? null,
       }
     : null;
 

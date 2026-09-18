@@ -23,8 +23,8 @@ const erc20TransferAbi = [
  * the platform fee as a separate, plain USDC transfer instead of relying on an
  * aggregator's built-in (and not-necessarily-USDC) fee cut. See
  * docs/TRADING.md#guaranteed-usdc-fees. `gas`/`maxFeePerGas`/`maxPriorityFeePerGas` are left
- * `null` — the wallet estimates these at signing time, same convention the LI.FI/1inch
- * routers use for fields their own quote didn't supply.
+ * `null` — the wallet estimates these at signing time, same convention `KyberSwapRouter`
+ * uses for fields its own quote didn't supply.
  */
 export function buildErc20TransferTx(tokenAddress: string, to: string, amountRaw: bigint): UnsignedTransaction {
   return {

@@ -19,7 +19,7 @@ export type SolanaWalletVerificationStatus = 'disconnected' | 'checking' | 'unve
  * `useSignMessage` from `@privy-io/react-auth/solana`, `signMessage({ message, wallet })`
  * returning a raw signature encoded here via `bs58`); re-verify against Privy's current
  * docs (https://docs.privy.io) before depending on this in production, same caveat this
- * codebase already carries for its other third-party integrations (LiFiSwapRouter,
+ * codebase already carries for its other third-party integrations (KyberSwapRouter,
  * JupiterQuoteService, privy-config.ts).
  */
 export function useSolanaWalletVerification() {

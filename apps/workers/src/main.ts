@@ -1,10 +1,16 @@
 import { parseEnv } from '@kamby/domain';
 import { EvmChainDataProvider } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
+import { Connection } from '@solana/web3.js';
 import { Redis } from 'ioredis';
 import { EnvSchema } from './config/env';
 import { createLogger } from './lib/logger';
 import { MarketIngestionService } from './market/ingestion';
+import { SEED_MARKETS_BY_CHAIN_IDENTIFIER } from './market/seed-markets';
+import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
+import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
+import { SolanaSweepService } from './solana/solana-sweep';
+import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
 import { TradeSweepService } from './trading/sweep';
 
 /**
@@ -49,6 +55,7 @@ async function main(): Promise<void> {
       nativeSymbol: env.CHAIN_NATIVE_SYMBOL,
     },
     rpcUrl: env.CHAIN_RPC_URL,
+    rpcUrlFallback: env.CHAIN_RPC_URL_FALLBACK ?? null,
   });
   const chainReady = await chainAdapter.isHealthy();
   logger.info({ chain: chainAdapter.chain.identifier, chainReady }, 'Chain adapter connectivity check');
@@ -73,19 +80,45 @@ async function main(): Promise<void> {
     logger.warn('Chain adapter was not reachable at startup (RPC outage/quota) — ticks below will retry on their own schedule');
   }
 
+  // Every ticker below fires its first run without awaiting it (`void runX()`, not
+  // `await runX()`), then immediately falls through to set up the next one — so market
+  // ingestion, the EVM sweep, the Solana sweep, and the Pump.fun subscription all genuinely
+  // start in parallel instead of one after another. This used to be sequential, which meant
+  // `Worker ready` — and specifically the Pump.fun subscription, set up last — didn't fire
+  // until every earlier ticker's first run had fully finished. Confirmed in production
+  // (2026-09-15): the market ingestion tick alone took 88s on a cold start (dominated by the
+  // old LOG_CHUNK_BLOCKS=5 chunking — see ingestion.ts), so Pump.fun ingestion silently
+  // didn't start for the first minute and a half after every redeploy. Each ticker already
+  // tolerates a delayed or skipped first run via its own `xRunning` reentrancy guard and
+  // internal try/catch (neither rethrows — `await`ing one was never load-bearing for error
+  // handling either), so there's no correctness reason to serialize them at startup.
   let marketTicker: NodeJS.Timeout | undefined;
   {
+    // Fails loudly at boot, not silently, if this deployment's CHAIN_IDENTIFIER has no
+    // curated seed list — added 2026-09-16 alongside BNB Chain going live, when this class
+    // stopped assuming its one configured chain was always Base. See
+    // SEED_MARKETS_BY_CHAIN_IDENTIFIER's own doc comment in market/seed-markets.ts.
+    const seedConfig = SEED_MARKETS_BY_CHAIN_IDENTIFIER[env.CHAIN_IDENTIFIER];
+    if (!seedConfig) {
+      throw new Error(
+        `No curated seed markets for CHAIN_IDENTIFIER "${env.CHAIN_IDENTIFIER}" — add an entry to SEED_MARKETS_BY_CHAIN_IDENTIFIER in market/seed-markets.ts before deploying a workers instance for this chain.`,
+      );
+    }
+
     const ingestion = new MarketIngestionService(
       {
         chainIdentifier: env.CHAIN_IDENTIFIER,
         chainName: env.CHAIN_NAME,
         chainNativeSymbol: env.CHAIN_NATIVE_SYMBOL,
         rpcConfigKey: 'CHAIN_RPC_URL',
+        seedMarkets: seedConfig.seedMarkets,
+        quoteUsdcAddress: seedConfig.quoteUsdcAddress,
       },
       env.CHAIN_RPC_URL,
       logger,
       redis,
       env.WHALE_TRADE_USD_THRESHOLD,
+      env.CHAIN_RPC_URL_FALLBACK ?? null,
     );
 
     let tickRunning = false;
@@ -102,9 +135,10 @@ async function main(): Promise<void> {
         // attempt (the free public Base RPC does this under load) permanently left a
         // market unseeded or a token's metadata null for the container's entire lifetime,
         // with no actual retry despite the error log below claiming one would happen. It's
-        // a small, fixed list of seed markets (BASE_SEED_MARKETS), so re-checking them
-        // every tick is cheap and lets a transient failure self-heal on a later tick
-        // instead of requiring a manual restart.
+        // a small, fixed list of seed markets (this deployment's own entry in
+        // SEED_MARKETS_BY_CHAIN_IDENTIFIER), so re-checking them every tick is cheap and
+        // lets a transient failure self-heal on a later tick instead of requiring a
+        // manual restart.
         await ingestion.seed();
         await ingestion.refreshPricesAndLiquidity();
         await ingestion.ingestSwaps();
@@ -116,7 +150,7 @@ async function main(): Promise<void> {
       }
     };
 
-    await runTick();
+    void runTick();
     marketTicker = setInterval(() => void runTick(), env.MARKET_INGESTION_INTERVAL_SECONDS * 1000);
     marketTicker.unref();
   }
@@ -153,11 +187,129 @@ async function main(): Promise<void> {
       }
     };
 
-    await runSweep();
+    void runSweep();
     tradeSweepTicker = setInterval(() => void runSweep(), env.TRADE_SWEEP_INTERVAL_SECONDS * 1000);
     tradeSweepTicker.unref();
   } else {
     logger.warn({ tradeChainId }, 'Trade sweep disabled: CHAIN_IDENTIFIER is not a parseable eip155 chain id');
+  }
+
+  // Solana's counterpart to the EVM trade sweep above — see solana/solana-sweep.ts's own
+  // doc comment. Entirely independent of the EVM ticker's chainId gating; gated on
+  // SOLANA_ENABLED alone, same convention apps/api's own Solana feature flag already uses.
+  let solanaSweepTicker: NodeJS.Timeout | undefined;
+  let treasuryMonitorTicker: NodeJS.Timeout | undefined;
+  if (env.SOLANA_ENABLED) {
+    const solanaConnection = new Connection(env.SOLANA_RPC_URL!, 'confirmed');
+    const solanaFallbackConnection = env.SOLANA_RPC_URL_FALLBACK ? new Connection(env.SOLANA_RPC_URL_FALLBACK, 'confirmed') : null;
+    const solanaSweep = new SolanaSweepService(solanaConnection, solanaFallbackConnection, redis, logger);
+
+    let solanaSweepRunning = false;
+    const runSolanaSweep = async (): Promise<void> => {
+      if (solanaSweepRunning) {
+        logger.warn('Skipped Solana sweep tick: previous tick still running');
+        return;
+      }
+      solanaSweepRunning = true;
+      const startedAt = Date.now();
+      try {
+        const result = await solanaSweep.sweepPendingTransactions();
+        logger.info({ ...result, durationMs: Date.now() - startedAt }, 'Solana sweep tick complete');
+      } catch (error) {
+        logger.error({ err: error }, 'Solana sweep tick failed — will retry next tick');
+      } finally {
+        solanaSweepRunning = false;
+      }
+    };
+
+    void runSolanaSweep();
+    solanaSweepTicker = setInterval(() => void runSolanaSweep(), env.SOLANA_SWEEP_INTERVAL_SECONDS * 1000);
+    solanaSweepTicker.unref();
+
+    // Treasury balance monitoring for this deployment's small, manually-funded operational
+    // Solana wallets — see solana/treasury-balance-monitor.ts's own doc comment for why this
+    // gap mattered (neither wallet auto-refills, and until now neither was monitored at
+    // all). Reuses solanaConnection above rather than a second client. Each of the two
+    // wallets is independently opt-in via its own *_PUBLIC_KEY env var — skips cleanly, with
+    // one explanatory log line, if neither is configured (a valid, common pre-launch state).
+    const monitoredWallets: MonitoredWallet[] = [];
+    if (env.SOLANA_TOPUP_FUNDING_PUBLIC_KEY) {
+      monitoredWallets.push({ label: 'solana-topup-funding', publicKey: env.SOLANA_TOPUP_FUNDING_PUBLIC_KEY, warnThresholdLamports: env.SOLANA_TOPUP_WARN_THRESHOLD_LAMPORTS });
+    }
+    if (env.SOLANA_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY) {
+      monitoredWallets.push({
+        label: 'solana-gas-relayer',
+        publicKey: env.SOLANA_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY,
+        warnThresholdLamports: env.SOLANA_GAS_RELAYER_WARN_THRESHOLD_LAMPORTS,
+      });
+    }
+
+    if (monitoredWallets.length > 0) {
+      let treasuryMonitorRunning = false;
+      const runTreasuryMonitor = async (): Promise<void> => {
+        if (treasuryMonitorRunning) {
+          logger.warn('Skipped treasury balance monitor tick: previous tick still running');
+          return;
+        }
+        treasuryMonitorRunning = true;
+        try {
+          await checkTreasuryBalances(solanaConnection, monitoredWallets, logger);
+        } catch (error) {
+          logger.error({ err: error }, 'Treasury balance monitor tick failed — will retry next tick');
+        } finally {
+          treasuryMonitorRunning = false;
+        }
+      };
+
+      void runTreasuryMonitor();
+      treasuryMonitorTicker = setInterval(() => void runTreasuryMonitor(), env.SOLANA_TREASURY_MONITOR_INTERVAL_SECONDS * 1000);
+      treasuryMonitorTicker.unref();
+    } else {
+      logger.info('No treasury wallets configured for balance monitoring (SOLANA_TOPUP_FUNDING_PUBLIC_KEY / SOLANA_GAS_RELAYER_FEE_PAYER_PUBLIC_KEY both unset)');
+    }
+  }
+
+  // Pump.fun bonding-curve ingestion — see pumpfun/pumpfun-ingestion.ts's own doc comment
+  // on why this is a persistent subscription, not a tick like everything else above.
+  let pumpFunIngestion: PumpFunIngestionService | undefined;
+  if (env.PUMPFUN_INGESTION_ENABLED) {
+    const wsUrl = env.SOLANA_RPC_URL!.replace(/^http/, 'ws');
+    pumpFunIngestion = new PumpFunIngestionService(env.SOLANA_RPC_URL!, wsUrl, logger);
+    pumpFunIngestion.start();
+  }
+
+  // Realized-PnL ledger sweep — see pnl/pnl-ledger-sweep.ts's own doc comment and
+  // PNL_LEDGER_SWEEP_ENABLED's in config/env.ts. Deliberately cross-chain (reads both
+  // trade_transactions and solana_trade_transactions regardless of this deployment's own
+  // CHAIN_IDENTIFIER) — must be enabled on exactly ONE workers deployment, never every
+  // per-chain replica, or the same backlog gets raced concurrently (the sweep's own
+  // Postgres advisory lock is a correctness backstop for that, not a license to enable it
+  // everywhere).
+  let pnlSweepTicker: NodeJS.Timeout | undefined;
+  if (env.PNL_LEDGER_SWEEP_ENABLED) {
+    const pnlSweep = new PnlLedgerSweepService(logger);
+
+    let pnlSweepRunning = false;
+    const runPnlSweep = async (): Promise<void> => {
+      if (pnlSweepRunning) {
+        logger.warn('Skipped PnL ledger sweep tick: previous tick still running');
+        return;
+      }
+      pnlSweepRunning = true;
+      const startedAt = Date.now();
+      try {
+        const result = await pnlSweep.sweep();
+        logger.info({ ...result, durationMs: Date.now() - startedAt }, 'PnL ledger sweep tick complete');
+      } catch (error) {
+        logger.error({ err: error }, 'PnL ledger sweep tick failed — will retry next tick');
+      } finally {
+        pnlSweepRunning = false;
+      }
+    };
+
+    void runPnlSweep();
+    pnlSweepTicker = setInterval(() => void runPnlSweep(), env.PNL_LEDGER_SWEEP_INTERVAL_SECONDS * 1000);
+    pnlSweepTicker.unref();
   }
 
   logger.info('Worker ready');
@@ -167,7 +319,10 @@ async function main(): Promise<void> {
     clearInterval(heartbeat);
     if (marketTicker) clearInterval(marketTicker);
     if (tradeSweepTicker) clearInterval(tradeSweepTicker);
-    await Promise.allSettled([redis.quit(), prisma.$disconnect()]);
+    if (solanaSweepTicker) clearInterval(solanaSweepTicker);
+    if (treasuryMonitorTicker) clearInterval(treasuryMonitorTicker);
+    if (pnlSweepTicker) clearInterval(pnlSweepTicker);
+    await Promise.allSettled([pumpFunIngestion?.stop() ?? Promise.resolve(), redis.quit(), prisma.$disconnect()]);
     process.exit(0);
   };
 

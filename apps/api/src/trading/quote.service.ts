@@ -6,6 +6,8 @@ import {
   calculateMinOutputAmount,
   classifyPriceImpactBps,
   normalizeEvmAddress,
+  PLATFORM_FEE_FALLBACK_BPS,
+  resolveTierFeeBps,
   SAFETY_DISCLAIMER,
   TRADING_DEFAULTS,
   type TradeQuoteDto,
@@ -39,7 +41,6 @@ export interface CreateQuoteParams {
  */
 @Injectable()
 export class QuoteService {
-  private readonly feeBps: number;
   private readonly feeRecipient: string;
   private readonly chains: Map<number, ConfiguredChain>;
 
@@ -49,7 +50,11 @@ export class QuoteService {
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
   ) {
-    this.feeBps = config.get('PLATFORM_FEE_BPS', { infer: true });
+    // PLATFORM_FEE_BPS is no longer read here as of 2026-09-16 — the fee is now resolved
+    // per-trade from PLATFORM_FEE_TIERS (see resolveAggregatorTierFeeBps below), not a
+    // single static configured value. Same precedent as Solana's own
+    // SOLANA_JUPITER_PLATFORM_FEE_BPS (see solana-quote.service.ts): the env var is left
+    // defined (harmless if set) but has no effect on this service any more.
     this.feeRecipient = config.get('PLATFORM_FEE_RECIPIENT_ADDRESS', { infer: true });
     this.chains = new Map(
       getConfiguredChains((key) => config.get(key, { infer: true })).map((c) => [c.chainId, c]),
@@ -65,6 +70,58 @@ export class QuoteService {
     const chain = this.chains.get(chainId);
     if (!chain) throw new UnprocessableEntityException(`Chain ${chainId} is not configured on this deployment`);
     return chain;
+  }
+
+  /**
+   * Resolves the fee tier for the OLDER, aggregator-embedded fee path (a non-USDC-quoted
+   * market) — the router needs a `feeBps` upfront, before it can price the swap at all, so
+   * the trade's USD size must be known before that call (unlike the guaranteed-USDC SELL
+   * case in `createQuote`, which can wait until the real quote comes back). Two distinct
+   * bases, by side:
+   *
+   *  - SELL: the input is already the base token being sold, and `market.priceUsd` (its
+   *    cached, freshness-checked USD price — `SafetyService` already refused a stale one)
+   *    prices it directly. No extra call.
+   *  - BUY: the input is the *quote* token (e.g. WETH), which isn't USD-denominated and has
+   *    no cached price of its own on `market`. A lightweight, fee-free pre-quote (mirrors
+   *    `SolanaQuoteService#resolvePlatformFeeBps`'s own SELL-side pre-quote, locked in
+   *    2026-09-13) discovers the base-token amount the real swap would produce;
+   *    `market.priceUsd` then prices *that*.
+   *
+   * Falls back to `PLATFORM_FEE_FALLBACK_BPS` (the most expensive tier, never a cheaper
+   * unconfirmed one — same rule Solana's own fallback follows) if `market.priceUsd` is
+   * somehow null (shouldn't happen; `SafetyService` requires tracked liquidity) or the BUY
+   * pre-quote itself comes back empty — the real, fee-bearing quote right after this call
+   * will surface the same "no live quote" error to the caller either way.
+   */
+  private async resolveAggregatorTierFeeBps(
+    params: CreateQuoteParams,
+    market: TradableMarket,
+    inputToken: { contractAddress: string; decimals: number | null },
+    outputToken: { contractAddress: string; decimals: number | null },
+    inputAmountRaw: bigint,
+  ): Promise<number> {
+    if (market.priceUsd === null) return PLATFORM_FEE_FALLBACK_BPS;
+    const basePriceUsd = Number(market.priceUsd);
+
+    if (params.side === 'SELL') {
+      const usdAmount = Number(formatUnits(inputAmountRaw, inputToken.decimals!)) * basePriceUsd;
+      return resolveTierFeeBps(usdAmount);
+    }
+
+    const preQuote = await this.router.getQuote({
+      chainId: params.chainId,
+      sellToken: inputToken.contractAddress,
+      buyToken: outputToken.contractAddress,
+      sellAmountRaw: inputAmountRaw.toString(),
+      taker: normalizeEvmAddress(params.walletAddress),
+      slippageBps: params.slippageBps,
+      feeRecipient: null,
+      feeBps: 0,
+    });
+    if (!preQuote) return PLATFORM_FEE_FALLBACK_BPS;
+    const usdAmount = Number(formatUnits(BigInt(preQuote.buyAmountRaw), outputToken.decimals!)) * basePriceUsd;
+    return resolveTierFeeBps(usdAmount);
   }
 
   async createQuote(params: CreateQuoteParams): Promise<TradeQuoteDto> {
@@ -85,11 +142,27 @@ export class QuoteService {
     // single global address — Arbitrum's USDC contract is a different address than Base's.
     const usesGuaranteedUsdcFee = normalizeEvmAddress(market.quoteToken.contractAddress) === normalizeEvmAddress(chain.usdcAddress);
 
+    // PLATFORM_FEE_TIERS (see docs/TRADING.md#fees) is a %-of-trade-size schedule, so the
+    // trade's real USD size must be known before a %-based fee can be picked. Three of the
+    // four (guaranteed-USDC × side, aggregator × side) cases can resolve it right here,
+    // before the real router call:
+    //  - guaranteed-USDC BUY: the raw USDC input IS the trade's USD size — nothing to
+    //    resolve beyond formatting it.
+    //  - guaranteed-USDC SELL: the USD size is the swap's gross *output*, only known once
+    //    the real router call below returns — resolved after it, further down.
+    //  - aggregator (non-USDC-quoted market), either side: see
+    //    resolveAggregatorTierFeeBps's own doc comment.
+    const preRouterFeeBps = usesGuaranteedUsdcFee
+      ? params.side === 'BUY'
+        ? resolveTierFeeBps(Number(formatUnits(inputAmountRaw, inputToken.decimals!)))
+        : 0 // unused for a guaranteed-USDC SELL — see appliedFeeBps below
+      : await this.resolveAggregatorTierFeeBps(params, market, inputToken, outputToken, inputAmountRaw);
+
     // For a BUY, the fee comes off the USDC input *before* the swap is even quoted — the
-    // router is only ever asked to price the remaining 99.25%, so its own quote already
+    // router is only ever asked to price the remaining balance, so its own quote already
     // reflects exactly what the swap will produce.
     const preSwapFeeAmountRaw =
-      usesGuaranteedUsdcFee && params.side === 'BUY' ? calculateFeeAmount(inputAmountRaw, this.feeBps) : 0n;
+      usesGuaranteedUsdcFee && params.side === 'BUY' ? calculateFeeAmount(inputAmountRaw, preRouterFeeBps) : 0n;
     const routerSellAmountRaw = inputAmountRaw - preSwapFeeAmountRaw;
 
     const routerQuote = await this.router.getQuote({
@@ -103,7 +176,7 @@ export class QuoteService {
       // the fee itself as a separate, guaranteed-USDC transfer — asking for both would
       // double-charge the user.
       feeRecipient: usesGuaranteedUsdcFee ? null : this.feeRecipient,
-      feeBps: usesGuaranteedUsdcFee ? 0 : this.feeBps,
+      feeBps: usesGuaranteedUsdcFee ? 0 : preRouterFeeBps,
     });
     if (!routerQuote) {
       throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');
@@ -122,19 +195,27 @@ export class QuoteService {
       throw new UnprocessableEntityException('The quote returned did not honor the requested slippage tolerance');
     }
 
+    // A guaranteed-USDC SELL's tier wasn't resolvable until now — the trade's USD size is
+    // the gross USDC the swap actually produced, only known once the router has priced it.
+    // Every other case already resolved its tier above, before this call.
+    const appliedFeeBps =
+      usesGuaranteedUsdcFee && params.side === 'SELL'
+        ? resolveTierFeeBps(Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)))
+        : preRouterFeeBps;
+
     // For a SELL, the fee is a % of the (gross) USDC the swap is expected to produce —
     // taken via a *separate* transfer after the swap, never reducing the swap's own
     // on-chain output. Computed from the quoted amount, not a post-swap actual: the
     // resulting few-atoms-of-precision gap against real slippage is economically
     // meaningless and avoids a second backend round-trip to read the real receipt.
     const postSwapFeeAmountRaw =
-      usesGuaranteedUsdcFee && params.side === 'SELL' ? calculateFeeAmount(grossBuyAmountRaw, this.feeBps) : 0n;
+      usesGuaranteedUsdcFee && params.side === 'SELL' ? calculateFeeAmount(grossBuyAmountRaw, appliedFeeBps) : 0n;
 
     const platformFeeAmountRaw = usesGuaranteedUsdcFee
       ? preSwapFeeAmountRaw + postSwapFeeAmountRaw // exactly one of these is nonzero, by side
       : routerQuote.feeAmountRaw
         ? BigInt(routerQuote.feeAmountRaw)
-        : calculateFeeAmount(grossBuyAmountRaw, this.feeBps);
+        : calculateFeeAmount(grossBuyAmountRaw, appliedFeeBps);
 
     // What the user actually ends up with net of Kamby's fee. For a BUY this is just the
     // router's own output (the fee already came off the input side before the swap was
@@ -172,7 +253,7 @@ export class QuoteService {
         priceUsd: market.priceUsd,
         priceImpactBps: routerQuote.priceImpactBps,
         slippageBps: params.slippageBps,
-        platformFeeBps: this.feeBps,
+        platformFeeBps: appliedFeeBps,
         platformFeeAmount: platformFeeAmountRaw.toString(),
         provider: routerQuote.provider,
         providerQuoteId: routerQuote.providerQuoteId,
@@ -200,7 +281,7 @@ export class QuoteService {
       priceImpactBps: routerQuote.priceImpactBps,
       priceImpactLevel,
       slippageBps: params.slippageBps,
-      platformFeeBps: this.feeBps,
+      platformFeeBps: appliedFeeBps,
       platformFeeAmount: platformFeeAmountRaw.toString(),
       platformFeeAmountFormatted: formatUnits(platformFeeAmountRaw, feeDecimals),
       provider: routerQuote.provider,

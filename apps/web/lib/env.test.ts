@@ -46,6 +46,14 @@ describe('web client env schema', () => {
     expect(parseEnv(ClientEnvSchema, {}).NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID).toBeUndefined();
   });
 
+  it('leaves NEXT_PUBLIC_CHAIN_BNB_RPC_URL undefined rather than requiring it — BNB Chain simply omitted from wagmi until set', () => {
+    expect(parseEnv(ClientEnvSchema, {}).NEXT_PUBLIC_CHAIN_BNB_RPC_URL).toBeUndefined();
+  });
+
+  it('rejects a malformed NEXT_PUBLIC_CHAIN_BNB_RPC_URL rather than silently accepting it', () => {
+    expect(() => parseEnv(ClientEnvSchema, { NEXT_PUBLIC_CHAIN_BNB_RPC_URL: 'not-a-url' })).toThrow();
+  });
+
   it('leaves the Solana fields undefined rather than requiring them — Solana trading UI simply does not render without them', () => {
     const result = parseEnv(ClientEnvSchema, {});
     expect(result.NEXT_PUBLIC_PRIVY_APP_ID).toBeUndefined();

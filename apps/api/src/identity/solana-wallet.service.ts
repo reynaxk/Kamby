@@ -19,7 +19,7 @@ import type { Env } from '../config/env';
  * concrete class rather than a shared abstraction over both chain families: Ed25519
  * (here) and ECDSA/secp256k1 (WalletService) verify completely differently, matching this
  * codebase's existing preference for concrete separate classes over one forced-shared
- * interface (see LiFiSwapRouter/OneInchSwapRouter).
+ * interface (see KyberSwapRouter).
  *
  * Unlike EVM addresses, Solana base58 addresses are already case-sensitive/canonical by
  * construction — there is no normalization step here (see isSolanaAddress's own comment).

@@ -32,6 +32,26 @@ export async function getSolanaQuote(params: GetSolanaQuoteParams): Promise<Sola
   return res.json();
 }
 
+/**
+ * The gas-sponsored counterpart to `getSolanaQuote` — see
+ * `SolanaQuoteService#createSponsoredQuote`'s own doc comment (apps/api). Same request
+ * shape (`jitoTipLamports` is simply unused on this path); the returned
+ * `unsignedTxBase64` names the gas relayer, not the caller's own wallet, as fee payer — the
+ * caller must sign only their own required signer slot and submit the result to
+ * `submitSponsoredSolanaTransaction` below, never `submitSolanaTransaction`. Throws (via
+ * `expectOk`) with a clear message if gas sponsorship isn't enabled on this deployment —
+ * see docs/GAS_RELAYER_PLAN.md's "Status" for when that's expected to change.
+ */
+export async function getSponsoredSolanaQuote(params: GetSolanaQuoteParams): Promise<SolanaTradeQuoteDto> {
+  const res = await authedFetch('/solana/quote/sponsored', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  await expectOk(res, 'get a sponsored quote');
+  return res.json();
+}
+
 export interface SubmitSolanaTransactionParams {
   quoteId: string;
   walletAddress: string;
@@ -45,6 +65,31 @@ export async function submitSolanaTransaction(params: SubmitSolanaTransactionPar
     body: JSON.stringify(params),
   });
   await expectOk(res, 'record the submitted transaction');
+  return res.json();
+}
+
+export interface SubmitSponsoredSolanaTransactionParams {
+  quoteId: string;
+  walletAddress: string;
+  /** Base64-encoded `VersionedTransaction` bytes, signed only in the caller's own signer
+   *  slot — never a bare signature string, unlike `submitSolanaTransaction` above, since
+   *  nothing has been broadcast yet at this point: the gas relayer still owes its own
+   *  co-signature (as fee payer) before this can go on-chain. See
+   *  `GasRelayerService#submitSponsoredTransaction`'s own doc comment (apps/api). */
+  partiallySignedTxBase64: string;
+}
+
+/** The gas-sponsored counterpart to `submitSolanaTransaction` — hands the relayer a
+ *  partially-signed transaction to co-sign and broadcast itself, rather than recording a
+ *  signature the caller already broadcast. Returns the same `SolanaTradeTransactionDto`
+ *  shape either path produces, with `sponsoredByRelayer: true`. */
+export async function submitSponsoredSolanaTransaction(params: SubmitSponsoredSolanaTransactionParams): Promise<SolanaTradeTransactionDto> {
+  const res = await authedFetch('/solana/transactions/sponsored', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  await expectOk(res, 'submit the sponsored transaction');
   return res.json();
 }
 

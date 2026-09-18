@@ -62,9 +62,11 @@ model Token {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  chain          Chain         @relation(fields: [chainId], references: [id], onDelete: Restrict)
-  marketsAsBase  TokenMarket[] @relation("TokenMarketBaseToken")
-  marketsAsQuote TokenMarket[] @relation("TokenMarketQuoteToken")
+  chain             Chain              @relation(fields: [chainId], references: [id], onDelete: Restrict)
+  marketsAsBase     TokenMarket[]      @relation("TokenMarketBaseToken")
+  marketsAsQuote    TokenMarket[]      @relation("TokenMarketQuoteToken")
+  tokenLots         TokenLot[]
+  realizedPnlEvents RealizedPnlEvent[]
 
   @@unique([chainId, contractAddress])
   @@index([chainId])
@@ -255,6 +257,15 @@ model IngestionCursor {
 /// verified wallets; a `Wallet` is claimed by at most one `User`. Never trust a client
 /// claim that a wallet belongs to the caller — only this column, set exclusively by
 /// `WalletService#verifyChallenge`, is authoritative.
+///
+/// Display identity (`username`/`avatarUrl`) moved to `User` in the realized-PnL/
+/// leaderboard phase (see docs/TRADER_INTELLIGENCE.md#realized-pnl) — a `Wallet` never had
+/// a write path for its own now-removed `displayName`/`avatarUrl` columns, and a `User`
+/// spanning several verified wallets/chains needs exactly one consistent identity, not one
+/// per wallet. A `Wallet` with no linked `User` — most of them, per the wallet-first model
+/// above — simply has no display identity; `TraderIdentity`'s existing honesty rule
+/// (truncated address + an initials avatar, never a fabricated placeholder) already covers
+/// that case.
 /// Which signature scheme/network a wallet address belongs to — EVM (secp256k1/ECDSA,
 /// 0x-hex) or Solana (Ed25519, base58). `Wallet.address` stays a bare, globally-unique
 /// `@id` rather than a composite `(chain, address)` key: reshaping the primary key would
@@ -274,9 +285,6 @@ model Wallet {
   /// existed was, in fact, EVM.
   chain       WalletChain @default(EVM)
   userId      String?     @map("user_id")
-  /// Set only once a linked User chooses a display identity — never inferred or guessed.
-  displayName String?     @map("display_name")
-  avatarUrl   String?     @map("avatar_url")
   /// The first time Kamby became aware of this wallet in *any* capacity — its first indexed
   /// trade, or the moment a user verified ownership of it, whichever happened first. Never
   /// backdated, never a guess.
@@ -314,6 +322,18 @@ model Wallet {
 model User {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now()) @map("created_at")
+
+  /// The realized-PnL/leaderboard phase's identity pair — see
+  /// docs/TRADER_INTELLIGENCE.md#realized-pnl and Wallet's own doc comment on why these
+  /// moved here rather than staying per-wallet. Both null until the user actually sets
+  /// them (the post-verification onboarding prompt is skippable, never forced) — never a
+  /// generated fallback; `TraderIdentity.tsx` already has the honest "no identity set yet"
+  /// rendering (truncated address + an initials avatar) for exactly this null case.
+  /// `username` is validated app-side (length/charset/reserved-word list) before it ever
+  /// reaches this column — stored lowercase so the unique constraint is genuinely
+  /// case-insensitive (Alice/alice can't both claim it).
+  username  String? @unique @db.VarChar(20)
+  avatarUrl String? @map("avatar_url")
 
   /// Phase 6 — see docs/PHASE6_RETENTION_SOCIAL.md#return-loop. Null until the user's
   /// first discover-page visit that calls `POST /discovery/mark-seen`; a plain overwrite on
@@ -355,6 +375,8 @@ model User {
   notificationPreference  NotificationPreference?
   tokenWatches            TokenWatch[]
   savedSearches           SavedSearch[]
+  tokenLots               TokenLot[]
+  realizedPnlEvents       RealizedPnlEvent[]
 
   @@map("users")
 }
@@ -429,7 +451,8 @@ model WalletChallenge {
 /// adding a chain branch to the shared one, since the two crypto schemes (Ed25519 here vs.
 /// ECDSA/secp256k1 there) verify completely differently, matching this codebase's existing
 /// preference for concrete separate classes over one forced-shared abstraction (see
-/// LiFiSwapRouter/OneInchSwapRouter in apps/api/src/trading/router/). No FK to Wallet, same
+/// TransactionService/SolanaTransactionService in apps/api/src/trading and
+/// apps/api/src/solana). No FK to Wallet, same
 /// as WalletChallenge — a challenge can be issued for an address no Wallet row exists for
 /// yet.
 model SolanaWalletChallenge {
@@ -547,21 +570,30 @@ model TradeTransaction {
   feeSubmittedAt   DateTime?    @map("fee_submitted_at")
   feeConfirmedAt   DateTime?    @map("fee_confirmed_at")
 
-  submittedAt DateTime  @default(now()) @map("submitted_at")
-  confirmedAt DateTime? @map("confirmed_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  submittedAt    DateTime  @default(now()) @map("submitted_at")
+  confirmedAt    DateTime? @map("confirmed_at")
+  /// Realized-PnL sweep marker — see docs/TRADER_INTELLIGENCE.md#realized-pnl and
+  /// PnlLedgerSweepService's own doc comment. Null means "not yet swept" (regardless of
+  /// `status` — a PENDING/FAILED/EXPIRED row is swept too, just skipped with no lot/event
+  /// created, so the sweep's WHERE clause never has to special-case the terminal statuses
+  /// separately). Set exactly once, never cleared.
+  pnlProcessedAt DateTime? @map("pnl_processed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      Wallet      @relation(fields: [walletAddress], references: [address], onDelete: Cascade)
-  quote       TradeQuote  @relation(fields: [quoteId], references: [id], onDelete: Restrict)
-  tokenMarket TokenMarket @relation(fields: [tokenMarketId], references: [id], onDelete: Restrict)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet            Wallet             @relation(fields: [walletAddress], references: [address], onDelete: Cascade)
+  quote             TradeQuote         @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  tokenMarket       TokenMarket        @relation(fields: [tokenMarketId], references: [id], onDelete: Restrict)
+  tokenLot          TokenLot?
+  realizedPnlEvents RealizedPnlEvent[]
 
   @@unique([chainId, txHash])
   @@unique([chainId, feeTxHash])
   @@index([userId, createdAt])
   @@index([status])
   @@index([feeStatus])
+  @@index([status, pnlProcessedAt])
   @@map("trade_transactions")
 }
 
@@ -645,18 +677,142 @@ model SolanaTradeTransaction {
   status        TradeStatus @default(PENDING)
   failureReason String?     @map("failure_reason")
 
-  submittedAt DateTime  @default(now()) @map("submitted_at")
-  confirmedAt DateTime? @map("confirmed_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  /// True only for a transaction GasRelayerService itself broadcast (the relayer paid the
+  /// network fee) — false for every self-paid trade, which is still the entire launch-scope
+  /// flow. See docs/GAS_RELAYER_PLAN.md; this column exists ahead of the relayer actually
+  /// being enabled on any deployment, same "shovel-ready before it's live" pattern the rest
+  /// of that design already follows.
+  sponsoredByRelayer Boolean @default(false) @map("sponsored_by_relayer")
+  /// The relayer's fee-payer public key at the time this transaction was sponsored — null
+  /// whenever sponsoredByRelayer is false. Recorded per-row (not just read from current env
+  /// config) so history stays accurate even after a relayer keypair rotation.
+  relayerFeePayer    String? @map("relayer_fee_payer")
 
-  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet Wallet           @relation(fields: [walletAddress], references: [address], onDelete: Cascade)
-  quote  SolanaTradeQuote @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  submittedAt    DateTime  @default(now()) @map("submitted_at")
+  confirmedAt    DateTime? @map("confirmed_at")
+  /// See TradeTransaction.pnlProcessedAt's own doc comment — identical rule, Solana side.
+  pnlProcessedAt DateTime? @map("pnl_processed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet            Wallet             @relation(fields: [walletAddress], references: [address], onDelete: Cascade)
+  quote             SolanaTradeQuote   @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  tokenLot          TokenLot?
+  realizedPnlEvents RealizedPnlEvent[]
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([status, pnlProcessedAt])
   @@map("solana_trade_transactions")
+}
+
+// ---------------------------------------------------------------------------------------
+// Realized PnL — see docs/TRADER_INTELLIGENCE.md#realized-pnl for the full methodology
+// (scope, FIFO rules, disclosed approximations). Scoped to Kamby-originated trades only
+// (TradeTransaction / SolanaTradeTransaction), computed asynchronously by apps/workers'
+// PnlLedgerSweepService — never synchronously in the same flow that confirms a trade (see
+// that service's own doc comment for why: 4 independent call sites across 2 runtimes
+// already flip a trade to CONFIRMED, and apps/workers runs one replica per chain by
+// design, neither of which this sweep can assume). Both models below are immutable-append
+// ledgers — a row, once written, is never mutated except TokenLot.quantityRemainingRaw
+// ticking down as later sells consume it — matching TradeQuote's own
+// never-mutated-after-creation discipline.
+// ---------------------------------------------------------------------------------------
+
+/// One CONFIRMED BUY's worth of a token not yet (fully) consumed by a later SELL — the
+/// FIFO queue realized-PnL matching draws from, oldest `acquiredAt` first. Exactly one of
+/// `evmTokenId`/`solanaMint` is set, matching `chain`; exactly one of
+/// `evmBuyTransactionId`/`solanaBuyTransactionId` is set — the same
+/// never-force-unify-EVM-and-Solana convention `SolanaTradeQuote`'s own doc comment
+/// explains (mints vs. EVM addresses, no shared polymorphic table). Enforced app-side, not
+/// a DB constraint, matching how every other dual-nullable-FK pair in this schema already
+/// works. Never deleted — a fully-consumed lot (`quantityRemainingRaw` = "0") stays for
+/// audit/history.
+model TokenLot {
+  id     String      @id @default(uuid())
+  userId String      @map("user_id")
+  chain  WalletChain
+
+  /// FK to Token (the fungibility unit), never TokenMarket — one token can trade through
+  /// several pools/markets at once (see TokenMarket's own doc comment); keying a lot by
+  /// market would silently fragment one real balance into non-matching pools the moment a
+  /// user's buy and sell route through different pools for the same token.
+  evmTokenId String? @map("evm_token_id")
+  solanaMint String? @map("solana_mint")
+
+  evmBuyTransactionId    String? @unique @map("evm_buy_transaction_id")
+  solanaBuyTransactionId String? @unique @map("solana_buy_transaction_id")
+
+  /// Raw integer units (pre-decimals), as strings — see TradeQuote's own model comment on
+  /// why every token amount in this codebase is a string, never a JS number.
+  quantityOriginalRaw  String   @map("quantity_original_raw")
+  quantityRemainingRaw String   @map("quantity_remaining_raw")
+  /// Total USD cost of `quantityOriginalRaw` at acquisition, priced off the BUY's own
+  /// quote (quote-time, not settlement-time — see docs/TRADER_INTELLIGENCE.md#realized-pnl
+  /// for why this is a disclosed approximation, not a guess). A BUY whose quote had a null
+  /// `priceUsd` never gets a lot created for it at all — see PnlLedgerSweepService.
+  costBasisUsd         Decimal  @map("cost_basis_usd") @db.Decimal(38, 18)
+  acquiredAt           DateTime @map("acquired_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evmToken             Token?                  @relation(fields: [evmTokenId], references: [id], onDelete: Restrict)
+  evmBuyTransaction    TradeTransaction?       @relation(fields: [evmBuyTransactionId], references: [id], onDelete: Restrict)
+  solanaBuyTransaction SolanaTradeTransaction? @relation(fields: [solanaBuyTransactionId], references: [id], onDelete: Restrict)
+  realizedPnlEvents    RealizedPnlEvent[]
+
+  @@index([userId, chain, evmTokenId])
+  @@index([userId, chain, solanaMint])
+  @@map("token_lots")
+}
+
+/// One FIFO-matched portion of a CONFIRMED SELL against one `TokenLot` — a SELL that
+/// consumes several lots produces several rows here, one per lot. Any sold quantity beyond
+/// what this user has a recorded open lot for is excluded entirely, never matched against
+/// nothing and counted as free profit — see docs/TRADER_INTELLIGENCE.md#realized-pnl.
+/// `confirmedAt` is copied from the sell transaction; every rolling-window (24h/7d/30d)
+/// leaderboard/profile query filters on this column, never recomputes it from a join.
+model RealizedPnlEvent {
+  id     String      @id @default(uuid())
+  userId String      @map("user_id")
+  chain  WalletChain
+
+  evmTokenId String? @map("evm_token_id")
+  solanaMint String? @map("solana_mint")
+
+  lotId                   String  @map("lot_id")
+  evmSellTransactionId    String? @map("evm_sell_transaction_id")
+  solanaSellTransactionId String? @map("solana_sell_transaction_id")
+
+  /// Raw integer units, as a string — see TokenLot's own comment.
+  quantityMatchedRaw String   @map("quantity_matched_raw")
+  /// The matched portion's share of the lot's cost basis — i.e.
+  /// `quantityMatchedRaw / lot.quantityOriginalRaw * lot.costBasisUsd`, computed once at
+  /// match time and stored, never recomputed from a join.
+  costBasisUsd       Decimal  @map("cost_basis_usd") @db.Decimal(38, 18)
+  /// The matched portion's share of the sell's proceeds, priced off the SELL's own quote
+  /// (same quote-time-price disclosed approximation as TokenLot.costBasisUsd). A SELL
+  /// whose quote had a null `priceUsd` never produces a RealizedPnlEvent at all.
+  proceedsUsd        Decimal  @map("proceeds_usd") @db.Decimal(38, 18)
+  /// = proceedsUsd - costBasisUsd, stored rather than always recomputed — this is the
+  /// figure every leaderboard/profile aggregate sums.
+  realizedPnlUsd     Decimal  @map("realized_pnl_usd") @db.Decimal(38, 18)
+  confirmedAt        DateTime @map("confirmed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evmToken              Token?                  @relation(fields: [evmTokenId], references: [id], onDelete: Restrict)
+  lot                   TokenLot                @relation(fields: [lotId], references: [id], onDelete: Restrict)
+  evmSellTransaction    TradeTransaction?       @relation(fields: [evmSellTransactionId], references: [id], onDelete: Restrict)
+  solanaSellTransaction SolanaTradeTransaction? @relation(fields: [solanaSellTransactionId], references: [id], onDelete: Restrict)
+
+  @@unique([evmSellTransactionId, lotId])
+  @@unique([solanaSellTransactionId, lotId])
+  @@index([userId, confirmedAt])
+  @@map("realized_pnl_events")
 }
 
 // ---------------------------------------------------------------------------------------
@@ -820,4 +976,59 @@ model SavedSearch {
   /// Serves "my saved searches, newest first" and the per-user count check backing the cap.
   @@index([userId, createdAt])
   @@map("saved_searches")
+}
+
+/// A Solana token launched via Pump.fun's bonding-curve program — see
+/// docs/TRADING.md#pump-fun-trenches for the verified program ID/account layout this
+/// mirrors. Deliberately a separate model from Token/TokenMarket rather than forced into
+/// their EVM-shaped columns (a numeric chainId, pairAddress/dex/feeTier — concepts that
+/// don't exist for a bonding curve) — same "concrete separate classes over one forced-
+/// shared abstraction" precedent as SolanaTradeQuote/SolanaTradeTransaction being separate
+/// from their EVM TradeQuote/TradeTransaction counterparts.
+///
+/// Reserve/supply fields are raw on-chain u64 values, stored as strings — same "never a
+/// native numeric type for a raw token amount" discipline every other money-shaped field in
+/// this schema already follows (see TradeQuote/SolanaTradeQuote), not because u64 can't fit
+/// a Postgres BIGINT for realistic pump.fun values, but for consistency and to foreclose the
+/// precision-loss risk class entirely. This table is a faithful on-chain mirror, refreshed
+/// by the ingestion worker exactly as read from the BondingCurve account — never an
+/// opinionated cache; computing price/graduation-progress from these is the reader's job
+/// (see token-trenches.service.ts).
+model PumpFunToken {
+  id                  String  @id @default(uuid())
+  mintAddress         String  @unique @map("mint_address")
+  bondingCurveAddress String  @unique @map("bonding_curve_address")
+  creatorAddress      String? @map("creator_address")
+
+  /// From the create instruction's own logged args — nullable until observed, same
+  /// "never fabricate metadata the indexer hasn't confirmed" rule as Token.symbol/name.
+  name   String?
+  symbol String?
+  uri    String?
+
+  virtualTokenReserves String  @map("virtual_token_reserves")
+  virtualSolReserves   String  @map("virtual_sol_reserves")
+  realTokenReserves    String  @map("real_token_reserves")
+  realSolReserves      String  @map("real_sol_reserves")
+  tokenTotalSupply     String  @map("token_total_supply")
+  /// Mirrors the BondingCurve account's own `complete` flag exactly — true once migrated
+  /// to PumpSwap. Never independently inferred (e.g. never "realTokenReserves == '0'"
+  /// computed here) — the account's own flag is the single source of truth.
+  complete             Boolean @default(false)
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+  /// When the reserve fields above were last refreshed from a real on-chain read/log — the
+  /// basis for a "stale" UI state, same convention as TokenMarket.lastPriceUpdateAt.
+  lastStateUpdateAt DateTime  @map("last_state_update_at")
+  /// Set once, the first time `complete` is observed true — never recomputed afterward.
+  /// JUST_GRADUATED reads this for its own recency window, not updatedAt (which changes on
+  /// every subsequent state refresh, graduated or not).
+  graduatedAt       DateTime? @map("graduated_at")
+
+  /// Serves FRESH (complete = false, ordered by createdAt) and NEAR_GRADUATED (complete =
+  /// false, ordered by realSolReserves) — see token-trenches.service.ts.
+  @@index([complete, createdAt])
+  /// Serves JUST_GRADUATED — complete = true, newest graduation first.
+  @@index([graduatedAt])
+  @@map("pump_fun_tokens")
 }

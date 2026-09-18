@@ -12,6 +12,13 @@ import { authedFetch, expectOk } from './session-client';
  */
 
 export interface GetQuoteParams {
+  /** Added 2026-09-16 for BNB Chain going live — every quote request used to implicitly
+   *  resolve to whatever `DEFAULT_CHAIN_ID` this deployment's backend defaults to
+   *  (Base) regardless of which chain the wallet/token were actually on, since this field
+   *  never existed. Required, not optional: TradePanel.tsx always has a real chainId from
+   *  its own required `chainId` prop, so there's no legitimate caller left that shouldn't
+   *  send one. See `apps/api/src/trading/dto/quote-query.dto.ts`'s matching field. */
+  chainId: number;
   side: TradeSide;
   tokenAddress: string;
   walletAddress: string;
@@ -21,6 +28,7 @@ export interface GetQuoteParams {
 
 export async function getQuote(params: GetQuoteParams): Promise<TradeQuoteDto> {
   const query = new URLSearchParams({
+    chainId: String(params.chainId),
     side: params.side,
     tokenAddress: params.tokenAddress,
     walletAddress: params.walletAddress,

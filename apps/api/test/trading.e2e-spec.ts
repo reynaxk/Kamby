@@ -74,9 +74,13 @@ async function linkVerifiedWallet(app: INestApplication, token: string) {
 /**
  * Requires a reachable Postgres (DATABASE_URL) and Redis (REDIS_URL), same as
  * market.e2e-spec.ts / social.e2e-spec.ts. CI runs this against a real Base RPC and the
- * real LI.FI API using a placeholder key (see .github/workflows/ci.yml) — this deliberately
- * never fabricates a quote to work around that: a request that would need a real quote
- * asserts the honest 422 failure path instead. Wallet ownership is exercised with real
+ * real, keyless KyberSwap Aggregator API (see .github/workflows/ci.yml — no API key is
+ * needed at all, unlike the LI.FI/1inch setup this replaced) — this deliberately never
+ * fabricates a quote to work around that: a request that would need a real quote asserts
+ * the honest 422 failure path instead, since the fixture token addresses below
+ * (`baseAddress` etc.) are synthetic and were never deployed, so KyberSwap legitimately
+ * has no route to price. Not verified against a live run in this environment — see
+ * docs/TRADING.md#known-limitations. Wallet ownership is exercised with real
  * ECDSA signatures (fresh keypairs, never funded, never reused across tests) — never
  * mocked — so this is the one place proving the actual crypto, not a stand-in for it.
  *
@@ -300,7 +304,7 @@ describe('Trading (e2e)', () => {
       expect(res.status).toBe(404);
     });
 
-    it('returns an honest 422 rather than a fabricated quote when the aggregator has no real key to answer with', async () => {
+    it('returns an honest 422 rather than a fabricated quote when the token has no real KyberSwap route', async () => {
       const { token } = await issueSession(app);
       const { address } = await linkVerifiedWallet(app, token);
       const res = await request(app.getHttpServer())

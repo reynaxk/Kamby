@@ -1,53 +1,78 @@
-'use client';
-
-import { useState } from 'react';
-import { SocialFeed } from '@/components/trading/SocialFeed';
-import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
+import type { Candle, MarketSummary, SocialActivity, Timeframe, TokenTraderConnection } from '@kamby/domain';
+import { TimeframeTabs } from '@/components/market/TimeframeTabs';
+import { TradePanel } from '@/components/trading/TradePanel';
+import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
 import { DataHub } from './DataHub';
 import { KambyChart } from './KambyChart';
-import { DEFAULT_MOCK_TOKEN, MOCK_TRENDING_TOKENS } from './mock-data';
-import { PositionsBar } from './PositionsBar';
-import { PreviewBanner } from './PreviewBanner';
 import { SmartSlipGasBar } from './SmartSlipGasBar';
 import { TokenMetricsBar } from './TokenMetricsBar';
-import { TokenOverviewCard } from './TokenOverviewCard';
-import { TrendingTokensSidebar } from './TrendingTokensSidebar';
+import { TrenchesPanel } from './TrenchesPanel';
 
 /**
- * The full 3-column DEX terminal layout, as a design/layout preview — see PreviewBanner
- * for what's mock vs. real. Left (trending list) and center (chart, data hub) are entirely
- * mock; the right column's swap widget is the REAL `SolanaTradePanel` already live at
- * `/solana`, always trading real SOL/USDC regardless of which mock token is "selected" on
- * the left — selecting a mock trending token changes what the chart/metrics/overview show,
- * not what the widget actually trades, since there's no real market behind any mock ticker
- * to trade against yet.
+ * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
+ * design/layout preview at the now-retired `/solana/terminal`, see git history for
+ * PreviewBanner.tsx). This *is* the market detail page now
+ * (app/market/[chain]/[address]/page.tsx renders it directly with the real data that page
+ * already fetches), not a separate route — clicking a real `TrenchesPanel` row navigates
+ * here via a real link, which is the only "token selection" this needed: no client-side
+ * selection state, no second fetch.
  *
- * `SocialFeed` in the right column is a genuine exception to all of that: it's real, live
- * Solana activity — Kamby's own confirmed trades (see SocialFeed.tsx and
- * SolanaTransactionService#getGlobalFeed), not a mock or an anonymous on-chain firehose.
+ * Every column is real data now. Two things were deliberately dropped rather than given an
+ * honest placeholder, because there's nothing to eventually fill them with: the old
+ * `TokenOverviewCard` (a buy/sell split with no backing field anywhere in
+ * `MarketSummarySchema`) and the mock preview's `PositionsBar` (needs real position/PnL
+ * tracking that doesn't exist in the backend — its own doc comment already said so). Two
+ * `DataHub` tabs (holders, caller-alpha) do get an honest "— soon", matching
+ * `SmartSlipGasBar`'s own Jito-tip/Anti-MEV pattern, since those *are* real planned
+ * features with just no data source yet.
+ *
+ * The right column's `SolanaTradePanel` is now the EVM `TradePanel` — `MarketSummary` is
+ * EVM-only (no Solana market-detail page exists or is in scope here), so this terminal only
+ * ever renders for a Base/BNB token. `SocialFeed` (Kamby's *global Solana* activity feed) is
+ * gone from here for the same reason: showing unrelated Solana trades on a Base/BNB token's
+ * page was never going to make sense. `TokenTradersPanel` takes its place — real, already
+ * fetched by the same page, and a genuinely different view (top traders, not a raw feed)
+ * than `DataHub`'s own Transactions tab, not a duplicate of it.
  */
-export function KambyTerminal() {
-  const [selectedId, setSelectedId] = useState(DEFAULT_MOCK_TOKEN.id);
-  const selectedToken = MOCK_TRENDING_TOKENS.find((t) => t.id === selectedId) ?? DEFAULT_MOCK_TOKEN;
-
+export function KambyTerminal({
+  chainId,
+  chain,
+  market,
+  candles,
+  activity,
+  traders,
+  timeframe,
+}: {
+  chainId: number;
+  chain: string;
+  market: MarketSummary;
+  candles: Candle[];
+  activity: SocialActivity[];
+  traders: TokenTraderConnection;
+  timeframe: Timeframe;
+}) {
   return (
     <div className="min-h-screen pb-28 lg:pb-0">
-      <PreviewBanner />
       <div className="mx-auto max-w-[1600px] p-3">
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
           <div className="hidden lg:block">
             <div className="sticky top-3 h-[calc(100vh-6rem)]">
-              <TrendingTokensSidebar selectedId={selectedId} onSelect={setSelectedId} />
+              <TrenchesPanel />
             </div>
           </div>
 
           <div className="flex min-w-0 flex-col gap-3">
-            <TokenMetricsBar token={selectedToken} />
-            <div className="h-[380px] rounded-2xl border border-line bg-surface p-2">
-              <KambyChart />
+            <TokenMetricsBar market={market} />
+            <div className="flex h-[380px] flex-col gap-2 rounded-2xl border border-line bg-surface p-2">
+              <div className="flex justify-end">
+                <TimeframeTabs chain={chain} address={market.tokenAddress} active={timeframe} />
+              </div>
+              <div className="min-h-0 flex-1">
+                <KambyChart candles={candles} />
+              </div>
             </div>
             <div className="h-[300px]">
-              <DataHub />
+              <DataHub activity={activity} />
             </div>
           </div>
 
@@ -55,21 +80,30 @@ export function KambyTerminal() {
             <div className="rounded-2xl border border-line bg-surface p-4">
               <SmartSlipGasBar />
               <div className="mt-3">
-                <SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />
+                {/* Same guard as the old page.tsx layout — decimals are nullable
+                    (MarketSummarySchema) until the ingestion worker has resolved them live
+                    from the token contract; never pass a null decimals into TradePanel. */}
+                {market.decimals !== null && market.quoteDecimals !== null ? (
+                  <TradePanel
+                    chainId={chainId}
+                    tokenAddress={market.tokenAddress}
+                    tokenSymbol={market.symbol}
+                    tokenDecimals={market.decimals}
+                    quoteTokenAddress={market.quoteAddress}
+                    quoteTokenSymbol={market.quoteSymbol}
+                    quoteTokenDecimals={market.quoteDecimals}
+                  />
+                ) : (
+                  <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
+                )}
               </div>
-              <p className="mt-2 font-mono text-[0.6rem] text-ink-400">
-                Preview always trades real SOL/USDC here, regardless of the token selected on the left — per-token
-                trading ships once Solana markets are tracked.
-              </p>
             </div>
-            <TokenOverviewCard token={selectedToken} />
-            <div className="h-[360px]">
-              <SocialFeed />
+            <div className="rounded-2xl border border-line bg-surface p-4">
+              <TokenTradersPanel connection={traders} />
             </div>
           </div>
         </div>
       </div>
-      <PositionsBar />
     </div>
   );
 }

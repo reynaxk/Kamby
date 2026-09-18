@@ -3,7 +3,10 @@ import { computeActivityFrequencyPerDay, computeBuyRatio, computeConcentrationIn
 import type { Prisma } from '@kamby/db';
 
 export type ActivityRow = Prisma.SwapGetPayload<{
-  include: { tokenMarket: { include: { token: true; quoteToken: true; chain: true } }; trader: true };
+  include: {
+    tokenMarket: { include: { token: true; quoteToken: true; chain: true } };
+    trader: { include: { user: true } };
+  };
 }>;
 
 /**
@@ -20,8 +23,8 @@ export function toSocialActivity(swap: ActivityRow, likes: number, likedByMe: bo
     chainIdentifier: swap.tokenMarket.chain.identifier,
     trader: {
       address: swap.traderAddress,
-      displayName: swap.trader?.displayName ?? null,
-      avatarUrl: swap.trader?.avatarUrl ?? null,
+      displayName: swap.trader?.user?.username ?? null,
+      avatarUrl: swap.trader?.user?.avatarUrl ?? null,
     },
     action: swap.side === 'buy' ? 'BUY' : 'SELL',
     token: {
@@ -49,12 +52,15 @@ export function toSocialActivity(swap: ActivityRow, likes: number, likedByMe: bo
   };
 }
 
-export type WalletRow = Prisma.WalletGetPayload<Record<string, never>>;
+/** `user` must be included for `toTraderSummary`/`toTopTrader`/`toTraderProfile` below to
+ *  resolve real identity — see those functions' own comments and Wallet's doc comment in
+ *  packages/domain/src/wallet.ts for why identity moved off Wallet itself. */
+export type WalletRow = Prisma.WalletGetPayload<{ include: { user: true } }>;
 
 /** A lightweight trader identity for search results and follow/following lists — never the
  *  full profile (that requires a stats aggregate this shape deliberately avoids). */
-export function toTraderSummary(wallet: WalletRow): { address: string; displayName: string | null; avatarUrl: string | null } {
-  return { address: wallet.address, displayName: wallet.displayName, avatarUrl: wallet.avatarUrl };
+export function toTraderSummary(wallet: WalletRow): { address: string; username: string | null; avatarUrl: string | null } {
+  return { address: wallet.address, username: wallet.user?.username ?? null, avatarUrl: wallet.user?.avatarUrl ?? null };
 }
 
 /**
@@ -119,8 +125,8 @@ export function toTraderTokenStat(
 export function toTopTrader(address: string, wallet: WalletRow | undefined, volumeUsd: number, tradeCount: number): TopTrader {
   return {
     address,
-    displayName: wallet?.displayName ?? null,
-    avatarUrl: wallet?.avatarUrl ?? null,
+    username: wallet?.user?.username ?? null,
+    avatarUrl: wallet?.user?.avatarUrl ?? null,
     volumeUsd,
     tradeCount,
   };
@@ -132,14 +138,16 @@ export function toTraderProfile(
   followerCount: number,
   followingCount: number,
   isFollowedByMe: boolean | null,
+  realizedPnl: TraderProfile['realizedPnl'],
 ): TraderProfile {
   return {
     address: wallet.address,
-    displayName: wallet.displayName,
-    avatarUrl: wallet.avatarUrl,
+    username: wallet.user?.username ?? null,
+    avatarUrl: wallet.user?.avatarUrl ?? null,
     stats,
     followerCount,
     followingCount,
     isFollowedByMe,
+    realizedPnl,
   };
 }

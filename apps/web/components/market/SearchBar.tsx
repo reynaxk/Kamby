@@ -16,6 +16,13 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
           <line x1="10.2" y1="10.2" x2="14" y2="14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         <input
+          // `defaultValue` only applies the moment this DOM node is created — React never
+          // re-applies it on a later render, so without this key, navigating from a search
+          // back to the plain Discover view leaves the OLD term visibly stuck in the box
+          // (the underlying page/URL are correct; only the input's own text is stale). Real
+          // bug reported 2026-09-17. Keying on the value forces a fresh input whenever the
+          // server-known search term actually changes.
+          key={defaultValue ?? ''}
           id="market-search"
           name="search"
           type="text"

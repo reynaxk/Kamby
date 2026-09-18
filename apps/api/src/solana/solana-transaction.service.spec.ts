@@ -1,18 +1,11 @@
 import { ForbiddenException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
 import { Prisma, prisma } from '@kamby/db';
 import type { Redis } from 'ioredis';
 import type { PinoLogger } from 'nestjs-pino';
-import type { Env } from '../config/env';
+import type { SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { SolanaTransactionService } from './solana-transaction.service';
 
 const mockGetSignatureStatuses = jest.fn();
-
-jest.mock('@solana/web3.js', () => ({
-  Connection: jest.fn().mockImplementation(() => ({
-    getSignatureStatuses: mockGetSignatureStatuses,
-  })),
-}));
 
 jest.mock('@kamby/db', () => {
   const actual = jest.requireActual('@prisma/client');
@@ -40,16 +33,15 @@ function fakeRedis(): Redis {
   return { publish: jest.fn().mockResolvedValue(1) } as unknown as Redis;
 }
 
-function fakeConfig(): ConfigService<Env, true> {
-  const values: Record<string, unknown> = {
-    SOLANA_ENABLED: true,
-    SOLANA_RPC_URL: 'https://api.mainnet-beta.solana.com',
-    SOLANA_TREASURY_USDC_ATA: 'TreasuryUsdcAtaForTestingOnly11111111111',
-    SOLANA_JUPITER_PLATFORM_FEE_BPS: 50,
-    SOLANA_NEW_WALLET_TOPUP_SOL: 0.01,
-    SOLANA_TOPUP_FUNDING_SECRET_KEY: 'fake-secret-key',
-  };
-  return { get: (key: string) => values[key] } as unknown as ConfigService<Env, true>;
+/** A fake pool whose `withFailover` just calls straight through to a fake Connection-like
+ *  object exposing `getSignatureStatuses` — this service never touches the primary/
+ *  fallback/circuit-breaker mechanics itself (that's SolanaConnectionPool's own, separately
+ *  tested concern), so the fake only needs to look like a real pool from the outside. */
+function fakePool(getSignatureStatuses: jest.Mock = mockGetSignatureStatuses): SolanaConnectionPool {
+  return {
+    withFailover: (operation: (connection: { getSignatureStatuses: jest.Mock }) => Promise<unknown>) =>
+      operation({ getSignatureStatuses }),
+  } as unknown as SolanaConnectionPool;
 }
 
 function fakeQuote(overrides: Partial<Record<string, unknown>> = {}) {
@@ -100,16 +92,12 @@ describe('SolanaTransactionService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new SolanaTransactionService(fakeConfig(), fakeLogger(), fakeRedis());
+    service = new SolanaTransactionService(fakeLogger(), fakeRedis(), fakePool());
   });
 
   describe('submitTransaction', () => {
     it('records a submission even on a deployment with Solana disabled — submission never touches the RPC connection, only status refresh does', async () => {
-      const disabledService = new SolanaTransactionService(
-        { get: () => undefined } as unknown as ConfigService<Env, true>,
-        fakeLogger(),
-        fakeRedis(),
-      );
+      const disabledService = new SolanaTransactionService(fakeLogger(), fakeRedis(), null);
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(null);
       (mockedPrisma.solanaTradeQuote.findUnique as jest.Mock).mockResolvedValue(fakeQuote());
       (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeVerifiedWallet());
@@ -120,11 +108,7 @@ describe('SolanaTransactionService', () => {
     });
 
     it('rejects a status refresh on a deployment with Solana disabled, rather than silently skipping it', async () => {
-      const disabledService = new SolanaTransactionService(
-        { get: () => undefined } as unknown as ConfigService<Env, true>,
-        fakeLogger(),
-        fakeRedis(),
-      );
+      const disabledService = new SolanaTransactionService(fakeLogger(), fakeRedis(), null);
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
 
       await expect(disabledService.getTransaction(USER_ID, 'tx-1')).rejects.toThrow(UnprocessableEntityException);
@@ -264,9 +248,34 @@ describe('SolanaTransactionService', () => {
       expect(mockGetSignatureStatuses).not.toHaveBeenCalled();
     });
 
+    it('falls over to the fallback connection when the primary Solana RPC fails', async () => {
+      const failingPrimary = jest.fn().mockRejectedValue(new Error('primary RPC unreachable'));
+      const workingFallback = jest.fn().mockResolvedValue({ value: [{ err: null, confirmationStatus: 'confirmed' }] });
+      const pool = {
+        withFailover: async (operation: (connection: { getSignatureStatuses: jest.Mock }) => Promise<unknown>) => {
+          try {
+            return await operation({ getSignatureStatuses: failingPrimary });
+          } catch {
+            return operation({ getSignatureStatuses: workingFallback });
+          }
+        },
+      } as unknown as SolanaConnectionPool;
+      const failoverService = new SolanaTransactionService(fakeLogger(), fakeRedis(), pool);
+      (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
+      (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(
+        fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date() }),
+      );
+
+      const result = await failoverService.getTransaction(USER_ID, 'tx-1');
+
+      expect(result.status).toBe('CONFIRMED');
+      expect(failingPrimary).toHaveBeenCalled();
+      expect(workingFallback).toHaveBeenCalled();
+    });
+
     it('publishes a realtime ping to the Solana activity channel once a transaction confirms', async () => {
       const redis = fakeRedis();
-      const confirmingService = new SolanaTransactionService(fakeConfig(), fakeLogger(), redis);
+      const confirmingService = new SolanaTransactionService(fakeLogger(), redis, fakePool());
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
       mockGetSignatureStatuses.mockResolvedValue({ value: [{ err: null, confirmationStatus: 'confirmed' }] });
       (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(
@@ -280,7 +289,7 @@ describe('SolanaTransactionService', () => {
 
     it('never fails the confirmation itself when the realtime publish fails', async () => {
       const redis = { publish: jest.fn().mockRejectedValue(new Error('redis down')) } as unknown as Redis;
-      const confirmingService = new SolanaTransactionService(fakeConfig(), fakeLogger(), redis);
+      const confirmingService = new SolanaTransactionService(fakeLogger(), redis, fakePool());
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
       mockGetSignatureStatuses.mockResolvedValue({ value: [{ err: null, confirmationStatus: 'confirmed' }] });
       (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(
@@ -293,7 +302,7 @@ describe('SolanaTransactionService', () => {
 
     it('never publishes for a transaction that only reached FAILED, not CONFIRMED', async () => {
       const redis = fakeRedis();
-      const failingService = new SolanaTransactionService(fakeConfig(), fakeLogger(), redis);
+      const failingService = new SolanaTransactionService(fakeLogger(), redis, fakePool());
       (mockedPrisma.solanaTradeTransaction.findUnique as jest.Mock).mockResolvedValue(fakeTransaction());
       mockGetSignatureStatuses.mockResolvedValue({ value: [{ err: { InstructionError: [0, 'Custom'] }, confirmationStatus: 'confirmed' }] });
       (mockedPrisma.solanaTradeTransaction.update as jest.Mock).mockResolvedValue(

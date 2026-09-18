@@ -1,4 +1,5 @@
 export * from './types';
+export * from './transport';
 export * from './evm-adapter';
 export * from './uniswap-v3';
 export * from './uniswap-v3-math';

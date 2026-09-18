@@ -5,6 +5,7 @@ import {
   formatPercent,
   formatPrice,
   formatRelativeTime,
+  formatSignedCompactUsd,
   priceDirection,
   truncateAddress,
 } from './format';
@@ -35,6 +36,21 @@ describe('formatCompactUsd', () => {
 
   it('leaves small values unabbreviated', () => {
     expect(formatCompactUsd(42)).toBe('$42.00');
+  });
+});
+
+describe('formatSignedCompactUsd', () => {
+  it('renders an em dash for null', () => {
+    expect(formatSignedCompactUsd(null)).toBe('—');
+  });
+
+  it('always shows a sign so PnL direction reads at a glance', () => {
+    expect(formatSignedCompactUsd(1_240_000)).toBe('+$1.24M');
+    expect(formatSignedCompactUsd(-803.5)).toBe('-$803.50');
+  });
+
+  it('shows no sign on exactly zero', () => {
+    expect(formatSignedCompactUsd(0)).toBe('$0.00');
   });
 });
 

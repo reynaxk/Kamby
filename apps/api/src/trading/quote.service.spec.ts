@@ -1,7 +1,7 @@
 import { ForbiddenException, UnprocessableEntityException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
-import { calculateFeeAmount, TRADING_DEFAULTS } from '@kamby/domain';
+import { calculateFeeAmount, PLATFORM_FEE_FALLBACK_BPS, resolveTierFeeBps, TRADING_DEFAULTS } from '@kamby/domain';
 import type { PinoLogger } from 'nestjs-pino';
 import { parseUnits } from 'viem';
 import type { Env } from '../config/env';
@@ -15,6 +15,14 @@ jest.mock('@kamby/db', () => ({
     tradeQuote: { create: jest.fn() },
   },
 }));
+
+// FOO/WETH (fakeMarket()) is a non-USDC-quoted market — every BUY against it now needs a
+// fee-free pre-quote to resolve its tier (see QuoteService#resolveAggregatorTierFeeBps).
+// `fakeRouter()`'s single mocked `getQuote` answers both that pre-quote and the real,
+// fee-bearing call with the same `routerQuote()` fixture unless a test overrides it: the
+// default 100-token buyAmountRaw × fakeMarket().priceUsd (2.5) resolves to $250, which is
+// this file's `DEFAULT_ROUTER_QUOTE_TIER_BPS` below.
+const DEFAULT_ROUTER_QUOTE_TIER_BPS = resolveTierFeeBps(100 * 2.5);
 
 const mockedPrisma = jest.mocked(prisma, { shallow: true });
 
@@ -169,10 +177,10 @@ describe('QuoteService', () => {
       expect(quote.platformFeeAmount).toBe(providerFee);
     });
 
-    it('computes the platform fee from bps against the buy amount when the provider reports none', async () => {
+    it('computes the platform fee from the tier matching the buy amount when the provider reports none', async () => {
       const service = buildService();
       const buyAmountRaw = parseUnits('100', 18);
-      const expectedFee = calculateFeeAmount(buyAmountRaw, 50);
+      const expectedFee = calculateFeeAmount(buyAmountRaw, DEFAULT_ROUTER_QUOTE_TIER_BPS);
 
       const quote = await service.createQuote({
         userId: USER_ID,
@@ -184,13 +192,27 @@ describe('QuoteService', () => {
       });
 
       expect(quote.platformFeeAmount).toBe(expectedFee.toString());
-      expect(quote.platformFeeBps).toBe(50);
+      expect(quote.platformFeeBps).toBe(DEFAULT_ROUTER_QUOTE_TIER_BPS);
     });
 
-    it('always sources the fee bps from server config, never from the request', async () => {
-      // CreateQuoteParams has no fee field at all — there is nothing in the request a
-      // client could set to override this. This asserts the config value is what wins.
-      const service = buildService({ config: fakeConfig({ PLATFORM_FEE_BPS: 75 }) });
+    it('picks a cheaper tier for a larger trade and a pricier tier for a smaller one — never a single flat rate', async () => {
+      // A pre-quote buy amount worth $25 (10 tokens × $2.5) lands in the 2% tier; $2,500
+      // (1000 tokens × $2.5) lands in the 0.75% tier — same market, same config, different
+      // trade size is the only thing that moves the rate.
+      const smallRouter = fakeRouter(routerQuote({ buyAmountRaw: parseUnits('10', 18).toString(), minBuyAmountRaw: parseUnits('9.95', 18).toString() }));
+      const smallService = buildService({ router: smallRouter });
+      const smallQuote = await smallService.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'BUY', amount: '1', slippageBps: 50 });
+      expect(smallQuote.platformFeeBps).toBe(200);
+
+      const largeRouter = fakeRouter(routerQuote({ buyAmountRaw: parseUnits('1000', 18).toString(), minBuyAmountRaw: parseUnits('995', 18).toString() }));
+      const largeService = buildService({ router: largeRouter });
+      const largeQuote = await largeService.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'BUY', amount: '1', slippageBps: 50 });
+      expect(largeQuote.platformFeeBps).toBe(75);
+    });
+
+    it('falls back to the most expensive tier, never a cheaper unconfirmed one, when the BUY pre-quote itself fails', async () => {
+      const router = { getQuote: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(routerQuote()) } as unknown as SwapRouter;
+      const service = buildService({ router });
 
       const quote = await service.createQuote({
         userId: USER_ID,
@@ -201,7 +223,8 @@ describe('QuoteService', () => {
         slippageBps: 50,
       });
 
-      expect(quote.platformFeeBps).toBe(75);
+      expect(quote.platformFeeBps).toBe(PLATFORM_FEE_FALLBACK_BPS);
+      expect(router.getQuote).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -262,17 +285,20 @@ describe('QuoteService', () => {
       });
 
       expect(quote.feeUnsignedTx).toBeNull();
+      // Two calls now: a fee-free pre-quote to discover the trade's USD size (see
+      // resolveAggregatorTierFeeBps), then the real, fee-bearing call asserted here.
       expect(router.getQuote).toHaveBeenCalledWith(
-        expect.objectContaining({ sellAmountRaw: parseUnits('1', 18).toString(), feeBps: 50, feeRecipient: '0x111111111111111111111111111111111111111a' }),
+        expect.objectContaining({ sellAmountRaw: parseUnits('1', 18).toString(), feeBps: DEFAULT_ROUTER_QUOTE_TIER_BPS, feeRecipient: '0x111111111111111111111111111111111111111a' }),
       );
+      expect(router.getQuote).toHaveBeenCalledTimes(2);
     });
 
     it('BUY on a USDC-quoted market: deducts the fee from the input before quoting the swap, and builds a separate fee transfer', async () => {
       const router = fakeRouter();
       const service = buildService({ router, safety: fakeSafety(fakeUsdcMarket()) });
 
-      const fullInput = parseUnits('100', 6); // 100 USDC, USDC uses 6 decimals
-      const expectedFee = calculateFeeAmount(fullInput, 50);
+      const fullInput = parseUnits('100', 6); // 100 USDC, USDC uses 6 decimals — the 1% tier
+      const expectedFee = calculateFeeAmount(fullInput, resolveTierFeeBps(100));
       const expectedSwapAmount = fullInput - expectedFee;
 
       const quote = await service.createQuote({
@@ -302,7 +328,7 @@ describe('QuoteService', () => {
       const router = fakeRouter(routerQuote({ buyAmountRaw: grossOutput.toString(), minBuyAmountRaw: parseUnits('248.75', 6).toString() }));
       const service = buildService({ router, safety: fakeSafety(fakeUsdcMarket()) });
 
-      const expectedFee = calculateFeeAmount(grossOutput, 50);
+      const expectedFee = calculateFeeAmount(grossOutput, resolveTierFeeBps(250)); // 250 USDC gross — the 1% tier
       const expectedNetOutput = grossOutput - expectedFee;
 
       const quote = await service.createQuote({

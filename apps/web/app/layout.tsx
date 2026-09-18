@@ -5,6 +5,7 @@ import './globals.css';
 // time (see lib/env.ts), and the root layout is the one module every request loads, so
 // this is where "fail fast on a bad env var" actually gets wired into the app's boot path.
 import '@/lib/env';
+import { OnboardingPrompt } from '@/components/account/OnboardingPrompt';
 import { Providers } from './providers';
 
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
@@ -20,6 +21,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Required for the OG/Twitter image URLs Next.js builds from icon.png/opengraph-image.png
+  // to resolve to a real, publicly-reachable address — without this, Next defaults to
+  // http://localhost:3000, which is exactly what every crawler (Twitter, Discord, Slack,
+  // iMessage) would try and fail to fetch. Confirmed live 2026-09-15: this is precisely
+  // what shipped on the first deploy of these images, silently defeating the whole point.
+  metadataBase: new URL('https://kambesh.com'),
   title: 'Kamby',
   description: 'A social crypto discovery and trading platform.',
 };
@@ -28,7 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${manrope.variable} ${sourceSerif.variable} ${jetbrainsMono.variable}`}>
       <body className="font-body antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <OnboardingPrompt />
+        </Providers>
       </body>
     </html>
   );

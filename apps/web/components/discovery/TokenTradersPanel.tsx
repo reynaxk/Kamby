@@ -49,7 +49,7 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
             >
               <TraderIdentity
                 address={trader.address}
-                displayName={trader.displayName}
+                displayName={trader.username}
                 avatarUrl={trader.avatarUrl}
                 size="sm"
               />
@@ -75,7 +75,7 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
               >
                 <TraderIdentity
                   address={trader.address}
-                  displayName={trader.displayName}
+                  displayName={trader.username}
                   avatarUrl={trader.avatarUrl}
                   size="sm"
                 />

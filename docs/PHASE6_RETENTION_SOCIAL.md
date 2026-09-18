@@ -342,8 +342,9 @@ with animation, sound, or a progress bar.
 ## Explicitly out of scope (per the spec's own boundary, unchanged from Phases 1–5)
 
 AI recommendations, copy trading, automated/social trading execution, creator payouts,
-referral commissions, paid promotion, token launchpads, multi-chain execution, bridges,
-leverage, perpetuals, lending, staking, fiat payments, custodial wallets, private-key
-storage, server-side signing, push notifications, email marketing, Discord/Telegram
-integrations, social-media API integrations, complex gamification, and full PnL/ROI
-accounting (see `docs/TRADER_INTELLIGENCE.md#deferred-metrics` — unchanged by this phase).
+referral commissions, paid promotion, token launchpads, bridges, leverage, perpetuals,
+lending, staking, fiat payments, custodial wallets, private-key storage, server-side
+signing, push notifications, email marketing, Discord/Telegram integrations, social-media
+API integrations, and complex gamification — unchanged by this phase. Realized PnL/ROI
+accounting (Kamby-originated trades only, FIFO-matched) was out of scope as of this phase
+but has since shipped — see `docs/TRADER_INTELLIGENCE.md#realized-pnl`.

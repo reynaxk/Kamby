@@ -3,6 +3,7 @@ import type { ConfigService } from '@nestjs/config';
 import { Keypair, SystemProgram } from '@solana/web3.js';
 import bs58 from 'bs58';
 import type { PinoLogger } from 'nestjs-pino';
+import type { SolanaConnectionPool } from '../chain/solana-connection-pool';
 import type { Env } from '../config/env';
 import { SolanaTopupService } from './solana-topup.service';
 
@@ -13,9 +14,6 @@ jest.mock('@solana/web3.js', () => {
   const actual = jest.requireActual('@solana/web3.js');
   return {
     ...actual,
-    Connection: jest.fn().mockImplementation(() => ({
-      getBalance: mockGetBalance,
-    })),
     sendAndConfirmTransaction: (...args: unknown[]) => mockSendAndConfirmTransaction(...args),
   };
 });
@@ -46,14 +44,20 @@ describe('SolanaTopupService', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('rejects when Solana trading is not enabled on this deployment', async () => {
-    const service = new SolanaTopupService(fakeConfig({ SOLANA_ENABLED: false }), fakeLogger());
+    const service = new SolanaTopupService(fakeConfig({ SOLANA_ENABLED: false }), fakeLogger(), null);
+
+    await expect(service.ensureFunded(RECIPIENT)).rejects.toThrow(UnprocessableEntityException);
+  });
+
+  it('rejects when a deployment has funding configured but no connection pool (Solana disabled)', async () => {
+    const service = new SolanaTopupService(fakeConfig(), fakeLogger(), null);
 
     await expect(service.ensureFunded(RECIPIENT)).rejects.toThrow(UnprocessableEntityException);
   });
 
   it('is a no-op when the wallet already has enough SOL', async () => {
     mockGetBalance.mockResolvedValue(20_000_000); // 0.02 SOL, above the 0.01 SOL top-up amount
-    const service = new SolanaTopupService(fakeConfig(), fakeLogger());
+    const service = new SolanaTopupService(fakeConfig(), fakeLogger(), fakePoolWithBalance());
 
     const result = await service.ensureFunded(RECIPIENT);
 
@@ -64,7 +68,7 @@ describe('SolanaTopupService', () => {
   it('sends the configured top-up amount to a wallet below the threshold', async () => {
     mockGetBalance.mockResolvedValue(0);
     mockSendAndConfirmTransaction.mockResolvedValue('fake-signature');
-    const service = new SolanaTopupService(fakeConfig(), fakeLogger());
+    const service = new SolanaTopupService(fakeConfig(), fakeLogger(), fakePoolWithBalance());
 
     const result = await service.ensureFunded(RECIPIENT);
 
@@ -79,7 +83,7 @@ describe('SolanaTopupService', () => {
       expect(transaction.instructions[0].programId.toBase58()).toBe(SystemProgram.programId.toBase58());
       return Promise.resolve('fake-signature');
     });
-    const service = new SolanaTopupService(fakeConfig(), fakeLogger());
+    const service = new SolanaTopupService(fakeConfig(), fakeLogger(), fakePoolWithBalance());
 
     await service.ensureFunded(RECIPIENT);
 
@@ -89,7 +93,7 @@ describe('SolanaTopupService', () => {
   it('never throws when the top-up transaction itself fails — a failed top-up is not fatal', async () => {
     mockGetBalance.mockResolvedValue(0);
     mockSendAndConfirmTransaction.mockRejectedValue(new Error('RPC unreachable'));
-    const service = new SolanaTopupService(fakeConfig(), fakeLogger());
+    const service = new SolanaTopupService(fakeConfig(), fakeLogger(), fakePoolWithBalance());
 
     const result = await service.ensureFunded(RECIPIENT);
 
@@ -99,10 +103,20 @@ describe('SolanaTopupService', () => {
   it('tops up when the balance cannot be read at all, rather than assuming it is already funded', async () => {
     mockGetBalance.mockRejectedValue(new Error('RPC unreachable'));
     mockSendAndConfirmTransaction.mockResolvedValue('fake-signature');
-    const service = new SolanaTopupService(fakeConfig(), fakeLogger());
+    const service = new SolanaTopupService(fakeConfig(), fakeLogger(), fakePoolWithBalance());
 
     const result = await service.ensureFunded(RECIPIENT);
 
     expect(result).toEqual({ toppedUp: true, signature: 'fake-signature' });
   });
 });
+
+/** Same shape as fakePool() but wires `getBalance` on the fake connection to mockGetBalance
+ *  — the balance check needs a real (fake) method to call, unlike sendAndConfirmTransaction
+ *  which is mocked as a free function at the module level. */
+function fakePoolWithBalance(): SolanaConnectionPool {
+  return {
+    withFailover: (operation: (connection: { getBalance: jest.Mock }) => Promise<unknown>) =>
+      operation({ getBalance: mockGetBalance }),
+  } as unknown as SolanaConnectionPool;
+}

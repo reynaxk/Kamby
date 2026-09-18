@@ -11,7 +11,7 @@ export interface ActivityPage {
 
 const ACTIVITY_INCLUDE = {
   tokenMarket: { include: { token: true, quoteToken: true, chain: true } },
-  trader: true,
+  trader: { include: { user: true } },
 } as const;
 
 /**

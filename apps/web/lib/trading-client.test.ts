@@ -18,10 +18,11 @@ describe('trading-client', () => {
   it('builds the quote query string from every param, never guessing a default server-side', async () => {
     authedFetch.mockResolvedValue(fakeResponse({}));
 
-    await getQuote({ side: 'BUY', tokenAddress: '0xtoken', walletAddress: '0xwallet', amount: '1.5', slippageBps: 75 });
+    await getQuote({ chainId: 56, side: 'BUY', tokenAddress: '0xtoken', walletAddress: '0xwallet', amount: '1.5', slippageBps: 75 });
 
     const [path] = authedFetch.mock.calls[0] as [string];
     const query = new URLSearchParams(path.split('?')[1]);
+    expect(query.get('chainId')).toBe('56');
     expect(query.get('side')).toBe('BUY');
     expect(query.get('tokenAddress')).toBe('0xtoken');
     expect(query.get('walletAddress')).toBe('0xwallet');

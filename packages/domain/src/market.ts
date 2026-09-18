@@ -46,6 +46,38 @@ export const MarketSummarySchema = z.object({
 });
 export type MarketSummary = z.infer<typeof MarketSummarySchema>;
 
+/**
+ * A Pump.fun bonding-curve token, as the FRESH/NEAR_GRADUATED/JUST_GRADUATED trenches serve
+ * it — see docs/TRADING.md#pump-fun-trenches. Deliberately a separate schema from
+ * MarketSummary rather than forced into its Uniswap-shaped fields (`dex`, `feeTier`,
+ * `quoteAddress` as a required pool-quote-token concept) — same "concrete separate types
+ * over one forced-shared abstraction" precedent as PumpFunToken being its own Prisma model.
+ *
+ * Reserve fields are raw on-chain u64 values as strings — same "never a native numeric type
+ * for a raw amount" discipline as everywhere else in this codebase.
+ */
+export const PumpFunTokenSummarySchema = z.object({
+  mintAddress: z.string(),
+  name: z.string().nullable(),
+  symbol: z.string().nullable(),
+  uri: z.string().nullable(),
+  virtualSolReserves: z.string(),
+  virtualTokenReserves: z.string(),
+  realSolReserves: z.string(),
+  realTokenReserves: z.string(),
+  tokenTotalSupply: z.string(),
+  /** 0-100, how close realSolReserves is to Pump.fun's ~85 SOL graduation threshold —
+   *  informational only, never what actually decides graduation (the program's own
+   *  `complete` flag is the sole source of truth for that, see PumpFunToken's own doc
+   *  comment). Capped at 100 even if realSolReserves has since drifted past the threshold
+   *  (a graduated curve's reserves can move independently once complete). */
+  graduationProgressPct: z.number(),
+  complete: z.boolean(),
+  createdAt: z.string().datetime(),
+  graduatedAt: z.string().datetime().nullable(),
+});
+export type PumpFunTokenSummary = z.infer<typeof PumpFunTokenSummarySchema>;
+
 export const CandleSchema = z.object({
   bucketStart: z.string().datetime(),
   open: z.number(),

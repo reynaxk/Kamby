@@ -22,7 +22,16 @@ function fakeConfig(overrides: Partial<Record<string, unknown>> = {}): ConfigSer
 }
 
 function jsonResponse(body: unknown, ok = true, status = 200): Response {
-  return { ok, status, json: () => Promise.resolve(body) } as unknown as Response;
+  return { ok, status, headers: { get: () => null }, json: () => Promise.resolve(body) } as unknown as Response;
+}
+
+function rateLimitedResponse(retryAfterSeconds?: number): Response {
+  return {
+    ok: false,
+    status: 429,
+    headers: { get: (name: string) => (name === 'retry-after' && retryAfterSeconds !== undefined ? String(retryAfterSeconds) : null) },
+    json: () => Promise.resolve({ error: 'rate limited' }),
+  } as unknown as Response;
 }
 
 const baseParams: JupiterQuoteParams = {
@@ -125,6 +134,7 @@ describe('JupiterQuoteService', () => {
     const result = await service.getQuote(baseParams);
 
     expect(result).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1); // a 400 is never retried — it would just fail identically again
   });
 
   it('returns null when the quote succeeds but the swap-build call fails', async () => {
@@ -133,6 +143,7 @@ describe('JupiterQuoteService', () => {
     const result = await service.getQuote(baseParams);
 
     expect(result).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2); // a 500 is never retried either — only 429 is
   });
 
   it('returns null when the network request itself fails', async () => {
@@ -160,5 +171,67 @@ describe('JupiterQuoteService', () => {
     const result = await service.getQuote(baseParams);
 
     expect(result?.platformFeeAmountRaw).toBeNull();
+  });
+
+  describe('429 rate-limit retry', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('retries a rate-limited quote call and succeeds once Jupiter clears the limit', async () => {
+      fetchMock
+        .mockResolvedValueOnce(rateLimitedResponse())
+        .mockResolvedValueOnce(jsonResponse(validQuoteBody))
+        .mockResolvedValueOnce(jsonResponse(validSwapBody));
+
+      const resultPromise = service.getQuote(baseParams);
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).not.toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('retries a rate-limited swap-build call independently of the quote call', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonResponse(validQuoteBody))
+        .mockResolvedValueOnce(rateLimitedResponse())
+        .mockResolvedValueOnce(jsonResponse(validSwapBody));
+
+      const resultPromise = service.getQuote(baseParams);
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).not.toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it("honors Jupiter's own Retry-After header instead of guessing a backoff", async () => {
+      fetchMock
+        .mockResolvedValueOnce(rateLimitedResponse(2))
+        .mockResolvedValueOnce(jsonResponse(validQuoteBody))
+        .mockResolvedValueOnce(jsonResponse(validSwapBody));
+
+      const resultPromise = service.getQuote(baseParams);
+      await jest.advanceTimersByTimeAsync(2000);
+      const result = await resultPromise;
+
+      expect(result).not.toBeNull();
+    });
+
+    it('gives up and returns null — never hangs — after exhausting retries on a sustained 429', async () => {
+      fetchMock.mockResolvedValue(rateLimitedResponse());
+
+      const resultPromise = service.getQuote(baseParams);
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(4); // 1 initial attempt + 3 retries, then gives up
+    });
   });
 });

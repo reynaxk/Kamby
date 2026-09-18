@@ -5,9 +5,11 @@ import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import { OptionalAuthGuard } from '../identity/guards/optional-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
+import { ChainIdQueryDto } from './dto/chain-id-query.dto';
 import { DiscoverQueryDto } from './dto/discover-query.dto';
 import { HistoryQueryDto } from './dto/history-query.dto';
 import { SearchQueryDto } from './dto/search-query.dto';
+import { TokenTradersQueryDto } from './dto/token-traders-query.dto';
 import { MarketService } from './market.service';
 import { WatchlistService } from './watchlist.service';
 
@@ -17,11 +19,12 @@ import { WatchlistService } from './watchlist.service';
  * watch/unwatch/check routes are the one mutating exception (Phase 6) — see
  * docs/PHASE6_RETENTION_SOCIAL.md#watchlists.
  *
- * `DEFAULT_CHAIN_ID` below is a placeholder, not a permanent design choice: these routes
- * don't yet accept a chainId from the request, so every call hardcodes the one chain Kamby
- * runs on today. The services themselves are already chain-scoped and take chainId as a
- * real parameter — only this controller layer needs to start reading it from the request
- * once a second chain exists.
+ * Chain-aware as of 2026-09-16 — see `ChainIdQueryDto`'s own doc comment. Every
+ * single-token route now reads an optional `chainId` from the request (mirroring
+ * `trading.controller.ts`'s identical `getQuote` substitution) instead of hardcoding
+ * `DEFAULT_CHAIN_ID`; the services themselves were already chain-scoped and needed no
+ * changes. `discover`/`search` deliberately still take no chainId — both are legitimately
+ * cross-chain, each result row self-identifying via its own `chainIdentifier`.
  */
 @Controller('market')
 export class MarketController {
@@ -44,37 +47,35 @@ export class MarketController {
   }
 
   @Get('tokens/:address')
-  getToken(@Param('address') address: string) {
-    return this.marketService.getToken(address, DEFAULT_CHAIN_ID);
+  getToken(@Param('address') address: string, @Query() query: ChainIdQueryDto) {
+    return this.marketService.getToken(address, query.chainId ?? DEFAULT_CHAIN_ID);
   }
 
   @Get('tokens/:address/history')
   getHistory(@Param('address') address: string, @Query() query: HistoryQueryDto) {
-    return this.marketService.getHistory(address, DEFAULT_CHAIN_ID, query.timeframe);
+    return this.marketService.getHistory(address, query.chainId ?? DEFAULT_CHAIN_ID, query.timeframe);
   }
 
   /** Phase 5 — see docs/TRADER_INTELLIGENCE.md#token-to-trader. */
   @Get('tokens/:address/traders')
-  getTokenTraders(@Param('address') address: string, @Query('limit') limit?: string) {
-    const parsed = limit ? Number.parseInt(limit, 10) : 10;
-    const bounded = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 25) : 10;
-    return this.marketService.getTokenTraders(address, DEFAULT_CHAIN_ID, bounded);
+  getTokenTraders(@Param('address') address: string, @Query() query: TokenTradersQueryDto) {
+    return this.marketService.getTokenTraders(address, query.chainId ?? DEFAULT_CHAIN_ID, query.limit);
   }
 
   /** `null` for an unauthenticated caller — same contract as `isFollowedByMe`, never a
    *  fabricated `false`. See docs/PHASE6_RETENTION_SOCIAL.md#watchlists. */
   @UseGuards(OptionalAuthGuard)
   @Get('tokens/:address/watch')
-  async isWatching(@Param('address') address: string, @CurrentUser() user: SessionUser | null) {
-    return { watching: await this.watchlist.isWatching(user?.id ?? null, address, DEFAULT_CHAIN_ID) };
+  async isWatching(@Param('address') address: string, @Query() query: ChainIdQueryDto, @CurrentUser() user: SessionUser | null) {
+    return { watching: await this.watchlist.isWatching(user?.id ?? null, address, query.chainId ?? DEFAULT_CHAIN_ID) };
   }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('tokens/:address/watch')
-  async watch(@Param('address') address: string, @CurrentUser() user: SessionUser) {
-    await this.watchlist.watch(user.id, address, DEFAULT_CHAIN_ID);
+  async watch(@Param('address') address: string, @Query() query: ChainIdQueryDto, @CurrentUser() user: SessionUser) {
+    await this.watchlist.watch(user.id, address, query.chainId ?? DEFAULT_CHAIN_ID);
     return { watching: true };
   }
 
@@ -82,8 +83,8 @@ export class MarketController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Delete('tokens/:address/watch')
-  async unwatch(@Param('address') address: string, @CurrentUser() user: SessionUser) {
-    await this.watchlist.unwatch(user.id, address, DEFAULT_CHAIN_ID);
+  async unwatch(@Param('address') address: string, @Query() query: ChainIdQueryDto, @CurrentUser() user: SessionUser) {
+    await this.watchlist.unwatch(user.id, address, query.chainId ?? DEFAULT_CHAIN_ID);
     return { watching: false };
   }
 }

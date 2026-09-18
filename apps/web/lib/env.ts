@@ -38,6 +38,12 @@ export const ClientEnvSchema = z.object({
    *  addition to injected/Coinbase Wallet connectors. Get one at https://cloud.reown.com —
    *  wallet connect is simply omitted, not broken, when this isn't set. */
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().optional(),
+  /** A public RPC endpoint for BNB Chain — added 2026-09-15 alongside
+   *  apps/api's own CHAIN_BNB_* config, mirroring the same "omitted, not half-initialized"
+   *  pattern: BNB Chain simply doesn't appear in wagmi's `chains` list (see wagmi-config.ts)
+   *  until this is actually set, matching the backend's own still-dormant state — trading
+   *  isn't enabled on this deployment yet either way (CHAINS doesn't list "bnb"). */
+  NEXT_PUBLIC_CHAIN_BNB_RPC_URL: z.string().url().optional(),
 
   /**
    * Solana trading — see docs/TRADING.md#solana. All three below are optional and travel
@@ -69,6 +75,7 @@ export const clientEnv: ClientEnv = parseEnv(ClientEnvSchema, {
   NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
   NEXT_PUBLIC_CHAIN_RPC_URL: process.env.NEXT_PUBLIC_CHAIN_RPC_URL,
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+  NEXT_PUBLIC_CHAIN_BNB_RPC_URL: process.env.NEXT_PUBLIC_CHAIN_BNB_RPC_URL,
   NEXT_PUBLIC_PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
   NEXT_PUBLIC_SOLANA_RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
   NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: process.env.NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL,

@@ -1,5 +1,11 @@
 # Deployment
 
+> **Stale as of 2026-09-14, except the "Web build config" section below.** This doc
+> describes the originally-planned infra (Vercel/Fly.io/Neon/Upstash) — what's actually
+> live is Cloudflare Workers (`apps/web`) and Railway (`apps/api`, `apps/workers`, managed
+> Postgres, managed Redis). A full rewrite is tracked separately; don't follow the
+> Vercel/Fly.io/Neon/Upstash instructions below as current setup steps.
+
 Matches the approved architecture: managed, usage-priced infrastructure, no Kubernetes,
 no self-managed nodes at this stage.
 
@@ -10,6 +16,41 @@ no self-managed nodes at this stage.
 | `apps/workers` | Fly.io (or Railway), separate app/machine from the API | Independently deployable and independently scalable from request-serving — see the architecture spec. `apps/workers/Dockerfile` builds it. |
 | Postgres | Neon | Managed Postgres with the Timescale extension available; branching is convenient for a small team. |
 | Redis | Upstash | Serverless, usage-priced, no server to operate. |
+
+## Web build config (`NEXT_PUBLIC_*` vars) {#web-build-config}
+
+The one section here that's current. `apps/web` deploys to Cloudflare Workers via
+`opennextjs-cloudflare build && opennextjs-cloudflare deploy`, run locally (there's no
+Cloudflare-hosted build step) — see `apps/web/wrangler.jsonc`. Next.js inlines every
+`NEXT_PUBLIC_*` var into the client JS bundle at **build** time, so whichever machine runs
+the build needs them present as real env vars, not just documented somewhere.
+
+Two files supply them, both read automatically by Next.js:
+
+- **`apps/web/.env.production`** (git-tracked, real values, safe to commit) — the shared
+  floor every teammate's build resolves to. `NEXT_PUBLIC_PRIVY_APP_ID` is a public client
+  identifier by design; `NEXT_PUBLIC_CHAIN_RPC_URL` is the free, keyless public Base RPC.
+  `NEXT_PUBLIC_SOLANA_RPC_URL` is different — the fully public
+  `api.mainnet-beta.solana.com` was tried first (2026-09-14) and turned out too unreliable
+  for Privy's own browser-side transaction simulation (real trades failed with "error
+  preparing your transaction"), so it's a **separate, dedicated Helius key**, scoped to
+  browser traffic only — never the same key apps/api's own `SOLANA_RPC_URL` uses. Committing
+  this specific key is a deliberate call: it's real and rate-limited like any API key, but
+  its blast radius is capped to browser-facing reads, never the backend's trading-critical
+  quota, which is the property that actually matters here (see `lib/solana-config.ts`'s own
+  doc comment on the trust-boundary reasoning). apps/api's own paid QuickNode/Helius URLs
+  briefly lived in this file before 2026-09-14 — a real, live key exposure (anyone can read
+  a `NEXT_PUBLIC_*` value straight out of the shipped bundle) — never repeat that mistake
+  here regardless of which fix is in place.
+- **`apps/web/.env.local`** (gitignored, machine-specific) — takes precedence over
+  `.env.production` per Next's own env-file precedence, for local overrides during
+  development. Not a substitute for `.env.production` being correct and complete; that
+  file is the one a fresh machine can build a correct production bundle from with zero
+  other setup.
+
+Server-only `API_BASE_URL` is different: it's supplied as a Cloudflare Worker binding via
+`wrangler.jsonc`'s own `vars` block (also git-tracked), not via either `.env` file, since it
+never needs to be baked into the client bundle.
 
 ## Web (Vercel)
 

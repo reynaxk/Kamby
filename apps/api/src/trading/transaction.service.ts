@@ -54,6 +54,7 @@ export class TransactionService {
         new EvmChainDataProvider({
           chain: { identifier: `eip155:${chain.chainId}`, name: chain.slug, nativeSymbol: 'ETH' },
           rpcUrl: chain.rpcUrl,
+          rpcUrlFallback: chain.rpcUrlFallback,
         }),
       ]),
     );

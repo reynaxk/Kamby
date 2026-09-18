@@ -7,8 +7,9 @@
 | `packages/domain` | Vitest | Zod schema round-trips; `parseEnv`'s error formatting; the Discovery Score formula and staleness gate (`market.test.ts`); EVM address validation/normalization (`wallet.test.ts`); activity-cursor encode/decode (including malformed input) and the Trending Score's gates/ordering (`social.test.ts`); EIP-4361 message construction (`wallet-auth.test.ts`); exact bps fee/min-output math, slippage-bounds validation, price-impact classification, quote-expiry, defensive `unsignedTx` parsing, and `transactionMatchesQuote`'s exact sender/destination/value/calldata matching — including case-insensitive address/calldata comparison and rejection of a contract-creation (`to: null`) transaction (`trading.test.ts`). |
 | `packages/chain-adapters` | Vitest (unit) | `EvmChainDataProvider` and `uniswap-v3-math.ts`'s price/liquidity/market-cap math — the latter checked against real numbers observed on a live pool, not synthetic fixtures. `verifyEvmSignature` (`signature.test.ts`) against **real** ECDSA signatures from a well-known test keypair — valid/tampered/wrong-address/malformed all covered, never mocked crypto. `getTransactionDetails` returns `null` (never fabricated) when the RPC is unreachable. |
 | `packages/chain-adapters` | Vitest (**live** integration) | `UniswapV3PoolReader` against the real Base mainnet RPC and a real, live Uniswap V3 pool, including that a failed `eth_getLogs` call returns `null` (never a fabricated `[]`) and that `sender`/`recipient` decode correctly for trader identity — see below. `EvmChainDataProvider#getTransactionDetails` (`evm-adapter.integration.test.ts`) against a real, recently-mined transaction, proving the sender/destination/calldata decode actually works against a real transaction — the read Phase 3's transaction-integrity check depends on. |
-| `apps/workers` | Vitest | Env schema validation; `MarketIngestionService#ingestSwaps` (mocked Prisma + mocked `UniswapV3PoolReader`) — cursor-advancement safety on an RPC failure vs. a genuine empty result, wallet upsert ordering (before the swap that references it), trader-vs-sender attribution, the realtime Redis ping (and that its failure doesn't fail the tick), and the 24h rollup decay/null-vs-zero rules including the Phase 2 activity stats. `TradeSweepService` (`sweep.test.ts`) — confirmed/failed/left-pending/expired transitions, chain-id scoping, that one bad row's RPC error never aborts the rest of the batch, and — independently from `apps/api`'s own check — that a successful receipt whose on-chain details don't match the persisted quote is marked FAILED, never CONFIRMED. |
-| `apps/api` | Jest (unit) | Env schema validation (including `JWT_SECRET` and Phase 3's chain/aggregator/fee vars); the global exception filter's production-vs-development behavior; `IdentityService` token issuance/verification. `WalletService` — challenge issuance, verification with real signatures (valid/wrong-account/tampered), single-use nonce consumption (including the concurrent-double-verify race), expiry, and cross-session rejection. `SafetyService`/`QuoteService`/`LiFiSwapRouter` — wallet-ownership gating, input validation, honest quote-unavailable handling, the provider-slippage-floor sanity check, fee sourcing (server config only, never the request). `TransactionService` — submission idempotency on both `quoteId` and `(chainId, txHash)`; status refresh driven only by a real receipt; expired-quote rejection at submission; wallet re-verification at submission (unlinked, re-verified to another account, or verification cleared); on-chain sender/destination/value/calldata match enforced both at submission (best-effort) and before every CONFIRMED transition (authoritative) — see docs/TRADING.md#transaction-integrity. |
+| `apps/workers` | Vitest | Env schema validation; `MarketIngestionService#ingestSwaps` (mocked Prisma + mocked `UniswapV3PoolReader`) — cursor-advancement safety on an RPC failure vs. a genuine empty result, wallet upsert ordering (before the swap that references it), trader-vs-sender attribution, the realtime Redis ping (and that its failure doesn't fail the tick), and the 24h rollup decay/null-vs-zero rules including the Phase 2 activity stats. `TradeSweepService` (`sweep.test.ts`) — confirmed/failed/left-pending/expired transitions, chain-id scoping, that one bad row's RPC error never aborts the rest of the batch, and — independently from `apps/api`'s own check — that a successful receipt whose on-chain details don't match the persisted quote is marked FAILED, never CONFIRMED. `PnlLedgerSweepService` (`pnl-ledger-sweep.test.ts`, mocked Prisma) — correct lot pricing, FIFO matching, the null-price/no-decimals skip path, the Solana USDC-anchor invariant, and that one bad row never aborts the batch. |
+| `apps/workers` | Vitest (**live DB**) | `pnl-ledger-sweep.e2e-spec.ts` — a real CONFIRMED BUY then a real CONFIRMED partial SELL, seeded directly via Prisma against a real Postgres, swept by the real `PnlLedgerSweepService` (real `pg_advisory_xact_lock` path included), then read back through the exact `realized_pnl_events` GROUP BY/aggregate shapes `LeaderboardService#getLeaderboard` and `TraderService#computeRealizedPnl` (`apps/api`) use — proving the whole pipeline's numbers are correct end to end, not just each piece's mocked-Prisma unit test. See "Running tests locally" below for how to run this against Docker Desktop on Windows. |
+| `apps/api` | Jest (unit) | Env schema validation (including `JWT_SECRET` and Phase 3's chain/aggregator/fee vars); the global exception filter's production-vs-development behavior; `IdentityService` token issuance/verification. `WalletService` — challenge issuance, verification with real signatures (valid/wrong-account/tampered), single-use nonce consumption (including the concurrent-double-verify race), expiry, and cross-session rejection. `SafetyService`/`QuoteService`/`KyberSwapRouter` — wallet-ownership gating, input validation, honest quote-unavailable handling, the provider-slippage-floor sanity check, fee sourcing (server config only, never the request). `TransactionService` — submission idempotency on both `quoteId` and `(chainId, txHash)`; status refresh driven only by a real receipt; expired-quote rejection at submission; wallet re-verification at submission (unlinked, re-verified to another account, or verification cleared); on-chain sender/destination/value/calldata match enforced both at submission (best-effort) and before every CONFIRMED transition (authoritative) — see docs/TRADING.md#transaction-integrity. |
 | `apps/api` | Jest (e2e) | `GET /health`, the full `/market`, `/social` + `/identity`, and `/trade` route families — session issuance, activity pagination, trader profiles/404s, follow/like idempotency, wallet challenge/verify/list/unlink with real signatures (including replay protection, cross-user rejection, and challenge rate-limiting — run against an isolated app instance, see below), quote/transaction authorization boundaries, an honest 422 in place of a fabricated quote, transaction idempotency, trade-history scoping (including the global `ValidationPipe` rejecting an unrecognized `?userId=` outright), expired-quote and unlinked-wallet submission rejection, and — using real, live, already-successful Base mainnet transaction hashes fetched at test time — that an unrelated transaction can neither be submitted against a quote it doesn't match nor ever reach CONFIRMED for one, all against a **live** Postgres and Redis. See below. |
 | `apps/web` | Vitest | `lib/env.ts`'s validation (server, client, and Phase 3's chain/WalletConnect vars); `lib/format.ts`'s formatting; `lib/session-client.ts` (token persistence, error-message parsing preferring the API's own message); `lib/wallet-client.ts`/`lib/trading-client.ts` (request shape, 404-as-null for transaction lookups); component tests for `ActivityCard`, `FollowButton`, `ActivityFeed`, `ActivityFeedTabs`, `ConnectWalletButton` (mocked wagmi — connect/disconnect/wrong-network/switch-chain), `SlippageControl` (bounds enforcement), and `QuoteSummary` (renders exactly what's in the quote, including price-impact/approval warnings, never a "safe" claim). |
 | `packages/db` | — | No unit tests; correctness is verified by CI actually applying every migration (see below), not by mocking Prisma. |
@@ -17,13 +18,48 @@
 
 ```bash
 pnpm test          # every package's unit tests, via Turborepo
-pnpm --filter @kamby/api test:e2e   # requires docker compose up -d first
+pnpm --filter @kamby/api test:e2e     # requires docker compose up -d first
+pnpm --filter @kamby/workers test:e2e # same — real Postgres, see below
 ```
 
 The e2e suite boots the real `AppModule`, so it needs a reachable `DATABASE_URL` and
 `REDIS_URL` (`docker compose up -d` provides both locally with the defaults in
 `apps/api/.env.example`). It isn't part of `pnpm test` for that reason — it's a separate,
 explicit step both locally and in CI.
+
+`apps/workers`' own e2e tests (`**/*.e2e-spec.ts`, run via a dedicated
+`vitest.e2e.config.ts` — see its own comment) follow the exact same naming/split
+convention as `apps/api`'s Jest e2e specs specifically so the default `vitest run`'s
+include glob (`*.test.ts`/`*.spec.ts`) never picks them up by accident; they need the same
+reachable `DATABASE_URL` (workers doesn't touch Redis directly for this test).
+
+### Local Postgres on Windows (Docker Desktop)
+
+Connecting to the local `docker compose` Postgres container **from the Windows host
+directly** (Prisma, the plain `pg` driver, `migrate deploy`, a test runner — all of them)
+fails with a generic "password authentication failed" even with the exactly correct
+credentials. This is a real Docker Desktop for Windows bug, not a credentials or
+auth-method problem — confirmed by testing both `md5` and `trust` (zero round-trips after
+the startup packet) with the identical failure either way, and by confirming the same
+credentials work fine from *inside* the container or from a second container on the same
+Docker network (neither goes through the broken host-port-forwarding proxy). See
+`docker-compose.yml`'s own comment on the `postgres` service for the full diagnosis.
+
+**The fix:** run anything that needs a real DB connection from inside a throwaway
+container on the same Docker network instead of from the Windows host:
+
+- For just the Prisma CLI (a migration, `db pull`, etc.) — mount `packages/db` and install
+  `prisma` fresh inside the container; see the exact command in `docker-compose.yml`'s own
+  comment. Use `node:20`, not `node:20-alpine` (the alpine tag is a moving target and has
+  been observed to break Prisma's OpenSSL detection between pulls).
+- For a real test run needing the *whole* workspace's `node_modules` (not just prisma) —
+  don't bind-mount the host's own `node_modules`: several native deps (esbuild/vite among
+  them) ship OS-specific binaries, and the host's are Windows ones, incompatible inside a
+  Linux container. Instead bind-mount the repo **read-only**, `cp` it into the container's
+  own filesystem, strip any copied `node_modules`, then run a fresh `pnpm install` inside
+  the container — this produces a real Linux-native `node_modules` without ever touching
+  the host's own copy. Run all of this from PowerShell, not git-bash — MSYS's automatic
+  Unix-path-to-Windows-path rewriting mangles `-v`/`-w` arguments containing `/`.
 
 ## The live-RPC integration test
 

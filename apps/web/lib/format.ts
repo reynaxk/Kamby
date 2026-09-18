@@ -33,6 +33,15 @@ export function formatPercent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+/** Compact USD with an explicit +/- sign — "+$1.24M", "-$803.50", "$0.00" for exactly
+ *  zero (no sign on a real zero, same as formatPercent's own convention). For a PnL
+ *  figure, where the sign is the first thing worth reading. */
+export function formatSignedCompactUsd(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return EM_DASH;
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${formatCompactUsd(value)}`;
+}
+
 export type PriceDirection = 'up' | 'down' | 'flat';
 
 export function priceDirection(value: number | null): PriceDirection {

@@ -1,8 +1,9 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { Inject, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
+import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { PinoLogger } from 'nestjs-pino';
+import { SOLANA_CONNECTION_POOL, type SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { getSolanaConfig, type Env } from '../config/env';
 
 export interface TopupResult {
@@ -28,16 +29,15 @@ export interface TopupResult {
  */
 @Injectable()
 export class SolanaTopupService {
-  private readonly connection: Connection | null;
   private readonly fundingKeypair: Keypair | null;
   private readonly topupLamports: number;
 
   constructor(
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
+    @Inject(SOLANA_CONNECTION_POOL) private readonly solanaPool: SolanaConnectionPool | null,
   ) {
     const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
-    this.connection = solanaConfig ? new Connection(solanaConfig.rpcUrl, 'confirmed') : null;
     // Never logged — see the `redact` config in app.module.ts. Only the derived public key
     // (via `Keypair.publicKey`, when actually needed) is ever safe to log.
     this.fundingKeypair = solanaConfig ? Keypair.fromSecretKey(bs58.decode(solanaConfig.topupFundingSecretKey)) : null;
@@ -46,26 +46,33 @@ export class SolanaTopupService {
   }
 
   async ensureFunded(address: string): Promise<TopupResult> {
-    if (!this.connection || !this.fundingKeypair) {
+    if (!this.solanaPool || !this.fundingKeypair) {
       throw new UnprocessableEntityException('Solana trading is not enabled on this deployment');
     }
+    const pool = this.solanaPool;
+    const fundingKeypair = this.fundingKeypair;
 
     const recipient = new PublicKey(address);
-    const balanceLamports = await this.connection.getBalance(recipient, 'confirmed').catch(() => null);
+    const balanceLamports = await pool.withFailover((connection) => connection.getBalance(recipient, 'confirmed')).catch(() => null);
     if (balanceLamports !== null && balanceLamports >= this.topupLamports) {
       return { toppedUp: false, signature: null };
     }
 
     const transaction = new Transaction().add(
       SystemProgram.transfer({
-        fromPubkey: this.fundingKeypair.publicKey,
+        fromPubkey: fundingKeypair.publicKey,
         toPubkey: recipient,
         lamports: this.topupLamports,
       }),
     );
 
     try {
-      const signature = await sendAndConfirmTransaction(this.connection, transaction, [this.fundingKeypair]);
+      // Safe to retry the identical signed transaction against the fallback connection if
+      // the primary's confirmation polling (not necessarily the broadcast itself) fails:
+      // a transaction's signature is derived from its own signed bytes, so resending the
+      // exact same transaction is a no-op on Solana's side if it already landed, not a
+      // double-send.
+      const signature = await pool.withFailover((connection) => sendAndConfirmTransaction(connection, transaction, [fundingKeypair]));
       this.logger.info({ address, lamports: this.topupLamports }, 'sent new-wallet SOL top-up');
       return { toppedUp: true, signature };
     } catch (error) {

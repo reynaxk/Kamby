@@ -52,6 +52,12 @@ export const EnvSchema = z.object({
    *  allowance check) — never for building the swap itself, which comes fully formed from
    *  the router. */
   CHAIN_BASE_RPC_URL: z.string().url('CHAIN_BASE_RPC_URL must be a valid URL').optional(),
+  /** Optional second RPC endpoint — see docs/TRADING.md#rpc-failover. Genuinely optional
+   *  even when this chain is listed in CHAINS (unlike CHAIN_BASE_RPC_URL itself): running
+   *  without a fallback is a real, valid choice, just one with no protection against the
+   *  primary provider's own outages/quota exhaustion — QuickNode's Base RPC has already
+   *  exhausted its daily quota once in production with nothing to fall back to. */
+  CHAIN_BASE_RPC_URL_FALLBACK: z.string().url('CHAIN_BASE_RPC_URL_FALLBACK must be a valid URL').optional(),
   /** This chain's USDC contract — see USDC_CONTRACT_ADDRESS's old doc comment (removed
    *  below in favor of this, per-chain, version): the one token the guaranteed-USDC-fee
    *  flow treats as "the cash side" on this specific chain. Must name the same token as
@@ -60,30 +66,28 @@ export const EnvSchema = z.object({
 
   CHAIN_ARBITRUM_ID: z.coerce.number().int().positive().optional(),
   CHAIN_ARBITRUM_RPC_URL: z.string().url('CHAIN_ARBITRUM_RPC_URL must be a valid URL').optional(),
+  /** See CHAIN_BASE_RPC_URL_FALLBACK's doc comment — same deal, per chain. */
+  CHAIN_ARBITRUM_RPC_URL_FALLBACK: z.string().url('CHAIN_ARBITRUM_RPC_URL_FALLBACK must be a valid URL').optional(),
   CHAIN_ARBITRUM_USDC_ADDRESS: z
     .string()
     .regex(EVM_ADDRESS_REGEX, 'CHAIN_ARBITRUM_USDC_ADDRESS must be a valid EVM address')
     .optional(),
 
+  CHAIN_BNB_ID: z.coerce.number().int().positive().optional(),
+  CHAIN_BNB_RPC_URL: z.string().url('CHAIN_BNB_RPC_URL must be a valid URL').optional(),
+  /** See CHAIN_BASE_RPC_URL_FALLBACK's doc comment — same deal, per chain. */
+  CHAIN_BNB_RPC_URL_FALLBACK: z.string().url('CHAIN_BNB_RPC_URL_FALLBACK must be a valid URL').optional(),
+  CHAIN_BNB_USDC_ADDRESS: z.string().regex(EVM_ADDRESS_REGEX, 'CHAIN_BNB_USDC_ADDRESS must be a valid EVM address').optional(),
+
   /**
-   * See docs/TRADING.md#provider. `MetaAggregatorSwapRouter` races LI.FI and 1inch in
-   * parallel and takes the better-priced result, so both keys below are required — not an
-   * either/or. Validated here (not left to fail at first use) so a misconfigured deploy is
-   * loud at boot, same as every other required var. A missing key means quotes honestly
-   * fail rather than falling back to an invented price — this is deliberate even though
-   * both providers have their own free tiers; a silently-absent key should never be
-   * mistaken for "running on the free tier as intended."
+   * See docs/TRADING.md#provider. KyberSwap's Aggregator API needs no API key — only an
+   * `X-Client-Id` header (a plain identifying string, not a secret) for rate-limit
+   * prioritization, per KyberSwap's own docs. Defaulted, not required: unlike the LI.FI/
+   * 1inch keys this replaced, a missing value here doesn't mean quotes are silently
+   * degraded, since KyberSwap's docs confirm an absent/default client id just falls back
+   * to a stricter (but still real) rate limit, not a rejected request.
    */
-  LIFI_API_KEY: z.string().min(1, 'LIFI_API_KEY is required for real swap quotes'),
-  /**
-   * The integrator identity registered at https://portal.li.fi — LI.FI routes the
-   * platform fee to whatever wallet is configured there under this name, not to an
-   * address passed per-request. `PLATFORM_FEE_RECIPIENT_ADDRESS` below must match what's
-   * registered in that portal for the two to actually agree — see docs/TRADING.md#fees.
-   */
-  LIFI_INTEGRATOR: z.string().min(1, 'LIFI_INTEGRATOR is required for real swap quotes'),
-  /** The other half of the race — see `OneInchSwapRouter` and docs/TRADING.md#provider. */
-  ONEINCH_API_KEY: z.string().min(1, 'ONEINCH_API_KEY is required for real swap quotes'),
+  KYBERSWAP_CLIENT_ID: z.string().min(1).default('kamby'),
 
   /**
    * See docs/TRADING.md#fees. A bps integer, never a hardcoded literal scattered through
@@ -112,6 +116,13 @@ export const EnvSchema = z.object({
   /** Used for quote/balance reads and broadcasting — the launch (non-custodial) flow never
    *  signs anything server-side, see the flow's own doc comments. */
   SOLANA_RPC_URL: z.string().url('SOLANA_RPC_URL must be a valid URL').optional(),
+  /** Optional second Solana RPC endpoint — see docs/TRADING.md#rpc-failover and
+   *  apps/api/src/chain/solana-connection-pool.ts. Unlike the EVM side (viem ships its own
+   *  `fallback()` transport), @solana/web3.js's Connection has no built-in multi-endpoint
+   *  failover, so this is consumed by a hand-rolled circuit-breaker pool instead of a
+   *  library feature. Genuinely optional — running Solana without a fallback RPC is valid,
+   *  just unprotected against the primary's own outages. */
+  SOLANA_RPC_URL_FALLBACK: z.string().url('SOLANA_RPC_URL_FALLBACK must be a valid URL').optional(),
   /** A USDC Associated Token Account owned by the treasury — NOT the treasury's raw wallet
    *  address. Jupiter's `feeAccount` must be a token account whose mint is part of the
    *  swap pair (here, USDC, since it's always the fixed input token); passing a plain
@@ -141,23 +152,78 @@ export const EnvSchema = z.object({
    */
   SOLANA_TOPUP_FUNDING_SECRET_KEY: z.string().min(1, 'SOLANA_TOPUP_FUNDING_SECRET_KEY is required when SOLANA_ENABLED').optional(),
   /**
-   * Only read by `GasRelayerService` (apps/api/src/solana/gas-relayer.service.ts), which is
-   * NOT wired into any module yet — see that file's own doc comment. Deliberately optional
-   * even when SOLANA_ENABLED is true, unlike every other SOLANA_* field above: nothing
-   * constructs GasRelayerService today, so requiring this would block every Solana deploy
-   * for a feature that isn't running. Never logged — see the `redact` config in
-   * app.module.ts.
+   * Declares intent, checked in the third `superRefine` below — does NOT itself gate
+   * whether `GasRelayerService` activates at runtime (that's still purely "is
+   * SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY present," unchanged — see this class's own
+   * getters). This flag exists only so a deployment that means to turn sponsorship on but
+   * forgets one of the two fields below fails loudly at boot, the same way every other
+   * *_ENABLED flag here already does, rather than silently staying inert the way "just
+   * leave the secret unset" does today. Defaults false — `GasRelayerService` is wired into
+   * `solana.module.ts` and both HTTP routes are live (see docs/GAS_RELAYER_PLAN.md) but
+   * still safely inert on every real deployment until this is explicitly turned on and
+   * funded.
+   */
+  SOLANA_GAS_RELAYER_ENABLED: z.coerce.boolean().default(false),
+  /**
+   * Only takes effect once `GasRelayerService` is actually constructed with a real secret
+   * here — see that file's own doc comment. Required when SOLANA_GAS_RELAYER_ENABLED is
+   * true (third `superRefine` below); left schema-optional otherwise so a deployment that
+   * hasn't turned sponsorship on isn't forced to provision a relayer keypair. Never logged
+   * — see the `redact` config in app.module.ts.
    */
   SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY: z.string().min(1).optional(),
   /** ~one signature fee + one ATA-creation rent, with headroom — the hard ceiling
    *  `GasRelayerService` checks a simulated transaction's cost against before ever
-   *  co-signing for real. See that file's own doc comment. */
+   *  co-signing for real. See that file's own doc comment. Required when
+   *  SOLANA_GAS_RELAYER_ENABLED is true, same reasoning as the secret key above. */
   SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING: z.coerce.number().int().positive().optional(),
+  /**
+   * Comma-separated Solana wallet addresses — when set, `SolanaQuoteService#createSponsoredQuote`
+   * and `GasRelayerService#submitSponsoredTransaction` both refuse sponsorship for any wallet
+   * not on this list, with the exact same rejection message the "not enabled at all" case
+   * uses (never a distinguishable "you're just not on the allowlist" response, so this
+   * can't be probed for). Genuinely optional and independent of `SOLANA_GAS_RELAYER_ENABLED`
+   * — unset (the default) means no restriction, every wallet is eligible once the relayer
+   * itself is otherwise configured. The intended real rollout: set this to your own test
+   * wallet(s) for the first live production cycle (see docs/GAS_RELAYER_PLAN.md's own
+   * "Remaining work" — the plan explicitly calls for gating to internal test accounts
+   * before opening this to every user), then simply unset it once that cycle is validated.
+   */
+  SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES: z.string().optional(),
+
+  /**
+   * Cloudflare R2 (S3-compatible object storage) for profile-picture uploads — see
+   * docs/TRADER_INTELLIGENCE.md#realized-pnl and R2StorageService's own doc comment.
+   * Deliberately all-optional at the schema level, same convention every other
+   * required-when-actually-used credential in this file follows (see the SOLANA_* block
+   * above) — a deployment that never calls the avatar-upload endpoint shouldn't be forced
+   * to provision a bucket first. `R2StorageService` itself throws a clear, actionable
+   * error the moment an upload is actually attempted without these configured, rather than
+   * this schema blocking every other route at boot. Never logged — `*.secretAccessKey` is
+   * in the `redact` config in app.module.ts.
+   */
+  R2_ENDPOINT: z.string().url('R2_ENDPOINT must be a valid URL, e.g. https://<account id>.r2.cloudflarestorage.com').optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  R2_BUCKET_NAME: z.string().min(1).optional(),
+  /** The public URL prefix uploaded files are served from — either R2's own public bucket
+   *  URL or a custom domain fronting it, never derived/guessed from R2_ENDPOINT (a
+   *  private, account-scoped API endpoint, not a public asset host). */
+  R2_PUBLIC_BASE_URL: z.string().url('R2_PUBLIC_BASE_URL must be a valid URL').optional(),
 });
 
-const CHAIN_ENV_BLOCKS: Record<ChainSlug, { id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID'; rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL'; usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' }> = {
-  base: { id: 'CHAIN_BASE_ID', rpcUrl: 'CHAIN_BASE_RPC_URL', usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' },
-  arbitrum: { id: 'CHAIN_ARBITRUM_ID', rpcUrl: 'CHAIN_ARBITRUM_RPC_URL', usdcAddress: 'CHAIN_ARBITRUM_USDC_ADDRESS' },
+const CHAIN_ENV_BLOCKS: Record<
+  ChainSlug,
+  {
+    id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID' | 'CHAIN_BNB_ID';
+    rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL' | 'CHAIN_BNB_RPC_URL';
+    rpcUrlFallback: 'CHAIN_BASE_RPC_URL_FALLBACK' | 'CHAIN_ARBITRUM_RPC_URL_FALLBACK' | 'CHAIN_BNB_RPC_URL_FALLBACK';
+    usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' | 'CHAIN_BNB_USDC_ADDRESS';
+  }
+> = {
+  base: { id: 'CHAIN_BASE_ID', rpcUrl: 'CHAIN_BASE_RPC_URL', rpcUrlFallback: 'CHAIN_BASE_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' },
+  arbitrum: { id: 'CHAIN_ARBITRUM_ID', rpcUrl: 'CHAIN_ARBITRUM_RPC_URL', rpcUrlFallback: 'CHAIN_ARBITRUM_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_ARBITRUM_USDC_ADDRESS' },
+  bnb: { id: 'CHAIN_BNB_ID', rpcUrl: 'CHAIN_BNB_RPC_URL', rpcUrlFallback: 'CHAIN_BNB_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BNB_USDC_ADDRESS' },
 };
 
 export const ValidatedEnvSchema = EnvSchema.superRefine((env, ctx) => {
@@ -193,6 +259,29 @@ export const ValidatedEnvSchema = EnvSchema.superRefine((env, ctx) => {
   if (env.SOLANA_JUPITER_API_KEY === undefined) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['SOLANA_JUPITER_API_KEY'], message: 'SOLANA_JUPITER_API_KEY is required when SOLANA_ENABLED is true' });
   }
+}).superRefine((env, ctx) => {
+  // The gas relayer's own conditionally-required block — deliberately separate from (not
+  // nested inside) the Solana block above: this must still fire and report a clear error
+  // even when SOLANA_ENABLED is false, since "sponsorship on, Solana itself off" is exactly
+  // the nonsensical combination this exists to catch rather than silently no-op.
+  if (!env.SOLANA_GAS_RELAYER_ENABLED) return;
+  if (!env.SOLANA_ENABLED) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['SOLANA_GAS_RELAYER_ENABLED'], message: 'SOLANA_GAS_RELAYER_ENABLED requires SOLANA_ENABLED to also be true' });
+  }
+  if (env.SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY'],
+      message: 'SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY is required when SOLANA_GAS_RELAYER_ENABLED is true',
+    });
+  }
+  if (env.SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING'],
+      message: 'SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING is required when SOLANA_GAS_RELAYER_ENABLED is true',
+    });
+  }
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -201,12 +290,16 @@ export interface ConfiguredChain {
   slug: ChainSlug;
   chainId: number;
   rpcUrl: string;
+  /** `null` when no fallback is configured — see CHAIN_BASE_RPC_URL_FALLBACK's doc
+   *  comment. Consumers pass this straight to `createEvmTransport` (@kamby/chain-adapters),
+   *  which already treats `null`/`undefined` as "no fallback, use a single transport." */
+  rpcUrlFallback: string | null;
   usdcAddress: string;
 }
 
 /**
  * The parsed, validated form of CHAINS + every CHAIN_<SLUG>_* block — every service that
- * needs "the list of chains this deployment runs on" (TransactionService's/LiFiSwapRouter's
+ * needs "the list of chains this deployment runs on" (TransactionService's/KyberSwapRouter's
  * per-chain client maps, QuoteService's per-chain USDC lookup) should build itself from this
  * once at construction, rather than re-parsing CHAINS or reading individual CHAIN_<SLUG>_*
  * keys by hand. Takes a plain key reader rather than a `ConfigService` directly, so a caller
@@ -221,22 +314,43 @@ export function getConfiguredChains(get: <K extends keyof Env>(key: K) => Env[K]
     .map((s) => s.trim() as ChainSlug)
     .map((slug) => {
       const block = CHAIN_ENV_BLOCKS[slug];
-      return { slug, chainId: get(block.id)!, rpcUrl: get(block.rpcUrl)!, usdcAddress: get(block.usdcAddress)! };
+      return {
+        slug,
+        chainId: get(block.id)!,
+        rpcUrl: get(block.rpcUrl)!,
+        rpcUrlFallback: get(block.rpcUrlFallback) ?? null,
+        usdcAddress: get(block.usdcAddress)!,
+      };
     });
 }
 
 export interface SolanaConfig {
   rpcUrl: string;
+  /** `null` when no fallback is configured — see SOLANA_RPC_URL_FALLBACK's doc comment. */
+  rpcUrlFallback: string | null;
   treasuryUsdcAta: string;
   jupiterApiKey: string;
   jupiterPlatformFeeBps: number;
   newWalletTopupSol: number;
   topupFundingSecretKey: string;
-  /** `null` unless `GasRelayerService` (unwired — see its own doc comment) is actually
-   *  deployed and configured; unlike every other field above, these two are genuinely
-   *  optional even when Solana itself is enabled. */
+  /** `null` unless `GasRelayerService` is actually configured with a real fee-payer secret
+   *  — unlike every other field above, these are genuinely optional even when Solana itself
+   *  is enabled. See docs/GAS_RELAYER_PLAN.md. */
   gasRelayerFeePayerSecretKey: string | null;
   gasRelayerMaxLamportsCeiling: number | null;
+  /** `null` means no restriction (every wallet eligible) — see
+   *  SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES's own doc comment above for the intended
+   *  rollout this exists for. */
+  gasRelayerTestWalletAddresses: ReadonlySet<string> | null;
+}
+
+function parseTestWalletAllowlist(raw: string | undefined): ReadonlySet<string> | null {
+  if (raw === undefined) return null;
+  const addresses = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  return new Set(addresses);
 }
 
 /**
@@ -251,6 +365,7 @@ export function getSolanaConfig(get: <K extends keyof Env>(key: K) => Env[K]): S
   if (!get('SOLANA_ENABLED')) return null;
   return {
     rpcUrl: get('SOLANA_RPC_URL')!,
+    rpcUrlFallback: get('SOLANA_RPC_URL_FALLBACK') ?? null,
     treasuryUsdcAta: get('SOLANA_TREASURY_USDC_ATA')!,
     jupiterApiKey: get('SOLANA_JUPITER_API_KEY')!,
     jupiterPlatformFeeBps: get('SOLANA_JUPITER_PLATFORM_FEE_BPS'),
@@ -258,5 +373,6 @@ export function getSolanaConfig(get: <K extends keyof Env>(key: K) => Env[K]): S
     topupFundingSecretKey: get('SOLANA_TOPUP_FUNDING_SECRET_KEY')!,
     gasRelayerFeePayerSecretKey: get('SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY') ?? null,
     gasRelayerMaxLamportsCeiling: get('SOLANA_GAS_RELAYER_MAX_LAMPORTS_CEILING') ?? null,
+    gasRelayerTestWalletAddresses: parseTestWalletAllowlist(get('SOLANA_GAS_RELAYER_TEST_WALLET_ADDRESSES')),
   };
 }

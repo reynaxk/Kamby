@@ -6,6 +6,9 @@ import {
   isQuoteExpired,
   isValidSlippageBps,
   parseUnsignedTx,
+  PLATFORM_FEE_FALLBACK_BPS,
+  PLATFORM_FEE_TIERS,
+  resolveTierFeeBps,
   TRADING_DEFAULTS,
   transactionMatchesQuote,
   type UnsignedTransaction,
@@ -37,6 +40,55 @@ describe('calculateFeeAmount', () => {
 
   it('rejects a non-integer fee', () => {
     expect(() => calculateFeeAmount(1_000_000n, 50.5)).toThrow();
+  });
+});
+
+describe('resolveTierFeeBps', () => {
+  it('applies the 2% tier below $100', () => {
+    expect(resolveTierFeeBps(1)).toBe(200);
+    expect(resolveTierFeeBps(99.99)).toBe(200);
+  });
+
+  it('applies the 1% tier from $100 up to (not including) $500', () => {
+    expect(resolveTierFeeBps(100)).toBe(100);
+    expect(resolveTierFeeBps(499.99)).toBe(100);
+  });
+
+  it('applies the 0.75% tier at and above $500, uncapped', () => {
+    expect(resolveTierFeeBps(500)).toBe(75);
+    expect(resolveTierFeeBps(1_000_000)).toBe(75);
+  });
+
+  it('treats a trade below $1 (including exactly $0) as the cheapest, most-expensive-rate tier — never extrapolates below the schedule', () => {
+    expect(resolveTierFeeBps(0)).toBe(200);
+    expect(resolveTierFeeBps(0.01)).toBe(200);
+  });
+
+  it('rejects a negative or non-finite amount', () => {
+    expect(() => resolveTierFeeBps(-1)).toThrow();
+    expect(() => resolveTierFeeBps(NaN)).toThrow();
+    expect(() => resolveTierFeeBps(Infinity)).toThrow();
+  });
+
+  it('resolves against a custom tier schedule, not just the real PLATFORM_FEE_TIERS default', () => {
+    const fixture = [
+      { minUsd: 0, feeBps: 10 },
+      { minUsd: 50, feeBps: 5 },
+    ];
+    expect(resolveTierFeeBps(10, fixture)).toBe(10);
+    expect(resolveTierFeeBps(50, fixture)).toBe(5);
+  });
+
+  it('matches the locked-in schedule: 2%/1%/0.75% at $1/$100/$500', () => {
+    expect(PLATFORM_FEE_TIERS).toEqual([
+      { minUsd: 0, feeBps: 200 },
+      { minUsd: 100, feeBps: 100 },
+      { minUsd: 500, feeBps: 75 },
+    ]);
+  });
+
+  it('the fallback bps is the most expensive tier, never a cheaper unconfirmed one', () => {
+    expect(PLATFORM_FEE_FALLBACK_BPS).toBe(200);
   });
 });
 

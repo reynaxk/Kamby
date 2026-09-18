@@ -6,7 +6,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary: 'bg-accent text-white hover:opacity-90',
+  // text-accent-ink, not text-white — see that token's own doc comment in globals.css.
+  // Under the Void theme's bright neon accent, white text is close to unreadable.
+  primary: 'bg-accent text-accent-ink hover:opacity-90',
   secondary: 'bg-surface-raised text-ink-900 hover:bg-line',
   ghost: 'bg-transparent text-ink-600 hover:text-ink-900',
   // Side-aware trading actions — `up`/`down` already carry the gain/loss semantic

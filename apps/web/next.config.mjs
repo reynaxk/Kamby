@@ -1,6 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Back-compat for the old chain-less /market/:address route, retired 2026-09-16 when BNB
+  // Chain going live required disambiguating which chain a token address belongs to (see
+  // app/market/[chain]/[address]/page.tsx, the real page now). A page-level redirect at
+  // app/market/[address]/page.tsx isn't possible here — Next's router rejects two dynamic
+  // routes at the same URL position with different segment names ('address' vs 'chain'),
+  // so this has to live in config instead. Resolves to DEFAULT_CHAIN_SLUG (Base), the same
+  // back-compat assumption DEFAULT_CHAIN_ID already encodes everywhere else.
+  async redirects() {
+    return [
+      {
+        source: '/market/:address',
+        destination: '/market/base/:address',
+        permanent: false,
+      },
+    ];
+  },
   webpack: (config, { webpack }) => {
     // wagmi's connectors barrel (wagmi/connectors) unconditionally re-exports Coinbase's
     // baseAccount/coinbaseWallet connectors alongside the ones this app actually uses (see

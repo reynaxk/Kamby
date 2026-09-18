@@ -1,11 +1,9 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Connection } from '@solana/web3.js';
 import { Prisma, prisma } from '@kamby/db';
 import { SOLANA_ACTIVITY_REALTIME_CHANNEL, type SolanaSocialActivity, type TradeSide, type TradeStatus } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
-import { getSolanaConfig, type Env } from '../config/env';
+import { SOLANA_CONNECTION_POOL, type SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
 export interface SolanaTradeTransactionDto {
@@ -21,6 +19,9 @@ export interface SolanaTradeTransactionDto {
   failureReason: string | null;
   submittedAt: string;
   confirmedAt: string | null;
+  /** True only when GasRelayerService itself broadcast this — see that model field's own
+   *  doc comment in schema.prisma. False for every self-paid trade. */
+  sponsoredByRelayer: boolean;
 }
 
 export interface CursorPage<T> {
@@ -38,31 +39,36 @@ export interface CursorPage<T> {
  * quote (the EVM flow's `transactionMatchesQuote`). That check exists on the EVM side to
  * prevent an unrelated-but-successful hash from being credited as CONFIRMED — a real
  * concern there because a mismatched CONFIRMED status could feed the guaranteed-USDC-fee
- * accounting. The launch-scope Solana flow is non-custodial with no separate fee-transfer
- * step (Jupiter's platformFeeBps/feeAccount deduct atomically inside the swap) and no
- * backend custody at all — a mismatched signature here can only ever corrupt one user's
- * own trade history, never move money or affect anyone else. Full instruction-level
- * matching is real, worthwhile defense-in-depth to add before the (deferred) gasless
- * relayer ships, where the stakes are categorically different — see
- * docs/WALLET_SECURITY.md's Solana section — but isn't the launch-blocking bar here.
+ * accounting. This flow (self-paid trades only — never the gas relayer) is non-custodial
+ * with no separate fee-transfer step (Jupiter's platformFeeBps/feeAccount deduct
+ * atomically inside the swap) and no backend custody at all — a mismatched signature here
+ * can only ever corrupt one user's own trade history, never move money or affect anyone
+ * else. This stays true even now that the gas relayer exists (`GasRelayerService`): every
+ * self-paid row this service ever touches has `sponsoredByRelayer: false` by construction
+ * — a sponsored row is only ever created by `GasRelayerService#submitSponsoredTransaction`
+ * itself, which verifies the broadcast transaction matches its quote
+ * (`solana-quote-match.ts`) *before* ever broadcasting, not after. So there is no scenario
+ * where a row this service processes could be the mismatched-sponsored-transaction case —
+ * that case is prevented from ever existing, not merely detected late. Full
+ * instruction-level matching for the self-paid path remains real, available
+ * defense-in-depth (worth adding if this reasoning ever needs revisiting — e.g. a future
+ * feature that gives the backend a stake in a self-paid trade's own correctness) but isn't
+ * the launch-blocking bar today — see docs/WALLET_SECURITY.md's Solana section and
+ * docs/GAS_RELAYER_PLAN.md.
  */
 @Injectable()
 export class SolanaTransactionService {
-  private readonly connection: Connection | null;
-
   constructor(
-    config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    @Inject(SOLANA_CONNECTION_POOL) private readonly solanaPool: SolanaConnectionPool | null,
   ) {
-    const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
-    this.connection = solanaConfig ? new Connection(solanaConfig.rpcUrl, 'confirmed') : null;
     this.logger.setContext('SolanaTransactionService');
   }
 
-  private requireConnection(): Connection {
-    if (!this.connection) throw new UnprocessableEntityException('Solana trading is not enabled on this deployment');
-    return this.connection;
+  private requirePool(): SolanaConnectionPool {
+    if (!this.solanaPool) throw new UnprocessableEntityException('Solana trading is not enabled on this deployment');
+    return this.solanaPool;
   }
 
   /**
@@ -152,8 +158,8 @@ export class SolanaTransactionService {
   }
 
   private async refreshStatus(row: SolanaTradeTransactionRow): Promise<SolanaTradeTransactionRow> {
-    const connection = this.requireConnection();
-    const { value } = await connection.getSignatureStatuses([row.signature]);
+    const pool = this.requirePool();
+    const { value } = await pool.withFailover((connection) => connection.getSignatureStatuses([row.signature]));
     const status = value[0];
 
     if (!status) {
@@ -242,7 +248,12 @@ function toSocialActivity(row: SolanaTradeTransactionRow): SolanaSocialActivity 
 
 type SolanaTradeTransactionRow = Awaited<ReturnType<typeof prisma.solanaTradeTransaction.findUniqueOrThrow>>;
 
-function toDto(row: SolanaTradeTransactionRow): SolanaTradeTransactionDto {
+/** Exported for GasRelayerService#submitSponsoredTransaction, which persists directly into
+ *  this same table (it broadcasts itself, unlike the ordinary client-broadcasts-first flow
+ *  this service's own submitTransaction handles) and returns this same DTO shape so every
+ *  downstream consumer (history, status polling, the global feed) treats a sponsored trade
+ *  identically to a self-paid one. */
+export function toDto(row: SolanaTradeTransactionRow): SolanaTradeTransactionDto {
   return {
     id: row.id,
     signature: row.signature,
@@ -256,6 +267,7 @@ function toDto(row: SolanaTradeTransactionRow): SolanaTradeTransactionDto {
     failureReason: row.failureReason,
     submittedAt: row.submittedAt.toISOString(),
     confirmedAt: row.confirmedAt ? row.confirmedAt.toISOString() : null,
+    sponsoredByRelayer: row.sponsoredByRelayer,
   };
 }
 

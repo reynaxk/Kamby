@@ -2,10 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import type { Env } from '../config/env';
+import { MediaModule } from '../media/media.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OptionalAuthGuard } from './guards/optional-auth.guard';
 import { IdentityController } from './identity.controller';
 import { IdentityService } from './identity.service';
+import { ProfileService } from './profile.service';
 import { SolanaWalletService } from './solana-wallet.service';
 import { WalletService } from './wallet.service';
 
@@ -24,9 +26,10 @@ import { WalletService } from './wallet.service';
         signOptions: { expiresIn: '90d' },
       }),
     }),
+    MediaModule,
   ],
   controllers: [IdentityController],
-  providers: [IdentityService, WalletService, SolanaWalletService, JwtAuthGuard, OptionalAuthGuard],
+  providers: [IdentityService, WalletService, SolanaWalletService, ProfileService, JwtAuthGuard, OptionalAuthGuard],
   exports: [IdentityService, WalletService, SolanaWalletService, JwtAuthGuard, OptionalAuthGuard],
 })
 export class IdentityModule {}
