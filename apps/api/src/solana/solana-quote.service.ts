@@ -189,7 +189,7 @@ export class SolanaQuoteService {
       throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');
     }
 
-    const transaction = await buildSponsoredSwapTransaction(relayerConnection, new PublicKey(relayerPublicKey), instructions);
+    const transaction = await buildSponsoredSwapTransaction(relayerConnection, new PublicKey(relayerPublicKey), outputMint, instructions);
     const unsignedTxBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
     const expiresAt = new Date(Date.now() + TRADING_DEFAULTS.quoteTtlSeconds * 1000);

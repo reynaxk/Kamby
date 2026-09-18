@@ -87,8 +87,16 @@ const MAX_ALLOWED_WSOL_CLOSES = 2;
  *  Deliberately excludes `RecoverNested` (single byte `2`, same program id) — a different
  *  operation this allowlist has no reason to ever ride along with. Account layout, also
  *  confirmed against that same source: `[payer, associatedToken, owner, mint, ...]` — index
- *  1 is the account actually being created, index 3 is its mint. */
-function isAtaCreateInstruction(ix: ResolvedInstruction): boolean {
+ *  1 is the account actually being created, index 3 is its mint.
+ *
+ *  Exported for `gas-relayer-transaction-builder.ts`'s own use (the WSOL rent-redirect
+ *  fix, re-attempted 2026-09-18 with an explicit `outputMint` gate after the first, ungated
+ *  attempt was reverted for misdirecting real trade proceeds — see that file's own doc
+ *  comment). Same structural check, run in the opposite direction (assigning a close's
+ *  refund forward at build time, rather than verifying one backward at validation time) —
+ *  kept as one shared implementation so the two call sites can never drift on what counts
+ *  as a real ATA creation. */
+export function isAtaCreateInstruction(ix: ResolvedInstruction): boolean {
   return ix.programId === ATA_PROGRAM_ID && (ix.data.length === 0 || (ix.data.length === 1 && ix.data[0] === 1));
 }
 

@@ -212,7 +212,7 @@ user's own wallet accepted, close to a third party rejected, close of a non-WSOL
 rejected, a close referencing a later instruction rejected, a close matched only to
 `RecoverNested` rejected, more than 2 closes rejected).
 
-### The WSOL rent leak — found live in production, closed 2026-09-18
+### The WSOL rent leak — found live in production, 2026-09-18 (two attempts, one real incident)
 
 The gate above stops an *attacker* from draining rent via a smuggled close. It does not,
 by itself, guarantee the relayer's own rent comes back — and in production, it didn't:
@@ -221,23 +221,46 @@ the *user's* wallet, correct for a self-paid swap (the user funded the create, t
 gets the refund) but a pure loss for a sponsored one, where the *relayer* is the one who
 paid to create that account (`setupInstructions` are built with `payer: relayerPubkey`).
 Confirmed by pulling the real, on-chain transaction for the first two gasless trades ever
-run in production (2026-09-18): the relayer's balance dropped by ~1.49M lamports beyond
-the real network fee on *each* trade — traced to exactly this, not a Jito tip (the
-sponsored path has never used Jito at all) and not network congestion.
+run in production: the relayer's balance dropped by ~1.49M lamports beyond the real network
+fee on *each* trade — traced to exactly this, not a Jito tip (the sponsored path has never
+used Jito at all) and not network congestion.
 
-Fixed the same day in `gas-relayer-transaction-builder.ts`: `redirectWsolCloseToRelayer`
-rewrites a `cleanupInstruction`'s destination account to the relayer's own pubkey *before*
-compiling the transaction, but only when it can prove — via the exact same structural match
-`gas-relayer-instruction-guard.ts`'s own WSOL-unwrap exception already requires (reusing
-its now-exported `isAtaCreateInstruction`, not a second implementation that could drift out
-of sync) — that this specific close is for an account the relayer itself just paid to
-create in this same instruction list. Anything that doesn't match that exact shape is left
-completely untouched. Since the relayer's own pubkey was already one of
-`gas-relayer-instruction-guard.ts`'s two `acceptableCloseDestinations`, this needed no
-change to the guard itself — the redirected transaction was already something the guard
-would accept. 7 new tests in `gas-relayer-transaction-builder.spec.ts` (previously zero
-coverage), including a full round-trip: build the transaction, decode it back out, confirm
-the compiled message's real destination account is the relayer's.
+**Attempt 1 (shipped and reverted the same day) — a real incident, not just a bug caught in
+review.** `redirectWsolCloseToRelayer` rewrote a `cleanupInstruction`'s destination to the
+relayer's own pubkey whenever it structurally matched an earlier relayer-paid WSOL
+creation — reusing the exact same match `gas-relayer-instruction-guard.ts`'s own
+WSOL-unwrap exception already requires (its `isAtaCreateInstruction`, exported for this).
+It shipped, passed its own tests, and worked correctly on the very first real trade it
+touched. **On the next real trade it did not**: that trade's actual output was native SOL
+itself, and Jupiter routes a SOL *output* through the exact same kind of temporary WSOL
+account used for a SOL *input* wrap — the account's balance at close time was rent *plus*
+the user's real ~0.0088 SOL proceeds, and the redirect sent all of it to the relayer
+instead of the user. Caught immediately by checking the actual on-chain balance delta
+rather than assuming the fix worked because the deploy was healthy, reverted within
+minutes (same-day revert commit, `docs` and code both), before any real user besides the
+team's own test wallet was affected.
+
+**Attempt 2 (the real fix) — gated on `outputMint`, not on instruction shape alone.** A
+WSOL account only ever carries more than bare rent when it is the account the trade's
+*final output* is delivered through — never otherwise, since any other WSOL usage
+mid-route is a fully-consumed intermediate hop (confirmed live: two independently-observed
+real SELL transactions each left *exactly* the rent-exemption amount in the account,
+nothing more). `buildSponsoredSwapTransaction` now takes the trade's `outputMint`
+explicitly (passed by `SolanaQuoteService#createSponsoredQuote`, which already computes it)
+and only ever attempts the redirect when `outputMint !== SOLANA_NATIVE_MINT` — when the
+output *is* native SOL, the redirect is skipped entirely and Jupiter's own default (refund
+to the user) is left completely untouched, full stop, regardless of what the instruction
+shape looks like. The structural match from attempt 1 is still there as a second,
+narrower check on top of the gate — not a replacement for it. Since Kamby's Solana panel
+currently only trades USDC ⟷ SOL, this means in practice: SELL gets the rent back, BUY
+doesn't, until a real multi-pair Solana market makes "which side is SOL" a more nuanced
+question than it is today.
+
+8 tests in `gas-relayer-transaction-builder.spec.ts` (previously zero coverage), including
+one specifically named for the regression: a WSOL close that structurally matches a
+relayer-paid creation is *never* redirected when `outputMint` is native SOL, proven by
+decoding the real compiled transaction back out — not asserting on the input, asserting on
+what the chain would actually see.
 
 ## Remaining work before this can deploy
 
