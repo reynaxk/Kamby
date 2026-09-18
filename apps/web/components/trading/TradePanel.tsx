@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSignTypedData } from '@privy-io/react-auth';
 import { Button, cn } from '@kamby/ui';
 import { CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
+import { ArrowLeft, CheckCircle2, X, XCircle } from 'lucide-react';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
 import { sendTransaction, writeContract } from 'wagmi/actions';
@@ -682,14 +683,14 @@ function Panel({ title, onClose, onBack, children }: { title: string; onClose?: 
         <div className="flex items-center gap-2">
           {onBack && (
             <button type="button" onClick={onBack} aria-label="Back" className="text-ink-600 hover:text-ink-900">
-              ←
+              <ArrowLeft className="h-4 w-4" />
             </button>
           )}
           <h2 className="font-display text-base font-semibold text-ink-900">{title}</h2>
         </div>
         {onClose && (
           <button type="button" onClick={onClose} aria-label="Close" className="text-ink-600 hover:text-ink-900">
-            ✕
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
@@ -715,11 +716,19 @@ function TradeStatusView({
     <div className="space-y-3 text-center">
       {step === 'submitted' && <p className="font-body text-sm text-ink-600">Transaction submitted — waiting for it to be picked up…</p>}
       {step === 'pending' && <p className="font-body text-sm text-ink-600">Waiting for confirmation on-chain…</p>}
-      {step === 'confirmed' && <p className="font-body text-sm font-semibold text-up">Trade confirmed ✓</p>}
+      {step === 'confirmed' && (
+        <div className="flex items-center justify-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-up" />
+          <p className="font-body text-sm font-semibold text-up">Trade confirmed</p>
+        </div>
+      )}
       {step === 'failed' && (
-        <p className="font-body text-sm font-semibold text-down">
-          {transaction?.status === 'EXPIRED' ? 'No confirmation was received in time.' : 'This trade failed on-chain.'}
-        </p>
+        <div className="flex items-center justify-center gap-2">
+          <XCircle className="h-5 w-5 text-down" />
+          <p className="font-body text-sm font-semibold text-down">
+            {transaction?.status === 'EXPIRED' ? 'No confirmation was received in time.' : 'This trade failed on-chain.'}
+          </p>
+        </div>
       )}
       {transaction?.failureReason && <p className="font-body text-xs text-ink-600">{transaction.failureReason}</p>}
       {explorerUrl && (
@@ -805,7 +814,12 @@ function FeeTransferSection({
   return (
     <div className="space-y-1 rounded-lg bg-surface-raised p-3 text-center">
       {transaction.feeStatus === 'PENDING' && <p className="font-body text-xs text-ink-600">Platform fee sent — waiting for confirmation…</p>}
-      {transaction.feeStatus === 'CONFIRMED' && <p className="font-body text-xs font-semibold text-up">Platform fee confirmed ✓</p>}
+      {transaction.feeStatus === 'CONFIRMED' && (
+        <div className="flex items-center justify-center gap-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5 text-up" />
+          <p className="font-body text-xs font-semibold text-up">Platform fee confirmed</p>
+        </div>
+      )}
       {(transaction.feeStatus === 'FAILED' || transaction.feeStatus === 'EXPIRED') && (
         <p className="font-body text-xs font-semibold text-down">
           {transaction.feeStatus === 'EXPIRED' ? 'The fee transfer never confirmed in time.' : 'The fee transfer failed on-chain.'}
