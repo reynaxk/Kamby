@@ -49,6 +49,7 @@ export function NotificationItem({
             dateTime={notification.createdAt}
             title={new Date(notification.createdAt).toLocaleString('en-US')}
             className="font-mono text-[0.65rem] text-ink-400"
+            suppressHydrationWarning
           >
             {formatRelativeTime(notification.createdAt)}
           </time>

@@ -33,7 +33,9 @@ export function TraderTokensList({ tokens }: { tokens: TraderTokenStat[] }) {
               <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">Volume</div>
               {formatCompactUsd(entry.volumeUsd)}
             </div>
-            <div className="text-right text-ink-400">{formatRelativeTime(entry.lastActivityAt)}</div>
+            <div className="text-right text-ink-400" suppressHydrationWarning>
+              {formatRelativeTime(entry.lastActivityAt)}
+            </div>
           </div>
         </Link>
       ))}

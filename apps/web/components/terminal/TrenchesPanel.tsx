@@ -96,7 +96,7 @@ function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
         <span className="block truncate font-display text-sm font-semibold text-ink-900">
           {token.symbol ? `$${token.symbol}` : truncateAddress(token.mintAddress)}
         </span>
-        <span className="block truncate font-mono text-[0.65rem] text-ink-400">
+        <span className="block truncate font-mono text-[0.65rem] text-ink-400" suppressHydrationWarning>
           {token.complete ? `Graduated ${token.graduatedAt ? formatRelativeTime(token.graduatedAt) : ''}` : `${solRaised.toFixed(2)} SOL raised`}
         </span>
       </span>

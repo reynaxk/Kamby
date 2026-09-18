@@ -26,7 +26,7 @@ export function RisingSection({ tokens, traders }: { tokens: RisingToken[]; trad
             {tokens.map((item) => (
               <div key={item.market.tokenAddress} className="flex flex-col gap-2">
                 <TokenCard market={item.market} />
-                <p className="px-1 font-mono text-[0.65rem] text-ink-400">
+                <p className="px-1 font-mono text-[0.65rem] text-ink-400" suppressHydrationWarning>
                   Started trending {formatRelativeTime(item.becameTrendingAt)}
                 </p>
               </div>

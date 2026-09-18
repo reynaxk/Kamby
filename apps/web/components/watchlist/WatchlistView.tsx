@@ -105,7 +105,7 @@ export function WatchlistView() {
               <span className="hidden text-xs text-ink-400 sm:inline">
                 Vol {formatCompactUsd(item.volume24hUsd)}
               </span>
-              <span className="hidden text-xs text-ink-400 md:inline">
+              <span className="hidden text-xs text-ink-400 md:inline" suppressHydrationWarning>
                 watched {formatRelativeTime(item.watchedAt)}
               </span>
             </div>

@@ -51,7 +51,9 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
               <tbody>
                 {activity.map((row) => (
                   <tr key={row.id} className="border-b border-line/50">
-                    <td className="px-3 py-1.5 text-ink-400">{formatRelativeTime(row.timestamp)}</td>
+                    <td className="px-3 py-1.5 text-ink-400" suppressHydrationWarning>
+                      {formatRelativeTime(row.timestamp)}
+                    </td>
                     <td className="px-3 py-1.5 text-ink-600">
                       {row.trader.address ? truncateAddress(row.trader.address) : 'Unknown'}
                     </td>

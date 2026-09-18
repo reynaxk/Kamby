@@ -51,6 +51,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           dateTime={activity.timestamp}
           title={new Date(activity.timestamp).toLocaleString('en-US')}
           className="shrink-0 font-mono text-xs text-ink-400"
+          suppressHydrationWarning
         >
           {formatRelativeTime(activity.timestamp)}
         </time>

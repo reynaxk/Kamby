@@ -53,7 +53,7 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
                 avatarUrl={trader.avatarUrl}
                 size="sm"
               />
-              <time className="shrink-0 font-mono text-[0.65rem] text-ink-400">
+              <time className="shrink-0 font-mono text-[0.65rem] text-ink-400" suppressHydrationWarning>
                 {formatRelativeTime(trader.lastTradeAt)}
               </time>
             </Link>
