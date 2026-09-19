@@ -75,7 +75,7 @@ export default async function TokenDetailPage({
 
   const candles = await fetchTokenHistory(params.address, timeframe, chainId);
   const activity = await fetchGlobalActivity({ tokenAddress: params.address, limit: 10 });
-  const traders = await fetchTokenTraders(params.address, 8);
+  const traders = await fetchTokenTraders(params.address, chainId, 8);
 
   return (
     // kamby-void — see globals.css's own doc comment. Market detail is one of the two

@@ -44,12 +44,19 @@ export async function fetchTraderTokens(address: string, limit = 20): Promise<Tr
   return result ?? [];
 }
 
+/** `chainId` optional only for back-compat with the one pre-existing call site that didn't
+ *  pass it (a real, previously-silent bug — every call defaulted to Base's copy of whatever
+ *  address it was given, per apps/api's own `query.chainId ?? DEFAULT_CHAIN_ID` fallback).
+ *  New callers should always pass it explicitly. */
 export async function fetchTokenTraders(
   address: string,
+  chainId?: number,
   limit = 10,
 ): Promise<TokenTraderConnection> {
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (chainId) query.set('chainId', String(chainId));
   const result = await apiGet<TokenTraderConnection>(
-    `/market/tokens/${encodeURIComponent(address)}/traders?limit=${limit}`,
+    `/market/tokens/${encodeURIComponent(address)}/traders?${query.toString()}`,
     20,
   );
   return (

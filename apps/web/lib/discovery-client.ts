@@ -4,9 +4,10 @@ import type {
   PersonalizedFeedPage,
   PersonalizedToken,
   SavedSearchDto,
+  TokenTraderConnection,
   WhatsMissed,
 } from '@kamby/domain';
-import { authedFetch, expectOk, hasStoredSession } from './session-client';
+import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**
  * Phase 5 — client-side reads for the personalized endpoints, same split as
@@ -90,5 +91,32 @@ export async function markDiscoverySeen(): Promise<{
 } | null> {
   const res = await authedFetch('/discovery/mark-seen', { method: 'POST' });
   if (!res.ok) return null;
+  return res.json();
+}
+
+const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
+  uniqueTraders24h: null,
+  recentTraders: [],
+  activeTraders: [],
+  recentLargeTrades: [],
+  watcherCount: 0,
+};
+
+/**
+ * Client-safe counterpart to lib/discovery-api.ts's fetchTokenTraders, for Discover's
+ * in-place terminal (components/discovery/DiscoverTerminal.tsx). An unauthenticated read
+ * (same as the server version) — deliberately a plain fetch, not authedFetch, since viewing
+ * Discover must never itself create a session (same rule fetchLatestActivity in
+ * social-client.ts already follows).
+ *
+ * Requires chainId explicitly, unlike the server-side version — Discover's own lists are
+ * genuinely cross-chain, so silently defaulting to Base here would misattribute traders for
+ * every non-Base selection (see the fix in lib/discovery-api.ts's own fetchTokenTraders).
+ */
+export async function fetchTokenTraders(address: string, chainId: number, limit = 10): Promise<TokenTraderConnection> {
+  const query = new URLSearchParams({ chainId: String(chainId), limit: String(limit) });
+  const res = await fetch(`${API_BASE}/v1/market/tokens/${encodeURIComponent(address)}/traders?${query.toString()}`);
+  if (res.status === 404) return EMPTY_TOKEN_TRADER_CONNECTION;
+  if (!res.ok) throw new Error(`Failed to fetch token traders (${res.status})`);
   return res.json();
 }

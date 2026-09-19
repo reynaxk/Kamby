@@ -1,3 +1,4 @@
+import { CHAIN_REGISTRY, DEFAULT_CHAIN_SLUG, slugForIdentifier, type TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { AutoRefresh } from '@/components/market/AutoRefresh';
@@ -9,20 +10,28 @@ import { ActivityFeedTabs } from '@/components/social/ActivityFeedTabs';
 import { ActivityCard } from '@/components/social/ActivityCard';
 import { TopTraders } from '@/components/social/TopTraders';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
+import { DiscoverTerminal } from '@/components/discovery/DiscoverTerminal';
 import { PersonalizedSection } from '@/components/discovery/PersonalizedSection';
 import { RisingSection } from '@/components/discovery/RisingSection';
 import { SavedSearches } from '@/components/discovery/SavedSearches';
 import { WhatsMissedSection } from '@/components/discovery/WhatsMissedSection';
-import { TrenchesPanel } from '@/components/terminal/TrenchesPanel';
-import { fetchDiscoverMarkets, fetchSearch } from '@/lib/market-api';
+import { fetchDiscoverMarkets, fetchSearch, fetchTokenHistory } from '@/lib/market-api';
 import {
   fetchGlobalActivity,
   fetchTopTraders,
   fetchTraderSearch,
   fetchTrending,
 } from '@/lib/social-api';
-import { fetchActiveTraders, fetchLargeTrades, fetchRising } from '@/lib/discovery-api';
+import { fetchActiveTraders, fetchLargeTrades, fetchRising, fetchTokenTraders } from '@/lib/discovery-api';
 import { settledOr } from '@/lib/settled-fetch';
+
+const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
+  uniqueTraders24h: null,
+  recentTraders: [],
+  activeTraders: [],
+  recentLargeTrades: [],
+  watcherCount: 0,
+};
 
 export const revalidate = 15;
 
@@ -69,6 +78,31 @@ export default async function DiscoverPage({
     settledOr(fetchRising(6), { tokens: [], traders: [] }),
   ]);
 
+  // The in-place terminal hero's default selection — see components/discovery/
+  // DiscoverTerminal.tsx's own doc comment. Fetched server-side (not via the client
+  // lib/market-client.ts etc. functions, which are only for later client-driven reselection)
+  // so the default token's chart/activity/traders are already real on first paint, no
+  // loading flash. `ranked[0]` since it's the largest already-fetched list (limit: 20 vs.
+  // trending's 6 and movers/byVolume's 3) and the same ranking already anchoring the
+  // existing "What's moving" section below.
+  const defaultMarket = !search && ranked.length > 0 ? ranked[0] : undefined;
+  const defaultChainId = defaultMarket
+    ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG].numericId
+    : CHAIN_REGISTRY[DEFAULT_CHAIN_SLUG].numericId;
+  const [heroCandles, heroActivity, heroTraders] = defaultMarket
+    ? await Promise.all([
+        settledOr(fetchTokenHistory(defaultMarket.tokenAddress, '1D', defaultChainId), []),
+        settledOr(
+          fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, limit: 10 }),
+          { items: [], nextCursor: null },
+        ),
+        settledOr(
+          fetchTokenTraders(defaultMarket.tokenAddress, defaultChainId, 8),
+          EMPTY_TOKEN_TRADER_CONNECTION,
+        ),
+      ])
+    : [[], { items: [], nextCursor: null }, EMPTY_TOKEN_TRADER_CONNECTION];
+
   return (
     // kamby-void — see globals.css's own doc comment. Discover is one of the two
     // highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
@@ -76,20 +110,22 @@ export default async function DiscoverPage({
     <div className="kamby-void min-h-screen bg-bg">
       <AutoRefresh intervalSeconds={30} />
       <MarketHeader searchValue={search} />
+      {!search && (
+        <div className="mx-auto max-w-[1600px] px-3 pt-6 sm:px-4">
+          <DiscoverTerminal
+            ranked={ranked}
+            trending={trending}
+            movers={movers}
+            byVolume={byVolume}
+            initialMarket={defaultMarket ?? null}
+            initialTimeframe="1D"
+            initialCandles={heroCandles}
+            initialActivity={heroActivity.items}
+            initialTraders={heroTraders}
+          />
+        </div>
+      )}
       <main className="mx-auto max-w-6xl px-6 py-10">
-        {!search && (
-          <section className="mb-12">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">Trenches</h1>
-            <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
-              Fresh Pump.fun bonding-curve launches, real graduations, and the EVM tokens trending
-              by real holder activity — updates live, never a stale snapshot.
-            </p>
-            <div className="mt-5 h-[440px] max-w-md">
-              <TrenchesPanel />
-            </div>
-          </section>
-        )}
-
         {!search && <WhatsMissedSection />}
 
         {search && (
