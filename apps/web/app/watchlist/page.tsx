@@ -7,11 +7,12 @@ export const metadata = { title: 'Your watchlist — Kamby' };
  * Entirely client-rendered below the header — a watchlist is personal to whatever session
  * this browser has (see docs/PHASE6_RETENTION_SOCIAL.md#watchlists), which a Server Component
  * structurally cannot see (the session lives in localStorage, never a cookie). "These are the
- * things I care about right now" — see docs/PHASE6_RETENTION_SOCIAL.md#web-ux.
+ * things I care about right now" — see docs/PHASE6_RETENTION_SOCIAL.md#web-ux. Void-themed
+ * as of the visual overhaul.
  */
 export default function WatchlistPage() {
   return (
-    <>
+    <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-2xl px-6 py-10">
         <h1 className="font-display text-xl font-bold text-ink-900">Your watchlist</h1>
@@ -20,6 +21,6 @@ export default function WatchlistPage() {
           <WatchlistView />
         </div>
       </main>
-    </>
+    </div>
   );
 }

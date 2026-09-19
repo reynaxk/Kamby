@@ -58,7 +58,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
   ]);
 
   return (
-    <>
+    <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-3xl px-6 py-10">
         <Link href="/" className="font-mono text-xs text-ink-400 hover:text-ink-900">
@@ -196,7 +196,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
           />
         </Surface>
       </main>
-    </>
+    </div>
   );
 }
 

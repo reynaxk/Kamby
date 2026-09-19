@@ -6,11 +6,12 @@ export const metadata = { title: 'Notifications — Kamby' };
 /**
  * Entirely client-rendered below the header, same reasoning as app/trades/page.tsx:
  * notifications are personal to whatever session this browser has, which a Server
- * Component structurally cannot see. See docs/NOTIFICATIONS.md.
+ * Component structurally cannot see. See docs/NOTIFICATIONS.md. Void-themed as of the
+ * visual overhaul.
  */
 export default function NotificationsPage() {
   return (
-    <>
+    <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-2xl px-6 py-10">
         <h1 className="font-display text-xl font-bold text-ink-900">Notifications</h1>
@@ -19,6 +20,6 @@ export default function NotificationsPage() {
           <NotificationsPageClient />
         </div>
       </main>
-    </>
+    </div>
   );
 }

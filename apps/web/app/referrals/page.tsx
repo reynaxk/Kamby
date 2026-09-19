@@ -6,11 +6,11 @@ export const metadata = { title: 'Referrals — Kamby' };
 /**
  * Entirely client-rendered below the header, same reasoning as app/watchlist/page.tsx: a
  * referral code is tied to whatever session this browser has, which lives in localStorage
- * — structurally invisible to a Server Component.
+ * — structurally invisible to a Server Component. Void-themed as of the visual overhaul.
  */
 export default function ReferralsPage() {
   return (
-    <>
+    <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-2xl px-6 py-10">
         <h1 className="font-display text-xl font-bold text-ink-900">Referrals</h1>
@@ -19,6 +19,6 @@ export default function ReferralsPage() {
           <ReferralsView />
         </div>
       </main>
-    </>
+    </div>
   );
 }
