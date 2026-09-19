@@ -1,6 +1,6 @@
 import type { SolanaTradeQuoteDto } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { GlowValue } from '@/components/terminal/GlowValue';
+import { GlowValue } from '@/components/market/GlowValue';
 
 const USDC_DECIMALS = 6;
 

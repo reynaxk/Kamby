@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { cn } from '@kamby/ui';
+import { useValueFlash } from '@/hooks/useValueFlash';
 
 /**
  * Wraps a numeric-ish string and briefly flashes emerald/pink when it changes value — the
  * "dynamic price cell glowing" ask, applied honestly: it only flashes when the underlying
  * *number* actually moved (a re-render with the same value, or a non-numeric string, never
  * flashes), and it never invents a direction — up is strictly "the new number is bigger."
+ * Thin wrapper over `useValueFlash` (hooks/useValueFlash.ts), which also backs
+ * `PriceChange`'s own flash.
  */
 export function GlowValue({
   value,
@@ -21,20 +23,8 @@ export function GlowValue({
   display?: string;
   className?: string;
 }) {
-  const prevValueRef = useRef(value);
-  const [flash, setFlash] = useState<'up' | 'down' | null>(null);
-
-  useEffect(() => {
-    const prev = prevValueRef.current;
-    prevValueRef.current = value;
-    if (prev === value) return;
-    const prevNum = Number(prev);
-    const nextNum = Number(value);
-    if (!Number.isFinite(prevNum) || !Number.isFinite(nextNum) || prevNum === nextNum) return;
-    setFlash(nextNum > prevNum ? 'up' : 'down');
-    const timer = setTimeout(() => setFlash(null), 700);
-    return () => clearTimeout(timer);
-  }, [value]);
+  const numericValue = Number(value);
+  const flash = useValueFlash(Number.isFinite(numericValue) ? numericValue : null);
 
   return (
     <span

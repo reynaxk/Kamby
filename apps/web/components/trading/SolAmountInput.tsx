@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { Wallet } from 'lucide-react';
 import { cn } from '@kamby/ui';
-import { GlowValue } from '@/components/terminal/GlowValue';
+import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 
 export const SOL_PRESETS = [0.01, 0.05, 0.1, 0.5] as const;

@@ -6,7 +6,7 @@ import { PublicKey } from '@solana/web3.js';
 import { Wallet } from 'lucide-react';
 import { SOLANA_USDC_MINT } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { GlowValue } from '@/components/terminal/GlowValue';
+import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 
 export const USD_PRESETS = [10, 25, 50, 100] as const;

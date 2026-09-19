@@ -34,6 +34,38 @@ module.exports = {
         body: ['var(--font-source-serif)', 'Georgia', 'serif'],
         mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
       },
+      // Purposeful emphasis only — composed via className at the specific call sites that
+      // want it (an active order, the terminal's chart card), never baked into a shared
+      // component as ambient decoration. No `glow-warn` — no call site needs it yet.
+      boxShadow: {
+        'glow-accent': '0 0 0 1px rgb(var(--kamby-accent) / 0.4), 0 0 24px -4px rgb(var(--kamby-accent) / 0.35)',
+        'glow-up': '0 0 0 1px rgb(var(--kamby-up) / 0.35), 0 0 20px -6px rgb(var(--kamby-up) / 0.4)',
+        'glow-down': '0 0 0 1px rgb(var(--kamby-down) / 0.35), 0 0 20px -6px rgb(var(--kamby-down) / 0.4)',
+      },
+      // Named for its one purpose (Surface's `glass` variant) rather than a generic scale
+      // step, so its meaning can't silently drift later. Same numeric value as Tailwind's
+      // built-in `xl`, which is what the leaderboard's original inline blur rendered as.
+      backdropBlur: {
+        glass: '24px',
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: '0', transform: 'translateY(4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        glowPulse: {
+          '0%, 100%': { boxShadow: '0 0 0 1px rgb(var(--kamby-accent) / 0.4), 0 0 24px -4px rgb(var(--kamby-accent) / 0.35)' },
+          '50%': { boxShadow: '0 0 0 1px rgb(var(--kamby-accent) / 0.15), 0 0 8px -4px rgb(var(--kamby-accent) / 0.1)' },
+        },
+      },
+      animation: {
+        // CSS-only entrance for places that don't want a 'use client' + Framer Motion
+        // boundary just to fade something in.
+        'fade-in': 'fadeIn 300ms ease-out both',
+        // Reserved for a genuinely in-progress state (an order actually in flight) — never
+        // idle/ambient decoration.
+        'glow-pulse': 'glowPulse 1.6s ease-in-out infinite',
+      },
     },
   },
   plugins: [],
