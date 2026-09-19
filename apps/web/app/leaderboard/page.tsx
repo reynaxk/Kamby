@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { cn } from '@kamby/ui';
+import { cn, Surface } from '@kamby/ui';
 import type { PnlWindow } from '@kamby/domain';
 import { EmptyState } from '@/components/market/EmptyState';
 import { MarketHeader } from '@/components/market/MarketHeader';
@@ -20,11 +20,14 @@ function isPnlWindow(value: string | undefined): value is PnlWindow {
 
 /**
  * The public realized-PnL leaderboard — see docs/TRADER_INTELLIGENCE.md#realized-pnl.
- * Glassmorphic treatment (`bg-white/[0.03]` + `backdrop-blur-xl` + `border-white/[0.06]`)
- * is scoped to this page's own rows/tabs rather than folded into the shared `Surface`
- * component — same "new surface, own treatment, no global change" precedent `.kamby-void`
- * itself established (see globals.css's own doc comment). `.kamby-void` still supplies the
- * base True-Deep-Black ground and monospace-friendly ink tokens everything here sits on.
+ * Row cards use Surface's `glass` variant (see the visual overhaul) — formalized here from
+ * this page's own original ad hoc `bg-white/[0.03]` + `backdrop-blur-xl` +
+ * `border-white/[0.06]` formula, which is now `packages/ui/src/Surface.tsx`'s shared
+ * `glass` variant (keyed off `ink-900` rather than a hardcoded white, so it stays correct
+ * outside `.kamby-void` too). The window-toggle nav pill keeps its own inline glass classes
+ * — `Surface` always bakes in `rounded-2xl`, the pill wants `rounded-lg`, and refactoring it
+ * risked a real class-collision bug for no benefit. `.kamby-void` still supplies the base
+ * True-Deep-Black ground and monospace-friendly ink tokens everything here sits on.
  */
 export default async function LeaderboardPage({
   searchParams,
@@ -74,27 +77,26 @@ export default async function LeaderboardPage({
         ) : (
           <ol className="mt-8 flex flex-col gap-2">
             {leaderboard.entries.map((entry, index) => (
-              <li
-                key={entry.userId}
-                className="flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 backdrop-blur-xl"
-              >
-                <span className="w-7 shrink-0 text-center font-mono text-sm font-semibold tabular-nums text-ink-400">
-                  #{index + 1}
-                </span>
-                <Link href={`/trader/${entry.walletAddress}`} className="min-w-0 flex-1">
-                  <TraderIdentity
-                    address={entry.walletAddress}
-                    displayName={entry.username}
-                    avatarUrl={entry.avatarUrl}
-                    size="sm"
-                  />
-                </Link>
-                <div className="shrink-0 text-right">
-                  <PnlValue usd={entry.realizedPnlUsd} pct={entry.realizedPnlPct} />
-                  <div className="mt-0.5 font-mono text-[0.65rem] text-ink-400">
-                    {formatCompactUsd(entry.volumeUsd)} vol
+              <li key={entry.userId}>
+                <Surface variant="glass" className="flex items-center gap-4 p-4">
+                  <span className="w-7 shrink-0 text-center font-mono text-sm font-semibold tabular-nums text-ink-400">
+                    #{index + 1}
+                  </span>
+                  <Link href={`/trader/${entry.walletAddress}`} className="min-w-0 flex-1">
+                    <TraderIdentity
+                      address={entry.walletAddress}
+                      displayName={entry.username}
+                      avatarUrl={entry.avatarUrl}
+                      size="sm"
+                    />
+                  </Link>
+                  <div className="shrink-0 text-right">
+                    <PnlValue usd={entry.realizedPnlUsd} pct={entry.realizedPnlPct} />
+                    <div className="mt-0.5 font-mono text-[0.65rem] text-ink-400">
+                      {formatCompactUsd(entry.volumeUsd)} vol
+                    </div>
                   </div>
-                </div>
+                </Surface>
               </li>
             ))}
           </ol>

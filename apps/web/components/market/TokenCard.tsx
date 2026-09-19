@@ -13,7 +13,9 @@ export function TokenCard({ market }: { market: MarketSummary }) {
   const chainSlug = slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
   return (
     <Link href={`/market/${chainSlug}/${market.tokenAddress}`} className="block">
-      <Surface className="flex h-full flex-col gap-4 p-5 transition-colors hover:border-accent/50 hover:bg-surface-raised">
+      {/* Lift + soft accent glow on hover only, not an idle/constant glow — matches the
+          visual overhaul's Hyperliquid-restraint direction (interactive-only emphasis). */}
+      <Surface className="flex h-full flex-col gap-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent">
         <div className="flex items-start justify-between gap-2">
           <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} />
           {market.isStale && <StaleBadge />}
