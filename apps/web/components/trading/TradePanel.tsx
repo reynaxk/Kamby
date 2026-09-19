@@ -33,9 +33,24 @@ export interface TradePanelProps {
   quoteTokenDecimals: number;
   initialSide?: TradeSide;
   onClose?: () => void;
+  /** Fires whenever the panel's internal step changes — added for the visual overhaul so a
+   *  parent (KambyTerminal) can show real, state-driven emphasis (a glow on its wrapping
+   *  card) only while an order is genuinely in flight, never as idle decoration. Optional
+   *  and side-effect-free to omit; every existing call site behaves exactly as before. */
+  onStepChange?: (step: TradePanelStep) => void;
 }
 
-type Step = 'form' | 'review' | 'approving' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
+export type TradePanelStep =
+  | 'form'
+  | 'review'
+  | 'approving'
+  | 'signing'
+  | 'submitted'
+  | 'pending'
+  | 'confirmed'
+  | 'failed'
+  | 'record-failed';
+type Step = TradePanelStep;
 
 function friendlyError(err: unknown): string {
   if (err && typeof err === 'object' && 'shortMessage' in err && typeof (err as { shortMessage?: unknown }).shortMessage === 'string') {
@@ -103,6 +118,7 @@ export function TradePanel({
   quoteTokenDecimals,
   initialSide = 'BUY',
   onClose,
+  onStepChange,
 }: TradePanelProps) {
   const { address, isConnected, chainId: walletChainId } = useAccount();
   const walletVerification = useWalletVerification();
@@ -126,6 +142,10 @@ export function TradePanel({
   const [now, setNow] = useState(() => Date.now());
 
   const [step, setStep] = useState<Step>('form');
+  useEffect(() => {
+    onStepChange?.(step);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
   const [approved, setApproved] = useState(false);
   // Gates signing on an 'extreme' price-impact quote — see docs/TRADING.md#price-impact.
   // Reset alongside `approved` whenever a fresh quote comes in, so an acknowledgement never

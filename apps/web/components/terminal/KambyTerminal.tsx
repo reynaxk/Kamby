@@ -1,11 +1,11 @@
 import type { Candle, MarketSummary, SocialActivity, Timeframe, TokenTraderConnection } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import { TimeframeTabs } from '@/components/market/TimeframeTabs';
-import { TradePanel } from '@/components/trading/TradePanel';
 import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
 import { DataHub } from './DataHub';
 import { KambyChart } from './KambyChart';
-import { SmartSlipGasBar } from './SmartSlipGasBar';
 import { TokenMetricsBar } from './TokenMetricsBar';
+import { TradePanelCard } from './TradePanelCard';
 import { TrenchesPanel } from './TrenchesPanel';
 
 /**
@@ -63,41 +63,41 @@ export function KambyTerminal({
 
           <div className="flex min-w-0 flex-col gap-3">
             <TokenMetricsBar market={market} />
-            <div className="flex h-[380px] flex-col gap-2 rounded-2xl border border-line bg-surface p-2">
+            {/* The visual hero of the terminal — elevated + a restrained accent glow rather
+                than glass: lightweight-charts renders to a <canvas>, so nothing sits behind
+                this card for a backdrop-blur to reveal. */}
+            <Surface variant="elevated" className="flex h-[380px] flex-col gap-2 p-2 shadow-glow-accent">
               <div className="flex justify-end">
                 <TimeframeTabs chain={chain} address={market.tokenAddress} active={timeframe} />
               </div>
               <div className="min-h-0 flex-1">
                 <KambyChart candles={candles} />
               </div>
-            </div>
+            </Surface>
             <div className="h-[300px]">
               <DataHub activity={activity} />
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="rounded-2xl border border-line bg-surface p-4">
-              <SmartSlipGasBar />
-              <div className="mt-3">
-                {/* Same guard as the old page.tsx layout — decimals are nullable
-                    (MarketSummarySchema) until the ingestion worker has resolved them live
-                    from the token contract; never pass a null decimals into TradePanel. */}
-                {market.decimals !== null && market.quoteDecimals !== null ? (
-                  <TradePanel
-                    chainId={chainId}
-                    tokenAddress={market.tokenAddress}
-                    tokenSymbol={market.symbol}
-                    tokenDecimals={market.decimals}
-                    quoteTokenAddress={market.quoteAddress}
-                    quoteTokenSymbol={market.quoteSymbol}
-                    quoteTokenDecimals={market.quoteDecimals}
-                  />
-                ) : (
-                  <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
-                )}
-              </div>
-            </div>
+            {/* Same guard as the old page.tsx layout — decimals are nullable
+                (MarketSummarySchema) until the ingestion worker has resolved them live from
+                the token contract; never pass a null decimals into TradePanel. */}
+            {market.decimals !== null && market.quoteDecimals !== null ? (
+              <TradePanelCard
+                chainId={chainId}
+                tokenAddress={market.tokenAddress}
+                tokenSymbol={market.symbol}
+                tokenDecimals={market.decimals}
+                quoteTokenAddress={market.quoteAddress}
+                quoteTokenSymbol={market.quoteSymbol}
+                quoteTokenDecimals={market.quoteDecimals}
+              />
+            ) : (
+              <Surface className="p-4">
+                <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
+              </Surface>
+            )}
             <div className="rounded-2xl border border-line bg-surface p-4">
               <TokenTradersPanel connection={traders} />
             </div>

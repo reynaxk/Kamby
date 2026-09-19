@@ -1,4 +1,5 @@
 import type { MarketSummary } from '@kamby/domain';
+import { Surface } from '@kamby/ui';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { PriceChange } from '@/components/market/PriceChange';
 
@@ -9,12 +10,15 @@ import { PriceChange } from '@/components/market/PriceChange';
  * fixed fractions of market cap. The "LP Burned" badge is gone entirely, not replaced with
  * an honest placeholder — there's no real on-chain LP-burn verification behind it to ever
  * fill that placeholder with, unlike Positions/caller-alpha's genuine "coming soon" gaps.
+ *
+ * `glass` as of the visual overhaul — the one always-visible "cockpit readout" strip in the
+ * terminal, separated from the flat panels below it without adding density.
  */
 export function TokenMetricsBar({ market }: { market: MarketSummary }) {
   const display = market.symbol ?? market.name ?? '?';
 
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border border-line bg-surface px-4 py-3">
+    <Surface variant="glass" className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
       <div className="flex items-center gap-2">
         <span
           aria-hidden
@@ -32,7 +36,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
         <div className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">24h</div>
         <PriceChange value={market.priceChange24hPct} className="text-sm font-semibold" />
       </div>
-    </div>
+    </Surface>
   );
 }
 

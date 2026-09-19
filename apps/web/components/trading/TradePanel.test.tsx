@@ -336,4 +336,28 @@ describe('TradePanel', () => {
       expect(screen.queryByRole('button', { name: 'Send platform fee' })).not.toBeInTheDocument();
     });
   });
+
+  it('reports its real step to onStepChange as a trade progresses — the terminal card glow depends on this firing accurately', async () => {
+    const onStepChange = vi.fn();
+    const quote = fakeQuote({ requiresApproval: false, feeUnsignedTx: null });
+    getQuoteMock.mockResolvedValue(quote);
+    render(<TradePanel {...defaultProps} onStepChange={onStepChange} />);
+
+    expect(onStepChange).toHaveBeenCalledWith('form');
+
+    await fillAmountAndWaitForQuote();
+    await userEvent.click(await screen.findByRole('button', { name: 'Review trade' }));
+    expect(onStepChange).toHaveBeenLastCalledWith('review');
+
+    sendTransactionMock.mockResolvedValueOnce(`0x${'2'.repeat(64)}`);
+    submitTransactionMock.mockResolvedValue(fakeTransaction());
+
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+
+    await waitFor(() => expect(onStepChange).toHaveBeenCalledWith('signing'));
+    await waitFor(() => expect(onStepChange).toHaveBeenCalledWith('pending'));
+    // Never reports a step that was never actually reached.
+    expect(onStepChange).not.toHaveBeenCalledWith('confirmed');
+    expect(onStepChange).not.toHaveBeenCalledWith('failed');
+  });
 });

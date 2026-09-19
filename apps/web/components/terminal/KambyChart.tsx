@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { CandlestickSeries, ColorType, createChart, type IChartApi, type UTCTimestamp } from 'lightweight-charts';
+import { CandlestickSeries, ColorType, createChart, LineStyle, type IChartApi, type UTCTimestamp } from 'lightweight-charts';
 import type { Candle } from '@kamby/domain';
 import { EmptyState } from '@/components/market/EmptyState';
 
@@ -46,6 +46,8 @@ export function KambyChart({ candles }: { candles: Candle[] }) {
     const ink = readColor('--kamby-ink-600', container);
     const up = readColor('--kamby-up', container);
     const down = readColor('--kamby-down', container);
+    const accent = readColor('--kamby-accent', container);
+    const accentInk = readColor('--kamby-accent-ink', container);
 
     const chart: IChartApi = createChart(container, {
       layout: {
@@ -71,9 +73,29 @@ export function KambyChart({ candles }: { candles: Candle[] }) {
       borderVisible: false,
       wickUpColor: up,
       wickDownColor: down,
+      // The library's own default last-price line/label is replaced by the accent-styled
+      // one below — leaving both on drew two overlapping labels for the same value.
+      priceLineVisible: false,
+      lastValueVisible: false,
     });
     series.setData(toSeriesData(candles));
     chart.timeScale().fitContent();
+
+    // The chart is canvas-rendered, so none of the CSS glow shadows used elsewhere in the
+    // terminal can reach it — a saturated accent line + filled axis-label chip is the
+    // realistic "glow" here, not a compromise.
+    const lastClose = candles[candles.length - 1]?.close;
+    if (lastClose !== undefined) {
+      series.createPriceLine({
+        price: lastClose,
+        color: accent,
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        axisLabelColor: accent,
+        axisLabelTextColor: accentInk,
+      });
+    }
 
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
