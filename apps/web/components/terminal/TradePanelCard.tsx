@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Surface } from '@kamby/ui';
+import { cn, Surface } from '@kamby/ui';
 import { TradePanel, type TradePanelProps, type TradePanelStep } from '@/components/trading/TradePanel';
 import { SmartSlipGasBar } from './SmartSlipGasBar';
 
@@ -26,9 +26,9 @@ export function TradePanelCard(props: TradePanelProps) {
   }
 
   return (
-    <Surface className={inFlight ? 'shadow-glow-accent p-4 transition-shadow duration-300' : 'p-4 transition-shadow duration-300'}>
+    <Surface className={cn('p-3.5 transition-shadow duration-300', inFlight && 'shadow-glow-accent')}>
       <SmartSlipGasBar />
-      <div className="mt-3">
+      <div className="mt-2.5">
         <TradePanel {...props} onStepChange={handleStepChange} />
       </div>
     </Surface>

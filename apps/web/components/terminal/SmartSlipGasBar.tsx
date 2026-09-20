@@ -10,7 +10,7 @@ import { RpcStatusBar } from './RpcStatusBar';
  */
 export function SmartSlipGasBar() {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-line bg-surface-raised px-3 py-2">
+    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg border border-line bg-surface-raised px-2.5 py-1.5">
       <RpcStatusBar />
       <span className="h-3 w-px bg-line" />
       <span className="inline-flex items-center gap-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-400">

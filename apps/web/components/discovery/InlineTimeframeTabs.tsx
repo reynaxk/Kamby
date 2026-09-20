@@ -11,15 +11,15 @@ import { cn } from '@kamby/ui';
  *  is currently selected without leaving the page. Same visual treatment, deliberately. */
 export function InlineTimeframeTabs({ active, onChange }: { active: Timeframe; onChange: (tf: Timeframe) => void }) {
   return (
-    <div className="inline-flex rounded-lg border border-line bg-surface p-1">
+    <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
       {TIMEFRAMES.map((tf) => (
         <button
           key={tf}
           type="button"
           onClick={() => onChange(tf)}
           className={cn(
-            'rounded-md px-3 py-1.5 font-mono text-xs font-medium transition-colors',
-            tf === active ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
+            'rounded-md px-2.5 py-1 font-mono text-xs font-medium tracking-tight transition-all',
+            tf === active ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
           )}
         >
           {tf}

@@ -7,14 +7,14 @@ import Link from 'next/link';
  *  live) — every tab must preserve which chain's version of this token is being viewed. */
 export function TimeframeTabs({ chain, address, active }: { chain: string; address: string; active: Timeframe }) {
   return (
-    <div className="inline-flex rounded-lg border border-line bg-surface p-1">
+    <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
       {TIMEFRAMES.map((tf) => (
         <Link
           key={tf}
           href={`/market/${chain}/${address}?timeframe=${tf}`}
           className={cn(
-            'rounded-md px-3 py-1.5 font-mono text-xs font-medium transition-colors',
-            tf === active ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
+            'rounded-md px-2.5 py-1 font-mono text-xs font-medium tracking-tight transition-all',
+            tf === active ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
           )}
         >
           {tf}

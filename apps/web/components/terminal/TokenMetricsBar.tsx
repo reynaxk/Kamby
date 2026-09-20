@@ -18,15 +18,15 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
   const display = market.symbol ?? market.name ?? '?';
 
   return (
-    <Surface variant="glass" className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+    <Surface variant="glass" className="flex flex-wrap items-center gap-x-5 gap-y-1.5 px-3.5 py-2.5">
       <div className="flex items-center gap-2">
         <span
           aria-hidden
-          className="flex h-7 w-7 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent"
+          className="flex h-6 w-6 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent"
         >
           {display.slice(0, 1).toUpperCase()}
         </span>
-        <span className="font-display text-base font-bold text-ink-900">${market.symbol ?? display}</span>
+        <span className="font-display text-sm font-bold tracking-tight text-ink-900">${market.symbol ?? display}</span>
       </div>
       <Metric label="Price" value={formatPrice(market.priceUsd)} />
       <Metric label="Mkt Cap" value={formatCompactUsd(market.marketCapUsd)} />
@@ -44,7 +44,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">{label}</div>
-      <div className="font-mono text-sm font-semibold text-ink-900">{value}</div>
+      <div className="font-mono text-sm font-semibold tracking-tight tabular-nums text-ink-900">{value}</div>
     </div>
   );
 }

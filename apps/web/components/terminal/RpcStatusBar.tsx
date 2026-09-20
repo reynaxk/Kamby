@@ -52,7 +52,7 @@ export function RpcStatusBar() {
       {ping.status === 'checking' && <span>Connecting…</span>}
       {ping.status === 'ok' && (
         <span>
-          RPC <span className={color}>{ping.ms}ms</span>
+          RPC <span className={cn(color, 'tabular-nums')}>{ping.ms}ms</span>
         </span>
       )}
       {ping.status === 'down' && <span className={color}>RPC unreachable</span>}

@@ -12,7 +12,8 @@ import {
   type TokenTraderConnection,
   type TrendingToken,
 } from '@kamby/domain';
-import { Surface } from '@kamby/ui';
+import { cn, Surface } from '@kamby/ui';
+import { LayoutGrid } from 'lucide-react';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { DataHub } from '@/components/terminal/DataHub';
@@ -24,10 +25,13 @@ import { fetchTokenTraders } from '@/lib/discovery-client';
 import { fetchTokenHistory } from '@/lib/market-client';
 import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
+import { GridTerminalCell } from './GridTerminalCell';
 import { InlineTimeframeTabs } from './InlineTimeframeTabs';
 import { TokenTradersPanel } from './TokenTradersPanel';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
+type GridMode = 1 | 4 | 6;
+const GRID_MODES: GridMode[] = [1, 4, 6];
 
 function chainIdFor(market: MarketSummary): number {
   const slug = slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
@@ -36,6 +40,23 @@ function chainIdFor(market: MarketSummary): number {
 
 function marketKey(market: MarketSummary): string {
   return `${market.chainIdentifier}:${market.tokenAddress}`;
+}
+
+/** The pool every grid cell's own independent selector picks from — Markets/Trending/
+ *  Movers/Volume, deduplicated by chain+address. Zero new fetches: these are the same
+ *  lists the single-terminal's left rail already renders from. */
+function dedupeMarkets(lists: MarketSummary[][]): MarketSummary[] {
+  const seen = new Set<string>();
+  const result: MarketSummary[] = [];
+  for (const list of lists) {
+    for (const market of list) {
+      const key = marketKey(market);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(market);
+    }
+  }
+  return result;
 }
 
 /**
@@ -52,6 +73,15 @@ function marketKey(market: MarketSummary): string {
  * the client-safe lib/market-client.ts / lib/social-client.ts / lib/discovery-client.ts
  * functions, each independently cancelled/guarded against out-of-order responses (the same
  * pattern TrenchesPanel.tsx already uses for its own category switches).
+ *
+ * Multi-Chart Grid (1/4/6-up): a real multi-monitor trading matrix, not a shared view —
+ * flipping to 4-up or 6-up swaps this single terminal out for N independent
+ * GridTerminalCell instances, each owning its own token selection, candles fetch, and full
+ * trade flow. Deliberately scoped down from the single-terminal view: no left rail (each
+ * cell has its own compact selector instead — see CellTokenSelector), no activity feed, no
+ * token-traders panel — there isn't room for six of each at once, and those stay a
+ * 1-up-only feature (switch back for deep research on one token). 1-up mode is exactly
+ * today's unmodified single-terminal layout.
  */
 export function DiscoverTerminal({
   ranked,
@@ -74,6 +104,9 @@ export function DiscoverTerminal({
   initialActivity: SocialActivity[];
   initialTraders: TokenTraderConnection;
 }) {
+  const [gridMode, setGridMode] = useState<GridMode>(1);
+  const availableMarkets = dedupeMarkets([ranked, trending.map((t) => t.market), movers, byVolume]);
+
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
   const [timeframe, setTimeframe] = useState<Timeframe>(initialTimeframe);
   const [tradeStep, setTradeStep] = useState<TradePanelStep>('form');
@@ -167,8 +200,54 @@ export function DiscoverTerminal({
   const chainId = selected ? chainIdFor(selected) : null;
   const canTrade = selected !== null && selected.decimals !== null && selected.quoteDecimals !== null && chainId !== null;
 
+  const layoutToggle = (
+    <div className="mb-3 flex items-center justify-end gap-2">
+      <LayoutGrid className="h-3.5 w-3.5 text-ink-400" aria-hidden />
+      <div className="inline-flex rounded-lg border border-line bg-surface p-1">
+        {GRID_MODES.map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setGridMode(mode)}
+            aria-pressed={gridMode === mode}
+            className={cn(
+              'rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors',
+              gridMode === mode ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
+            )}
+          >
+            {mode}-up
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (gridMode !== 1) {
+    const cellDefaults = availableMarkets.slice(0, gridMode);
+    const gridColsClass = gridMode === 4 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 xl:grid-cols-3';
+    const cellHeightClass = gridMode === 4 ? 'h-[620px]' : 'h-[560px]';
+    return (
+      <div>
+        {layoutToggle}
+        <div className={cn('grid grid-cols-1 gap-3', gridColsClass)}>
+          {Array.from({ length: gridMode }).map((_, i) => (
+            <div key={i} className={cellHeightClass}>
+              <GridTerminalCell
+                availableMarkets={availableMarkets}
+                initialMarket={cellDefaults[i] ?? null}
+                compact={gridMode === 6}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
+    <div>
+      {layoutToggle}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
       <div className="h-[520px] lg:h-[calc(100vh-8rem)]">
         <DiscoverTokenList
           ranked={ranked}
@@ -260,6 +339,7 @@ export function DiscoverTerminal({
             <TokenTradersPanel connection={traders} />
           </div>
         )}
+      </div>
       </div>
     </div>
   );

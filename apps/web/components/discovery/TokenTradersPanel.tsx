@@ -17,9 +17,9 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {(connection.uniqueTraders24h !== null || connection.watcherCount > 0) && (
-        <p className="font-mono text-xs text-ink-400">
+        <p className="font-mono text-xs tabular-nums text-ink-400">
           {connection.uniqueTraders24h !== null && (
             <>
               <span className="font-semibold text-ink-900">{connection.uniqueTraders24h}</span>{' '}
@@ -37,15 +37,15 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
       )}
 
       <div>
-        <h3 className="mb-3 font-mono text-xs uppercase tracking-wide text-ink-400">
+        <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">
           Recently active
         </h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {connection.recentTraders.map((trader) => (
             <Link
               key={trader.address}
               href={`/trader/${trader.address}`}
-              className="flex items-center justify-between gap-3 rounded-lg border border-line p-3 hover:border-accent/50 hover:bg-surface-raised"
+              className="flex items-center justify-between gap-3 rounded-lg border border-line p-2.5 transition-all hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent"
             >
               <TraderIdentity
                 address={trader.address}
@@ -53,7 +53,7 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
                 avatarUrl={trader.avatarUrl}
                 size="sm"
               />
-              <time className="shrink-0 font-mono text-[0.65rem] text-ink-400" suppressHydrationWarning>
+              <time className="shrink-0 font-mono text-[0.65rem] tabular-nums text-ink-400" suppressHydrationWarning>
                 {formatRelativeTime(trader.lastTradeAt)}
               </time>
             </Link>
@@ -63,15 +63,15 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
 
       {connection.activeTraders.length > 0 && (
         <div>
-          <h3 className="mb-3 font-mono text-xs uppercase tracking-wide text-ink-400">
+          <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">
             Most active today
           </h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {connection.activeTraders.map((trader) => (
               <Link
                 key={trader.address}
                 href={`/trader/${trader.address}`}
-                className="flex items-center justify-between gap-3 rounded-lg border border-line p-3 hover:border-accent/50 hover:bg-surface-raised"
+                className="flex items-center justify-between gap-3 rounded-lg border border-line p-2.5 transition-all hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent"
               >
                 <TraderIdentity
                   address={trader.address}
@@ -79,7 +79,7 @@ export function TokenTradersPanel({ connection }: { connection: TokenTraderConne
                   avatarUrl={trader.avatarUrl}
                   size="sm"
                 />
-                <span className="shrink-0 font-mono text-[0.65rem] text-ink-400">
+                <span className="shrink-0 font-mono text-[0.65rem] tabular-nums text-ink-400">
                   {trader.tradeCount24h} trades
                 </span>
               </Link>

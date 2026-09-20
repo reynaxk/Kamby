@@ -56,15 +56,15 @@ export function DiscoverTokenList({
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex rounded-2xl border border-line bg-surface">
+      <div className="flex rounded-xl border border-line bg-surface p-0.5">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
             className={cn(
-              'flex-1 rounded-2xl px-1.5 py-2 font-display text-[0.6rem] font-bold uppercase tracking-wide transition-colors',
-              tab === t.id ? 'bg-accent/10 text-accent' : 'text-ink-400 hover:text-ink-600',
+              'flex-1 rounded-lg px-1.5 py-1.5 font-display text-[0.6rem] font-bold uppercase tracking-wide transition-all',
+              tab === t.id ? 'bg-accent/10 text-accent shadow-glow-accent' : 'text-ink-400 hover:text-ink-600',
             )}
           >
             {t.label}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSignTypedData } from '@privy-io/react-auth';
 import { Button, cn } from '@kamby/ui';
 import { CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
+import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, X, XCircle } from 'lucide-react';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
@@ -99,6 +100,14 @@ function withGasBuffer(gas: string | null | undefined): bigint | undefined {
  * approval stands — accepted here as the standard, well-understood cost of that speedup.
  */
 const MAX_UINT256 = 2n ** 256n - 1n;
+
+/** Shared spring physics for every step-to-step transition in this panel — one tuned feel
+ *  across the whole flow rather than a different ease per screen. Entrance-only (no
+ *  AnimatePresence/exit tracking): the old step's content simply unmounts the instant the
+ *  new one's key changes, which keeps this safe under jsdom's limited animation-frame
+ *  support (an exit animation stuck mid-flight would otherwise leave two panels' worth of
+ *  text/roles in the DOM at once — a real risk for this file's 15 existing tests). */
+const STEP_SPRING = { type: 'spring', stiffness: 420, damping: 32, mass: 0.8 } as const;
 
 /**
  * The one shared trade flow every entry point (token page, activity "Trade" action) opens
@@ -499,7 +508,7 @@ export function TradePanel({
 
   if (!isConnected) {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade" onClose={onClose} animKey="not-connected">
         <p className="font-body text-sm text-ink-600">Connect a wallet to trade — Kamby never holds your funds or signs on your behalf.</p>
         <ConnectWalletButton expectedChainId={chainId} />
       </Panel>
@@ -508,7 +517,7 @@ export function TradePanel({
 
   if (!onCorrectChain) {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade" onClose={onClose} animKey="wrong-chain">
         <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade — it needs to be on {chainName}.</p>
         <ConnectWalletButton expectedChainId={chainId} />
       </Panel>
@@ -517,7 +526,7 @@ export function TradePanel({
 
   if (walletVerification.status !== 'verified') {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade" onClose={onClose} animKey="verify">
         <p className="font-body text-sm text-ink-600">Verify this wallet with a free signature (no gas, no transaction) before trading with it.</p>
         <Button
           type="button"
@@ -537,7 +546,7 @@ export function TradePanel({
 
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade" onClose={onClose} animKey={step}>
         <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} />
         {quote?.feeUnsignedTx && transaction && (
           <FeeTransferSection
@@ -562,7 +571,7 @@ export function TradePanel({
   if (step === 'record-failed') {
     const explorerUrl = pendingHash ? explorerTxUrl(chainId, pendingHash) : null;
     return (
-      <Panel title="Trade" onClose={onClose}>
+      <Panel title="Trade" onClose={onClose} animKey="record-failed">
         <div className="space-y-3 text-center">
           <p className="font-body text-sm font-semibold text-down">
             Your trade was sent to the network, but we couldn&apos;t record it.
@@ -586,7 +595,7 @@ export function TradePanel({
   if (step === 'review' || step === 'approving' || step === 'signing') {
     if (!quote) return null;
     return (
-      <Panel title="Review trade" onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined}>
+      <Panel title="Review trade" onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined} animKey="review">
         <QuoteSummary quote={quote} />
         {quote.consentTypedData ? (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
@@ -644,7 +653,7 @@ export function TradePanel({
   // --- Form step ---------------------------------------------------------------------------
 
   return (
-    <Panel title="Trade" onClose={onClose}>
+    <Panel title="Trade" onClose={onClose} animKey="form">
       <div className="flex rounded-lg bg-surface-raised p-1">
         {(['BUY', 'SELL'] as const).map((option) => (
           <button
@@ -655,15 +664,27 @@ export function TradePanel({
               setAmount('');
             }}
             className={cn(
-              'flex-1 rounded-md py-1.5 font-body text-sm font-semibold transition-colors',
-              // bg-up text-black, not text-white — same pairing as Button's own `buy`
-              // variant: Void's `up` is a bright neon green that white text can't sit on
-              // readably (~1.3:1 contrast). `down` stays white — its Void value is bright
-              // but saturated enough to still read at ~3.9:1.
-              side === option ? (option === 'BUY' ? 'bg-up text-black' : 'bg-down text-white') : 'text-ink-600',
+              'relative flex-1 rounded-md py-1.5 font-body text-sm font-semibold transition-colors',
+              side !== option && 'text-ink-600',
             )}
           >
-            {option === 'BUY' ? 'Buy' : 'Sell'}
+            {side === option && (
+              <motion.div
+                layoutId="trade-side-indicator"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                // bg-up text-black, not text-white — same pairing as Button's own `buy`
+                // variant: Void's `up` is a bright neon green that white text can't sit on
+                // readably (~1.3:1 contrast). `down` stays white — its Void value is bright
+                // but saturated enough to still read at ~3.9:1.
+                className={cn(
+                  'absolute inset-0 rounded-md',
+                  option === 'BUY' ? 'bg-up shadow-glow-up' : 'bg-down shadow-glow-down',
+                )}
+              />
+            )}
+            <span className={cn('relative', side === option && (option === 'BUY' ? 'text-black' : 'text-white'))}>
+              {option === 'BUY' ? 'Buy' : 'Sell'}
+            </span>
           </button>
         ))}
       </div>
@@ -696,9 +717,24 @@ export function TradePanel({
   );
 }
 
-function Panel({ title, onClose, onBack, children }: { title: string; onClose?: () => void; onBack?: () => void; children: React.ReactNode }) {
+function Panel({
+  title,
+  onClose,
+  onBack,
+  animKey,
+  children,
+}: {
+  title: string;
+  onClose?: () => void;
+  onBack?: () => void;
+  /** Distinguishes visually-distinct screens (form/review/post-trade/record-failed) so each
+   *  one springs in once, while sub-state changes within the same screen (e.g. review ->
+   *  approving -> signing) share a key and never re-trigger the entrance animation. */
+  animKey: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onBack && (
@@ -714,7 +750,15 @@ function Panel({ title, onClose, onBack, children }: { title: string; onClose?: 
           </button>
         )}
       </div>
-      {children}
+      <motion.div
+        key={animKey}
+        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={STEP_SPRING}
+        className="space-y-2.5"
+      >
+        {children}
+      </motion.div>
     </div>
   );
 }

@@ -34,8 +34,8 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
             type="button"
             onClick={() => setTab(t.id)}
             className={cn(
-              'px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide transition-colors',
-              tab === t.id ? 'border-b-2 border-accent text-ink-900' : 'text-ink-400 hover:text-ink-600',
+              'px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide transition-all',
+              tab === t.id ? 'border-b-2 border-accent text-ink-900 shadow-[inset_0_-8px_12px_-10px_rgb(var(--kamby-accent)/0.5)]' : 'text-ink-400 hover:text-ink-600',
             )}
           >
             {t.label}
@@ -51,19 +51,19 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
               <tbody>
                 {activity.map((row) => (
                   <tr key={row.id} className="border-b border-line/50">
-                    <td className="px-3 py-1.5 text-ink-400" suppressHydrationWarning>
+                    <td className="px-2.5 py-1 tracking-tight text-ink-400" suppressHydrationWarning>
                       {formatRelativeTime(row.timestamp)}
                     </td>
-                    <td className="px-3 py-1.5 text-ink-600">
+                    <td className="px-2.5 py-1 tracking-tight text-ink-600">
                       {row.trader.address ? truncateAddress(row.trader.address) : 'Unknown'}
                     </td>
-                    <td className={cn('px-3 py-1.5 font-semibold', row.action === 'BUY' ? 'text-up' : 'text-down')}>
+                    <td className={cn('px-2.5 py-1 font-semibold', row.action === 'BUY' ? 'text-up' : 'text-down')}>
                       {row.action}
                     </td>
-                    <td className="px-3 py-1.5 text-right text-ink-900">
+                    <td className="px-2.5 py-1 text-right tabular-nums text-ink-900">
                       ${row.amountUsd.toLocaleString('en-US')}
                     </td>
-                    <td className="px-3 py-1.5 text-ink-400">{truncateAddress(row.txHash)}</td>
+                    <td className="px-2.5 py-1 tracking-tight text-ink-400">{truncateAddress(row.txHash)}</td>
                   </tr>
                 ))}
               </tbody>
