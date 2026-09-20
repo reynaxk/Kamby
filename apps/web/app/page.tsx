@@ -11,6 +11,7 @@ import { ActivityCard } from '@/components/social/ActivityCard';
 import { TopTraders } from '@/components/social/TopTraders';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { DiscoverTerminal } from '@/components/discovery/DiscoverTerminal';
+import { FreshCoinsBubbles } from '@/components/discovery/FreshCoinsBubbles';
 import { PersonalizedSection } from '@/components/discovery/PersonalizedSection';
 import { RisingSection } from '@/components/discovery/RisingSection';
 import { SavedSearches } from '@/components/discovery/SavedSearches';
@@ -126,6 +127,19 @@ export default async function DiscoverPage({
         </div>
       )}
       <main className="mx-auto max-w-6xl px-6 py-10">
+        {!search && (
+          <section className="mb-12">
+            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">New coins</h2>
+            <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
+              Freshly launched Pump.fun tokens, sized by how close each is to graduating. Click one to
+              open it on Solscan.
+            </p>
+            <div className="mt-5">
+              <FreshCoinsBubbles />
+            </div>
+          </section>
+        )}
+
         {!search && <WhatsMissedSection />}
 
         {search && (
