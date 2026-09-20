@@ -4,9 +4,10 @@ import { useState } from 'react';
 import type { MarketSummary, TrendingToken } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TrenchesPanel } from '@/components/terminal/TrenchesPanel';
+import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
 
-type Tab = 'markets' | 'trending' | 'movers' | 'volume' | 'trenches';
+type Tab = 'markets' | 'trending' | 'movers' | 'volume' | 'trenches' | 'leaderboard';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'markets', label: 'Markets' },
@@ -14,6 +15,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'movers', label: 'Movers' },
   { id: 'volume', label: 'Volume' },
   { id: 'trenches', label: 'Trenches' },
+  { id: 'leaderboard', label: 'Ranks' },
 ];
 
 /**
@@ -47,7 +49,7 @@ export function DiscoverTokenList({
   selectionDisabled: boolean;
 }) {
   const [tab, setTab] = useState<Tab>('markets');
-  const rowsFor: Record<Exclude<Tab, 'trenches'>, MarketSummary[]> = {
+  const rowsFor: Record<Exclude<Tab, 'trenches' | 'leaderboard'>, MarketSummary[]> = {
     markets: ranked,
     trending: trending.map((t) => t.market),
     movers,
@@ -75,6 +77,10 @@ export function DiscoverTokenList({
       {tab === 'trenches' ? (
         <div className="min-h-0 flex-1">
           <TrenchesPanel />
+        </div>
+      ) : tab === 'leaderboard' ? (
+        <div className="min-h-0 flex-1">
+          <LeaderboardSidebar />
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface">

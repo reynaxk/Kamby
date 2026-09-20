@@ -1,6 +1,6 @@
 'use client';
 
-import type { SocialActivity } from '@kamby/domain';
+import type { Leaderboard, PnlWindow, SocialActivity } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**
@@ -61,6 +61,16 @@ export interface ActivityPage {
 /** Client-safe read for the live feed's "catch up since my last item" fetch — the same
  *  endpoint lib/social-api.ts's server-side fetchGlobalActivity calls, just from the
  *  browser (unauthenticated reads work fine without a session). */
+/** Client-side counterpart to lib/social-api.ts's server-only fetchLeaderboard — needed so
+ *  a sidebar embedded in a client component (DiscoverTerminal) can switch windows (24h/7d/
+ *  30d) without a full page navigation, the same way the standalone /leaderboard page does
+ *  via its window searchParam. */
+export async function fetchLeaderboard(window: PnlWindow, limit = 25): Promise<Leaderboard> {
+  const res = await fetch(`${API_BASE}/v1/social/leaderboard?window=${window}&limit=${limit}`);
+  if (!res.ok) throw new Error(`Failed to fetch leaderboard (${res.status})`);
+  return res.json();
+}
+
 export async function fetchLatestActivity(params: { cursor?: string; limit?: number; tokenAddress?: string }): Promise<ActivityPage> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);

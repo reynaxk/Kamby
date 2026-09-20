@@ -57,6 +57,13 @@ module.exports = {
           '0%, 100%': { boxShadow: '0 0 0 1px rgb(var(--kamby-accent) / 0.4), 0 0 24px -4px rgb(var(--kamby-accent) / 0.35)' },
           '50%': { boxShadow: '0 0 0 1px rgb(var(--kamby-accent) / 0.15), 0 0 8px -4px rgb(var(--kamby-accent) / 0.1)' },
         },
+        // Translates a track built from the same content duplicated twice, exactly -50%
+        // (one full copy's width) — the loop point is invisible since copy 2 is already
+        // sitting where copy 1 started.
+        marquee: {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         // CSS-only entrance for places that don't want a 'use client' + Framer Motion
@@ -65,6 +72,9 @@ module.exports = {
         // Reserved for a genuinely in-progress state (an order actually in flight) — never
         // idle/ambient decoration.
         'glow-pulse': 'glowPulse 1.6s ease-in-out infinite',
+        // The TickerBar's continuous scroll — unlike glow-pulse, ongoing motion IS this
+        // component's actual content mechanism, not ambient decoration on top of it.
+        marquee: 'marquee 40s linear infinite',
       },
     },
   },

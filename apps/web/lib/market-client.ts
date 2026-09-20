@@ -1,6 +1,6 @@
 'use client';
 
-import type { Candle, Timeframe } from '@kamby/domain';
+import type { Candle, DiscoverSort, MarketSummary, Timeframe } from '@kamby/domain';
 import { API_BASE } from './session-client';
 
 /**
@@ -17,5 +17,18 @@ export async function fetchTokenHistory(address: string, timeframe: Timeframe, c
   const res = await fetch(`${API_BASE}/v1/market/tokens/${encodeURIComponent(address)}/history?${query.toString()}`);
   if (res.status === 404) return [];
   if (!res.ok) throw new Error(`Failed to fetch candles (${res.status})`);
+  return res.json();
+}
+
+/** Client-safe counterpart to lib/market-api.ts's fetchDiscoverMarkets — added for the
+ *  app-wide bottom TickerBar (components/layout/TickerBar.tsx), which polls from the
+ *  browser since it renders in the root layout, outside any page's server-fetched props. */
+export async function fetchDiscoverMarkets(params: { sort?: DiscoverSort; limit?: number } = {}): Promise<MarketSummary[]> {
+  const query = new URLSearchParams();
+  if (params.sort) query.set('sort', params.sort);
+  if (params.limit) query.set('limit', String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  const res = await fetch(`${API_BASE}/v1/market/discover${suffix}`);
+  if (!res.ok) throw new Error(`Failed to fetch markets (${res.status})`);
   return res.json();
 }
