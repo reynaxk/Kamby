@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -23,12 +24,16 @@ import { AddressParamDto } from './dto/address-param.dto';
 import { ActivityQueryDto } from './dto/activity-query.dto';
 import { CursorQueryDto } from './dto/cursor-query.dto';
 import { LeaderboardQueryDto } from './dto/leaderboard-query.dto';
+import { SetThesisDto } from './dto/set-thesis.dto';
+import { ThesesQueryDto } from './dto/theses-query.dto';
 import { TraderSearchQueryDto } from './dto/trader-search-query.dto';
 import { ActivityService } from './services/activity.service';
 import { FollowService } from './services/follow.service';
 import { LeaderboardService } from './services/leaderboard.service';
 import { LikeService } from './services/like.service';
 import { RealtimeService, type ActivityPing, type SolanaActivityPing } from '../realtime/realtime.service';
+import { PositionService } from './services/position.service';
+import { ThesisService } from './services/thesis.service';
 import { TraderService } from './services/trader.service';
 import { TrendingService } from './services/trending.service';
 
@@ -43,6 +48,8 @@ export class SocialController {
     private readonly activity: ActivityService,
     private readonly follows: FollowService,
     private readonly likes: LikeService,
+    private readonly positions: PositionService,
+    private readonly theses: ThesisService,
     private readonly traders: TraderService,
     private readonly trending: TrendingService,
     private readonly realtime: RealtimeService,
@@ -226,5 +233,29 @@ export class SocialController {
   async unfollow(@Param() params: AddressParamDto, @CurrentUser() user: SessionUser) {
     await this.follows.unfollow(user.id, params.address);
     return { following: false };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('positions')
+  getMyPositions(@CurrentUser() user: SessionUser) {
+    return this.positions.getMine(user.id);
+  }
+
+  @Get('tokens/:address/theses')
+  getTheses(@Param('address') address: string, @Query() query: ThesesQueryDto) {
+    return this.theses.getForToken(query.chainId ?? DEFAULT_CHAIN_ID, address, query.limit);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @Post('tokens/:address/thesis')
+  setThesis(
+    @Param('address') address: string,
+    @Query() query: ThesesQueryDto,
+    @Body() body: SetThesisDto,
+    @CurrentUser() user: SessionUser,
+  ) {
+    return this.theses.setMine(user.id, query.chainId ?? DEFAULT_CHAIN_ID, address, body.text);
   }
 }

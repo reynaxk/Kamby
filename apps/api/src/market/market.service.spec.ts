@@ -6,7 +6,7 @@ import { WatchlistService } from './watchlist.service';
 jest.mock('@kamby/db', () => ({
   prisma: {
     tokenMarket: { findFirst: jest.fn() },
-    swap: { findMany: jest.fn(), groupBy: jest.fn() },
+    swap: { findMany: jest.fn(), groupBy: jest.fn(), count: jest.fn() },
     wallet: { findMany: jest.fn() },
     tokenWatch: { count: jest.fn() },
     $queryRaw: jest.fn(),
@@ -105,6 +105,7 @@ describe('MarketService — chain scoping (2026-09-15 chainId/Chain.id mismatch 
     beforeEach(() => {
       (mockedPrisma.swap.findMany as jest.Mock).mockResolvedValue([]);
       (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([]);
+      (mockedPrisma.swap.count as jest.Mock).mockResolvedValue(0);
       (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([]);
       (mockedPrisma.tokenWatch.count as jest.Mock).mockResolvedValue(0);
     });

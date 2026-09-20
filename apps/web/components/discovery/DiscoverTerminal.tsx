@@ -27,6 +27,7 @@ import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
 import { GridTerminalCell } from './GridTerminalCell';
 import { InlineTimeframeTabs } from './InlineTimeframeTabs';
+import { MyPositionsPanel } from './MyPositionsPanel';
 import { TokenTradersPanel } from './TokenTradersPanel';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
@@ -281,7 +282,7 @@ export function DiscoverTerminal({
             ) : candlesStatus === 'error' ? (
               <EmptyState title="Couldn't load this chart" detail="Try selecting the token again in a moment." />
             ) : (
-              <KambyChart candles={candles} />
+              <KambyChart candles={candles} trades={traders.recentLargeTrades} />
             )}
           </div>
         </Surface>
@@ -324,6 +325,8 @@ export function DiscoverTerminal({
           </Surface>
         )}
 
+        <MyPositionsPanel />
+
         {!selected ? (
           <div className="flex items-center rounded-2xl border border-line bg-surface">
             <EmptyState title="No token selected" />
@@ -336,7 +339,7 @@ export function DiscoverTerminal({
           </div>
         ) : (
           <div className="rounded-2xl border border-line bg-surface p-4">
-            <TokenTradersPanel connection={traders} />
+            <TokenTradersPanel connection={traders} tokenAddress={selected.tokenAddress} chainId={chainIdFor(selected)} />
           </div>
         )}
       </div>

@@ -67,6 +67,7 @@ model Token {
   marketsAsQuote    TokenMarket[]      @relation("TokenMarketQuoteToken")
   tokenLots         TokenLot[]
   realizedPnlEvents RealizedPnlEvent[]
+  tokenTheses       TokenThesis[]
 
   @@unique([chainId, contractAddress])
   @@index([chainId])
@@ -377,6 +378,7 @@ model User {
   savedSearches           SavedSearch[]
   tokenLots               TokenLot[]
   realizedPnlEvents       RealizedPnlEvent[]
+  tokenTheses             TokenThesis[]
 
   @@map("users")
 }
@@ -864,6 +866,37 @@ model RealizedPnlEvent {
   @@unique([solanaSellTransactionId, lotId])
   @@index([userId, confirmedAt])
   @@map("realized_pnl_events")
+}
+
+/// A trader's own short note on why they're holding a token — shown alongside their
+/// position in the token's Holders table. One thesis per user per token, editable in
+/// place (a plain upsert, not a history) — a live opinion, not an append-only ledger like
+/// TokenLot/RealizedPnlEvent above. Same exactly-one-of-evmTokenId/solanaMint convention as
+/// TokenLot, keyed by Token (not TokenMarket) for the same reason given there: a thesis is
+/// about the token, not one specific pool.
+model TokenThesis {
+  id     String      @id @default(uuid())
+  userId String      @map("user_id")
+  chain  WalletChain
+
+  evmTokenId String? @map("evm_token_id")
+  solanaMint String? @map("solana_mint")
+
+  /// Capped app-side before it ever reaches this column — see CreateThesisSchema in
+  /// @kamby/domain (280 chars, matching the UI's own limit).
+  text String @db.VarChar(280)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evmToken Token? @relation(fields: [evmTokenId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chain, evmTokenId])
+  @@unique([userId, chain, solanaMint])
+  @@index([chain, evmTokenId])
+  @@index([chain, solanaMint])
+  @@map("token_theses")
 }
 
 // ---------------------------------------------------------------------------------------

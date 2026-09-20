@@ -1,6 +1,7 @@
 import type { Candle, MarketSummary, SocialActivity, Timeframe, TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { TimeframeTabs } from '@/components/market/TimeframeTabs';
+import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
 import { DataHub } from './DataHub';
 import { KambyChart } from './KambyChart';
@@ -71,7 +72,7 @@ export function KambyTerminal({
                 <TimeframeTabs chain={chain} address={market.tokenAddress} active={timeframe} />
               </div>
               <div className="min-h-0 flex-1">
-                <KambyChart candles={candles} />
+                <KambyChart candles={candles} trades={traders.recentLargeTrades} />
               </div>
             </Surface>
             <div className="h-[300px]">
@@ -98,8 +99,9 @@ export function KambyTerminal({
                 <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
               </Surface>
             )}
+            <MyPositionsPanel />
             <div className="rounded-2xl border border-line bg-surface p-4">
-              <TokenTradersPanel connection={traders} />
+              <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
             </div>
           </div>
         </div>

@@ -52,6 +52,10 @@ describe('fetchTokenTraders', () => {
       activeTraders: [],
       recentLargeTrades: [],
       watcherCount: 0,
+      buyCount24h: 0,
+      sellCount24h: 0,
+      buyerCount24h: 0,
+      sellerCount24h: 0,
     });
   });
 

@@ -98,7 +98,7 @@ export class MarketService {
 
     const since = new Date(Date.now() - TOKEN_TRADER_LOOKBACK_HOURS * 60 * 60_000);
 
-    const [recentRows, activeGrouped, largeTradeRows, watcherCount] = await Promise.all([
+    const [recentRows, activeGrouped, largeTradeRows, watcherCount, buyCount24h, sellCount24h, buyerGrouped, sellerGrouped] = await Promise.all([
       // distinct + orderBy gives the N most-recently-active *distinct* traders in one query.
       prisma.swap.findMany({
         where: { tokenMarketId: market.id, traderAddress: { not: null } },
@@ -126,6 +126,19 @@ export class MarketService {
         include: ACTIVITY_INCLUDE,
       }),
       this.watchlist.getWatcherCount(market.id),
+      // Buy/sell counts + distinct buyer/seller counts, same 24h window and the identical
+      // count/groupBy pattern TraderService.getProfile already proved out for a trader's
+      // own stats — just filtered by tokenMarketId instead of traderAddress.
+      prisma.swap.count({ where: { tokenMarketId: market.id, side: 'buy', blockTimestamp: { gte: since } } }),
+      prisma.swap.count({ where: { tokenMarketId: market.id, side: 'sell', blockTimestamp: { gte: since } } }),
+      prisma.swap.groupBy({
+        by: ['traderAddress'],
+        where: { tokenMarketId: market.id, side: 'buy', traderAddress: { not: null }, blockTimestamp: { gte: since } },
+      }),
+      prisma.swap.groupBy({
+        by: ['traderAddress'],
+        where: { tokenMarketId: market.id, side: 'sell', traderAddress: { not: null }, blockTimestamp: { gte: since } },
+      }),
     ]);
 
     const activeWallets =
@@ -171,6 +184,10 @@ export class MarketService {
         toSocialActivity(row, largeTradeLikeCounts.get(row.id) ?? 0, null),
       ),
       watcherCount,
+      buyCount24h,
+      sellCount24h,
+      buyerCount24h: buyerGrouped.length,
+      sellerCount24h: sellerGrouped.length,
     };
   }
 

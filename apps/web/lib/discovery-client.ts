@@ -4,6 +4,8 @@ import type {
   PersonalizedFeedPage,
   PersonalizedToken,
   SavedSearchDto,
+  TokenPosition,
+  TokenThesis,
   TokenTraderConnection,
   WhatsMissed,
 } from '@kamby/domain';
@@ -100,6 +102,10 @@ const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
   activeTraders: [],
   recentLargeTrades: [],
   watcherCount: 0,
+  buyCount24h: 0,
+  sellCount24h: 0,
+  buyerCount24h: 0,
+  sellerCount24h: 0,
 };
 
 /**
@@ -118,5 +124,39 @@ export async function fetchTokenTraders(address: string, chainId: number, limit 
   const res = await fetch(`${API_BASE}/v1/market/tokens/${encodeURIComponent(address)}/traders?${query.toString()}`);
   if (res.status === 404) return EMPTY_TOKEN_TRADER_CONNECTION;
   if (!res.ok) throw new Error(`Failed to fetch token traders (${res.status})`);
+  return res.json();
+}
+
+/** An unauthenticated read, same reasoning as fetchTokenTraders above — viewing a token's
+ *  theses must never itself create a session. */
+export async function fetchTheses(address: string, chainId: number, limit = 20): Promise<TokenThesis[]> {
+  const query = new URLSearchParams({ chainId: String(chainId), limit: String(limit) });
+  const res = await fetch(`${API_BASE}/v1/social/tokens/${encodeURIComponent(address)}/theses?${query.toString()}`);
+  if (!res.ok) throw new Error(`Failed to fetch theses (${res.status})`);
+  return res.json();
+}
+
+/** Writing a thesis is the one genuinely authenticated action here — authedFetch creates a
+ *  session transparently if this browser doesn't have one yet, same as followTrader in
+ *  social-client.ts. */
+export async function setMyThesis(address: string, chainId: number, text: string): Promise<TokenThesis> {
+  const query = new URLSearchParams({ chainId: String(chainId) });
+  const res = await authedFetch(`/social/tokens/${encodeURIComponent(address)}/thesis?${query.toString()}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  await expectOk(res, 'set thesis');
+  return res.json();
+}
+
+/** The signed-in user's own open positions — see PositionService.getMine's own doc comment
+ *  for exactly what "open" means. Returns an empty list for an unauthenticated browser
+ *  rather than lazily starting a session, same reasoning as fetchPersonalizedDiscovery
+ *  above: viewing the terminal must never itself create a session. */
+export async function fetchMyPositions(): Promise<TokenPosition[]> {
+  if (!hasStoredSession()) return [];
+  const res = await authedFetch('/social/positions');
+  if (!res.ok) throw new Error(`Failed to fetch positions (${res.status})`);
   return res.json();
 }

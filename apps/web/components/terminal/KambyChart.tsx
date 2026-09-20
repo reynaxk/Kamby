@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { CandlestickSeries, ColorType, createChart, LineStyle, type IChartApi, type UTCTimestamp } from 'lightweight-charts';
-import type { Candle } from '@kamby/domain';
+import type { Candle, SocialActivity } from '@kamby/domain';
 import { EmptyState } from '@/components/market/EmptyState';
+import { ChartTraderMarkers } from './chartTraderMarkers';
 
 /** Reads a resolved `--kamby-*` token as an `rgb(...)` string lightweight-charts' canvas
  *  renderer can use directly — reading the actual computed value (rather than duplicating
@@ -34,7 +35,7 @@ function toSeriesData(candles: Candle[]) {
  * longer maintained in parallel. `candles` is a required prop — no hidden mock fallback —
  * so every call site stays honest about whether what it's showing is real.
  */
-export function KambyChart({ candles }: { candles: Candle[] }) {
+export function KambyChart({ candles, trades = [] }: { candles: Candle[]; trades?: SocialActivity[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,6 +82,13 @@ export function KambyChart({ candles }: { candles: Candle[] }) {
     series.setData(toSeriesData(candles));
     chart.timeScale().fitContent();
 
+    // See chartTraderMarkers.ts's own doc comment for why this needs the primitive API
+    // rather than the built-in setMarkers() — avatar images, not just colored shapes.
+    const traderMarkers = new ChartTraderMarkers();
+    series.attachPrimitive(traderMarkers);
+    traderMarkers.setColors(up, down);
+    traderMarkers.setTrades(trades);
+
     // The chart is canvas-rendered, so none of the CSS glow shadows used elsewhere in the
     // terminal can reach it — a saturated accent line + filled axis-label chip is the
     // realistic "glow" here, not a compromise.
@@ -108,7 +116,7 @@ export function KambyChart({ candles }: { candles: Candle[] }) {
       resizeObserver.disconnect();
       chart.remove();
     };
-  }, [candles]);
+  }, [candles, trades]);
 
   if (candles.length < 2) {
     return (

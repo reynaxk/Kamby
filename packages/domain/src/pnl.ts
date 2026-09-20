@@ -177,6 +177,31 @@ export const LeaderboardSchema = z.object({
 });
 export type Leaderboard = z.infer<typeof LeaderboardSchema>;
 
+/** One currently-open position — a user's remaining (unconsumed) TokenLot balance for one
+ *  token, decimals-adjusted, with unrealized PnL against the token's current market price.
+ *  EVM-only for now (see TokenThesisSchema's own scope note; positions follow the exact
+ *  same reasoning — the market price/liquidity this needs to value a position only exists
+ *  for EVM's TokenMarket today). `costBasisUsd` here is the *remaining* lots' cost basis
+ *  (proportional to what's left after any partial sells), not the original full-lot cost —
+ *  the same "remaining, not original" quantity every figure on this type reflects.
+ *  Closed-out positions (fully sold) aren't included here at all — see /leaderboard and
+ *  /trades for realized PnL and full trade history instead, which already cover that. */
+export const TokenPositionSchema = z.object({
+  tokenAddress: z.string(),
+  symbol: z.string().nullable(),
+  name: z.string().nullable(),
+  logoUrl: z.string().nullable(),
+  quantity: z.number().min(0),
+  costBasisUsd: z.number().min(0),
+  /** Null when the token's current price can't be honestly resolved (no market with a
+   *  priced pool yet) — never a stale or fabricated value. */
+  currentPriceUsd: z.number().nullable(),
+  currentValueUsd: z.number().nullable(),
+  unrealizedPnlUsd: z.number().nullable(),
+  unrealizedPnlPct: z.number().nullable(),
+});
+export type TokenPosition = z.infer<typeof TokenPositionSchema>;
+
 /** The exact millisecond-window lookback for each PnlWindow value — the single source of
  *  truth every `confirmedAt >= now() - X` query (leaderboard, trader profile) reads
  *  from, so "24h" can never quietly mean two different things in two different queries. */

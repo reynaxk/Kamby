@@ -259,6 +259,14 @@ export const TokenTraderConnectionSchema = z.object({
    *  keep discover/search pages to one cheap query). Never reveals which users are watching
    *  — see docs/PHASE6_RETENTION_SOCIAL.md#social-proof. */
   watcherCount: z.number().int().min(0),
+  /** 24h buy/sell split — real counts/distinct-trader counts off the same `Swap` rows
+   *  everything else on this connection reads, not scoped to Kamby-originated trades (see
+   *  MarketService.getTokenTraders). Never null: a market with zero swaps in the window
+   *  legitimately reports 0, same as tradeCount24h elsewhere on this schema. */
+  buyCount24h: z.number().int().min(0),
+  sellCount24h: z.number().int().min(0),
+  buyerCount24h: z.number().int().min(0),
+  sellerCount24h: z.number().int().min(0),
 });
 export type TokenTraderConnection = z.infer<typeof TokenTraderConnectionSchema>;
 

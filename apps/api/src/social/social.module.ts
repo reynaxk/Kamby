@@ -8,6 +8,8 @@ import { ActivityService } from './services/activity.service';
 import { FollowService } from './services/follow.service';
 import { LeaderboardService } from './services/leaderboard.service';
 import { LikeService } from './services/like.service';
+import { PositionService } from './services/position.service';
+import { ThesisService } from './services/thesis.service';
 import { TraderService } from './services/trader.service';
 import { TrendingService } from './services/trending.service';
 import { SocialController } from './social.controller';
@@ -37,7 +39,16 @@ import { SocialController } from './social.controller';
 @Module({
   imports: [IdentityModule, RealtimeModule, NotificationsModule, MarketModule, SolanaModule],
   controllers: [SocialController],
-  providers: [ActivityService, FollowService, LeaderboardService, LikeService, TraderService, TrendingService],
+  providers: [
+    ActivityService,
+    FollowService,
+    LeaderboardService,
+    LikeService,
+    PositionService,
+    ThesisService,
+    TraderService,
+    TrendingService,
+  ],
   exports: [ActivityService],
 })
 export class SocialModule {}

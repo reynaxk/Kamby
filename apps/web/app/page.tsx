@@ -32,6 +32,10 @@ const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
   activeTraders: [],
   recentLargeTrades: [],
   watcherCount: 0,
+  buyCount24h: 0,
+  sellCount24h: 0,
+  buyerCount24h: 0,
+  sellerCount24h: 0,
 };
 
 export const revalidate = 15;

@@ -14,3 +14,4 @@ export * from './trader-intelligence';
 export * from './retention';
 export * from './referral';
 export * from './pnl';
+export * from './thesis';

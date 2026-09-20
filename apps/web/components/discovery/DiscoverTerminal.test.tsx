@@ -13,7 +13,14 @@ const { fetchTokenHistoryMock, fetchLatestActivityMock, fetchTokenTradersMock } 
 
 vi.mock('@/lib/market-client', () => ({ fetchTokenHistory: fetchTokenHistoryMock }));
 vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivityMock }));
-vi.mock('@/lib/discovery-client', () => ({ fetchTokenTraders: fetchTokenTradersMock }));
+// hasStoredSession: () => false keeps MyPositionsPanel (rendered inside DiscoverTerminal)
+// in its real, honest "no session" early-return state rather than needing a second mock.
+// fetchTheses is stubbed too — TokenTradersPanel's own ThesisSection calls it on mount.
+vi.mock('@/lib/discovery-client', () => ({
+  fetchTokenTraders: fetchTokenTradersMock,
+  hasStoredSession: () => false,
+  fetchTheses: vi.fn().mockResolvedValue([]),
+}));
 
 // KambyChart (lightweight-charts, real <canvas> manipulation) and TradePanelCard
 // (wagmi/Privy) are exercised by their own dedicated test files — stubbed here so this file
@@ -62,6 +69,10 @@ const emptyTraders: TokenTraderConnection = {
   activeTraders: [],
   recentLargeTrades: [],
   watcherCount: 0,
+  buyCount24h: 0,
+  sellCount24h: 0,
+  buyerCount24h: 0,
+  sellerCount24h: 0,
 };
 
 const marketA = marketSummary({ tokenAddress: '0xaaaa000000000000000000000000000000000a', symbol: 'AAA' });
