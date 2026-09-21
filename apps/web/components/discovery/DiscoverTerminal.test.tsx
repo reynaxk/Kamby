@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { Candle, MarketSummary, TokenTraderConnection } from '@kamby/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as TradePanelCardModule from '@/components/terminal/TradePanelCard';
+import type * as WagmiModule from 'wagmi';
 import { DiscoverTerminal } from './DiscoverTerminal';
 
 const { fetchTokenHistoryMock, fetchLatestActivityMock, fetchTokenTradersMock } = vi.hoisted(() => ({
@@ -20,7 +21,7 @@ vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivity
 // even with TradePanelCard itself mocked below — something in the import graph still
 // touches the real module).
 vi.mock('wagmi', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('wagmi')>();
+  const actual = await importOriginal<typeof WagmiModule>();
   return { ...actual, useAccount: () => ({ address: undefined }) };
 });
 // hasStoredSession: () => false keeps MyPositionsPanel (rendered inside DiscoverTerminal)
