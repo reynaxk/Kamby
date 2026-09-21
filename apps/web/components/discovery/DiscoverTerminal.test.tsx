@@ -12,7 +12,17 @@ const { fetchTokenHistoryMock, fetchLatestActivityMock, fetchTokenTradersMock } 
 }));
 
 vi.mock('@/lib/market-client', () => ({ fetchTokenHistory: fetchTokenHistoryMock }));
-vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivityMock }));
+vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivityMock, checkFollowStatus: vi.fn().mockResolvedValue(false) }));
+// useChartOverlayFilter calls wagmi's useAccount directly (not through a mocked child
+// component like TradePanelCard's own wagmi usage), so it needs its own stub here —
+// no connected wallet in these tests, matching hasStoredSession: () => false below.
+// Keeps every other real wagmi export (lib/wagmi-config.ts's `http` etc. still need them,
+// even with TradePanelCard itself mocked below — something in the import graph still
+// touches the real module).
+vi.mock('wagmi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('wagmi')>();
+  return { ...actual, useAccount: () => ({ address: undefined }) };
+});
 // hasStoredSession: () => false keeps MyPositionsPanel (rendered inside DiscoverTerminal)
 // in its real, honest "no session" early-return state rather than needing a second mock.
 // fetchTheses is stubbed too — TokenTradersPanel's own ThesisSection calls it on mount.

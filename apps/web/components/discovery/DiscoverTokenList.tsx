@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import type { MarketSummary, TrendingToken } from '@kamby/domain';
 import { cn } from '@kamby/ui';
+import { EmptyState } from '@/components/market/EmptyState';
 import { TrenchesPanel } from '@/components/terminal/TrenchesPanel';
 import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
+import { TradersSidebar } from './TradersSidebar';
 
-type Tab = 'markets' | 'trending' | 'movers' | 'volume' | 'trenches' | 'leaderboard';
+type Tab = 'markets' | 'trending' | 'movers' | 'volume' | 'trenches' | 'leaderboard' | 'traders' | 'alerts';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'markets', label: 'Markets' },
@@ -16,6 +18,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'volume', label: 'Volume' },
   { id: 'trenches', label: 'Trenches' },
   { id: 'leaderboard', label: 'Ranks' },
+  { id: 'traders', label: 'Traders' },
+  { id: 'alerts', label: 'Alerts' },
 ];
 
 /**
@@ -49,7 +53,7 @@ export function DiscoverTokenList({
   selectionDisabled: boolean;
 }) {
   const [tab, setTab] = useState<Tab>('markets');
-  const rowsFor: Record<Exclude<Tab, 'trenches' | 'leaderboard'>, MarketSummary[]> = {
+  const rowsFor: Record<Exclude<Tab, 'trenches' | 'leaderboard' | 'traders' | 'alerts'>, MarketSummary[]> = {
     markets: ranked,
     trending: trending.map((t) => t.market),
     movers,
@@ -58,14 +62,14 @@ export function DiscoverTokenList({
 
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex rounded-xl border border-line bg-surface p-0.5">
+      <div className="grid grid-cols-4 gap-0.5 rounded-xl border border-line bg-surface p-0.5">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
             className={cn(
-              'flex-1 rounded-lg px-1.5 py-1.5 font-display text-[0.6rem] font-bold uppercase tracking-wide transition-all',
+              'rounded-lg px-1.5 py-1.5 font-display text-[0.6rem] font-bold uppercase tracking-wide transition-all',
               tab === t.id ? 'bg-accent/10 text-accent shadow-glow-accent' : 'text-ink-400 hover:text-ink-600',
             )}
           >
@@ -81,6 +85,17 @@ export function DiscoverTokenList({
       ) : tab === 'leaderboard' ? (
         <div className="min-h-0 flex-1">
           <LeaderboardSidebar />
+        </div>
+      ) : tab === 'traders' ? (
+        <div className="min-h-0 flex-1">
+          <TradersSidebar />
+        </div>
+      ) : tab === 'alerts' ? (
+        <div className="min-h-0 flex-1 rounded-2xl border border-line bg-surface">
+          <EmptyState
+            title="Alerts aren't built yet"
+            detail="Price/volume alerts are planned but don't exist yet — nothing to show here honestly."
+          />
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface">

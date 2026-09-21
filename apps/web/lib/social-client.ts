@@ -1,6 +1,6 @@
 'use client';
 
-import type { Leaderboard, PnlWindow, SocialActivity } from '@kamby/domain';
+import type { Leaderboard, PnlWindow, SocialActivity, TopTrader } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**
@@ -68,6 +68,16 @@ export interface ActivityPage {
 export async function fetchLeaderboard(window: PnlWindow, limit = 25): Promise<Leaderboard> {
   const res = await fetch(`${API_BASE}/v1/social/leaderboard?window=${window}&limit=${limit}`);
   if (!res.ok) throw new Error(`Failed to fetch leaderboard (${res.status})`);
+  return res.json();
+}
+
+/** Client-side counterpart to lib/social-api.ts's server-only fetchTopTraders — same reason
+ *  fetchLeaderboard needed one: a sidebar tab embedded in a client component needs to fetch
+ *  on mount rather than only ever server-render once. Volume-ranked, not PnL-ranked — see
+ *  TopTraderSchema's own doc comment; deliberately distinct from the Ranks/leaderboard tab. */
+export async function fetchTopTraders(limit = 20): Promise<TopTrader[]> {
+  const res = await fetch(`${API_BASE}/v1/social/traders/top?limit=${limit}`);
+  if (!res.ok) throw new Error(`Failed to fetch top traders (${res.status})`);
   return res.json();
 }
 

@@ -28,6 +28,7 @@ import { DiscoverTokenList } from './DiscoverTokenList';
 import { GridTerminalCell } from './GridTerminalCell';
 import { InlineTimeframeTabs } from './InlineTimeframeTabs';
 import { MyPositionsPanel } from './MyPositionsPanel';
+import { useChartOverlayFilter } from './useChartOverlayFilter';
 import { TokenTradersPanel } from './TokenTradersPanel';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
@@ -200,6 +201,7 @@ export function DiscoverTerminal({
   const selectedKey = selected ? marketKey(selected) : null;
   const chainId = selected ? chainIdFor(selected) : null;
   const canTrade = selected !== null && selected.decimals !== null && selected.quoteDecimals !== null && chainId !== null;
+  const [filteredTrades, overlayControls] = useChartOverlayFilter(traders.recentLargeTrades);
 
   const layoutToggle = (
     <div className="mb-3 flex items-center justify-end gap-2">
@@ -271,7 +273,8 @@ export function DiscoverTerminal({
         )}
 
         <Surface variant="elevated" className="flex h-[380px] flex-col gap-2 p-2 shadow-glow-accent">
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {overlayControls}
             <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
           </div>
           <div className="min-h-0 flex-1">
@@ -282,7 +285,7 @@ export function DiscoverTerminal({
             ) : candlesStatus === 'error' ? (
               <EmptyState title="Couldn't load this chart" detail="Try selecting the token again in a moment." />
             ) : (
-              <KambyChart candles={candles} trades={traders.recentLargeTrades} />
+              <KambyChart candles={candles} trades={filteredTrades} />
             )}
           </div>
         </Surface>
