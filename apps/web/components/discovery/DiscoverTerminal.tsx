@@ -14,6 +14,7 @@ import {
 } from '@kamby/domain';
 import { cn, Surface } from '@kamby/ui';
 import { LayoutGrid } from 'lucide-react';
+import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { DataHub } from '@/components/terminal/DataHub';
@@ -21,6 +22,7 @@ import { KambyChart } from '@/components/terminal/KambyChart';
 import { TokenMetricsBar } from '@/components/terminal/TokenMetricsBar';
 import { IN_FLIGHT_STEPS, TradePanelCard } from '@/components/terminal/TradePanelCard';
 import { type TradePanelStep } from '@/components/trading/TradePanel';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { fetchTokenTraders } from '@/lib/discovery-client';
 import { fetchTokenHistory } from '@/lib/market-client';
 import { fetchLatestActivity } from '@/lib/social-client';
@@ -106,7 +108,10 @@ export function DiscoverTerminal({
   initialActivity: SocialActivity[];
   initialTraders: TokenTraderConnection;
 }) {
+  const isMobile = useIsMobile();
   const [gridMode, setGridMode] = useState<GridMode>(1);
+  const [tokenListOpen, setTokenListOpen] = useState(false);
+  const [tradeOpen, setTradeOpen] = useState(false);
   const availableMarkets = dedupeMarkets([ranked, trending.map((t) => t.market), movers, byVolume]);
 
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
@@ -204,7 +209,7 @@ export function DiscoverTerminal({
   const [filteredTrades, overlayControls] = useChartOverlayFilter(traders.recentLargeTrades);
 
   const layoutToggle = (
-    <div className="mb-3 flex items-center justify-end gap-2">
+    <div className="mb-3 hidden items-center justify-end gap-2 lg:flex">
       <LayoutGrid className="h-3.5 w-3.5 text-ink-400" aria-hidden />
       <div className="inline-flex rounded-lg border border-line bg-surface p-1">
         {GRID_MODES.map((mode) => (
@@ -224,6 +229,129 @@ export function DiscoverTerminal({
       </div>
     </div>
   );
+
+  // Mobile always gets the single-terminal drawer layout below, regardless of gridMode —
+  // the 1/4/6-up multi-chart grid is a "multi-monitor trading matrix" by its own design
+  // (see GridTerminalCell's doc comment), which doesn't map onto a phone screen; the
+  // layoutToggle buttons that change gridMode are themselves `lg:flex` (desktop-only), so
+  // a mobile visitor can never actually set gridMode !== 1 in the first place — this guard
+  // only matters for someone who set it on desktop and then resized the window down.
+  if (isMobile) {
+    return (
+      <div>
+        <div className="sticky top-0 z-30 mb-3 flex items-center gap-2 border-b border-line bg-bg/95 px-1 py-2 backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => setTokenListOpen(true)}
+            className="min-w-0 flex-1 truncate rounded-lg border border-line bg-surface px-3 py-2 text-left font-display text-sm font-semibold text-ink-900"
+          >
+            {selected ? `$${selected.symbol ?? 'Token'}` : 'Pick a token'} <span className="text-ink-400">▾</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTradeOpen(true)}
+            disabled={!canTrade}
+            className="shrink-0 rounded-lg bg-accent px-4 py-2 font-display text-sm font-bold text-accent-ink disabled:opacity-40"
+          >
+            Trade
+          </button>
+        </div>
+
+        {selected && (
+          <div className="mb-3">
+            <TokenMetricsBar market={selected} />
+          </div>
+        )}
+
+        <Surface variant="elevated" className="mb-3 flex h-[300px] flex-col gap-2 p-2 shadow-glow-accent">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {overlayControls}
+            <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
+          </div>
+          <div className="min-h-0 flex-1">
+            {!selected ? (
+              <EmptyState title="Pick a token to see its chart" />
+            ) : candlesStatus === 'loading' ? (
+              <Skeleton className="h-full w-full" />
+            ) : candlesStatus === 'error' ? (
+              <EmptyState title="Couldn't load this chart" detail="Try selecting the token again in a moment." />
+            ) : (
+              <KambyChart candles={candles} trades={filteredTrades} />
+            )}
+          </div>
+        </Surface>
+
+        <div className="mb-3 h-[300px]">
+          {!selected ? (
+            <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
+              <EmptyState title="Pick a token to see its activity" />
+            </div>
+          ) : activityStatus === 'loading' ? (
+            <Skeleton className="h-full w-full rounded-2xl" />
+          ) : activityStatus === 'error' ? (
+            <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
+              <EmptyState title="Couldn't load activity" detail="Try selecting the token again in a moment." />
+            </div>
+          ) : (
+            <DataHub activity={activity} />
+          )}
+        </div>
+
+        <div className="mb-3">
+          <MyPositionsPanel />
+        </div>
+
+        {selected && (
+          <div className="mb-3 rounded-2xl border border-line bg-surface p-4">
+            {tradersStatus === 'loading' ? (
+              <Skeleton className="h-40 w-full" />
+            ) : tradersStatus === 'error' ? (
+              <EmptyState title="Couldn't load traders" detail="Try selecting the token again in a moment." />
+            ) : (
+              <TokenTradersPanel connection={traders} tokenAddress={selected.tokenAddress} chainId={chainIdFor(selected)} />
+            )}
+          </div>
+        )}
+
+        <MobileDrawer open={tokenListOpen} onClose={() => setTokenListOpen(false)} title="Tokens">
+          <div className="h-[70vh]">
+            <DiscoverTokenList
+              ranked={ranked}
+              trending={trending}
+              movers={movers}
+              byVolume={byVolume}
+              selectedKey={selectedKey}
+              onSelect={(market) => {
+                handleSelect(market);
+                setTokenListOpen(false);
+              }}
+              selectionDisabled={inFlight}
+            />
+          </div>
+        </MobileDrawer>
+
+        <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title="Trade">
+          {canTrade && selected && chainId !== null ? (
+            <TradePanelCard
+              key={selectedKey ?? undefined}
+              chainId={chainId}
+              tokenAddress={selected.tokenAddress}
+              tokenSymbol={selected.symbol}
+              tokenDecimals={selected.decimals as number}
+              quoteTokenAddress={selected.quoteAddress}
+              quoteTokenSymbol={selected.quoteSymbol}
+              quoteTokenDecimals={selected.quoteDecimals as number}
+              onStepChange={setTradeStep}
+            />
+          ) : (
+            <p className="font-body text-sm text-ink-600">
+              {selected ? "Trading isn't available for this token yet." : 'Pick a token to trade.'}
+            </p>
+          )}
+        </MobileDrawer>
+      </div>
+    );
+  }
 
   if (gridMode !== 1) {
     const cellDefaults = availableMarkets.slice(0, gridMode);

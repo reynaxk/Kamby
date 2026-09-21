@@ -1,8 +1,13 @@
+'use client';
+
+import { useState } from 'react';
 import type { Candle, MarketSummary, SocialActivity, Timeframe, TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { TimeframeTabs } from '@/components/market/TimeframeTabs';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
+import { MobileDrawer } from '@/components/layout/MobileDrawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { DataHub } from './DataHub';
 import { KambyChart } from './KambyChart';
 import { TokenMetricsBar } from './TokenMetricsBar';
@@ -34,6 +39,14 @@ import { TrenchesPanel } from './TrenchesPanel';
  * page was never going to make sense. `TokenTradersPanel` takes its place — real, already
  * fetched by the same page, and a genuinely different view (top traders, not a raw feed)
  * than `DataHub`'s own Transactions tab, not a duplicate of it.
+ *
+ * `'use client'` (added alongside the mobile layout below) purely for `useIsMobile()` — every
+ * child here was already a Client Component, and no server-only data fetching ever happened
+ * in this wrapper itself (the page that renders KambyTerminal does that, passing props down),
+ * so this costs nothing real. Below `lg`, TrenchesPanel used to just be `hidden` entirely —
+ * not simplified, just genuinely unreachable on mobile; it and the trade panel are now both
+ * MobileDrawer sheets instead, same "make the trading panel a drawer" treatment
+ * DiscoverTerminal's own mobile layout uses.
  */
 export function KambyTerminal({
   chainId,
@@ -52,8 +65,93 @@ export function KambyTerminal({
   traders: TokenTraderConnection;
   timeframe: Timeframe;
 }) {
+  const isMobile = useIsMobile();
+  const [trenchesOpen, setTrenchesOpen] = useState(false);
+  const [tradeOpen, setTradeOpen] = useState(false);
+  const canTrade = market.decimals !== null && market.quoteDecimals !== null;
+
+  const tradePanel = canTrade ? (
+    <TradePanelCard
+      chainId={chainId}
+      tokenAddress={market.tokenAddress}
+      tokenSymbol={market.symbol}
+      tokenDecimals={market.decimals as number}
+      quoteTokenAddress={market.quoteAddress}
+      quoteTokenSymbol={market.quoteSymbol}
+      quoteTokenDecimals={market.quoteDecimals as number}
+    />
+  ) : (
+    <Surface className="p-4">
+      <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
+    </Surface>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen">
+        <div className="mx-auto max-w-[1600px] p-3">
+          <div className="sticky top-0 z-30 mb-3 flex items-center gap-2 border-b border-line bg-bg/95 px-1 py-2 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setTrenchesOpen(true)}
+              className="rounded-lg border border-line bg-surface px-3 py-2 font-display text-sm font-semibold text-ink-900"
+            >
+              Trenches
+            </button>
+            <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
+              ${market.symbol ?? 'Token'}
+            </div>
+            <button
+              type="button"
+              onClick={() => setTradeOpen(true)}
+              disabled={!canTrade}
+              className="shrink-0 rounded-lg bg-accent px-4 py-2 font-display text-sm font-bold text-accent-ink disabled:opacity-40"
+            >
+              Trade
+            </button>
+          </div>
+
+          <div className="mb-3">
+            <TokenMetricsBar market={market} />
+          </div>
+
+          <Surface variant="elevated" className="mb-3 flex h-[300px] flex-col gap-2 p-2 shadow-glow-accent">
+            <div className="flex justify-end">
+              <TimeframeTabs chain={chain} address={market.tokenAddress} active={timeframe} />
+            </div>
+            <div className="min-h-0 flex-1">
+              <KambyChart candles={candles} trades={traders.recentLargeTrades} />
+            </div>
+          </Surface>
+
+          <div className="mb-3 h-[300px]">
+            <DataHub activity={activity} />
+          </div>
+
+          <div className="mb-3">
+            <MyPositionsPanel />
+          </div>
+
+          <div className="rounded-2xl border border-line bg-surface p-4">
+            <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
+          </div>
+
+          <MobileDrawer open={trenchesOpen} onClose={() => setTrenchesOpen(false)} title="Trenches">
+            <div className="h-[70vh]">
+              <TrenchesPanel />
+            </div>
+          </MobileDrawer>
+
+          <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title="Trade">
+            {tradePanel}
+          </MobileDrawer>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen pb-28 lg:pb-0">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-[1600px] p-3">
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
           <div className="hidden lg:block">
@@ -84,21 +182,7 @@ export function KambyTerminal({
             {/* Same guard as the old page.tsx layout — decimals are nullable
                 (MarketSummarySchema) until the ingestion worker has resolved them live from
                 the token contract; never pass a null decimals into TradePanel. */}
-            {market.decimals !== null && market.quoteDecimals !== null ? (
-              <TradePanelCard
-                chainId={chainId}
-                tokenAddress={market.tokenAddress}
-                tokenSymbol={market.symbol}
-                tokenDecimals={market.decimals}
-                quoteTokenAddress={market.quoteAddress}
-                quoteTokenSymbol={market.quoteSymbol}
-                quoteTokenDecimals={market.quoteDecimals}
-              />
-            ) : (
-              <Surface className="p-4">
-                <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
-              </Surface>
-            )}
+            {tradePanel}
             <MyPositionsPanel />
             <div className="rounded-2xl border border-line bg-surface p-4">
               <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
