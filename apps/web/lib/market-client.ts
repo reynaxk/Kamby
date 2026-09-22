@@ -1,6 +1,6 @@
 'use client';
 
-import type { Candle, DiscoverSort, MarketSummary, Timeframe } from '@kamby/domain';
+import type { Candle, DiscoverSort, EvmChainConfig, MarketSummary, Timeframe } from '@kamby/domain';
 import { API_BASE } from './session-client';
 
 /**
@@ -41,5 +41,14 @@ export async function fetchSearchResults(q: string, limit = 8): Promise<MarketSu
   const query = new URLSearchParams({ q, limit: String(limit) });
   const res = await fetch(`${API_BASE}/v1/market/search?${query.toString()}`);
   if (!res.ok) throw new Error(`Search failed (${res.status})`);
+  return res.json();
+}
+
+/** Each configured EVM chain's real USDC contract address — the Send modal's one source
+ *  for it (lib/send.ts's assetsForChain), never a second, independently-hardcoded address.
+ *  Public, no session needed — this is deployment config, not user data. */
+export async function fetchEvmChainConfigs(): Promise<EvmChainConfig[]> {
+  const res = await fetch(`${API_BASE}/v1/market/chains`);
+  if (!res.ok) throw new Error(`Failed to fetch chain config (${res.status})`);
   return res.json();
 }

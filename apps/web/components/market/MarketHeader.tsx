@@ -6,6 +6,7 @@ import { cn } from '@kamby/ui';
 import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import { SendButton } from '@/components/wallet/SendButton';
 import { SearchBar } from './SearchBar';
 
 const NAV_LINKS = [
@@ -93,6 +94,7 @@ export function MarketHeader({
               living in the DOM input node, so only a real remount resets it. */}
           <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
           <BlurBalancesToggle />
+          <SendButton />
           <NotificationBell />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} />
         </div>

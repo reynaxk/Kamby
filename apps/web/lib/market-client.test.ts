@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchSearchResults, fetchTokenHistory } from './market-client';
+import { fetchEvmChainConfigs, fetchSearchResults, fetchTokenHistory } from './market-client';
 
 const fetchMock = vi.fn();
 
@@ -68,5 +68,24 @@ describe('fetchSearchResults', () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve(null) });
 
     await expect(fetchSearchResults('pepe')).rejects.toThrow(/500/);
+  });
+});
+
+describe('fetchEvmChainConfigs', () => {
+  it('requests /market/chains and returns the parsed JSON body', async () => {
+    const body = [{ slug: 'base', chainId: 8453, usdcAddress: '0xusdc' }];
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(body) });
+
+    const result = await fetchEvmChainConfigs();
+
+    expect(result).toEqual(body);
+    const calledUrl = new URL(fetchMock.mock.calls[0]![0] as string);
+    expect(calledUrl.pathname).toBe('/v1/market/chains');
+  });
+
+  it('throws on a non-ok response', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve(null) });
+
+    await expect(fetchEvmChainConfigs()).rejects.toThrow(/500/);
   });
 });

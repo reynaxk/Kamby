@@ -38,6 +38,11 @@ export class MarketController {
     return this.marketService.discover(query);
   }
 
+  @Get('chains')
+  getChains() {
+    return this.marketService.getChains();
+  }
+
   // Search is cheap enough per-call but easy to hammer from a debounced input; keep it
   // tighter than the global default rather than relying on that alone.
   @Throttle({ default: { limit: 30, ttl: 60_000 } })

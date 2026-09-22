@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
 import {
   CandleSchema,
@@ -6,10 +7,12 @@ import {
   identifierForChainId,
   LARGE_TRADE_USD_THRESHOLD,
   type Candle,
+  type EvmChainConfig,
   type MarketSummary,
   type Timeframe,
   type TokenTraderConnection,
 } from '@kamby/domain';
+import { getConfiguredChains, type Env } from '../config/env';
 import { toSocialActivity } from '../social/social.mapper';
 import type { DiscoverQueryDto } from './dto/discover-query.dto';
 import type { SearchQueryDto } from './dto/search-query.dto';
@@ -36,7 +39,23 @@ const TIMEFRAME_CONFIG: Record<Timeframe, { bucket: string; lookback: string }> 
 
 @Injectable()
 export class MarketService {
-  constructor(private readonly watchlist: WatchlistService) {}
+  constructor(
+    private readonly watchlist: WatchlistService,
+    private readonly config: ConfigService<Env, true>,
+  ) {}
+
+  /** Public, read-only, chain-scoped config the frontend needs to build a real transaction
+   *  itself (the Send modal's EVM USDC address per chain) — reuses `getConfiguredChains()`
+   *  verbatim, the exact same addresses every trading service already trades against, never
+   *  a second independently-sourced copy. rpcUrl/rpcUrlFallback are deliberately omitted:
+   *  operational detail the frontend has no use for and shouldn't be handed unnecessarily. */
+  getChains(): EvmChainConfig[] {
+    return getConfiguredChains((key) => this.config.get(key, { infer: true })).map((c) => ({
+      slug: c.slug,
+      chainId: c.chainId,
+      usdcAddress: c.usdcAddress,
+    }));
+  }
 
   /**
    * Ranked market opportunities. Phase 1's market count is small and bounded by design

@@ -329,6 +329,20 @@ export const SOLANA_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
  *  single-sourced here for the same reason SOLANA_USDC_MINT is. */
 export const SOLANA_NATIVE_MINT = 'So11111111111111111111111111111111111111112';
 
+/** GET /market/chains's response shape — see MarketController. Each EVM chain's USDC
+ *  contract address, read straight from apps/api's own `getConfiguredChains()` (the exact
+ *  same addresses QuoteService/TransactionService/the router services already trade
+ *  against), never a client-side-hardcoded constant — see SOLANA_USDC_MINT's own doc
+ *  comment on why per-chain EVM USDC addresses live in one place rather than being
+ *  copy-pasted into a second, independently-sourced location that could quietly drift from
+ *  the addresses this deployment actually trusts. */
+export const EvmChainConfigSchema = z.object({
+  slug: z.string(),
+  chainId: z.number().int().positive(),
+  usdcAddress: z.string(),
+});
+export type EvmChainConfig = z.infer<typeof EvmChainConfigSchema>;
+
 /** Pump.fun's documented bonding-curve graduation threshold — confirmed 2026-09-14 against
  *  multiple independent sources (e.g. https://www.soltokencreator.io/blog/pump-fun-graduation-explained),
  *  ~85 SOL raised. Used only to compute an informational "how close to graduating" progress

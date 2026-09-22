@@ -17,10 +17,14 @@ vi.mock('@/components/wallet/ConnectWalletButton', () => ({
   },
 }));
 vi.mock('@/components/notifications/NotificationBell', () => ({ NotificationBell: () => <div /> }));
+// SendButton's own SendModal is independently tested (SendModal.test.tsx) and calls several
+// Privy/wagmi hooks unconditionally on mount, open or not — stubbed here for the same
+// reason ConnectWalletButton is.
+vi.mock('@/components/wallet/SendButton', () => ({ SendButton: () => <div /> }));
 // SearchBar's own live-typeahead behavior is covered by SearchBar.test.tsx — stubbed here
 // (real fetchSearchResults) so a searchValue prop doesn't fire a real, unmocked fetch() in
 // this file's tests.
-vi.mock('@/lib/market-client', () => ({ fetchSearchResults: vi.fn().mockResolvedValue([]) }));
+vi.mock('@/lib/market-client', () => ({ fetchSearchResults: vi.fn().mockResolvedValue([]), fetchEvmChainConfigs: vi.fn().mockResolvedValue([]) }));
 vi.mock('@/components/account/BalanceVisibilityContext', () => ({
   useBalanceVisibility: () => ({ hidden: false, toggle: vi.fn() }),
 }));

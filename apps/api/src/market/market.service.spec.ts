@@ -1,7 +1,14 @@
 import { NotFoundException } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
+import type { Env } from '../config/env';
 import { MarketService } from './market.service';
 import { WatchlistService } from './watchlist.service';
+
+function fakeConfigService(overrides: Partial<Env> = {}): ConfigService<Env, true> {
+  const values: Partial<Env> = { CHAINS: 'base', CHAIN_BASE_ID: 8453, CHAIN_BASE_RPC_URL: 'https://example.test', CHAIN_BASE_USDC_ADDRESS: '0xusdc', ...overrides };
+  return { get: (key: keyof Env) => values[key] } as unknown as ConfigService<Env, true>;
+}
 
 jest.mock('@kamby/db', () => ({
   prisma: {
@@ -47,7 +54,7 @@ describe('MarketService — chain scoping (2026-09-15 chainId/Chain.id mismatch 
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new MarketService(new WatchlistService());
+    service = new MarketService(new WatchlistService(), fakeConfigService());
   });
 
   describe('getToken', () => {
@@ -123,6 +130,26 @@ describe('MarketService — chain scoping (2026-09-15 chainId/Chain.id mismatch 
     it('404s for an unconfigured chain id rather than querying with a meaningless filter', async () => {
       await expect(service.getTokenTraders(TOKEN_ADDRESS, 999_999, 10)).rejects.toThrow(NotFoundException);
       expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getChains', () => {
+    it('returns the exact USDC address every trading service already trades against — never a second, independently-sourced value', () => {
+      const withConfig = new MarketService(
+        new WatchlistService(),
+        fakeConfigService({ CHAINS: 'base,bnb', CHAIN_BNB_ID: 56, CHAIN_BNB_RPC_URL: 'https://bnb.test', CHAIN_BNB_USDC_ADDRESS: '0xbnbusdc' }),
+      );
+
+      expect(withConfig.getChains()).toEqual([
+        { slug: 'base', chainId: 8453, usdcAddress: '0xusdc' },
+        { slug: 'bnb', chainId: 56, usdcAddress: '0xbnbusdc' },
+      ]);
+    });
+
+    it('never leaks rpcUrl/rpcUrlFallback — operational detail the frontend has no use for', () => {
+      const chains = service.getChains();
+      expect(chains[0]).not.toHaveProperty('rpcUrl');
+      expect(chains[0]).not.toHaveProperty('rpcUrlFallback');
     });
   });
 });
