@@ -506,16 +506,17 @@ export function TradePanel({
 
   // --- Gating states: connect -> right network -> verify ---------------------------------
 
-  if (!isConnected) {
-    return (
-      <Panel title="Trade" onClose={onClose} animKey="not-connected">
-        <p className="font-body text-sm text-ink-600">Connect a wallet to trade — Kamby never holds your funds or signs on your behalf.</p>
-        <ConnectWalletButton expectedChainId={chainId} />
-      </Panel>
-    );
-  }
+  // Deliberately NOT an early return for `!isConnected` (unlike the two gates below, which
+  // genuinely do need you already connected first) — real comparison against production
+  // caught this: the panel used to show nothing but a sentence and a Sign-in button while
+  // disconnected, which read as an empty, unfinished page next to fomo.family's own trade
+  // panel (full Buy/Sell/amount UI visible even logged out, gated only on the actual submit
+  // action). The full form below already renders safely with `isConnected: false` — every
+  // wallet-dependent piece (`canQuote`, `AmountInput`'s own `useBalance`) is already
+  // written to degrade to "no data" rather than fetch/crash when disconnected, so nothing
+  // about the quote/signing logic changes here — only which button sits at the bottom.
 
-  if (!onCorrectChain) {
+  if (isConnected && !onCorrectChain) {
     return (
       <Panel title="Trade" onClose={onClose} animKey="wrong-chain">
         <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade — it needs to be on {chainName}.</p>
@@ -524,7 +525,7 @@ export function TradePanel({
     );
   }
 
-  if (walletVerification.status !== 'verified') {
+  if (isConnected && onCorrectChain && walletVerification.status !== 'verified') {
     return (
       <Panel title="Trade" onClose={onClose} animKey="verify">
         <p className="font-body text-sm text-ink-600">Verify this wallet with a free signature (no gas, no transaction) before trading with it.</p>
@@ -710,9 +711,15 @@ export function TradePanel({
 
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
-      <Button type="button" disabled={quoteStatus !== 'ready' || !quote} onClick={() => setStep('review')} className="w-full">
-        {quoteStatus === 'loading' ? 'Getting quote…' : 'Review trade'}
-      </Button>
+      {isConnected ? (
+        <Button type="button" disabled={quoteStatus !== 'ready' || !quote} onClick={() => setStep('review')} className="w-full">
+          {quoteStatus === 'loading' ? 'Getting quote…' : 'Review trade'}
+        </Button>
+      ) : (
+        // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —
+        // side/amount are still freely settable, just inert until a wallet connects.
+        <ConnectWalletButton expectedChainId={chainId} />
+      )}
     </Panel>
   );
 }

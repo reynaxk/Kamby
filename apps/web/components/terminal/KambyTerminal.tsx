@@ -10,9 +10,9 @@ import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DataHub } from './DataHub';
 import { KambyChart } from './KambyChart';
+import { TerminalLeftRail } from './TerminalLeftRail';
 import { TokenMetricsBar } from './TokenMetricsBar';
 import { TradePanelCard } from './TradePanelCard';
-import { TrenchesPanel } from './TrenchesPanel';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -43,10 +43,16 @@ import { TrenchesPanel } from './TrenchesPanel';
  * `'use client'` (added alongside the mobile layout below) purely for `useIsMobile()` — every
  * child here was already a Client Component, and no server-only data fetching ever happened
  * in this wrapper itself (the page that renders KambyTerminal does that, passing props down),
- * so this costs nothing real. Below `lg`, TrenchesPanel used to just be `hidden` entirely —
+ * so this costs nothing real. Below `lg`, the left rail used to just be `hidden` entirely —
  * not simplified, just genuinely unreachable on mobile; it and the trade panel are now both
  * MobileDrawer sheets instead, same "make the trading panel a drawer" treatment
  * DiscoverTerminal's own mobile layout uses.
+ *
+ * Left rail is `TerminalLeftRail` (Trenches/Traders tabs), not a bare `TrenchesPanel`, as of
+ * 2026-09-22 — real mismatch caught comparing against production: TrenchesPanel is Solana-
+ * only, so it showed Pump.fun bonding-curve data even on a Base/BNB token's own page. See
+ * that component's own doc comment for why it's a smaller sibling of DiscoverTokenList.tsx's
+ * tab strip, not a reuse of it.
  */
 export function KambyTerminal({
   chainId,
@@ -96,7 +102,7 @@ export function KambyTerminal({
               onClick={() => setTrenchesOpen(true)}
               className="rounded-lg border border-line bg-surface px-3 py-2 font-display text-sm font-semibold text-ink-900"
             >
-              Trenches
+              Browse
             </button>
             <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
               ${market.symbol ?? 'Token'}
@@ -136,9 +142,9 @@ export function KambyTerminal({
             <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
           </div>
 
-          <MobileDrawer open={trenchesOpen} onClose={() => setTrenchesOpen(false)} title="Trenches">
+          <MobileDrawer open={trenchesOpen} onClose={() => setTrenchesOpen(false)} title="Browse">
             <div className="h-[70vh]">
-              <TrenchesPanel />
+              <TerminalLeftRail />
             </div>
           </MobileDrawer>
 
@@ -156,7 +162,7 @@ export function KambyTerminal({
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
           <div className="hidden lg:block">
             <div className="sticky top-3 h-[calc(100vh-6rem)]">
-              <TrenchesPanel />
+              <TerminalLeftRail />
             </div>
           </div>
 

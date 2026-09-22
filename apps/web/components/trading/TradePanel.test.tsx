@@ -166,6 +166,18 @@ describe('TradePanel', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Review trade' }));
   }
 
+  it('shows the real Buy/Sell form — not just a Sign-in message — while disconnected, with no Review trade CTA', () => {
+    useAccountMock.mockReturnValue({ address: undefined, isConnected: false, chainId: undefined });
+    render(<TradePanel {...defaultProps} />);
+
+    expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Amount')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Review trade/i })).not.toBeInTheDocument();
+    // Never fetches a quote for a wallet that isn't connected — canQuote requires isConnected.
+    expect(getQuoteMock).not.toHaveBeenCalled();
+  });
+
   it('shows the up-to-3-signature disclosure when both approval and a guaranteed-USDC fee apply', async () => {
     await driveToReview(fakeQuote({ requiresApproval: true, approvalSpender: '0xrouter', feeUnsignedTx: { to: '0xfee', data: '0x', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null } }));
 
