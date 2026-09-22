@@ -43,7 +43,8 @@ vi.mock('wagmi', async (importOriginal) => {
   return { ...actual, useAccount: useAccountMock, useBalance: useBalanceMock };
 });
 vi.mock('@/lib/market-client', () => ({ fetchEvmChainConfigs: fetchEvmChainConfigsMock }));
-vi.mock('@/lib/solana-config', () => ({ solanaConnection: { getLatestBlockhash: vi.fn() } }));
+const { getBalanceMock } = vi.hoisted(() => ({ getBalanceMock: vi.fn() }));
+vi.mock('@/lib/solana-config', () => ({ solanaConnection: { getLatestBlockhash: vi.fn(), getBalance: getBalanceMock } }));
 vi.mock('@/components/wallet/ConnectWalletButton', () => ({
   ConnectWalletButton: ({ expectedChainId }: { expectedChainId?: number }) => (
     <div data-testid="connect-wallet-button">Connect (chain {expectedChainId})</div>
@@ -70,6 +71,14 @@ function setConnectedEvm() {
   useAccountMock.mockReturnValue({ address: EVM_ADDRESS, chainId: 8453 });
   useSolanaWalletsMock.mockReturnValue({ wallets: [] });
   useBalanceMock.mockReturnValue({ data: { value: 10_000_000_000_000_000_000n } }); // 10 ETH
+}
+
+function setConnectedSolana() {
+  usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn() });
+  useAccountMock.mockReturnValue({ address: undefined, chainId: undefined });
+  useSolanaWalletsMock.mockReturnValue({ wallets: [{ address: SOLANA_ADDRESS }] });
+  useBalanceMock.mockReturnValue({ data: undefined });
+  getBalanceMock.mockResolvedValue(1_000_000_000); // 1 SOL — plenty for fees, the sane default
 }
 
 describe('SendModal', () => {
@@ -220,11 +229,36 @@ describe('SendModal', () => {
     expect(screen.queryByRole('link', { name: /basescan/i })).not.toBeInTheDocument();
   });
 
+  it('warns when the Solana wallet has no SOL for the network fee — even when sending a token, not native SOL — and blocks Review', async () => {
+    setConnectedSolana();
+    getBalanceMock.mockResolvedValue(0); // real reported failure mode: a USDC-only wallet with zero SOL
+    fetchEvmChainConfigsMock.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    render(<SendModal open onClose={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Solana' }));
+
+    expect(await screen.findByText(/no SOL to pay the network fee/i)).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('0.0'), '1');
+    await user.type(screen.getByPlaceholderText('Solana address'), SOLANA_ADDRESS);
+    expect(screen.getByRole('button', { name: 'Review' })).toBeDisabled();
+  });
+
+  it('shows no fee warning once the wallet has enough SOL', async () => {
+    setConnectedSolana(); // defaults to 1 SOL, well above the threshold
+    fetchEvmChainConfigsMock.mockResolvedValue([]);
+    const user = userEvent.setup();
+
+    render(<SendModal open onClose={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Solana' }));
+
+    await waitFor(() => expect(getBalanceMock).toHaveBeenCalled());
+    expect(screen.queryByText(/no SOL to pay the network fee/i)).not.toBeInTheDocument();
+  });
+
   it('completes a full Solana send by building the real transaction bytes and encoding the returned signature as base58', async () => {
-    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn() });
-    useAccountMock.mockReturnValue({ address: undefined, chainId: undefined });
-    useSolanaWalletsMock.mockReturnValue({ wallets: [{ address: SOLANA_ADDRESS }] });
-    useBalanceMock.mockReturnValue({ data: undefined });
+    setConnectedSolana();
     fetchEvmChainConfigsMock.mockResolvedValue([]);
     const fakeTx = { serialize: vi.fn().mockReturnValue(new Uint8Array([1, 2, 3])) };
     buildSolanaNativeTransferTxMock.mockResolvedValue(fakeTx);

@@ -1,6 +1,7 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { ProfileEditor } from '@/components/account/ProfileEditor';
 import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
+import { SendButton } from '@/components/wallet/SendButton';
 
 export const metadata = { title: 'Your profile — Kamby' };
 
@@ -12,10 +13,15 @@ export default function AccountPage() {
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-2xl px-6 py-10">
-        <h1 className="font-display text-xl font-bold text-ink-900">Your profile</h1>
-        <p className="mt-1 font-body text-sm text-ink-600">
-          Your username and picture appear on the leaderboard and your trader profile.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-xl font-bold text-ink-900">Your profile</h1>
+            <p className="mt-1 font-body text-sm text-ink-600">
+              Your username and picture appear on the leaderboard and your trader profile.
+            </p>
+          </div>
+          <SendButton variant="labeled" />
+        </div>
         <div className="mt-6">
           <ProfileEditor />
         </div>

@@ -23,6 +23,7 @@ import {
   sendEvmToken,
   SEND_CHAINS,
   SOLANA_FEE_RESERVE_LAMPORTS,
+  SOLANA_MIN_FEE_LAMPORTS,
   type SendAsset,
   type SendChainOption,
 } from '@/lib/send';
@@ -86,6 +87,35 @@ function useAssetBalance(
 
   if (chain.kind === 'evm') return evmBalance?.value ?? null;
   return solanaBalance;
+}
+
+/** The connected wallet's native SOL balance — fetched independent of which asset is
+ *  selected, since the network fee (and possibly the destination's ATA rent) is always
+ *  paid in SOL regardless of whether a native or SPL-token transfer is being sent. Powers
+ *  the "this wallet has no SOL to pay the fee" check below; a wallet that legitimately
+ *  holds only USDC and zero SOL needs to know that *before* hitting a cryptic RPC preflight
+ *  rejection, not after. */
+function useSolanaNativeBalance(solanaAddress: string | undefined): bigint | null {
+  const [balance, setBalance] = useState<bigint | null>(null);
+
+  useEffect(() => {
+    setBalance(null);
+    if (!solanaAddress || !solanaConnection) return;
+    let cancelled = false;
+    solanaConnection
+      .getBalance(new PublicKey(solanaAddress), 'confirmed')
+      .then((lamports) => {
+        if (!cancelled) setBalance(BigInt(lamports));
+      })
+      .catch(() => {
+        if (!cancelled) setBalance(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [solanaAddress]);
+
+  return balance;
 }
 
 /**
@@ -153,6 +183,9 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
   }, [chain, asset]);
 
   const balance = useAssetBalance(chain, asset, evmAddress, solanaWallet?.address);
+  const solanaNativeBalance = useSolanaNativeBalance(chain.kind === 'solana' ? solanaWallet?.address : undefined);
+  const solanaFeeInsufficient =
+    chain.kind === 'solana' && solanaNativeBalance !== null && solanaNativeBalance < SOLANA_MIN_FEE_LAMPORTS;
 
   const amountRaw = useMemo(() => {
     if (!amountDisplay || tokenDecimals === null) return null;
@@ -165,7 +198,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   const destinationValid = destination.trim().length > 0 && isValidDestination(chain.kind, destination);
   const amountValid = amountRaw !== null && amountRaw > 0n && (balance === null || amountRaw <= balance);
-  const canReview = destinationValid && amountValid && tokenDecimals !== null;
+  const canReview = destinationValid && amountValid && tokenDecimals !== null && !solanaFeeInsufficient;
 
   function reset() {
     setStep('form');
@@ -302,6 +335,12 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             )
           ) : (
             <>
+              {solanaFeeInsufficient && (
+                <p className="rounded-lg border border-down/40 bg-down/10 px-3 py-2 font-body text-xs text-down">
+                  This wallet has no SOL to pay the network fee — every Solana transaction costs a small amount of
+                  SOL, even one that only moves USDC. Add a little SOL (~0.002) before sending.
+                </p>
+              )}
               <div>
                 <div className="flex items-center justify-between font-body text-xs text-ink-600">
                   <span>Amount ({asset.symbol})</span>

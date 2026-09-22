@@ -25,4 +25,10 @@ describe('SendButton', () => {
 
     expect(screen.getByTestId('send-modal')).toBeInTheDocument();
   });
+
+  it('shows visible "Send" text for the labeled variant (profile page), not just an icon', () => {
+    render(<SendButton variant="labeled" />);
+    const button = screen.getByRole('button', { name: 'Send' });
+    expect(button).toHaveTextContent('Send');
+  });
 });

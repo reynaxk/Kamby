@@ -186,6 +186,16 @@ export async function sendEvmToken(
  *  order-of-magnitude headroom SolAmountInput.tsx's own FEE_RESERVE_LAMPORTS already uses. */
 export const SOLANA_FEE_RESERVE_LAMPORTS = 10_000_000n; // 0.01 SOL
 
+/** The real minimum a wallet needs to send *anything* on Solana at all, native or SPL —
+ *  the base network fee (~5,000 lamports) plus enough headroom for the destination's
+ *  Associated Token Account rent-exempt minimum (~2,039,280 lamports) if it doesn't
+ *  already exist. This is deliberately checked independent of which asset is selected: a
+ *  wallet holding only USDC and zero SOL can still "afford" a USDC transfer by its own
+ *  token balance, but the transaction itself is paid for in SOL regardless of which asset
+ *  it moves — real failure mode this project hit (an empty-SOL wallet's USDC send failed
+ *  RPC preflight with no clear reason surfaced anywhere in the UI). */
+export const SOLANA_MIN_FEE_LAMPORTS = 2_100_000n;
+
 export async function buildSolanaNativeTransferTx(
   connection: Connection,
   from: PublicKey,
