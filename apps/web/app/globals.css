@@ -60,26 +60,35 @@ body {
  * them inside this one class reskins everything it wraps — panels, borders, numbers —
  * without touching a single shared component's source.
  *
- * --kamby-accent-ink is black here, not white: this theme's accent (and `up`, which shares
- * the same value) is a very bright, light-toned neon green — white text on it is close to
- * unreadable (~1.3:1 contrast, versus ~15.6:1 for black). Confirmed real bugs from this
- * exact mismatch (Button's `primary` variant, TimeframeTabs, NotificationBell's unread
- * badge) were found and fixed the same day this class's use expanded beyond the terminal —
- * anything new that puts text on `bg-accent` should use `text-accent-ink`, never a
- * hardcoded `text-white`.
+ * Retuned 2026-09-22 to read closer to fomo.family's actual terminal (reference: a real
+ * screen recording of the live product, frame-analyzed directly) — navy-tinted near-black
+ * rather than pure black, and a standard, moderately-saturated green/red rather than the
+ * previous neon-green "void" identity. Deliberately not a pixel-identical clone (different
+ * brand, own accent choice) — matching the *character* of a calm, dense, professional dark
+ * terminal, not fomo's literal hex values (unknowable from a compressed video recording
+ * anyway) or their specific chrome/imagery.
+ *
+ * --kamby-accent-ink is white here: this green is a standard, moderately-bright green
+ * (Tailwind's green-500 territory, not the previous neon-green extreme), and white-on-green
+ * is the near-universal "Buy" button convention this style of terminal (including fomo's
+ * own) actually uses — accepted here as a deliberate real-world-convention trade-off over
+ * strict WCAG contrast, the same way most production trading UIs make this call. See this
+ * class's own history below for the *opposite* mismatch this token exists to prevent:
+ * anything that puts text on `bg-accent` should use `text-accent-ink`, never a hardcoded
+ * `text-white`, precisely because that pairing has flipped before and silently broken.
  */
 .kamby-void {
-  --kamby-bg: 6 7 9;
-  --kamby-surface: 14 16 23;
-  --kamby-surface-raised: 22 25 33;
-  --kamby-line: 26 29 38;
+  --kamby-bg: 8 10 15;
+  --kamby-surface: 13 16 23;
+  --kamby-surface-raised: 19 23 32;
+  --kamby-line: 28 32 42;
   --kamby-ink-900: 237 239 245;
   --kamby-ink-600: 148 152 166;
   --kamby-ink-400: 96 100 114;
-  --kamby-accent: 0 255 135;
-  --kamby-accent-ink: 0 0 0;
-  --kamby-up: 0 255 135;
-  --kamby-down: 255 0 85;
+  --kamby-accent: 34 197 94;
+  --kamby-accent-ink: 255 255 255;
+  --kamby-up: 34 197 94;
+  --kamby-down: 239 68 68;
   --kamby-warn: 255 184 0;
   color-scheme: dark;
 }

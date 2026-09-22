@@ -92,8 +92,10 @@ export const privyConfig = {
   defaultChain: base,
   supportedChains: [base, bsc],
   appearance: {
-    theme: '#06070A' as const,
-    accentColor: '#00FF87' as const,
+    // Retuned 2026-09-22 alongside globals.css's `.kamby-void` block — kept in sync there,
+    // not here, since Privy's modal renders outside our CSS scope and needs a literal hex.
+    theme: '#080A0F' as const,
+    accentColor: '#22C55E' as const,
     logo: 'https://kambesh.com/icon.png',
   },
   embeddedWallets: {
