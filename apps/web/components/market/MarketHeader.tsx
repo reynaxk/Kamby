@@ -1,37 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@kamby/ui';
 import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { SendButton } from '@/components/wallet/SendButton';
 import { SearchBar } from './SearchBar';
 
-const NAV_LINKS = [
-  { href: '/', label: 'Discover' },
-  { href: '/trades', label: 'Trades' },
-  { href: '/watchlist', label: 'Watchlist' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/referrals', label: 'Referrals' },
-  { href: '/solana', label: 'Solana' },
-] as const;
-
 /**
- * "Discover" is the one top-level nav destination — trader profiles (`/trader/[address]`)
- * are real as of Phase 2, but reached from activity/search/follows rather than a top-level
- * link, since there's no trader *listing* page to point a nav item at yet. "Trades" (Phase 3),
- * "Watchlist" (Phase 6), and "Referrals" (Phase 7) are the exceptions: each is every user's
- * own private state, worth a permanent link even with no public listing page behind it.
- * "Leaderboard" is the other exception — a real public trader-ranking *listing* page (see
- * docs/TRADER_INTELLIGENCE.md#realized-pnl), the nav destination Discover's own doc comment
- * above says doesn't exist yet for trader profiles generally.
- *
- * A Client Component (rather than composing a small nav-only client island) purely so
- * `usePathname()` can highlight whichever of the three links is actually current — every
- * child here (`SearchBar` aside) was already a Client Component anyway (wagmi/wallet
- * state), so this isn't giving up meaningful server rendering.
+ * No top-level text nav (Discover/Trades/Watchlist/Leaderboard/Referrals/Solana) as of
+ * 2026-09-22 — removed to match fomo.family's actual header, which carries none either;
+ * navigation there happens through the terminal's own sidebar tabs (Alerts/Tokens/
+ * Leaderboard/Feed — see DiscoverTerminal.tsx), not a permanent top-level link row. The
+ * underlying routes (`/trades`, `/watchlist`, `/leaderboard`, `/referrals`, `/solana`)
+ * still exist and are still reachable directly — only the header links to them are gone.
  */
 export function MarketHeader({
   searchValue,
@@ -48,8 +30,6 @@ export function MarketHeader({
    *  agree on which chain the wallet should be on. */
   expectedWalletChainId?: number;
 }) {
-  const pathname = usePathname();
-
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-4">
@@ -61,32 +41,6 @@ export function MarketHeader({
             Kamby
           </span>
         </Link>
-        {NAV_LINKS.map((link) => {
-          // The Discover link stays a real, clickable link (never collapses to inert
-          // highlighted text) while a search is active, even though pathname alone already
-          // matches "/" — otherwise there's no way to get back to the unfiltered Discover
-          // view except editing the URL by hand. Real bug reported 2026-09-17: a search
-          // term the user could no longer clear because this nav item silently stopped
-          // being a link the moment they were on "/" at all, search or not.
-          const isActive =
-            link.href === '/' ? pathname === '/' && !searchValue : pathname.startsWith(link.href);
-          return isActive ? (
-            <span
-              key={link.href}
-              className="rounded-full bg-accent/10 px-2.5 py-1 font-mono text-[0.7rem] uppercase tracking-wide text-accent"
-            >
-              {link.label}
-            </span>
-          ) : (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn('font-mono text-[0.7rem] uppercase tracking-wide text-ink-400 hover:text-ink-900')}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
         <div className="ml-auto flex items-center gap-3">
           {/* Keyed on the server-known term so navigating between searches (or back to
               plain Discover) fully remounts SearchBar — its live-typeahead state (typed

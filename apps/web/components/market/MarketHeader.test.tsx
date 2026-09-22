@@ -2,8 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MarketHeader } from './MarketHeader';
 
-const usePathname = vi.fn();
-vi.mock('next/navigation', () => ({ usePathname: () => usePathname(), useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 // ConnectWalletButton itself is already independently tested (wagmi/session-dependent) —
 // stubbed here so this file only exercises what actually changed. Captures the props it was
@@ -30,70 +29,35 @@ vi.mock('@/components/account/BalanceVisibilityContext', () => ({
 }));
 
 describe('MarketHeader', () => {
-  it('highlights Discover (not a link) when on the homepage', () => {
-    usePathname.mockReturnValue('/');
+  it('renders the logo as a link back to Discover', () => {
     render(<MarketHeader />);
-
-    expect(screen.getByText('Discover')).not.toHaveAttribute('href');
-    expect(screen.getByRole('link', { name: /^Trades$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^Watchlist$/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /kamby/i })).toHaveAttribute('href', '/');
   });
 
-  it('highlights Trades (not a link) when on /trades, and Discover becomes a link', () => {
-    usePathname.mockReturnValue('/trades');
+  // Real removal, 2026-09-22: the top-level text nav (Discover/Trades/Watchlist/
+  // Leaderboard/Referrals/Solana) is gone, matching fomo.family's own header, which carries
+  // none either — navigation now happens through the terminal's own sidebar tabs instead.
+  // The underlying routes still exist; only these header links are gone, which is the one
+  // thing worth pinning down here so it can't silently regress back.
+  it('shows no top-level text nav links', () => {
     render(<MarketHeader />);
-
-    expect(screen.getByText('Trades')).not.toHaveAttribute('href');
-    expect(screen.getByRole('link', { name: /^Discover$/i })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: /^Watchlist$/i })).toBeInTheDocument();
+    for (const label of ['Discover', 'Trades', 'Watchlist', 'Leaderboard', 'Referrals', 'Solana']) {
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    }
   });
 
-  it('highlights Watchlist (not a link) when on /watchlist', () => {
-    usePathname.mockReturnValue('/watchlist');
-    render(<MarketHeader />);
-
-    expect(screen.getByText('Watchlist')).not.toHaveAttribute('href');
-    expect(screen.getByRole('link', { name: /^Trades$/i })).toBeInTheDocument();
-  });
-
-  it('highlights Referrals (not a link) when on /referrals', () => {
-    usePathname.mockReturnValue('/referrals');
-    render(<MarketHeader />);
-
-    expect(screen.getByText('Referrals')).not.toHaveAttribute('href');
-    expect(screen.getByRole('link', { name: /^Watchlist$/i })).toBeInTheDocument();
-  });
-
-  it('treats a trades sub-route (e.g. /trades/abc123) as still under Trades', () => {
-    usePathname.mockReturnValue('/trades/abc123');
-    render(<MarketHeader />);
-
-    expect(screen.getByText('Trades')).not.toHaveAttribute('href');
-  });
-
-  it('never highlights Discover for an unrelated route', () => {
-    usePathname.mockReturnValue('/market/0xabc');
-    render(<MarketHeader />);
-
-    expect(screen.getByRole('link', { name: /^Discover$/i })).toHaveAttribute('href', '/');
-  });
-
-  it('keeps Discover a real, clickable link (not inert text) on the homepage while a search is active — real bug fix 2026-09-17: there was previously no way to click back to the unfiltered Discover view', () => {
-    usePathname.mockReturnValue('/');
+  it('renders the search bar', () => {
     render(<MarketHeader searchValue="WBNB" />);
-
-    expect(screen.getByRole('link', { name: /^Discover$/i })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('textbox')).toHaveValue('WBNB');
   });
 
   it('passes expectedWalletChainId through to its own ConnectWalletButton instance — real bug fix 2026-09-17: on a BNB market page this header rendered a SEPARATE ConnectWalletButton that still defaulted to expecting Base, fighting the trade panel\'s own instance in an infinite auto-switch loop that left the wallet stuck on "Switching…" and the trade form unusable', () => {
-    usePathname.mockReturnValue('/market/bnb/0xabc');
     render(<MarketHeader expectedWalletChainId={56} />);
 
     expect(connectWalletButtonProps).toHaveBeenCalledWith(expect.objectContaining({ expectedChainId: 56 }));
   });
 
-  it('leaves ConnectWalletButton to its own Base default when no wallet chain context is given (Discover, Trades, Watchlist, etc.)', () => {
-    usePathname.mockReturnValue('/');
+  it('leaves ConnectWalletButton to its own Base default when no wallet chain context is given', () => {
     render(<MarketHeader />);
 
     expect(connectWalletButtonProps).toHaveBeenCalledWith(expect.objectContaining({ expectedChainId: undefined }));
