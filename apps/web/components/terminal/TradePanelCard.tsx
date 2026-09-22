@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { cn, Surface } from '@kamby/ui';
 import { TradePanel, type TradePanelProps, type TradePanelStep } from '@/components/trading/TradePanel';
-import { SmartSlipGasBar } from './SmartSlipGasBar';
 
 export const IN_FLIGHT_STEPS: ReadonlySet<TradePanelStep> = new Set(['review', 'approving', 'signing', 'pending']);
 
@@ -27,10 +26,7 @@ export function TradePanelCard(props: TradePanelProps) {
 
   return (
     <Surface className={cn('p-3.5 transition-shadow duration-300', inFlight && 'shadow-glow-accent')}>
-      <SmartSlipGasBar />
-      <div className="mt-2.5">
-        <TradePanel {...props} onStepChange={handleStepChange} />
-      </div>
+      <TradePanel {...props} onStepChange={handleStepChange} />
     </Surface>
   );
 }
