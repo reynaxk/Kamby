@@ -32,3 +32,14 @@ export async function fetchDiscoverMarkets(params: { sort?: DiscoverSort; limit?
   if (!res.ok) throw new Error(`Failed to fetch markets (${res.status})`);
   return res.json();
 }
+
+/** Client-safe counterpart to GET /market/search — powers SearchBar's live-typeahead
+ *  dropdown. The endpoint is public (no session needed) and deliberately throttled tighter
+ *  than the API default (30/min — see market.controller.ts's own comment anticipating
+ *  exactly this: "easy to hammer from a debounced input"), so callers must debounce. */
+export async function fetchSearchResults(q: string, limit = 8): Promise<MarketSummary[]> {
+  const query = new URLSearchParams({ q, limit: String(limit) });
+  const res = await fetch(`${API_BASE}/v1/market/search?${query.toString()}`);
+  if (!res.ok) throw new Error(`Search failed (${res.status})`);
+  return res.json();
+}

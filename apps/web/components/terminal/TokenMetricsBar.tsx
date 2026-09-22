@@ -1,6 +1,7 @@
-import type { MarketSummary } from '@kamby/domain';
+import { DISCOVERY_RANKING, type MarketSummary } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
+import { LowLiquidityBadge } from '@/components/market/LowLiquidityBadge';
 import { PriceChange } from '@/components/market/PriceChange';
 
 /**
@@ -16,6 +17,7 @@ import { PriceChange } from '@/components/market/PriceChange';
  */
 export function TokenMetricsBar({ market }: { market: MarketSummary }) {
   const display = market.symbol ?? market.name ?? '?';
+  const isLowLiquidity = market.liquidityUsd === null || market.liquidityUsd < DISCOVERY_RANKING.minLiquidityUsd;
 
   return (
     <Surface variant="glass" className="flex flex-wrap items-center gap-x-5 gap-y-1.5 px-3.5 py-2.5">
@@ -27,6 +29,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
           {display.slice(0, 1).toUpperCase()}
         </span>
         <span className="font-display text-sm font-bold tracking-tight text-ink-900">${market.symbol ?? display}</span>
+        {isLowLiquidity && <LowLiquidityBadge />}
       </div>
       <Metric label="Price" value={formatPrice(market.priceUsd)} />
       <Metric label="Mkt Cap" value={formatCompactUsd(market.marketCapUsd)} />

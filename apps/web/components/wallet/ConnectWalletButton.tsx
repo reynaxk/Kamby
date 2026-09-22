@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useCreateWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { Button } from '@kamby/ui';
 import { CHAIN_REGISTRY, slugForChainId } from '@kamby/domain';
+import Link from 'next/link';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { truncateAddress } from '@/lib/format';
@@ -205,6 +206,13 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
           >
             {copied ? 'Copied!' : address}
           </button>
+          <Link
+            href={`/trader/${address}`}
+            onClick={() => setMenuOpen(false)}
+            className="block w-full rounded-lg px-3 py-2 text-left font-body text-sm text-ink-900 hover:bg-surface-raised"
+          >
+            View my profile
+          </Link>
           <button
             type="button"
             onClick={() => {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { prisma } from '@kamby/db';
-import type { TokenPosition } from '@kamby/domain';
+import type { PnlHistory, PnlHistoryPoint, TokenPosition } from '@kamby/domain';
 import { formatUnits } from 'viem';
 
 /**
@@ -91,4 +91,46 @@ export class PositionService {
 
     return positions.sort((a, b) => (b.currentValueUsd ?? 0) - (a.currentValueUsd ?? 0));
   }
+
+  /** See PnlHistoryPointSchema's own doc comment (packages/domain/src/pnl.ts) for why this
+   *  is realized PnL over time, not a mark-to-market portfolio-value curve. Cumulative
+   *  total resets to 0 at the start of the requested window (a "last N days" chart, not
+   *  all-time-since-inception) — every day in range appears, including zero-activity ones,
+   *  with a real `0` for that day's own delta rather than a gap. A single user's own event
+   *  volume is small enough to bucket in JS rather than needing a SQL date_trunc GROUP BY. */
+  async getMyPnlHistory(userId: string, days: number): Promise<PnlHistory> {
+    const todayUtc = startOfUtcDay(new Date());
+    const since = new Date(todayUtc.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+
+    const events = await prisma.realizedPnlEvent.findMany({
+      where: { userId, confirmedAt: { gte: since } },
+      select: { confirmedAt: true, realizedPnlUsd: true },
+    });
+
+    const deltaByDate = new Map<string, number>();
+    for (const event of events) {
+      const date = utcDateKey(event.confirmedAt);
+      deltaByDate.set(date, (deltaByDate.get(date) ?? 0) + Number(event.realizedPnlUsd));
+    }
+
+    const points: PnlHistoryPoint[] = [];
+    let cumulative = 0;
+    for (let i = 0; i < days; i++) {
+      const day = new Date(since.getTime() + i * 24 * 60 * 60 * 1000);
+      const date = utcDateKey(day);
+      const realizedPnlUsd = deltaByDate.get(date) ?? 0;
+      cumulative += realizedPnlUsd;
+      points.push({ date, realizedPnlUsd, cumulativeRealizedPnlUsd: cumulative });
+    }
+
+    return { days, points };
+  }
+}
+
+function startOfUtcDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function utcDateKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
 }

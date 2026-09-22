@@ -233,3 +233,33 @@ export function toPnlWindowStats(
     volumeUsd: aggregate.costBasisUsd + aggregate.proceedsUsd,
   };
 }
+
+/**
+ * One day's own realized PnL, plus the running total through end of that day — the real
+ * material for a "portfolio value over time" chart. Deliberately named and scoped as
+ * *realized* PnL over time, not a full mark-to-market equity curve: reconstructing what an
+ * open position was worth on some past day would need a historical price snapshot per
+ * token per day, which this codebase doesn't store (TokenMarket only ever holds the
+ * *current* price) — anything claiming to chart that would be extrapolating, not reporting.
+ * This charts what's honestly knowable: money actually realized, day by day.
+ *
+ * `realizedPnlUsd` here is a real `0` (never `null`) for a day with no matched sells — the
+ * question this field answers ("what did this specific day contribute") has a true zero
+ * answer, unlike PnlWindowStats' null-vs-zero split (which asks "did ANY trading happen in
+ * this whole window at all" — a genuinely different question). Every day in the requested
+ * range appears, including zero-activity days, so a chart never has to guess whether a gap
+ * means "no data" or "exactly broke even."
+ */
+export const PnlHistoryPointSchema = z.object({
+  /** UTC calendar date, `YYYY-MM-DD`. */
+  date: z.string(),
+  realizedPnlUsd: z.number(),
+  cumulativeRealizedPnlUsd: z.number(),
+});
+export type PnlHistoryPoint = z.infer<typeof PnlHistoryPointSchema>;
+
+export const PnlHistorySchema = z.object({
+  days: z.number().int().positive(),
+  points: z.array(PnlHistoryPointSchema),
+});
+export type PnlHistory = z.infer<typeof PnlHistorySchema>;

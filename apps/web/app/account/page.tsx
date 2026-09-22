@@ -1,5 +1,6 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { ProfileEditor } from '@/components/account/ProfileEditor';
+import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
 
 export const metadata = { title: 'Your profile — Kamby' };
 
@@ -17,6 +18,9 @@ export default function AccountPage() {
         </p>
         <div className="mt-6">
           <ProfileEditor />
+        </div>
+        <div className="mt-8">
+          <PnlHistoryChart />
         </div>
       </main>
     </div>

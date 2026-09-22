@@ -3,6 +3,7 @@
 import type {
   PersonalizedFeedPage,
   PersonalizedToken,
+  PnlHistory,
   SavedSearchDto,
   TokenPosition,
   TokenThesis,
@@ -158,5 +159,14 @@ export async function fetchMyPositions(): Promise<TokenPosition[]> {
   if (!hasStoredSession()) return [];
   const res = await authedFetch('/social/positions');
   if (!res.ok) throw new Error(`Failed to fetch positions (${res.status})`);
+  return res.json();
+}
+
+/** Same "never create a session just to view" guard as fetchMyPositions — an empty
+ *  zero-day-range history rather than a real fetch/error for a browser with no session. */
+export async function fetchMyPnlHistory(days = 30): Promise<PnlHistory> {
+  if (!hasStoredSession()) return { days, points: [] };
+  const res = await authedFetch(`/social/pnl-history?days=${days}`);
+  if (!res.ok) throw new Error(`Failed to fetch PnL history (${res.status})`);
   return res.json();
 }

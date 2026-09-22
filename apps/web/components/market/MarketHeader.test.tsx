@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { MarketHeader } from './MarketHeader';
 
 const usePathname = vi.fn();
-vi.mock('next/navigation', () => ({ usePathname: () => usePathname() }));
+vi.mock('next/navigation', () => ({ usePathname: () => usePathname(), useRouter: () => ({ push: vi.fn() }) }));
 
 // ConnectWalletButton itself is already independently tested (wagmi/session-dependent) —
 // stubbed here so this file only exercises what actually changed. Captures the props it was
@@ -17,6 +17,13 @@ vi.mock('@/components/wallet/ConnectWalletButton', () => ({
   },
 }));
 vi.mock('@/components/notifications/NotificationBell', () => ({ NotificationBell: () => <div /> }));
+// SearchBar's own live-typeahead behavior is covered by SearchBar.test.tsx — stubbed here
+// (real fetchSearchResults) so a searchValue prop doesn't fire a real, unmocked fetch() in
+// this file's tests.
+vi.mock('@/lib/market-client', () => ({ fetchSearchResults: vi.fn().mockResolvedValue([]) }));
+vi.mock('@/components/account/BalanceVisibilityContext', () => ({
+  useBalanceVisibility: () => ({ hidden: false, toggle: vi.fn() }),
+}));
 
 describe('MarketHeader', () => {
   it('highlights Discover (not a link) when on the homepage', () => {

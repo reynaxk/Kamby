@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchTokenHistory } from './market-client';
+import { fetchSearchResults, fetchTokenHistory } from './market-client';
 
 const fetchMock = vi.fn();
 
@@ -47,5 +47,26 @@ describe('fetchTokenHistory', () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve(null) });
 
     await expect(fetchTokenHistory('0xabc', '1D')).rejects.toThrow(/500/);
+  });
+});
+
+describe('fetchSearchResults', () => {
+  it('requests the given query and limit, returning the parsed JSON body', async () => {
+    const body = [{ tokenAddress: '0xabc', symbol: 'PEPE' }];
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(body) });
+
+    const result = await fetchSearchResults('pepe', 5);
+
+    expect(result).toEqual(body);
+    const calledUrl = new URL(fetchMock.mock.calls[0]![0] as string);
+    expect(calledUrl.pathname).toBe('/v1/market/search');
+    expect(calledUrl.searchParams.get('q')).toBe('pepe');
+    expect(calledUrl.searchParams.get('limit')).toBe('5');
+  });
+
+  it('throws on a non-ok response', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve(null) });
+
+    await expect(fetchSearchResults('pepe')).rejects.toThrow(/500/);
   });
 });

@@ -6,6 +6,7 @@ jest.mock('@kamby/db', () => ({
     tokenLot: { findMany: jest.fn() },
     token: { findMany: jest.fn() },
     tokenMarket: { findMany: jest.fn() },
+    realizedPnlEvent: { findMany: jest.fn() },
   },
 }));
 
@@ -131,5 +132,55 @@ describe('PositionService', () => {
     const result = await service.getMine('user-1');
 
     expect(result[0]?.currentPriceUsd).toBe(150);
+  });
+});
+
+describe('PositionService#getMyPnlHistory', () => {
+  let service: PositionService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new PositionService();
+  });
+
+  it('returns one point per day in range, every day present even with zero activity', async () => {
+    (mockedPrisma.realizedPnlEvent.findMany as jest.Mock).mockResolvedValue([]);
+
+    const result = await service.getMyPnlHistory('user-1', 7);
+
+    expect(result.days).toBe(7);
+    expect(result.points).toHaveLength(7);
+    expect(result.points.every((p) => p.realizedPnlUsd === 0 && p.cumulativeRealizedPnlUsd === 0)).toBe(true);
+  });
+
+  it('buckets events by their UTC calendar day and accumulates a real running total', async () => {
+    const today = new Date();
+    const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    const yesterday = new Date(todayUtc.getTime() - 24 * 60 * 60 * 1000);
+
+    (mockedPrisma.realizedPnlEvent.findMany as jest.Mock).mockResolvedValue([
+      { confirmedAt: new Date(yesterday.getTime() + 3600_000), realizedPnlUsd: 50 },
+      { confirmedAt: new Date(todayUtc.getTime() + 3600_000), realizedPnlUsd: -20 },
+      { confirmedAt: new Date(todayUtc.getTime() + 7200_000), realizedPnlUsd: 10 },
+    ]);
+
+    const result = await service.getMyPnlHistory('user-1', 2);
+
+    const yesterdayKey = yesterday.toISOString().slice(0, 10);
+    const todayKey = todayUtc.toISOString().slice(0, 10);
+    expect(result.points).toEqual([
+      { date: yesterdayKey, realizedPnlUsd: 50, cumulativeRealizedPnlUsd: 50 },
+      { date: todayKey, realizedPnlUsd: -10, cumulativeRealizedPnlUsd: 40 },
+    ]);
+  });
+
+  it('scopes the query to the given userId and the requested window', async () => {
+    (mockedPrisma.realizedPnlEvent.findMany as jest.Mock).mockResolvedValue([]);
+
+    await service.getMyPnlHistory('user-42', 30);
+
+    expect(mockedPrisma.realizedPnlEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ userId: 'user-42' }) }),
+    );
   });
 });

@@ -1,7 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchTokenTraders } from './discovery-client';
+import type * as SessionClientModule from './session-client';
+import { fetchMyPnlHistory, fetchTokenTraders } from './discovery-client';
 
 const fetchMock = vi.fn();
+
+const { hasStoredSessionMock, authedFetchMock } = vi.hoisted(() => ({
+  hasStoredSessionMock: vi.fn(),
+  authedFetchMock: vi.fn(),
+}));
+
+// Keeps the real API_BASE/expectOk (fetchTokenTraders's own tests below rely on the real
+// resolved base URL) — only hasStoredSession/authedFetch are overridden, for
+// fetchMyPnlHistory's "never creates a session just to view" guard.
+vi.mock('./session-client', async (importOriginal) => {
+  const actual = await importOriginal<typeof SessionClientModule>();
+  return { ...actual, hasStoredSession: hasStoredSessionMock, authedFetch: authedFetchMock };
+});
 
 beforeEach(() => {
   fetchMock.mockReset();
@@ -63,5 +77,36 @@ describe('fetchTokenTraders', () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve(null) });
 
     await expect(fetchTokenTraders('0xabc', 8453)).rejects.toThrow(/500/);
+  });
+});
+
+describe('fetchMyPnlHistory', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it('never creates a session just to view — returns an empty, zero-point history for a browser with no session', async () => {
+    hasStoredSessionMock.mockReturnValue(false);
+
+    const result = await fetchMyPnlHistory(30);
+
+    expect(result).toEqual({ days: 30, points: [] });
+    expect(authedFetchMock).not.toHaveBeenCalled();
+  });
+
+  it('requests the given number of days via authedFetch and returns the parsed body', async () => {
+    hasStoredSessionMock.mockReturnValue(true);
+    const body = { days: 7, points: [{ date: '2026-01-01', realizedPnlUsd: 10, cumulativeRealizedPnlUsd: 10 }] };
+    authedFetchMock.mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(body) });
+
+    const result = await fetchMyPnlHistory(7);
+
+    expect(result).toEqual(body);
+    expect(authedFetchMock).toHaveBeenCalledWith('/social/pnl-history?days=7');
+  });
+
+  it('throws on a non-ok response', async () => {
+    hasStoredSessionMock.mockReturnValue(true);
+    authedFetchMock.mockResolvedValue({ ok: false, status: 500 });
+
+    await expect(fetchMyPnlHistory()).rejects.toThrow(/500/);
   });
 });

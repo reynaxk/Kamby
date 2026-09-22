@@ -1,7 +1,9 @@
 'use client';
 
 import { isValidUsername, normalizeUsername, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH } from '@kamby/domain';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { fetchMyProfile, updateUsername, uploadAvatar, type MyProfile } from '@/lib/profile-client';
@@ -22,6 +24,7 @@ const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
  * also what the onboarding prompt (see OnboardingPrompt.tsx) opens into.
  */
 export function ProfileEditor() {
+  const { address } = useAccount();
   const [state, setState] = useState<State>('loading');
   const [profile, setProfile] = useState<MyProfile | null>(null);
 
@@ -182,6 +185,15 @@ export function ProfileEditor() {
           <p className="mt-1 font-body text-xs text-up">Username saved.</p>
         )}
       </section>
+
+      {address && (
+        <Link
+          href={`/trader/${address}`}
+          className="font-body text-sm text-accent hover:underline"
+        >
+          View your public profile →
+        </Link>
+      )}
     </div>
   );
 }

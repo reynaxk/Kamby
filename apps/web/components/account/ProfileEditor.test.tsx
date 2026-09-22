@@ -1,21 +1,27 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProfileEditor } from './ProfileEditor';
 
-const { fetchMyProfile, updateUsername, uploadAvatar, hasStoredSession } = vi.hoisted(() => ({
+const { fetchMyProfile, updateUsername, uploadAvatar, hasStoredSession, useAccount } = vi.hoisted(() => ({
   fetchMyProfile: vi.fn(),
   updateUsername: vi.fn(),
   uploadAvatar: vi.fn(),
   hasStoredSession: vi.fn(),
+  useAccount: vi.fn(),
 }));
 
 vi.mock('@/lib/profile-client', () => ({ fetchMyProfile, updateUsername, uploadAvatar }));
 vi.mock('@/lib/session-client', () => ({ hasStoredSession }));
+vi.mock('wagmi', () => ({ useAccount }));
 
 describe('ProfileEditor', () => {
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  beforeEach(() => {
+    useAccount.mockReturnValue({ address: undefined });
   });
 
   it('prompts to sign in rather than creating a session just to check the profile', () => {
@@ -116,5 +122,24 @@ describe('ProfileEditor', () => {
 
     await waitFor(() => expect(uploadAvatar).toHaveBeenCalledWith(file));
     expect(await screen.findByAltText('')).toHaveAttribute('src', 'https://cdn.kambesh.com/a.png');
+  });
+
+  it('links to the public trader profile for the connected wallet', async () => {
+    hasStoredSession.mockReturnValue(true);
+    fetchMyProfile.mockResolvedValue({ username: 'alice', avatarUrl: null });
+    useAccount.mockReturnValue({ address: '0xABC0000000000000000000000000000000000A' });
+    render(<ProfileEditor />);
+
+    const link = await screen.findByRole('link', { name: /view your public profile/i });
+    expect(link).toHaveAttribute('href', '/trader/0xABC0000000000000000000000000000000000A');
+  });
+
+  it('omits the public-profile link when no wallet is connected', async () => {
+    hasStoredSession.mockReturnValue(true);
+    fetchMyProfile.mockResolvedValue({ username: 'alice', avatarUrl: null });
+    render(<ProfileEditor />);
+
+    await waitFor(() => expect(screen.getByDisplayValue('alice')).toBeInTheDocument());
+    expect(screen.queryByRole('link', { name: /view your public profile/i })).not.toBeInTheDocument();
   });
 });

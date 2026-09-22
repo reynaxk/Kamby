@@ -5,6 +5,7 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import { WagmiProvider as PrivyWagmiProvider } from '@privy-io/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
+import { BalanceVisibilityProvider } from '@/components/account/BalanceVisibilityContext';
 import { privyAppId, privyConfig } from '@/lib/privy-config';
 import { captureReferralCodeFromUrl } from '@/lib/referral-capture';
 import { wagmiConfig } from '@/lib/wagmi-config';
@@ -61,7 +62,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   if (!privyAppId) {
     return (
       <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <BalanceVisibilityProvider>{children}</BalanceVisibilityProvider>
+        </QueryClientProvider>
       </WagmiProvider>
     );
   }
@@ -69,7 +72,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <PrivyProvider appId={privyAppId} config={privyConfig}>
       <QueryClientProvider client={queryClient}>
-        <PrivyWagmiProvider config={wagmiConfig}>{children}</PrivyWagmiProvider>
+        <PrivyWagmiProvider config={wagmiConfig}>
+          <BalanceVisibilityProvider>{children}</BalanceVisibilityProvider>
+        </PrivyWagmiProvider>
       </QueryClientProvider>
     </PrivyProvider>
   );

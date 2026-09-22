@@ -199,6 +199,17 @@ describe('ConnectWalletButton', () => {
     expect(logout).not.toHaveBeenCalled();
   });
 
+  it('links to the own trader profile from the connected-wallet menu', async () => {
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout: vi.fn() });
+    useAccount.mockReturnValue({ address: ADDRESS, isConnected: true, chainId: 8453 });
+    mockConnectedDefaults();
+
+    render(<ConnectWalletButton />);
+    await userEvent.click(screen.getByRole('button', { name: '0x1234…7890' }));
+
+    expect(screen.getByRole('link', { name: /view my profile/i })).toHaveAttribute('href', `/trader/${ADDRESS}`);
+  });
+
   it('copies the full address to the clipboard and shows confirmation, rather than signing out', async () => {
     // userEvent.setup() installs its own navigator.clipboard stub — stubbing clipboard
     // before setup() gets silently overwritten by it, so this must stub clipboard after.

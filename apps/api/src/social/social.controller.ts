@@ -24,6 +24,7 @@ import { AddressParamDto } from './dto/address-param.dto';
 import { ActivityQueryDto } from './dto/activity-query.dto';
 import { CursorQueryDto } from './dto/cursor-query.dto';
 import { LeaderboardQueryDto } from './dto/leaderboard-query.dto';
+import { PnlHistoryQueryDto } from './dto/pnl-history-query.dto';
 import { SetThesisDto } from './dto/set-thesis.dto';
 import { ThesesQueryDto } from './dto/theses-query.dto';
 import { TraderSearchQueryDto } from './dto/trader-search-query.dto';
@@ -239,6 +240,12 @@ export class SocialController {
   @Get('positions')
   getMyPositions(@CurrentUser() user: SessionUser) {
     return this.positions.getMine(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('pnl-history')
+  getMyPnlHistory(@CurrentUser() user: SessionUser, @Query() query: PnlHistoryQueryDto) {
+    return this.positions.getMyPnlHistory(user.id, query.days);
   }
 
   @Get('tokens/:address/theses')

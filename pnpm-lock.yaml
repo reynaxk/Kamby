@@ -243,6 +243,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      technicalindicators:
+        specifier: ^3.1.0
+        version: 3.1.0
       viem:
         specifier: ^2.21.0
         version: 2.56.3(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76)
@@ -5171,6 +5174,9 @@ packages:
   '@types/node@20.19.43':
     resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
 
+  '@types/node@6.14.13':
+    resolution: {integrity: sha512-J1F0XJ/9zxlZel5ZlbeSuHW2OpabrUAqpFuC2sm2I3by8sERQ8+KCjNKUcq8QHuzpGMWiJpo9ZxeHrqrP2KzQw==}
+
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
@@ -9676,6 +9682,9 @@ packages:
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
+
+  technicalindicators@3.1.0:
+    resolution: {integrity: sha512-f16mOc+Y05hNy/of+UbGxhxQQmxUztCiluhsqC5QLUYz4WowUgKde9m6nIjK1Kay0wGHigT0IkOabpp0+22UfA==}
 
   terser-webpack-plugin@5.6.1:
     resolution: {integrity: sha512-201R5j+sJpK8nFWwKVyNfZot8FaJbLZDq5evriVzbV1wDtSXDjRUDRfJzHpAaxFDMEhsZL1QkeqM61wgsS3KaQ==}
@@ -17091,6 +17100,8 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@6.14.13': {}
+
   '@types/prop-types@15.7.15': {}
 
   '@types/qs@6.15.1': {}
@@ -23541,6 +23552,10 @@ snapshots:
       - yaml
 
   tapable@2.3.3: {}
+
+  technicalindicators@3.1.0:
+    dependencies:
+      '@types/node': 6.14.13
 
   terser-webpack-plugin@5.6.1(webpack@5.97.1):
     dependencies:

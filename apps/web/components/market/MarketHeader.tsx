@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@kamby/ui';
+import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { SearchBar } from './SearchBar';
@@ -86,7 +87,12 @@ export function MarketHeader({
           );
         })}
         <div className="ml-auto flex items-center gap-3">
-          <SearchBar defaultValue={searchValue} />
+          {/* Keyed on the server-known term so navigating between searches (or back to
+              plain Discover) fully remounts SearchBar — its live-typeahead state (typed
+              value, dropdown results) is now lifted into the component itself rather than
+              living in the DOM input node, so only a real remount resets it. */}
+          <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
+          <BlurBalancesToggle />
           <NotificationBell />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} />
         </div>

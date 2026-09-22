@@ -32,6 +32,11 @@ vi.mock('@/lib/discovery-client', () => ({
   hasStoredSession: () => false,
   fetchTheses: vi.fn().mockResolvedValue([]),
 }));
+// MyPositionsPanel (rendered inside DiscoverTerminal) reads this context — no
+// BalanceVisibilityProvider is mounted in these tests, so it needs its own stub.
+vi.mock('@/components/account/BalanceVisibilityContext', () => ({
+  useBalanceVisibility: () => ({ hidden: false, toggle: vi.fn() }),
+}));
 
 // KambyChart (lightweight-charts, real <canvas> manipulation) and TradePanelCard
 // (wagmi/Privy) are exercised by their own dedicated test files — stubbed here so this file
