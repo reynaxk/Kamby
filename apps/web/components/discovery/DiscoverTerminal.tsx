@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CHAIN_REGISTRY,
   DEFAULT_CHAIN_SLUG,
@@ -112,7 +112,15 @@ export function DiscoverTerminal({
   const [gridMode, setGridMode] = useState<GridMode>(1);
   const [tokenListOpen, setTokenListOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
-  const availableMarkets = dedupeMarkets([ranked, trending.map((t) => t.market), movers, byVolume]);
+  // Recomputed on every render otherwise — a Set-based dedupe across ~32 items plus a fresh
+  // `.map()` allocation, redone on every polling/selection re-render even though ranked/
+  // trending/movers/byVolume (all server-fetched props) rarely change. Also passed straight
+  // through as a prop below, so a fresh array reference every render meant every consumer of
+  // it saw a "changed" prop each time too, not just wasted recomputation.
+  const availableMarkets = useMemo(
+    () => dedupeMarkets([ranked, trending.map((t) => t.market), movers, byVolume]),
+    [ranked, trending, movers, byVolume],
+  );
 
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
   const [timeframe, setTimeframe] = useState<Timeframe>(initialTimeframe);
