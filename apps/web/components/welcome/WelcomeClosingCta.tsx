@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@kamby/ui';
+import { KambyLogo } from '@/components/layout/KambyLogo';
 
 export function WelcomeClosingCta({ onStartTrading }: { onStartTrading: () => void }) {
   return (
@@ -28,12 +29,7 @@ export function WelcomeClosingCta({ onStartTrading }: { onStartTrading: () => vo
 
       <footer className="flex flex-col items-center gap-1 px-6 pb-10 text-center">
         <div className="flex items-center gap-2">
-          <span aria-hidden className="text-lg">
-            🔥
-          </span>
-          <span className="font-display text-base font-extrabold tracking-tight text-ink-900">
-            Kamby
-          </span>
+          <KambyLogo size="sm" />
         </div>
         <p className="font-body text-xs text-ink-400">
           © 2026 Kamby. Not custodial. Not financial advice.

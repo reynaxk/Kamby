@@ -2,6 +2,7 @@
 
 import { usePrivy } from '@privy-io/react-auth';
 import { Button } from '@kamby/ui';
+import { KambyLogo } from '@/components/layout/KambyLogo';
 import { WelcomeClosingCta } from './WelcomeClosingCta';
 import { WelcomeFeatureGrid } from './WelcomeFeatureGrid';
 import { WelcomeHero } from './WelcomeHero';
@@ -25,12 +26,7 @@ export function WelcomePage() {
     <div className="kamby-void min-h-screen bg-bg">
       <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
-          <span aria-hidden className="text-xl">
-            🔥
-          </span>
-          <span className="font-display text-lg font-extrabold tracking-tight text-ink-900">
-            Kamby
-          </span>
+          <KambyLogo />
         </div>
         <Button type="button" variant="secondary" onClick={() => login()}>
           Sign in

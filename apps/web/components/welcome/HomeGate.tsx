@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
+import { KambyLogo } from '@/components/layout/KambyLogo';
 import { WelcomePage } from './WelcomePage';
 
 /**
@@ -27,12 +28,7 @@ function GateLoading() {
   return (
     <div className="kamby-void flex min-h-screen items-center justify-center bg-bg">
       <div className="flex animate-fade-in items-center gap-2 opacity-60">
-        <span aria-hidden className="text-xl">
-          🔥
-        </span>
-        <span className="font-display text-lg font-extrabold tracking-tight text-ink-900">
-          Kamby
-        </span>
+        <KambyLogo />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
+import { KambyLogo } from '@/components/layout/KambyLogo';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { SendButton } from '@/components/wallet/SendButton';
@@ -34,12 +35,7 @@ export function MarketHeader({
     <header className="sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
-          <span aria-hidden className="text-xl">
-            🔥
-          </span>
-          <span className="font-display text-lg font-extrabold tracking-tight text-ink-900">
-            Kamby
-          </span>
+          <KambyLogo />
         </Link>
         <div className="ml-auto flex items-center gap-3">
           {/* Keyed on the server-known term so navigating between searches (or back to
