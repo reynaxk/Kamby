@@ -26,3 +26,22 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
       dispatchEvent: () => false,
     }) as MediaQueryList;
 }
+
+// jsdom has no IntersectionObserver at all — framer-motion's `whileInView` (first used by
+// the welcome page's scroll-reveal sections) calls it on mount and throws otherwise. This
+// stub never actually fires a callback: tests don't need the reveal animation to trigger,
+// since RTL queries the DOM directly regardless of the element's animated opacity/transform.
+if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+  class IntersectionObserverStub implements IntersectionObserver {
+    readonly root: Element | Document | null = null;
+    readonly rootMargin: string = '';
+    readonly thresholds: ReadonlyArray<number> = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  }
+  window.IntersectionObserver = IntersectionObserverStub;
+}

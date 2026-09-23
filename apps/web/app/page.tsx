@@ -1,4 +1,9 @@
-import { CHAIN_REGISTRY, DEFAULT_CHAIN_SLUG, slugForIdentifier, type TokenTraderConnection } from '@kamby/domain';
+import {
+  CHAIN_REGISTRY,
+  DEFAULT_CHAIN_SLUG,
+  slugForIdentifier,
+  type TokenTraderConnection,
+} from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { AutoRefresh } from '@/components/market/AutoRefresh';
@@ -14,6 +19,7 @@ import { PersonalizedSection } from '@/components/discovery/PersonalizedSection'
 import { RisingSection } from '@/components/discovery/RisingSection';
 import { SavedSearches } from '@/components/discovery/SavedSearches';
 import { WhatsMissedSection } from '@/components/discovery/WhatsMissedSection';
+import { HomeGate } from '@/components/welcome/HomeGate';
 import { fetchDiscoverMarkets, fetchSearch, fetchTokenHistory } from '@/lib/market-api';
 import {
   fetchGlobalActivity,
@@ -21,7 +27,12 @@ import {
   fetchTraderSearch,
   fetchTrending,
 } from '@/lib/social-api';
-import { fetchActiveTraders, fetchLargeTrades, fetchRising, fetchTokenTraders } from '@/lib/discovery-api';
+import {
+  fetchActiveTraders,
+  fetchLargeTrades,
+  fetchRising,
+  fetchTokenTraders,
+} from '@/lib/discovery-api';
 import { settledOr } from '@/lib/settled-fetch';
 
 const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
@@ -68,7 +79,9 @@ export default async function DiscoverPage({
     // was genuinely tracked and tradable). `fetchSearch` — the dedicated, ranking-gate-free
     // endpoint that already existed but was never actually wired up here — is what an
     // explicit search should hit instead; the ranked feed stays ranked-only when browsing.
-    search ? settledOr(fetchSearch(search, 20), []) : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20 }), []),
+    search
+      ? settledOr(fetchSearch(search, 20), [])
+      : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20 }), []),
     settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 3, search }), []),
     settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 3, search }), []),
     settledOr(fetchTrending(6), []),
@@ -88,15 +101,16 @@ export default async function DiscoverPage({
   // existing "What's moving" section below.
   const defaultMarket = !search && ranked.length > 0 ? ranked[0] : undefined;
   const defaultChainId = defaultMarket
-    ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG].numericId
+    ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG]
+        .numericId
     : CHAIN_REGISTRY[DEFAULT_CHAIN_SLUG].numericId;
   const [heroCandles, heroActivity, heroTraders] = defaultMarket
     ? await Promise.all([
         settledOr(fetchTokenHistory(defaultMarket.tokenAddress, '1D', defaultChainId), []),
-        settledOr(
-          fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, limit: 10 }),
-          { items: [], nextCursor: null },
-        ),
+        settledOr(fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, limit: 10 }), {
+          items: [],
+          nextCursor: null,
+        }),
         settledOr(
           fetchTokenTraders(defaultMarket.tokenAddress, defaultChainId, 8),
           EMPTY_TOKEN_TRADER_CONNECTION,
@@ -105,203 +119,214 @@ export default async function DiscoverPage({
     : [[], { items: [], nextCursor: null }, EMPTY_TOKEN_TRADER_CONNECTION];
 
   return (
-    // kamby-void — see globals.css's own doc comment. Discover is one of the two
-    // highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
-    // the other); the rest of the product still runs the original light/dark palette.
-    <div className="kamby-void min-h-screen bg-bg">
-      <AutoRefresh intervalSeconds={30} />
-      <MarketHeader searchValue={search} />
-      {!search && (
-        <div className="mx-auto max-w-[1600px] px-3 pt-6 sm:px-4">
-          <DiscoverTerminal
-            ranked={ranked}
-            trending={trending}
-            movers={movers}
-            byVolume={byVolume}
-            initialMarket={defaultMarket ?? null}
-            initialTimeframe="1D"
-            initialCandles={heroCandles}
-            initialActivity={heroActivity.items}
-            initialTraders={heroTraders}
-          />
-        </div>
-      )}
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        {!search && <WhatsMissedSection />}
-
-        {search && (
-          <p className="mb-3 font-body text-sm text-ink-600">
-            Showing results for{' '}
-            <span className="font-semibold text-ink-900">&ldquo;{search}&rdquo;</span>
-          </p>
-        )}
-        <SavedSearches currentSearch={search} />
-
-        {search && traderResults.length > 0 && (
-          <section className="mb-12">
-            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Traders</h2>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {traderResults.map((trader) => (
-                <Link key={trader.address} href={`/trader/${trader.address}`} className="block">
-                  <Surface className="p-4 transition-colors hover:border-accent/50 hover:bg-surface-raised">
-                    <TraderIdentity
-                      address={trader.address}
-                      displayName={trader.username}
-                      avatarUrl={trader.avatarUrl}
-                    />
-                  </Surface>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {!search && <PersonalizedSection />}
-
-        <section className="mb-12">
-          <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-            What&apos;s moving
-          </h2>
-          <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
-            Ranked by the Discovery Score — a transparent mix of volume, momentum, and liquidity.
-            See how it&apos;s computed in the token detail page.
-          </p>
-          <div className="mt-5">
-            <MarketTable markets={ranked} />
-          </div>
-        </section>
-
+    // HomeGate — added 2026-09-22: a signed-out visitor sees components/welcome/WelcomePage
+    // instead of everything below, once Privy's auth state resolves client-side. The full
+    // terminal markup below is still server-rendered regardless (cheap, revalidate-cached,
+    // all public data) — HomeGate just decides whether to actually display it. See its own
+    // doc comment for why this can't be a server-side/middleware redirect in this app.
+    <HomeGate>
+      {/* kamby-void — see globals.css's own doc comment. Discover is one of the two
+          highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
+          the other); the rest of the product still runs the original light/dark palette. */}
+      <div className="kamby-void min-h-screen bg-bg">
+        <AutoRefresh intervalSeconds={30} />
+        <MarketHeader searchValue={search} />
         {!search && (
+          <div className="mx-auto max-w-[1600px] px-3 pt-6 sm:px-4">
+            <DiscoverTerminal
+              ranked={ranked}
+              trending={trending}
+              movers={movers}
+              byVolume={byVolume}
+              initialMarket={defaultMarket ?? null}
+              initialTimeframe="1D"
+              initialCandles={heroCandles}
+              initialActivity={heroActivity.items}
+              initialTraders={heroTraders}
+            />
+          </div>
+        )}
+        <main className="mx-auto max-w-6xl px-6 py-10">
+          {!search && <WhatsMissedSection />}
+
+          {search && (
+            <p className="mb-3 font-body text-sm text-ink-600">
+              Showing results for{' '}
+              <span className="font-semibold text-ink-900">&ldquo;{search}&rdquo;</span>
+            </p>
+          )}
+          <SavedSearches currentSearch={search} />
+
+          {search && traderResults.length > 0 && (
+            <section className="mb-12">
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+                Traders
+              </h2>
+              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {traderResults.map((trader) => (
+                  <Link key={trader.address} href={`/trader/${trader.address}`} className="block">
+                    <Surface className="p-4 transition-colors hover:border-accent/50 hover:bg-surface-raised">
+                      <TraderIdentity
+                        address={trader.address}
+                        displayName={trader.username}
+                        avatarUrl={trader.avatarUrl}
+                      />
+                    </Surface>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {!search && <PersonalizedSection />}
+
           <section className="mb-12">
-            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Trending</h2>
-            <p className="mt-1 font-body text-sm text-ink-600">
-              Ranked by real trading activity — unique traders and trade count, not just volume. See
-              docs/SOCIAL.md#trending.
+            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+              What&apos;s moving
+            </h2>
+            <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
+              Ranked by the Discovery Score — a transparent mix of volume, momentum, and liquidity.
+              See how it&apos;s computed in the token detail page.
             </p>
             <div className="mt-5">
-              {trending.length === 0 ? (
-                <EmptyState title="Nothing has cleared the trending thresholds yet" />
+              <MarketTable markets={ranked} />
+            </div>
+          </section>
+
+          {!search && (
+            <section className="mb-12">
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+                Trending
+              </h2>
+              <p className="mt-1 font-body text-sm text-ink-600">
+                Ranked by real trading activity — unique traders and trade count, not just volume.
+                See docs/SOCIAL.md#trending.
+              </p>
+              <div className="mt-5">
+                {trending.length === 0 ? (
+                  <EmptyState title="Nothing has cleared the trending thresholds yet" />
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {trending.map((item) => (
+                      <TokenCard key={item.market.tokenAddress} market={item.market} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {!search && (
+            <section className="mb-12">
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+                Top traders
+              </h2>
+              <p className="mt-1 font-body text-sm text-ink-600">
+                Most active by real 24h volume — not a profit claim.
+              </p>
+              <div className="mt-5">
+                {topTraders.length === 0 ? (
+                  <EmptyState title="No trader has cleared the activity floor yet" />
+                ) : (
+                  <TopTraders traders={topTraders} />
+                )}
+              </div>
+            </section>
+          )}
+
+          {!search && (
+            <section className="mb-12">
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+                Active traders
+              </h2>
+              <p className="mt-1 font-body text-sm text-ink-600">
+                Most 24h trades — a different ranking than Top Traders above, which is by volume.
+                Still not a profit claim.
+              </p>
+              <div className="mt-5">
+                {activeTraders.length === 0 ? (
+                  <EmptyState title="No trader has cleared the activity floor yet" />
+                ) : (
+                  <TopTraders traders={activeTraders} />
+                )}
+              </div>
+            </section>
+          )}
+
+          {!search && (
+            <section className="mb-12">
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+                Large trades
+              </h2>
+              <p className="mt-1 font-body text-sm text-ink-600">
+                Recent confirmed trades at or above the large-trade threshold, across every tracked
+                market.
+              </p>
+              <div className="mt-5">
+                {largeTrades.length === 0 ? (
+                  <EmptyState title="No large trades yet" />
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {largeTrades.map((item) => (
+                      <ActivityCard key={item.id} activity={item} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {!search && (
+            <section className="mb-12">
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Rising</h2>
+              <p className="mt-1 font-body text-sm text-ink-600">
+                Tokens that just started trending, and traders moving well above their usual pace.
+              </p>
+              <div className="mt-5">
+                <RisingSection tokens={rising.tokens} traders={rising.traders} />
+              </div>
+            </section>
+          )}
+
+          <section className="mb-12">
+            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
+              Biggest movers
+            </h2>
+            <p className="mt-1 font-body text-sm text-ink-600">
+              Biggest 24h movers among tracked markets.
+            </p>
+            <div className="mt-5">
+              {movers.length === 0 ? (
+                <EmptyState title="No movement data yet" />
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {trending.map((item) => (
-                    <TokenCard key={item.market.tokenAddress} market={item.market} />
+                  {movers.map((market) => (
+                    <TokenCard key={market.tokenAddress} market={market} />
                   ))}
                 </div>
               )}
             </div>
           </section>
-        )}
 
-        {!search && (
-          <section className="mb-12">
-            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-              Top traders
-            </h2>
+          <section>
+            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Volume</h2>
             <p className="mt-1 font-body text-sm text-ink-600">
-              Most active by real 24h volume — not a profit claim.
+              Highest 24h trading volume among tracked markets.
             </p>
             <div className="mt-5">
-              {topTraders.length === 0 ? (
-                <EmptyState title="No trader has cleared the activity floor yet" />
+              {byVolume.length === 0 ? (
+                <EmptyState title="No volume data yet" />
               ) : (
-                <TopTraders traders={topTraders} />
-              )}
-            </div>
-          </section>
-        )}
-
-        {!search && (
-          <section className="mb-12">
-            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-              Active traders
-            </h2>
-            <p className="mt-1 font-body text-sm text-ink-600">
-              Most 24h trades — a different ranking than Top Traders above, which is by volume.
-              Still not a profit claim.
-            </p>
-            <div className="mt-5">
-              {activeTraders.length === 0 ? (
-                <EmptyState title="No trader has cleared the activity floor yet" />
-              ) : (
-                <TopTraders traders={activeTraders} />
-              )}
-            </div>
-          </section>
-        )}
-
-        {!search && (
-          <section className="mb-12">
-            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-              Large trades
-            </h2>
-            <p className="mt-1 font-body text-sm text-ink-600">
-              Recent confirmed trades at or above the large-trade threshold, across every tracked
-              market.
-            </p>
-            <div className="mt-5">
-              {largeTrades.length === 0 ? (
-                <EmptyState title="No large trades yet" />
-              ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {largeTrades.map((item) => (
-                    <ActivityCard key={item.id} activity={item} />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {byVolume.map((market) => (
+                    <TokenCard key={market.tokenAddress} market={market} />
                   ))}
                 </div>
               )}
             </div>
           </section>
-        )}
-
-        {!search && (
-          <section className="mb-12">
-            <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Rising</h2>
-            <p className="mt-1 font-body text-sm text-ink-600">
-              Tokens that just started trending, and traders moving well above their usual pace.
-            </p>
-            <div className="mt-5">
-              <RisingSection tokens={rising.tokens} traders={rising.traders} />
-            </div>
-          </section>
-        )}
-
-        <section className="mb-12">
-          <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-            Biggest movers
-          </h2>
-          <p className="mt-1 font-body text-sm text-ink-600">
-            Biggest 24h movers among tracked markets.
-          </p>
-          <div className="mt-5">
-            {movers.length === 0 ? (
-              <EmptyState title="No movement data yet" />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {movers.map((market) => (
-                  <TokenCard key={market.tokenAddress} market={market} />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Volume</h2>
-          <p className="mt-1 font-body text-sm text-ink-600">
-            Highest 24h trading volume among tracked markets.
-          </p>
-          <div className="mt-5">
-            {byVolume.length === 0 ? (
-              <EmptyState title="No volume data yet" />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {byVolume.map((market) => (
-                  <TokenCard key={market.tokenAddress} market={market} />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-    </div>
+        </main>
+      </div>
+    </HomeGate>
   );
 }
