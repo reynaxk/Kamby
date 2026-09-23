@@ -45,4 +45,9 @@ describe('TokenMetricsBar', () => {
     render(<TokenMetricsBar market={market({ liquidityUsd: null })} />);
     expect(screen.getByText('Low liquidity')).toBeInTheDocument();
   });
+
+  it('shows no badge at exactly the threshold — the real check is strictly less-than, matching SafetyService.assertTradable', () => {
+    render(<TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd })} />);
+    expect(screen.queryByText('Low liquidity')).not.toBeInTheDocument();
+  });
 });
