@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@kamby/ui';
+import { WelcomeChartBackground } from './WelcomeChartBackground';
 import { WelcomeLivePrices } from './WelcomeLivePrices';
 
 /** Same entrance spring TradePanel.tsx's Panel wrapper already uses (`STEP_SPRING`), reused
@@ -21,25 +22,7 @@ const item = {
 export function WelcomeHero({ onStartTrading }: { onStartTrading: () => void }) {
   return (
     <div className="relative overflow-hidden">
-      {/* Pure ambient decoration — two soft, slowly-drifting accent/up-tinted blurs behind
-          the hero, so the page doesn't read as flat text-on-black next to fomo.family's own
-          illustrated hero. Deliberately its own bespoke animation, not the shared
-          `animate-glow-pulse` utility — that one's reserved for genuinely in-flight states
-          elsewhere in the app (see WelcomeFeatureGrid's own note), and reusing it here for
-          idle decoration would blur that meaning. `aria-hidden` + no interactive content, so
-          it never affects layout or a11y. */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[420px] -translate-x-[70%] rounded-full bg-accent/20 blur-[120px]"
-        animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -top-10 left-1/2 h-[360px] w-[360px] translate-x-[10%] rounded-full bg-up/10 blur-[120px]"
-        animate={{ x: [0, -20, 0], y: [0, 25, 0] }}
-        transition={{ duration: 17, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      <WelcomeChartBackground />
 
       <motion.div
         variants={container}
