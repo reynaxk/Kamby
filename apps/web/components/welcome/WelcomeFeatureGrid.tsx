@@ -1,33 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Flame, KeyRound, Network, Send, Trophy, Zap } from 'lucide-react';
 import { Surface } from '@kamby/ui';
 
 const FEATURES = [
-  {
-    title: 'Leaderboard & PnL',
-    body: 'Climb the ranks with real, tracked PnL history — not a vibes-based score.',
-  },
-  {
-    title: 'One terminal, three chains',
-    body: 'Solana, Base, and BNB Chain, one wallet — no bridging, no juggling apps.',
-  },
-  {
-    title: 'Non-custodial by design',
-    body: 'Kamby never holds your funds or signs on your behalf. Your keys, always.',
-  },
-  {
-    title: 'Live Trenches',
-    body: 'Catch new Solana launches the moment they appear, straight from the source.',
-  },
-  {
-    title: 'Send, anywhere',
-    body: 'A real non-custodial transfer to any wallet, on any of the three chains.',
-  },
-  {
-    title: 'Built for speed',
-    body: 'Quote, review, and confirm a trade in seconds, right from the terminal.',
-  },
+  { icon: Trophy, title: 'Leaderboard & PnL', body: 'Climb the ranks with real, tracked PnL history — not a vibes-based score.' },
+  { icon: Network, title: 'One terminal, three chains', body: 'Solana, Base, and BNB Chain, one wallet — no bridging, no juggling apps.' },
+  { icon: KeyRound, title: 'Non-custodial by design', body: 'Kamby never holds your funds or signs on your behalf. Your keys, always.' },
+  { icon: Flame, title: 'Live Trenches', body: 'Catch new Solana launches the moment they appear, straight from the source.' },
+  { icon: Send, title: 'Send, anywhere', body: 'A real non-custodial transfer to any wallet, on any of the three chains.' },
+  { icon: Zap, title: 'Built for speed', body: 'Quote, review, and confirm a trade in seconds, right from the terminal.' },
 ] as const;
 
 export function WelcomeFeatureGrid() {
@@ -43,7 +26,10 @@ export function WelcomeFeatureGrid() {
             transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8, delay: i * 0.06 }}
           >
             <Surface className="h-full p-5 transition-transform hover:-translate-y-1">
-              <h3 className="font-display text-sm font-bold text-ink-900">{feature.title}</h3>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <feature.icon size={18} aria-hidden />
+              </div>
+              <h3 className="mt-3 font-display text-sm font-bold text-ink-900">{feature.title}</h3>
               <p className="mt-2 font-body text-sm text-ink-600">{feature.body}</p>
             </Surface>
           </motion.div>
