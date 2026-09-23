@@ -81,8 +81,12 @@ export function NotificationItem({
 
 function Avatar({ notification }: { notification: NotificationDto }) {
   if (notification.actor?.avatarUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      // next/image needs every remote domain pre-configured — not workable for an arbitrary,
+      // user-supplied avatar URL. Previously had an eslint-disable-next-line one line too
+      // high (above `return (`, not above the element it was meant to cover), so the warning
+      // it was written to suppress kept firing anyway.
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={notification.actor.avatarUrl}
         alt=""
