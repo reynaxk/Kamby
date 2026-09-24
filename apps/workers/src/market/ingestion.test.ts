@@ -174,7 +174,7 @@ describe('MarketIngestionService.seed — RPC budget', () => {
 
     expect(getPoolState).not.toHaveBeenCalled();
     expect(fakeLogger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ seeded: 6 }),
+      expect.objectContaining({ seeded: 12 }),
       'Market seeding complete',
     );
   });

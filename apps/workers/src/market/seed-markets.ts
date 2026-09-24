@@ -94,6 +94,55 @@ export const BASE_SEED_MARKETS: SeedMarket[] = [
     baseTokenAddress: '0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b',
     dex: 'uniswap-v3',
   },
+  {
+    // CLANKER/WETH — added 2026-09-24. $1.58M liquidity; token0/token1/slot0 verified
+    // directly against this pool contract on Base's public RPC (token0 = CLANKER, token1 =
+    // WETH, initialized). Clanker is Base's own token-deployment-bot protocol.
+    poolAddress: '0xC1a6FBeDAe68E1472DbB91FE29B51F7a0Bd44F97',
+    baseTokenAddress: '0x1bc0c42215582d5A085795f4baDbaC3ff36d1Bcb',
+    dex: 'uniswap-v3',
+  },
+  {
+    // BNKR/WETH — added 2026-09-24. $2.94M liquidity, deepest new entry this batch;
+    // token0/token1/slot0 verified directly against this pool contract on Base's public RPC
+    // (token0 = BNKR, token1 = WETH, initialized).
+    poolAddress: '0xAEC085E5A5CE8d96A7bDd3eB3A62445d4f6CE703',
+    baseTokenAddress: '0x22aF33FE49fD1Fa80c7149773dDe5890D3c76F3b',
+    dex: 'uniswap-v3',
+  },
+  {
+    // MORPHO/USDC — added 2026-09-24. $387K liquidity; token0/token1/slot0 verified directly
+    // against this pool contract on Base's public RPC (token0 = USDC, token1 = MORPHO,
+    // initialized). Quoted in USDC, no ordering dependency.
+    poolAddress: '0x2043B296fFC6b2d3bf4A3F3167d2Afb3B0FBdbEE',
+    baseTokenAddress: '0xBAa5CC21fd487B8Fcc2F632f3F4E8D37262a0842',
+    dex: 'uniswap-v3',
+  },
+  {
+    // AAVE/WETH — added 2026-09-24. $280K liquidity; token0/token1/slot0 verified directly
+    // against this pool contract on Base's public RPC (token0 = WETH, token1 = AAVE,
+    // initialized).
+    poolAddress: '0x2e86514CFd61Fb19c5cf2b879d536D273d6E693d',
+    baseTokenAddress: '0x63706e401c06ac8513145b7687A14804d17f814b',
+    dex: 'uniswap-v3',
+  },
+  {
+    // SPX6900/USDC — added 2026-09-24. $104K liquidity, the thinnest new entry this batch but
+    // still real and above the $100K floor; token0/token1/slot0 verified directly against
+    // this pool contract on Base's public RPC (token0 = SPX6900, token1 = USDC, initialized).
+    poolAddress: '0x037818B04ac34eA8b54b6683b79eF24d23C0E7Cb',
+    baseTokenAddress: '0x50dA645f148798F68EF2d7dB7C1CB22A6819bb2C',
+    dex: 'uniswap-v3',
+  },
+  {
+    // ZORA/USDC — added 2026-09-24. $91K liquidity, slightly under the usual floor but kept
+    // for Zora's real ecosystem prominence (Base-native onchain social/creator protocol);
+    // token0/token1/slot0 verified directly against this pool contract on Base's public RPC
+    // (token0 = ZORA, token1 = USDC, initialized).
+    poolAddress: '0xEdc625B74537eE3a10874f53D170E9c17A906B9c',
+    baseTokenAddress: '0x1111111111166b7FE7bd91427724B487980aFc69',
+    dex: 'uniswap-v3',
+  },
 ];
 
 /**
@@ -119,6 +168,32 @@ export const BNB_SEED_MARKETS: SeedMarket[] = [
     // in WBNB rather than USDC, so this must stay ordered after the WBNB/USDC market above.
     poolAddress: '0x36696169c63e42cd08ce11f5deebbcebae652050',
     baseTokenAddress: '0x55d398326f99059fF775485246999027B3197955',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // CAKE/USDT — added 2026-09-24. $6.34M liquidity, the deepest entry in this file;
+    // token0/token1/slot0 verified directly against this pool contract on BNB Chain's public
+    // RPC (token0 = CAKE, token1 = USDT, initialized). Quoted in USDT, not WBNB/USDC, so this
+    // must stay ordered after the USDT/WBNB market above (USDT's own price must already be
+    // resolved).
+    poolAddress: '0x7f51c8AaA6B0599aBd16674e2b17FEc7a9f674A1',
+    baseTokenAddress: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // TWT/WBNB — added 2026-09-24. $605K liquidity; token0/token1/slot0 verified directly
+    // against this pool contract on BNB Chain's public RPC (token0 = TWT, token1 = WBNB,
+    // initialized).
+    poolAddress: '0x8cCB4544b3030dACF3d4D71C658f04e8688e25b1',
+    baseTokenAddress: '0x4B0F1812e5Df2A09796481Ff14017e6005508003',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // XVS/WBNB — added 2026-09-24. $240K liquidity; token0/token1/slot0 verified directly
+    // against this pool contract on BNB Chain's public RPC (token0 = WBNB, token1 = XVS,
+    // initialized). Venus Protocol's governance token, BNB Chain-native.
+    poolAddress: '0x77d5b2560e4B84b3fC58875Cb0133F39560e8AE3',
+    baseTokenAddress: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63',
     dex: 'pancakeswap-v3',
   },
 ];
