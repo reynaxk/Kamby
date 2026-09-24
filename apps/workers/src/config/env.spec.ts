@@ -73,4 +73,32 @@ describe('workers env schema', () => {
     });
     expect(env.PUMPFUN_INGESTION_ENABLED).toBe(true);
   });
+
+  it('defaults POOL_DISCOVERY_ENABLED to false and the liquidity floor to $100K', () => {
+    const env = parseEnv(EnvSchema, valid);
+    expect(env.POOL_DISCOVERY_ENABLED).toBe(false);
+    expect(env.POOL_DISCOVERY_LIQUIDITY_FLOOR_USD).toBe(100_000);
+  });
+
+  it('fails clearly when POOL_DISCOVERY_ENABLED is true but the factory address is missing', () => {
+    expect(() => parseEnv(EnvSchema, { ...valid, POOL_DISCOVERY_ENABLED: 'true', POOL_DISCOVERY_DEX: 'uniswap-v3' })).toThrowError(/POOL_DISCOVERY_FACTORY_ADDRESS/);
+  });
+
+  it('fails clearly when POOL_DISCOVERY_ENABLED is true but the dex is missing', () => {
+    expect(() =>
+      parseEnv(EnvSchema, { ...valid, POOL_DISCOVERY_ENABLED: 'true', POOL_DISCOVERY_FACTORY_ADDRESS: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD' }),
+    ).toThrowError(/POOL_DISCOVERY_DEX/);
+  });
+
+  it('accepts POOL_DISCOVERY_ENABLED when both the factory address and dex are set', () => {
+    const env = parseEnv(EnvSchema, {
+      ...valid,
+      POOL_DISCOVERY_ENABLED: 'true',
+      POOL_DISCOVERY_FACTORY_ADDRESS: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
+      POOL_DISCOVERY_DEX: 'uniswap-v3',
+      POOL_DISCOVERY_LIQUIDITY_FLOOR_USD: '50000',
+    });
+    expect(env.POOL_DISCOVERY_ENABLED).toBe(true);
+    expect(env.POOL_DISCOVERY_LIQUIDITY_FLOOR_USD).toBe(50_000);
+  });
 });

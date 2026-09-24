@@ -6,6 +6,7 @@ import { Redis } from 'ioredis';
 import { EnvSchema } from './config/env';
 import { createLogger } from './lib/logger';
 import { MarketIngestionService } from './market/ingestion';
+import { PoolDiscoveryService } from './market/pool-discovery';
 import { SEED_MARKETS_BY_CHAIN_IDENTIFIER } from './market/seed-markets';
 import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
 import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
@@ -93,19 +94,22 @@ async function main(): Promise<void> {
   // tolerates a delayed or skipped first run via its own `xRunning` reentrancy guard and
   // internal try/catch (neither rethrows — `await`ing one was never load-bearing for error
   // handling either), so there's no correctness reason to serialize them at startup.
+  // Fails loudly at boot, not silently, if this deployment's CHAIN_IDENTIFIER has no
+  // curated seed list — added 2026-09-16 alongside BNB Chain going live, when
+  // MarketIngestionService stopped assuming its one configured chain was always Base. See
+  // SEED_MARKETS_BY_CHAIN_IDENTIFIER's own doc comment in market/seed-markets.ts. Hoisted
+  // above both tickers below (2026-09-24, pool discovery added): PoolDiscoveryService needs
+  // this same quoteUsdcAddress too, and re-deriving it a second time independently would
+  // just be a second place this same "fail loudly if unconfigured" check could drift.
+  const seedConfig = SEED_MARKETS_BY_CHAIN_IDENTIFIER[env.CHAIN_IDENTIFIER];
+  if (!seedConfig) {
+    throw new Error(
+      `No curated seed markets for CHAIN_IDENTIFIER "${env.CHAIN_IDENTIFIER}" — add an entry to SEED_MARKETS_BY_CHAIN_IDENTIFIER in market/seed-markets.ts before deploying a workers instance for this chain.`,
+    );
+  }
+
   let marketTicker: NodeJS.Timeout | undefined;
   {
-    // Fails loudly at boot, not silently, if this deployment's CHAIN_IDENTIFIER has no
-    // curated seed list — added 2026-09-16 alongside BNB Chain going live, when this class
-    // stopped assuming its one configured chain was always Base. See
-    // SEED_MARKETS_BY_CHAIN_IDENTIFIER's own doc comment in market/seed-markets.ts.
-    const seedConfig = SEED_MARKETS_BY_CHAIN_IDENTIFIER[env.CHAIN_IDENTIFIER];
-    if (!seedConfig) {
-      throw new Error(
-        `No curated seed markets for CHAIN_IDENTIFIER "${env.CHAIN_IDENTIFIER}" — add an entry to SEED_MARKETS_BY_CHAIN_IDENTIFIER in market/seed-markets.ts before deploying a workers instance for this chain.`,
-      );
-    }
-
     const ingestion = new MarketIngestionService(
       {
         chainIdentifier: env.CHAIN_IDENTIFIER,
@@ -154,6 +158,55 @@ async function main(): Promise<void> {
     void runTick();
     marketTicker = setInterval(() => void runTick(), env.MARKET_INGESTION_INTERVAL_SECONDS * 1000);
     marketTicker.unref();
+  }
+
+  // Automated pool discovery — see market/pool-discovery.ts's own class doc comment for
+  // what this does and doesn't do. Opt-in per deployment (env.ts's own superRefine requires
+  // the factory address and dex once enabled), independent of the seed-list-driven ticker
+  // above: a discovered pool that clears its liquidity floor becomes a real TokenMarket row
+  // through the exact same createTrackedMarket() path a seeded pool uses, so it's picked up
+  // by that ticker's own ingestSwaps()/refreshPricesAndLiquidity() from then on — this
+  // ticker's only job is finding and vetting candidates, not ongoing price refresh.
+  let poolDiscoveryTicker: NodeJS.Timeout | undefined;
+  if (env.POOL_DISCOVERY_ENABLED) {
+    const discovery = new PoolDiscoveryService(
+      {
+        chainIdentifier: env.CHAIN_IDENTIFIER,
+        chainName: env.CHAIN_NAME,
+        chainNativeSymbol: env.CHAIN_NATIVE_SYMBOL,
+        factoryAddress: env.POOL_DISCOVERY_FACTORY_ADDRESS!,
+        quoteUsdcAddress: seedConfig.quoteUsdcAddress,
+        dex: env.POOL_DISCOVERY_DEX!,
+        liquidityFloorUsd: env.POOL_DISCOVERY_LIQUIDITY_FLOOR_USD,
+      },
+      env.CHAIN_RPC_URL,
+      logger,
+      redis,
+      env.CHAIN_RPC_URL_FALLBACK ?? null,
+    );
+
+    let discoveryRunning = false;
+    const runDiscoveryTick = async (): Promise<void> => {
+      if (discoveryRunning) {
+        logger.warn('Skipped pool discovery tick: previous tick still running');
+        return;
+      }
+      discoveryRunning = true;
+      const startedAt = Date.now();
+      try {
+        const discovered = await discovery.discoverNewPools();
+        const pending = await discovery.checkPendingPools();
+        logger.info({ ...discovered, ...pending, durationMs: Date.now() - startedAt }, 'Pool discovery tick complete');
+      } catch (error) {
+        logger.error({ err: error }, 'Pool discovery tick failed — will retry next tick');
+      } finally {
+        discoveryRunning = false;
+      }
+    };
+
+    void runDiscoveryTick();
+    poolDiscoveryTicker = setInterval(() => void runDiscoveryTick(), env.POOL_DISCOVERY_INTERVAL_SECONDS * 1000);
+    poolDiscoveryTicker.unref();
   }
 
   // The real numeric EVM chain id (e.g. 8453) that TradeTransaction.chainId is stored
@@ -356,6 +409,7 @@ async function main(): Promise<void> {
     logger.info({ signal }, 'Worker shutting down');
     clearInterval(heartbeat);
     if (marketTicker) clearInterval(marketTicker);
+    if (poolDiscoveryTicker) clearInterval(poolDiscoveryTicker);
     if (tradeSweepTicker) clearInterval(tradeSweepTicker);
     if (evmRelayerBalanceMonitorTicker) clearInterval(evmRelayerBalanceMonitorTicker);
     if (solanaSweepTicker) clearInterval(solanaSweepTicker);

@@ -108,6 +108,28 @@ export const EnvSchema = z.object({
   WHALE_TRADE_USD_THRESHOLD: z.coerce.number().positive().default(NOTIFICATION_DEFAULTS.whaleTradeUsdThreshold),
 
   /**
+   * Automated pool discovery (market/pool-discovery.ts) — the "real terminal" answer to
+   * Markets being bounded by seed-markets.ts's curated list, watching this deployment's
+   * own configured chain's Uniswap-V3-ABI factory for new pools instead of requiring a
+   * human to hand-pick every token. Off by default: a real, deliberate opt-in given the
+   * RPC-cost and spam-filtering tradeoffs documented on PoolDiscoveryService's own class
+   * doc comment, not something that should silently turn on with everything else.
+   */
+  POOL_DISCOVERY_ENABLED: z.coerce.boolean().default(false),
+  /** This deployment's own chain's real, verified Uniswap-V3-ABI factory contract — see
+   *  pool-discovery.ts's own doc comment on why this is never assumed to match another
+   *  chain's factory address. No default: an unset value here should fail loudly (see the
+   *  superRefine below), not silently watch the wrong address. */
+  POOL_DISCOVERY_FACTORY_ADDRESS: z.string().min(1).optional(),
+  POOL_DISCOVERY_DEX: z.enum(['uniswap-v3', 'pancakeswap-v3']).optional(),
+  /** Minimum real, on-chain-read USD liquidity a discovered pool must clear before being
+   *  promoted into a real TokenMarket row — see PoolDiscoveryService's own doc comment.
+   *  $100K matches the floor this session's own hand-curated seed-list research settled on
+   *  for new additions, not an arbitrarily different number for the automated path. */
+  POOL_DISCOVERY_LIQUIDITY_FLOOR_USD: z.coerce.number().positive().default(100_000),
+  POOL_DISCOVERY_INTERVAL_SECONDS: z.coerce.number().int().positive().default(60),
+
+  /**
    * Realized-PnL ledger sweep — see docs/TRADER_INTELLIGENCE.md#realized-pnl and
    * PnlLedgerSweepService's own doc comment. Deliberately cross-chain (scans both
    * `trade_transactions` and `solana_trade_transactions` regardless of this deployment's
@@ -127,6 +149,14 @@ export const EnvSchema = z.object({
 }).superRefine((env, ctx) => {
   if (env.PUMPFUN_INGESTION_ENABLED && !env.SOLANA_ENABLED) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['PUMPFUN_INGESTION_ENABLED'], message: 'PUMPFUN_INGESTION_ENABLED requires SOLANA_ENABLED to also be true' });
+  }
+}).superRefine((env, ctx) => {
+  if (!env.POOL_DISCOVERY_ENABLED) return;
+  if (env.POOL_DISCOVERY_FACTORY_ADDRESS === undefined) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['POOL_DISCOVERY_FACTORY_ADDRESS'], message: 'POOL_DISCOVERY_FACTORY_ADDRESS is required when POOL_DISCOVERY_ENABLED is true — a real, verified factory address, never guessed at deploy time' });
+  }
+  if (env.POOL_DISCOVERY_DEX === undefined) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['POOL_DISCOVERY_DEX'], message: 'POOL_DISCOVERY_DEX is required when POOL_DISCOVERY_ENABLED is true' });
   }
 });
 
