@@ -112,4 +112,53 @@ describe('LeaderboardService', () => {
 
     await expect(service.getLeaderboard('24h', 25)).resolves.toEqual({ window: '24h', entries: [] });
   });
+
+  it('caches the freshly computed result under the real window+limit key on a cache miss', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
+
+    await service.getLeaderboard('30d', 50);
+
+    expect(redis.set).toHaveBeenCalledWith('leaderboard:30d:50', JSON.stringify({ window: '30d', entries: [] }), 'EX', expect.any(Number));
+  });
+
+  it('never reuses the cache entry for one window/limit pair on a different pair', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
+
+    await service.getLeaderboard('24h', 25);
+    await service.getLeaderboard('24h', 50);
+
+    const keys = redis.set.mock.calls.map((call) => call[0]);
+    expect(new Set(keys).size).toBe(2); // two distinct calls, two distinct cache keys
+  });
+
+  it('defaults a real null summed PnL (not just a zero one) to zero rather than crashing', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([
+      { userId: 'user-1', _sum: { realizedPnlUsd: null, costBasisUsd: null, proceedsUsd: null } },
+    ]);
+    (mockedPrisma.user.findMany as jest.Mock).mockResolvedValue([{ id: 'user-1', username: 'alice', avatarUrl: null }]);
+    (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([{ userId: 'user-1', address: '0xa' }]);
+
+    const result = await service.getLeaderboard('24h', 25);
+
+    expect(result.entries[0]).toMatchObject({ realizedPnlUsd: 0, realizedPnlPct: null, volumeUsd: 0 });
+  });
+
+  it('preserves the real ranked order from the query across multiple entries, never re-sorting', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([
+      { userId: 'user-1', _sum: { realizedPnlUsd: 900, costBasisUsd: 1000, proceedsUsd: 1900 } },
+      { userId: 'user-2', _sum: { realizedPnlUsd: 100, costBasisUsd: 1000, proceedsUsd: 1100 } },
+    ]);
+    (mockedPrisma.user.findMany as jest.Mock).mockResolvedValue([
+      { id: 'user-1', username: 'alice', avatarUrl: null },
+      { id: 'user-2', username: 'bob', avatarUrl: null },
+    ]);
+    (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'user-1', address: '0xa' },
+      { userId: 'user-2', address: '0xb' },
+    ]);
+
+    const result = await service.getLeaderboard('24h', 25);
+
+    expect(result.entries.map((e) => e.userId)).toEqual(['user-1', 'user-2']);
+  });
 });
