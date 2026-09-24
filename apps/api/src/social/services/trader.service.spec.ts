@@ -6,6 +6,8 @@ jest.mock('@kamby/db', () => ({
   prisma: {
     wallet: { findUnique: jest.fn(), findMany: jest.fn() },
     follow: { findMany: jest.fn(), count: jest.fn() },
+    swap: { groupBy: jest.fn() },
+    tokenMarket: { findMany: jest.fn() },
     $queryRaw: jest.fn(),
   },
 }));
@@ -111,6 +113,97 @@ function fakeWallet(address: string, username: string | null = null, avatarUrl: 
 function fakeFollowingRow(id: string, createdAt: Date, walletAddress: string, username: string | null = null) {
   return { id, userId: 'viewer', walletAddress, createdAt, wallet: fakeWallet(walletAddress, username) };
 }
+
+function fakeTokenMarketRow(id: string, address: string, symbol: string | null = 'FOO') {
+  return { id, token: { contractAddress: address, symbol, name: 'Foo Token', logoUrl: null } };
+}
+
+describe('TraderService#getTraderTokens', () => {
+  let service: TraderService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new TraderService({} as never);
+  });
+
+  it('throws NotFoundException for a wallet that has never traded', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await expect(service.getTraderTokens(ADDRESS, 10)).rejects.toThrow(NotFoundException);
+    expect(mockedPrisma.swap.groupBy).not.toHaveBeenCalled();
+  });
+
+  it('returns an empty list without ever querying tokenMarket when this trader has no grouped activity', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ address: ADDRESS });
+    (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([]);
+
+    const result = await service.getTraderTokens(ADDRESS, 10);
+
+    expect(result).toEqual([]);
+    expect(mockedPrisma.tokenMarket.findMany).not.toHaveBeenCalled();
+  });
+
+  it('batches one tokenMarket lookup for every grouped token rather than querying per token', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ address: ADDRESS });
+    (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([
+      { tokenMarketId: 'm1', _count: { _all: 5 }, _sum: { volumeUsd: 1000 }, _max: { blockTimestamp: new Date('2026-01-01') } },
+      { tokenMarketId: 'm2', _count: { _all: 3 }, _sum: { volumeUsd: 500 }, _max: { blockTimestamp: new Date('2026-01-02') } },
+    ]);
+    (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
+      fakeTokenMarketRow('m1', '0xaaa', 'AAA'),
+      fakeTokenMarketRow('m2', '0xbbb', 'BBB'),
+    ]);
+
+    const result = await service.getTraderTokens(ADDRESS, 10);
+
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
+    expect(result.map((t) => t.token.symbol)).toEqual(['AAA', 'BBB']);
+    expect(result[0]).toEqual({
+      token: { address: '0xaaa', symbol: 'AAA', name: 'Foo Token', logoUrl: null },
+      tradeCount: 5,
+      volumeUsd: 1000,
+      lastActivityAt: new Date('2026-01-01').toISOString(),
+    });
+  });
+
+  it('silently drops a grouped token whose market row is missing, rather than crashing the whole list', async () => {
+    // A real, plausible gap: the group-by result references a tokenMarketId the batched
+    // lookup didn't return (e.g. deleted between the two queries) — flatMap([]) means it's
+    // dropped, not that the response 500s.
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ address: ADDRESS });
+    (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([
+      { tokenMarketId: 'missing', _count: { _all: 1 }, _sum: { volumeUsd: 100 }, _max: { blockTimestamp: new Date() } },
+      { tokenMarketId: 'm1', _count: { _all: 5 }, _sum: { volumeUsd: 1000 }, _max: { blockTimestamp: new Date('2026-01-01') } },
+    ]);
+    (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeTokenMarketRow('m1', '0xaaa')]);
+
+    const result = await service.getTraderTokens(ADDRESS, 10);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.token.address).toBe('0xaaa');
+  });
+
+  it('defaults a null summed volume to zero rather than crashing', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ address: ADDRESS });
+    (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([
+      { tokenMarketId: 'm1', _count: { _all: 1 }, _sum: { volumeUsd: null }, _max: { blockTimestamp: new Date('2026-01-01') } },
+    ]);
+    (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeTokenMarketRow('m1', '0xaaa')]);
+
+    const result = await service.getTraderTokens(ADDRESS, 10);
+
+    expect(result[0]!.volumeUsd).toBe(0);
+  });
+
+  it('passes the real limit through as the group-by page size', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ address: ADDRESS });
+    (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([]);
+
+    await service.getTraderTokens(ADDRESS, 7);
+
+    expect(mockedPrisma.swap.groupBy).toHaveBeenCalledWith(expect.objectContaining({ take: 7 }));
+  });
+});
 
 describe('TraderService#getFollowing', () => {
   let service: TraderService;
