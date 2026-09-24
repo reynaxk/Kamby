@@ -14,13 +14,11 @@ import {
   NotificationFanoutService,
   type InsertedSwap,
 } from '../notifications/notification-fanout.service';
+import { createTrackedMarket } from './create-tracked-market';
 import type { SeedMarket } from './seed-markets';
 
 /** Raw candle granularity — see the Candle model comment in schema.prisma. */
 const BUCKET_MINUTES = 5;
-/** How far back the very first tick backfills real swap history for a newly-seeded market.
- *  Deliberately modest (~2h, not a full day) given LOG_CHUNK_BLOCKS below — see its comment. */
-const INITIAL_BACKFILL_BLOCKS = 3_600n; // ~2h on Base at ~2s/block
 /** Upper bound on how far one tick advances a market's cursor — keeps a single tick's swap
  *  scan bounded (a large backfill gap simply continues over several ticks rather than one
  *  tick pulling an unbounded number of events) and each getLogs response a predictable size.
@@ -154,63 +152,7 @@ export class MarketIngestionService {
   }
 
   private async seedOneMarket(chainId: number, seed: SeedMarket): Promise<boolean> {
-    const poolState = await this.poolReader.getPoolState(seed.poolAddress);
-    if (!poolState) {
-      this.logger.warn({ pool: seed.poolAddress }, 'Skipped seeding: pool state unreadable');
-      return false;
-    }
-
-    const quoteTokenAddress =
-      poolState.token0.toLowerCase() === seed.baseTokenAddress.toLowerCase()
-        ? poolState.token1
-        : poolState.token0;
-
-    const baseToken = await this.upsertToken(chainId, seed.baseTokenAddress);
-    await sleep(RPC_CALL_DELAY_MS);
-    const quoteToken = await this.upsertToken(chainId, quoteTokenAddress);
-    if (!baseToken || !quoteToken) {
-      this.logger.warn({ pool: seed.poolAddress }, 'Skipped seeding: token metadata unreadable');
-      return false;
-    }
-
-    const tokenMarket = await prisma.tokenMarket.upsert({
-      where: { chainId_pairAddress: { chainId, pairAddress: seed.poolAddress } },
-      update: { dex: seed.dex, feeTier: poolState.feeTier },
-      create: {
-        chainId,
-        tokenId: baseToken.id,
-        quoteTokenId: quoteToken.id,
-        dex: seed.dex,
-        pairAddress: seed.poolAddress,
-        feeTier: poolState.feeTier,
-      },
-    });
-
-    const latestBlock = await this.poolReader.getLatestBlockNumber();
-    await prisma.ingestionCursor.upsert({
-      where: { tokenMarketId: tokenMarket.id },
-      update: {},
-      create: {
-        tokenMarketId: tokenMarket.id,
-        lastProcessedBlock: bigintMax(0n, latestBlock - INITIAL_BACKFILL_BLOCKS),
-      },
-    });
-    return true;
-  }
-
-  private async upsertToken(chainId: number, contractAddress: string) {
-    const metadata = await this.tokenReader.getTokenMetadata(contractAddress);
-    return prisma.token.upsert({
-      where: { chainId_contractAddress: { chainId, contractAddress } },
-      update: { symbol: metadata.symbol, name: metadata.name, decimals: metadata.decimals },
-      create: {
-        chainId,
-        contractAddress,
-        symbol: metadata.symbol,
-        name: metadata.name,
-        decimals: metadata.decimals,
-      },
-    });
+    return createTrackedMarket(this.poolReader, this.tokenReader, chainId, seed.poolAddress, seed.baseTokenAddress, seed.dex, this.logger);
   }
 
   /**
@@ -723,7 +665,4 @@ export class MarketIngestionService {
 
 function bigintMin(a: bigint, b: bigint): bigint {
   return a < b ? a : b;
-}
-function bigintMax(a: bigint, b: bigint): bigint {
-  return a > b ? a : b;
 }
