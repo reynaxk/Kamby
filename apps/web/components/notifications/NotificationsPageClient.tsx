@@ -15,6 +15,8 @@ export function NotificationsPageClient() {
     try {
       await markAllNotificationsRead();
       setRefreshKey((key) => key + 1);
+    } catch {
+      // Nothing to reconcile — the list simply doesn't refresh; the button re-enables for a retry.
     } finally {
       setMarking(false);
     }
