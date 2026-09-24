@@ -35,6 +35,20 @@ export const uniswapV3SwapEvent = {
   ],
 } as const;
 
+/** Emitted by the Factory contract (not a pool itself) whenever a new pool is deployed —
+ *  see pool-discovery.ts in apps/workers for the only consumer. */
+export const uniswapV3PoolCreatedEvent = {
+  type: 'event',
+  name: 'PoolCreated',
+  inputs: [
+    { name: 'token0', type: 'address', indexed: true },
+    { name: 'token1', type: 'address', indexed: true },
+    { name: 'fee', type: 'uint24', indexed: true },
+    { name: 'tickSpacing', type: 'int24', indexed: false },
+    { name: 'pool', type: 'address', indexed: false },
+  ],
+} as const;
+
 export const erc20ExtraAbi = [
   {
     type: 'function',

@@ -1,5 +1,5 @@
 import { createPublicClient, type PublicClient } from 'viem';
-import { erc20ExtraAbi, uniswapV3PoolAbi, uniswapV3SwapEvent } from './uniswap-v3-abi';
+import { erc20ExtraAbi, uniswapV3PoolAbi, uniswapV3PoolCreatedEvent, uniswapV3SwapEvent } from './uniswap-v3-abi';
 import { retryRpcCall } from './retry';
 import { createEvmTransport } from './transport';
 
@@ -15,6 +15,14 @@ export interface PoolState {
   feeTier: number;
   sqrtPriceX96: bigint;
   tick: number;
+}
+
+export interface DecodedPoolCreatedEvent {
+  token0: string;
+  token1: string;
+  fee: number;
+  pool: string;
+  blockNumber: bigint;
 }
 
 export interface DecodedSwapEvent {
@@ -152,6 +160,41 @@ export class UniswapV3PoolReader {
         sender: log.args.sender ?? null,
         recipient: log.args.recipient ?? null,
       }));
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Fetches `PoolCreated` events from a Uniswap-V3-style Factory contract (not a pool) in
+   * [fromBlock, toBlock] — see pool-discovery.ts's own doc comment for why this exists and
+   * how its caller bounds the range. Same null-vs-`[]` discipline as `getSwapEvents`: `null`
+   * means the query itself failed and must not advance a persisted cursor past it.
+   */
+  async getPoolCreatedEvents(
+    factoryAddress: string,
+    fromBlock: bigint,
+    toBlock: bigint,
+  ): Promise<DecodedPoolCreatedEvent[] | null> {
+    try {
+      const logs = await this.client.getLogs({
+        address: factoryAddress as `0x${string}`,
+        event: uniswapV3PoolCreatedEvent,
+        fromBlock,
+        toBlock,
+      });
+      return logs.flatMap((log) => {
+        if (!log.args.token0 || !log.args.token1 || log.args.fee === undefined || !log.args.pool) return [];
+        return [
+          {
+            token0: log.args.token0,
+            token1: log.args.token1,
+            fee: log.args.fee,
+            pool: log.args.pool,
+            blockNumber: log.blockNumber,
+          },
+        ];
+      });
     } catch {
       return null;
     }
