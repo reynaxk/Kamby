@@ -6,8 +6,9 @@ jest.mock('@kamby/db', () => ({
   prisma: {
     wallet: { findUnique: jest.fn(), findMany: jest.fn() },
     follow: { findMany: jest.fn(), count: jest.fn() },
-    swap: { groupBy: jest.fn() },
+    swap: { groupBy: jest.fn(), aggregate: jest.fn(), findFirst: jest.fn(), count: jest.fn() },
     tokenMarket: { findMany: jest.fn() },
+    realizedPnlEvent: { aggregate: jest.fn() },
     $queryRaw: jest.fn(),
   },
 }));
@@ -16,6 +17,12 @@ jest.mock('@kamby/domain', () => ({
   PNL_WINDOW_MS: { '24h': 0, '7d': 0, '30d': 0 },
   MIN_TRADES_FOR_TRADER_RANKING: 5,
   toPnlWindowStats: jest.fn(),
+  // getProfile's own real logic doesn't depend on these formulas' exact math (that's
+  // toTraderStats'/these functions' own concern) — simple fixed fakes keep the mapper's real
+  // (unmocked) assignment logic runnable without needing to model every input precisely.
+  computeBuyRatio: jest.fn(() => 0.5),
+  computeConcentrationIndex: jest.fn(() => 0.3),
+  computeActivityFrequencyPerDay: jest.fn(() => 1.2),
 }));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: true });
@@ -380,5 +387,90 @@ describe('TraderService#getTopTraders', () => {
     const result = await service.getTopTraders(10);
 
     expect(result.map((t) => t.address)).toEqual(['0xfirst', '0xsecond']);
+  });
+});
+
+function fakeProfileWallet(overrides: Partial<Record<string, unknown>> = {}) {
+  return { address: ADDRESS, userId: null, firstSeenAt: new Date('2026-01-01'), user: null, ...overrides };
+}
+
+// One shape satisfies all 3 real prisma.swap.aggregate call sites in getProfile (agg,
+// largest, recent24h) at once — each only reads the specific keys it needs, so this avoids
+// having to track which of the 3 concurrent Promise.all calls resolves in which order.
+const GENERIC_SWAP_AGGREGATE = { _count: { _all: 5 }, _sum: { volumeUsd: 1000 }, _max: { volumeUsd: 500 } };
+
+describe('TraderService#getProfile', () => {
+  let service: TraderService;
+  let isFollowing: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    isFollowing = jest.fn().mockResolvedValue(false);
+    service = new TraderService({ isFollowing } as never);
+    (mockedPrisma.swap.aggregate as jest.Mock).mockResolvedValue(GENERIC_SWAP_AGGREGATE);
+    (mockedPrisma.swap.count as jest.Mock).mockResolvedValue(0);
+    (mockedPrisma.swap.findFirst as jest.Mock).mockResolvedValue(null);
+    (mockedPrisma.follow.count as jest.Mock).mockResolvedValue(0);
+    (mockedPrisma.swap.groupBy as jest.Mock).mockResolvedValue([]);
+    (mockedPrisma.realizedPnlEvent.aggregate as jest.Mock).mockResolvedValue({
+      _sum: { realizedPnlUsd: 0, costBasisUsd: 0, proceedsUsd: 0 },
+      _count: { _all: 0 },
+    });
+  });
+
+  it('throws NotFoundException for a wallet with no tracked activity, never running any aggregate query', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await expect(service.getProfile(ADDRESS, null)).rejects.toThrow(NotFoundException);
+    expect(mockedPrisma.swap.aggregate).not.toHaveBeenCalled();
+  });
+
+  it('never queries a "following" count and reports realizedPnl as null for an unclaimed wallet (no linked Kamby account)', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeProfileWallet({ userId: null }));
+
+    const profile = await service.getProfile(ADDRESS, null);
+
+    expect(mockedPrisma.follow.count).toHaveBeenCalledTimes(1); // only followerCount, never followingCount
+    expect(mockedPrisma.realizedPnlEvent.aggregate).not.toHaveBeenCalled();
+    expect(profile.realizedPnl).toBeNull();
+  });
+
+  it('queries a real "following" count and computes real realizedPnl for a claimed wallet', async () => {
+    const { toPnlWindowStats } = jest.requireMock('@kamby/domain') as { toPnlWindowStats: jest.Mock };
+    toPnlWindowStats.mockReturnValue({ realizedPnlUsd: 100, costBasisUsd: 500, proceedsUsd: 600, realizedPnlPct: 20, matchedTradeCount: 3 });
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeProfileWallet({ userId: 'user-1' }));
+
+    const profile = await service.getProfile(ADDRESS, null);
+
+    expect(mockedPrisma.follow.count).toHaveBeenCalledTimes(2); // followerCount AND followingCount
+    expect(mockedPrisma.follow.count).toHaveBeenCalledWith({ where: { userId: 'user-1' } });
+    expect(mockedPrisma.realizedPnlEvent.aggregate).toHaveBeenCalledTimes(3); // one per PnL window
+    expect(profile.realizedPnl).not.toBeNull();
+    expect(profile.realizedPnl?.['24h']).toEqual({
+      realizedPnlUsd: 100,
+      costBasisUsd: 500,
+      proceedsUsd: 600,
+      realizedPnlPct: 20,
+      matchedTradeCount: 3,
+    });
+  });
+
+  it('reports the real viewer-specific follow state from FollowService, never assumed', async () => {
+    isFollowing.mockResolvedValue(true);
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeProfileWallet());
+
+    const profile = await service.getProfile(ADDRESS, 'viewer-1');
+
+    expect(isFollowing).toHaveBeenCalledWith('viewer-1', ADDRESS);
+    expect(profile.isFollowedByMe).toBe(true);
+  });
+
+  it('wires the real follower count through from the database, not a placeholder', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(fakeProfileWallet());
+    (mockedPrisma.follow.count as jest.Mock).mockResolvedValue(42);
+
+    const profile = await service.getProfile(ADDRESS, null);
+
+    expect(profile.followerCount).toBe(42);
   });
 });
