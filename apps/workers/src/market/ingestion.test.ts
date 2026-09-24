@@ -196,6 +196,77 @@ describe('MarketIngestionService.seed — RPC budget', () => {
   });
 });
 
+describe('MarketIngestionService.refreshPricesAndLiquidity — DB-driven, order-independent', () => {
+  const USDC_MARKET_TOKEN = '0x5555555555555555555555555555555555eeee'; // quoted directly in USDC
+  const DEPENDENT_MARKET_TOKEN = '0x6666666666666666666666666666666666ffff'; // quoted in USDC_MARKET_TOKEN
+  const UNRESOLVABLE_MARKET_TOKEN = '0x7777777777777777777777777777777777aaaa'; // quoted in a token no market ever prices
+
+  function marketRow(overrides: Partial<Record<string, unknown>> = {}) {
+    return {
+      id: 'market-x',
+      chainId: 1,
+      pairAddress: '0x9999999999999999999999999999999999abcd',
+      token: { contractAddress: USDC_MARKET_TOKEN, decimals: 18, symbol: 'BASE' },
+      quoteToken: { contractAddress: USDC_ADDRESS_BASE, decimals: 6, symbol: 'USDC' },
+      ...overrides,
+    };
+  }
+
+  const RESOLVER_POOL = '0xbbb0000000000000000000000000000000000b';
+  const DEPENDENT_POOL = '0xaaa0000000000000000000000000000000000a';
+
+  beforeEach(() => {
+    mockPrisma.tokenMarket.update.mockResolvedValue({});
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockImplementation(async (poolAddress: string) => ({
+      token0: poolAddress === DEPENDENT_POOL ? DEPENDENT_MARKET_TOKEN : USDC_MARKET_TOKEN,
+      token1: poolAddress === DEPENDENT_POOL ? USDC_MARKET_TOKEN : USDC_ADDRESS_BASE,
+      feeTier: 3000,
+      sqrtPriceX96: 1_000_000_000_000_000_000n,
+      tick: 0,
+    }));
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getTokenBalance').mockResolvedValue(null);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getTotalSupply').mockResolvedValue(null);
+  });
+
+  it("resolves a market quoted in another tracked token's own market, even when the DB returns it first (out of dependency order)", async () => {
+    // Returned in the order a real DB query would give no guarantee against: the dependent
+    // market (quoted in USDC_MARKET_TOKEN, the resolver's own base token) comes BEFORE the
+    // resolver market that actually establishes that quote token's USD price. The old
+    // seed-list-order-only implementation would have skipped this; the new multi-pass one
+    // must not.
+    mockPrisma.tokenMarket.findMany.mockResolvedValue([
+      marketRow({
+        id: 'dependent',
+        pairAddress: DEPENDENT_POOL,
+        token: { contractAddress: DEPENDENT_MARKET_TOKEN, decimals: 18, symbol: 'DEP' },
+        quoteToken: { contractAddress: USDC_MARKET_TOKEN, decimals: 18, symbol: 'BASE' },
+      }),
+      marketRow({ id: 'resolver', pairAddress: RESOLVER_POOL }),
+    ]);
+
+    await newService().refreshPricesAndLiquidity();
+
+    expect(mockPrisma.tokenMarket.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'resolver' } }));
+    expect(mockPrisma.tokenMarket.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'dependent' } }));
+    expect(fakeLogger.info).toHaveBeenCalledWith(expect.objectContaining({ updated: 2, skipped: 0 }), 'Price/liquidity refresh complete');
+  });
+
+  it('gives up after exhausting every resolution pass for a genuinely unresolvable quote chain, without fabricating a price', async () => {
+    mockPrisma.tokenMarket.findMany.mockResolvedValue([
+      marketRow({
+        id: 'orphan',
+        token: { contractAddress: UNRESOLVABLE_MARKET_TOKEN, decimals: 18, symbol: 'ORPHAN' },
+        quoteToken: { contractAddress: '0x0000000000000000000000000000000000dead', decimals: 18, symbol: 'GHOST' }, // no market ever prices GHOST
+      }),
+    ]);
+
+    await newService().refreshPricesAndLiquidity();
+
+    expect(mockPrisma.tokenMarket.update).not.toHaveBeenCalled();
+    expect(fakeLogger.info).toHaveBeenCalledWith(expect.objectContaining({ updated: 0, skipped: 1 }), 'Price/liquidity refresh complete');
+  });
+});
+
 describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
   it('does not advance the cursor when eth_getLogs fails, so the range is retried next tick', async () => {
     const market = buildMarket(100n);
