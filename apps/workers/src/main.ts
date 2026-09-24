@@ -9,6 +9,7 @@ import { MarketIngestionService } from './market/ingestion';
 import { SEED_MARKETS_BY_CHAIN_IDENTIFIER } from './market/seed-markets';
 import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
 import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
+import { SolanaMarketIngestionService } from './market/solana-market-ingestion';
 import { SolanaSweepService } from './solana/solana-sweep';
 import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
 import { checkEvmRelayerBalance } from './trading/evm-relayer-balance-monitor';
@@ -307,6 +308,37 @@ async function main(): Promise<void> {
     }
   }
 
+  // Established-Solana-token market data (BONK/WIF/JUP-class — Markets/Trending/Movers/
+  // Volume) — see market/solana-market-ingestion.ts's own doc comment. Independently opt-in
+  // from PUMPFUN_INGESTION_ENABLED below (a different subsystem entirely), but shares the
+  // same SOLANA_ENABLED gate — enforced at config load by env.ts's own superRefine.
+  let solanaMarketIngestionTicker: NodeJS.Timeout | undefined;
+  if (env.SOLANA_ENABLED && env.SOLANA_MARKET_INGESTION_ENABLED) {
+    const solanaMarketIngestion = new SolanaMarketIngestionService(logger);
+
+    let solanaMarketIngestionRunning = false;
+    const runSolanaMarketIngestion = async (): Promise<void> => {
+      if (solanaMarketIngestionRunning) {
+        logger.warn('Skipped Solana market ingestion tick: previous tick still running');
+        return;
+      }
+      solanaMarketIngestionRunning = true;
+      const startedAt = Date.now();
+      try {
+        const result = await solanaMarketIngestion.run();
+        logger.info({ ...result, durationMs: Date.now() - startedAt }, 'Solana market ingestion tick complete');
+      } catch (error) {
+        logger.error({ err: error }, 'Solana market ingestion tick failed — will retry next tick');
+      } finally {
+        solanaMarketIngestionRunning = false;
+      }
+    };
+
+    void runSolanaMarketIngestion();
+    solanaMarketIngestionTicker = setInterval(() => void runSolanaMarketIngestion(), env.SOLANA_MARKET_INGESTION_INTERVAL_SECONDS * 1000);
+    solanaMarketIngestionTicker.unref();
+  }
+
   // Pump.fun bonding-curve ingestion — see pumpfun/pumpfun-ingestion.ts's own doc comment
   // on why this is a persistent subscription, not a tick like everything else above.
   let pumpFunIngestion: PumpFunIngestionService | undefined;
@@ -360,6 +392,7 @@ async function main(): Promise<void> {
     if (evmRelayerBalanceMonitorTicker) clearInterval(evmRelayerBalanceMonitorTicker);
     if (solanaSweepTicker) clearInterval(solanaSweepTicker);
     if (treasuryMonitorTicker) clearInterval(treasuryMonitorTicker);
+    if (solanaMarketIngestionTicker) clearInterval(solanaMarketIngestionTicker);
     if (pnlSweepTicker) clearInterval(pnlSweepTicker);
     await Promise.allSettled([pumpFunIngestion?.stop() ?? Promise.resolve(), redis.quit(), prisma.$disconnect()]);
     process.exit(0);

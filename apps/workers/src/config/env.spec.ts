@@ -73,4 +73,22 @@ describe('workers env schema', () => {
     });
     expect(env.PUMPFUN_INGESTION_ENABLED).toBe(true);
   });
+
+  it('defaults SOLANA_MARKET_INGESTION_ENABLED to false', () => {
+    expect(parseEnv(EnvSchema, valid).SOLANA_MARKET_INGESTION_ENABLED).toBe(false);
+  });
+
+  it('fails clearly when SOLANA_MARKET_INGESTION_ENABLED is true but SOLANA_ENABLED is not', () => {
+    expect(() => parseEnv(EnvSchema, { ...valid, SOLANA_MARKET_INGESTION_ENABLED: 'true' })).toThrowError(/SOLANA_MARKET_INGESTION_ENABLED/);
+  });
+
+  it('accepts SOLANA_MARKET_INGESTION_ENABLED when SOLANA_ENABLED is also true', () => {
+    const env = parseEnv(EnvSchema, {
+      ...valid,
+      SOLANA_ENABLED: 'true',
+      SOLANA_RPC_URL: 'https://api.mainnet-beta.solana.com',
+      SOLANA_MARKET_INGESTION_ENABLED: 'true',
+    });
+    expect(env.SOLANA_MARKET_INGESTION_ENABLED).toBe(true);
+  });
 });

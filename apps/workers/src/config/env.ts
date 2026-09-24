@@ -101,6 +101,16 @@ export const EnvSchema = z.object({
    */
   PUMPFUN_INGESTION_ENABLED: z.coerce.boolean().default(false),
 
+  /**
+   * Established-Solana-token market data for the Markets/Trending/Movers/Volume tabs (BONK/
+   * WIF/JUP-class tokens — see market/solana-seed-markets.ts) — a genuinely different
+   * subsystem from PUMPFUN_INGESTION_ENABLED above (Pump.fun's pre-graduation bonding
+   * curves): a tick-based DexScreener poll, not a WebSocket subscription. Same "requires
+   * SOLANA_ENABLED" gating as PUMPFUN_INGESTION_ENABLED, same reasoning — off by default.
+   */
+  SOLANA_MARKET_INGESTION_ENABLED: z.coerce.boolean().default(false),
+  SOLANA_MARKET_INGESTION_INTERVAL_SECONDS: z.coerce.number().int().positive().default(60),
+
   /** The one configurable knob behind "whale trade" alerts (see
    *  docs/NOTIFICATIONS.md#whale-trades) — centralized here rather than hardcoded at each
    *  call site, and defaulted from the same @kamby/domain constant apps/api would use if it
@@ -127,6 +137,10 @@ export const EnvSchema = z.object({
 }).superRefine((env, ctx) => {
   if (env.PUMPFUN_INGESTION_ENABLED && !env.SOLANA_ENABLED) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['PUMPFUN_INGESTION_ENABLED'], message: 'PUMPFUN_INGESTION_ENABLED requires SOLANA_ENABLED to also be true' });
+  }
+}).superRefine((env, ctx) => {
+  if (env.SOLANA_MARKET_INGESTION_ENABLED && !env.SOLANA_ENABLED) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['SOLANA_MARKET_INGESTION_ENABLED'], message: 'SOLANA_MARKET_INGESTION_ENABLED requires SOLANA_ENABLED to also be true' });
   }
 });
 

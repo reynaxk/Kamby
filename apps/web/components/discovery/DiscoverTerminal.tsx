@@ -48,12 +48,17 @@ function marketKey(market: MarketSummary): string {
 
 /** The pool every grid cell's own independent selector picks from — Markets/Trending/
  *  Movers/Volume, deduplicated by chain+address. Zero new fetches: these are the same
- *  lists the single-terminal's left rail already renders from. */
+ *  lists the single-terminal's left rail already renders from. Solana rows are filtered out
+ *  here (unlike the left rail, which shows them as browsable-but-disabled) — CellTokenSelector
+ *  is a plain native <select> with no per-option disabled state, so excluding them from its
+ *  source list is the only way to keep them unselectable there too. See DiscoverTokenList's
+ *  own doc comment for why Solana rows aren't selectable into this terminal yet. */
 function dedupeMarkets(lists: MarketSummary[][]): MarketSummary[] {
   const seen = new Set<string>();
   const result: MarketSummary[] = [];
   for (const list of lists) {
     for (const market of list) {
+      if (slugForIdentifier(market.chainIdentifier) === null) continue;
       const key = marketKey(market);
       if (seen.has(key)) continue;
       seen.add(key);
