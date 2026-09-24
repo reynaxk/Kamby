@@ -377,4 +377,89 @@ describe('SolanaTransactionService', () => {
       expect(result.nextCursor).not.toBeNull();
     });
   });
+
+  describe('getHistory', () => {
+    it("scopes the query to exactly the real caller's own userId, never another user's", async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([]);
+
+      await service.getHistory(USER_ID, undefined, 10);
+
+      expect(mockedPrisma.solanaTradeTransaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: USER_ID } }),
+      );
+    });
+
+    it('returns a null nextCursor and every row when there are fewer rows than the limit', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([
+        fakeTransaction({ id: 'tx-1' }),
+        fakeTransaction({ id: 'tx-2' }),
+      ]);
+
+      const result = await service.getHistory(USER_ID, undefined, 10);
+
+      expect(result.items).toHaveLength(2);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it('returns exactly `limit` items and a real nextCursor when there are more rows than the page size', async () => {
+      // createdAt (a real, separate DB column from submittedAt) is what the pagination
+      // itself orders/cursors by — required here since hasMore=true means nextCursor's
+      // encoding actually reads `last.createdAt`.
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([
+        fakeTransaction({ id: 'tx-1', createdAt: new Date('2026-01-03') }),
+        fakeTransaction({ id: 'tx-2', createdAt: new Date('2026-01-02') }),
+        fakeTransaction({ id: 'tx-3', createdAt: new Date('2026-01-01') }),
+      ]);
+
+      const result = await service.getHistory(USER_ID, undefined, 2);
+
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((i) => i.id)).toEqual(['tx-1', 'tx-2']); // the limit+1 lookahead row never leaks
+      expect(result.nextCursor).not.toBeNull();
+      expect(mockedPrisma.solanaTradeTransaction.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 3 }));
+    });
+
+    it('a real nextCursor, decoded and reused, requests strictly older rows OR same-instant rows with a strictly smaller id', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValueOnce([
+        fakeTransaction({ id: 'tx-1', createdAt: new Date('2026-01-03') }),
+        fakeTransaction({ id: 'tx-2', createdAt: new Date('2026-01-02') }),
+        fakeTransaction({ id: 'tx-3', createdAt: new Date('2026-01-01') }),
+      ]);
+      const firstPage = await service.getHistory(USER_ID, undefined, 2);
+      expect(firstPage.nextCursor).not.toBeNull();
+
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValueOnce([]);
+      await service.getHistory(USER_ID, firstPage.nextCursor!, 2);
+
+      expect(mockedPrisma.solanaTradeTransaction.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          where: {
+            userId: USER_ID,
+            OR: [
+              { createdAt: { lt: new Date('2026-01-02') } },
+              { createdAt: new Date('2026-01-02'), id: { lt: 'tx-2' } },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('treats a malformed cursor as "start from the beginning," never a 500', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([]);
+
+      await service.getHistory(USER_ID, 'not-real-base64url-json', 10);
+
+      expect(mockedPrisma.solanaTradeTransaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: USER_ID } }), // no OR filter added
+      );
+    });
+
+    it('maps each row through the real toDto shape', async () => {
+      (mockedPrisma.solanaTradeTransaction.findMany as jest.Mock).mockResolvedValue([fakeTransaction({ id: 'tx-1', status: 'CONFIRMED' })]);
+
+      const result = await service.getHistory(USER_ID, undefined, 10);
+
+      expect(result.items[0]).toMatchObject({ id: 'tx-1', status: 'CONFIRMED', signature: SIGNATURE });
+    });
+  });
 });
