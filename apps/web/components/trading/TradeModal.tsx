@@ -16,10 +16,11 @@ export function TradeModal({ open, onClose, children }: { open: boolean; onClose
       if (event.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
   }, [open, onClose]);
 
