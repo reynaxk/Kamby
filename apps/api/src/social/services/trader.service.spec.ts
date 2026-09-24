@@ -108,6 +108,77 @@ function fakeWallet(address: string, username: string | null = null, avatarUrl: 
   return { address, user: username || avatarUrl ? { username, avatarUrl } : null };
 }
 
+function fakeFollowingRow(id: string, createdAt: Date, walletAddress: string, username: string | null = null) {
+  return { id, userId: 'viewer', walletAddress, createdAt, wallet: fakeWallet(walletAddress, username) };
+}
+
+describe('TraderService#getFollowing', () => {
+  let service: TraderService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new TraderService({} as never);
+  });
+
+  it('throws NotFoundException for a wallet that has never traded', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await expect(service.getFollowing(ADDRESS, undefined, 10)).rejects.toThrow(NotFoundException);
+    expect(mockedPrisma.follow.findMany).not.toHaveBeenCalled();
+  });
+
+  it('returns an empty page without ever querying follows for an unclaimed wallet (no linked userId)', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ userId: null });
+
+    const result = await service.getFollowing(ADDRESS, undefined, 10);
+
+    expect(result).toEqual({ items: [], nextCursor: null });
+    expect(mockedPrisma.follow.findMany).not.toHaveBeenCalled();
+  });
+
+  it('returns a null nextCursor and every row when there are fewer rows than the limit', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ userId: 'viewer' });
+    (mockedPrisma.follow.findMany as jest.Mock).mockResolvedValue([
+      fakeFollowingRow('1', new Date('2026-01-03'), '0xaaa', 'whale1'),
+      fakeFollowingRow('2', new Date('2026-01-02'), '0xbbb', 'whale2'),
+    ]);
+
+    const result = await service.getFollowing(ADDRESS, undefined, 10);
+
+    expect(result.items).toEqual([
+      { address: '0xaaa', username: 'whale1', avatarUrl: null },
+      { address: '0xbbb', username: 'whale2', avatarUrl: null },
+    ]);
+    expect(result.nextCursor).toBeNull();
+  });
+
+  it('returns exactly `limit` items and a real nextCursor when there are more rows than the page size', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ userId: 'viewer' });
+    (mockedPrisma.follow.findMany as jest.Mock).mockResolvedValue([
+      fakeFollowingRow('1', new Date('2026-01-03'), '0xaaa'),
+      fakeFollowingRow('2', new Date('2026-01-02'), '0xbbb'),
+      fakeFollowingRow('3', new Date('2026-01-01'), '0xccc'),
+    ]);
+
+    const result = await service.getFollowing(ADDRESS, undefined, 2);
+
+    expect(result.items).toHaveLength(2);
+    expect(result.nextCursor).not.toBeNull();
+    expect(mockedPrisma.follow.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 3 })); // limit + 1
+  });
+
+  it('treats a malformed cursor as "start from the beginning," never a 500', async () => {
+    (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ userId: 'viewer' });
+    (mockedPrisma.follow.findMany as jest.Mock).mockResolvedValue([]);
+
+    await service.getFollowing(ADDRESS, 'not-real-base64url-json', 10);
+
+    expect(mockedPrisma.follow.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 'viewer' } }), // no createdAt filter added
+    );
+  });
+});
+
 describe('TraderService#search', () => {
   let service: TraderService;
 
