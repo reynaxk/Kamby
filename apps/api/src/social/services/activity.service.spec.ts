@@ -40,6 +40,33 @@ describe('ActivityService', () => {
     (mockedPrisma.activityLike.findMany as jest.Mock).mockResolvedValue([]);
   });
 
+  describe('getGlobalFeed', () => {
+    it('applies the quality gate (liquidityUsd floor) when no tokenAddress is given, deliberately cross-chain', async () => {
+      await service.getGlobalFeed({ limit: 10, chainId: 8453, viewerUserId: null });
+
+      expect(mockedPrisma.swap.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { AND: [{ tokenMarket: { liquidityUsd: { gte: 10_000 } } }, {}] },
+        }),
+      );
+    });
+
+    it('scopes to exactly one token on one chain, case-insensitively, when a tokenAddress is given', async () => {
+      await service.getGlobalFeed({ limit: 10, chainId: 8453, tokenAddress: '0xABC', viewerUserId: null });
+
+      expect(mockedPrisma.swap.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            AND: [
+              { tokenMarket: { chainId: 8453, token: { contractAddress: { equals: '0xabc', mode: 'insensitive' } } } },
+              {},
+            ],
+          },
+        }),
+      );
+    });
+  });
+
   describe('getFollowingFeed', () => {
     it('returns an empty page (not an error) and never queries swaps when the user follows no one', async () => {
       (mockedPrisma.follow.findMany as jest.Mock).mockResolvedValue([]);
