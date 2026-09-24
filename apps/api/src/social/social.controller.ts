@@ -174,7 +174,7 @@ export class SocialController {
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Get('leaderboard')
   getLeaderboard(@Query() query: LeaderboardQueryDto) {
-    return this.leaderboard.getLeaderboard(query.window, query.limit);
+    return this.leaderboard.getLeaderboard(query.window, query.limit, query.chain ?? null);
   }
 
   @UseGuards(OptionalAuthGuard)

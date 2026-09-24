@@ -28,8 +28,12 @@ function fakeEntry(overrides: Partial<LeaderboardEntry> = {}): LeaderboardEntry 
   };
 }
 
-function fakeLeaderboard(entries: LeaderboardEntry[] = [fakeEntry()], window: Leaderboard['window'] = '24h'): Leaderboard {
-  return { window, entries };
+function fakeLeaderboard(
+  entries: LeaderboardEntry[] = [fakeEntry()],
+  window: Leaderboard['window'] = '24h',
+  chain: Leaderboard['chain'] = null,
+): Leaderboard {
+  return { window, chain, entries };
 }
 
 describe('LeaderboardSidebar', () => {
@@ -41,7 +45,7 @@ describe('LeaderboardSidebar', () => {
     fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
     render(<LeaderboardSidebar />);
 
-    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15));
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
   });
 
   it('shows a real loading state before the first fetch resolves', () => {
@@ -88,11 +92,11 @@ describe('LeaderboardSidebar', () => {
     fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
     const user = userEvent.setup();
     render(<LeaderboardSidebar />);
-    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15));
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
 
     await user.click(screen.getByRole('button', { name: '7D' }));
 
-    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('7d', 15));
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('7d', 15, null));
   });
 
   it('discards a stale in-flight response from a previous window after a fast switch', async () => {
@@ -103,7 +107,7 @@ describe('LeaderboardSidebar', () => {
     fetchLeaderboard.mockImplementationOnce(() => new Promise((resolve) => (resolveA = resolve)));
     const user = userEvent.setup();
     render(<LeaderboardSidebar />);
-    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15));
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
 
     fetchLeaderboard.mockResolvedValueOnce(fakeLeaderboard([fakeEntry({ walletAddress: '0xfresh' })], '7d'));
     await user.click(screen.getByRole('button', { name: '7D' }));
@@ -114,5 +118,39 @@ describe('LeaderboardSidebar', () => {
 
     expect(screen.queryByText('0xstale')).not.toBeInTheDocument();
     expect(screen.getByText('0xfresh')).toBeInTheDocument();
+  });
+
+  it('shows a real tab for every supported chain plus Solana and All', () => {
+    fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
+    render(<LeaderboardSidebar />);
+
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Solana' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Base' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'BNB Chain' })).toBeInTheDocument();
+  });
+
+  it('refetches with the real selected chain on tab click, keeping the current window', async () => {
+    fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
+    const user = userEvent.setup();
+    render(<LeaderboardSidebar />);
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
+
+    await user.click(screen.getByRole('button', { name: 'Solana' }));
+
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, 'solana'));
+  });
+
+  it('switching window preserves the currently selected chain filter', async () => {
+    fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
+    const user = userEvent.setup();
+    render(<LeaderboardSidebar />);
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
+    await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, 'bnb'));
+
+    await user.click(screen.getByRole('button', { name: '7D' }));
+
+    await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('7d', 15, 'bnb'));
   });
 });

@@ -1,9 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { prisma } from '@kamby/db';
+import { Prisma, prisma } from '@kamby/db';
 import {
+  CHAIN_REGISTRY,
   DISCOVERY_CACHE_TTL_SECONDS,
   PNL_WINDOW_MS,
   type Leaderboard,
+  type LeaderboardChainFilter,
   type LeaderboardEntry,
   type PnlWindow,
 } from '@kamby/domain';
@@ -28,18 +30,18 @@ export class LeaderboardService {
     this.logger.setContext('LeaderboardService');
   }
 
-  async getLeaderboard(window: PnlWindow, limit: number): Promise<Leaderboard> {
-    return this.cached(`leaderboard:${window}:${limit}`, async () => {
+  async getLeaderboard(window: PnlWindow, limit: number, chain: LeaderboardChainFilter | null = null): Promise<Leaderboard> {
+    return this.cached(`leaderboard:${window}:${limit}:${chain ?? 'all'}`, async () => {
       const since = new Date(Date.now() - PNL_WINDOW_MS[window]);
 
       const grouped = await prisma.realizedPnlEvent.groupBy({
         by: ['userId'],
-        where: { confirmedAt: { gte: since } },
+        where: { confirmedAt: { gte: since }, ...this.chainWhere(chain) },
         _sum: { realizedPnlUsd: true, costBasisUsd: true, proceedsUsd: true },
         orderBy: { _sum: { realizedPnlUsd: 'desc' } },
         take: limit,
       });
-      if (grouped.length === 0) return { window, entries: [] };
+      if (grouped.length === 0) return { window, chain, entries: [] };
 
       const userIds = grouped.map((g) => g.userId);
       const [users, wallets] = await Promise.all([
@@ -90,8 +92,18 @@ export class LeaderboardService {
         ];
       });
 
-      return { window, entries };
+      return { window, chain, entries };
     });
+  }
+
+  /** Scopes the ranking to one chain — an EVM slug resolves through the event's linked
+   *  `evmToken.chain` relation (an EVM `RealizedPnlEvent` always has one; see the model's own
+   *  exactly-one-of-evmTokenId/solanaMint comment), `'solana'` just checks `solanaMint` is
+   *  set. `null` (the default) applies no filter at all — one ranking across every chain. */
+  private chainWhere(chain: LeaderboardChainFilter | null): Prisma.RealizedPnlEventWhereInput {
+    if (chain === null) return {};
+    if (chain === 'solana') return { solanaMint: { not: null } };
+    return { evmToken: { chain: { identifier: CHAIN_REGISTRY[chain].identifier } } };
   }
 
   /** Cache-aside with an explicit TTL — identical shape to DiscoveryService#cached (see

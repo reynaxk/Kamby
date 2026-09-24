@@ -46,6 +46,7 @@ describe('LeaderboardService', () => {
 
     expect(result).toEqual({
       window: '24h',
+      chain: null,
       entries: [
         {
           userId: 'user-1',
@@ -68,7 +69,7 @@ describe('LeaderboardService', () => {
 
     const result = await service.getLeaderboard('7d', 25);
 
-    expect(result).toEqual({ window: '7d', entries: [] });
+    expect(result).toEqual({ window: '7d', chain: null, entries: [] });
     expect(mockedPrisma.user.findMany).not.toHaveBeenCalled();
   });
 
@@ -97,11 +98,11 @@ describe('LeaderboardService', () => {
   });
 
   it('returns the cached value without touching the database on a cache hit', async () => {
-    redis.get.mockResolvedValue(JSON.stringify({ window: '24h', entries: [] }));
+    redis.get.mockResolvedValue(JSON.stringify({ window: '24h', chain: null, entries: [] }));
 
     const result = await service.getLeaderboard('24h', 25);
 
-    expect(result).toEqual({ window: '24h', entries: [] });
+    expect(result).toEqual({ window: '24h', chain: null, entries: [] });
     expect(mockedPrisma.realizedPnlEvent.groupBy).not.toHaveBeenCalled();
   });
 
@@ -110,15 +111,20 @@ describe('LeaderboardService', () => {
     redis.set.mockRejectedValue(new Error('redis down'));
     (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
 
-    await expect(service.getLeaderboard('24h', 25)).resolves.toEqual({ window: '24h', entries: [] });
+    await expect(service.getLeaderboard('24h', 25)).resolves.toEqual({ window: '24h', chain: null, entries: [] });
   });
 
-  it('caches the freshly computed result under the real window+limit key on a cache miss', async () => {
+  it('caches the freshly computed result under the real window+limit+chain key on a cache miss', async () => {
     (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
 
     await service.getLeaderboard('30d', 50);
 
-    expect(redis.set).toHaveBeenCalledWith('leaderboard:30d:50', JSON.stringify({ window: '30d', entries: [] }), 'EX', expect.any(Number));
+    expect(redis.set).toHaveBeenCalledWith(
+      'leaderboard:30d:50:all',
+      JSON.stringify({ window: '30d', chain: null, entries: [] }),
+      'EX',
+      expect.any(Number),
+    );
   });
 
   it('never reuses the cache entry for one window/limit pair on a different pair', async () => {
@@ -160,5 +166,50 @@ describe('LeaderboardService', () => {
     const result = await service.getLeaderboard('24h', 25);
 
     expect(result.entries.map((e) => e.userId)).toEqual(['user-1', 'user-2']);
+  });
+
+  it('applies no chain filter at all by default — one ranking across every chain', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
+
+    await service.getLeaderboard('24h', 25);
+
+    expect(mockedPrisma.realizedPnlEvent.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { confirmedAt: { gte: expect.any(Date) } } }),
+    );
+  });
+
+  it('scopes an EVM chain filter through the real evmToken.chain relation, by its identifier', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
+
+    const result = await service.getLeaderboard('24h', 25, 'bnb');
+
+    expect(result.chain).toBe('bnb');
+    expect(mockedPrisma.realizedPnlEvent.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { confirmedAt: { gte: expect.any(Date) }, evmToken: { chain: { identifier: 'eip155:56' } } },
+      }),
+    );
+  });
+
+  it('scopes a "solana" filter to rows with a real solanaMint set, never joining through evmToken', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
+
+    const result = await service.getLeaderboard('24h', 25, 'solana');
+
+    expect(result.chain).toBe('solana');
+    expect(mockedPrisma.realizedPnlEvent.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { confirmedAt: { gte: expect.any(Date) }, solanaMint: { not: null } } }),
+    );
+  });
+
+  it('never reuses the cache entry for one chain filter on a different one, even with the same window/limit', async () => {
+    (mockedPrisma.realizedPnlEvent.groupBy as jest.Mock).mockResolvedValue([]);
+
+    await service.getLeaderboard('24h', 25, 'base');
+    await service.getLeaderboard('24h', 25, 'bnb');
+    await service.getLeaderboard('24h', 25, null);
+
+    const keys = redis.set.mock.calls.map((call) => call[0]);
+    expect(new Set(keys).size).toBe(3);
   });
 });

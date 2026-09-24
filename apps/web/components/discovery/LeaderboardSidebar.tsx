@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { Leaderboard, PnlWindow } from '@kamby/domain';
+import { CHAIN_REGISTRY, SUPPORTED_CHAIN_SLUGS, type Leaderboard, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
@@ -10,6 +10,15 @@ import { fetchLeaderboard } from '@/lib/social-client';
 
 const WINDOWS: readonly PnlWindow[] = ['24h', '7d', '30d'];
 const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d': '30D' };
+
+/** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
+const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', ...SUPPORTED_CHAIN_SLUGS];
+
+function chainLabel(chain: LeaderboardChainFilter | null): string {
+  if (chain === null) return 'All';
+  if (chain === 'solana') return 'Solana';
+  return CHAIN_REGISTRY[chain].name;
+}
 
 /**
  * A compact rank/PnL list for the terminal's left rail — same realized-PnL data as the
@@ -22,13 +31,14 @@ const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d
  */
 export function LeaderboardSidebar() {
   const [window, setWindow] = useState<PnlWindow>('24h');
+  const [chain, setChain] = useState<LeaderboardChainFilter | null>(null);
   const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
     let cancelled = false;
     setStatus('loading');
-    fetchLeaderboard(window, 15)
+    fetchLeaderboard(window, 15, chain)
       .then((result) => {
         if (cancelled) return;
         setLeaderboard(result);
@@ -40,7 +50,7 @@ export function LeaderboardSidebar() {
     return () => {
       cancelled = true;
     };
-  }, [window]);
+  }, [window, chain]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
@@ -56,6 +66,22 @@ export function LeaderboardSidebar() {
             )}
           >
             {WINDOW_LABEL[w]}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-1 border-b border-line px-2 py-1.5">
+        {CHAIN_FILTERS.map((c) => (
+          <button
+            key={c ?? 'all'}
+            type="button"
+            onClick={() => setChain(c)}
+            className={cn(
+              'rounded-full px-2 py-0.5 font-mono text-[0.6rem] font-semibold uppercase tracking-wide transition-colors',
+              chain === c ? 'bg-accent/15 text-accent' : 'text-ink-400 hover:text-ink-900',
+            )}
+          >
+            {chainLabel(c)}
           </button>
         ))}
       </div>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SUPPORTED_CHAIN_SLUGS, type ChainSlug } from './chain-registry';
 
 /**
  * Realized PnL — pure logic and Zod schemas only (no I/O, matching every other file in
@@ -171,8 +172,19 @@ export const LeaderboardEntrySchema = z.object({
 });
 export type LeaderboardEntry = z.infer<typeof LeaderboardEntrySchema>;
 
+/** Which chain a leaderboard ranking is scoped to — an EVM chain slug from the shared
+ *  registry, or the literal `'solana'` (Solana isn't in `CHAIN_REGISTRY`, which is EVM-only
+ *  — see that file's own comment). `null` means the real default: one unified ranking
+ *  across every chain, not scoped to any single one. */
+export type LeaderboardChainFilter = ChainSlug | 'solana';
+export const LEADERBOARD_CHAIN_FILTERS = [...SUPPORTED_CHAIN_SLUGS, 'solana'] as LeaderboardChainFilter[];
+export const LeaderboardChainFilterSchema = z.enum(
+  LEADERBOARD_CHAIN_FILTERS as [LeaderboardChainFilter, ...LeaderboardChainFilter[]],
+);
+
 export const LeaderboardSchema = z.object({
   window: PnlWindowSchema,
+  chain: LeaderboardChainFilterSchema.nullable(),
   entries: z.array(LeaderboardEntrySchema),
 });
 export type Leaderboard = z.infer<typeof LeaderboardSchema>;

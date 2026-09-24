@@ -1,4 +1,12 @@
-import type { Leaderboard, PnlWindow, SocialActivity, TopTrader, TraderProfile, TrendingToken } from '@kamby/domain';
+import type {
+  Leaderboard,
+  LeaderboardChainFilter,
+  PnlWindow,
+  SocialActivity,
+  TopTrader,
+  TraderProfile,
+  TrendingToken,
+} from '@kamby/domain';
 import { apiGet } from './market-api';
 
 /**
@@ -62,7 +70,8 @@ export async function fetchTraderSearch(query: string, limit = 8): Promise<Trade
   return result ?? [];
 }
 
-export async function fetchLeaderboard(window: PnlWindow, limit = 25): Promise<Leaderboard> {
-  const result = await apiGet<Leaderboard>(`/social/leaderboard?window=${window}&limit=${limit}`, 30);
-  return result ?? { window, entries: [] };
+export async function fetchLeaderboard(window: PnlWindow, limit = 25, chain: LeaderboardChainFilter | null = null): Promise<Leaderboard> {
+  const chainParam = chain ? `&chain=${chain}` : '';
+  const result = await apiGet<Leaderboard>(`/social/leaderboard?window=${window}&limit=${limit}${chainParam}`, 30);
+  return result ?? { window, chain, entries: [] };
 }

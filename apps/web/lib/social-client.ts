@@ -1,6 +1,6 @@
 'use client';
 
-import type { Leaderboard, PnlWindow, SocialActivity, TopTrader } from '@kamby/domain';
+import type { Leaderboard, LeaderboardChainFilter, PnlWindow, SocialActivity, TopTrader } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /**
@@ -65,8 +65,9 @@ export interface ActivityPage {
  *  a sidebar embedded in a client component (DiscoverTerminal) can switch windows (24h/7d/
  *  30d) without a full page navigation, the same way the standalone /leaderboard page does
  *  via its window searchParam. */
-export async function fetchLeaderboard(window: PnlWindow, limit = 25): Promise<Leaderboard> {
-  const res = await fetch(`${API_BASE}/v1/social/leaderboard?window=${window}&limit=${limit}`);
+export async function fetchLeaderboard(window: PnlWindow, limit = 25, chain?: LeaderboardChainFilter | null): Promise<Leaderboard> {
+  const chainParam = chain ? `&chain=${chain}` : '';
+  const res = await fetch(`${API_BASE}/v1/social/leaderboard?window=${window}&limit=${limit}${chainParam}`);
   if (!res.ok) throw new Error(`Failed to fetch leaderboard (${res.status})`);
   return res.json();
 }

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { cn, Surface } from '@kamby/ui';
-import type { PnlWindow } from '@kamby/domain';
+import { CHAIN_REGISTRY, SUPPORTED_CHAIN_SLUGS, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
 import { EmptyState } from '@/components/market/EmptyState';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PnlValue } from '@/components/social/PnlValue';
@@ -14,8 +14,22 @@ export const metadata = { title: 'Leaderboard — Kamby' };
 const WINDOWS: readonly PnlWindow[] = ['24h', '7d', '30d'];
 const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d': '30D' };
 
+/** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
+const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', ...SUPPORTED_CHAIN_SLUGS];
+
 function isPnlWindow(value: string | undefined): value is PnlWindow {
   return WINDOWS.includes(value as PnlWindow);
+}
+
+function isChainFilter(value: string | undefined): value is LeaderboardChainFilter {
+  if (value === undefined) return false;
+  return value === 'solana' || (SUPPORTED_CHAIN_SLUGS as readonly string[]).includes(value);
+}
+
+function chainLabel(chain: LeaderboardChainFilter | null): string {
+  if (chain === null) return 'All';
+  if (chain === 'solana') return 'Solana';
+  return CHAIN_REGISTRY[chain].name;
 }
 
 /**
@@ -32,10 +46,11 @@ function isPnlWindow(value: string | undefined): value is PnlWindow {
 export default async function LeaderboardPage({
   searchParams,
 }: {
-  searchParams: { window?: string };
+  searchParams: { window?: string; chain?: string };
 }) {
   const window: PnlWindow = isPnlWindow(searchParams.window) ? searchParams.window : '24h';
-  const leaderboard = await fetchLeaderboard(window, 25);
+  const chain: LeaderboardChainFilter | null = isChainFilter(searchParams.chain) ? searchParams.chain : null;
+  const leaderboard = await fetchLeaderboard(window, 25, chain);
 
   return (
     <div className="kamby-void min-h-screen bg-bg">
@@ -55,7 +70,7 @@ export default async function LeaderboardPage({
             {WINDOWS.map((w) => (
               <Link
                 key={w}
-                href={`/leaderboard?window=${w}`}
+                href={`/leaderboard?window=${w}${chain ? `&chain=${chain}` : ''}`}
                 className={cn(
                   'rounded-md px-3 py-1.5 font-mono text-xs font-medium transition-colors',
                   w === window ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
@@ -66,6 +81,21 @@ export default async function LeaderboardPage({
             ))}
           </nav>
         </div>
+
+        <nav className="mt-4 flex flex-wrap gap-1.5">
+          {CHAIN_FILTERS.map((c) => (
+            <Link
+              key={c ?? 'all'}
+              href={`/leaderboard?window=${window}${c ? `&chain=${c}` : ''}`}
+              className={cn(
+                'rounded-full border border-white/[0.06] px-2.5 py-1 font-mono text-[0.65rem] font-medium uppercase tracking-wide transition-colors',
+                c === chain ? 'bg-accent text-accent-ink' : 'bg-white/[0.03] text-ink-400 hover:text-ink-900',
+              )}
+            >
+              {chainLabel(c)}
+            </Link>
+          ))}
+        </nav>
 
         {leaderboard.entries.length === 0 ? (
           <div className="mt-8">
