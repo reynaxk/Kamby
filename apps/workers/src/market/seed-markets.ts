@@ -74,6 +74,26 @@ export const BASE_SEED_MARKETS: SeedMarket[] = [
     baseTokenAddress: '0x532f27101965dd16442E59d40670FaF5eBB142E4',
     dex: 'uniswap-v3',
   },
+  {
+    // TOSHI/WETH — added 2026-09-24. $1.2M liquidity verified live via DexScreener at
+    // discovery time; token0/token1/slot0 confirmed directly against this pool contract on
+    // Base's public RPC (token0 = WETH, token1 = TOSHI, sqrtPriceX96 non-zero/initialized).
+    // Real Uniswap V3 liquidity is thin relative to TOSHI's actual trading volume (most of it
+    // is on Aerodrome and Uniswap V4, which this reader can't consume), but this specific
+    // pool clears the same bar as DEGEN/BRETT above.
+    poolAddress: '0x4b0Aaf3EBb163dd45F663b38b6d93f6093EBC2d3',
+    baseTokenAddress: '0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4',
+    dex: 'uniswap-v3',
+  },
+  {
+    // VIRTUAL/USDC — added 2026-09-24. $1.07M liquidity verified live via DexScreener at
+    // discovery time; token0/token1/slot0 confirmed directly against this pool contract on
+    // Base's public RPC (token0 = VIRTUAL, token1 = USDC, sqrtPriceX96 non-zero/initialized).
+    // Quoted directly in USDC, so no ordering dependency on the WETH/USDC entry above.
+    poolAddress: '0x529d2863a1521d0b57db028168fdE2E97120017C',
+    baseTokenAddress: '0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b',
+    dex: 'uniswap-v3',
+  },
 ];
 
 /**
