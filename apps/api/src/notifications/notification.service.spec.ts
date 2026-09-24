@@ -19,6 +19,13 @@ jest.mock('@kamby/db', () => {
     },
   };
 });
+// toNotificationDto has its own dedicated coverage in notification.mapper.spec.ts — mocked
+// here (to a shape carrying just the row's id through) so NotificationService#list's tests
+// exercise only this service's own pagination/cursor logic.
+jest.mock('./notification.mapper', () => ({
+  NOTIFICATION_INCLUDE: {},
+  toNotificationDto: (row: { id: string }) => ({ id: row.id }),
+}));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: true });
 
@@ -235,6 +242,122 @@ describe('NotificationService', () => {
           trendingTokens: true,
           watchedTokenActivity: true,
         },
+      });
+    });
+  });
+
+  describe('list', () => {
+    // decodeNotificationCursor is the real function (not mocked) and validates id as a real
+    // UUID — a bare '1'/'2' id would silently fail that validation and be treated as no
+    // cursor at all, so every id here must look like a genuine one.
+    const ID_1 = '11111111-1111-1111-1111-111111111111';
+    const ID_2 = '22222222-2222-2222-2222-222222222222';
+    const ID_3 = '33333333-3333-3333-3333-333333333333';
+
+    function fakeRow(id: string, createdAt: Date) {
+      return { id, createdAt };
+    }
+
+    it('returns a null nextCursor and every row when there are fewer rows than the limit', async () => {
+      (mockedPrisma.notification.findMany as jest.Mock).mockResolvedValue([
+        fakeRow(ID_1, new Date('2026-01-03')),
+        fakeRow(ID_2, new Date('2026-01-02')),
+      ]);
+
+      const result = await service.list(RECIPIENT_USER_ID, undefined, 10);
+
+      expect(result).toEqual({ items: [{ id: ID_1 }, { id: ID_2 }], nextCursor: null });
+    });
+
+    it('returns exactly `limit` items and a real nextCursor when there are more rows than the page size', async () => {
+      (mockedPrisma.notification.findMany as jest.Mock).mockResolvedValue([
+        fakeRow(ID_1, new Date('2026-01-03')),
+        fakeRow(ID_2, new Date('2026-01-02')),
+        fakeRow(ID_3, new Date('2026-01-01')),
+      ]);
+
+      const result = await service.list(RECIPIENT_USER_ID, undefined, 2);
+
+      expect(result.items).toEqual([{ id: ID_1 }, { id: ID_2 }]);
+      expect(result.nextCursor).not.toBeNull();
+      expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 3 })); // limit + 1
+    });
+
+    it('scopes every query to the real caller userId, never a client-supplied one', async () => {
+      (mockedPrisma.notification.findMany as jest.Mock).mockResolvedValue([]);
+
+      await service.list(RECIPIENT_USER_ID, undefined, 10);
+
+      expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, {}] } }),
+      );
+    });
+
+    it('a real nextCursor, decoded and reused, requests strictly older rows OR same-instant rows with a strictly smaller id', async () => {
+      // The tie-breaking half of this cursor (same createdAt, smaller id) doesn't exist on
+      // TraderService's simpler `lt`-only cursor — two notifications can share a createdAt,
+      // so this OR shape is the real, distinct behavior worth locking in here.
+      (mockedPrisma.notification.findMany as jest.Mock).mockResolvedValueOnce([
+        fakeRow(ID_1, new Date('2026-01-03')),
+        fakeRow(ID_2, new Date('2026-01-02')),
+        fakeRow(ID_3, new Date('2026-01-01')),
+      ]);
+      const firstPage = await service.list(RECIPIENT_USER_ID, undefined, 2);
+      expect(firstPage.nextCursor).not.toBeNull();
+
+      (mockedPrisma.notification.findMany as jest.Mock).mockResolvedValueOnce([]);
+      await service.list(RECIPIENT_USER_ID, firstPage.nextCursor!, 2);
+
+      expect(mockedPrisma.notification.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          where: {
+            AND: [
+              { userId: RECIPIENT_USER_ID },
+              {
+                OR: [
+                  { createdAt: { lt: new Date('2026-01-02') } },
+                  { createdAt: new Date('2026-01-02'), id: { lt: ID_2 } },
+                ],
+              },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('treats a malformed cursor as "start from the beginning," never a 500', async () => {
+      (mockedPrisma.notification.findMany as jest.Mock).mockResolvedValue([]);
+
+      await service.list(RECIPIENT_USER_ID, 'not-real-base64url-json', 10);
+
+      expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, {}] } }),
+      );
+    });
+  });
+
+  describe('unreadCount', () => {
+    it('counts only this real caller\'s own unread notifications', async () => {
+      (mockedPrisma.notification.count as jest.Mock).mockResolvedValue(5);
+
+      const count = await service.unreadCount(RECIPIENT_USER_ID);
+
+      expect(count).toBe(5);
+      expect(mockedPrisma.notification.count).toHaveBeenCalledWith({
+        where: { userId: RECIPIENT_USER_ID, readAt: null },
+      });
+    });
+  });
+
+  describe('markAllRead', () => {
+    it("marks every one of the real caller's own unread notifications read, never another user's", async () => {
+      (mockedPrisma.notification.updateMany as jest.Mock).mockResolvedValue({ count: 3 });
+
+      await service.markAllRead(RECIPIENT_USER_ID);
+
+      expect(mockedPrisma.notification.updateMany).toHaveBeenCalledWith({
+        where: { userId: RECIPIENT_USER_ID, readAt: null },
+        data: { readAt: expect.any(Date) },
       });
     });
   });
