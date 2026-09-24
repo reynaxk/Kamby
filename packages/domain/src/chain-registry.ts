@@ -29,6 +29,12 @@ export const CHAIN_REGISTRY = {
     name: 'BNB Chain',
     nativeSymbol: 'BNB',
   },
+  ethereum: {
+    identifier: 'eip155:1',
+    numericId: 1,
+    name: 'Ethereum',
+    nativeSymbol: 'ETH',
+  },
 } as const;
 
 export type ChainSlug = keyof typeof CHAIN_REGISTRY;

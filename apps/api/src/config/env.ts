@@ -79,6 +79,15 @@ export const EnvSchema = z.object({
   CHAIN_BNB_RPC_URL_FALLBACK: z.string().url('CHAIN_BNB_RPC_URL_FALLBACK must be a valid URL').optional(),
   CHAIN_BNB_USDC_ADDRESS: z.string().regex(EVM_ADDRESS_REGEX, 'CHAIN_BNB_USDC_ADDRESS must be a valid EVM address').optional(),
 
+  CHAIN_ETHEREUM_ID: z.coerce.number().int().positive().optional(),
+  CHAIN_ETHEREUM_RPC_URL: z.string().url('CHAIN_ETHEREUM_RPC_URL must be a valid URL').optional(),
+  /** See CHAIN_BASE_RPC_URL_FALLBACK's doc comment — same deal, per chain. */
+  CHAIN_ETHEREUM_RPC_URL_FALLBACK: z.string().url('CHAIN_ETHEREUM_RPC_URL_FALLBACK must be a valid URL').optional(),
+  CHAIN_ETHEREUM_USDC_ADDRESS: z
+    .string()
+    .regex(EVM_ADDRESS_REGEX, 'CHAIN_ETHEREUM_USDC_ADDRESS must be a valid EVM address')
+    .optional(),
+
   /**
    * See docs/TRADING.md#provider. KyberSwap's Aggregator API needs no API key — only an
    * `X-Client-Id` header (a plain identifying string, not a secret) for rate-limit
@@ -244,6 +253,8 @@ export const EnvSchema = z.object({
   EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM: z.coerce.number().int().positive().optional(),
   EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB: z.coerce.number().positive().optional(),
   EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB: z.coerce.number().int().positive().optional(),
+  EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ETHEREUM: z.coerce.number().positive().optional(),
+  EVM_GAS_RELAYER_MAX_WEI_CEILING_ETHEREUM: z.coerce.number().int().positive().optional(),
 
   /**
    * Cloudflare R2 (S3-compatible object storage) for profile-picture uploads — see
@@ -269,27 +280,46 @@ export const EnvSchema = z.object({
 const CHAIN_ENV_BLOCKS: Record<
   ChainSlug,
   {
-    id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID' | 'CHAIN_BNB_ID';
-    rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL' | 'CHAIN_BNB_RPC_URL';
-    rpcUrlFallback: 'CHAIN_BASE_RPC_URL_FALLBACK' | 'CHAIN_ARBITRUM_RPC_URL_FALLBACK' | 'CHAIN_BNB_RPC_URL_FALLBACK';
-    usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' | 'CHAIN_BNB_USDC_ADDRESS';
+    id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID' | 'CHAIN_BNB_ID' | 'CHAIN_ETHEREUM_ID';
+    rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL' | 'CHAIN_BNB_RPC_URL' | 'CHAIN_ETHEREUM_RPC_URL';
+    rpcUrlFallback:
+      | 'CHAIN_BASE_RPC_URL_FALLBACK'
+      | 'CHAIN_ARBITRUM_RPC_URL_FALLBACK'
+      | 'CHAIN_BNB_RPC_URL_FALLBACK'
+      | 'CHAIN_ETHEREUM_RPC_URL_FALLBACK';
+    usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' | 'CHAIN_BNB_USDC_ADDRESS' | 'CHAIN_ETHEREUM_USDC_ADDRESS';
   }
 > = {
   base: { id: 'CHAIN_BASE_ID', rpcUrl: 'CHAIN_BASE_RPC_URL', rpcUrlFallback: 'CHAIN_BASE_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' },
   arbitrum: { id: 'CHAIN_ARBITRUM_ID', rpcUrl: 'CHAIN_ARBITRUM_RPC_URL', rpcUrlFallback: 'CHAIN_ARBITRUM_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_ARBITRUM_USDC_ADDRESS' },
   bnb: { id: 'CHAIN_BNB_ID', rpcUrl: 'CHAIN_BNB_RPC_URL', rpcUrlFallback: 'CHAIN_BNB_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BNB_USDC_ADDRESS' },
+  ethereum: {
+    id: 'CHAIN_ETHEREUM_ID',
+    rpcUrl: 'CHAIN_ETHEREUM_RPC_URL',
+    rpcUrlFallback: 'CHAIN_ETHEREUM_RPC_URL_FALLBACK',
+    usdcAddress: 'CHAIN_ETHEREUM_USDC_ADDRESS',
+  },
 };
 
 const EVM_GAS_RELAYER_CEILING_BLOCKS: Record<
   ChainSlug,
   {
-    maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE' | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM' | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB';
-    maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE' | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM' | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB';
+    maxGasPriceGwei:
+      | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE'
+      | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM'
+      | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB'
+      | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ETHEREUM';
+    maxWeiCeiling:
+      | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE'
+      | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM'
+      | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB'
+      | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ETHEREUM';
   }
 > = {
   base: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE' },
   arbitrum: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM' },
   bnb: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB' },
+  ethereum: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ETHEREUM', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ETHEREUM' },
 };
 
 export const ValidatedEnvSchema = EnvSchema.superRefine((env, ctx) => {

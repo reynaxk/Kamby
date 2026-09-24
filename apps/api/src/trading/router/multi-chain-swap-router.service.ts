@@ -22,6 +22,7 @@ const CHAIN_ID_TO_PROVIDER: Record<number, 'kyberswap' | 'openocean'> = {
   8453: 'kyberswap', // Base
   42161: 'kyberswap', // Arbitrum
   56: 'kyberswap', // BNB Chain — see this map's own doc comment for why not OpenOcean
+  1: 'kyberswap', // Ethereum mainnet
 };
 
 /**

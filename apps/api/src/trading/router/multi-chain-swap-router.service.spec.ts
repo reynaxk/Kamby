@@ -74,6 +74,14 @@ describe('MultiChainSwapRouter', () => {
     expect(openocean.getQuote).not.toHaveBeenCalled();
   });
 
+  it('routes Ethereum mainnet (1) to KyberSwap, never OpenOcean', async () => {
+    const quote = await router.getQuote(fakeRequest(1));
+
+    expect(quote?.provider).toBe('kyberswap');
+    expect(kyberswap.getQuote).toHaveBeenCalledTimes(1);
+    expect(openocean.getQuote).not.toHaveBeenCalled();
+  });
+
   it('returns null for a chainId with no mapped provider, without calling either router', async () => {
     const quote = await router.getQuote(fakeRequest(999_999));
 

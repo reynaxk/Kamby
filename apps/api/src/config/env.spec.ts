@@ -128,6 +128,30 @@ describe('API env schema', () => {
         }),
       ).toThrowError(/CHAIN_BNB_ID/);
     });
+
+    it('accepts Ethereum mainnet fully configured alongside Base', () => {
+      const env = parseEnv(ValidatedEnvSchema, {
+        ...validBase,
+        CHAINS: 'base,ethereum',
+        CHAIN_ETHEREUM_ID: '1',
+        CHAIN_ETHEREUM_RPC_URL: 'https://eth.llamarpc.com',
+        CHAIN_ETHEREUM_USDC_ADDRESS: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      });
+      const chains = getConfiguredChains(envGetter(env));
+      expect(chains.map((c) => c.slug)).toEqual(['base', 'ethereum']);
+      expect(chains.find((c) => c.slug === 'ethereum')).toMatchObject({ chainId: 1, rpcUrl: 'https://eth.llamarpc.com' });
+    });
+
+    it('fails clearly when ethereum is listed in CHAINS but CHAIN_ETHEREUM_ID is missing', () => {
+      expect(() =>
+        parseEnv(ValidatedEnvSchema, {
+          ...validBase,
+          CHAINS: 'base,ethereum',
+          CHAIN_ETHEREUM_RPC_URL: 'https://eth.llamarpc.com',
+          CHAIN_ETHEREUM_USDC_ADDRESS: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        }),
+      ).toThrowError(/CHAIN_ETHEREUM_ID/);
+    });
   });
 
   describe('getConfiguredChains', () => {

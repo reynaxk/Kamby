@@ -11,6 +11,7 @@ import { CHAIN_REGISTRY, type ChainSlug, slugForChainId } from '@kamby/domain';
 const EXPLORER_BY_CHAIN_SLUG: Partial<Record<ChainSlug, { host: string; name: string }>> = {
   base: { host: 'basescan.org', name: 'Basescan' },
   bnb: { host: 'bscscan.com', name: 'BscScan' },
+  ethereum: { host: 'etherscan.io', name: 'Etherscan' },
 };
 
 export function explorerTxUrl(chainId: number, txHash: string): string | null {

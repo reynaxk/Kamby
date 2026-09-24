@@ -17,6 +17,7 @@ const NATIVE_CURRENCY_BY_SLUG: Record<ChainSlug, { name: string; symbol: string;
   base: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   arbitrum: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   bnb: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+  ethereum: { name: 'Ether', symbol: 'ETH', decimals: 18 },
 };
 
 /** A minimal, explicit `Chain` object bound to both clients below — deliberately never

@@ -44,6 +44,11 @@ export const ClientEnvSchema = z.object({
    *  until this is actually set, matching the backend's own still-dormant state — trading
    *  isn't enabled on this deployment yet either way (CHAINS doesn't list "bnb"). */
   NEXT_PUBLIC_CHAIN_BNB_RPC_URL: z.string().url().optional(),
+  /** A public RPC endpoint for Ethereum mainnet — same "omitted, not half-initialized"
+   *  pattern as NEXT_PUBLIC_CHAIN_BNB_RPC_URL above: Ethereum simply doesn't appear in
+   *  wagmi's `chains` list until this is actually set, mirroring the backend's own still-
+   *  dormant state (apps/api's `CHAINS` env var doesn't list "ethereum" yet either). */
+  NEXT_PUBLIC_CHAIN_ETHEREUM_RPC_URL: z.string().url().optional(),
 
   /**
    * Solana trading — see docs/TRADING.md#solana. All three below are optional and travel
@@ -76,6 +81,7 @@ export const clientEnv: ClientEnv = parseEnv(ClientEnvSchema, {
   NEXT_PUBLIC_CHAIN_RPC_URL: process.env.NEXT_PUBLIC_CHAIN_RPC_URL,
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
   NEXT_PUBLIC_CHAIN_BNB_RPC_URL: process.env.NEXT_PUBLIC_CHAIN_BNB_RPC_URL,
+  NEXT_PUBLIC_CHAIN_ETHEREUM_RPC_URL: process.env.NEXT_PUBLIC_CHAIN_ETHEREUM_RPC_URL,
   NEXT_PUBLIC_PRIVY_APP_ID: process.env.NEXT_PUBLIC_PRIVY_APP_ID,
   NEXT_PUBLIC_SOLANA_RPC_URL: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
   NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL: process.env.NEXT_PUBLIC_JITO_BLOCK_ENGINE_URL,

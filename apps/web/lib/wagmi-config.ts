@@ -6,7 +6,7 @@
 // WagmiProvider swap, and lib/privy-config.ts's own doc comment for the full picture.
 import { createConfig } from '@privy-io/wagmi';
 import { http } from 'wagmi';
-import { base, bsc } from 'wagmi/chains';
+import { base, bsc, mainnet } from 'wagmi/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { clientEnv } from './env';
 
@@ -67,7 +67,7 @@ import { clientEnv } from './env';
  * given the fallback above already makes an unset BNB RPC URL harmless.
  */
 export const wagmiConfig = createConfig({
-  chains: [base, bsc],
+  chains: [base, bsc, mainnet],
   connectors: [
     injected(),
     ...(clientEnv.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
@@ -77,6 +77,7 @@ export const wagmiConfig = createConfig({
   transports: {
     [base.id]: http(clientEnv.NEXT_PUBLIC_CHAIN_RPC_URL),
     [bsc.id]: http(clientEnv.NEXT_PUBLIC_CHAIN_BNB_RPC_URL),
+    [mainnet.id]: http(clientEnv.NEXT_PUBLIC_CHAIN_ETHEREUM_RPC_URL),
   },
   ssr: true,
 });
