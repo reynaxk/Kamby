@@ -13,7 +13,6 @@ function fakeConfigService(overrides: Partial<Env> = {}): ConfigService<Env, tru
 jest.mock('@kamby/db', () => ({
   prisma: {
     tokenMarket: { findFirst: jest.fn(), findMany: jest.fn() },
-    solanaTokenMarket: { findMany: jest.fn() },
     swap: { findMany: jest.fn(), groupBy: jest.fn(), count: jest.fn() },
     wallet: { findMany: jest.fn() },
     tokenWatch: { count: jest.fn() },
@@ -181,38 +180,12 @@ function fakeDiscoverableRow(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-const SOLANA_MINT = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
-
-function fakeSolanaRow(overrides: Partial<Record<string, unknown>> = {}) {
-  return {
-    id: 'solana-market-1',
-    mintAddress: SOLANA_MINT,
-    symbol: 'BONK',
-    name: 'Bonk',
-    decimals: null,
-    logoUrl: null,
-    quoteMintAddress: 'So11111111111111111111111111111111111111112',
-    quoteSymbol: 'SOL',
-    dex: 'raydium',
-    priceUsd: fakeDecimal(0.000003),
-    liquidityUsd: fakeDecimal(400_000), // clears the real 10_000 minimum
-    volume24hUsd: fakeDecimal(1_000_000),
-    priceChange24hPct: fakeDecimal(5),
-    marketCapUsd: fakeDecimal(2_000_000),
-    lastPriceUpdateAt: new Date(), // fresh — clears the real staleness gate
-    ...overrides,
-  };
-}
-
 describe('MarketService — discover/search', () => {
   let service: MarketService;
 
   beforeEach(() => {
     jest.clearAllMocks();
     service = new MarketService(new WatchlistService(), fakeConfigService());
-    // Every test below only cares about tokenMarket (EVM) rows unless it opts into a
-    // Solana row explicitly — matches "no rows found yet" being the honest default.
-    (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   describe('discover', () => {
@@ -284,26 +257,6 @@ describe('MarketService — discover/search', () => {
 
       expect(typeof result[0]?.discoveryScore).toBe('number');
     });
-
-    it('merges a real Solana row in alongside EVM rows, scored and sorted the same way', async () => {
-      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeDiscoverableRow({ volume24hUsd: fakeDecimal(1) })]);
-      (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([fakeSolanaRow()]);
-
-      const result = await service.discover({ sort: 'volume', limit: 20 });
-
-      expect(result.map((r) => r.chainIdentifier)).toEqual(['solana', 'eip155:8453']);
-      expect(result[0]).toMatchObject({ tokenAddress: SOLANA_MINT, symbol: 'BONK' });
-      expect(typeof result[0]?.discoveryScore).toBe('number');
-    });
-
-    it('excludes a Solana row the real scoring formula rejects, same gate as EVM rows', async () => {
-      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([]);
-      (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([fakeSolanaRow({ liquidityUsd: fakeDecimal(100) })]);
-
-      const result = await service.discover({ sort: 'score', limit: 20 });
-
-      expect(result).toEqual([]);
-    });
   });
 
   describe('search', () => {
@@ -332,26 +285,6 @@ describe('MarketService — discover/search', () => {
       const result = await service.search({ q: 'foo', limit: 10 });
 
       expect(result[0]).not.toHaveProperty('discoveryScore');
-    });
-
-    it('merges matching Solana rows in too, deliberately not chain-scoped — same reasoning as EVM', async () => {
-      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([]);
-      (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([fakeSolanaRow()]);
-
-      const result = await service.search({ q: 'bonk', limit: 10 });
-
-      expect(mockedPrisma.solanaTokenMarket.findMany).toHaveBeenCalledWith({
-        where: {
-          OR: [
-            { symbol: { contains: 'bonk', mode: 'insensitive' } },
-            { name: { contains: 'bonk', mode: 'insensitive' } },
-            { mintAddress: { equals: 'bonk', mode: 'insensitive' } },
-          ],
-        },
-        orderBy: { liquidityUsd: 'desc' },
-        take: 10,
-      });
-      expect(result).toEqual([expect.objectContaining({ chainIdentifier: 'solana', tokenAddress: SOLANA_MINT })]);
     });
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { slugForIdentifier, type MarketSummary, type TrendingToken } from '@kamby/domain';
+import type { MarketSummary, TrendingToken } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { EmptyState } from '@/components/market/EmptyState';
 import { TrenchesPanel } from '@/components/terminal/TrenchesPanel';
@@ -34,14 +34,6 @@ const TABS: { id: Tab; label: string }[] = [
  * categories are Solana-only with deliberately no click-through at all; only its
  * TRENDING_HOLDERS rows link anywhere, and they still navigate to /market/... as they always
  * have. Forcing it into the selectable paradigm here would misrepresent what it does.
- *
- * Markets/Trending/Movers/Volume rows can now include established Solana tokens (BONK/WIF/
- * JUP-class — see SolanaTokenMarket's own doc comment in schema.prisma), identified by
- * `chainIdentifier: 'solana'`. Same "no click-through" treatment as Trenches above, for the
- * same reason: DiscoverTerminal's selection/chart/trade flow resolves chain purely through
- * CHAIN_REGISTRY (EVM-only) — selecting a Solana row there would silently fall back to
- * treating it as a Base token. Disabled here via the same visual state `selectionDisabled`
- * already uses, rather than a separate "not clickable" concept.
  */
 export function DiscoverTokenList({
   ranked,
@@ -112,15 +104,13 @@ export function DiscoverTokenList({
           ) : (
             rowsFor[tab].map((market) => {
               const key = `${market.chainIdentifier}:${market.tokenAddress}`;
-              // Solana rows aren't selectable yet — see this component's own doc comment.
-              const selectable = slugForIdentifier(market.chainIdentifier) !== null;
               return (
                 <SelectableTokenRow
                   key={key}
                   market={market}
                   selected={key === selectedKey}
                   onSelect={onSelect}
-                  disabled={selectionDisabled || !selectable}
+                  disabled={selectionDisabled}
                 />
               );
             })

@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
-import type { SolanaTokenMarket } from '@kamby/db';
 import {
   CandleSchema,
   computeDiscoveryScore,
@@ -17,7 +16,7 @@ import { getConfiguredChains, type Env } from '../config/env';
 import { toSocialActivity } from '../social/social.mapper';
 import type { DiscoverQueryDto } from './dto/discover-query.dto';
 import type { SearchQueryDto } from './dto/search-query.dto';
-import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
+import { toMarketSummary, type MarketRow } from './market.mapper';
 import { WatchlistService } from './watchlist.service';
 
 const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
@@ -64,38 +63,26 @@ export class MarketService {
    * code after one bounded fetch — the honest, simple choice at this scale. Moving ranking
    * into a SQL-computed view (or a materialized, indexed score column) is the documented
    * next step once the tracked-market count stops being small.
-   *
-   * Merges TokenMarket (EVM) rows with SolanaTokenMarket rows — see that model's own doc
-   * comment in schema.prisma. Both map onto MarketSummary's already chain-agnostic shape, so
-   * scoring/sorting happens once, after mapping, rather than twice on two different row
-   * shapes.
    */
   async discover(query: DiscoverQueryDto): Promise<MarketSummary[]> {
-    const [evmRows, solanaRows] = await Promise.all([
-      prisma.tokenMarket.findMany({ include: MARKET_INCLUDE }),
-      prisma.solanaTokenMarket.findMany(),
-    ]);
+    const rows = await prisma.tokenMarket.findMany({ include: MARKET_INCLUDE });
+    const filtered = query.search ? rows.filter((row) => matchesSearch(row, query.search!)) : rows;
 
-    const evmFiltered = query.search ? evmRows.filter((row) => matchesSearch(row, query.search!)) : evmRows;
-    const solanaFiltered = query.search ? solanaRows.filter((row) => matchesSolanaSearch(row, query.search!)) : solanaRows;
-
-    const summaries: MarketSummary[] = [...evmFiltered.map((row) => toMarketSummary(row)), ...solanaFiltered.map((row) => toSolanaMarketSummary(row))];
-
-    const scored = summaries
-      .map((summary) => ({
-        summary,
+    const scored = filtered
+      .map((row) => ({
+        row,
         score: computeDiscoveryScore({
-          volume24hUsd: summary.volume24hUsd,
-          liquidityUsd: summary.liquidityUsd,
-          priceChange24hPct: summary.priceChange24hPct,
-          lastPriceUpdateAt: summary.lastPriceUpdateAt,
+          volume24hUsd: row.volume24hUsd === null ? null : Number(row.volume24hUsd),
+          liquidityUsd: row.liquidityUsd === null ? null : Number(row.liquidityUsd),
+          priceChange24hPct: row.priceChange24hPct === null ? null : Number(row.priceChange24hPct),
+          lastPriceUpdateAt: row.lastPriceUpdateAt,
         }),
       }))
-      .filter((entry): entry is { summary: MarketSummary; score: number } => entry.score !== null);
+      .filter((entry): entry is { row: MarketRow; score: number } => entry.score !== null);
 
     scored.sort((a, b) => compareBySort(a, b, query.sort));
 
-    return scored.slice(0, query.limit).map(({ summary, score }) => ({ ...summary, discoveryScore: score }));
+    return scored.slice(0, query.limit).map(({ row, score }) => toMarketSummary(row, score));
   }
 
   /** `chainId` is required and never defaulted here — see SafetyService.assertTradable's
@@ -272,37 +259,21 @@ export class MarketService {
    *  "the" answer via findFirst, where a cross-chain collision would silently pick the
    *  wrong one), this returns a list — matches from every chain are all legitimate results,
    *  each self-identifying its own chain via `chainIdentifier` in the response. Same
-   *  reasoning as `discover()` above, including the EVM/Solana merge. */
+   *  reasoning as `discover()` below. */
   async search(query: SearchQueryDto): Promise<MarketSummary[]> {
-    const [evmRows, solanaRows] = await Promise.all([
-      prisma.tokenMarket.findMany({
-        where: {
-          OR: [
-            { token: { symbol: { contains: query.q, mode: 'insensitive' } } },
-            { token: { name: { contains: query.q, mode: 'insensitive' } } },
-            { token: { contractAddress: { equals: query.q, mode: 'insensitive' } } },
-          ],
-        },
-        include: MARKET_INCLUDE,
-        orderBy: { liquidityUsd: 'desc' },
-        take: query.limit,
-      }),
-      prisma.solanaTokenMarket.findMany({
-        where: {
-          OR: [
-            { symbol: { contains: query.q, mode: 'insensitive' } },
-            { name: { contains: query.q, mode: 'insensitive' } },
-            { mintAddress: { equals: query.q, mode: 'insensitive' } },
-          ],
-        },
-        orderBy: { liquidityUsd: 'desc' },
-        take: query.limit,
-      }),
-    ]);
-
-    const summaries = [...evmRows.map((row) => toMarketSummary(row)), ...solanaRows.map((row) => toSolanaMarketSummary(row))];
-    summaries.sort((a, b) => numDesc(a.liquidityUsd, b.liquidityUsd));
-    return summaries.slice(0, query.limit);
+    const rows = await prisma.tokenMarket.findMany({
+      where: {
+        OR: [
+          { token: { symbol: { contains: query.q, mode: 'insensitive' } } },
+          { token: { name: { contains: query.q, mode: 'insensitive' } } },
+          { token: { contractAddress: { equals: query.q, mode: 'insensitive' } } },
+        ],
+      },
+      include: MARKET_INCLUDE,
+      orderBy: { liquidityUsd: 'desc' },
+      take: query.limit,
+    });
+    return rows.map((row) => toMarketSummary(row));
   }
 }
 
@@ -334,36 +305,27 @@ function matchesSearch(row: MarketRow, search: string): boolean {
   );
 }
 
-function matchesSolanaSearch(row: SolanaTokenMarket, search: string): boolean {
-  const needle = search.toLowerCase();
-  return (
-    (row.symbol?.toLowerCase().includes(needle) ?? false) ||
-    (row.name?.toLowerCase().includes(needle) ?? false) ||
-    row.mintAddress.toLowerCase() === needle
-  );
-}
-
 function compareBySort(
-  a: { summary: MarketSummary; score: number },
-  b: { summary: MarketSummary; score: number },
+  a: { row: MarketRow; score: number },
+  b: { row: MarketRow; score: number },
   sort: DiscoverQueryDto['sort'],
 ): number {
   switch (sort) {
     case 'volume':
-      return numDesc(a.summary.volume24hUsd, b.summary.volume24hUsd);
+      return numDesc(a.row.volume24hUsd, b.row.volume24hUsd);
     case 'liquidity':
-      return numDesc(a.summary.liquidityUsd, b.summary.liquidityUsd);
+      return numDesc(a.row.liquidityUsd, b.row.liquidityUsd);
     case 'priceChange':
-      return numDesc(a.summary.priceChange24hPct, b.summary.priceChange24hPct);
+      return numDesc(a.row.priceChange24hPct, b.row.priceChange24hPct);
     case 'score':
     default:
       return b.score - a.score;
   }
 }
 
-function numDesc(a: number | null, b: number | null): number {
-  const an = a === null ? -Infinity : a;
-  const bn = b === null ? -Infinity : b;
+function numDesc(a: { toNumber(): number } | null, b: { toNumber(): number } | null): number {
+  const an = a === null ? -Infinity : a.toNumber();
+  const bn = b === null ? -Infinity : b.toNumber();
   return bn - an;
 }
 
