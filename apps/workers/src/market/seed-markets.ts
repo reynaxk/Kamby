@@ -196,6 +196,22 @@ export const BNB_SEED_MARKETS: SeedMarket[] = [
     baseTokenAddress: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63',
     dex: 'pancakeswap-v3',
   },
+  {
+    // BabyDoge/WBNB — added 2026-09-24 (2nd batch). $7.1M liquidity, deepest entry in this
+    // file besides CAKE; token0/token1/slot0 verified directly against this pool contract on
+    // BNB Chain's public RPC (token0 = WBNB, token1 = BabyDoge, initialized).
+    poolAddress: '0x61db764C20a2EBfB7e8a7a5AFb0b2Dd85A4CEF5f',
+    baseTokenAddress: '0xc748673057861a797275CD8A068AbB95A902e8de',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // SFP/WBNB (SafePal) — added 2026-09-24 (2nd batch). $852K liquidity; token0/token1/slot0
+    // verified directly against this pool contract on BNB Chain's public RPC (token0 = WBNB,
+    // token1 = SFP, initialized).
+    poolAddress: '0x64ebB904e169cB94e9788FcB68283B4C894ED881',
+    baseTokenAddress: '0xD41FDb03Ba84762dD66a0af1a6C8540FF1ba5dfb',
+    dex: 'pancakeswap-v3',
+  },
 ];
 
 /** Which seed list + pegged-USDC address a deployment uses, keyed by its own
