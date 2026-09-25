@@ -7,7 +7,7 @@ Read this before touching `packages/db/prisma/schema.prisma`'s market tables,
 ## Architecture
 
 ```text
-Blockchain (Base mainnet)
+Blockchain (Base mainnet, BNB Chain — one per apps/workers deployment)
     ↓
 packages/chain-adapters (UniswapV3PoolReader — the only place with pool-specific RPC logic)
     ↓
@@ -23,35 +23,77 @@ apps/web (Discover, /market/[address] — never touches the chain or the databas
 Same shape as `docs/SOURCE_OF_TRUTH.md`'s general flow, filled in for Phase 1's actual
 tables.
 
-## Supported chain
+## Supported chains
 
-One: Base mainnet (`eip155:8453`), per the Phase 1 scope limit. `CHAIN_RPC_URL` in
-`apps/workers/.env.example` defaults to Base's own public RPC (`mainnet.base.org`) — free,
-no signup, genuinely used throughout development (see below). It rate-limits under
-sustained concurrent load; point production at a dedicated provider instead.
+Two: Base mainnet (`eip155:8453`) and BNB Chain (`eip155:56`, added 2026-09-16) — each
+`apps/workers` deployment runs exactly one chain (`CHAIN_IDENTIFIER` env var selects it),
+never both from the same process. `CHAIN_RPC_URL` defaults to that chain's own free public
+RPC (`mainnet.base.org` / `bsc-dataseed.binance.org`) for local dev; production points at a
+dedicated provider (see "Rate limiting" below for why that matters).
 
-## Token discovery: a curated seed list, not a scan
+## Token discovery: a curated seed list, not a scan (with an opt-in automated path — see below)
 
-`apps/workers/src/market/seed-markets.ts` lists four real, verified Base markets — not a
-placeholder set. Each pool address was read directly on-chain (`token0`/`token1`/`slot0`,
-confirmed initialized) against the live Base public RPC during development, and
-cross-checked for genuine liquidity via DexScreener's public API before being added.
+`apps/workers/src/market/seed-markets.ts` lists real, verified markets per chain — 12 on
+Base, 7 on BNB as of 2026-09-24, not a placeholder set. Each pool address was read directly
+on-chain (`token0`/`token1`/`slot0`, confirmed initialized) against that chain's own public
+RPC before being added, and cross-checked for genuine liquidity via DexScreener's public API.
 **DexScreener was used only to discover which pools have real liquidity worth tracking —
 never as a source for the price, liquidity, or token metadata Kamby actually publishes.**
 All of that is read directly from the contracts by the ingestion worker; the seed file
 itself stores nothing but addresses, deliberately, so there's no stale "fact" about a
-token sitting in source control.
+token sitting in source control. Entries are only added once they clear a real liquidity
+floor (~$100K, checked live at research time) and are on a genuine Uniswap-V3-ABI pool —
+Aerodrome/Solidly-style pools on Base use a different reserves model and were explicitly
+ruled out for this reason despite real ecosystem prominence (AERO).
 
 Why curated rather than scanning every pool a factory has ever created: Phase 1's stated
-scope is "a bounded set of useful markets," and indexing arbitrary new pools safely means
-solving spam/rug filtering, which is real work Phase 1 explicitly defers (see
-"Deferred" below). Expanding the tracked set today means adding entries to
-`seed-markets.ts`, not writing new ingestion logic.
+scope was "a bounded set of useful markets," and indexing arbitrary new pools safely means
+solving spam/rug filtering, which was real work Phase 1 deferred. **This is no longer fully
+deferred** — `apps/workers/src/market/pool-discovery.ts` (`PoolDiscoveryService`, added
+2026-09-25) is a real, working automated-discovery path, off by default
+(`POOL_DISCOVERY_ENABLED`) and not currently enabled on any deployment. See "Automated pool
+discovery" below for what it does and its own documented limits. Expanding the *seed* list
+manually is still the same as always: add entries to `seed-markets.ts`, not new logic.
 
-Seed-list order matters: a market quoted in another tracked token (DEGEN/WETH,
-BRETT/WETH) needs its quote token's USD price resolved before it can price itself. WETH's
-own USDC-quoted market must appear earlier in the list than any WETH-quoted market — see
-the comment in `seed-markets.ts`.
+Seed-list order matters: a market quoted in another tracked token (e.g. TOSHI/WETH,
+CLANKER/WETH) needs its quote token's USD price resolved before it can price itself. Each
+chain's own USDC-quoted market must appear earlier in the list than any WETH/WBNB-quoted
+market — see the comment in `seed-markets.ts`. (This ordering constraint only binds the
+static seed list; `refreshPricesAndLiquidity` itself became order-independent 2026-09-25 —
+see "Indexing / ingestion" below.)
+
+## Automated pool discovery (opt-in, off by default)
+
+`PoolDiscoveryService` (`apps/workers/src/market/pool-discovery.ts`) watches this
+deployment's chain's real Uniswap-V3-ABI factory contract for `PoolCreated` events instead
+of requiring a human to hand-pick every token — the closer-to-"real terminal" answer to the
+curated seed list above. Two phases, both Redis-backed (not Postgres — deliberately avoids
+needing a schema migration for this first version):
+
+1. **Discovery**: bounded `eth_getLogs` chunking against the factory (same
+   `MAX_BLOCKS_PER_TICK` = 150-block discipline as swap ingestion — see "Indexing" below), for
+   every `PoolCreated` event whose pool has at least one side already price-resolvable (this
+   chain's USDC, or a token already tracked in some existing `TokenMarket`). A pool where
+   neither side is resolvable is skipped permanently, not tracked forever unpriceable.
+2. **Promotion**: a bounded number of pending candidates get a *real* on-chain liquidity
+   check every tick (never trusted from the discovery event alone — a brand-new pool almost
+   always starts near-zero and only gains real liquidity over hours/days). A candidate that
+   clears `POOL_DISCOVERY_LIQUIDITY_FLOOR_USD` (default $100K, matching the manually-curated
+   list's own bar) is promoted into a real `TokenMarket` row via the same `createTrackedMarket`
+   path `seedOneMarket` uses — from that point on it's indistinguishable from a seeded market.
+   A candidate that never clears the floor within ~14 days is dropped.
+
+**What this explicitly does not do**: any spam/rug detection beyond the liquidity floor — no
+honeypot simulation, no mint-authority/ownership checks. A pool can clear real liquidity and
+still be a scam. There is also no manual review queue: a candidate that clears the floor
+publishes to Markets immediately. Both were real, deliberate product decisions (confirmed
+with the user 2026-09-25), not oversights — see that commit's own message for the full
+reasoning if either needs revisiting.
+
+Requires `POOL_DISCOVERY_FACTORY_ADDRESS` (a real, independently-verified factory address —
+**never assume it matches another chain's**; Base's Uniswap V3 Factory,
+`0x33128a8fC17869897dcE68Ed026d694621f6FDfD`, is a different address than Ethereum
+mainnet's) and `POOL_DISCOVERY_DEX` once enabled; both fail loudly at boot if unset.
 
 ## Price methodology
 
@@ -127,15 +169,27 @@ default 60s):
 
 ```text
 seed()                      — idempotent upsert of chain/tokens/markets/cursors
-refreshPricesAndLiquidity() — current snapshot for every market, in seed-list order
+refreshPricesAndLiquidity() — current snapshot for every DB-tracked market on this chain
 ingestSwaps()                — incremental, cursor-based, chunked Swap-event backfill
 ```
 
+`refreshPricesAndLiquidity()` queries every `TokenMarket` row for this chain from the DB
+(not just the static seed list) and resolves quote-token price dependencies via repeated
+passes (bounded, `MAX_RESOLUTION_PASSES` = 5) rather than relying on the seed list's own
+manually-curated array order — changed 2026-09-25 specifically so a market added outside the
+seed list (e.g. by `PoolDiscoveryService` promoting a candidate — see above) still gets
+ongoing price refresh, not a one-time price at creation that goes stale within the 30-minute
+staleness window and silently vanishes from ranked results.
+
 Cursor-based and restartable: `ingestion_cursors` persists `last_processed_block` per
-market. A tick advances the cursor in bounded chunks (`LOG_CHUNK_BLOCKS` = 5,000 blocks
-per `eth_getLogs` call — the public RPC starts failing above roughly 10–50k;
-`MAX_BLOCKS_PER_TICK` = 20,000 total per tick, so a large backfill spans several ticks
-rather than blocking one). The cursor only advances *after* that chunk's `eth_getLogs` call
+market. A tick advances the cursor in bounded chunks (`LOG_CHUNK_BLOCKS` = 150 blocks per
+`eth_getLogs` call, deliberately equal to `MAX_BLOCKS_PER_TICK` so a market's chunking loop
+always resolves in exactly one `eth_getLogs` call per tick — real incident behind this
+value: an earlier RPC plan capped `eth_getLogs` at a 5-block range, silently multiplying one
+intended call into up to 30 and burning ~6M credits in 5 days; re-verified 2026-09-24 that
+the current public Base RPC's own real cap is 2,000 blocks, so 150 stays comfortable
+headroom under that, not a value to casually raise). The cursor only advances *after* that
+chunk's `eth_getLogs` call
 succeeds *and* its swaps are persisted — `getSwapEvents` returns `null` (never a bare `[]`)
 on an RPC failure specifically so a failed query can't be mistaken for "genuinely no swaps
 in this range" and silently skip it forever; ingestion stops for that market this tick and
@@ -252,22 +306,26 @@ sub-minute ingestion makes push worth the complexity.
 
 ## Known limitations (Phase 1, as shipped)
 
-- Only 4 markets tracked, on one chain, one DEX protocol (Uniswap V3 pools only —
-  Aerodrome/Solidly-style pools use a different reserves model and aren't read).
+- Two chains (Base, BNB), one DEX protocol per chain family (Uniswap-V3-ABI pools only —
+  Aerodrome/Solidly-style pools use a different reserves model and aren't read; this ruled
+  out AERO as a Base seed-list candidate despite real ecosystem prominence).
 - USDC is treated as exactly $1; no depeg detection.
 - Non-USD-quoted markets' historical swap volume uses today's quote price, not the
   price at trade time (see "Volume and 24h price change" above).
 - `marketCapUsd` is FDV, not circulating supply.
 - Pool liquidity is total value held, not concentrated-liquidity-aware.
-- No token risk/safety signals (honeypot detection, mint authority, etc.) — everything
-  tracked here was manually vetted for real liquidity during development, not
-  algorithmically screened.
+- No token risk/safety signals beyond a liquidity floor (honeypot detection, mint
+  authority, etc.) — the curated seed list was manually vetted for real liquidity during
+  research; `PoolDiscoveryService`'s automated path (see above) checks liquidity only, not
+  a full safety screen, and is off by default regardless.
 - A market's price/liquidity only updates once per ingestion tick (default 60s) — the UI
   can be up to that far behind the chain.
 
 ## Deferred to later phases
 
-Multi-chain, non-Uniswap-V3 DEX support, automated pool discovery/spam filtering, token
-risk scoring, point-in-time quote pricing for swap volume, a circulating-supply source for
-true market cap, Timescale continuous aggregates, converting `swaps` to a hypertable, and
-genuine push-based real-time updates.
+Non-Uniswap-V3-ABI DEX support (Aerodrome/Solidly-style pools), automated pool discovery's
+spam/rug/honeypot filtering beyond a liquidity floor, a manual review queue for
+automatically-discovered pools before they publish, token risk scoring, point-in-time quote
+pricing for swap volume, a circulating-supply source for true market cap, Timescale
+continuous aggregates, converting `swaps` to a hypertable, and genuine push-based real-time
+updates.
