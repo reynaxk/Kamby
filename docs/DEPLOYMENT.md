@@ -1,29 +1,44 @@
 # Deployment
 
-> **Stale as of 2026-09-14, except the "Web build config" section below.** This doc
-> describes the originally-planned infra (Vercel/Fly.io/Neon/Upstash) — what's actually
-> live is Cloudflare Workers (`apps/web`) and Railway (`apps/api`, `apps/workers`, managed
-> Postgres, managed Redis). A full rewrite is tracked separately; don't follow the
-> Vercel/Fly.io/Neon/Upstash instructions below as current setup steps.
+Managed, usage-priced infrastructure, no Kubernetes, no self-managed nodes.
 
-Matches the approved architecture: managed, usage-priced infrastructure, no Kubernetes,
-no self-managed nodes at this stage.
-
-| Piece | Target | Why |
+| Piece | Actual platform | Deploy trigger |
 | --- | --- | --- |
-| `apps/web` | Vercel | Zero-config Next.js hosting with edge caching for public pages. |
-| `apps/api` | Fly.io (or Railway) | Container hosting for a long-running Nest process; `apps/api/Dockerfile` builds it. |
-| `apps/workers` | Fly.io (or Railway), separate app/machine from the API | Independently deployable and independently scalable from request-serving — see the architecture spec. `apps/workers/Dockerfile` builds it. |
-| Postgres | Neon | Managed Postgres with the Timescale extension available; branching is convenient for a small team. |
-| Redis | Upstash | Serverless, usage-priced, no server to operate. |
+| `apps/web` | Cloudflare Workers | **Manual**, from a local machine — `opennextjs-cloudflare build && opennextjs-cloudflare deploy` (see "Web (Cloudflare Workers)" below). No CI step builds this. |
+| `apps/api` | Railway (service `api`) | **Automatic** — GitHub-connected, redeploys on every push to `main`. |
+| `apps/workers` | Railway, one service per EVM chain (`workers` = Base, `workers-bnb` = BNB Chain) | **Automatic**, same as `apps/api` — both services rebuild on every push to `main`, since `apps/workers` is one chain per deployed instance (see `docs/MARKET_DATA.md#supported-chains`) but both track the same repo/branch. |
+| Postgres | Railway managed Postgres (with the Timescale extension) | N/A — a database, not a deploy target. |
+| Redis | Railway managed Redis | N/A |
 
-## Web build config (`NEXT_PUBLIC_*` vars) {#web-build-config}
+**A push to `main` does NOT run a database migration.** This bit the project once already
+(2026-09-24/25: a real production outage — `/v1/market/discover` and `/v1/market/search`
+500ing — from pushing API code that expected a new table before the migration that creates
+it had actually been applied). Railway's auto-deploy only builds and restarts the process;
+`prisma migrate deploy` is a separate, manual step every time the schema changes — see
+"Running a migration" below. If you're about to push a schema change, run the migration
+*first*, or push it as its own commit before the code that depends on it.
 
-The one section here that's current. `apps/web` deploys to Cloudflare Workers via
-`opennextjs-cloudflare build && opennextjs-cloudflare deploy`, run locally (there's no
-Cloudflare-hosted build step) — see `apps/web/wrangler.jsonc`. Next.js inlines every
-`NEXT_PUBLIC_*` var into the client JS bundle at **build** time, so whichever machine runs
-the build needs them present as real env vars, not just documented somewhere.
+## Web (Cloudflare Workers)
+
+From the repo root:
+
+```bash
+cd apps/web
+rm -rf .next .open-next
+pnpm cf:deploy
+```
+
+`pnpm cf:deploy` runs `opennextjs-cloudflare build && opennextjs-cloudflare deploy` (see
+`apps/web/wrangler.jsonc` for the Worker config) — this is a real build-and-upload from
+whichever machine runs it, not a Cloudflare-hosted CI build. There is currently no
+GitHub-Actions-style automatic trigger for this app; a code change to `apps/web` isn't live
+until someone runs this command.
+
+### Web build config (`NEXT_PUBLIC_*` vars)
+
+Next.js inlines every `NEXT_PUBLIC_*` var into the client JS bundle at **build** time, so
+whichever machine runs the build needs them present as real env vars, not just documented
+somewhere.
 
 Two files supply them, both read automatically by Next.js:
 
@@ -52,60 +67,73 @@ Server-only `API_BASE_URL` is different: it's supplied as a Cloudflare Worker bi
 `wrangler.jsonc`'s own `vars` block (also git-tracked), not via either `.env` file, since it
 never needs to be baked into the client bundle.
 
-## Web (Vercel)
+## API and workers (Railway)
 
-1. Import the repository into Vercel.
-2. Root Directory: `apps/web`. Vercel auto-detects the monorepo via `turbo.json` and only
-   needs the app's own build command (`next build`) — no custom install command required
-   as long as the project uses pnpm (Vercel detects `pnpm-lock.yaml` automatically).
-3. Set `NEXT_PUBLIC_API_BASE_URL` to the deployed API's public URL (see
-   `apps/web/.env.example`) — it backs the live activity stream and follow/like mutations,
-   the one place the browser talks to the API directly (see `docs/SOCIAL.md#realtime`). It
-   defaults to `http://localhost:4000`, which is wrong in production, so this one is not
-   optional. `API_BASE_URL` (server-only, used for every other page) can be left at its
-   default only if the API is reachable at that address from Vercel's build/runtime.
+Five real services in one Railway project: `api`, `workers`, `workers-bnb`, plus managed
+`postgres` and `Redis`. `api`/`workers`/`workers-bnb` are each connected to this repo's
+GitHub `main` branch (`railway service source connect --repo <owner>/<repo> --branch main
+--service <name>`, done once per service) and rebuild automatically on every push — check
+`railway status` (from a directory linked to this project — `railway link`) to see each
+service's current deploy state, or `railway logs --service <name>` to tail its output.
 
-## API and workers (Fly.io)
+Real config difference between `workers` and `workers-bnb`: same Docker image, different
+environment variables (`CHAIN_IDENTIFIER`/`CHAIN_RPC_URL`/etc.) — `apps/workers` is
+architected as one chain per deployed instance (see `apps/workers/.env.example`'s own doc
+comment), so a third EVM chain going live means a *third* Railway service, not a config
+change to an existing one.
 
-Each app deploys as its own Fly app, built from its own Dockerfile with the **repo root**
-as build context:
-
-```bash
-fly launch --dockerfile apps/api/Dockerfile --name <api-app-name> --no-deploy
-fly launch --dockerfile apps/workers/Dockerfile --name <workers-app-name> --no-deploy
-```
-
-Set secrets per app (never commit these — see `apps/api/.env.example` and
-`apps/workers/.env.example` for the full list each one needs):
+### Setting/reading variables
 
 ```bash
-fly secrets set -a <api-app-name> DATABASE_URL=... REDIS_URL=... CORS_ORIGIN=... \
-  JWT_SECRET=$(openssl rand -base64 32)
-fly secrets set -a <workers-app-name> DATABASE_URL=... REDIS_URL=... CHAIN_RPC_URL=... \
-  CHAIN_IDENTIFIER=eip155:8453 CHAIN_NAME=Base CHAIN_NATIVE_SYMBOL=ETH
+railway variable set SOME_KEY=some-value --service api
+railway variable list --service api --kv   # prints raw values — treat the output as a secret
 ```
 
-Then:
+Reading or setting a real variable's value should generally be done by a human directly at
+a keyboard, not delegated — printing a live credential into any log/transcript is exactly
+the kind of exposure `apps/web/.env.production`'s own history (see above) already shows the
+real cost of getting wrong once.
+
+### One-off commands against a live service (e.g. a migration)
+
+`railway run --service <name> -- <command>` executes `<command>` **locally**, with that
+service's real environment variables injected — but Railway's managed Postgres/Redis are
+only reachable from *inside* Railway's own private network (`postgres.railway.internal`),
+not from an arbitrary local machine, so this only works for commands that don't need to
+reach the database directly over that internal hostname. For anything that does — most
+importantly, running a migration — see "Running a migration" below.
+
+### Running a migration
 
 ```bash
-fly deploy -a <api-app-name> --dockerfile apps/api/Dockerfile
-fly deploy -a <workers-app-name> --dockerfile apps/workers/Dockerfile
+railway run --service api pnpm --filter @kamby/db migrate:deploy
 ```
 
-The API's health check (`GET /health`) is what Fly (or any platform's health check
-config) should poll — it verifies both the database and Redis are reachable, not just
-that the process is up.
+This is the one `railway run` invocation that *does* reach the internal database, because
+`prisma migrate deploy` itself makes the actual connection using the `DATABASE_URL` Railway
+injects into the command's environment — the command runs locally, but the TCP connection
+it opens goes out from wherever this is actually executed. Run this from a real terminal,
+by a human — not delegated to an AI session running in an isolated sandbox that may not be
+able to reach `postgres.railway.internal` at all (a real, confirmed limitation, not a
+hypothetical one: this exact command failed with `P1001: Can't reach database server` when
+attempted from inside a sandboxed AI coding session, 2026-09-24).
 
-## Database and Redis (Neon / Upstash)
+**Always run this before or immediately alongside pushing code that depends on a new
+migration** — never after, and never assume Railway's auto-deploy does this for you. It
+does not.
 
-1. Create a Neon Postgres project; enable the `timescaledb` extension (Neon supports it —
-   check the current list of supported extensions if this ever changes) or point
-   `DATABASE_URL` at any Postgres 16 instance with `timescaledb` installed.
-2. Run the migration against it once: `DATABASE_URL=... pnpm --filter @kamby/db migrate:deploy`.
-3. Create an Upstash Redis database and use its connection string as `REDIS_URL`.
+## Database and Redis
 
-## What Phase 0 does NOT do
+Both are Railway's own managed offerings (`postgres` and `Redis` in the project) — no
+separate account, no separate vendor relationship. Postgres has the Timescale extension
+enabled (see `docs/MARKET_DATA.md#candle-granularity-and-timeframes` for what actually uses
+it). `DATABASE_URL`/`REDIS_URL` are set automatically by Railway for any service in the same
+project that references them — not hand-copied between services.
 
-It does not provision any of the above automatically — that requires accounts and
-credentials only the project owner has. This document is the runbook; running it against
-real accounts is a manual step outside this repository.
+## What this document does NOT do
+
+It does not provision any of the above from scratch — creating the Railway project itself,
+connecting GitHub, and the very first `railway variable set` for each service's real secrets
+are manual, one-time setup steps outside this repository, done by whoever has the actual
+Railway account access. This document describes the deploy *mechanics* of the infrastructure
+as it exists today, not a from-scratch infrastructure-provisioning runbook.
