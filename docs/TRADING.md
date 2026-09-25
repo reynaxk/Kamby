@@ -17,7 +17,7 @@ Kamby API — wallet ownership challenge (EIP-4361 message + single-use nonce)
 Kamby API — verifies the signature, links the wallet to the session's User
         │  3. wallet is now "verified" — trading is unlocked for it
         ▼
-Kamby API — quote (Trade Router → 0x aggregator → real DEX liquidity)
+Kamby API — quote (Trade Router → KyberSwap aggregator → real DEX liquidity)
         │  4. server prepares an UNSIGNED transaction; never signs it
         ▼
 User's own wallet — reviews and SIGNS the prepared transaction
@@ -72,15 +72,19 @@ value outside that set is rejected at the DTO boundary, never silently coerced. 
 resolves to `DEFAULT_CHAIN_SLUG` (Base) — the one back-compat default every
 pre-multi-chain caller implicitly meant. A `chainId` that's a real, known chain but not one
 *this* deployment has configured (not yet in `CHAINS`) is rejected deeper in the stack, by
-`QuoteService`/`TransactionService`/`LiFiSwapRouter`'s own per-chain lookups (see
+`QuoteService`/`TransactionService`/`KyberSwapRouter`'s own per-chain lookups (see
 [Transaction integrity](#transaction-integrity) below) — never silently routed to a
 different chain's config.
 
-`apps/web` (`apps/web/lib/wagmi-config.ts`, `trading-client.ts`) has not been updated to
-send a `chainId` yet — see the multi-chain rollout plan's Stage 5 — so every request from
-the current frontend still implicitly resolves to Base. The wrong-network failure mode
-(a wallet connected to a chain Kamby isn't trading on) is still caught wallet-side before a
-quote is ever requested — see [Wrong network](#wallet-connectivity).
+`apps/web/lib/trading-client.ts`'s `GetQuoteParams.chainId` is **required, not optional** —
+fixed 2026-09-16 for BNB Chain going live. Before that fix, every quote request implicitly
+resolved to whatever `DEFAULT_CHAIN_SLUG` the backend defaulted to (Base) regardless of
+which chain the wallet/token were actually on, since the field didn't exist yet; a client
+retry against BNB Chain would have silently priced a Base trade. `TradePanel.tsx` always has
+a real `chainId` from its own required prop, so there's no remaining caller that omits one.
+The wrong-network failure mode (a wallet connected to a chain Kamby isn't trading on) is
+still caught wallet-side before a quote is ever requested — see
+[Wrong network](#wallet-connectivity).
 
 ## Wallet connectivity
 
@@ -192,11 +196,11 @@ which cannot represent an 18-decimal token amount exactly. Concretely:
 - **Display only**: a raw `bigint` is converted to a human string via `formatUnits` purely
   for rendering (`*Formatted` fields on the DTOs, `QuoteSummary`/`TransactionDetail` in
   `apps/web`) — the underlying exact value is never derived *from* that display string.
-- Neither LI.FI's Quote API nor 1inch's Swap API returns a price-impact figure —
-  `priceImpactBps` is always `null` regardless of which provider's quote wins the race, an
-  honest "not provided" rather than a computed or fabricated estimate. (0x's API, an
-  earlier provider, did return one as a display percentage; see git history for the
-  `Number.parseFloat` exception that applied then.)
+- KyberSwap's `routeSummary`/route-build response doesn't return a price-impact figure —
+  `priceImpactBps` is always `null`, an honest "not provided" rather than a computed or
+  fabricated estimate. Neither of the two providers KyberSwap replaced (LI.FI, 1inch) did
+  either; 0x, an earlier provider still further back, did return one as a display
+  percentage — see git history for the `Number.parseFloat` exception that applied then.
 
 ## Quote system
 
@@ -267,9 +271,11 @@ touching it in between (see [Fees](#fees)); this only means the amount isn't ind
 confirmed by the response.
 
 KyberSwap's API has no documented allowance-check endpoint either — `KyberSwapRouter` reads
-the wallet's actual on-chain allowance directly via viem (the same per-chain RPC clients
-`TransactionService` uses for transaction-receipt reads, keyed by `request.chainId` — see
-[Chain scope](#chain-scope)) rather than trusting a second uncertain API contract. Same rule
+the wallet's actual on-chain allowance directly via viem, through its own per-chain client
+map (built in its constructor from the same configured chain list `TransactionService` uses
+— see [Chain scope](#chain-scope) — but a separate, independently-constructed set of
+`viem` clients, not literally shared with `TransactionService`'s own `chainReaders` map),
+keyed by `request.chainId`, rather than trusting a second uncertain API contract. Same rule
 as before: if that check fails or is unreachable, the whole quote returns `null` rather than
 ever fabricating `requiresApproval` — it directly gates whether the trading UI shows an
 approval step before real money moves.
@@ -294,7 +300,7 @@ libraries support different things natively:
   viem's own `fallback()` transport, which already retries each transport and moves to the
   next one in the list on error (including a 429) — no second retry/circuit-breaker layer
   is hand-rolled on top of it. Used by `EvmChainDataProvider`, `UniswapV3PoolReader`, and
-  `LiFiSwapRouter`'s own raw viem client for its allowance pre-check — every EVM RPC
+  `KyberSwapRouter`'s own raw viem client for its allowance pre-check — every EVM RPC
   consumer in both `apps/api` and `apps/workers`.
 - **Solana** (`SolanaConnectionPool`, `apps/api/src/chain/solana-connection-pool.ts`, bound
   behind the `SOLANA_CONNECTION_POOL` DI token in `chain.module.ts`, `@Global()` like
@@ -358,11 +364,14 @@ the two chains' rates can no longer drift apart silently.
 
 The fee is denominated in the trade's **output** token and is either:
 
-- **the aggregator's own reported fee** (`routerQuote.feeAmountRaw`, when 0x's
-  `fees.integratorFee` is present — since 0x itself is the one enforcing the fee inside the
+- **the aggregator's own reported fee** (`routerQuote.feeAmountRaw`, when the provider's
+  response includes one — meaning the aggregator itself is enforcing the fee inside the
   transaction it constructs), or
 - **computed the same way, from the quote's own output amount**, when the provider doesn't
-  echo one back.
+  echo one back — the branch this always takes today, since KyberSwap (the current sole
+  provider — see [Provider](#provider)) never echoes a fee amount back. The first branch is
+  a real, still-live code path for a future provider that does, not dead code kept only for
+  an earlier one (0x's `fees.integratorFee` did populate it, before 0x was replaced).
 
 Either way, the number shown in the trading UI (`QuoteSummary`'s "Kamby fee" row) is read
 directly from the persisted `TradeQuote.platformFeeAmount` — there is no separate
@@ -391,8 +400,8 @@ quote (see [Quote system](#quote-system), step 5).
 ## Price impact
 
 Read directly from the aggregator's own response when it provides one (never estimated
-independently by Kamby — LI.FI and 1inch, the current providers, don't return this figure
-at all, so `priceImpactBps` is `null` today; see [Provider](#provider)).
+independently by Kamby — KyberSwap, the current provider, doesn't return this figure at
+all, so `priceImpactBps` is `null` today; see [Provider](#provider)).
 `classifyPriceImpactBps` (`packages/domain/src/trading.ts`) buckets it into `normal` /
 `high` (≥ 500 bps) / `extreme` (≥ 1500 bps), and the two tiers get different UI treatment,
 not just different copy:
@@ -498,7 +507,7 @@ via `resolveReader()`, which throws rather than falling back to a different chai
 on a miss. This matters more than it might look: a misrouted reader doesn't fail loudly —
 `getTransactionDetails` on the *wrong* chain's RPC for a given hash looks identical to "not
 found yet" on the *right* chain, so a lookup-key bug here would silently masquerade as an
-unconfirmed transaction rather than an obvious error. `LiFiSwapRouter`'s on-chain allowance
+unconfirmed transaction rather than an obvious error. `KyberSwapRouter`'s on-chain allowance
 check (`needsApproval`) follows the identical pattern, keyed off `request.chainId`.
 
 This check runs in two places, for two different reasons:
@@ -666,7 +675,7 @@ This is a deliberate separation, not an oversight:
 
 **Known consequence, disclosed rather than hidden:** the aggregator may route a swap through
 a different pool than the specific one Phase 1's indexer watches for a given `TokenMarket`
-(0x can split or re-route through better-priced liquidity elsewhere). When that happens, the
+(KyberSwap can split or re-route through better-priced liquidity elsewhere). When that happens, the
 trade's own status still resolves correctly (the receipt check doesn't care which pool was
 used), but the trade may not appear as a distinct activity item pinned to that exact tracked
 market/pool — indexed-social-activity pickup is likely, not 100% guaranteed, for every
@@ -713,8 +722,7 @@ trader-attribution heuristic, not a new kind of dishonesty.
 
 ## Observability
 
-`QuoteService`/`MetaAggregatorSwapRouter` (and the `LiFiSwapRouter`/`OneInchSwapRouter` legs
-it races)/`TransactionService`/`WalletService` log (via
+`QuoteService`/`KyberSwapRouter`/`TransactionService`/`WalletService` log (via
 `nestjs-pino`, honoring the existing redaction config): quote creation and provider latency,
 quote failures (no-liquidity, malformed response, network error — distinguished in the log
 line, never conflated), the slippage-floor rejection path, trade submission and status
@@ -753,26 +761,33 @@ whatever session/wallet a browser has, which a Server Component structurally can
 
 ## Known limitations
 
-- **`KyberSwapRouter` was not written with live verification against a real response** in
-  this environment — see [Provider](#provider). Field names (`routeSummary`, `amountOut`,
-  `routerAddress`, `chargeFeeBy`/`feeAmount`/`isInBps`/`feeReceiver`) were confirmed against
-  KyberSwap's own current docs (https://docs.kyberswap.com) on 2026-09-14, not against a
-  live call; if KyberSwap has changed its response shape since, the parser will correctly
-  return `null` (an honest "no quote") rather than silently misparsing, but that's a worse
-  outcome than it should be. Re-verify before depending on this further in production. This
-  replaces the equivalent LI.FI/1inch caveat this doc carried before both were removed (see
-  git history).
+- **`KyberSwapRouter`'s field-shape parsing has since been confirmed against real live
+  responses, not just KyberSwap's docs.** At initial build (2026-09-14), field names
+  (`routeSummary`, `amountOut`, `routerAddress`, `chargeFeeBy`/`feeAmount`/`isInBps`/
+  `feeReceiver`) were only confirmed against KyberSwap's own current docs
+  (https://docs.kyberswap.com), not a live call — this doc used to carry a "re-verify before
+  depending on this further in production" caveat here. Real, confirmed BUY and SELL trades
+  have since gone through on both Base and BNB Chain (BNB specifically required a real
+  KyberSwap swap after OpenOcean's public API turned out to be Cloudflare-blocked — see
+  `MultiChainSwapRouter`'s own doc comment on `CHAIN_ID_TO_PROVIDER`), substantiating the
+  parser against real responses on both chains it's used for. Not a reason to stop watching
+  for a future KyberSwap response-shape change — if one happens, the parser still correctly
+  returns `null` (an honest "no quote") rather than silently misparsing — just no longer an
+  open, un-exercised assumption the way it was at initial build.
 - **`KyberSwapRouter`'s 4s-per-call timeout (`FETCH_TIMEOUT_MS`) is the same untuned first
   guess `MetaAggregatorSwapRouter`'s race timeout always was** — carried over rather than
   re-derived from any real KyberSwap latency measurement, and now applied twice (once per
   sequential call, `/routes` then `/route/build`), so a worst-case quote can take up to ~8s
   before failing rather than ~4s. Revisit once this has run against real traffic.
-- **Only `TRENDING_HOLDERS` is implemented on `GET /tokens/trenches`** — the other three
-  categories (`FRESH`/`NEAR_GRADUATED`/`JUST_GRADUATED`) return a `501 Not Implemented`,
-  not an empty result, since Kamby has no bonding-curve/migration data pipeline for any
-  chain it currently supports — see `TrenchesCategory`'s doc comment. `TRENDING_HOLDERS`
-  itself is a proxy: `uniqueTraders24h`/`volume24hUsd` (what Kamby's indexer actually
-  tracks), not the literal `holder_count`/`volume_1h` fields from the original spec.
+- **All four `GET /tokens/trenches` categories are implemented** — this doc used to say
+  only `TRENDING_HOLDERS` was, with the other three (`FRESH`/`NEAR_GRADUATED`/
+  `JUST_GRADUATED`) returning `501 Not Implemented`. That changed once Pump.fun bonding-
+  curve ingestion shipped (`apps/workers/src/pumpfun/pumpfun-ingestion.ts`, a persistent
+  WebSocket subscription, not a tick — see its own doc comment): those three now read real,
+  live `PumpFunToken` rows. `TRENDING_HOLDERS` alone still reads EVM `TokenMarket` data and
+  remains a proxy: `uniqueTraders24h`/`volume24hUsd` (what Kamby's indexer actually tracks),
+  not the literal `holder_count`/`volume_1h` fields from the original spec. See
+  `TrenchesCategory`'s doc comment for the split.
 - **Wallet-ownership verification is EOA-only** — `verifyEvmSignature` doesn't check
   ERC-1271, so a smart-contract wallet (a Safe, some smart-account setups) will fail
   verification even when it does legitimately control the address. Disclosed, not silent:
@@ -801,23 +816,27 @@ whatever session/wallet a browser has, which a Server Component structurally can
 - **Real ECDSA signatures, real Base-mainnet RPC reads, but never a real funded trade** in
   automated tests — unit and e2e tests use fresh, never-funded keypairs and mocked/CI-
   placeholder provider responses; nothing in this repository's test suite performs a
-  destructive real-money swap. A quote request against 0x with CI's placeholder API key
-  correctly 401s upstream, which the router turns into an honest `422`, not a crash — the
-  e2e suite asserts exactly that as the expected behavior.
+  destructive real-money swap. KyberSwap needs no API key to reject in the way 0x's did (see
+  [Provider](#provider)), so the honest-`422` e2e case instead relies on its fixture token
+  addresses (`baseAddress` etc.) being synthetic and never actually deployed — KyberSwap
+  legitimately has no route for a token that was never deployed, and the router turns that
+  into the same honest `422`, not a crash. See `trading.e2e-spec.ts`'s own doc comment.
 
 ## Security assumptions
 
 - The connected wallet software itself is trusted to correctly display what it's signing —
   Kamby cannot prevent a compromised wallet extension from lying to its own user, only
   ensure it always sends the wallet the *true* transaction it intends to have signed.
-- 0x's Allowance-Holder contract is trusted to execute the swap and fee split as
-  configured. [Transaction integrity](#transaction-integrity)'s calldata match proves the
-  transaction that succeeded is byte-for-byte the one 0x prepared for this exact quote
-  (amounts, minimum output, and fee split all encoded in that calldata) — Kamby does not
-  additionally decode ERC-20 `Transfer` logs from the receipt to independently re-derive the
-  amounts actually received. A successful receipt for that exact, matched calldata is
-  trusted to mean 0x's own contract logic enforced its encoded minimum-output constraint;
-  Kamby does not re-implement or re-verify that enforcement itself.
+- KyberSwap's own router contract (`built.routerAddress`, returned fresh per quote by its
+  `/route/build` call — never a hardcoded address) is trusted to execute the swap and fee
+  split as configured, and doubles as the approval spender when one is required.
+  [Transaction integrity](#transaction-integrity)'s calldata match proves the transaction
+  that succeeded is byte-for-byte the one KyberSwap prepared for this exact quote (amounts,
+  minimum output, and fee split all encoded in that calldata) — Kamby does not additionally
+  decode ERC-20 `Transfer` logs from the receipt to independently re-derive the amounts
+  actually received. A successful receipt for that exact, matched calldata is trusted to
+  mean KyberSwap's own contract logic enforced its encoded minimum-output constraint; Kamby
+  does not re-implement or re-verify that enforcement itself.
 - Each configured chain's `CHAIN_<SLUG>_RPC_URL` is trusted for that chain's receipt
   lookups; a malicious or compromised RPC endpoint could theoretically misreport a
   transaction's status. This is the same trust boundary Phase 1's ingestion already accepts
