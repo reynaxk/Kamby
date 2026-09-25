@@ -20,6 +20,8 @@ vi.mock('@/components/notifications/NotificationBell', () => ({ NotificationBell
 // Privy/wagmi hooks unconditionally on mount, open or not — stubbed here for the same
 // reason ConnectWalletButton is.
 vi.mock('@/components/wallet/SendButton', () => ({ SendButton: () => <div /> }));
+// FundModal, same reasoning as SendButton/SendModal above (unconditional Privy/wagmi hooks).
+vi.mock('@/components/wallet/FundButton', () => ({ FundButton: () => <div /> }));
 // SearchBar's own live-typeahead behavior is covered by SearchBar.test.tsx — stubbed here
 // (real fetchSearchResults) so a searchValue prop doesn't fire a real, unmocked fetch() in
 // this file's tests.

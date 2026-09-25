@@ -5,6 +5,7 @@ import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
 import { SearchBar } from './SearchBar';
 
@@ -44,6 +45,7 @@ export function MarketHeader({
               living in the DOM input node, so only a real remount resets it. */}
           <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
           <BlurBalancesToggle />
+          <FundButton />
           <SendButton />
           <NotificationBell />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} />
