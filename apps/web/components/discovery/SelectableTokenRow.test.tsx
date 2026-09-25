@@ -85,6 +85,26 @@ describe('SelectableTokenRow', () => {
     expect(screen.getByText('—')).toHaveClass('text-up');
   });
 
+  it('renders a real image for the avatar when the market has a real logoUrl, instead of the initial fallback', () => {
+    const { container } = render(
+      <SelectableTokenRow market={fakeMarket({ symbol: 'FOO', logoUrl: 'https://cdn.dexscreener.com/real-logo.png' })} selected={false} onSelect={vi.fn()} />,
+    );
+
+    // alt="" deliberately (matching TokenIdentity.tsx's own pattern) marks this decorative
+    // for accessibility purposes, so it has no "img" role to query by — a plain CSS query
+    // is the right tool here, not getByRole.
+    const img = container.querySelector('img');
+    expect(img).toHaveAttribute('src', 'https://cdn.dexscreener.com/real-logo.png');
+    expect(screen.queryByText('F')).not.toBeInTheDocument(); // the initial-avatar fallback must not also render
+  });
+
+  it('falls back to the initial-avatar when logoUrl is null, never a broken/empty image tag', () => {
+    const { container } = render(<SelectableTokenRow market={fakeMarket({ symbol: 'FOO', logoUrl: null })} selected={false} onSelect={vi.fn()} />);
+
+    expect(container.querySelector('img')).not.toBeInTheDocument();
+    expect(screen.getByText('F')).toBeInTheDocument();
+  });
+
   it('falls back to the address when there is no symbol, for both the label and the avatar initial', () => {
     render(
       <SelectableTokenRow

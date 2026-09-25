@@ -12,6 +12,8 @@ const mockPrisma = vi.hoisted(() => ({
   },
   token: {
     upsert: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
   },
   tokenMarket: {
     findMany: vi.fn(),
@@ -193,6 +195,61 @@ describe('MarketIngestionService.seed — RPC budget', () => {
       expect.objectContaining({ seeded: 0 }),
       'Market seeding complete',
     );
+  });
+});
+
+describe('MarketIngestionService.backfillTokenLogos — RPC-free logo backfill', () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('only queries tokens with a null logoUrl on this chain — never re-checks a token that already has one', async () => {
+    mockPrisma.token.findMany.mockResolvedValue([]);
+
+    await newService().backfillTokenLogos();
+
+    expect(mockPrisma.token.findMany).toHaveBeenCalledWith({ where: { chainId: 1, logoUrl: null } });
+  });
+
+  it('updates a token whose logo DexScreener actually has, never a fabricated URL', async () => {
+    mockPrisma.token.findMany.mockResolvedValue([{ id: 'token-1', contractAddress: BASE_TOKEN_ADDRESS }]);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ pairs: [{ chainId: 'base', info: { imageUrl: 'https://cdn.dexscreener.com/real-logo.png' } }] }),
+      }),
+    );
+
+    const result = await newService().backfillTokenLogos();
+
+    expect(result).toEqual({ checked: 1, updated: 1 });
+    expect(mockPrisma.token.update).toHaveBeenCalledWith({ where: { id: 'token-1' }, data: { logoUrl: 'https://cdn.dexscreener.com/real-logo.png' } });
+  });
+
+  it('leaves a token untouched (no update call at all) when DexScreener genuinely has no logo for it yet', async () => {
+    mockPrisma.token.findMany.mockResolvedValue([{ id: 'token-1', contractAddress: BASE_TOKEN_ADDRESS }]);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ pairs: [] }) }));
+
+    const result = await newService().backfillTokenLogos();
+
+    expect(result).toEqual({ checked: 1, updated: 0 });
+    expect(mockPrisma.token.update).not.toHaveBeenCalled();
+  });
+
+  it("resolves DexScreener's chain string from the real numeric EVM chain id (8453), not the internal Chain.id row id (1) — a real bug this session already shipped once", async () => {
+    mockPrisma.token.findMany.mockResolvedValue([{ id: 'token-1', contractAddress: BASE_TOKEN_ADDRESS }]);
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ pairs: [] }) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    // newService() sets Chain.id (the internal DB row) to 1 and chainIdentifier to
+    // 'eip155:8453'. fetchTokenLogoUrl short-circuits to null *without ever calling fetch*
+    // for an EVM chain id it doesn't recognize (DEXSCREENER_CHAIN_ID has no entry for the
+    // small internal row id 1, only for real chain ids like 8453/56) — so this pins down
+    // that fetch is reached at all, which only happens if the real 8453 was used.
+    await newService().backfillTokenLogos();
+
+    expect(fetchMock).toHaveBeenCalled();
   });
 });
 

@@ -145,6 +145,7 @@ async function main(): Promise<void> {
         // lets a transient failure self-heal on a later tick instead of requiring a
         // manual restart.
         await ingestion.seed();
+        await ingestion.backfillTokenLogos();
         await ingestion.refreshPricesAndLiquidity();
         await ingestion.ingestSwaps();
         logger.info({ durationMs: Date.now() - startedAt }, 'Market ingestion tick complete');

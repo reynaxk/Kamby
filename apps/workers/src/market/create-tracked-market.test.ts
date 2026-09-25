@@ -32,8 +32,24 @@ function fakeMetadata(overrides: Partial<{ symbol: string | null; name: string |
   return { symbol: 'TEST', name: 'Test Token', decimals: 18, ...overrides };
 }
 
+/** No fetch mock at all would make these tests hit the real DexScreener API — slow, flaky,
+ *  and an unwanted network dependency for a unit test. Default: no image found, same as a
+ *  real "this token genuinely isn't listed" response, so tests that don't care about the
+ *  logo behavior specifically don't need to think about it. */
+function mockDexScreenerResponse(imageUrl: string | null) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ pairs: imageUrl ? [{ chainId: 'base', info: { imageUrl } }] : [] }),
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  mockDexScreenerResponse(null);
   mockPrisma.token.upsert.mockImplementation(async ({ create }: { create: { contractAddress: string } }) => ({
     id: `token-${create.contractAddress}`,
   }));
@@ -47,7 +63,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    const result = await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    const result = await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(result).toBe(false);
     expect(mockPrisma.tokenMarket.upsert).not.toHaveBeenCalled();
@@ -61,7 +77,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(mockPrisma.tokenMarket.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ create: expect.objectContaining({ tokenId: `token-${BASE_TOKEN}`, quoteTokenId: `token-${QUOTE_TOKEN}` }) }),
@@ -75,7 +91,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(mockPrisma.tokenMarket.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ create: expect.objectContaining({ tokenId: `token-${BASE_TOKEN}`, quoteTokenId: `token-${QUOTE_TOKEN}` }) }),
@@ -91,7 +107,7 @@ describe('createTrackedMarket', () => {
 
     // A lowercase baseTokenAddress must still match the pool's uppercase token0 — real
     // addresses arrive in whatever case an event/seed-list entry happens to use.
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(mockPrisma.tokenMarket.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ create: expect.objectContaining({ tokenId: `token-${BASE_TOKEN}`, quoteTokenId: `token-${QUOTE_TOKEN}` }) }),
@@ -105,7 +121,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:56', name: 'BNB Chain', nativeSymbol: 'BNB' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    const result = await createTrackedMarket(poolReader, tokenReader, 56, POOL_ADDRESS, BASE_TOKEN, 'pancakeswap-v3', fakeLogger);
+    const result = await createTrackedMarket(poolReader, tokenReader, 56, 56, POOL_ADDRESS, BASE_TOKEN, 'pancakeswap-v3', fakeLogger);
 
     expect(result).toBe(true);
     expect(mockPrisma.tokenMarket.upsert).toHaveBeenCalledWith({
@@ -122,7 +138,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(mockPrisma.ingestionCursor.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ create: { tokenMarketId: 'market-1', lastProcessedBlock: 1_000_000n - 3_600n } }),
@@ -136,7 +152,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(mockPrisma.ingestionCursor.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: { tokenMarketId: 'market-1', lastProcessedBlock: 0n } }));
   });
@@ -148,7 +164,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     const call = mockPrisma.tokenMarket.upsert.mock.calls[0]![0];
     expect(call.update).toEqual({ dex: 'uniswap-v3', feeTier: 500 });
@@ -163,9 +179,52 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(mockPrisma.ingestionCursor.upsert).toHaveBeenCalledWith(expect.objectContaining({ update: {} }));
+  });
+
+  it('sets a real fetched logo URL when creating a brand-new token', async () => {
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(fakePoolState());
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(100_000n);
+    vi.spyOn(EvmChainDataProvider.prototype, 'getTokenMetadata').mockResolvedValue(fakeMetadata());
+    mockDexScreenerResponse('https://cdn.dexscreener.com/cms/images/real-logo.png');
+    const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
+    const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
+
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+
+    expect(mockPrisma.token.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ create: expect.objectContaining({ logoUrl: 'https://cdn.dexscreener.com/cms/images/real-logo.png' }) }),
+    );
+  });
+
+  it('leaves logoUrl null (never a fabricated URL) when DexScreener genuinely has no image for this token', async () => {
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(fakePoolState());
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(100_000n);
+    vi.spyOn(EvmChainDataProvider.prototype, 'getTokenMetadata').mockResolvedValue(fakeMetadata());
+    // mockDexScreenerResponse(null) is already the beforeEach default.
+    const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
+    const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
+
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+
+    expect(mockPrisma.token.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: expect.objectContaining({ logoUrl: null }) }));
+  });
+
+  it('never clobbers an existing token with a null logo on update — a transient DexScreener miss omits the field entirely rather than overwriting a previously-resolved logo', async () => {
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(fakePoolState());
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(100_000n);
+    vi.spyOn(EvmChainDataProvider.prototype, 'getTokenMetadata').mockResolvedValue(fakeMetadata());
+    // mockDexScreenerResponse(null) is already the beforeEach default — simulating a miss on
+    // a token that (in the real DB) already has a real logoUrl from an earlier successful run.
+    const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
+    const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
+
+    await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+
+    const call = mockPrisma.token.upsert.mock.calls[0]![0];
+    expect(call.update.logoUrl).toBeUndefined(); // omitted, not null — Prisma leaves the column untouched
   });
 
   it('returns false defensively if the token upsert step ever resolves falsy, without creating a TokenMarket', async () => {
@@ -175,7 +234,7 @@ describe('createTrackedMarket', () => {
     const poolReader = new UniswapV3PoolReader({ rpcUrl: 'http://127.0.0.1:0' });
     const tokenReader = new EvmChainDataProvider({ chain: { identifier: 'eip155:8453', name: 'Base', nativeSymbol: 'ETH' }, rpcUrl: 'http://127.0.0.1:0' });
 
-    const result = await createTrackedMarket(poolReader, tokenReader, 1, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
+    const result = await createTrackedMarket(poolReader, tokenReader, 1, 8453, POOL_ADDRESS, BASE_TOKEN, 'uniswap-v3', fakeLogger);
 
     expect(result).toBe(false);
     expect(mockPrisma.tokenMarket.upsert).not.toHaveBeenCalled();

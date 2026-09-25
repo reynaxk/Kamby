@@ -14,7 +14,7 @@ import {
   NotificationFanoutService,
   type InsertedSwap,
 } from '../notifications/notification-fanout.service';
-import { createTrackedMarket } from './create-tracked-market';
+import { createTrackedMarket, fetchTokenLogoUrl } from './create-tracked-market';
 import type { SeedMarket } from './seed-markets';
 
 /** Raw candle granularity — see the Candle model comment in schema.prisma. */
@@ -127,6 +127,34 @@ export class MarketIngestionService {
   }
 
   /**
+   * Fills in `Token.logoUrl` for any already-tracked token that doesn't have one yet — see
+   * `fetchTokenLogoUrl`'s own doc comment (create-tracked-market.ts) for why this needs a
+   * separate backfill at all: a token seeded before this feature existed (every market
+   * tracked before 2026-09-26) got its logo left null forever, since `seed()` skips a
+   * market entirely once `isFullySeeded` is true, and adding the logo requirement *into*
+   * `isFullySeeded` would force a full RPC re-read of pool state and both tokens' on-chain
+   * metadata just to fetch an image — real, needless RPC cost across every existing market
+   * simultaneously on the first tick after deploy. This pass is deliberately RPC-free: a
+   * plain DB query plus a DexScreener HTTP call per still-missing token, nothing more.
+   */
+  async backfillTokenLogos(): Promise<{ checked: number; updated: number }> {
+    const chainId = this.requireChainId();
+    const missing = await prisma.token.findMany({ where: { chainId, logoUrl: null } });
+
+    let updated = 0;
+    for (const token of missing) {
+      const logoUrl = await fetchTokenLogoUrl(this.evmChainId(), token.contractAddress);
+      if (logoUrl) {
+        await prisma.token.update({ where: { id: token.id }, data: { logoUrl } });
+        updated += 1;
+      }
+      await sleep(RPC_CALL_DELAY_MS);
+    }
+    if (missing.length > 0) this.logger.info({ checked: missing.length, updated }, 'Token logo backfill complete');
+    return { checked: missing.length, updated };
+  }
+
+  /**
    * A market whose tokens are both fully resolved and whose cursor already exists needs
    * nothing further from `seed()` — a Uniswap V3 pool's fee tier is fixed at creation, so
    * there's nothing left to re-read. Checked by `seed()`'s loop before it calls
@@ -152,7 +180,24 @@ export class MarketIngestionService {
   }
 
   private async seedOneMarket(chainId: number, seed: SeedMarket): Promise<boolean> {
-    return createTrackedMarket(this.poolReader, this.tokenReader, chainId, seed.poolAddress, seed.baseTokenAddress, seed.dex, this.logger);
+    return createTrackedMarket(
+      this.poolReader,
+      this.tokenReader,
+      chainId,
+      this.evmChainId(),
+      seed.poolAddress,
+      seed.baseTokenAddress,
+      seed.dex,
+      this.logger,
+    );
+  }
+
+  /** The real numeric EVM chain id (e.g. 8453 for Base) parsed from `chainIdentifier`
+   *  (`"eip155:8453"`) — same derivation main.ts's own `tradeChainId` already uses.
+   *  Distinct from `Chain.id` (the internal DB row id `requireChainId()` returns) — see
+   *  `createTrackedMarket`'s own doc comment for the real bug conflating the two caused. */
+  private evmChainId(): number {
+    return Number(this.config.chainIdentifier.split(':')[1]);
   }
 
   /**

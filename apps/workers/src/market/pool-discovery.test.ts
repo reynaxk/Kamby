@@ -63,6 +63,11 @@ function newService(redis: ReturnType<typeof fakeRedis>, overrides: Partial<Cons
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  // Without this, a promoted pool's createTrackedMarket call would hit the real
+  // DexScreener API for its logo lookup (fetchTokenLogoUrl) — slow, flaky, and an unwanted
+  // network dependency for a unit test. Default: no image found.
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ pairs: [] }) }));
   mockPrisma.chain.upsert.mockResolvedValue({ id: 1 });
   mockPrisma.token.findUnique.mockResolvedValue(null);
   mockPrisma.tokenMarket.findFirst.mockResolvedValue(null);

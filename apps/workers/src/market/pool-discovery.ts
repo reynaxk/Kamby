@@ -131,6 +131,13 @@ export class PoolDiscoveryService {
     return chain.id;
   }
 
+  /** The real numeric EVM chain id (e.g. 8453 for Base) — distinct from `requireChainId()`'s
+   *  `Chain.id` (Postgres's own internal row id). See `createTrackedMarket`'s own doc
+   *  comment for why conflating the two is a real bug this session already caught once. */
+  private evmChainId(): number {
+    return Number(this.config.chainIdentifier.split(':')[1]);
+  }
+
   async discoverNewPools(): Promise<{ discovered: number }> {
     const chainId = await this.requireChainId();
     const latestBlock = await this.poolReader.getLatestBlockNumber();
@@ -271,7 +278,7 @@ export class PoolDiscoveryService {
     const liquidityUsd = computePoolLiquidityUsd(balance0, dec0, price0Usd, balance1, dec1, price1Usd);
     if (liquidityUsd === null || liquidityUsd < this.config.liquidityFloorUsd) return false;
 
-    const ok = await createTrackedMarket(this.poolReader, this.tokenReader, chainId, poolAddress, unknownAddress, this.config.dex, this.logger);
+    const ok = await createTrackedMarket(this.poolReader, this.tokenReader, chainId, this.evmChainId(), poolAddress, unknownAddress, this.config.dex, this.logger);
     if (ok) {
       this.logger.info({ pool: poolAddress, baseToken: unknownAddress, liquidityUsd: Math.round(liquidityUsd) }, 'Pool discovery: promoted a new market — real liquidity cleared the floor');
     }

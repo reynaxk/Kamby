@@ -32,14 +32,19 @@ export function SelectableTokenRow({
       )}
     >
       {selected && <span className="absolute inset-y-0 left-0 w-0.5 bg-accent shadow-glow-accent" aria-hidden />}
-      <span
-        className={cn(
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold',
-          selected ? 'bg-accent/15 text-accent shadow-glow-accent' : 'bg-surface-raised text-ink-600',
-        )}
-      >
-        {(market.symbol ?? market.tokenAddress).slice(0, 1).toUpperCase()}
-      </span>
+      {market.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={market.logoUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+      ) : (
+        <span
+          className={cn(
+            'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold',
+            selected ? 'bg-accent/15 text-accent shadow-glow-accent' : 'bg-surface-raised text-ink-600',
+          )}
+        >
+          {(market.symbol ?? market.tokenAddress).slice(0, 1).toUpperCase()}
+        </span>
+      )}
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-sm font-semibold tracking-tight text-ink-900">
           ${market.symbol ?? market.tokenAddress.slice(0, 6)}

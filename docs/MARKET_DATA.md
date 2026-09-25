@@ -129,6 +129,22 @@ liquidity for the same real pool, same ~0.005% agreement), not a precision instr
 
 Null, not a fabricated total, when either side's price is unresolved.
 
+## Token logos — the one deliberate exception to "never borrowed from a third party"
+
+`Token.logoUrl` is real image display, not financial data, and ERC-20 has no on-chain
+"logo" field the way it has `symbol`/`name`/`decimals` — there's no honest way to read one
+from the contract. `fetchTokenLogoUrl` (`create-tracked-market.ts`, added 2026-09-26)
+queries DexScreener for it, a deliberate, narrow exception to the price/liquidity rule
+above: a wrong or missing image carries no financial risk the way a wrong price would.
+Fetched once when a token is first tracked; already-tracked tokens seeded before this
+existed get it filled in by `backfillTokenLogos()`, a separate RPC-free pass (a plain DB
+query for `logoUrl IS NULL` plus one DexScreener call per still-missing token) run every
+tick alongside `seed()` — deliberately *not* folded into the on-chain metadata resolution
+`isFullySeeded` already gates, since that would force a full RPC re-read of pool state and
+both tokens' metadata across every existing market just to backfill an image. `null` (never
+a fabricated URL) when DexScreener genuinely has nothing for a token — that image is simply
+never shown; `SelectableTokenRow.tsx` already falls back to the token's own first letter.
+
 ## Market cap
 
 `computeFullyDilutedMarketCapUsd()`: on-chain `totalSupply()` × price. This is **FDV
