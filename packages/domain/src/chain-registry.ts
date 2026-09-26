@@ -68,8 +68,11 @@ export function slugForIdentifier(identifier: string): ChainSlug | null {
  *  `chain` relation. `TokenMarket.chainId` is a plain FK to `Chain.id` — Prisma's own
  *  autoincrement internal row id, NOT the real numeric EVM chain id `DEFAULT_CHAIN_ID`
  *  carries — a distinction several call sites got wrong (see the incident notes on
- *  SafetyService.assertTradable, MarketService.getToken/getHistory/getTokenTraders, and
- *  WatchlistService.resolveTokenMarketId). Filtering via `chain: { identifier:
+ *  SafetyService.assertTradable, MarketService.getToken/getHistory/getTokenTraders,
+ *  WatchlistService.resolveTokenMarketId, and ActivityService.getGlobalFeed — the last one
+ *  caught by test/social.e2e-spec.ts's tokenAddress-filtered assertions, not by code review,
+ *  since a swallowed prisma:error console log made the empty result look like a passing
+ *  "no activity yet" case rather than a broken filter). Filtering via `chain: { identifier:
  *  identifierForChainId(chainId) }` instead of a bare `chainId: chainId` sidesteps the
  *  confusion entirely by going through the relation, whose `identifier` really is this
  *  CAIP-2 string. */

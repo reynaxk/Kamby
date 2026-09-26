@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { prisma } from '@kamby/db';
 import type { Prisma } from '@kamby/db';
-import { DISCOVERY_RANKING, decodeActivityCursor, encodeActivityCursor, normalizeEvmAddress, type SocialActivity } from '@kamby/domain';
+import {
+  DISCOVERY_RANKING,
+  decodeActivityCursor,
+  encodeActivityCursor,
+  identifierForChainId,
+  normalizeEvmAddress,
+  type SocialActivity,
+} from '@kamby/domain';
 import { toSocialActivity, type ActivityRow } from '../social.mapper';
 
 export interface ActivityPage {
@@ -40,7 +47,7 @@ export class ActivityService {
     const where: Prisma.SwapWhereInput = params.tokenAddress
       ? {
           tokenMarket: {
-            chainId: params.chainId,
+            chain: { identifier: requireChainIdentifier(params.chainId) },
             token: { contractAddress: { equals: normalizeEvmAddress(params.tokenAddress), mode: 'insensitive' } },
           },
         }
@@ -160,4 +167,15 @@ export class ActivityService {
     });
     return [countMap, new Set(mine.map((m) => m.swapId))];
   }
+}
+
+/** `TokenMarket.chainId` is Chain's own internal autoincrement id, not the real numeric EVM
+ *  chain id `getGlobalFeed` receives — see identifierForChainId's own doc comment for the
+ *  established incident list this bug belongs to (a per-token activity feed silently
+ *  returning empty, same shape as MarketService.getToken's original bug). Scope through the
+ *  `chain` relation's real `identifier`, never a bare `chainId: chainId`. */
+function requireChainIdentifier(chainId: number): string {
+  const identifier = identifierForChainId(chainId);
+  if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
+  return identifier;
 }

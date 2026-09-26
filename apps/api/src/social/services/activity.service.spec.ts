@@ -15,6 +15,7 @@ jest.mock('@kamby/domain', () => ({
   normalizeEvmAddress: (a: string) => a.toLowerCase(),
   decodeActivityCursor: jest.fn((raw: string) => (raw === 'bad' ? null : JSON.parse(raw))),
   encodeActivityCursor: jest.fn((c: unknown) => JSON.stringify(c)),
+  identifierForChainId: (chainId: number) => (chainId === 8453 ? 'eip155:8453' : null),
 }));
 jest.mock('../social.mapper', () => ({
   toSocialActivity: (row: { id: string }, likeCount: number, likedByMe: boolean | null) => ({
@@ -54,15 +55,29 @@ describe('ActivityService', () => {
     it('scopes to exactly one token on one chain, case-insensitively, when a tokenAddress is given', async () => {
       await service.getGlobalFeed({ limit: 10, chainId: 8453, tokenAddress: '0xABC', viewerUserId: null });
 
+      // Scoped through the `chain` relation's real identifier, never a bare `chainId: 8453`
+      // — TokenMarket.chainId is Chain's own internal autoincrement id, not the numeric EVM
+      // chain id this method receives. See identifierForChainId's doc comment.
       expect(mockedPrisma.swap.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             AND: [
-              { tokenMarket: { chainId: 8453, token: { contractAddress: { equals: '0xabc', mode: 'insensitive' } } } },
+              {
+                tokenMarket: {
+                  chain: { identifier: 'eip155:8453' },
+                  token: { contractAddress: { equals: '0xabc', mode: 'insensitive' } },
+                },
+              },
               {},
             ],
           },
         }),
+      );
+    });
+
+    it('throws NotFoundException for a chain id Kamby does not trade on, when a tokenAddress is given', async () => {
+      await expect(service.getGlobalFeed({ limit: 10, chainId: 999_999, tokenAddress: '0xABC', viewerUserId: null })).rejects.toThrow(
+        'Chain id 999999 is not a chain Kamby trades on',
       );
     });
   });
