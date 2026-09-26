@@ -13,6 +13,7 @@ function fakeConfigService(overrides: Partial<Env> = {}): ConfigService<Env, tru
 jest.mock('@kamby/db', () => ({
   prisma: {
     tokenMarket: { findFirst: jest.fn(), findMany: jest.fn() },
+    candle: { findMany: jest.fn() },
     swap: { findMany: jest.fn(), groupBy: jest.fn(), count: jest.fn() },
     wallet: { findMany: jest.fn() },
     tokenWatch: { count: jest.fn() },
@@ -186,6 +187,10 @@ describe('MarketService — discover/search', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new MarketService(new WatchlistService(), fakeConfigService());
+    // Default: no candle history — most discover() tests aren't testing sparklines and would
+    // otherwise crash on `undefined` from an unconfigured jest.fn(). Tests that actually care
+    // override this with their own mockResolvedValue.
+    (mockedPrisma.candle.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   describe('discover', () => {
@@ -256,6 +261,57 @@ describe('MarketService — discover/search', () => {
       const result = await service.discover({ sort: 'score', limit: 20 });
 
       expect(typeof result[0]?.discoveryScore).toBe('number');
+    });
+
+    it('attaches recentCloses for the sparkline, sampled from real candle history, oldest first', async () => {
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeDiscoverableRow({ id: 'market-1' })]);
+      (mockedPrisma.candle.findMany as jest.Mock).mockResolvedValue([
+        { tokenMarketId: 'market-1', close: fakeDecimal(1.0) },
+        { tokenMarketId: 'market-1', close: fakeDecimal(1.1) },
+        { tokenMarketId: 'market-1', close: fakeDecimal(1.2) },
+      ]);
+
+      const result = await service.discover({ sort: 'score', limit: 20 });
+
+      expect(result[0]?.recentCloses).toEqual([1.0, 1.1, 1.2]);
+    });
+
+    it('never attaches recentCloses (not an empty array) for a market with fewer than 2 real candles — nothing to draw a trend from', async () => {
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeDiscoverableRow({ id: 'market-1' })]);
+      (mockedPrisma.candle.findMany as jest.Mock).mockResolvedValue([{ tokenMarketId: 'market-1', close: fakeDecimal(1.0) }]);
+
+      const result = await service.discover({ sort: 'score', limit: 20 });
+
+      expect(result[0]?.recentCloses).toBeUndefined();
+    });
+
+    it('samples down to ~24 points for a market with far more raw candle history than that, never returning every raw point', async () => {
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeDiscoverableRow({ id: 'market-1' })]);
+      (mockedPrisma.candle.findMany as jest.Mock).mockResolvedValue(
+        Array.from({ length: 288 }, (_, i) => ({ tokenMarketId: 'market-1', close: fakeDecimal(i) })), // a real 24h of 5-min candles
+      );
+
+      const result = await service.discover({ sort: 'score', limit: 20 });
+
+      expect(result[0]?.recentCloses).toHaveLength(24);
+      // First and last raw points are preserved exactly — a sparkline that clips the real
+      // start/end of the window would misrepresent the actual current trend.
+      expect(result[0]?.recentCloses?.[0]).toBe(0);
+      expect(result[0]?.recentCloses?.[23]).toBe(287);
+    });
+
+    it('only fetches candles for the returned page, never every scored candidate — one bounded batched query', async () => {
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
+        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A' }, volume24hUsd: fakeDecimal(3) }),
+        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B' }, volume24hUsd: fakeDecimal(2) }),
+        fakeDiscoverableRow({ id: 'c', token: { ...fakeDiscoverableRow().token, symbol: 'C' }, volume24hUsd: fakeDecimal(1) }),
+      ]);
+
+      await service.discover({ sort: 'score', limit: 2 }); // only 2 of the 3 scored rows make the page
+
+      expect(mockedPrisma.candle.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ tokenMarketId: { in: ['a', 'b'] } }) }),
+      );
     });
   });
 

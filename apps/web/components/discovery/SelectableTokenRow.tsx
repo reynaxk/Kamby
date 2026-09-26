@@ -1,6 +1,7 @@
 import type { MarketSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent } from '@/lib/format';
+import { Sparkline } from '@/components/market/Sparkline';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
@@ -53,6 +54,9 @@ export function SelectableTokenRow({
           {formatCompactUsd(market.marketCapUsd)} MC
         </span>
       </span>
+      {market.recentCloses && market.recentCloses.length >= 2 && (
+        <Sparkline closes={market.recentCloses} width={40} height={20} />
+      )}
       <span
         className={cn(
           'shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold tabular-nums',

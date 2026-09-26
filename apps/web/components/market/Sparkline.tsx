@@ -1,14 +1,17 @@
 import { priceDirection } from '@/lib/format';
 
-const WIDTH = 96;
-const HEIGHT = 32;
 const PAD = 2;
 
-/** Renders nothing (not a flat fake line) when there isn't enough real history to draw. */
-export function Sparkline({ closes }: { closes: number[] }) {
+/** Renders nothing (not a flat fake line) when there isn't enough real history to draw.
+ *  `width`/`height` default to the original standalone size; `SelectableTokenRow` passes a
+ *  compact variant to fit its narrow terminal-sidebar row. */
+export function Sparkline({ closes, width = 96, height = 32 }: { closes: number[]; width?: number; height?: number }) {
   if (closes.length < 2) {
     return (
-      <div className="flex h-8 w-24 items-center justify-center font-mono text-[0.65rem] text-ink-400">
+      <div
+        style={{ width, height }}
+        className="flex shrink-0 items-center justify-center font-mono text-[0.6rem] text-ink-400"
+      >
         no history
       </div>
     );
@@ -17,11 +20,11 @@ export function Sparkline({ closes }: { closes: number[] }) {
   const min = Math.min(...closes);
   const max = Math.max(...closes);
   const range = max - min || 1;
-  const stepX = (WIDTH - PAD * 2) / (closes.length - 1);
+  const stepX = (width - PAD * 2) / (closes.length - 1);
 
   const points = closes.map((value, i) => {
     const x = PAD + i * stepX;
-    const y = PAD + (1 - (value - min) / range) * (HEIGHT - PAD * 2);
+    const y = PAD + (1 - (value - min) / range) * (height - PAD * 2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
 
@@ -29,7 +32,7 @@ export function Sparkline({ closes }: { closes: number[] }) {
   const strokeClass = direction === 'up' ? 'stroke-up' : direction === 'down' ? 'stroke-down' : 'stroke-ink-400';
 
   return (
-    <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="overflow-visible" role="img" aria-label="Price trend">
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="shrink-0 overflow-visible" role="img" aria-label="Price trend">
       <polyline points={points.join(' ')} fill="none" className={strokeClass} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

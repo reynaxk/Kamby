@@ -43,6 +43,12 @@ export const MarketSummarySchema = z.object({
   isStale: z.boolean(),
   /** Present only on /market/discover — the transparent ranking score, see docs/MARKET_DATA.md. */
   discoveryScore: z.number().nullable().optional(),
+  /** Present only on /market/discover — a compact ~24h price trend for the row's sparkline
+   *  (`Sparkline.tsx`), sampled down from the real `candles` table, oldest first. Absent
+   *  (never an empty array or a fabricated flat line) when the market doesn't have enough
+   *  real candle history yet — see Sparkline's own "renders nothing" behavior for exactly
+   *  that case, e.g. a market still inside its first 24h post-seed. */
+  recentCloses: z.array(z.number()).optional(),
 });
 export type MarketSummary = z.infer<typeof MarketSummarySchema>;
 

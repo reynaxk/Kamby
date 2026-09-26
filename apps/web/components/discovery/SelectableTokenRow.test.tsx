@@ -105,6 +105,19 @@ describe('SelectableTokenRow', () => {
     expect(screen.getByText('F')).toBeInTheDocument();
   });
 
+  it('renders a real sparkline when the market has enough recentCloses history', () => {
+    const { container } = render(
+      <SelectableTokenRow market={fakeMarket({ recentCloses: [1, 1.2, 1.1, 1.4] })} selected={false} onSelect={vi.fn()} />,
+    );
+    expect(container.querySelector('svg polyline')).toBeInTheDocument();
+  });
+
+  it('renders no sparkline at all (not a placeholder) when recentCloses is absent — never clutters every row with "no history"', () => {
+    const { container } = render(<SelectableTokenRow market={fakeMarket()} selected={false} onSelect={vi.fn()} />);
+    expect(container.querySelector('svg')).not.toBeInTheDocument();
+    expect(screen.queryByText('no history')).not.toBeInTheDocument();
+  });
+
   it('falls back to the address when there is no symbol, for both the label and the avatar initial', () => {
     render(
       <SelectableTokenRow

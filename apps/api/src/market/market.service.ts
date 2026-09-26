@@ -82,7 +82,54 @@ export class MarketService {
 
     scored.sort((a, b) => compareBySort(a, b, query.sort));
 
-    return scored.slice(0, query.limit).map(({ row, score }) => toMarketSummary(row, score));
+    const page = scored.slice(0, query.limit);
+    const recentCloses = await this.fetchRecentCloses(page.map(({ row }) => row.id));
+    return page.map(({ row, score }) => ({ ...toMarketSummary(row, score), recentCloses: recentCloses.get(row.id) }));
+  }
+
+  /**
+   * One batched query for the whole returned page's sparklines (`Sparkline.tsx`), never a
+   * per-row query — see docs/MARKET_DATA.md#token-discovery's "one bounded fetch" precedent
+   * this file already follows. Scoped to exactly the page being returned (post-slice), not
+   * every scored candidate, since most of those are never rendered.
+   *
+   * Sampled down from the raw 5-minute candles to ~24 points (roughly hourly) rather than
+   * returned in full: a sparkline is ~96px wide, so 288 raw 5-min points over 24h would be
+   * pure visual noise and a needlessly large response for what's meant to be a glance-level
+   * trend line, not the real chart (that's KambyChart, reading full-resolution history via
+   * getHistory). A market absent from the returned map (too new for 24h of candles, or none
+   * at all) simply gets no `recentCloses` — Sparkline's own "renders nothing" path handles
+   * that, never a fabricated flat line.
+   */
+  private async fetchRecentCloses(tokenMarketIds: string[]): Promise<Map<string, number[]>> {
+    if (tokenMarketIds.length === 0) return new Map();
+    const since24h = new Date(Date.now() - 24 * 60 * 60_000);
+    const candles = await prisma.candle.findMany({
+      where: { tokenMarketId: { in: tokenMarketIds }, bucketStart: { gte: since24h } },
+      orderBy: { bucketStart: 'asc' },
+      select: { tokenMarketId: true, close: true },
+    });
+
+    const byMarket = new Map<string, number[]>();
+    for (const candle of candles) {
+      const closes = byMarket.get(candle.tokenMarketId) ?? [];
+      closes.push(Number(candle.close));
+      byMarket.set(candle.tokenMarketId, closes);
+    }
+
+    const SPARKLINE_POINTS = 24;
+    const sampled = new Map<string, number[]>();
+    for (const [tokenMarketId, closes] of byMarket) {
+      if (closes.length < 2) continue; // Sparkline itself also guards this; skip building a useless 0/1-point entry.
+      if (closes.length <= SPARKLINE_POINTS) {
+        sampled.set(tokenMarketId, closes);
+        continue;
+      }
+      const step = (closes.length - 1) / (SPARKLINE_POINTS - 1);
+      const points = Array.from({ length: SPARKLINE_POINTS }, (_, i) => closes[Math.round(i * step)]!);
+      sampled.set(tokenMarketId, points);
+    }
+    return sampled;
   }
 
   /** `chainId` is required and never defaulted here — see SafetyService.assertTradable's
