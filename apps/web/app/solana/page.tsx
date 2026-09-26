@@ -3,6 +3,11 @@ import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 
 export const metadata = { title: 'Solana — Kamby' };
+// Entirely wallet/session-scoped — nothing here has a meaningful static version, and
+// statically prerendering it depends on wagmi/Privy's provider tree initializing during the
+// build itself, which is a real, Linux-build-only crash (works fine on the Windows machine
+// this app has always been deployed from) — see docs/TESTING.md's CI incident notes.
+export const dynamic = 'force-dynamic';
 
 /**
  * Launch scope's one entry point for Solana trading — see docs/TRADING.md#solana. Fixed to

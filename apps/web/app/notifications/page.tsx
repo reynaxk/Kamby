@@ -2,6 +2,9 @@ import { MarketHeader } from '@/components/market/MarketHeader';
 import { NotificationsPageClient } from '@/components/notifications/NotificationsPageClient';
 
 export const metadata = { title: 'Notifications — Kamby' };
+// See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
+// same fix: this page has no meaningful static version anyway.
+export const dynamic = 'force-dynamic';
 
 /**
  * Entirely client-rendered below the header, same reasoning as app/trades/page.tsx:

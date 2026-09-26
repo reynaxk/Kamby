@@ -2,6 +2,9 @@ import { MarketHeader } from '@/components/market/MarketHeader';
 import { TradeHistoryList } from '@/components/trading/TradeHistoryList';
 
 export const metadata = { title: 'Your trades — Kamby' };
+// See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
+// same fix: this page has no meaningful static version anyway.
+export const dynamic = 'force-dynamic';
 
 /**
  * Entirely client-rendered below the header — trade history is personal to whatever

@@ -5,6 +5,9 @@ import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
 
 export const metadata = { title: 'Your profile — Kamby' };
+// See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
+// same fix: this page has no meaningful static version anyway.
+export const dynamic = 'force-dynamic';
 
 /** Entirely client-rendered below the header, same reasoning as app/watchlist/page.tsx:
  *  the session lives in localStorage, invisible to a Server Component. Void-themed as of
