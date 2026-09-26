@@ -361,20 +361,28 @@ Covers loading, empty, error, and stale/reconnecting states.
 - **Pre-Phase-2 swaps have no trader.** `traderAddress`/`senderAddress` are `null` for
   every swap indexed before this migration — never backfilled with a guess. A wallet's
   "first seen trading" and stats only reflect swaps indexed from here forward.
-- **No verified wallet ownership.** Phase 2's session proves nothing about which wallet a
-  person controls — see Authentication. Anyone can create an anonymous session and follow
-  any tracked trader; nothing here lets them claim *to be* one.
-- **Followers/following lists have minimal item data.** A follower is just `{userId,
-  followedAt}` — Phase 2's anonymous sessions have no display identity to show. This
-  self-resolves once real wallet-linking exists.
+- **Follow/like still don't require verified wallet ownership** — real wallet-ownership
+  verification (a signed challenge, real ECDSA, see `docs/WALLET_SECURITY.md`) shipped after
+  this section was originally written and now gates leaderboard eligibility
+  (`LeaderboardService`) and thesis posting (`ThesisService`), both scoped to `verifiedAt: {
+  not: null }` wallets only — but `FollowService`/`LikeService` still accept any anonymous
+  session with no wallet-ownership check at all. Anyone can create a session and follow any
+  tracked trader; nothing there lets them claim *to be* one.
+- **Followers/following lists still have minimal item data.** `TraderService#getFollowers`/
+  `#getFollowing` return exactly `{userId, followedAt}` — no username, avatar, or wallet
+  address. This section originally predicted it would "self-resolve once real wallet-linking
+  exists" — wallet verification and real profiles (`ProfileEditor`) both now exist, but this
+  specific endpoint was never revisited to actually join and surface that data. A real, still-
+  open gap, not an automatic byproduct of wallet verification shipping elsewhere.
 - **Anti-spam is IP-based rate limiting only** — no CAPTCHA, no proof-of-work, no bot
   detection. Sufficient to stop naive scripted abuse, not a determined attacker.
 - **No comments, reposts, or bookmarks.** The schema doesn't foreclose them (an activity
   item's stable id — the underlying `Swap.id` — is exactly what a future `Comment`/`Repost`
   table would key off of, the same way `ActivityLike` does today), but none are implemented.
-- **No notification delivery.** `apps/api/src/notifications` remains the empty module
-  boundary it was in Phase 0/1. A follow or like is a fact anyone could derive a
-  notification from later; nothing computes or stores one yet.
+- ~~No notification delivery.~~ **Shipped since this section was written** — real, real-time
+  (SSE) follow/like notification delivery now exists, with the same dedupe-key +
+  `@@unique([userId, type, dedupeKey])` shape `FollowService`/`LikeService` already used, so a
+  retried request can never double-notify. See `docs/NOTIFICATIONS.md` for the full design.
 - **"Top Traders" and "Trending" are computed at request time** over the full tracked-market
   /24h-swap set — fine at Phase 1/2's bounded scale, the documented next step (a
   materialized/SQL-computed view) is the same one already named for `/market/discover`.
