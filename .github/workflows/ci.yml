@@ -14,15 +14,20 @@ env:
   DATABASE_URL: postgresql://kamby:kamby@localhost:5432/kamby?schema=public
   REDIS_URL: redis://localhost:6379
   JWT_SECRET: ci-test-secret-not-for-production-use
-  CHAIN_ID: 8453
-  CHAIN_RPC_URL: https://mainnet.base.org
+  # CHAINS/DEFAULT_CHAIN_SLUG default to "base" (see packages/domain's DEFAULT_CHAIN_SLUG) —
+  # left unset so CI validates the same defaults production relies on rather than overriding
+  # them. Every slug listed in CHAINS needs its own CHAIN_<SLUG>_* block (apps/api/src/config/
+  # env.ts) — CHAIN_ID/CHAIN_RPC_URL/USDC_CONTRACT_ADDRESS were the old single-chain names,
+  # replaced by the per-chain CHAIN_BASE_* vars below when multi-chain support shipped.
+  CHAIN_BASE_ID: 8453
+  CHAIN_BASE_RPC_URL: https://mainnet.base.org
+  CHAIN_BASE_USDC_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
   # KyberSwap's Aggregator API needs no API key — KYBERSWAP_CLIENT_ID defaults to "kamby",
   # nothing to set here. CI hits the real, keyless KyberSwap API; the e2e suite's fixture
   # token addresses are synthetic (never deployed), so the real API legitimately has no
   # route for them — the suite verifies that's turned into an honest "quote unavailable"
   # response, not a crash. See docs/TESTING.md.
   PLATFORM_FEE_RECIPIENT_ADDRESS: '0x1234567890123456789012345678901234567890'
-  USDC_CONTRACT_ADDRESS: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 
 jobs:
   ci:
@@ -87,7 +92,7 @@ jobs:
         run: pnpm test
 
       - name: API e2e tests (health, market, social, identity, trade — against live Postgres + Redis)
-        run: pnpm --filter @kamby/api test:e2e
+        run: pnpm test:e2e
 
       - name: Build
         run: pnpm build

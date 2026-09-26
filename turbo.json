@@ -22,6 +22,23 @@
       "dependsOn": ["^build", "generate"],
       "outputs": []
     },
+    "test:e2e": {
+      "dependsOn": ["^build", "generate"],
+      "outputs": [],
+      "cache": false,
+      "env": [
+        "DATABASE_URL",
+        "REDIS_URL",
+        "JWT_SECRET",
+        "CHAINS",
+        "DEFAULT_CHAIN_SLUG",
+        "CHAIN_BASE_ID",
+        "CHAIN_BASE_RPC_URL",
+        "CHAIN_BASE_USDC_ADDRESS",
+        "PLATFORM_FEE_RECIPIENT_ADDRESS",
+        "KYBERSWAP_CLIENT_ID"
+      ]
+    },
     "generate": {
       "cache": true,
       "inputs": ["prisma/schema.prisma"],
