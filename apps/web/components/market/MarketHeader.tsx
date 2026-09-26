@@ -38,12 +38,18 @@ export function MarketHeader({
         <Link href="/" className="flex items-center gap-2">
           <KambyLogo />
         </Link>
-        <div className="ml-auto flex items-center gap-3">
-          {/* Keyed on the server-known term so navigating between searches (or back to
-              plain Discover) fully remounts SearchBar — its live-typeahead state (typed
-              value, dropdown results) is now lifted into the component itself rather than
-              living in the DOM input node, so only a real remount resets it. */}
-          <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
+        <div className="ml-auto flex flex-wrap items-center gap-3">
+          {/* w-full below sm: the search input has no room to be usable squeezed onto the
+              same row as five icon buttons + Sign in on a narrow phone (it was clipping to
+              ~2 visible characters of its own placeholder) — full-width forces it onto its
+              own wrapped row instead. Keyed on the server-known term so navigating between
+              searches (or back to plain Discover) fully remounts SearchBar — its live-
+              typeahead state (typed value, dropdown results) is now lifted into the
+              component itself rather than living in the DOM input node, so only a real
+              remount resets it. */}
+          <div className="w-full sm:w-auto">
+            <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
+          </div>
           <BlurBalancesToggle />
           <FundButton />
           <SendButton />
