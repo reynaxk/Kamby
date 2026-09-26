@@ -91,7 +91,7 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
-      - name: API e2e tests (health, market, social, identity, trade — against live Postgres + Redis)
+      - name: E2e tests (apps/api health/market/social/identity/trade + apps/workers realized-PnL — against live Postgres + Redis)
         run: pnpm test:e2e
 
       - name: Build
