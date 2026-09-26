@@ -81,19 +81,32 @@ describe('computeDiscoveryScore', () => {
     expect(absurd).toBeCloseTo(atCeiling!, 6);
   });
 
-  it('returns null instead of a misleading zero when volume/change data is missing', () => {
+  it('excludes a market with zero swaps ever indexed (volume24hUsd null) — there is no real data to rank it on', () => {
     expect(
       computeDiscoveryScore(
         { volume24hUsd: null, liquidityUsd: 1_000_000, priceChange24hPct: 5, lastPriceUpdateAt: fresh },
         now,
       ),
     ).toBeNull();
-    expect(
-      computeDiscoveryScore(
-        { volume24hUsd: 1000, liquidityUsd: 1_000_000, priceChange24hPct: null, lastPriceUpdateAt: fresh },
-        now,
-      ),
-    ).toBeNull();
+  });
+
+  it('still ranks a market with real volume/liquidity even before it has 24h of history for priceChange24hPct', () => {
+    // A market younger than 24h (or one whose first-ever swap was too recent) legitimately
+    // has volume24hUsd but not yet priceChange24hPct — see recomputeRollups's haveFullDay
+    // gate. This must not vanish from Discover for its first day just because one derived
+    // figure isn't computable yet; real BNB incident, 2026-09-26.
+    const score = computeDiscoveryScore(
+      { volume24hUsd: 50_000, liquidityUsd: 1_000_000, priceChange24hPct: null, lastPriceUpdateAt: fresh },
+      now,
+    );
+    expect(score).not.toBeNull();
+    // Momentum contributes exactly 0 (neutral) when unknown — same score as an otherwise
+    // identical market with a genuinely flat (0%) 24h change, never a penalty or a bonus.
+    const flatEquivalent = computeDiscoveryScore(
+      { volume24hUsd: 50_000, liquidityUsd: 1_000_000, priceChange24hPct: 0, lastPriceUpdateAt: fresh },
+      now,
+    );
+    expect(score).toBeCloseTo(flatEquivalent!, 10);
   });
 });
 

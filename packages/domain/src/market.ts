@@ -110,9 +110,23 @@ export const DISCOVERY_RANKING = {
  * rationale. Log-scaling volume/liquidity keeps one whale market from mathematically
  * dominating every other factor; clamping momentum keeps a tiny-denominator percentage
  * spike from doing the same. Returns null for a market this formula shouldn't rank at all
- * (below the liquidity gate, missing the inputs it needs, or stale — see
+ * (below the liquidity gate, missing volume data entirely, or stale — see
  * DISCOVERY_RANKING.maxStalenessMinutes) rather than a misleading 0 or a ranking built on
  * a snapshot that's no longer current.
+ *
+ * `priceChange24hPct === null` does NOT exclude a market (as of 2026-09-26) — a market
+ * genuinely has no 24h price-change figure yet for up to 24h after its very first indexed
+ * swap (`recomputeRollups`'s `haveFullDay` gate, ingestion.ts), which was silently hiding
+ * every freshly-seeded market from Discover entirely for its first day, real liquidity and
+ * volume notwithstanding — confirmed live: BNB's whole seed list (added 2026-09-24, real
+ * liquidity, real on-chain swaps happening) was invisible in `/market/discover` for exactly
+ * this reason. Missing momentum now contributes 0 to the score (neutral, not a fabricated
+ * "unchanged") rather than excluding the market — this only affects internal ranking, never
+ * what's displayed: `toMarketSummary` still passes the raw `null` through untouched, and the
+ * UI already renders that as "—", never a fake 0%, exactly as it did before this change
+ * (see SelectableTokenRow's own "never invent a loss" test). `volume24hUsd === null` still
+ * excludes: that means zero swaps have ever been indexed for this market at all, not
+ * "missing one derived figure" — there's no real data to rank it on yet, new or not.
  */
 export function computeDiscoveryScore(
   input: {
@@ -126,10 +140,11 @@ export function computeDiscoveryScore(
   const { volume24hUsd, liquidityUsd, priceChange24hPct, lastPriceUpdateAt } = input;
   if (isPriceStale(lastPriceUpdateAt, now)) return null;
   if (liquidityUsd === null || liquidityUsd < DISCOVERY_RANKING.minLiquidityUsd) return null;
-  if (volume24hUsd === null || priceChange24hPct === null) return null;
+  if (volume24hUsd === null) return null;
 
   const { weights, momentumClampPct } = DISCOVERY_RANKING;
-  const clampedMomentum = Math.max(-momentumClampPct, Math.min(momentumClampPct, priceChange24hPct));
+  const clampedMomentum =
+    priceChange24hPct === null ? 0 : Math.max(-momentumClampPct, Math.min(momentumClampPct, priceChange24hPct));
 
   return (
     weights.volume * Math.log10(1 + Math.max(0, volume24hUsd)) +
