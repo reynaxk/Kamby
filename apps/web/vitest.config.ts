@@ -15,6 +15,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    // Vitest's 5000ms default leaves almost no margin for userEvent's realistic per-keystroke
+    // typing delays plus real async state updates — several tests already take 2-3s in
+    // isolation (e.g. SendModal's SOL-balance-fee-warning test), so any extra CPU contention
+    // (turbo running every package's tests concurrently, a shared CI runner) reliably tips
+    // them over 5s. Confirmed these aren't hangs: they pass in well under 3s run alone.
+    testTimeout: 15_000,
   },
   resolve: {
     alias: {
