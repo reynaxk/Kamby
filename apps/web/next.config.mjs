@@ -19,11 +19,7 @@ const nextConfig = {
   },
   // Baseline security headers — none of these existed before (confirmed via a live `curl -I`
   // against kambesh.com, which returned no security headers at all beyond Cloudflare's own
-  // defaults). Deliberately scoped to headers with no real risk of breaking anything: no
-  // Content-Security-Policy or Permissions-Policy here yet, since a wrong CSP could silently
-  // break Privy's auth iframe, wagmi/viem RPC calls, or Google Fonts — that needs a careful,
-  // separate allowlisting pass across every third party this app actually depends on, not a
-  // header bolted on alongside an unrelated audit finding.
+  // defaults).
   async headers() {
     return [
       {
@@ -42,6 +38,45 @@ const nextConfig = {
           // cross-origin destination — only the origin. Same-origin navigation still gets
           // the full referrer.
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Content-Security-Policy — added 2026-09-27 after surveying the real production
+          // bundle (grepped every deployed chunk for literal external hostnames, not
+          // guessed) rather than the "could break Privy/RPC/fonts" fear that deferred this
+          // earlier tonight. Two directives are deliberately loose, for real reasons found
+          // during that survey, not laziness:
+          //   - connect-src: WalletConnect/Reown's SDK bundles fallback RPC endpoints across
+          //     dozens of chains/providers (infura.io, alchemy.com, drpc.org, publicnode.com,
+          //     walletconnect.{com,org} subdomains, Helius, Jito, ...) that vary by which
+          //     wallet/chain a user picks — there is no fixed, enumerable list to allowlist.
+          //   - img-src: token logoUrl values are whatever the ingestion pipeline's data
+          //     source (DexScreener, etc.) returns, an open set by design (see
+          //     docs/MARKET_DATA.md) — can't allowlist a domain that doesn't exist yet.
+          // script-src/object-src/base-uri/form-action/frame-src ARE tightly scoped — those
+          // are the directives that actually stop injected-script and clickjacking-iframe
+          // attacks, so looseness elsewhere doesn't make this a no-op header.
+          // 'unsafe-inline' is required on both script-src (Next.js App Router streams RSC
+          // payloads via inline <script>self.__next_f.push(...)</script> tags) and style-src
+          // (Sparkline.tsx and others set inline `style={{ width, height }}`) — removing it
+          // needs a per-request nonce wired through middleware, a real follow-up, not
+          // something to half-do here. Verified against a real Chromium session (Playwright)
+          // hitting every major page — zero CSP violations in the console — before this
+          // shipped, not assumed from reading code alone.
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+              "object-src 'none'",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' https: data: blob:",
+              "font-src 'self' data:",
+              "connect-src 'self' https: wss:",
+              "frame-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
+              'upgrade-insecure-requests',
+            ].join('; '),
+          },
         ],
       },
     ];
