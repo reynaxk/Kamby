@@ -97,6 +97,17 @@ const marketB = marketSummary({
   tokenAddress: '0xbbbb000000000000000000000000000000000b',
   symbol: 'BBB',
 });
+// A real shape MarketService.discover() now returns (see toSolanaMarketSummary) — decimals/
+// quoteDecimals/feeTier null, chainIdentifier the bare 'solana' string, never selectable into
+// this EVM-only terminal.
+const marketSolana = marketSummary({
+  chainIdentifier: 'solana',
+  tokenAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+  symbol: 'Bonk',
+  decimals: null,
+  quoteDecimals: null,
+  feeTier: null,
+});
 
 const defaultProps = {
   ranked: [marketA, marketB],
@@ -175,5 +186,20 @@ describe('DiscoverTerminal', () => {
     await new Promise((r) => setTimeout(r, 10));
     expect(screen.getByTestId('trade-panel')).toHaveTextContent(marketC.tokenAddress);
     expect(screen.getByTestId('chart')).toHaveTextContent('1 candles');
+  });
+
+  // Real incident: a Solana row (chainIdentifier: 'solana') ranking #1 by volume became
+  // app/page.tsx's server-seeded default selection with no chain filter, sending its mint
+  // address to the EVM-only history/traders/activity endpoints — every one 400'd and the
+  // whole terminal showed "Couldn't load..." on first paint for every visitor. Fixed at the
+  // source (app/page.tsx now skips non-EVM rows when picking the default). A Solana row's
+  // left-rail button is also always `disabled` (DiscoverTokenList), so it can't be selected
+  // via a real click either — confirming that here too, since `disabled` is the only other
+  // thing standing between a Solana row and this terminal's EVM-only fetch effects.
+  it('never renders a Solana row as a clickable/selectable button', async () => {
+    render(<DiscoverTerminal {...defaultProps} ranked={[marketSolana, marketA]} />);
+
+    const solanaButton = await screen.findByRole('button', { name: /Bonk/ });
+    expect(solanaButton).toBeDisabled();
   });
 });

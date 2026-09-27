@@ -95,10 +95,15 @@ export default async function DiscoverPage({
   // DiscoverTerminal.tsx's own doc comment. Fetched server-side (not via the client
   // lib/market-client.ts etc. functions, which are only for later client-driven reselection)
   // so the default token's chart/activity/traders are already real on first paint, no
-  // loading flash. `ranked[0]` since it's the largest already-fetched list (limit: 20 vs.
-  // trending's 6 and movers/byVolume's 3) and the same ranking already anchoring the
-  // existing "What's moving" section below.
-  const defaultMarket = !search && ranked.length > 0 ? ranked[0] : undefined;
+  // loading flash. The highest-ranked *EVM* row, not simply `ranked[0]` — `ranked` now
+  // merges in Solana rows too (see MarketService.discover()), which are real markets but
+  // not selectable into this terminal (DiscoverTokenList's own doc comment: chart/trade
+  // routing resolves chain purely through CHAIN_REGISTRY, EVM-only). A Solana row ranking
+  // #1 by volume — which happens for real, e.g. JUP — previously became the default
+  // selection anyway, sending its mint address to the EVM-only history/traders/activity
+  // endpoints and showing "Couldn't load..." everywhere on first paint for every visitor,
+  // not just a real edge case.
+  const defaultMarket = !search ? ranked.find((m) => slugForIdentifier(m.chainIdentifier) !== null) : undefined;
   const defaultChainId = defaultMarket
     ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG]
         .numericId

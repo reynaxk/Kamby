@@ -46,6 +46,19 @@ function marketKey(market: MarketSummary): string {
   return `${market.chainIdentifier}:${market.tokenAddress}`;
 }
 
+/** Whether `selected` is a market this terminal's chart/activity/traders/trade fetches can
+ *  actually route (EVM-only — see dedupeMarkets above and DiscoverTokenList's own doc
+ *  comment). A real backstop, not a hypothetical: `app/page.tsx`'s server-seeded
+ *  `initialMarket` picking `ranked[0]` with no chain filter once let a Solana row (real
+ *  volume can rank it #1) become the default selection, sending its mint address to
+ *  EVM-only endpoints and showing "Couldn't load..." across the whole terminal on first
+ *  paint. That's fixed at the source now, but the left rail's `disabled` state is the only
+ *  other thing stopping a Solana row from becoming `selected` — this is the fetch-side
+ *  backstop in case that ever regresses. */
+function isEvmSelectable(market: MarketSummary): boolean {
+  return slugForIdentifier(market.chainIdentifier) !== null;
+}
+
 /** The pool every grid cell's own independent selector picks from — Markets/Trending/
  *  Movers/Volume, deduplicated by chain+address. Zero new fetches: these are the same
  *  lists the single-terminal's left rail already renders from. Solana rows are filtered out
@@ -149,7 +162,7 @@ export function DiscoverTerminal({
       skipCandlesFetch.current = false;
       return;
     }
-    if (!selected) return;
+    if (!selected || !isEvmSelectable(selected)) return;
     let cancelled = false;
     setCandlesStatus('loading');
     fetchTokenHistory(selected.tokenAddress, timeframe, chainIdFor(selected))
@@ -171,7 +184,7 @@ export function DiscoverTerminal({
       skipActivityFetch.current = false;
       return;
     }
-    if (!selected) return;
+    if (!selected || !isEvmSelectable(selected)) return;
     let cancelled = false;
     setActivityStatus('loading');
     fetchLatestActivity({ tokenAddress: selected.tokenAddress, limit: 10 })
@@ -194,7 +207,7 @@ export function DiscoverTerminal({
       skipTradersFetch.current = false;
       return;
     }
-    if (!selected) return;
+    if (!selected || !isEvmSelectable(selected)) return;
     let cancelled = false;
     setTradersStatus('loading');
     fetchTokenTraders(selected.tokenAddress, chainIdFor(selected), 8)
