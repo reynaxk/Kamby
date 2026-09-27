@@ -19,7 +19,6 @@ import { PersonalizedSection } from '@/components/discovery/PersonalizedSection'
 import { RisingSection } from '@/components/discovery/RisingSection';
 import { SavedSearches } from '@/components/discovery/SavedSearches';
 import { WhatsMissedSection } from '@/components/discovery/WhatsMissedSection';
-import { HomeGate } from '@/components/welcome/HomeGate';
 import { fetchDiscoverMarkets, fetchSearch, fetchTokenHistory } from '@/lib/market-api';
 import {
   fetchGlobalActivity,
@@ -119,12 +118,12 @@ export default async function DiscoverPage({
     : [[], { items: [], nextCursor: null }, EMPTY_TOKEN_TRADER_CONNECTION];
 
   return (
-    // HomeGate — added 2026-09-22: a signed-out visitor sees components/welcome/WelcomePage
-    // instead of everything below, once Privy's auth state resolves client-side. The full
-    // terminal markup below is still server-rendered regardless (cheap, revalidate-cached,
-    // all public data) — HomeGate just decides whether to actually display it. See its own
-    // doc comment for why this can't be a server-side/middleware redirect in this app.
-    <HomeGate>
+    // No auth gate here (removed 2026-09-27 — see docs/MARKET_DATA.md's own note): every
+    // other real route (individual token pages, /leaderboard, /trades, /watchlist) has always
+    // been reachable by a signed-out visitor, and gating the primary Markets/Trending/Movers/
+    // Volume browsing experience behind sign-in directly worked against discoverability, the
+    // whole point of the Discover terminal existing.
+    <>
       {/* kamby-void — see globals.css's own doc comment. Discover is one of the two
           highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
           the other); the rest of the product still runs the original light/dark palette. */}
@@ -327,6 +326,6 @@ export default async function DiscoverPage({
           </section>
         </main>
       </div>
-    </HomeGate>
+    </>
   );
 }
