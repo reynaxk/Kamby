@@ -1116,3 +1116,49 @@ model PumpFunToken {
   @@index([graduatedAt])
   @@map("pump_fun_tokens")
 }
+
+/// Established Solana tokens (real Raydium/Orca liquidity — BONK/WIF/JUP-class, distinct
+/// from Pump.fun's pre-graduation bonding-curve tokens above) shown in the Markets/
+/// Trending/Movers/Volume tabs alongside TokenMarket's EVM rows. A deliberate, separate
+/// concrete model rather than forced into TokenMarket — same "concrete separate types over
+/// one forced-shared abstraction" precedent as PumpFunToken above; TokenMarket's feeTier/
+/// pairAddress-as-pool-contract shape and its whole ingestion pipeline are Uniswap-V3-
+/// specific and don't fit a Solana AMM at all.
+///
+/// A genuine, deliberate exception to this codebase's usual rule (see TokenMarket.volume24hUsd's
+/// own comment: "not borrowed from a third party"): there is no on-chain equivalent to
+/// UniswapV3PoolReader's slot0()-style read across arbitrary Solana AMM programs without
+/// picking one (e.g. Raydium) and building real ingestion for it — a much bigger project,
+/// deliberately deferred. DexScreener's public API is the actual source of truth here for
+/// price/liquidity/volume, not just used for discovery — confirmed and accepted 2026-09-24
+/// as the pragmatic tradeoff for shipping this now.
+model SolanaTokenMarket {
+  id          String  @id @default(uuid())
+  mintAddress String  @unique @map("mint_address")
+
+  /// From DexScreener's own token metadata — nullable until a first successful poll, never
+  /// fabricated, same convention as Token.symbol/name.
+  symbol   String?
+  name     String?
+  decimals Int?
+  logoUrl  String? @map("logo_url")
+
+  /// The pair's quote token (e.g. SOL's own mint) — always present once a pool is found,
+  /// same "always present" guarantee TokenMarket.quoteTokenId gives MarketSummary.quoteAddress.
+  quoteMintAddress String  @map("quote_mint_address")
+  quoteSymbol      String? @map("quote_symbol")
+  dex              String?
+
+  priceUsd          Decimal?  @map("price_usd") @db.Decimal(38, 18)
+  liquidityUsd      Decimal?  @map("liquidity_usd") @db.Decimal(38, 18)
+  volume24hUsd      Decimal?  @map("volume_24h_usd") @db.Decimal(38, 18)
+  priceChange24hPct Decimal?  @map("price_change_24h_pct") @db.Decimal(12, 4)
+  marketCapUsd      Decimal?  @map("market_cap_usd") @db.Decimal(38, 2)
+  lastPriceUpdateAt DateTime? @map("last_price_update_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([liquidityUsd])
+  @@map("solana_token_markets")
+}

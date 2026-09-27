@@ -141,4 +141,29 @@ describe('DiscoverTokenList', () => {
 
     expect(screen.getByText(/AAA.*\(disabled\)/)).toBeInTheDocument();
   });
+
+  it('shows a Solana row (browsable) but marks it disabled — no click-through yet, same as Trenches', () => {
+    render(
+      <DiscoverTokenList
+        {...defaultProps}
+        ranked={[fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ...' })]}
+      />,
+    );
+
+    expect(screen.getByText(/BONK.*\(disabled\)/)).toBeInTheDocument();
+  });
+
+  it('does not disable a real EVM row just because a Solana row is also present', () => {
+    render(
+      <DiscoverTokenList
+        {...defaultProps}
+        ranked={[
+          fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ...' }),
+          fakeMarket({ symbol: 'AAA' }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('AAA')).toBeInTheDocument();
+  });
 });
