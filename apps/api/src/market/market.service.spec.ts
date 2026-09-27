@@ -107,6 +107,49 @@ describe('MarketService — chain scoping (2026-09-15 chainId/Chain.id mismatch 
       await expect(service.getHistory(TOKEN_ADDRESS, 999_999, '1D')).rejects.toThrow(NotFoundException);
       expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
     });
+
+    // Added 2026-09-27: 1m/5m are genuinely finer than anything the pre-materialized
+    // `candles` table stores (its own native bucket is 5 minutes) — recovering 1-minute
+    // detail from already-5-minute-bucketed rows is mathematically impossible, so these two
+    // must read from raw `swaps` instead. Every other timeframe keeps reading `candles`,
+    // same as before this feature existed.
+    it('reads from raw swaps, not the pre-aggregated candles table, for a fine (1m) timeframe', async () => {
+      (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(fakeMarketRow());
+      (mockedPrisma.$queryRaw as jest.Mock).mockResolvedValue([]);
+
+      await service.getHistory(TOKEN_ADDRESS, 8453, '1m');
+
+      const sqlFragments = (mockedPrisma.$queryRaw as jest.Mock).mock.calls[0][0] as string[];
+      const sql = sqlFragments.join('');
+      expect(sql).toContain('FROM swaps');
+      expect(sql).not.toContain('FROM candles');
+      expect(sql).toContain('block_timestamp');
+    });
+
+    it('still reads from the pre-aggregated candles table for a coarse (1D) timeframe', async () => {
+      (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(fakeMarketRow());
+      (mockedPrisma.$queryRaw as jest.Mock).mockResolvedValue([]);
+
+      await service.getHistory(TOKEN_ADDRESS, 8453, '1D');
+
+      const sqlFragments = (mockedPrisma.$queryRaw as jest.Mock).mock.calls[0][0] as string[];
+      const sql = sqlFragments.join('');
+      expect(sql).toContain('FROM candles');
+      expect(sql).not.toContain('FROM swaps');
+    });
+
+    it('accepts both new fine timeframes (1m, 5m) and returns real parsed candles', async () => {
+      (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(fakeMarketRow());
+      (mockedPrisma.$queryRaw as jest.Mock).mockResolvedValue([
+        { bucket_start: new Date('2026-09-27T00:00:00Z'), open: fakeDecimal(1), high: fakeDecimal(1.1), low: fakeDecimal(0.9), close: fakeDecimal(1.05), volume_usd: fakeDecimal(500) },
+      ]);
+
+      const result = await service.getHistory(TOKEN_ADDRESS, 8453, '5m');
+
+      expect(result).toEqual([
+        { bucketStart: '2026-09-27T00:00:00.000Z', open: 1, high: 1.1, low: 0.9, close: 1.05, volumeUsd: 500 },
+      ]);
+    });
   });
 
   describe('getTokenTraders', () => {

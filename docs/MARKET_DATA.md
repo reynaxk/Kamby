@@ -258,10 +258,24 @@ than pre-materializing every timeframe as its own table. Simpler to get right at
 data volume; Timescale continuous aggregates are the documented upgrade path once raw-candle
 volume makes query-time aggregation slow.
 
+**1m/5m (added 2026-09-27) read straight from `swaps`, never from `candles`.** You cannot
+recover 1-minute resolution by re-`time_bucket()`-ing rows that were already coarsened to 5
+minutes on write — the finer detail is simply gone. `getHistory()` branches on
+`FINE_TIMEFRAMES` (`market.service.ts`) to run the identical `time_bucket()` aggregation
+directly against `swaps.block_timestamp`/`price_usd`/`volume_usd` for just these two,
+scoped to a short lookback (1m → 1h, 5m → 6h) so the query stays cheap. A thinly-traded
+market simply has empty buckets at this resolution — never backfilled, same as any real
+candlestick chart. `1m`/`5m` deliberately break from every other timeframe's "label names
+the lookback window" convention: for these two the label names the *bucket width* instead
+(a literal "last 1 minute of history" chart would be useless), matching how every other real
+trading terminal's minute-scale timeframes work.
+
 `swaps` is a plain indexed table, not (yet) a hypertable — its idempotency key
 `(chain_id, tx_hash, log_index)` doesn't include `block_timestamp`, and TimescaleDB
 requires the partitioning column be part of every unique constraint on a hypertable.
-Fine at Phase 1's bounded market count; revisit when swap volume actually justifies it.
+Fine at Phase 1's bounded market count and at the short, bounded lookback windows 1m/5m
+query; revisit if either swap volume or these two timeframes' popularity grows enough to
+make an unindexed-by-time scan slow.
 
 ## Ranking (`/market/discover`)
 
@@ -308,7 +322,7 @@ never talks to anything but the Next.js server, which talks to the API server-si
 | --- | --- |
 | `GET /v1/market/discover` | `?sort=score\|volume\|liquidity\|priceChange&limit=1-100&search=` |
 | `GET /v1/market/tokens/:address` | 404 if untracked, 400 if not address-shaped |
-| `GET /v1/market/tokens/:address/history` | `?timeframe=1H\|4H\|1D\|1W\|1M`, empty array (not an error) when there's no history yet |
+| `GET /v1/market/tokens/:address/history` | `?timeframe=1m\|5m\|1H\|4H\|1D\|1W\|1M`, empty array (not an error) when there's no history yet |
 | `GET /v1/market/search` | `?q=&limit=1-50`, `q` required and non-empty |
 
 ## Real-time updates

@@ -1,12 +1,17 @@
 import { z } from 'zod';
 
 /**
- * The chart/aggregation timeframes the history endpoint accepts. Each maps to a
- * `time_bucket` width applied to the raw 5-minute candles at query time — see
- * docs/MARKET_DATA.md for why buckets are aggregated on read rather than pre-materialized
- * per timeframe.
+ * The chart/aggregation timeframes the history endpoint accepts. `1H` and coarser map to a
+ * `time_bucket` width applied to the pre-materialized `candles` table (itself only ever
+ * written at a 5-minute native bucket — see MARKET_INGESTION's own `BUCKET_MINUTES`), the
+ * same "aggregate on read" pattern this file has always used. `1m`/`5m` are genuinely finer
+ * than that stored floor, added 2026-09-27 — they read straight from the raw `swaps` table
+ * instead (real per-trade price/timestamp data already exists there), bucketed at query
+ * time the same way. Lowercase `m` for minutes vs. uppercase `M` for month is a deliberate,
+ * industry-standard distinction (matching TradingView's own convention), not a typo — `1m`
+ * and `1M` are not the same timeframe. See docs/MARKET_DATA.md#timeframes.
  */
-export const TIMEFRAMES = ['1H', '4H', '1D', '1W', '1M'] as const;
+export const TIMEFRAMES = ['1m', '5m', '1H', '4H', '1D', '1W', '1M'] as const;
 export type Timeframe = (typeof TIMEFRAMES)[number];
 
 export const DiscoverSortSchema = z.enum(['score', 'volume', 'liquidity', 'priceChange']);

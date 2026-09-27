@@ -28,14 +28,29 @@ const ACTIVITY_INCLUDE = {
  *  and time-boxed (24h) so this is always a cheap, bounded query, never a full-history scan. */
 const TOKEN_TRADER_LOOKBACK_HOURS = 24;
 
-/** bucket width and lookback window per chart timeframe — see docs/MARKET_DATA.md#timeframes. */
+/** bucket width and lookback window per chart timeframe — see docs/MARKET_DATA.md#timeframes.
+ *  `1m`/`5m` read from raw `swaps` (see `FINE_TIMEFRAMES` below), so their bucket width is
+ *  genuinely the chart's candle width, not just a `candles`-table re-aggregation step; the
+ *  rest keep the established "label names the lookback window, bucket chosen for a
+ *  reasonable candle count" convention this file already used before 2026-09-27. */
 const TIMEFRAME_CONFIG: Record<Timeframe, { bucket: string; lookback: string }> = {
+  '1m': { bucket: '1 minute', lookback: '1 hour' },
+  '5m': { bucket: '5 minutes', lookback: '6 hours' },
   '1H': { bucket: '5 minutes', lookback: '1 hour' },
   '4H': { bucket: '15 minutes', lookback: '4 hours' },
   '1D': { bucket: '1 hour', lookback: '1 day' },
   '1W': { bucket: '4 hours', lookback: '7 days' },
   '1M': { bucket: '1 day', lookback: '30 days' },
 };
+
+/** Genuinely finer than anything `candles` stores (that table's native bucket is 5 minutes —
+ *  see `BUCKET_MINUTES` in apps/workers' ingestion.ts). These two read straight from `swaps`
+ *  instead: real per-trade price/timestamp data already exists there, so this is honest,
+ *  not-fabricated resolution, not a re-aggregation of already-coarsened data (which is
+ *  mathematically impossible — you cannot recover 1-minute detail from 5-minute buckets). A
+ *  thinly-traded market simply has empty buckets at this resolution, same as any real
+ *  candlestick chart — never backfilled with a fake flat line. */
+const FINE_TIMEFRAMES: ReadonlySet<Timeframe> = new Set(['1m', '5m']);
 
 @Injectable()
 export class MarketService {
@@ -266,29 +281,36 @@ export class MarketService {
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
 
     const { bucket, lookback } = TIMEFRAME_CONFIG[timeframe];
-    const rows = await prisma.$queryRaw<
-      {
-        bucket_start: Date;
-        open: unknown;
-        high: unknown;
-        low: unknown;
-        close: unknown;
-        volume_usd: unknown;
-      }[]
-    >`
-      SELECT
-        time_bucket(${bucket}::interval, bucket_start) AS bucket_start,
-        (array_agg(open ORDER BY bucket_start ASC))[1] AS open,
-        MAX(high) AS high,
-        MIN(low) AS low,
-        (array_agg(close ORDER BY bucket_start DESC))[1] AS close,
-        SUM(volume_usd) AS volume_usd
-      FROM candles
-      WHERE token_market_id = ${market.id}::text
-        AND bucket_start >= NOW() - ${lookback}::interval
-      GROUP BY 1
-      ORDER BY 1 ASC
-    `;
+    type CandleRow = { bucket_start: Date; open: unknown; high: unknown; low: unknown; close: unknown; volume_usd: unknown };
+    const rows = FINE_TIMEFRAMES.has(timeframe)
+      ? await prisma.$queryRaw<CandleRow[]>`
+          SELECT
+            time_bucket(${bucket}::interval, block_timestamp) AS bucket_start,
+            (array_agg(price_usd ORDER BY block_timestamp ASC))[1] AS open,
+            MAX(price_usd) AS high,
+            MIN(price_usd) AS low,
+            (array_agg(price_usd ORDER BY block_timestamp DESC))[1] AS close,
+            SUM(volume_usd) AS volume_usd
+          FROM swaps
+          WHERE token_market_id = ${market.id}::text
+            AND block_timestamp >= NOW() - ${lookback}::interval
+          GROUP BY 1
+          ORDER BY 1 ASC
+        `
+      : await prisma.$queryRaw<CandleRow[]>`
+          SELECT
+            time_bucket(${bucket}::interval, bucket_start) AS bucket_start,
+            (array_agg(open ORDER BY bucket_start ASC))[1] AS open,
+            MAX(high) AS high,
+            MIN(low) AS low,
+            (array_agg(close ORDER BY bucket_start DESC))[1] AS close,
+            SUM(volume_usd) AS volume_usd
+          FROM candles
+          WHERE token_market_id = ${market.id}::text
+            AND bucket_start >= NOW() - ${lookback}::interval
+          GROUP BY 1
+          ORDER BY 1 ASC
+        `;
 
     return rows.map((r) =>
       CandleSchema.parse({
