@@ -234,24 +234,32 @@ export function DiscoverTerminal({
   const canTrade = selected !== null && selected.decimals !== null && selected.quoteDecimals !== null && chainId !== null;
   const [filteredTrades, overlayControls] = useChartOverlayFilter(traders.recentLargeTrades);
 
+  // Was `justify-end` with nothing else in the row — on desktop that left a full-width band
+  // of empty space above the terminal, with only the layout-mode pills floating at the far
+  // right. A real page heading now anchors the row's left side, which also does real work
+  // (orienting a visitor to which page they're on, the way /leaderboard's own `<h1>` does)
+  // rather than just filling space for its own sake.
   const layoutToggle = (
-    <div className="mb-3 hidden items-center justify-end gap-2 lg:flex">
-      <LayoutGrid className="h-3.5 w-3.5 text-ink-400" aria-hidden />
-      <div className="inline-flex rounded-lg border border-line bg-surface p-1">
-        {GRID_MODES.map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setGridMode(mode)}
-            aria-pressed={gridMode === mode}
-            className={cn(
-              'rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors',
-              gridMode === mode ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
-            )}
-          >
-            {mode}-up
-          </button>
-        ))}
+    <div className="mb-3 hidden items-center justify-between gap-2 lg:flex">
+      <h1 className="font-display text-lg font-bold tracking-tight text-ink-900">Discover</h1>
+      <div className="flex items-center gap-2">
+        <LayoutGrid className="h-3.5 w-3.5 text-ink-400" aria-hidden />
+        <div className="inline-flex rounded-lg border border-line bg-surface p-1">
+          {GRID_MODES.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setGridMode(mode)}
+              aria-pressed={gridMode === mode}
+              className={cn(
+                'rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors',
+                gridMode === mode ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
+              )}
+            >
+              {mode}-up
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
