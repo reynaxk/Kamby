@@ -25,7 +25,10 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
-            : 'flex items-center gap-2 rounded-xl border border-line bg-surface-raised px-4 py-2.5 font-body text-sm font-semibold text-ink-900 transition-colors hover:border-accent/60 hover:text-accent',
+            // shrink-0 here too, not just on the icon variant above — without it, the button
+            // could shrink below "Fund wallet"'s natural width in a tight flex row (e.g. next
+            // to Send on /account), wrapping the two-word label onto two lines.
+            : 'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-line bg-surface-raised px-4 py-2.5 font-body text-sm font-semibold text-ink-900 transition-colors hover:border-accent/60 hover:text-accent',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
