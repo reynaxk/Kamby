@@ -71,9 +71,9 @@ export default async function DiscoverPage({
     // explicit search should hit instead; the ranked feed stays ranked-only when browsing.
     search
       ? settledOr(fetchSearch(search, 20), [])
-      : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20 }), []),
-    settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 3, search }), []),
-    settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 3, search }), []),
+      : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 100 }), []),
+    settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 50, search }), []),
+    settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 50, search }), []),
     // 12, not 6: the top few trending slots are usually majors (WETH/cbBTC/...), so a
     // shallower list starved both the Trending tab and pickDefaultMarket's pool of smaller
     // curated coins (ZORA/CLANKER/BRETT/TOSHI/DEGEN). The card grid below still shows 6.
@@ -191,7 +191,7 @@ export default async function DiscoverPage({
                 liquidity. See how it&apos;s computed in the token detail page.
               </p>
               <div className="mt-5">
-                <MarketTable markets={ranked} />
+                <MarketTable markets={ranked.slice(0, 20)} />
               </div>
             </section>
 
@@ -304,7 +304,7 @@ export default async function DiscoverPage({
                   <EmptyState title="No movement data yet" />
                 ) : (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {movers.map((market) => (
+                    {movers.slice(0, 3).map((market) => (
                       <TokenCard key={market.tokenAddress} market={market} />
                     ))}
                   </div>
@@ -322,7 +322,7 @@ export default async function DiscoverPage({
                   <EmptyState title="No volume data yet" />
                 ) : (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {byVolume.map((market) => (
+                    {byVolume.slice(0, 3).map((market) => (
                       <TokenCard key={market.tokenAddress} market={market} />
                     ))}
                   </div>
