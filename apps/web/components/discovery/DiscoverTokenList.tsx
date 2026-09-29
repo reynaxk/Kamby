@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { slugForIdentifier, type MarketSummary, type TrendingToken } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { EmptyState } from '@/components/market/EmptyState';
 import { TrenchesPanel } from '@/components/terminal/TrenchesPanel';
+import { solanaMarketHref } from '@/lib/solana-links';
 import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
 import { TradersSidebar } from './TradersSidebar';
@@ -71,11 +73,10 @@ export function TerminalPrimaryNav({
  *
  * Markets/Trending/Movers/Volume rows can now include established Solana tokens (BONK/WIF/
  * JUP-class — see SolanaTokenMarket's own doc comment in schema.prisma), identified by
- * `chainIdentifier: 'solana'`. Same "no click-through" treatment as Trenches above, for the
- * same reason: DiscoverTerminal's selection/chart/trade flow resolves chain purely through
- * CHAIN_REGISTRY (EVM-only) — selecting a Solana row there would silently fall back to
- * treating it as a Base token. Disabled here via the same visual state `selectionDisabled`
- * already uses, rather than a separate "not clickable" concept.
+ * `chainIdentifier: 'solana'`. They can't be *selected* into DiscoverTerminal's chart/trade
+ * flow — that resolves chain purely through CHAIN_REGISTRY (EVM-only), so a Solana row there
+ * would silently be treated as a Base token — so clicking one navigates to /solana?mint=
+ * instead, where the Solana trade panel handles it.
  */
 export function DiscoverTokenList({
   ranked,
@@ -100,6 +101,7 @@ export function DiscoverTokenList({
   onPrimaryTabChange?: (tab: PrimaryTab) => void;
   showPrimaryNav?: boolean;
 }) {
+  const router = useRouter();
   const [uncontrolledPrimaryTab, setUncontrolledPrimaryTab] = useState<PrimaryTab>('tokens');
   const [tokenTab, setTokenTab] = useState<TokenTab>('markets');
   const primaryTab = activePrimaryTab ?? uncontrolledPrimaryTab;
@@ -163,15 +165,16 @@ export function DiscoverTokenList({
             ) : (
               rowsFor[tokenTab as Exclude<TokenTab, 'trenches'>].map((market) => {
                 const key = `${market.chainIdentifier}:${market.tokenAddress}`;
-                // Solana rows aren't selectable yet — see this component's own doc comment.
+                // Solana rows open the Solana trade page — see this component's doc comment.
                 const selectable = slugForIdentifier(market.chainIdentifier) !== null;
+                const isSolana = market.chainIdentifier === 'solana';
                 return (
                   <SelectableTokenRow
                     key={key}
                     market={market}
                     selected={key === selectedKey}
-                    onSelect={onSelect}
-                    disabled={selectionDisabled || !selectable}
+                    onSelect={isSolana ? () => router.push(solanaMarketHref(market.tokenAddress)) : onSelect}
+                    disabled={isSolana ? false : selectionDisabled || !selectable}
                   />
                 );
               })

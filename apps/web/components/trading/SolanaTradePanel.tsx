@@ -5,7 +5,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useSignAndSendTransaction, useSignTransaction, useWallets, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana';
 import { Connection } from '@solana/web3.js';
 import { Button, cn } from '@kamby/ui';
-import { isQuoteExpired, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
+import { isQuoteExpired, SOLANA_NATIVE_MINT, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
 import bs58 from 'bs58';
 import { ArrowLeft, CheckCircle2, TrendingDown, TrendingUp, XCircle } from 'lucide-react';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
@@ -25,6 +25,8 @@ import { SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
 import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
+import { SplAmountInput } from './SplAmountInput';
+import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
 
 export interface SolanaTradePanelProps {
@@ -60,20 +62,17 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-const SOL_DECIMALS = 9;
 const USDC_DECIMALS = 6;
 
 /** The confirmed-trade toast needs a real, correctly-scaled amount — unlike
  *  SolanaQuoteSummary's deliberate "N raw units" label elsewhere in this file's own review
  *  step (honest about not resolving an arbitrary SPL mint's decimals), a success toast has
  *  no room for that caveat and a bare 6-9-digit raw integer here would just look broken.
- *  BUY's output is always SOL (fixed, known decimals, unlike an arbitrary mint); SELL's
- *  output is always USDC — same "always one fixed leg" reasoning as toSocialActivity's own
- *  comment on the backend. */
-function formatReceivedAmount(side: TradeSide, rawAmount: string): string {
-  if (side === 'BUY') {
-    return `${(Number(rawAmount) / 10 ** SOL_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 4 })} SOL`;
-  }
+ *  BUY's output is the traded token, scaled by its on-chain decimals (see useMintDecimals);
+ *  SELL's output is always USDC — same "always one fixed leg" reasoning as
+ *  toSocialActivity's own comment on the backend. */
+function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string | null, decimals: number | null): string {
+  if (side === 'BUY') return formatTokenAmount(rawAmount, decimals, symbol);
   return `$${(Number(rawAmount) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })} USDC`;
 }
 
@@ -110,6 +109,12 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const { signAndSendTransaction } = useSignAndSendTransaction();
   const { signTransaction } = useSignTransaction();
   const toast = useTerminalToast();
+  const tokenDecimals = useMintDecimals(tokenMint);
+  const isNativeSol = tokenMint === SOLANA_NATIVE_MINT;
+  // Read inside the confirmation poll's interval callback, which would otherwise close over
+  // the value from whenever polling started.
+  const tokenDecimalsRef = useRef(tokenDecimals);
+  tokenDecimalsRef.current = tokenDecimals;
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
@@ -182,7 +187,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
             toast.update(activeToastIdRef.current, {
               variant: 'success',
               title: 'Trade confirmed',
-              description: formatReceivedAmount(tx.side, tx.expectedOutputAmount),
+              description: formatReceivedAmount(tx.side, tx.expectedOutputAmount, tokenSymbol, tokenDecimalsRef.current),
               solscanUrl: `https://solscan.io/tx/${tx.signature}`,
             });
           }
@@ -424,7 +429,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     if (!quote) return null;
     return (
       <Panel title="Review trade" onBack={step === 'review' ? () => setStep('form') : undefined}>
-        <SolanaQuoteSummary quote={quote} />
+        <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} />
         {gasless && (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
             Gasless — Kamby pays the Solana network fee for this trade. One signature, no SOL needed.
@@ -467,8 +472,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
                 key={s}
                 type="button"
                 onClick={() => {
-                  // BUY's amount is raw USDC (6 decimals); SELL's is raw SOL (9 decimals,
-                  // see SolAmountInput's own doc comment) — a stale value from the other
+                  // BUY's amount is raw USDC (6 decimals); SELL's is raw units of the token
+                  // itself (see SolAmountInput/SplAmountInput) — a stale value from the other
                   // side would get silently reinterpreted in the wrong unit otherwise.
                   setSide(s);
                   setAmount('');
@@ -501,7 +506,18 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
         {side === 'BUY' ? (
           <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
         ) : (
-          <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+          isNativeSol ? (
+            <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+          ) : (
+            <SplAmountInput
+              value={amount}
+              onChange={setAmount}
+              walletAddress={wallet.address}
+              mint={tokenMint}
+              symbol={tokenSymbol}
+              decimals={tokenDecimals}
+            />
+          )
         )}
         <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
         <GaslessToggle value={gasless} onChange={setGasless} label="Gasless (no SOL needed)" />
@@ -509,7 +525,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
             through Jito — showing this control while gasless is on would offer a choice
             that silently does nothing, see GaslessToggle's own doc comment. */}
         {!gasless && <JitoTipControl valueLamports={jitoTipLamports} onChange={setJitoTipLamports} />}
-        {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} compact />}
+        {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
         {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
         <Button
           type="button"
@@ -526,6 +542,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           lands on the review step rather than executing directly. `pb-[env(safe-area-inset-bottom)]`
           keeps it clear of a phone's home-bar gesture area. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden">
+        {/* SOL presets only make sense when selling SOL itself — an SPL sell uses the main
+            form's percentage presets instead (see SplAmountInput). */}
+        {(side === 'BUY' || isNativeSol) && (
         <div className="flex gap-1.5">
           {(side === 'BUY' ? USD_PRESETS : SOL_PRESETS).map((preset) => (
             <button
@@ -538,6 +557,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
             </button>
           ))}
         </div>
+        )}
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}

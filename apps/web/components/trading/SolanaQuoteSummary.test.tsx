@@ -23,6 +23,14 @@ function baseQuote(overrides: Partial<SolanaTradeQuoteDto> = {}): SolanaTradeQuo
 }
 
 describe('SolanaQuoteSummary', () => {
+  it('formats the token leg with its real decimals once they are known', () => {
+    render(<SolanaQuoteSummary quote={baseQuote({ outputAmountRaw: '135580000000', minOutputAmountRaw: '134224200000' })} tokenSymbol="Bonk" tokenDecimals={5} />);
+
+    expect(screen.getByText('1,355,800 Bonk')).toBeInTheDocument();
+    expect(screen.getByText('1,342,242 Bonk')).toBeInTheDocument();
+    expect(screen.queryByText(/raw units/)).not.toBeInTheDocument();
+  });
+
   it('shows a BUY trade in USDC in, raw units out', () => {
     render(<SolanaQuoteSummary quote={baseQuote()} />);
 

@@ -54,10 +54,15 @@ describe('MarketTable', () => {
 
   it('does not route an unsupported chain to a false Base market page', () => {
     render(
-      <MarketTable markets={[fakeMarket({ chainIdentifier: 'solana', tokenAddress: 'So111' })]} />,
+      <MarketTable markets={[fakeMarket({ chainIdentifier: 'eip155:999999', tokenAddress: '0xabc' })]} />,
     );
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(screen.getByTitle(/not tradeable here yet/i)).toBeInTheDocument();
+  });
+
+  it('links a Solana market to the Solana trade page, not a false Base market page', () => {
+    render(<MarketTable markets={[fakeMarket({ chainIdentifier: 'solana', tokenAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' })]} />);
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/solana?mint=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263');
   });
 
   it('shows the stale badge only for a market whose price data is actually stale', () => {

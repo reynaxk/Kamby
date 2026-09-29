@@ -12,6 +12,8 @@ const { fetchTokenHistoryMock, fetchLatestActivityMock, fetchTokenTradersMock } 
   fetchTokenTradersMock: vi.fn(),
 }));
 
+const routerPush = vi.hoisted(() => vi.fn());
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: routerPush }) }));
 vi.mock('@/lib/market-client', () => ({ fetchTokenHistory: fetchTokenHistoryMock }));
 vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivityMock, checkFollowStatus: vi.fn().mockResolvedValue(false) }));
 // useChartOverlayFilter calls wagmi's useAccount directly (not through a mocked child
@@ -200,10 +202,12 @@ describe('DiscoverTerminal', () => {
   // left-rail button is also always `disabled` (DiscoverTokenList), so it can't be selected
   // via a real click either — confirming that here too, since `disabled` is the only other
   // thing standing between a Solana row and this terminal's EVM-only fetch effects.
-  it('never renders a Solana row as a clickable/selectable button', async () => {
+  it('never selects a Solana row into the EVM terminal — clicking it opens the Solana trade page', async () => {
     render(<DiscoverTerminal {...defaultProps} ranked={[marketSolana, marketA]} />);
 
     const solanaButton = await screen.findByRole('button', { name: /Bonk/ });
-    expect(solanaButton).toBeDisabled();
+    await userEvent.click(solanaButton);
+    expect(routerPush).toHaveBeenCalledWith(`/solana?mint=${marketSolana.tokenAddress}`);
+    expect(fetchTokenHistoryMock).not.toHaveBeenCalled();
   });
 });

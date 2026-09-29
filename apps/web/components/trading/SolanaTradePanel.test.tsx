@@ -185,7 +185,7 @@ describe('SolanaTradePanel', () => {
   it('shows a sign-in prompt, never the trade form, when no wallet is connected yet', () => {
     usePrivyMock.mockReturnValue({ ready: true, authenticated: false, login: loginMock });
     useWalletsMock.mockReturnValue({ wallets: [] });
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Amount')).not.toBeInTheDocument();
   });
@@ -193,7 +193,7 @@ describe('SolanaTradePanel', () => {
   it('sign-in calls Privy login()', async () => {
     usePrivyMock.mockReturnValue({ ready: true, authenticated: false, login: loginMock });
     useWalletsMock.mockReturnValue({ wallets: [] });
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(loginMock).toHaveBeenCalledTimes(1);
   });
@@ -206,14 +206,14 @@ describe('SolanaTradePanel', () => {
       isConnected: true,
       address: WALLET_ADDRESS,
     });
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     expect(screen.getByRole('button', { name: 'Verify wallet' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Amount')).not.toBeInTheDocument();
   });
 
   it('fetches a real quote after an amount is entered and enables Review once it resolves', async () => {
     getSolanaQuoteMock.mockResolvedValue(fakeQuote());
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await fillAmountAndWaitForQuote();
 
@@ -222,7 +222,7 @@ describe('SolanaTradePanel', () => {
 
   it('never enables Review while the quote is still loading or failed', async () => {
     getSolanaQuoteMock.mockRejectedValue(new Error('No live quote is available'));
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await userEvent.type(screen.getByLabelText('Amount'), '10000000');
     await waitFor(() => expect(getSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
@@ -233,7 +233,7 @@ describe('SolanaTradePanel', () => {
 
   it('switching to SELL relabels the review/confirm actions accordingly', async () => {
     getSolanaQuoteMock.mockResolvedValue(fakeQuote({ side: 'SELL' }));
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await userEvent.click(screen.getByRole('button', { name: /Sell SOL/i }));
     await fillAmountAndWaitForQuote();
@@ -244,7 +244,7 @@ describe('SolanaTradePanel', () => {
   it('clears a typed amount when switching sides, rather than reinterpreting it in the wrong unit', async () => {
     // BUY's amount is raw USDC (6 decimals); SELL's is raw SOL (9 decimals) — carrying a
     // stale value across the switch would silently misinterpret it in the new unit.
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await userEvent.type(screen.getByLabelText('Amount'), '10000000');
     expect(screen.getByLabelText('Amount')).toHaveValue('10000000');
@@ -260,7 +260,7 @@ describe('SolanaTradePanel', () => {
     signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
     submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
@@ -285,7 +285,7 @@ describe('SolanaTradePanel', () => {
     sendRawTransactionMock.mockResolvedValue('a-real-looking-signature');
     submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Low' })); // JitoTipControl preset
     await fillAmountAndWaitForQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
@@ -298,7 +298,7 @@ describe('SolanaTradePanel', () => {
 
   it('turning on Gasless fetches a sponsored quote instead of the normal one', async () => {
     getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
@@ -317,7 +317,7 @@ describe('SolanaTradePanel', () => {
     signTransaction.mockResolvedValue({ signedTransaction: new Uint8Array([9, 9, 9]) });
     submitSponsoredSolanaTransactionMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true }));
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
@@ -342,7 +342,7 @@ describe('SolanaTradePanel', () => {
     signTransaction.mockResolvedValue({ signedTransaction: new Uint8Array([9, 9, 9]) });
     submitSponsoredSolanaTransactionMock.mockRejectedValue(new Error('Gas sponsorship is not enabled on this deployment'));
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
@@ -356,7 +356,7 @@ describe('SolanaTradePanel', () => {
     getSolanaQuoteMock.mockResolvedValue(fakeQuote());
     signAndSendTransaction.mockRejectedValue(new Error('User rejected the request'));
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
@@ -371,7 +371,7 @@ describe('SolanaTradePanel', () => {
     signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
     submitSolanaTransactionMock.mockRejectedValue(new Error('network blip'));
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
@@ -388,7 +388,7 @@ describe('SolanaTradePanel', () => {
     submitSolanaTransactionMock.mockRejectedValueOnce(new Error('network blip'));
     submitSolanaTransactionMock.mockResolvedValueOnce(fakeTransaction());
 
-    render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
@@ -411,7 +411,7 @@ describe('SolanaTradePanel', () => {
       submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
       getSolanaTransactionMock.mockResolvedValue(fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date().toISOString() }));
 
-      render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+      render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
       await fillAmountAndWaitForQuote();
       await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
       await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
@@ -436,7 +436,7 @@ describe('SolanaTradePanel', () => {
       // SolanaQuoteSummary's "N raw units" label.
       getSolanaTransactionMock.mockResolvedValue(fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date().toISOString() }));
 
-      render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+      render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
       await fillAmountAndWaitForQuote();
       await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
       await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
@@ -464,7 +464,7 @@ describe('SolanaTradePanel', () => {
         fakeTransaction({ side: 'SELL', expectedOutputAmount: '5000000', status: 'CONFIRMED', confirmedAt: new Date().toISOString() }),
       );
 
-      render(<SolanaTradePanel tokenMint="mint" tokenSymbol="SOL" />);
+      render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
       await userEvent.click(await screen.findByRole('button', { name: 'Sell SOL' }));
       await fillAmountAndWaitForQuote();
       await userEvent.click(await screen.findByRole('button', { name: 'Review sell' }));

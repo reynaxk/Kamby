@@ -7,6 +7,8 @@ import { DiscoverTokenList } from './DiscoverTokenList';
 // TrenchesPanel/LeaderboardSidebar/TradersSidebar/SelectableTokenRow all have their own
 // separate coverage — mocked here so this file only exercises DiscoverTokenList's own
 // tab-routing and per-tab data-source mapping.
+const push = vi.fn();
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 vi.mock('@/components/terminal/TrenchesPanel', () => ({
   TrenchesPanel: () => <div>TrenchesPanel</div>,
 }));
@@ -19,14 +21,16 @@ vi.mock('./SelectableTokenRow', () => ({
     market,
     selected,
     disabled,
+    onSelect,
   }: {
     market: MarketSummary;
     selected: boolean;
     disabled: boolean;
+    onSelect: (market: MarketSummary) => void;
   }) => (
-    <div>
+    <button type="button" onClick={() => onSelect(market)}>
       {market.symbol} {selected ? '(selected)' : ''} {disabled ? '(disabled)' : ''}
-    </div>
+    </button>
   ),
 }));
 
@@ -168,17 +172,23 @@ describe('DiscoverTokenList', () => {
     expect(screen.getByText(/AAA.*\(disabled\)/)).toBeInTheDocument();
   });
 
-  it('shows a Solana row (browsable) but marks it disabled — no click-through yet, same as Trenches', () => {
+  it('keeps a Solana row clickable, opening the Solana trade page instead of selecting it into the EVM terminal', async () => {
+    const onSelect = vi.fn();
     render(
       <DiscoverTokenList
         {...defaultProps}
+        onSelect={onSelect}
         ranked={[
-          fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ...' }),
+          fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' }),
         ]}
       />,
     );
 
-    expect(screen.getByText(/BONK.*\(disabled\)/)).toBeInTheDocument();
+    const row = screen.getByRole('button', { name: /BONK/ });
+    expect(row).not.toHaveTextContent('(disabled)');
+    await userEvent.click(row);
+    expect(push).toHaveBeenCalledWith('/solana?mint=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263');
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it('does not disable a real EVM row just because a Solana row is also present', () => {

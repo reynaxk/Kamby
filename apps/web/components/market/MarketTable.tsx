@@ -1,6 +1,7 @@
 import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
+import { solanaMarketHref } from '@/lib/solana-links';
 import { EmptyState } from './EmptyState';
 import { PriceChange } from './PriceChange';
 import { StaleBadge } from './StaleBadge';
@@ -31,6 +32,11 @@ export function MarketTable({ markets }: { markets: MarketSummary[] }) {
         <tbody>
           {markets.map((market) => {
             const chainSlug = slugForIdentifier(market.chainIdentifier);
+            const href = chainSlug
+              ? `/market/${chainSlug}/${market.tokenAddress}`
+              : market.chainIdentifier === 'solana'
+                ? solanaMarketHref(market.tokenAddress)
+                : null;
 
             return (
               <tr
@@ -38,10 +44,11 @@ export function MarketTable({ markets }: { markets: MarketSummary[] }) {
                 className="group border-b border-line last:border-0"
               >
                 <td className="p-0">
-                  {chainSlug ? (
+                  {href ? (
                     <Link
-                      // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
-                      href={`/market/${chainSlug}/${market.tokenAddress}`}
+                      // Chain-aware URL as of 2026-09-16 (BNB Chain going live); Solana
+                      // markets open the Solana trade page instead (no per-token page yet).
+                      href={href}
                       className="flex items-center gap-3 px-4 py-3 transition-colors group-hover:bg-surface-raised"
                     >
                       <TokenIdentity
