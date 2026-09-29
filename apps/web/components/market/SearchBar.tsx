@@ -1,6 +1,7 @@
 'use client';
 
 import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/domain';
+import { solanaMarketHref } from '@/lib/solana-links';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { fetchSearchResults } from '@/lib/market-client';
@@ -161,6 +162,17 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
                       compact
                     />
                   </>
+                ) : market.chainIdentifier === 'solana' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      router.push(solanaMarketHref(market.tokenAddress));
+                    }}
+                    className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
+                  >
+                    {result}
+                  </button>
                 ) : (
                   <div
                     title="This market is visible for discovery but is not tradeable here yet"

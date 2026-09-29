@@ -99,6 +99,18 @@ describe('TickerBar', () => {
     ).toHaveLength(2);
   });
 
+  it('links a Solana ticker item to the Solana trade page and never doubles a "$" already in the symbol', async () => {
+    fetchDiscoverMarkets.mockResolvedValue([
+      fakeMarket({ chainIdentifier: 'solana', symbol: '$WIF', tokenAddress: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' }),
+    ]);
+    render(<TickerBar />);
+
+    const links = await screen.findAllByRole('link');
+    expect(links[0]).toHaveAttribute('href', '/solana?mint=EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm');
+    expect(screen.getAllByText('$WIF').length).toBeGreaterThan(0);
+    expect(screen.queryByText('$$WIF')).not.toBeInTheDocument();
+  });
+
   it('shows a real "?" placeholder for a symbol-less token rather than a blank', async () => {
     fetchDiscoverMarkets.mockResolvedValue([fakeMarket({ symbol: null })]);
     render(<TickerBar />);

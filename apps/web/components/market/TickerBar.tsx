@@ -6,6 +6,7 @@ import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatPercent, formatPrice, priceDirection } from '@/lib/format';
 import { fetchDiscoverMarkets } from '@/lib/market-client';
+import { solanaMarketHref } from '@/lib/solana-links';
 
 const POLL_INTERVAL_MS = 20_000;
 
@@ -59,9 +60,14 @@ export function TickerBar() {
         {items.map((market, i) => {
           const direction = priceDirection(market.priceChange24hPct);
           const chainSlug = slugForIdentifier(market.chainIdentifier);
+          const href = chainSlug
+            ? `/market/${chainSlug}/${market.tokenAddress}`
+            : market.chainIdentifier === 'solana'
+              ? solanaMarketHref(market.tokenAddress)
+              : null;
           const ticker = (
             <>
-              <span className="font-semibold text-ink-900">${market.symbol ?? '?'}</span>
+              <span className="font-semibold text-ink-900">${(market.symbol ?? '?').replace(/^\$/, '')}</span>
               <span className="text-ink-400">{formatPrice(market.priceUsd)}</span>
               <span
                 className={cn(
@@ -76,10 +82,10 @@ export function TickerBar() {
           );
           const className =
             'flex shrink-0 items-center gap-1.5 border-r border-line/60 px-3 font-mono text-xs transition-colors hover:bg-surface-raised';
-          return chainSlug ? (
+          return href ? (
             <Link
               key={`${market.chainIdentifier}:${market.tokenAddress}:${i}`}
-              href={`/market/${chainSlug}/${market.tokenAddress}`}
+              href={href}
               className={className}
             >
               {ticker}

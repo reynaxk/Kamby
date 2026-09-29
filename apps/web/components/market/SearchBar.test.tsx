@@ -116,6 +116,20 @@ describe('SearchBar', () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it('opens the Solana trade page for a Solana result, without an EVM watch action', async () => {
+    fetchSearchResults.mockResolvedValue([
+      market({ chainIdentifier: 'solana', symbol: 'Bonk', tokenAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' }),
+    ]);
+    const user = userEvent.setup();
+    render(<SearchBar />);
+
+    await user.type(screen.getByRole('textbox'), 'bonk');
+    await user.click(await screen.findByText('Bonk'));
+
+    expect(push).toHaveBeenCalledWith('/solana?mint=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263');
+    expect(screen.queryByRole('button', { name: /watch/i })).not.toBeInTheDocument();
+  });
+
   it('clears results once the input is emptied again', async () => {
     checkWatchStatus.mockResolvedValue(false);
     fetchSearchResults.mockResolvedValue([market()]);

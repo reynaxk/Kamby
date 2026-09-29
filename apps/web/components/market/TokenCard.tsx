@@ -1,16 +1,14 @@
-import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
+import { type MarketSummary } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
+import { marketHref } from '@/lib/solana-links';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { PriceChange } from './PriceChange';
 import { StaleBadge } from './StaleBadge';
 import { TokenIdentity } from './TokenIdentity';
 
 export function TokenCard({ market }: { market: MarketSummary }) {
-  // Chain-aware URL as of 2026-09-16 (BNB Chain going live) — see
-  // app/market/[chain]/[address]/page.tsx. Falls back to DEFAULT_CHAIN_SLUG only if this
-  // market's own chainIdentifier is somehow unrecognized, never crashing the card.
-  const chainSlug = slugForIdentifier(market.chainIdentifier);
+  // Chain-aware URL — see marketHref (EVM market page, or the Solana trade page).
   const content = (
     <>
       {/* Lift + soft accent glow on hover only, not an idle/constant glow — matches the
@@ -44,7 +42,8 @@ export function TokenCard({ market }: { market: MarketSummary }) {
     </>
   );
 
-  if (!chainSlug) {
+  const href = marketHref(market.chainIdentifier, market.tokenAddress);
+  if (!href) {
     return (
       <div title="This market is visible for discovery but is not tradeable here yet">
         {content}
@@ -53,7 +52,7 @@ export function TokenCard({ market }: { market: MarketSummary }) {
   }
 
   return (
-    <Link href={`/market/${chainSlug}/${market.tokenAddress}`} className="block">
+    <Link href={href} className="block">
       {content}
     </Link>
   );
