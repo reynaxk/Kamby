@@ -108,3 +108,28 @@ describe('UniswapV3PoolReader (live Base mainnet)', () => {
     expect(events).toEqual([]);
   }, 20_000);
 });
+
+/**
+ * PancakeSwap V3 on BNB Chain emits a *different* Swap event (two extra protocol-fee fields,
+ * so a different topic0). Before 2026-09-29 the reader filtered on Uniswap's event only and
+ * Kamby recorded zero BNB swaps, ever — this test fails on that code. WBNB/USDC is one of the
+ * busiest pools on the chain (135 swaps in ~2.5 minutes when checked), so a short recent
+ * window reliably has real events. publicnode, not bsc-dataseed: dataseed rejects eth_getLogs.
+ */
+describe('UniswapV3PoolReader (live BNB Chain, PancakeSwap V3)', () => {
+  const BNB_RPC_URL = 'https://bsc-rpc.publicnode.com';
+  const WBNB_USDC_POOL = '0xf2688Fb5B81049DFB7703aDa5e770543770612C4';
+
+  it("reads real recent PancakeSwap Swap events, not zero", async () => {
+    const reader = new UniswapV3PoolReader({ rpcUrl: BNB_RPC_URL });
+    const head = await reader.getLatestBlockNumber();
+    const events = await reader.getSwapEvents(WBNB_USDC_POOL, head - 400n, head);
+
+    expect(events).not.toBeNull();
+    expect(events!.length).toBeGreaterThan(0);
+    const first = events![0]!;
+    expect(first.sqrtPriceX96).toBeGreaterThan(0n);
+    expect(first.amount0 !== 0n || first.amount1 !== 0n).toBe(true);
+    expect(first.recipient).toMatch(/^0x[0-9a-fA-F]{40}$/);
+  }, 30_000);
+});

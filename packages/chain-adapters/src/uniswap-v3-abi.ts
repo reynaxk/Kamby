@@ -35,6 +35,21 @@ export const uniswapV3SwapEvent = {
   ],
 } as const;
 
+/** PancakeSwap V3's Swap — identical to Uniswap's plus two trailing protocol-fee fields,
+ *  which gives it a different topic0 (0x19b47279… vs Uniswap's 0xc42079f9…). Filtering on
+ *  Uniswap's event alone matched zero swaps on every BNB pool, confirmed 2026-09-29: one
+ *  WBNB pool emitted 135 of these in ~2.5 minutes while Kamby had recorded none, ever. Every
+ *  field Kamby reads is in the same position in both. */
+export const pancakeV3SwapEvent = {
+  type: 'event',
+  name: 'Swap',
+  inputs: [
+    ...uniswapV3SwapEvent.inputs,
+    { name: 'protocolFeesToken0', type: 'uint128', indexed: false },
+    { name: 'protocolFeesToken1', type: 'uint128', indexed: false },
+  ],
+} as const;
+
 /** Emitted by the Factory contract (not a pool itself) whenever a new pool is deployed —
  *  see pool-discovery.ts in apps/workers for the only consumer. */
 export const uniswapV3PoolCreatedEvent = {

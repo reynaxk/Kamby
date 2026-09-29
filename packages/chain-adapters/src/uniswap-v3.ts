@@ -1,5 +1,5 @@
 import { createPublicClient, type PublicClient } from 'viem';
-import { erc20ExtraAbi, uniswapV3PoolAbi, uniswapV3PoolCreatedEvent, uniswapV3SwapEvent } from './uniswap-v3-abi';
+import { erc20ExtraAbi, pancakeV3SwapEvent, uniswapV3PoolAbi, uniswapV3PoolCreatedEvent, uniswapV3SwapEvent } from './uniswap-v3-abi';
 import { retryRpcCall } from './retry';
 import { createEvmTransport } from './transport';
 
@@ -144,9 +144,11 @@ export class UniswapV3PoolReader {
    */
   async getSwapEvents(poolAddress: string, fromBlock: bigint, toBlock: bigint): Promise<DecodedSwapEvent[] | null> {
     try {
+      // Both shapes, one request: the query is scoped to one pool address, so a pool only ever
+      // matches its own DEX's variant — see pancakeV3SwapEvent's doc comment.
       const logs = await this.client.getLogs({
         address: poolAddress as `0x${string}`,
-        event: uniswapV3SwapEvent,
+        events: [uniswapV3SwapEvent, pancakeV3SwapEvent],
         fromBlock,
         toBlock,
       });
