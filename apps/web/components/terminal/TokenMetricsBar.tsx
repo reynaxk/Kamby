@@ -30,7 +30,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
     market.liquidityUsd === null || market.liquidityUsd < DISCOVERY_RANKING.minLiquidityUsd;
 
   return (
-    <Surface className="fomo-token-metrics flex flex-wrap items-center gap-x-5 gap-y-2 px-3.5 py-2.5">
+    <Surface className="kamby-token-metrics flex flex-wrap items-center gap-x-5 gap-y-2 px-3.5 py-2.5">
       <div className="flex min-w-[180px] flex-1 items-center gap-2.5">
         {market.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

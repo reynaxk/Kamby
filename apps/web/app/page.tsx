@@ -129,7 +129,7 @@ export default async function DiscoverPage({
       {/* kamby-void — see globals.css's own doc comment. Discover is one of the two
           highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
           the other); the rest of the product still runs the original light/dark palette. */}
-      <div className="kamby-void fomo-terminal min-h-screen bg-bg">
+      <div className="kamby-void kamby-terminal min-h-screen bg-bg">
         <AutoRefresh intervalSeconds={30} />
         <MarketHeader searchValue={search} wide />
         {!search && (

@@ -49,7 +49,7 @@ export function MarketHeader({
         <Link href="/" className="flex items-center gap-2">
           <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
-        <div className={`${actionsClass} ${wide ? 'fomo-header-actions' : ''}`}>
+        <div className={`${actionsClass} ${wide ? 'kamby-header-actions' : ''}`}>
           {/* w-full below sm: the search input has no room to be usable squeezed onto the
               same row as five icon buttons + Sign in on a narrow phone (it was clipping to
               ~2 visible characters of its own placeholder) — full-width forces it onto its

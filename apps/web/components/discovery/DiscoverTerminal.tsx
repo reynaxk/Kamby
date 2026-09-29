@@ -306,7 +306,7 @@ export function DiscoverTerminal({
         )}
 
         <Surface className="mb-3 flex h-[300px] flex-col gap-2 p-2">
-          <div className="fomo-chart-toolbar flex flex-wrap items-center justify-between gap-2">
+          <div className="kamby-chart-toolbar flex flex-wrap items-center justify-between gap-2">
             {overlayControls}
             <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
           </div>
@@ -356,7 +356,7 @@ export function DiscoverTerminal({
         )}
 
         {selected && (
-          <div className="fomo-trader-rail mb-3 rounded-2xl border border-line bg-surface p-4">
+          <div className="kamby-trader-rail mb-3 rounded-2xl border border-line bg-surface p-4">
             {tradersStatus === 'loading' ? (
               <Skeleton className="h-40 w-full" />
             ) : tradersStatus === 'error' ? (
@@ -464,7 +464,7 @@ export function DiscoverTerminal({
           )}
 
           <Surface className="flex h-[min(46vh,460px)] min-h-[380px] flex-col gap-2 p-2">
-            <div className="fomo-chart-toolbar flex flex-wrap items-center justify-between gap-2">
+            <div className="kamby-chart-toolbar flex flex-wrap items-center justify-between gap-2">
               {overlayControls}
               <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
             </div>
@@ -546,7 +546,7 @@ export function DiscoverTerminal({
               />
             </div>
           ) : (
-            <div className="fomo-trader-rail rounded-2xl border border-line bg-surface p-4">
+            <div className="kamby-trader-rail rounded-2xl border border-line bg-surface p-4">
               <TokenTradersPanel
                 connection={traders}
                 tokenAddress={selected.tokenAddress}

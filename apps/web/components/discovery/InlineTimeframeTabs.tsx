@@ -17,7 +17,7 @@ export function InlineTimeframeTabs({
   onChange: (tf: Timeframe) => void;
 }) {
   return (
-    <div className="fomo-timeframe-tabs inline-flex rounded-lg border border-line bg-surface p-0.5">
+    <div className="kamby-timeframe-tabs inline-flex rounded-lg border border-line bg-surface p-0.5">
       {TIMEFRAMES.map((tf) => (
         <button
           key={tf}
