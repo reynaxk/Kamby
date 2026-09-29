@@ -29,7 +29,9 @@ function market(overrides: Partial<MarketSummary> = {}): MarketSummary {
 
 describe('TokenMetricsBar', () => {
   it('shows no low-liquidity badge for a market well above the trading threshold', () => {
-    render(<TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd * 10 })} />);
+    render(
+      <TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd * 10 })} />,
+    );
     expect(screen.queryByText('Low liquidity')).not.toBeInTheDocument();
   });
 
@@ -37,7 +39,9 @@ describe('TokenMetricsBar', () => {
   // a market this thin gets rejected the moment it's attempted; this badge exists so that's
   // known before filling out the form, not discovered as a failed submission.
   it('shows the low-liquidity badge once liquidity drops below the real backend trading threshold', () => {
-    render(<TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd - 1 })} />);
+    render(
+      <TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd - 1 })} />,
+    );
     expect(screen.getByText('Low liquidity')).toBeInTheDocument();
   });
 
@@ -47,7 +51,25 @@ describe('TokenMetricsBar', () => {
   });
 
   it('shows no badge at exactly the threshold — the real check is strictly less-than, matching SafetyService.assertTradable', () => {
-    render(<TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd })} />);
+    render(
+      <TokenMetricsBar market={market({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd })} />,
+    );
     expect(screen.queryByText('Low liquidity')).not.toBeInTheDocument();
+  });
+
+  it('shows the active token identity, chain, contract action, and watch action', () => {
+    render(
+      <TokenMetricsBar
+        market={market({
+          chainIdentifier: 'eip155:8453',
+          name: 'Pepe Coin',
+          tokenAddress: '0x1234567890123456789012345678901234567890',
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Pepe Coin · Base')).toBeInTheDocument();
+    expect(screen.getByText('Copy')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /watch/i })).toBeInTheDocument();
   });
 });

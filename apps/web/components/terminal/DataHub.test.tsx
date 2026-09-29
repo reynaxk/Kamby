@@ -8,7 +8,11 @@ function fakeActivity(overrides: Partial<SocialActivity> = {}): SocialActivity {
   return {
     id: '11111111-1111-1111-1111-111111111111',
     chainIdentifier: 'eip155:8453',
-    trader: { address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', displayName: null, avatarUrl: null },
+    trader: {
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      displayName: null,
+      avatarUrl: null,
+    },
     action: 'BUY',
     token: {
       address: '0xtoken',
@@ -41,16 +45,16 @@ describe('DataHub', () => {
     expect(screen.getByText(/Holder tracking/)).toBeInTheDocument();
   });
 
-  it('shows a real honest placeholder, not fake rows, under the Caller Alpha tab', async () => {
+  it('shows a real honest placeholder, not fake rows, under the Thesis tab', async () => {
     const user = userEvent.setup();
     render(<DataHub activity={[fakeActivity()]} />);
 
-    await user.click(screen.getByRole('button', { name: 'Caller Alpha' }));
+    await user.click(screen.getByRole('button', { name: 'Thesis' }));
 
-    expect(screen.getByText(/Caller alpha/)).toBeInTheDocument();
+    expect(screen.getByText(/Trade theses/)).toBeInTheDocument();
   });
 
-  it('never shows the filter row under Holders or Caller Alpha, even with real activity present', async () => {
+  it('never shows the filter row under Holders or Thesis, even with real activity present', async () => {
     const user = userEvent.setup();
     render(<DataHub activity={[fakeActivity()]} />);
 
@@ -76,7 +80,11 @@ describe('DataHub', () => {
       <DataHub
         activity={[
           fakeActivity({
-            trader: { address: '0x1234567890123456789012345678901234567890', displayName: null, avatarUrl: null },
+            trader: {
+              address: '0x1234567890123456789012345678901234567890',
+              displayName: null,
+              avatarUrl: null,
+            },
             action: 'BUY',
             amountUsd: 5_000,
             txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678',
@@ -92,7 +100,11 @@ describe('DataHub', () => {
   });
 
   it('shows "Unknown" rather than a broken truncation for a trader with no real captured address', () => {
-    render(<DataHub activity={[fakeActivity({ trader: { address: null, displayName: null, avatarUrl: null } })]} />);
+    render(
+      <DataHub
+        activity={[fakeActivity({ trader: { address: null, displayName: null, avatarUrl: null } })]}
+      />,
+    );
 
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
@@ -102,7 +114,11 @@ describe('DataHub', () => {
       <DataHub
         activity={[
           fakeActivity({ id: 'a', action: 'BUY' }),
-          fakeActivity({ id: 'b', action: 'SELL', trader: { address: '0xbbb', displayName: null, avatarUrl: null } }),
+          fakeActivity({
+            id: 'b',
+            action: 'SELL',
+            trader: { address: '0xbbb', displayName: null, avatarUrl: null },
+          }),
         ]}
       />,
     );
@@ -117,7 +133,11 @@ describe('DataHub', () => {
       <DataHub
         activity={[
           fakeActivity({ id: 'buy-1', action: 'BUY' }),
-          fakeActivity({ id: 'sell-1', action: 'SELL', trader: { address: '0xbbb', displayName: null, avatarUrl: null } }),
+          fakeActivity({
+            id: 'sell-1',
+            action: 'SELL',
+            trader: { address: '0xbbb', displayName: null, avatarUrl: null },
+          }),
         ]}
       />,
     );
@@ -134,7 +154,11 @@ describe('DataHub', () => {
       <DataHub
         activity={[
           fakeActivity({ id: 'small', amountUsd: 500 }),
-          fakeActivity({ id: 'big', amountUsd: 10_000, trader: { address: '0xbbb', displayName: null, avatarUrl: null } }),
+          fakeActivity({
+            id: 'big',
+            amountUsd: 10_000,
+            trader: { address: '0xbbb', displayName: null, avatarUrl: null },
+          }),
         ]}
       />,
     );
@@ -150,8 +174,14 @@ describe('DataHub', () => {
     render(
       <DataHub
         activity={[
-          fakeActivity({ id: 'a', trader: { address: '0xAAAABBBBCCCC', displayName: null, avatarUrl: null } }),
-          fakeActivity({ id: 'b', trader: { address: '0xdddd', displayName: null, avatarUrl: null } }),
+          fakeActivity({
+            id: 'a',
+            trader: { address: '0xAAAABBBBCCCC', displayName: null, avatarUrl: null },
+          }),
+          fakeActivity({
+            id: 'b',
+            trader: { address: '0xdddd', displayName: null, avatarUrl: null },
+          }),
         ]}
       />,
     );
@@ -177,9 +207,19 @@ describe('DataHub', () => {
       <DataHub
         activity={[
           // Matches action+size but not the trader query.
-          fakeActivity({ id: 'wrong-trader', action: 'BUY', amountUsd: 10_000, trader: { address: '0xaaaa', displayName: null, avatarUrl: null } }),
+          fakeActivity({
+            id: 'wrong-trader',
+            action: 'BUY',
+            amountUsd: 10_000,
+            trader: { address: '0xaaaa', displayName: null, avatarUrl: null },
+          }),
           // Matches everything.
-          fakeActivity({ id: 'match', action: 'BUY', amountUsd: 10_000, trader: { address: '0xbbbb', displayName: null, avatarUrl: null } }),
+          fakeActivity({
+            id: 'match',
+            action: 'BUY',
+            amountUsd: 10_000,
+            trader: { address: '0xbbbb', displayName: null, avatarUrl: null },
+          }),
         ]}
       />,
     );

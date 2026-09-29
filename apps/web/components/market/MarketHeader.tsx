@@ -36,18 +36,20 @@ export function MarketHeader({
    * narrower content rhythm used by the rest of the app. */
   wide?: boolean;
 }) {
-  const shellClass = wide ? 'max-w-[1600px] px-3 sm:px-4' : 'max-w-6xl px-6';
+  const shellClass = wide ? 'max-w-[1920px] px-2 sm:px-3' : 'max-w-6xl px-6';
   const actionsClass = wide
-    ? 'ml-0 flex flex-1 flex-wrap items-center gap-3'
+    ? 'ml-0 flex flex-1 flex-wrap items-center gap-2'
     : 'ml-auto flex flex-wrap items-center gap-3';
 
   return (
-    <header className="sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
-      <div className={`mx-auto flex flex-wrap items-center gap-4 py-4 ${shellClass}`}>
+    <header className="sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur">
+      <div
+        className={`mx-auto flex flex-wrap items-center gap-3 ${wide ? 'py-2.5' : 'py-4'} ${shellClass}`}
+      >
         <Link href="/" className="flex items-center gap-2">
-          <KambyLogo />
+          <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
-        <div className={actionsClass}>
+        <div className={`${actionsClass} ${wide ? 'fomo-header-actions' : ''}`}>
           {/* w-full below sm: the search input has no room to be usable squeezed onto the
               same row as five icon buttons + Sign in on a narrow phone (it was clipping to
               ~2 visible characters of its own placeholder) — full-width forces it onto its

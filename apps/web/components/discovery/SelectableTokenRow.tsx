@@ -45,7 +45,7 @@ export function SelectableTokenRow({
           : undefined
       }
       className={cn(
-        'relative flex w-full items-center gap-2 border-b border-line/60 px-2.5 py-2 text-left transition-all',
+        'terminal-token-row relative flex w-full items-center gap-1.5 border-b border-line/60 px-2 py-1.5 text-left transition-all',
         selected ? 'bg-surface-raised' : 'hover:bg-surface-raised',
         disabled && !selected && 'cursor-not-allowed opacity-50',
       )}
@@ -58,11 +58,15 @@ export function SelectableTokenRow({
       )}
       {market.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={market.logoUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+        <img
+          src={market.logoUrl}
+          alt=""
+          className="terminal-token-avatar h-6 w-6 shrink-0 rounded-full object-cover"
+        />
       ) : (
         <span
           className={cn(
-            'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold',
+            'terminal-token-avatar flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display text-[0.65rem] font-bold',
             selected
               ? 'bg-accent/15 text-accent shadow-glow-accent'
               : 'bg-surface-raised text-ink-600',
@@ -72,23 +76,25 @@ export function SelectableTokenRow({
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-display text-sm font-semibold tracking-tight text-ink-900">
+        <span className="block truncate font-display text-[0.72rem] font-semibold tracking-tight text-ink-900">
           ${market.symbol ?? market.tokenAddress.slice(0, 6)}
         </span>
-        <span className="block font-mono text-[0.65rem] tabular-nums text-ink-400">
+        <span className="terminal-token-row-meta block font-mono text-[0.58rem] tabular-nums text-ink-400">
           {chainLabel} · {formatCompactUsd(market.marketCapUsd)} MC
         </span>
       </span>
       {market.recentCloses && market.recentCloses.length >= 2 && (
-        <Sparkline closes={market.recentCloses} width={40} height={20} />
+        <span className="terminal-token-sparkline">
+          <Sparkline closes={market.recentCloses} width={40} height={20} />
+        </span>
       )}
       <span className="flex shrink-0 flex-col items-end gap-0.5">
-        <span className="font-mono text-xs font-semibold tabular-nums text-ink-900">
+        <span className="font-mono text-[0.68rem] font-semibold tabular-nums text-ink-900">
           {formatPrice(market.priceUsd)}
         </span>
         <span
           className={cn(
-            'rounded-full px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold tabular-nums',
+            'rounded-full px-1 py-0.5 font-mono text-[0.58rem] font-semibold tabular-nums',
             isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
           )}
         >

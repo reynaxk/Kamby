@@ -66,9 +66,7 @@ export class SocialController {
       cursor: query.cursor,
       limit: query.limit,
       tokenAddress: query.tokenAddress,
-      // Placeholder until this route accepts chainId from the request — see
-      // MarketController's doc comment for why this hardcodes today's one chain.
-      chainId: DEFAULT_CHAIN_ID,
+      chainId: query.chainId ?? DEFAULT_CHAIN_ID,
       viewerUserId: user?.id ?? null,
     });
   }

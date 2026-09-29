@@ -60,7 +60,7 @@ export function useChartOverlayFilter(trades: SocialActivity[]): [SocialActivity
   }, [trades, minSizeUsd, showMySwaps, friendsOnly, friendAddresses, myAddress]);
 
   const controls = (
-    <div className="flex flex-wrap items-center gap-3 font-mono text-[0.65rem] text-ink-400">
+    <div className="fomo-chart-filters flex flex-wrap items-center gap-3 font-mono text-[0.65rem] text-ink-400">
       <label className="flex cursor-pointer items-center gap-1.5">
         <input
           type="checkbox"

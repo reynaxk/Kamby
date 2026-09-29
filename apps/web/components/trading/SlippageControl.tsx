@@ -16,7 +16,15 @@ function formatBpsAsPercent(bps: number): string {
  * itself enforces (see QuoteQueryDto), so a user can never even attempt an unsafe value —
  * there is no way to submit an "unlimited slippage" request from this UI.
  */
-export function SlippageControl({ valueBps, onChange }: { valueBps: number; onChange: (bps: number) => void }) {
+export function SlippageControl({
+  valueBps,
+  onChange,
+  className,
+}: {
+  valueBps: number;
+  onChange: (bps: number) => void;
+  className?: string;
+}) {
   const isPreset = PRESETS_BPS.includes(valueBps);
   const [customOpen, setCustomOpen] = useState(!isPreset);
   const [customInput, setCustomInput] = useState(isPreset ? '' : (valueBps / 100).toString());
@@ -27,7 +35,7 @@ export function SlippageControl({ valueBps, onChange }: { valueBps: number; onCh
   const [customError, setCustomError] = useState<string | null>(null);
 
   return (
-    <div>
+    <div className={className}>
       <div className="flex items-center justify-between">
         <span className="font-body text-xs text-ink-600">Slippage tolerance</span>
         <span className="font-mono text-xs text-ink-600">{formatBpsAsPercent(valueBps)}</span>

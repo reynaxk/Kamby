@@ -151,7 +151,11 @@ describe('DiscoverTerminal', () => {
 
     await waitFor(() => expect(screen.getByTestId('trade-panel')).toHaveTextContent(marketB.tokenAddress));
     expect(fetchTokenHistoryMock).toHaveBeenCalledWith(marketB.tokenAddress, '1D', 56);
-    expect(fetchLatestActivityMock).toHaveBeenCalledWith({ tokenAddress: marketB.tokenAddress, limit: 10 });
+    expect(fetchLatestActivityMock).toHaveBeenCalledWith({
+      tokenAddress: marketB.tokenAddress,
+      chainId: 56,
+      limit: 10,
+    });
     expect(fetchTokenTradersMock).toHaveBeenCalledWith(marketB.tokenAddress, 56, 8);
     await waitFor(() => expect(screen.getByTestId('chart')).toHaveTextContent('2 candles'));
   });

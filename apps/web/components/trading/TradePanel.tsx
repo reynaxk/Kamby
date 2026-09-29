@@ -39,6 +39,8 @@ export interface TradePanelProps {
    *  card) only while an order is genuinely in flight, never as idle decoration. Optional
    *  and side-effect-free to omit; every existing call site behaves exactly as before. */
   onStepChange?: (step: TradePanelStep) => void;
+  /** Compact terminal presentation; trade semantics and validation remain unchanged. */
+  dense?: boolean;
 }
 
 export type TradePanelStep =
@@ -128,6 +130,7 @@ export function TradePanel({
   initialSide = 'BUY',
   onClose,
   onStepChange,
+  dense = false,
 }: TradePanelProps) {
   const { address, isConnected, chainId: walletChainId } = useAccount();
   const walletVerification = useWalletVerification();
@@ -654,7 +657,7 @@ export function TradePanel({
   // --- Form step ---------------------------------------------------------------------------
 
   return (
-    <Panel title="Trade" onClose={onClose} animKey="form">
+    <Panel title="Trade" onClose={onClose} animKey="form" dense={dense}>
       <div className="flex rounded-lg bg-surface-raised p-1">
         {(['BUY', 'SELL'] as const).map((option) => (
           <button
@@ -696,9 +699,14 @@ export function TradePanel({
         inputTokenAddress={inputTokenAddress}
         inputTokenSymbol={inputTokenSymbol}
         inputTokenDecimals={inputTokenDecimals}
+        className={dense ? 'trade-amount-compact' : undefined}
       />
 
-      <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
+      <SlippageControl
+        valueBps={slippageBps}
+        onChange={setSlippageBps}
+        className={dense ? 'trade-slippage-compact' : undefined}
+      />
 
       {/* Rendered only once a real quote has confirmed sponsorship is actually available —
           see TradeQuoteDto.sponsorshipAvailable's own doc comment (@kamby/domain). Keeps
@@ -729,11 +737,13 @@ function Panel({
   onClose,
   onBack,
   animKey,
+  dense = false,
   children,
 }: {
   title: string;
   onClose?: () => void;
   onBack?: () => void;
+  dense?: boolean;
   /** Distinguishes visually-distinct screens (form/review/post-trade/record-failed) so each
    *  one springs in once, while sub-state changes within the same screen (e.g. review ->
    *  approving -> signing) share a key and never re-trigger the entrance animation. */
@@ -741,7 +751,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2.5">
+    <div className={cn('space-y-2.5', dense && 'trade-form-compact')}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onBack && (
@@ -762,7 +772,7 @@ function Panel({
         initial={{ opacity: 0, y: 8, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={STEP_SPRING}
-        className="space-y-2.5"
+        className={cn('space-y-2.5', dense && 'trade-form-body')}
       >
         {children}
       </motion.div>

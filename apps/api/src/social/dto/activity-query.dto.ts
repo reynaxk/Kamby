@@ -24,4 +24,13 @@ export class ActivityQueryDto {
   @IsOptional()
   @Matches(EVM_ADDRESS_REGEX, { message: 'tokenAddress must be a valid EVM address' })
   tokenAddress?: string;
+
+  /** Scopes token activity to the selected EVM chain. Global activity remains cross-chain
+   * when no token filter is supplied; this prevents a same-address lookup from falling back
+   * to the deployment default chain inside the terminal. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  chainId?: number;
 }

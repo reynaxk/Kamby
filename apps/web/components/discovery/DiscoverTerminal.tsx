@@ -188,7 +188,7 @@ export function DiscoverTerminal({
     if (!selected || !isEvmSelectable(selected)) return;
     let cancelled = false;
     setActivityStatus('loading');
-    fetchLatestActivity({ tokenAddress: selected.tokenAddress, limit: 10 })
+    fetchLatestActivity({ tokenAddress: selected.tokenAddress, chainId: chainIdFor(selected), limit: 10 })
       .then((result) => {
         if (cancelled) return;
         setActivity(result.items);
@@ -305,11 +305,8 @@ export function DiscoverTerminal({
           </div>
         )}
 
-        <Surface
-          variant="elevated"
-          className="mb-3 flex h-[300px] flex-col gap-2 p-2 shadow-glow-accent"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        <Surface className="mb-3 flex h-[300px] flex-col gap-2 p-2">
+          <div className="fomo-chart-toolbar flex flex-wrap items-center justify-between gap-2">
             {overlayControls}
             <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
           </div>
@@ -359,7 +356,7 @@ export function DiscoverTerminal({
         )}
 
         {selected && (
-          <div className="mb-3 rounded-2xl border border-line bg-surface p-4">
+          <div className="fomo-trader-rail mb-3 rounded-2xl border border-line bg-surface p-4">
             {tradersStatus === 'loading' ? (
               <Skeleton className="h-40 w-full" />
             ) : tradersStatus === 'error' ? (
@@ -398,6 +395,7 @@ export function DiscoverTerminal({
           {canTrade && selected && chainId !== null ? (
             <TradePanelCard
               key={selectedKey ?? undefined}
+              dense
               chainId={chainId}
               tokenAddress={selected.tokenAddress}
               tokenSymbol={selected.symbol}
@@ -441,8 +439,7 @@ export function DiscoverTerminal({
 
   return (
     <div>
-      {layoutToggle}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px] xl:grid-cols-[300px_1fr_360px]">
+      <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-[300px_minmax(0,1fr)_380px] xl:grid-cols-[340px_minmax(0,1fr)_420px]">
         <div className="h-[520px] lg:h-[calc(100vh-8rem)]">
           <DiscoverTokenList
             ranked={ranked}
@@ -466,11 +463,8 @@ export function DiscoverTerminal({
             </Surface>
           )}
 
-          <Surface
-            variant="elevated"
-            className="flex h-[380px] flex-col gap-2 p-2 shadow-glow-accent"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <Surface className="flex h-[min(46vh,460px)] min-h-[380px] flex-col gap-2 p-2">
+            <div className="fomo-chart-toolbar flex flex-wrap items-center justify-between gap-2">
               {overlayControls}
               <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
             </div>
@@ -514,6 +508,7 @@ export function DiscoverTerminal({
           {canTrade && selected && chainId !== null ? (
             <TradePanelCard
               key={selectedKey ?? undefined}
+              dense
               chainId={chainId}
               tokenAddress={selected.tokenAddress}
               tokenSymbol={selected.symbol}
@@ -551,7 +546,7 @@ export function DiscoverTerminal({
               />
             </div>
           ) : (
-            <div className="rounded-2xl border border-line bg-surface p-4">
+            <div className="fomo-trader-rail rounded-2xl border border-line bg-surface p-4">
               <TokenTradersPanel
                 connection={traders}
                 tokenAddress={selected.tokenAddress}

@@ -82,11 +82,12 @@ export async function fetchTopTraders(limit = 20): Promise<TopTrader[]> {
   return res.json();
 }
 
-export async function fetchLatestActivity(params: { cursor?: string; limit?: number; tokenAddress?: string }): Promise<ActivityPage> {
+export async function fetchLatestActivity(params: { cursor?: string; limit?: number; tokenAddress?: string; chainId?: number }): Promise<ActivityPage> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
   if (params.limit) query.set('limit', String(params.limit));
   if (params.tokenAddress) query.set('tokenAddress', params.tokenAddress);
+  if (params.chainId) query.set('chainId', String(params.chainId));
   const res = await fetch(`${API_BASE}/v1/social/activity?${query.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch activity (${res.status})`);
   return res.json();

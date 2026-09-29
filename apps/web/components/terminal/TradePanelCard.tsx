@@ -2,9 +2,18 @@
 
 import { useState } from 'react';
 import { cn, Surface } from '@kamby/ui';
-import { TradePanel, type TradePanelProps, type TradePanelStep } from '@/components/trading/TradePanel';
+import {
+  TradePanel,
+  type TradePanelProps,
+  type TradePanelStep,
+} from '@/components/trading/TradePanel';
 
-export const IN_FLIGHT_STEPS: ReadonlySet<TradePanelStep> = new Set(['review', 'approving', 'signing', 'pending']);
+export const IN_FLIGHT_STEPS: ReadonlySet<TradePanelStep> = new Set([
+  'review',
+  'approving',
+  'signing',
+  'pending',
+]);
 
 /**
  * Thin client wrapper so the terminal's right-rail card can glow only while a trade is
@@ -12,7 +21,7 @@ export const IN_FLIGHT_STEPS: ReadonlySet<TradePanelStep> = new Set(['review', '
  * small component (rather than making the whole KambyTerminal layout a Client Component)
  * so the terminal's other panels stay server-rendered.
  */
-export function TradePanelCard(props: TradePanelProps) {
+export function TradePanelCard({ dense = false, ...props }: TradePanelProps & { dense?: boolean }) {
   const [step, setStep] = useState<TradePanelStep>('form');
   const inFlight = IN_FLIGHT_STEPS.has(step);
 
@@ -25,8 +34,14 @@ export function TradePanelCard(props: TradePanelProps) {
   }
 
   return (
-    <Surface className={cn('p-3.5 transition-shadow duration-300', inFlight && 'shadow-glow-accent')}>
-      <TradePanel {...props} onStepChange={handleStepChange} />
+    <Surface
+      className={cn(
+        'trade-panel-card p-3.5 transition-shadow duration-300',
+        dense && 'trade-panel-compact',
+        inFlight && 'shadow-glow-accent',
+      )}
+    >
+      <TradePanel {...props} dense={dense} onStepChange={handleStepChange} />
     </Surface>
   );
 }

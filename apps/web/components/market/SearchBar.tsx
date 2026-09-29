@@ -76,7 +76,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
       action="/"
       method="get"
       role="search"
-      className="relative w-full max-w-xs"
+      className="relative w-full max-w-none"
       onSubmit={() => setIsOpen(false)}
     >
       <label htmlFor="market-search" className="sr-only">
@@ -105,7 +105,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
           id="market-search"
           name="search"
           type="text"
-          placeholder="Search token or address"
+          placeholder="Search for tokens or traders..."
           value={value}
           onChange={(e) => {
             setValue(e.target.value);

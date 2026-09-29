@@ -7,11 +7,23 @@ import { DiscoverTokenList } from './DiscoverTokenList';
 // TrenchesPanel/LeaderboardSidebar/TradersSidebar/SelectableTokenRow all have their own
 // separate coverage — mocked here so this file only exercises DiscoverTokenList's own
 // tab-routing and per-tab data-source mapping.
-vi.mock('@/components/terminal/TrenchesPanel', () => ({ TrenchesPanel: () => <div>TrenchesPanel</div> }));
-vi.mock('./LeaderboardSidebar', () => ({ LeaderboardSidebar: () => <div>LeaderboardSidebar</div> }));
+vi.mock('@/components/terminal/TrenchesPanel', () => ({
+  TrenchesPanel: () => <div>TrenchesPanel</div>,
+}));
+vi.mock('./LeaderboardSidebar', () => ({
+  LeaderboardSidebar: () => <div>LeaderboardSidebar</div>,
+}));
 vi.mock('./TradersSidebar', () => ({ TradersSidebar: () => <div>TradersSidebar</div> }));
 vi.mock('./SelectableTokenRow', () => ({
-  SelectableTokenRow: ({ market, selected, disabled }: { market: MarketSummary; selected: boolean; disabled: boolean }) => (
+  SelectableTokenRow: ({
+    market,
+    selected,
+    disabled,
+  }: {
+    market: MarketSummary;
+    selected: boolean;
+    disabled: boolean;
+  }) => (
     <div>
       {market.symbol} {selected ? '(selected)' : ''} {disabled ? '(disabled)' : ''}
     </div>
@@ -61,7 +73,9 @@ describe('DiscoverTokenList', () => {
 
   it('shows the real trending list, unwrapped from its own trendingScore, under the Trending tab', async () => {
     const user = userEvent.setup();
-    const trending: TrendingToken[] = [{ market: fakeMarket({ symbol: 'HOT' }), trendingScore: 9.5 }];
+    const trending: TrendingToken[] = [
+      { market: fakeMarket({ symbol: 'HOT' }), trendingScore: 9.5 },
+    ];
     render(<DiscoverTokenList {...defaultProps} trending={trending} />);
 
     await user.click(screen.getByRole('button', { name: 'Trending' }));
@@ -102,20 +116,20 @@ describe('DiscoverTokenList', () => {
     expect(screen.getByText('TrenchesPanel')).toBeInTheDocument();
   });
 
-  it('renders LeaderboardSidebar under the Ranks tab', async () => {
+  it('renders LeaderboardSidebar under the Leaderboard tab', async () => {
     const user = userEvent.setup();
     render(<DiscoverTokenList {...defaultProps} />);
 
-    await user.click(screen.getByRole('button', { name: 'Ranks' }));
+    await user.click(screen.getByRole('button', { name: 'Leaderboard' }));
 
     expect(screen.getByText('LeaderboardSidebar')).toBeInTheDocument();
   });
 
-  it('renders TradersSidebar under the Traders tab', async () => {
+  it('renders TradersSidebar under the Feed tab', async () => {
     const user = userEvent.setup();
     render(<DiscoverTokenList {...defaultProps} />);
 
-    await user.click(screen.getByRole('button', { name: 'Traders' }));
+    await user.click(screen.getByRole('button', { name: 'Feed' }));
 
     expect(screen.getByText('TradersSidebar')).toBeInTheDocument();
   });
@@ -130,14 +144,26 @@ describe('DiscoverTokenList', () => {
   });
 
   it("marks the real currently selected token's row as selected, using the composite chain+address key", () => {
-    const market = fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa', symbol: 'AAA' });
-    render(<DiscoverTokenList {...defaultProps} ranked={[market]} selectedKey="eip155:8453:0xaaa" />);
+    const market = fakeMarket({
+      chainIdentifier: 'eip155:8453',
+      tokenAddress: '0xaaa',
+      symbol: 'AAA',
+    });
+    render(
+      <DiscoverTokenList {...defaultProps} ranked={[market]} selectedKey="eip155:8453:0xaaa" />,
+    );
 
     expect(screen.getByText(/AAA \(selected\)/)).toBeInTheDocument();
   });
 
   it('passes the real selectionDisabled flag through to every row', () => {
-    render(<DiscoverTokenList {...defaultProps} ranked={[fakeMarket({ symbol: 'AAA' })]} selectionDisabled />);
+    render(
+      <DiscoverTokenList
+        {...defaultProps}
+        ranked={[fakeMarket({ symbol: 'AAA' })]}
+        selectionDisabled
+      />,
+    );
 
     expect(screen.getByText(/AAA.*\(disabled\)/)).toBeInTheDocument();
   });
@@ -146,7 +172,9 @@ describe('DiscoverTokenList', () => {
     render(
       <DiscoverTokenList
         {...defaultProps}
-        ranked={[fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ...' })]}
+        ranked={[
+          fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ...' }),
+        ]}
       />,
     );
 

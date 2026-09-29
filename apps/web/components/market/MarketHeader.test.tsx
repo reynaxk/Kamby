@@ -58,7 +58,7 @@ describe('MarketHeader', () => {
 
   it('uses the wide terminal shell only when requested', () => {
     const { container, unmount } = render(<MarketHeader wide />);
-    expect(container.firstElementChild?.firstElementChild).toHaveClass('max-w-[1600px]');
+    expect(container.firstElementChild?.firstElementChild).toHaveClass('max-w-[1920px]');
     expect(screen.getByRole('search').parentElement).toHaveClass('sm:max-w-xl');
     unmount();
 

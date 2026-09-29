@@ -7,9 +7,9 @@ import { formatRelativeTime, truncateAddress } from '@/lib/format';
 
 type Tab = 'transactions' | 'holders' | 'caller-alpha';
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'transactions', label: 'Transactions' },
+  { id: 'transactions', label: 'Swaps' },
   { id: 'holders', label: 'Holders' },
-  { id: 'caller-alpha', label: 'Caller Alpha' },
+  { id: 'caller-alpha', label: 'Thesis' },
 ];
 
 type ActionFilter = 'ALL' | ActivityAction;
@@ -52,7 +52,9 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
             onClick={() => setTab(t.id)}
             className={cn(
               'px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide transition-all',
-              tab === t.id ? 'border-b-2 border-accent text-ink-900 shadow-[inset_0_-8px_12px_-10px_rgb(var(--kamby-accent)/0.5)]' : 'text-ink-400 hover:text-ink-600',
+              tab === t.id
+                ? 'border-b-2 border-accent text-ink-900 shadow-[inset_0_-8px_12px_-10px_rgb(var(--kamby-accent)/0.5)]'
+                : 'text-ink-400 hover:text-ink-600',
             )}
           >
             {t.label}
@@ -69,7 +71,9 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
                 onClick={() => setActionFilter(a)}
                 className={cn(
                   'rounded px-1.5 py-0.5 font-semibold uppercase transition-colors',
-                  actionFilter === a ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
+                  actionFilter === a
+                    ? 'bg-accent text-accent-ink'
+                    : 'text-ink-400 hover:text-ink-900',
                 )}
               >
                 {a === 'ALL' ? 'All' : a}
@@ -97,8 +101,8 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
         </div>
       )}
       <div className="flex-1 overflow-y-auto font-mono text-xs">
-        {tab === 'transactions' && (
-          activity.length === 0 ? (
+        {tab === 'transactions' &&
+          (activity.length === 0 ? (
             <p className="p-4 text-ink-400">No activity indexed yet for this token.</p>
           ) : filteredActivity.length === 0 ? (
             <p className="p-4 text-ink-400">No activity matches these filters.</p>
@@ -107,25 +111,34 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
               <tbody>
                 {filteredActivity.map((row) => (
                   <tr key={row.id} className="border-b border-line/50">
-                    <td className="px-2.5 py-1 tracking-tight text-ink-400" suppressHydrationWarning>
+                    <td
+                      className="px-2.5 py-1 tracking-tight text-ink-400"
+                      suppressHydrationWarning
+                    >
                       {formatRelativeTime(row.timestamp)}
                     </td>
                     <td className="px-2.5 py-1 tracking-tight text-ink-600">
                       {row.trader.address ? truncateAddress(row.trader.address) : 'Unknown'}
                     </td>
-                    <td className={cn('px-2.5 py-1 font-semibold', row.action === 'BUY' ? 'text-up' : 'text-down')}>
+                    <td
+                      className={cn(
+                        'px-2.5 py-1 font-semibold',
+                        row.action === 'BUY' ? 'text-up' : 'text-down',
+                      )}
+                    >
                       {row.action}
                     </td>
                     <td className="px-2.5 py-1 text-right tabular-nums text-ink-900">
                       ${row.amountUsd.toLocaleString('en-US')}
                     </td>
-                    <td className="px-2.5 py-1 tracking-tight text-ink-400">{truncateAddress(row.txHash)}</td>
+                    <td className="px-2.5 py-1 tracking-tight text-ink-400">
+                      {truncateAddress(row.txHash)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )
-        )}
+          ))}
         {tab === 'holders' && (
           <p className="p-4 text-ink-400">
             Holder tracking <span className="text-ink-400">— soon</span>.
@@ -133,7 +146,8 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
         )}
         {tab === 'caller-alpha' && (
           <p className="p-4 text-ink-400">
-            Caller alpha <span className="text-ink-400">— soon</span>.
+            Trade theses <span className="text-ink-400">— soon</span>. Post a thesis from the
+            token&apos;s trader panel when you have a view to share.
           </p>
         )}
       </div>

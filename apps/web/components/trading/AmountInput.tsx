@@ -19,12 +19,14 @@ export function AmountInput({
   inputTokenAddress,
   inputTokenSymbol,
   inputTokenDecimals,
+  className,
 }: {
   value: string;
   onChange: (value: string) => void;
   inputTokenAddress: string;
   inputTokenSymbol: string | null;
   inputTokenDecimals: number;
+  className?: string;
 }) {
   const { address } = useAccount();
   const { data: balance } = useBalance({
@@ -40,7 +42,7 @@ export function AmountInput({
   };
 
   return (
-    <div>
+    <div className={className}>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
         <span>Amount ({inputTokenSymbol ?? 'token'})</span>
         {balance && <span>Balance: {Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })}</span>}
