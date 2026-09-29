@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { PumpFunTokenSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { fetchTrenches } from '@/lib/trenches-client';
+import { cashtag } from '@/lib/format';
 
 const POLL_INTERVAL_MS = 12_000;
 const MIN_RADIUS = 26;
@@ -229,7 +230,7 @@ function BubbleNode({
       href={`https://solscan.io/token/${token.mintAddress}`}
       target="_blank"
       rel="noopener noreferrer"
-      title={`${token.symbol ? `$${token.symbol}` : token.mintAddress} — ${token.graduationProgressPct.toFixed(0)}% to graduation`}
+      title={`${token.symbol ? cashtag(token.symbol) : token.mintAddress} — ${token.graduationProgressPct.toFixed(0)}% to graduation`}
       className={cn(
         'absolute left-0 top-0 flex select-none items-center justify-center overflow-hidden rounded-full border border-line bg-surface-raised text-center transition-shadow hover:border-accent/60',
         close && 'shadow-glow-accent',
@@ -237,7 +238,7 @@ function BubbleNode({
       style={{ width: r * 2, height: r * 2, willChange: 'transform' }}
     >
       <span className="pointer-events-none px-1 font-display text-[0.65rem] font-bold leading-tight text-ink-900">
-        {token.symbol ? `$${token.symbol}` : token.mintAddress.slice(0, 4)}
+        {token.symbol ? cashtag(token.symbol) : token.mintAddress.slice(0, 4)}
       </span>
     </a>
   );

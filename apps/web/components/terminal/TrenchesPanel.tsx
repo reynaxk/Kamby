@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { type MarketSummary, type PumpFunTokenSummary, slugForIdentifier } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { formatCompactUsd, formatPercent, formatRelativeTime, truncateAddress } from '@/lib/format';
+import { formatCompactUsd, formatPercent, formatRelativeTime, truncateAddress, cashtag } from '@/lib/format';
 import { fetchTrenches, isPumpFunCategory, type TrenchesCategory } from '@/lib/trenches-client';
 
 const TABS: { category: TrenchesCategory; label: string }[] = [
@@ -105,7 +105,7 @@ function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-sm font-semibold text-ink-900">
-          {token.symbol ? `$${token.symbol}` : truncateAddress(token.mintAddress)}
+          {token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress)}
         </span>
         <span
           className="block truncate font-mono text-[0.65rem] text-ink-400"

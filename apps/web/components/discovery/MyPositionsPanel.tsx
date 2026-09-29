@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { TokenPosition } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
-import { formatCompactUsd, formatPercent, formatSignedCompactUsd, priceDirection } from '@/lib/format';
+import { formatCompactUsd, formatPercent, formatSignedCompactUsd, priceDirection, cashtag } from '@/lib/format';
 import { fetchMyPositions, hasStoredSession } from '@/lib/discovery-client';
 
 const POLL_INTERVAL_MS = 30_000;
@@ -70,7 +70,7 @@ export function MyPositionsPanel() {
               >
                 <div className="min-w-0">
                   <div className="truncate font-display text-sm font-semibold text-ink-900">
-                    {position.symbol ? `$${position.symbol}` : 'Unknown'}
+                    {position.symbol ? cashtag(position.symbol) : 'Unknown'}
                   </div>
                   <div className={cn('font-mono text-[0.65rem] text-ink-400', hidden && 'blur-sm select-none')}>
                     {formatCompactUsd(position.costBasisUsd)} cost basis
@@ -85,7 +85,7 @@ export function MyPositionsPanel() {
               </button>
               {isExpanded && (
                 <div className={cn('border-t border-line px-2.5 py-2 font-body text-xs text-ink-600', hidden && 'blur-sm select-none')}>
-                  If you sold <span className="font-semibold text-ink-900">${position.symbol ?? 'this'}</span> right now,
+                  If you sold <span className="font-semibold text-ink-900">{cashtag(position.symbol ?? 'this')}</span> right now,
                   you&rsquo;d walk away with <span className="font-semibold text-ink-900">{formatCompactUsd(position.currentValueUsd)}</span>{' '}
                   —{' '}
                   <span className={cn(direction === 'up' && 'text-up', direction === 'down' && 'text-down', direction === 'flat' && 'text-ink-400')}>

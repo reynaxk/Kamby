@@ -84,3 +84,9 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   if (diffDays < 7) return `${diffDays}d ago`;
   return formatDateTime(iso);
 }
+
+/** "$SYMBOL" for display — some tokens' own symbols already start with "$" (Solana's
+ *  "$WIF"), which a plain `$${symbol}` would render as "$$WIF". */
+export function cashtag(symbol: string): string {
+  return `$${symbol.replace(/^\$+/, '')}`;
+}

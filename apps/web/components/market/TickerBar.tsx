@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { formatPercent, formatPrice, priceDirection } from '@/lib/format';
+import { formatPercent, formatPrice, priceDirection, cashtag } from '@/lib/format';
 import { fetchDiscoverMarkets } from '@/lib/market-client';
 import { solanaMarketHref } from '@/lib/solana-links';
 
@@ -67,7 +67,7 @@ export function TickerBar() {
               : null;
           const ticker = (
             <>
-              <span className="font-semibold text-ink-900">${(market.symbol ?? '?').replace(/^\$/, '')}</span>
+              <span className="font-semibold text-ink-900">{cashtag(market.symbol ?? '?')}</span>
               <span className="text-ink-400">{formatPrice(market.priceUsd)}</span>
               <span
                 className={cn(

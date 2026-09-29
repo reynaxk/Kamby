@@ -33,6 +33,7 @@ import { InlineTimeframeTabs } from './InlineTimeframeTabs';
 import { MyPositionsPanel } from './MyPositionsPanel';
 import { useChartOverlayFilter } from './useChartOverlayFilter';
 import { TokenTradersPanel } from './TokenTradersPanel';
+import { cashtag } from '@/lib/format';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
 type GridMode = 1 | 4 | 6;
@@ -286,7 +287,7 @@ export function DiscoverTerminal({
             onClick={() => setTokenListOpen(true)}
             className="min-w-0 flex-1 truncate rounded-lg border border-line bg-surface px-3 py-2 text-left font-display text-sm font-semibold text-ink-900"
           >
-            {selected ? `$${selected.symbol ?? 'Token'}` : 'Pick a token'}{' '}
+            {selected ? cashtag(selected.symbol ?? 'Token') : 'Pick a token'}{' '}
             <span className="text-ink-400">▾</span>
           </button>
           <button
