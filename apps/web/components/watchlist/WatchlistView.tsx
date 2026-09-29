@@ -1,6 +1,6 @@
 'use client';
 
-import { CHAIN_REGISTRY, DEFAULT_CHAIN_SLUG, type WatchedToken, slugForIdentifier } from '@kamby/domain';
+import { CHAIN_REGISTRY, type WatchedToken, slugForIdentifier } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -90,14 +90,9 @@ export function WatchlistView() {
   return (
     <div className="flex flex-col gap-3">
       {items.map((item) => {
-        // Chain-aware as of 2026-09-16 (BNB Chain going live).
-        const chainSlug = slugForIdentifier(item.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
-        return (
-        <Surface key={item.tokenAddress} className="flex items-center gap-3 p-4">
-          <Link
-            href={`/market/${chainSlug}/${item.tokenAddress}`}
-            className="flex min-w-0 flex-1 items-center gap-4"
-          >
+        const chainSlug = slugForIdentifier(item.chainIdentifier);
+        const details = (
+          <>
             <TokenIdentity symbol={item.symbol} name={item.name} logoUrl={item.logoUrl} />
             <div className="ml-auto flex items-center gap-4 font-mono text-sm tabular-nums">
               <span className="font-semibold text-ink-900">{formatPrice(item.priceUsd)}</span>
@@ -109,18 +104,38 @@ export function WatchlistView() {
                 watched {formatRelativeTime(item.watchedAt)}
               </span>
             </div>
-          </Link>
-          <WatchButton
-            address={item.tokenAddress}
-            chainId={CHAIN_REGISTRY[chainSlug].numericId}
-            initialWatching={true}
-            compact
-            className="ml-1"
-            onChange={(watching) => {
-              if (!watching) onUnwatched(item.tokenAddress);
-            }}
-          />
-        </Surface>
+          </>
+        );
+        return (
+          <Surface key={item.tokenAddress} className="flex items-center gap-3 p-4">
+            {chainSlug ? (
+              <Link
+                href={`/market/${chainSlug}/${item.tokenAddress}`}
+                className="flex min-w-0 flex-1 items-center gap-4"
+              >
+                {details}
+              </Link>
+            ) : (
+              <div
+                title="This market is visible for discovery but is not tradeable here yet"
+                className="flex min-w-0 flex-1 cursor-not-allowed items-center gap-4 opacity-70"
+              >
+                {details}
+              </div>
+            )}
+            {chainSlug && (
+              <WatchButton
+                address={item.tokenAddress}
+                chainId={CHAIN_REGISTRY[chainSlug].numericId}
+                initialWatching={true}
+                compact
+                className="ml-1"
+                onChange={(watching) => {
+                  if (!watching) onUnwatched(item.tokenAddress);
+                }}
+              />
+            )}
+          </Surface>
         );
       })}
       {cursor && (

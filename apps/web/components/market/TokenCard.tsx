@@ -1,4 +1,4 @@
-import { DEFAULT_CHAIN_SLUG, type MarketSummary, slugForIdentifier } from '@kamby/domain';
+import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
@@ -10,9 +10,9 @@ export function TokenCard({ market }: { market: MarketSummary }) {
   // Chain-aware URL as of 2026-09-16 (BNB Chain going live) — see
   // app/market/[chain]/[address]/page.tsx. Falls back to DEFAULT_CHAIN_SLUG only if this
   // market's own chainIdentifier is somehow unrecognized, never crashing the card.
-  const chainSlug = slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
-  return (
-    <Link href={`/market/${chainSlug}/${market.tokenAddress}`} className="block">
+  const chainSlug = slugForIdentifier(market.chainIdentifier);
+  const content = (
+    <>
       {/* Lift + soft accent glow on hover only, not an idle/constant glow — matches the
           visual overhaul's Hyperliquid-restraint direction (interactive-only emphasis). */}
       <Surface className="flex h-full flex-col gap-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent">
@@ -41,6 +41,20 @@ export function TokenCard({ market }: { market: MarketSummary }) {
           </div>
         </div>
       </Surface>
+    </>
+  );
+
+  if (!chainSlug) {
+    return (
+      <div title="This market is visible for discovery but is not tradeable here yet">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/market/${chainSlug}/${market.tokenAddress}`} className="block">
+      {content}
     </Link>
   );
 }

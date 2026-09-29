@@ -54,7 +54,9 @@ describe('TickerBar', () => {
     fetchDiscoverMarkets.mockResolvedValue([]);
     render(<TickerBar />);
 
-    await vi.waitFor(() => expect(fetchDiscoverMarkets).toHaveBeenCalledWith({ sort: 'volume', limit: 20 }));
+    await vi.waitFor(() =>
+      expect(fetchDiscoverMarkets).toHaveBeenCalledWith({ sort: 'volume', limit: 20 }),
+    );
   });
 
   it('doubles the real fetched list so the marquee loop point is invisible', async () => {
@@ -65,7 +67,9 @@ describe('TickerBar', () => {
   });
 
   it('links a Base-chain ticker item to its real chain-scoped URL', async () => {
-    fetchDiscoverMarkets.mockResolvedValue([fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa' })]);
+    fetchDiscoverMarkets.mockResolvedValue([
+      fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa' }),
+    ]);
     render(<TickerBar />);
 
     const links = await screen.findAllByRole('link');
@@ -73,11 +77,26 @@ describe('TickerBar', () => {
   });
 
   it('links a BNB-chain ticker item to its own chain-scoped URL, never defaulting to Base', async () => {
-    fetchDiscoverMarkets.mockResolvedValue([fakeMarket({ chainIdentifier: 'eip155:56', tokenAddress: '0xbbb' })]);
+    fetchDiscoverMarkets.mockResolvedValue([
+      fakeMarket({ chainIdentifier: 'eip155:56', tokenAddress: '0xbbb' }),
+    ]);
     render(<TickerBar />);
 
     const links = await screen.findAllByRole('link');
     expect(links[0]).toHaveAttribute('href', '/market/bnb/0xbbb');
+  });
+
+  it('does not make an unrecognized-chain ticker item route to Base', async () => {
+    fetchDiscoverMarkets.mockResolvedValue([
+      fakeMarket({ chainIdentifier: 'eip155:999999', tokenAddress: '0xccc' }),
+    ]);
+    render(<TickerBar />);
+
+    await screen.findAllByText('$FOO');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(
+      screen.getAllByTitle('This market is visible for discovery but is not tradeable here yet'),
+    ).toHaveLength(2);
   });
 
   it('shows a real "?" placeholder for a symbol-less token rather than a blank', async () => {

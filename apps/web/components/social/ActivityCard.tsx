@@ -1,4 +1,4 @@
-import { DEFAULT_CHAIN_SLUG, type SocialActivity, slugForChainId } from '@kamby/domain';
+import { type SocialActivity, slugForChainId } from '@kamby/domain';
 import { Surface, cn } from '@kamby/ui';
 import Link from 'next/link';
 import { TradeButton } from '@/components/trading/TradeButton';
@@ -18,8 +18,8 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
   const traderHref = activity.trader.address ? `/trader/${activity.trader.address}` : null;
   // Chain-aware as of 2026-09-16 (BNB Chain going live) — activity.chainId already carries
   // the real numeric chain this trade happened on, no derivation needed.
-  const chainSlug = slugForChainId(activity.chainId) ?? DEFAULT_CHAIN_SLUG;
-  const marketHref = `/market/${chainSlug}/${activity.token.address}`;
+  const chainSlug = slugForChainId(activity.chainId);
+  const marketHref = chainSlug ? `/market/${chainSlug}/${activity.token.address}` : null;
   const explorerUrl = explorerTxUrl(activity.chainId, activity.txHash);
 
   return (
@@ -69,12 +69,21 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
         <span className="font-display text-lg font-bold tabular-nums text-ink-900">
           {formatCompactUsd(activity.amountUsd)}
         </span>
-        <Link
-          href={marketHref}
-          className="truncate font-display text-sm font-semibold text-ink-600 hover:text-accent"
-        >
-          {activity.token.symbol ?? truncateAddress(activity.token.address)}
-        </Link>
+        {marketHref ? (
+          <Link
+            href={marketHref}
+            className="truncate font-display text-sm font-semibold text-ink-600 hover:text-accent"
+          >
+            {activity.token.symbol ?? truncateAddress(activity.token.address)}
+          </Link>
+        ) : (
+          <span
+            title="This market is visible for discovery but is not tradeable here yet"
+            className="truncate font-display text-sm font-semibold text-ink-400"
+          >
+            {activity.token.symbol ?? truncateAddress(activity.token.address)}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
@@ -111,11 +120,13 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
             initialLikes={activity.social.likes}
             initialLikedByMe={activity.social.likedByMe}
           />
-          <ShareButton
-            compact
-            title={`${isBuy ? 'Bought' : 'Sold'} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Kamby`}
-            path={marketHref}
-          />
+          {marketHref && (
+            <ShareButton
+              compact
+              title={`${isBuy ? 'Bought' : 'Sold'} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Kamby`}
+              path={marketHref}
+            />
+          )}
         </div>
       </div>
     </Surface>

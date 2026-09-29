@@ -19,6 +19,7 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { DataHub } from '@/components/terminal/DataHub';
 import { KambyChart } from '@/components/terminal/KambyChart';
+import { MarketInfoPanel } from '@/components/terminal/MarketInfoPanel';
 import { TokenMetricsBar } from '@/components/terminal/TokenMetricsBar';
 import { IN_FLIGHT_STEPS, TradePanelCard } from '@/components/terminal/TradePanelCard';
 import { type TradePanelStep } from '@/components/trading/TradePanel';
@@ -231,7 +232,11 @@ export function DiscoverTerminal({
 
   const selectedKey = selected ? marketKey(selected) : null;
   const chainId = selected ? chainIdFor(selected) : null;
-  const canTrade = selected !== null && selected.decimals !== null && selected.quoteDecimals !== null && chainId !== null;
+  const canTrade =
+    selected !== null &&
+    selected.decimals !== null &&
+    selected.quoteDecimals !== null &&
+    chainId !== null;
   const [filteredTrades, overlayControls] = useChartOverlayFilter(traders.recentLargeTrades);
 
   // Was `justify-end` with nothing else in the row — on desktop that left a full-width band
@@ -253,7 +258,9 @@ export function DiscoverTerminal({
               aria-pressed={gridMode === mode}
               className={cn(
                 'rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors',
-                gridMode === mode ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
+                gridMode === mode
+                  ? 'bg-accent text-accent-ink shadow-glow-accent'
+                  : 'text-ink-400 hover:text-ink-900',
               )}
             >
               {mode}-up
@@ -279,7 +286,8 @@ export function DiscoverTerminal({
             onClick={() => setTokenListOpen(true)}
             className="min-w-0 flex-1 truncate rounded-lg border border-line bg-surface px-3 py-2 text-left font-display text-sm font-semibold text-ink-900"
           >
-            {selected ? `$${selected.symbol ?? 'Token'}` : 'Pick a token'} <span className="text-ink-400">▾</span>
+            {selected ? `$${selected.symbol ?? 'Token'}` : 'Pick a token'}{' '}
+            <span className="text-ink-400">▾</span>
           </button>
           <button
             type="button"
@@ -297,7 +305,10 @@ export function DiscoverTerminal({
           </div>
         )}
 
-        <Surface variant="elevated" className="mb-3 flex h-[300px] flex-col gap-2 p-2 shadow-glow-accent">
+        <Surface
+          variant="elevated"
+          className="mb-3 flex h-[300px] flex-col gap-2 p-2 shadow-glow-accent"
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
             {overlayControls}
             <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
@@ -308,7 +319,10 @@ export function DiscoverTerminal({
             ) : candlesStatus === 'loading' ? (
               <Skeleton className="h-full w-full" />
             ) : candlesStatus === 'error' ? (
-              <EmptyState title="Couldn't load this chart" detail="Try selecting the token again in a moment." />
+              <EmptyState
+                title="Couldn't load this chart"
+                detail="Try selecting the token again in a moment."
+              />
             ) : (
               <KambyChart candles={candles} trades={filteredTrades} />
             )}
@@ -324,7 +338,10 @@ export function DiscoverTerminal({
             <Skeleton className="h-full w-full rounded-2xl" />
           ) : activityStatus === 'error' ? (
             <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
-              <EmptyState title="Couldn't load activity" detail="Try selecting the token again in a moment." />
+              <EmptyState
+                title="Couldn't load activity"
+                detail="Try selecting the token again in a moment."
+              />
             </div>
           ) : (
             <DataHub activity={activity} />
@@ -336,13 +353,26 @@ export function DiscoverTerminal({
         </div>
 
         {selected && (
+          <div className="mb-3">
+            <MarketInfoPanel market={selected} />
+          </div>
+        )}
+
+        {selected && (
           <div className="mb-3 rounded-2xl border border-line bg-surface p-4">
             {tradersStatus === 'loading' ? (
               <Skeleton className="h-40 w-full" />
             ) : tradersStatus === 'error' ? (
-              <EmptyState title="Couldn't load traders" detail="Try selecting the token again in a moment." />
+              <EmptyState
+                title="Couldn't load traders"
+                detail="Try selecting the token again in a moment."
+              />
             ) : (
-              <TokenTradersPanel connection={traders} tokenAddress={selected.tokenAddress} chainId={chainIdFor(selected)} />
+              <TokenTradersPanel
+                connection={traders}
+                tokenAddress={selected.tokenAddress}
+                chainId={chainIdFor(selected)}
+              />
             )}
           </div>
         )}
@@ -412,102 +442,124 @@ export function DiscoverTerminal({
   return (
     <div>
       {layoutToggle}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
-      <div className="h-[520px] lg:h-[calc(100vh-8rem)]">
-        <DiscoverTokenList
-          ranked={ranked}
-          trending={trending}
-          movers={movers}
-          byVolume={byVolume}
-          selectedKey={selectedKey}
-          onSelect={handleSelect}
-          selectionDisabled={inFlight}
-        />
-      </div>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px] xl:grid-cols-[300px_1fr_360px]">
+        <div className="h-[520px] lg:h-[calc(100vh-8rem)]">
+          <DiscoverTokenList
+            ranked={ranked}
+            trending={trending}
+            movers={movers}
+            byVolume={byVolume}
+            selectedKey={selectedKey}
+            onSelect={handleSelect}
+            selectionDisabled={inFlight}
+          />
+        </div>
 
-      <div className="flex min-w-0 flex-col gap-3">
-        {selected ? (
-          <TokenMetricsBar market={selected} />
-        ) : (
-          <Surface variant="glass" className="p-4">
-            <p className="font-body text-sm text-ink-600">Pick a token from the list to see it here.</p>
+        <div className="flex min-w-0 flex-col gap-3">
+          {selected ? (
+            <TokenMetricsBar market={selected} />
+          ) : (
+            <Surface variant="glass" className="p-4">
+              <p className="font-body text-sm text-ink-600">
+                Pick a token from the list to see it here.
+              </p>
+            </Surface>
+          )}
+
+          <Surface
+            variant="elevated"
+            className="flex h-[380px] flex-col gap-2 p-2 shadow-glow-accent"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {overlayControls}
+              <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
+            </div>
+            <div className="min-h-0 flex-1">
+              {!selected ? (
+                <EmptyState title="Pick a token to see its chart" />
+              ) : candlesStatus === 'loading' ? (
+                <Skeleton className="h-full w-full" />
+              ) : candlesStatus === 'error' ? (
+                <EmptyState
+                  title="Couldn't load this chart"
+                  detail="Try selecting the token again in a moment."
+                />
+              ) : (
+                <KambyChart candles={candles} trades={filteredTrades} />
+              )}
+            </div>
           </Surface>
-        )}
 
-        <Surface variant="elevated" className="flex h-[380px] flex-col gap-2 p-2 shadow-glow-accent">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {overlayControls}
-            <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
-          </div>
-          <div className="min-h-0 flex-1">
+          <div className="h-[300px]">
             {!selected ? (
-              <EmptyState title="Pick a token to see its chart" />
-            ) : candlesStatus === 'loading' ? (
-              <Skeleton className="h-full w-full" />
-            ) : candlesStatus === 'error' ? (
-              <EmptyState title="Couldn't load this chart" detail="Try selecting the token again in a moment." />
+              <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
+                <EmptyState title="Pick a token to see its activity" />
+              </div>
+            ) : activityStatus === 'loading' ? (
+              <Skeleton className="h-full w-full rounded-2xl" />
+            ) : activityStatus === 'error' ? (
+              <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
+                <EmptyState
+                  title="Couldn't load activity"
+                  detail="Try selecting the token again in a moment."
+                />
+              </div>
             ) : (
-              <KambyChart candles={candles} trades={filteredTrades} />
+              <DataHub activity={activity} />
             )}
           </div>
-        </Surface>
+        </div>
 
-        <div className="h-[300px]">
+        <div className="flex flex-col gap-3 lg:sticky lg:top-20 lg:self-start">
+          {canTrade && selected && chainId !== null ? (
+            <TradePanelCard
+              key={selectedKey ?? undefined}
+              chainId={chainId}
+              tokenAddress={selected.tokenAddress}
+              tokenSymbol={selected.symbol}
+              tokenDecimals={selected.decimals as number}
+              quoteTokenAddress={selected.quoteAddress}
+              quoteTokenSymbol={selected.quoteSymbol}
+              quoteTokenDecimals={selected.quoteDecimals as number}
+              onStepChange={setTradeStep}
+            />
+          ) : (
+            <Surface className="p-4">
+              <p className="font-body text-sm text-ink-600">
+                {selected
+                  ? "Trading isn't available for this token yet."
+                  : 'Pick a token to trade.'}
+              </p>
+            </Surface>
+          )}
+
+          <MyPositionsPanel />
+
+          {selected && <MarketInfoPanel market={selected} />}
+
           {!selected ? (
-            <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
-              <EmptyState title="Pick a token to see its activity" />
+            <div className="flex items-center rounded-2xl border border-line bg-surface">
+              <EmptyState title="No token selected" />
             </div>
-          ) : activityStatus === 'loading' ? (
-            <Skeleton className="h-full w-full rounded-2xl" />
-          ) : activityStatus === 'error' ? (
-            <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
-              <EmptyState title="Couldn't load activity" detail="Try selecting the token again in a moment." />
+          ) : tradersStatus === 'loading' ? (
+            <Skeleton className="h-40 w-full rounded-2xl" />
+          ) : tradersStatus === 'error' ? (
+            <div className="flex items-center rounded-2xl border border-line bg-surface">
+              <EmptyState
+                title="Couldn't load traders"
+                detail="Try selecting the token again in a moment."
+              />
             </div>
           ) : (
-            <DataHub activity={activity} />
+            <div className="rounded-2xl border border-line bg-surface p-4">
+              <TokenTradersPanel
+                connection={traders}
+                tokenAddress={selected.tokenAddress}
+                chainId={chainIdFor(selected)}
+              />
+            </div>
           )}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {canTrade && selected && chainId !== null ? (
-          <TradePanelCard
-            key={selectedKey ?? undefined}
-            chainId={chainId}
-            tokenAddress={selected.tokenAddress}
-            tokenSymbol={selected.symbol}
-            tokenDecimals={selected.decimals as number}
-            quoteTokenAddress={selected.quoteAddress}
-            quoteTokenSymbol={selected.quoteSymbol}
-            quoteTokenDecimals={selected.quoteDecimals as number}
-            onStepChange={setTradeStep}
-          />
-        ) : (
-          <Surface className="p-4">
-            <p className="font-body text-sm text-ink-600">
-              {selected ? "Trading isn't available for this token yet." : 'Pick a token to trade.'}
-            </p>
-          </Surface>
-        )}
-
-        <MyPositionsPanel />
-
-        {!selected ? (
-          <div className="flex items-center rounded-2xl border border-line bg-surface">
-            <EmptyState title="No token selected" />
-          </div>
-        ) : tradersStatus === 'loading' ? (
-          <Skeleton className="h-40 w-full rounded-2xl" />
-        ) : tradersStatus === 'error' ? (
-          <div className="flex items-center rounded-2xl border border-line bg-surface">
-            <EmptyState title="Couldn't load traders" detail="Try selecting the token again in a moment." />
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-line bg-surface p-4">
-            <TokenTradersPanel connection={traders} tokenAddress={selected.tokenAddress} chainId={chainIdFor(selected)} />
-          </div>
-        )}
-      </div>
       </div>
     </div>
   );

@@ -103,7 +103,9 @@ export default async function DiscoverPage({
   // selection anyway, sending its mint address to the EVM-only history/traders/activity
   // endpoints and showing "Couldn't load..." everywhere on first paint for every visitor,
   // not just a real edge case.
-  const defaultMarket = !search ? ranked.find((m) => slugForIdentifier(m.chainIdentifier) !== null) : undefined;
+  const defaultMarket = !search
+    ? ranked.find((m) => slugForIdentifier(m.chainIdentifier) !== null)
+    : undefined;
   const defaultChainId = defaultMarket
     ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG]
         .numericId
@@ -134,7 +136,7 @@ export default async function DiscoverPage({
           the other); the rest of the product still runs the original light/dark palette. */}
       <div className="kamby-void min-h-screen bg-bg">
         <AutoRefresh intervalSeconds={30} />
-        <MarketHeader searchValue={search} />
+        <MarketHeader searchValue={search} wide />
         {!search && (
           <div className="mx-auto max-w-[1600px] px-3 pt-6 sm:px-4">
             <DiscoverTerminal

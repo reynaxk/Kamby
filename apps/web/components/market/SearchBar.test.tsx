@@ -20,7 +20,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 
 function market(overrides: Partial<Record<string, unknown>> = {}) {
   return {
-    chainIdentifier: 'base',
+    chainIdentifier: 'eip155:8453',
     tokenAddress: '0xabc0000000000000000000000000000000000a',
     symbol: 'PEPE',
     name: 'Pepe',
@@ -96,6 +96,24 @@ describe('SearchBar', () => {
 
     expect(push).toHaveBeenCalledWith('/market/base/0xabc0000000000000000000000000000000000a');
     expect(screen.queryByLabelText('Search results')).not.toBeInTheDocument();
+  });
+
+  it('shows an unrecognized-chain result without a false Base route or watch action', async () => {
+    fetchSearchResults.mockResolvedValue([
+      market({ chainIdentifier: 'eip155:999999', symbol: 'ODD' }),
+    ]);
+    const user = userEvent.setup();
+    render(<SearchBar />);
+
+    await user.type(screen.getByRole('textbox'), 'odd');
+    await screen.findByText('ODD');
+
+    expect(
+      screen.getByTitle('This market is visible for discovery but is not tradeable here yet'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /watch/i })).not.toBeInTheDocument();
+    await user.click(screen.getByText('ODD'));
+    expect(push).not.toHaveBeenCalled();
   });
 
   it('clears results once the input is emptied again', async () => {

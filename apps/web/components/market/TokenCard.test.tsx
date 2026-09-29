@@ -29,18 +29,29 @@ function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
 
 describe('TokenCard', () => {
   it('links a Base-chain token to its real chain-scoped URL', () => {
-    render(<TokenCard market={fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa' })} />);
+    render(
+      <TokenCard market={fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa' })} />,
+    );
     expect(screen.getByRole('link')).toHaveAttribute('href', '/market/base/0xaaa');
   });
 
   it('links a BNB-chain token to its own real chain-scoped URL, not defaulting to Base', () => {
-    render(<TokenCard market={fakeMarket({ chainIdentifier: 'eip155:56', tokenAddress: '0xbbb' })} />);
+    render(
+      <TokenCard market={fakeMarket({ chainIdentifier: 'eip155:56', tokenAddress: '0xbbb' })} />,
+    );
     expect(screen.getByRole('link')).toHaveAttribute('href', '/market/bnb/0xbbb');
   });
 
-  it('falls back to the default chain slug rather than crashing for an unrecognized chain identifier', () => {
-    render(<TokenCard market={fakeMarket({ chainIdentifier: 'eip155:999999', tokenAddress: '0xccc' })} />);
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/market/base/0xccc');
+  it('keeps an unrecognized chain visible without routing it to the wrong chain', () => {
+    render(
+      <TokenCard
+        market={fakeMarket({ chainIdentifier: 'eip155:999999', tokenAddress: '0xccc' })}
+      />,
+    );
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(
+      screen.getByTitle('This market is visible for discovery but is not tradeable here yet'),
+    ).toBeInTheDocument();
   });
 
   it('shows the stale badge only when the market data is actually stale', () => {
@@ -52,7 +63,11 @@ describe('TokenCard', () => {
   });
 
   it('shows the real price, volume, and liquidity for this specific market', () => {
-    render(<TokenCard market={fakeMarket({ priceUsd: 2.5, volume24hUsd: 500_000, liquidityUsd: 75_000 })} />);
+    render(
+      <TokenCard
+        market={fakeMarket({ priceUsd: 2.5, volume24hUsd: 500_000, liquidityUsd: 75_000 })}
+      />,
+    );
     expect(screen.getByText('$2.50')).toBeInTheDocument();
     expect(screen.getByText('$500.0K')).toBeInTheDocument();
     expect(screen.getByText('$75.0K')).toBeInTheDocument();

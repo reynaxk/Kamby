@@ -20,6 +20,7 @@ import { SearchBar } from './SearchBar';
 export function MarketHeader({
   searchValue,
   expectedWalletChainId,
+  wide = false,
 }: {
   searchValue?: string;
   /** Real bug fixed 2026-09-17: this header renders its own `ConnectWalletButton` instance,
@@ -31,14 +32,22 @@ export function MarketHeader({
    *  The market detail page now passes its own resolved chainId through so both instances
    *  agree on which chain the wallet should be on. */
   expectedWalletChainId?: number;
+  /** Use the wider terminal shell on dense discovery surfaces without changing the
+   * narrower content rhythm used by the rest of the app. */
+  wide?: boolean;
 }) {
+  const shellClass = wide ? 'max-w-[1600px] px-3 sm:px-4' : 'max-w-6xl px-6';
+  const actionsClass = wide
+    ? 'ml-0 flex flex-1 flex-wrap items-center gap-3'
+    : 'ml-auto flex flex-wrap items-center gap-3';
+
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-4">
+      <div className={`mx-auto flex flex-wrap items-center gap-4 py-4 ${shellClass}`}>
         <Link href="/" className="flex items-center gap-2">
           <KambyLogo />
         </Link>
-        <div className="ml-auto flex flex-wrap items-center gap-3">
+        <div className={actionsClass}>
           {/* w-full below sm: the search input has no room to be usable squeezed onto the
               same row as five icon buttons + Sign in on a narrow phone (it was clipping to
               ~2 visible characters of its own placeholder) — full-width forces it onto its
@@ -47,7 +56,7 @@ export function MarketHeader({
               typeahead state (typed value, dropdown results) is now lifted into the
               component itself rather than living in the DOM input node, so only a real
               remount resets it. */}
-          <div className="w-full sm:w-auto">
+          <div className={wide ? 'w-full sm:mx-auto sm:flex-1 sm:max-w-xl' : 'w-full sm:w-auto'}>
             <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
           </div>
           <BlurBalancesToggle />

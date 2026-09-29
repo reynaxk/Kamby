@@ -2,16 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { DEFAULT_CHAIN_SLUG, type MarketSummary, slugForIdentifier } from '@kamby/domain';
+import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatPercent, formatPrice, priceDirection } from '@/lib/format';
 import { fetchDiscoverMarkets } from '@/lib/market-client';
 
 const POLL_INTERVAL_MS = 20_000;
-
-function marketHref(market: MarketSummary): string {
-  return `/market/${slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG}/${market.tokenAddress}`;
-}
 
 /**
  * A persistent, app-wide scrolling price ticker — rendered once from the root layout
@@ -62,18 +58,40 @@ export function TickerBar() {
       <div className="flex h-full w-max animate-marquee items-center hover:[animation-play-state:paused]">
         {items.map((market, i) => {
           const direction = priceDirection(market.priceChange24hPct);
-          return (
-            <Link
-              key={`${market.chainIdentifier}:${market.tokenAddress}:${i}`}
-              href={marketHref(market)}
-              className="flex shrink-0 items-center gap-1.5 border-r border-line/60 px-3 font-mono text-xs transition-colors hover:bg-surface-raised"
-            >
+          const chainSlug = slugForIdentifier(market.chainIdentifier);
+          const ticker = (
+            <>
               <span className="font-semibold text-ink-900">${market.symbol ?? '?'}</span>
               <span className="text-ink-400">{formatPrice(market.priceUsd)}</span>
-              <span className={cn(direction === 'up' && 'text-up', direction === 'down' && 'text-down', direction === 'flat' && 'text-ink-400')}>
+              <span
+                className={cn(
+                  direction === 'up' && 'text-up',
+                  direction === 'down' && 'text-down',
+                  direction === 'flat' && 'text-ink-400',
+                )}
+              >
                 {formatPercent(market.priceChange24hPct)}
               </span>
+            </>
+          );
+          const className =
+            'flex shrink-0 items-center gap-1.5 border-r border-line/60 px-3 font-mono text-xs transition-colors hover:bg-surface-raised';
+          return chainSlug ? (
+            <Link
+              key={`${market.chainIdentifier}:${market.tokenAddress}:${i}`}
+              href={`/market/${chainSlug}/${market.tokenAddress}`}
+              className={className}
+            >
+              {ticker}
             </Link>
+          ) : (
+            <span
+              key={`${market.chainIdentifier}:${market.tokenAddress}:${i}`}
+              title="This market is visible for discovery but is not tradeable here yet"
+              className={`${className} cursor-not-allowed opacity-70`}
+            >
+              {ticker}
+            </span>
           );
         })}
       </div>

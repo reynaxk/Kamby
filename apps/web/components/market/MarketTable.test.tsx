@@ -35,19 +35,38 @@ describe('MarketTable', () => {
   });
 
   it('links a Base-chain token to its real chain-scoped URL', () => {
-    render(<MarketTable markets={[fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa' })]} />);
+    render(
+      <MarketTable
+        markets={[fakeMarket({ chainIdentifier: 'eip155:8453', tokenAddress: '0xaaa' })]}
+      />,
+    );
     expect(screen.getByRole('link')).toHaveAttribute('href', '/market/base/0xaaa');
   });
 
   it('links a BNB-chain token to its own real chain-scoped URL, not defaulting to Base', () => {
-    render(<MarketTable markets={[fakeMarket({ chainIdentifier: 'eip155:56', tokenAddress: '0xbbb' })]} />);
+    render(
+      <MarketTable
+        markets={[fakeMarket({ chainIdentifier: 'eip155:56', tokenAddress: '0xbbb' })]}
+      />,
+    );
     expect(screen.getByRole('link')).toHaveAttribute('href', '/market/bnb/0xbbb');
+  });
+
+  it('does not route an unsupported chain to a false Base market page', () => {
+    render(
+      <MarketTable markets={[fakeMarket({ chainIdentifier: 'solana', tokenAddress: 'So111' })]} />,
+    );
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByTitle(/not tradeable here yet/i)).toBeInTheDocument();
   });
 
   it('shows the stale badge only for a market whose price data is actually stale', () => {
     render(
       <MarketTable
-        markets={[fakeMarket({ tokenAddress: '0xaaa', isStale: false }), fakeMarket({ tokenAddress: '0xbbb', isStale: true })]}
+        markets={[
+          fakeMarket({ tokenAddress: '0xaaa', isStale: false }),
+          fakeMarket({ tokenAddress: '0xbbb', isStale: true }),
+        ]}
       />,
     );
     expect(screen.getAllByText('Stale')).toHaveLength(1);

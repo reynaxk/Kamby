@@ -16,7 +16,9 @@ vi.mock('@/components/market/TokenIdentity', () => ({
 vi.mock('@/components/market/PriceChange', () => ({
   PriceChange: ({ value }: { value: number }) => <span>{value}%</span>,
 }));
-vi.mock('./ReasonTag', () => ({ ReasonTag: ({ reason }: { reason: string }) => <span>{reason}</span> }));
+vi.mock('./ReasonTag', () => ({
+  ReasonTag: ({ reason }: { reason: string }) => <span>{reason}</span>,
+}));
 
 function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
   return {
@@ -105,20 +107,28 @@ describe('PersonalizedDiscovery', () => {
     expect(link).toHaveAttribute('href', '/market/bnb/0xbbb');
   });
 
-  it('falls back to the default chain slug rather than crashing for an unrecognized chain identifier', async () => {
+  it('keeps an unrecognized-chain pick visible without routing it to the wrong chain', async () => {
     hasStoredSession.mockReturnValue(true);
     fetchPersonalizedDiscovery.mockResolvedValue([
-      fakeToken({ market: fakeMarket({ chainIdentifier: 'eip155:999999', tokenAddress: '0xccc' }) }),
+      fakeToken({
+        market: fakeMarket({ chainIdentifier: 'eip155:999999', tokenAddress: '0xccc' }),
+      }),
     ]);
     render(<PersonalizedDiscovery />);
 
-    const link = await screen.findByRole('link');
-    expect(link).toHaveAttribute('href', '/market/base/0xccc');
+    expect(
+      await screen.findByTitle(
+        'This market is visible for discovery but is not tradeable here yet',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('renders every real reason tag for a pick with multiple reasons', async () => {
     hasStoredSession.mockReturnValue(true);
-    fetchPersonalizedDiscovery.mockResolvedValue([fakeToken({ reasons: ['Because you follow Alex', 'Trending now'] })]);
+    fetchPersonalizedDiscovery.mockResolvedValue([
+      fakeToken({ reasons: ['Because you follow Alex', 'Trending now'] }),
+    ]);
     render(<PersonalizedDiscovery />);
 
     expect(await screen.findByText('Because you follow Alex')).toBeInTheDocument();
@@ -127,7 +137,9 @@ describe('PersonalizedDiscovery', () => {
 
   it('shows the real price and volume for each pick', async () => {
     hasStoredSession.mockReturnValue(true);
-    fetchPersonalizedDiscovery.mockResolvedValue([fakeToken({ market: fakeMarket({ priceUsd: 3.5, volume24hUsd: 250_000 }) })]);
+    fetchPersonalizedDiscovery.mockResolvedValue([
+      fakeToken({ market: fakeMarket({ priceUsd: 3.5, volume24hUsd: 250_000 }) }),
+    ]);
     render(<PersonalizedDiscovery />);
 
     expect(await screen.findByText('$3.50')).toBeInTheDocument();

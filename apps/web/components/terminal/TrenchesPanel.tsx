@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { DEFAULT_CHAIN_SLUG, type MarketSummary, type PumpFunTokenSummary, slugForIdentifier } from '@kamby/domain';
+import { type MarketSummary, type PumpFunTokenSummary, slugForIdentifier } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatRelativeTime, truncateAddress } from '@/lib/format';
 import { fetchTrenches, isPumpFunCategory, type TrenchesCategory } from '@/lib/trenches-client';
@@ -62,7 +62,9 @@ export function TrenchesPanel() {
             onClick={() => setCategory(tab.category)}
             className={cn(
               'flex-1 border-b-2 px-2 py-2.5 font-display text-[0.65rem] font-bold uppercase tracking-wide transition-colors',
-              category === tab.category ? 'border-accent text-ink-900' : 'border-transparent text-ink-400 hover:text-ink-600',
+              category === tab.category
+                ? 'border-accent text-ink-900'
+                : 'border-transparent text-ink-400 hover:text-ink-600',
             )}
           >
             {tab.label}
@@ -72,14 +74,23 @@ export function TrenchesPanel() {
 
       <div className="flex-1 overflow-y-auto">
         {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">Loading…</p>}
-        {status === 'error' && <p className="p-3 font-body text-xs text-down">Couldn&apos;t load this trench.</p>}
+        {status === 'error' && (
+          <p className="p-3 font-body text-xs text-down">Couldn&apos;t load this trench.</p>
+        )}
         {status === 'ready' && items.length === 0 && (
           <p className="p-3 font-body text-xs text-ink-400">No tokens in this trench right now.</p>
         )}
         {status === 'ready' &&
           (isPumpFunCategory(category)
-            ? (items as PumpFunTokenSummary[]).map((token) => <PumpFunRow key={token.mintAddress} token={token} />)
-            : (items as MarketSummary[]).map((market) => <TrendingHolderRow key={market.tokenAddress} market={market} />))}
+            ? (items as PumpFunTokenSummary[]).map((token, index) => (
+                <PumpFunRow key={`${token.mintAddress}:${index}`} token={token} />
+              ))
+            : (items as MarketSummary[]).map((market, index) => (
+                <TrendingHolderRow
+                  key={`${market.chainIdentifier}:${market.tokenAddress}:${index}`}
+                  market={market}
+                />
+              )))}
       </div>
     </div>
   );
@@ -96,16 +107,26 @@ function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
         <span className="block truncate font-display text-sm font-semibold text-ink-900">
           {token.symbol ? `$${token.symbol}` : truncateAddress(token.mintAddress)}
         </span>
-        <span className="block truncate font-mono text-[0.65rem] text-ink-400" suppressHydrationWarning>
-          {token.complete ? `Graduated ${token.graduatedAt ? formatRelativeTime(token.graduatedAt) : ''}` : `${solRaised.toFixed(2)} SOL raised`}
+        <span
+          className="block truncate font-mono text-[0.65rem] text-ink-400"
+          suppressHydrationWarning
+        >
+          {token.complete
+            ? `Graduated ${token.graduatedAt ? formatRelativeTime(token.graduatedAt) : ''}`
+            : `${solRaised.toFixed(2)} SOL raised`}
         </span>
       </span>
       {!token.complete && (
         <span className="shrink-0 text-right">
           <span className="block h-1.5 w-14 overflow-hidden rounded-full bg-surface-raised">
-            <span className="block h-full rounded-full bg-accent" style={{ width: `${token.graduationProgressPct}%` }} />
+            <span
+              className="block h-full rounded-full bg-accent"
+              style={{ width: `${token.graduationProgressPct}%` }}
+            />
           </span>
-          <span className="mt-0.5 block font-mono text-[0.6rem] text-ink-400">{token.graduationProgressPct.toFixed(0)}%</span>
+          <span className="mt-0.5 block font-mono text-[0.6rem] text-ink-400">
+            {token.graduationProgressPct.toFixed(0)}%
+          </span>
         </span>
       )}
     </div>
@@ -114,22 +135,42 @@ function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
 
 function TrendingHolderRow({ market }: { market: MarketSummary }) {
   const isUp = (market.priceChange24hPct ?? 0) >= 0;
-  return (
-    <Link
-      // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
-      href={`/market/${slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG}/${market.tokenAddress}`}
-      className="flex items-center gap-2.5 border-b border-line/60 px-3 py-2.5 transition-colors hover:bg-surface-raised"
-    >
+  const chainSlug = slugForIdentifier(market.chainIdentifier);
+  const content = (
+    <>
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-xs font-bold text-ink-600">
         {(market.symbol ?? market.tokenAddress).slice(0, 1).toUpperCase()}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-display text-sm font-semibold text-ink-900">${market.symbol ?? truncateAddress(market.tokenAddress)}</span>
-        <span className="block font-mono text-[0.65rem] text-ink-400">{formatCompactUsd(market.marketCapUsd)} MC</span>
+        <span className="block truncate font-display text-sm font-semibold text-ink-900">
+          ${market.symbol ?? truncateAddress(market.tokenAddress)}
+        </span>
+        <span className="block font-mono text-[0.65rem] text-ink-400">
+          {formatCompactUsd(market.marketCapUsd)} MC
+        </span>
       </span>
-      <span className={cn('shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold', isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>
+      <span
+        className={cn(
+          'shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold',
+          isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
+        )}
+      >
         {formatPercent(market.priceChange24hPct)}
       </span>
+    </>
+  );
+  const className =
+    'flex items-center gap-2.5 border-b border-line/60 px-3 py-2.5 transition-colors hover:bg-surface-raised';
+  return chainSlug ? (
+    <Link href={`/market/${chainSlug}/${market.tokenAddress}`} className={className}>
+      {content}
     </Link>
+  ) : (
+    <div
+      title="This market is visible for discovery but is not tradeable here yet"
+      className={`${className} cursor-not-allowed opacity-70`}
+    >
+      {content}
+    </div>
   );
 }

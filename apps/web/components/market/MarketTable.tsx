@@ -1,4 +1,4 @@
-import { DEFAULT_CHAIN_SLUG, type MarketSummary, slugForIdentifier } from '@kamby/domain';
+import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import Link from 'next/link';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { EmptyState } from './EmptyState';
@@ -29,32 +29,59 @@ export function MarketTable({ markets }: { markets: MarketSummary[] }) {
           </tr>
         </thead>
         <tbody>
-          {markets.map((market) => (
-            <tr key={market.tokenAddress} className="group border-b border-line last:border-0">
-              <td className="p-0">
-                <Link
-                  // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
-                  href={`/market/${slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG}/${market.tokenAddress}`}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors group-hover:bg-surface-raised"
-                >
-                  <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" />
-                  {market.isStale && <StaleBadge />}
-                </Link>
-              </td>
-              <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-ink-900">
-                {formatPrice(market.priceUsd)}
-              </td>
-              <td className="px-4 py-3 text-right">
-                <PriceChange value={market.priceChange24hPct} />
-              </td>
-              <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-ink-600">
-                {formatCompactUsd(market.volume24hUsd)}
-              </td>
-              <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-ink-600">
-                {formatCompactUsd(market.liquidityUsd)}
-              </td>
-            </tr>
-          ))}
+          {markets.map((market) => {
+            const chainSlug = slugForIdentifier(market.chainIdentifier);
+
+            return (
+              <tr
+                key={`${market.chainIdentifier}:${market.tokenAddress}`}
+                className="group border-b border-line last:border-0"
+              >
+                <td className="p-0">
+                  {chainSlug ? (
+                    <Link
+                      // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
+                      href={`/market/${chainSlug}/${market.tokenAddress}`}
+                      className="flex items-center gap-3 px-4 py-3 transition-colors group-hover:bg-surface-raised"
+                    >
+                      <TokenIdentity
+                        symbol={market.symbol}
+                        name={market.name}
+                        logoUrl={market.logoUrl}
+                        size="sm"
+                      />
+                      {market.isStale && <StaleBadge />}
+                    </Link>
+                  ) : (
+                    <div
+                      className="flex items-center gap-3 px-4 py-3 opacity-70"
+                      title="This market is visible for discovery but is not tradeable here yet"
+                    >
+                      <TokenIdentity
+                        symbol={market.symbol}
+                        name={market.name}
+                        logoUrl={market.logoUrl}
+                        size="sm"
+                      />
+                      {market.isStale && <StaleBadge />}
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-ink-900">
+                  {formatPrice(market.priceUsd)}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <PriceChange value={market.priceChange24hPct} />
+                </td>
+                <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-ink-600">
+                  {formatCompactUsd(market.volume24hUsd)}
+                </td>
+                <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-ink-600">
+                  {formatCompactUsd(market.liquidityUsd)}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

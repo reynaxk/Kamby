@@ -6,7 +6,7 @@ import { SelectableTokenRow } from './SelectableTokenRow';
 
 function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
   return {
-    chainIdentifier: 'base',
+    chainIdentifier: 'eip155:8453',
     tokenAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     symbol: 'FOO',
     name: 'Foo Token',
@@ -48,7 +48,9 @@ describe('SelectableTokenRow', () => {
   it('is a real disabled button when disabled, not just dimmed styling', async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
-    render(<SelectableTokenRow market={fakeMarket()} selected={false} onSelect={onSelect} disabled />);
+    render(
+      <SelectableTokenRow market={fakeMarket()} selected={false} onSelect={onSelect} disabled />,
+    );
 
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
@@ -65,29 +67,72 @@ describe('SelectableTokenRow', () => {
   });
 
   it('dims a disabled row that is not the current selection', () => {
-    render(<SelectableTokenRow market={fakeMarket()} selected={false} disabled onSelect={vi.fn()} />);
+    render(
+      <SelectableTokenRow market={fakeMarket()} selected={false} disabled onSelect={vi.fn()} />,
+    );
     expect(screen.getByRole('button')).toHaveClass('opacity-50', 'cursor-not-allowed');
   });
 
   it('shows real compact market cap and percent change text', () => {
-    render(<SelectableTokenRow market={fakeMarket({ marketCapUsd: 1_500_000, priceChange24hPct: 5 })} selected={false} onSelect={vi.fn()} />);
-    expect(screen.getByText('$1.50M MC')).toBeInTheDocument();
+    render(
+      <SelectableTokenRow
+        market={fakeMarket({ marketCapUsd: 1_500_000, priceChange24hPct: 5 })}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('Base · $1.50M MC')).toBeInTheDocument();
+    expect(screen.getByText('$1.00')).toBeInTheDocument();
     expect(screen.getByText('+5.00%')).toBeInTheDocument();
   });
 
+  it('makes an unavailable Solana row understandable instead of presenting it as an EVM token', () => {
+    render(
+      <SelectableTokenRow
+        market={fakeMarket({ chainIdentifier: 'solana', symbol: 'BONK' })}
+        selected={false}
+        onSelect={vi.fn()}
+        disabled
+      />,
+    );
+
+    expect(screen.getByText('Solana · $1.50M MC')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAccessibleName('BONK on Solana is not selectable yet');
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'title',
+      expect.stringContaining('not tradeable here yet'),
+    );
+  });
+
   it('colors a real negative change down', () => {
-    render(<SelectableTokenRow market={fakeMarket({ priceChange24hPct: -3 })} selected={false} onSelect={vi.fn()} />);
+    render(
+      <SelectableTokenRow
+        market={fakeMarket({ priceChange24hPct: -3 })}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
     expect(screen.getByText('-3.00%')).toHaveClass('text-down');
   });
 
   it('treats an unknown (null) 24h change as up, not down — defaults never invent a loss', () => {
-    render(<SelectableTokenRow market={fakeMarket({ priceChange24hPct: null })} selected={false} onSelect={vi.fn()} />);
+    render(
+      <SelectableTokenRow
+        market={fakeMarket({ priceChange24hPct: null })}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
     expect(screen.getByText('—')).toHaveClass('text-up');
   });
 
   it('renders a real image for the avatar when the market has a real logoUrl, instead of the initial fallback', () => {
     const { container } = render(
-      <SelectableTokenRow market={fakeMarket({ symbol: 'FOO', logoUrl: 'https://cdn.dexscreener.com/real-logo.png' })} selected={false} onSelect={vi.fn()} />,
+      <SelectableTokenRow
+        market={fakeMarket({ symbol: 'FOO', logoUrl: 'https://cdn.dexscreener.com/real-logo.png' })}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
     );
 
     // alt="" deliberately (matching TokenIdentity.tsx's own pattern) marks this decorative
@@ -99,7 +144,13 @@ describe('SelectableTokenRow', () => {
   });
 
   it('falls back to the initial-avatar when logoUrl is null, never a broken/empty image tag', () => {
-    const { container } = render(<SelectableTokenRow market={fakeMarket({ symbol: 'FOO', logoUrl: null })} selected={false} onSelect={vi.fn()} />);
+    const { container } = render(
+      <SelectableTokenRow
+        market={fakeMarket({ symbol: 'FOO', logoUrl: null })}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
+    );
 
     expect(container.querySelector('img')).not.toBeInTheDocument();
     expect(screen.getByText('F')).toBeInTheDocument();
@@ -107,13 +158,19 @@ describe('SelectableTokenRow', () => {
 
   it('renders a real sparkline when the market has enough recentCloses history', () => {
     const { container } = render(
-      <SelectableTokenRow market={fakeMarket({ recentCloses: [1, 1.2, 1.1, 1.4] })} selected={false} onSelect={vi.fn()} />,
+      <SelectableTokenRow
+        market={fakeMarket({ recentCloses: [1, 1.2, 1.1, 1.4] })}
+        selected={false}
+        onSelect={vi.fn()}
+      />,
     );
     expect(container.querySelector('svg polyline')).toBeInTheDocument();
   });
 
   it('renders no sparkline at all (not a placeholder) when recentCloses is absent — never clutters every row with "no history"', () => {
-    const { container } = render(<SelectableTokenRow market={fakeMarket()} selected={false} onSelect={vi.fn()} />);
+    const { container } = render(
+      <SelectableTokenRow market={fakeMarket()} selected={false} onSelect={vi.fn()} />,
+    );
     expect(container.querySelector('svg')).not.toBeInTheDocument();
     expect(screen.queryByText('no history')).not.toBeInTheDocument();
   });
@@ -121,7 +178,10 @@ describe('SelectableTokenRow', () => {
   it('falls back to the address when there is no symbol, for both the label and the avatar initial', () => {
     render(
       <SelectableTokenRow
-        market={fakeMarket({ symbol: null, tokenAddress: '0xbeef000000000000000000000000000000dead' })}
+        market={fakeMarket({
+          symbol: null,
+          tokenAddress: '0xbeef000000000000000000000000000000dead',
+        })}
         selected={false}
         onSelect={vi.fn()}
       />,

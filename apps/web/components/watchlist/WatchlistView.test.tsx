@@ -20,7 +20,13 @@ vi.mock('@/components/market/PriceChange', () => ({
   PriceChange: ({ value }: { value: number }) => <span>{value}%</span>,
 }));
 vi.mock('@/components/market/WatchButton', () => ({
-  WatchButton: ({ address, onChange }: { address: string; onChange: (watching: boolean) => void }) => (
+  WatchButton: ({
+    address,
+    onChange,
+  }: {
+    address: string;
+    onChange: (watching: boolean) => void;
+  }) => (
     <div>
       <button type="button" onClick={() => onChange(false)}>
         Unwatch {address}
@@ -110,7 +116,7 @@ describe('WatchlistView', () => {
     expect(link).toHaveAttribute('href', '/market/bnb/0xbbb');
   });
 
-  it('falls back to the default chain slug rather than crashing for an unrecognized chain identifier', async () => {
+  it('keeps an unrecognized-chain item visible without routing it to the wrong chain', async () => {
     hasStoredSession.mockReturnValue(true);
     fetchWatchlist.mockResolvedValue({
       items: [fakeWatchedToken({ chainIdentifier: 'eip155:999999', tokenAddress: '0xccc' })],
@@ -118,8 +124,13 @@ describe('WatchlistView', () => {
     });
     render(<WatchlistView />);
 
-    const link = await screen.findByRole('link');
-    expect(link).toHaveAttribute('href', '/market/base/0xccc');
+    expect(
+      await screen.findByTitle(
+        'This market is visible for discovery but is not tradeable here yet',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('never shows Load more when there is no real next cursor', async () => {
@@ -134,8 +145,14 @@ describe('WatchlistView', () => {
   it('appends the real next page on Load more and forwards the real cursor', async () => {
     hasStoredSession.mockReturnValue(true);
     fetchWatchlist
-      .mockResolvedValueOnce({ items: [fakeWatchedToken({ tokenAddress: '0xaaa', symbol: 'AAA' })], nextCursor: 'cursor-1' })
-      .mockResolvedValueOnce({ items: [fakeWatchedToken({ tokenAddress: '0xbbb', symbol: 'BBB' })], nextCursor: null });
+      .mockResolvedValueOnce({
+        items: [fakeWatchedToken({ tokenAddress: '0xaaa', symbol: 'AAA' })],
+        nextCursor: 'cursor-1',
+      })
+      .mockResolvedValueOnce({
+        items: [fakeWatchedToken({ tokenAddress: '0xbbb', symbol: 'BBB' })],
+        nextCursor: null,
+      });
     const user = userEvent.setup();
     render(<WatchlistView />);
     await screen.findByText('AAA');
@@ -151,7 +168,10 @@ describe('WatchlistView', () => {
   it('removes an item from the list the instant it is unwatched, without waiting on a refetch', async () => {
     hasStoredSession.mockReturnValue(true);
     fetchWatchlist.mockResolvedValue({
-      items: [fakeWatchedToken({ tokenAddress: '0xaaa', symbol: 'AAA' }), fakeWatchedToken({ tokenAddress: '0xbbb', symbol: 'BBB' })],
+      items: [
+        fakeWatchedToken({ tokenAddress: '0xaaa', symbol: 'AAA' }),
+        fakeWatchedToken({ tokenAddress: '0xbbb', symbol: 'BBB' }),
+      ],
       nextCursor: null,
     });
     const user = userEvent.setup();

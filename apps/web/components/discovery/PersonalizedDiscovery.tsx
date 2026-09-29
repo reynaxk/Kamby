@@ -1,6 +1,6 @@
 'use client';
 
-import { DEFAULT_CHAIN_SLUG, type PersonalizedToken, slugForIdentifier } from '@kamby/domain';
+import { type PersonalizedToken, slugForIdentifier } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -49,33 +49,63 @@ export function PersonalizedDiscovery() {
   }
 
   if (items.length === 0) {
-    return <EmptyState title="Nothing personalized yet." detail="Follow a trader or make a trade to start seeing picks tailored to you." />;
+    return (
+      <EmptyState
+        title="Nothing personalized yet."
+        detail="Follow a trader or make a trade to start seeing picks tailored to you."
+      />
+    );
   }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item) => (
-        <Link
-          key={item.market.tokenAddress}
-          // Chain-aware URL as of 2026-09-16 (BNB Chain going live).
-          href={`/market/${slugForIdentifier(item.market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG}/${item.market.tokenAddress}`}
-          className="block"
-        >
-          <Surface className="flex h-full flex-col gap-3 p-5 transition-colors hover:border-accent/50 hover:bg-surface-raised">
-            <TokenIdentity symbol={item.market.symbol} name={item.market.name} logoUrl={item.market.logoUrl} />
-            <div className="flex items-end justify-between gap-2">
-              <div className="font-mono text-lg font-semibold tabular-nums text-ink-900">{formatPrice(item.market.priceUsd)}</div>
-              <PriceChange value={item.market.priceChange24hPct} />
-            </div>
-            <div className="font-mono text-xs tabular-nums text-ink-600">Volume {formatCompactUsd(item.market.volume24hUsd)}</div>
-            <div className="mt-auto flex flex-wrap gap-1.5 border-t border-line pt-3">
-              {item.reasons.map((reason) => (
-                <ReasonTag key={reason} reason={reason} />
-              ))}
-            </div>
-          </Surface>
-        </Link>
+        <PersonalizedItem
+          key={`${item.market.chainIdentifier}:${item.market.tokenAddress}`}
+          item={item}
+        />
       ))}
     </div>
+  );
+}
+
+function PersonalizedItem({ item }: { item: PersonalizedToken }) {
+  const chainSlug = slugForIdentifier(item.market.chainIdentifier);
+  const content = (
+    <Surface className="flex h-full flex-col gap-3 p-5 transition-colors hover:border-accent/50 hover:bg-surface-raised">
+      <TokenIdentity
+        symbol={item.market.symbol}
+        name={item.market.name}
+        logoUrl={item.market.logoUrl}
+      />
+      <div className="flex items-end justify-between gap-2">
+        <div className="font-mono text-lg font-semibold tabular-nums text-ink-900">
+          {formatPrice(item.market.priceUsd)}
+        </div>
+        <PriceChange value={item.market.priceChange24hPct} />
+      </div>
+      <div className="font-mono text-xs tabular-nums text-ink-600">
+        Volume {formatCompactUsd(item.market.volume24hUsd)}
+      </div>
+      <div className="mt-auto flex flex-wrap gap-1.5 border-t border-line pt-3">
+        {item.reasons.map((reason) => (
+          <ReasonTag key={reason} reason={reason} />
+        ))}
+      </div>
+    </Surface>
+  );
+
+  if (!chainSlug) {
+    return (
+      <div title="This market is visible for discovery but is not tradeable here yet">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/market/${chainSlug}/${item.market.tokenAddress}`} className="block">
+      {content}
+    </Link>
   );
 }
