@@ -1,10 +1,9 @@
-import { ACTIVITY_REALTIME_CHANNEL } from '@kamby/domain';
+import { ACTIVITY_REALTIME_CHANNEL, BASE_SEED_MARKETS, USDC_ADDRESS_BASE } from '@kamby/domain';
 import { UniswapV3PoolReader } from '@kamby/chain-adapters';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MarketIngestionService } from './ingestion';
-import { BASE_SEED_MARKETS, USDC_ADDRESS_BASE } from './seed-markets';
 
 const mockPrisma = vi.hoisted(() => ({
   chain: {

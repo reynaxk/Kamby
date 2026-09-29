@@ -1,4 +1,4 @@
-import { parseEnv } from '@kamby/domain';
+import { parseEnv, SEED_MARKETS_BY_CHAIN_IDENTIFIER } from '@kamby/domain';
 import { EvmChainDataProvider } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import { Connection } from '@solana/web3.js';
@@ -7,7 +7,6 @@ import { EnvSchema } from './config/env';
 import { createLogger } from './lib/logger';
 import { MarketIngestionService } from './market/ingestion';
 import { PoolDiscoveryService } from './market/pool-discovery';
-import { SEED_MARKETS_BY_CHAIN_IDENTIFIER } from './market/seed-markets';
 import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
 import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
 import { SolanaMarketIngestionService } from './market/solana-market-ingestion';
@@ -98,14 +97,14 @@ async function main(): Promise<void> {
   // Fails loudly at boot, not silently, if this deployment's CHAIN_IDENTIFIER has no
   // curated seed list — added 2026-09-16 alongside BNB Chain going live, when
   // MarketIngestionService stopped assuming its one configured chain was always Base. See
-  // SEED_MARKETS_BY_CHAIN_IDENTIFIER's own doc comment in market/seed-markets.ts. Hoisted
+  // SEED_MARKETS_BY_CHAIN_IDENTIFIER's own doc comment in packages/domain/src/seed-markets.ts. Hoisted
   // above both tickers below (2026-09-24, pool discovery added): PoolDiscoveryService needs
   // this same quoteUsdcAddress too, and re-deriving it a second time independently would
   // just be a second place this same "fail loudly if unconfigured" check could drift.
   const seedConfig = SEED_MARKETS_BY_CHAIN_IDENTIFIER[env.CHAIN_IDENTIFIER];
   if (!seedConfig) {
     throw new Error(
-      `No curated seed markets for CHAIN_IDENTIFIER "${env.CHAIN_IDENTIFIER}" — add an entry to SEED_MARKETS_BY_CHAIN_IDENTIFIER in market/seed-markets.ts before deploying a workers instance for this chain.`,
+      `No curated seed markets for CHAIN_IDENTIFIER "${env.CHAIN_IDENTIFIER}" — add an entry to SEED_MARKETS_BY_CHAIN_IDENTIFIER in packages/domain/src/seed-markets.ts before deploying a workers instance for this chain.`,
     );
   }
 

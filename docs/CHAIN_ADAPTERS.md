@@ -36,7 +36,7 @@ chain Kamby trades on so far, including BNB Chain — PancakeSwap V3 is a real
 Uniswap-V3-ABI-compatible fork (`slot0()`/`token0()`/`token1()`/`fee()`/`liquidity()` all
 decode correctly against live BNB Chain pools, confirmed 2026-09-16), so BNB needed zero new
 reader code, only a `dex: 'pancakeswap-v3'` label for display purposes
-(`apps/workers/src/market/seed-markets.ts`). An Aerodrome/Solidly-style reader (a genuinely
+(`packages/domain/src/seed-markets.ts`). An Aerodrome/Solidly-style reader (a genuinely
 different reserves model, not just a different chain) would be a real sibling class — not
 built, since Kamby doesn't track any Aerodrome-only pools (see `docs/MARKET_DATA.md`'s notes
 on why AERO was ruled out as a Base seed-list candidate for exactly this reason). The

@@ -23,11 +23,12 @@ export interface ActivityPage {
 
 const EMPTY_PAGE: ActivityPage = { items: [], nextCursor: null };
 
-export async function fetchGlobalActivity(params: { cursor?: string; limit?: number; tokenAddress?: string } = {}): Promise<ActivityPage> {
+export async function fetchGlobalActivity(params: { cursor?: string; limit?: number; tokenAddress?: string; chainId?: number } = {}): Promise<ActivityPage> {
   const query = new URLSearchParams();
   if (params.cursor) query.set('cursor', params.cursor);
   if (params.limit) query.set('limit', String(params.limit));
   if (params.tokenAddress) query.set('tokenAddress', params.tokenAddress);
+  if (params.chainId) query.set('chainId', String(params.chainId));
   const suffix = query.toString() ? `?${query.toString()}` : '';
   const result = await apiGet<ActivityPage>(`/social/activity${suffix}`, 10);
   return result ?? EMPTY_PAGE;

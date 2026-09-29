@@ -62,7 +62,7 @@ export interface PoolDiscoveryResult {
 /**
  * Automated discovery for pools this chain's curated seed list doesn't know about — the
  * "real terminal" answer to Kamby's Markets tab being bounded by hand-picked tokens (see
- * seed-markets.ts). Two-phase, both bounded and both resuming from a persisted Redis
+ * packages/domain/src/seed-markets.ts). Two-phase, both bounded and both resuming from a persisted Redis
  * cursor/set rather than Postgres — deliberately avoids a new migration for this first
  * version (see this session's own history: a migration that needed production access this
  * sandbox couldn't safely provide).

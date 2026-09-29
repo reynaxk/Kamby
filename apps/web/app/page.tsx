@@ -22,6 +22,7 @@ import { TopTraders } from '@/components/social/TopTraders';
 import { fetchDiscoverMarkets, fetchSearch, fetchTokenHistory } from '@/lib/market-api';
 import { fetchGlobalActivity, fetchTraderSearch, fetchTrending } from '@/lib/social-api';
 import { fetchTokenTraders } from '@/lib/discovery-api';
+import { pickDefaultMarket } from '@/lib/default-market';
 import { settledOr } from '@/lib/settled-fetch';
 
 const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
@@ -93,9 +94,10 @@ export default async function DiscoverPage({
   // selection anyway, sending its mint address to the EVM-only history/traders/activity
   // endpoints and showing "Couldn't load..." everywhere on first paint for every visitor,
   // not just a real edge case.
-  const defaultMarket = !search
-    ? ranked.find((m) => slugForIdentifier(m.chainIdentifier) !== null)
-    : undefined;
+  // Now a random pick among trending *curated* markets — see lib/default-market.ts. The
+  // highest-ranked row alone let a pool-discovered token trending on wash-traded volume
+  // become every visitor's first impression.
+  const defaultMarket = !search ? pickDefaultMarket(ranked, trending) : undefined;
   const defaultChainId = defaultMarket
     ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG]
         .numericId
@@ -103,7 +105,7 @@ export default async function DiscoverPage({
   const [heroCandles, heroActivity, heroTraders] = defaultMarket
     ? await Promise.all([
         settledOr(fetchTokenHistory(defaultMarket.tokenAddress, '1D', defaultChainId), []),
-        settledOr(fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, limit: 10 }), {
+        settledOr(fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, chainId: defaultChainId, limit: 10 }), {
           items: [],
           nextCursor: null,
         }),

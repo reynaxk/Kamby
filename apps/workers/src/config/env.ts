@@ -119,7 +119,7 @@ export const EnvSchema = z.object({
 
   /**
    * Automated pool discovery (market/pool-discovery.ts) — the "real terminal" answer to
-   * Markets being bounded by seed-markets.ts's curated list, watching this deployment's
+   * Markets being bounded by packages/domain/src/seed-markets.ts's curated list, watching this deployment's
    * own configured chain's Uniswap-V3-ABI factory for new pools instead of requiring a
    * human to hand-pick every token. Off by default: a real, deliberate opt-in given the
    * RPC-cost and spam-filtering tradeoffs documented on PoolDiscoveryService's own class

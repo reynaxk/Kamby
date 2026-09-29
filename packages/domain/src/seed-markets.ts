@@ -222,3 +222,17 @@ export const SEED_MARKETS_BY_CHAIN_IDENTIFIER: Record<string, { seedMarkets: See
   'eip155:8453': { seedMarkets: BASE_SEED_MARKETS, quoteUsdcAddress: USDC_ADDRESS_BASE },
   'eip155:56': { seedMarkets: BNB_SEED_MARKETS, quoteUsdcAddress: USDC_ADDRESS_BNB },
 };
+
+const CURATED_MARKET_KEYS: ReadonlySet<string> = new Set(
+  Object.entries(SEED_MARKETS_BY_CHAIN_IDENTIFIER).flatMap(([chainIdentifier, { seedMarkets }]) =>
+    seedMarkets.map((m) => `${chainIdentifier}:${m.baseTokenAddress.toLowerCase()}`),
+  ),
+);
+
+/** Whether a market is on the hand-picked seed list above, as opposed to one automated pool
+ *  discovery promoted. `TokenMarket` rows deliberately don't record which path created them,
+ *  so this list is the only record. Matches on the base token, not the pool — a curated token
+ *  is trusted regardless of which pool is serving its price. */
+export function isCuratedMarket(chainIdentifier: string, tokenAddress: string): boolean {
+  return CURATED_MARKET_KEYS.has(`${chainIdentifier}:${tokenAddress.toLowerCase()}`);
+}

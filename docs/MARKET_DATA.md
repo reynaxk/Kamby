@@ -33,7 +33,7 @@ dedicated provider (see "Rate limiting" below for why that matters).
 
 ## Token discovery: a curated seed list, not a scan (with an opt-in automated path — see below)
 
-`apps/workers/src/market/seed-markets.ts` lists real, verified markets per chain — 12 on
+`packages/domain/src/seed-markets.ts` lists real, verified markets per chain — 12 on
 Base, 7 on BNB as of 2026-09-24, not a placeholder set. Each pool address was read directly
 on-chain (`token0`/`token1`/`slot0`, confirmed initialized) against that chain's own public
 RPC before being added, and cross-checked for genuine liquidity via DexScreener's public API.

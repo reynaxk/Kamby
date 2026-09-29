@@ -7,7 +7,7 @@ import {
 } from '@kamby/chain-adapters';
 import type { Prisma } from '@kamby/db';
 import { prisma } from '@kamby/db';
-import { ACTIVITY_REALTIME_CHANNEL, normalizeEvmAddress } from '@kamby/domain';
+import { ACTIVITY_REALTIME_CHANNEL, normalizeEvmAddress, type SeedMarket } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import {
@@ -15,7 +15,6 @@ import {
   type InsertedSwap,
 } from '../notifications/notification-fanout.service';
 import { createTrackedMarket, fetchTokenLogoUrl } from './create-tracked-market';
-import type { SeedMarket } from './seed-markets';
 
 /** Raw candle granularity — see the Candle model comment in schema.prisma. */
 const BUCKET_MINUTES = 5;
@@ -56,7 +55,7 @@ export interface MarketIngestionConfig {
   chainNativeSymbol: string;
   rpcConfigKey: string;
   /** This deployment's own curated pool list — see SEED_MARKETS_BY_CHAIN_IDENTIFIER in
-   *  seed-markets.ts, resolved once in main.ts from env.CHAIN_IDENTIFIER. Threaded through
+   *  packages/domain/src/seed-markets.ts, resolved once in main.ts from env.CHAIN_IDENTIFIER. Threaded through
    *  config (2026-09-16, BNB Chain going live) instead of importing BASE_SEED_MARKETS
    *  directly, since apps/workers runs one chain per deployed instance and this class
    *  needed to stop assuming that chain was always Base. */
