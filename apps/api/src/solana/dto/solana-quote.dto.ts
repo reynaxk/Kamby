@@ -16,10 +16,13 @@ export class SolanaQuoteDto {
   @Matches(SOLANA_ADDRESS_REGEX, { message: 'walletAddress must be a valid Solana address' })
   walletAddress!: string;
 
-  /** A decimal string, denominated in the input token for this side — never parsed as a
-   *  JS number, same convention as the EVM QuoteQueryDto. */
+  /** Raw integer units (pre-decimals) of the input token for this side — USDC (6 decimals)
+   *  for BUY, tokenMint for SELL — passed to Jupiter as-is, never parsed as a JS number.
+   *  Unlike the EVM QuoteQueryDto, this is NOT a human decimal: a value like "0.05" used to
+   *  pass validation, get rejected by Jupiter with a 400, and surface to the caller as a
+   *  misleading "no live quote, try again shortly" 422 (found 2026-09-29). */
   @IsString()
-  @Matches(/^\d+(\.\d+)?$/, { message: 'amount must be a positive decimal number' })
+  @Matches(/^[1-9]\d*$/, { message: 'amount must be a positive integer in raw token units' })
   amount!: string;
 
   @IsOptional()
