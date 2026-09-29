@@ -74,7 +74,10 @@ export default async function DiscoverPage({
       : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 20 }), []),
     settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 3, search }), []),
     settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 3, search }), []),
-    settledOr(fetchTrending(6), []),
+    // 12, not 6: the top few trending slots are usually majors (WETH/cbBTC/...), so a
+    // shallower list starved both the Trending tab and pickDefaultMarket's pool of smaller
+    // curated coins (ZORA/CLANKER/BRETT/TOSHI/DEGEN). The card grid below still shows 6.
+    settledOr(fetchTrending(12), []),
     Promise.resolve([]),
     search ? settledOr(fetchTraderSearch(search, 5), []) : Promise.resolve([]),
     Promise.resolve([]),
@@ -206,7 +209,7 @@ export default async function DiscoverPage({
                     <EmptyState title="Nothing has cleared the trending thresholds yet" />
                   ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {trending.map((item) => (
+                      {trending.slice(0, 6).map((item) => (
                         <TokenCard key={item.market.tokenAddress} market={item.market} />
                       ))}
                     </div>
