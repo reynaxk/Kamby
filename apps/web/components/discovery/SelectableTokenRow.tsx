@@ -1,6 +1,6 @@
 import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { formatCompactUsd, formatPercent, formatPrice } from '@/lib/format';
+import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/format';
 import { Sparkline } from '@/components/market/Sparkline';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
@@ -77,7 +77,7 @@ export function SelectableTokenRow({
       )}
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-[0.72rem] font-semibold tracking-tight text-ink-900">
-          ${market.symbol ?? market.tokenAddress.slice(0, 6)}
+          {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
         </span>
         <span className="terminal-token-row-meta block font-mono text-[0.58rem] tabular-nums text-ink-400">
           {chainLabel} · {formatCompactUsd(market.marketCapUsd)} MC

@@ -1,5 +1,6 @@
 import type { MarketSummary } from '@kamby/domain';
 import { ChevronDown } from 'lucide-react';
+import { cashtag } from '@/lib/format';
 
 /**
  * The "independent token selector" for one Multi-Chart Grid cell — a plain native <select>,
@@ -43,7 +44,7 @@ export function CellTokenSelector({
           const key = `${market.chainIdentifier}:${market.tokenAddress}`;
           return (
             <option key={key} value={key}>
-              ${market.symbol ?? market.tokenAddress.slice(0, 6)}
+              {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
             </option>
           );
         })}

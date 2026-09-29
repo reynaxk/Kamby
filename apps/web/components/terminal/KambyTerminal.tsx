@@ -13,6 +13,7 @@ import { KambyChart } from './KambyChart';
 import { TerminalLeftRail } from './TerminalLeftRail';
 import { TokenMetricsBar } from './TokenMetricsBar';
 import { TradePanelCard } from './TradePanelCard';
+import { cashtag } from '@/lib/format';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -105,7 +106,7 @@ export function KambyTerminal({
               Browse
             </button>
             <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
-              ${market.symbol ?? 'Token'}
+              {cashtag(market.symbol ?? 'Token')}
             </div>
             <button
               type="button"

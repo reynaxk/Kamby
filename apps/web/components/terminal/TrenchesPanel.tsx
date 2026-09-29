@@ -143,7 +143,7 @@ function TrendingHolderRow({ market }: { market: MarketSummary }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-sm font-semibold text-ink-900">
-          ${market.symbol ?? truncateAddress(market.tokenAddress)}
+          {cashtag(market.symbol ?? truncateAddress(market.tokenAddress))}
         </span>
         <span className="block font-mono text-[0.65rem] text-ink-400">
           {formatCompactUsd(market.marketCapUsd)} MC

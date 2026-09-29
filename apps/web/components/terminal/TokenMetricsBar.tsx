@@ -5,7 +5,7 @@ import {
   type MarketSummary,
 } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
-import { formatCompactUsd, formatPrice } from '@/lib/format';
+import { formatCompactUsd, formatPrice, cashtag } from '@/lib/format';
 import { LowLiquidityBadge } from '@/components/market/LowLiquidityBadge';
 import { PriceChange } from '@/components/market/PriceChange';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
@@ -46,7 +46,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-display text-sm font-bold tracking-tight text-ink-900">
-              ${market.symbol ?? display}
+              {cashtag(market.symbol ?? display)}
             </span>
             {isLowLiquidity && <LowLiquidityBadge />}
           </div>
