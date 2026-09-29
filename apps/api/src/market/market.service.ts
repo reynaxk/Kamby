@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import type { Redis } from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
 import type { SolanaTokenMarket } from '@kamby/db';
@@ -18,7 +19,13 @@ import { toSocialActivity } from '../social/social.mapper';
 import type { DiscoverQueryDto } from './dto/discover-query.dto';
 import type { SearchQueryDto } from './dto/search-query.dto';
 import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
+import { REDIS_CLIENT } from '../redis/redis.module';
 import { WatchlistService } from './watchlist.service';
+
+/** Prices refresh roughly every 60s (workers' ingestion tick), so 10s staleness is invisible —
+ *  but it collapses TickerBar's per-browser 20s polling into one query per 10s. */
+const DISCOVER_CACHE_TTL_SECONDS = 10;
+const TOKEN_TRADERS_CACHE_TTL_SECONDS = 15;
 
 const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
 const ACTIVITY_INCLUDE = {
@@ -55,10 +62,47 @@ const FINE_TIMEFRAMES: ReadonlySet<Timeframe> = new Set(['1m', '5m']);
 
 @Injectable()
 export class MarketService {
+  private readonly logger = new Logger(MarketService.name);
+  /** Per-process in-flight dedupe: a burst of identical cache misses runs one query, not N. */
+  private readonly inFlight = new Map<string, Promise<unknown>>();
+
   constructor(
     private readonly watchlist: WatchlistService,
     private readonly config: ConfigService<Env, true>,
+    // Optional so unit tests that don't care about caching can omit it; Nest always
+    // injects the global REDIS_CLIENT in the running app.
+    @Optional() @Inject(REDIS_CLIENT) private readonly redis?: Redis,
   ) {}
+
+  /** Cache-aside over Redis — same shape as LeaderboardService#cached, which is why the
+   *  leaderboard stayed at ~10-80ms under the 40-request burst that timed these endpoints out
+   *  (2026-09-29). Only for responses identical for every viewer. Redis failures fall through
+   *  to Postgres; errors (e.g. NotFound) are never cached. */
+  private async cached<T>(key: string, ttlSeconds: number, compute: () => Promise<T>): Promise<T> {
+    if (!this.redis) return compute();
+    const redisKey = `market:${key}`;
+    try {
+      const hit = await this.redis.get(redisKey);
+      if (hit !== null) return JSON.parse(hit) as T;
+    } catch (error) {
+      this.logger.warn(`Market cache read failed for ${redisKey} — computing fresh: ${String(error)}`);
+    }
+
+    const pending = this.inFlight.get(redisKey) as Promise<T> | undefined;
+    if (pending) return pending;
+
+    const run = (async () => {
+      const value = await compute();
+      try {
+        await this.redis!.set(redisKey, JSON.stringify(value), 'EX', ttlSeconds);
+      } catch (error) {
+        this.logger.warn(`Market cache write failed for ${redisKey}: ${String(error)}`);
+      }
+      return value;
+    })().finally(() => this.inFlight.delete(redisKey));
+    this.inFlight.set(redisKey, run);
+    return run;
+  }
 
   /** Public, read-only, chain-scoped config the frontend needs to build a real transaction
    *  itself (the Send modal's EVM USDC address per chain) — reuses `getConfiguredChains()`
@@ -86,6 +130,12 @@ export class MarketService {
    * shapes.
    */
   async discover(query: DiscoverQueryDto): Promise<MarketSummary[]> {
+    return this.cached(`discover:${query.sort}:${query.limit}:${query.search ?? ''}`, DISCOVER_CACHE_TTL_SECONDS, () =>
+      this.computeDiscover(query),
+    );
+  }
+
+  private async computeDiscover(query: DiscoverQueryDto): Promise<MarketSummary[]> {
     const [evmRows, solanaRows] = await Promise.all([
       prisma.tokenMarket.findMany({ include: MARKET_INCLUDE }),
       prisma.solanaTokenMarket.findMany(),
@@ -193,6 +243,12 @@ export class MarketService {
    * read straight off TokenMarket's own cached column — never recomputed here.
    */
   async getTokenTraders(address: string, chainId: number, limit: number): Promise<TokenTraderConnection> {
+    return this.cached(`token-traders:${chainId}:${address.toLowerCase()}:${limit}`, TOKEN_TRADERS_CACHE_TTL_SECONDS, () =>
+      this.computeTokenTraders(address, chainId, limit),
+    );
+  }
+
+  private async computeTokenTraders(address: string, chainId: number, limit: number): Promise<TokenTraderConnection> {
     assertAddressShape(address);
     const market = await prisma.tokenMarket.findFirst({
       where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },

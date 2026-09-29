@@ -454,3 +454,63 @@ describe('MarketService — discover/search', () => {
     });
   });
 });
+
+describe('MarketService — Redis cache (2026-09-29 launch-load fix)', () => {
+  function fakeRedis(store = new Map<string, string>()) {
+    return {
+      store,
+      get: jest.fn(async (k: string) => store.get(k) ?? null),
+      set: jest.fn(async (k: string, v: string) => {
+        store.set(k, v);
+        return 'OK';
+      }),
+    };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockedPrisma.candle.findMany as jest.Mock).mockResolvedValue([]);
+    (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([]);
+    (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([fakeDiscoverableRow()]);
+  });
+
+  it('serves a repeat discover() from cache without touching Postgres again', async () => {
+    const redis = fakeRedis();
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
+    const first = await service.discover({ sort: 'score', limit: 20 });
+    const second = await service.discover({ sort: 'score', limit: 20 });
+    expect(second).toEqual(first);
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
+    expect(redis.set).toHaveBeenCalledWith('market:discover:score:20:', expect.any(String), 'EX', 10);
+  });
+
+  it('runs one query for a burst of identical concurrent misses, not one each', async () => {
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), fakeRedis() as never);
+    await Promise.all(Array.from({ length: 10 }, () => service.discover({ sort: 'volume', limit: 50 })));
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('keys by sort/limit/search, so different queries never share an entry', async () => {
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), fakeRedis() as never);
+    await service.discover({ sort: 'score', limit: 20 });
+    await service.discover({ sort: 'volume', limit: 20 });
+    await service.discover({ sort: 'score', limit: 20, search: 'weth' });
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(3);
+  });
+
+  it('falls through to Postgres when Redis is down, still returning a real result', async () => {
+    const redis = { get: jest.fn().mockRejectedValue(new Error('ECONNREFUSED')), set: jest.fn().mockRejectedValue(new Error('ECONNREFUSED')) };
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
+    await expect(service.discover({ sort: 'score', limit: 20 })).resolves.toHaveLength(1);
+  });
+
+  it('never caches an error — a NotFound for an untracked token is recomputed next time', async () => {
+    const redis = fakeRedis();
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
+    (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(null);
+    await expect(service.getTokenTraders(TOKEN_ADDRESS, 8453, 8)).rejects.toThrow(NotFoundException);
+    await expect(service.getTokenTraders(TOKEN_ADDRESS, 8453, 8)).rejects.toThrow(NotFoundException);
+    expect(mockedPrisma.tokenMarket.findFirst).toHaveBeenCalledTimes(2);
+    expect(redis.set).not.toHaveBeenCalled();
+  });
+});
