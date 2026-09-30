@@ -2,6 +2,7 @@ import { EvmChainDataProvider, UniswapV3PoolReader, computePoolLiquidityUsd, pri
 import { prisma } from '@kamby/db';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
+import { NEW_PAIR_MIN_BUYERS_24H, NEW_PAIR_MIN_LIQUIDITY_USD, NEW_PAIR_MIN_SELLERS_24H } from '@kamby/domain';
 import { createTrackedMarket } from './create-tracked-market';
 import { MARKET_HEAD_LAG_BLOCKS } from './ingestion';
 
@@ -26,6 +27,51 @@ const RPC_CALL_DELAY_MS = 350;
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
+const GECKOTERMINAL_API = 'https://api.geckoterminal.com/api/v2';
+/** GeckoTerminal's free API allows ~30 calls/minute; two calls every 3 minutes per chain
+ *  stays far under it. */
+const GECKOTERMINAL_REFRESH_MS = 3 * 60_000;
+/** GeckoTerminal's network + DEX ids for the pools this pipeline can actually read — Uniswap
+ *  V3 on Base, PancakeSwap V3 on BNB Chain (see UniswapV3PoolReader). Trending pools on
+ *  Aerodrome, Uniswap V2/V4, PancakeSwap V2/Infinity or four.meme are skipped: ingestion
+ *  can't read them, so they could never be priced or charted honestly. */
+const GECKOTERMINAL_BY_CHAIN: Record<number, { network: string; dexIds: readonly string[] }> = {
+  8453: { network: 'base', dexIds: ['uniswap-v3-base'] },
+  56: { network: 'bsc', dexIds: ['pancakeswap-v3-bsc'] },
+};
+
+export interface GeckoTerminalPool {
+  attributes?: {
+    address?: string;
+    reserve_in_usd?: string | null;
+    transactions?: { h24?: { buyers?: number; sellers?: number } };
+  };
+  relationships?: {
+    base_token?: { data?: { id?: string } };
+    quote_token?: { data?: { id?: string } };
+    dex?: { data?: { id?: string } };
+  };
+}
+
+/** Exported for tests. A GeckoTerminal pool worth checking on-chain: a DEX ingestion can
+ *  read, reported reserves at the new-pair floor, and real two-sided trading — at least
+ *  NEW_PAIR_MIN_SELLERS_24H distinct sellers, which a sell-blocking honeypot can't show.
+ *  GeckoTerminal's reserves are only a pre-filter (they value both sides at the pool's own
+ *  price); the honest, quote-side-anchored check happens on-chain before promotion. */
+export function geckoTerminalCandidate(pool: GeckoTerminalPool, dexIds: readonly string[]): { pool: string; tokenA: string; tokenB: string } | null {
+  const attrs = pool.attributes;
+  const rel = pool.relationships;
+  const dex = rel?.dex?.data?.id;
+  const address = attrs?.address;
+  const tokenA = rel?.base_token?.data?.id?.split('_')[1];
+  const tokenB = rel?.quote_token?.data?.id?.split('_')[1];
+  if (!dex || !dexIds.includes(dex) || !address || !tokenA || !tokenB) return null;
+  if (Number(attrs?.reserve_in_usd ?? 0) < NEW_PAIR_MIN_LIQUIDITY_USD) return null;
+  const h24 = attrs?.transactions?.h24;
+  if ((h24?.buyers ?? 0) < NEW_PAIR_MIN_BUYERS_24H || (h24?.sellers ?? 0) < NEW_PAIR_MIN_SELLERS_24H) return null;
+  return { pool: address, tokenA, tokenB };
+}
+
 interface PendingPool {
   token0: string;
   token1: string;
@@ -35,6 +81,10 @@ interface PendingPool {
    *  promoted. */
   knownSide: 'token0' | 'token1';
   firstSeenAtMs: number;
+  /** Where the candidate came from — GeckoTerminal ones already trade, so they're checked first. */
+  source?: 'factory' | 'geckoterminal';
+  /** Last liquidity re-check — checkPendingPools rotates through the least recently checked. */
+  lastCheckedAtMs?: number;
 }
 
 export interface PoolDiscoveryConfig {
@@ -99,6 +149,7 @@ export class PoolDiscoveryService {
   private readonly cursorKey: string;
   private readonly pendingKey: string;
   private chainId: number | null = null;
+  private lastGeckoTerminalFetchAtMs = 0;
 
   constructor(
     private readonly config: PoolDiscoveryConfig,
@@ -207,10 +258,67 @@ export class PoolDiscoveryService {
     return market?.priceUsd ? Number(market.priceUsd) : null;
   }
 
+  /**
+   * Adds pools that are trending or newly created on GeckoTerminal to the same pending set
+   * `discoverNewPools` fills — they then go through the identical on-chain liquidity check
+   * and promotion. Catches established-but-untracked pools the factory watch never sees
+   * (it only sees pools created after it started). At most every GECKOTERMINAL_REFRESH_MS;
+   * a GeckoTerminal outage just means no new candidates this time.
+   */
+  async enqueueFromGeckoTerminal(): Promise<{ geckoTerminalCandidates: number }> {
+    const source = GECKOTERMINAL_BY_CHAIN[this.evmChainId()];
+    if (!source || Date.now() - this.lastGeckoTerminalFetchAtMs < GECKOTERMINAL_REFRESH_MS) return { geckoTerminalCandidates: 0 };
+    this.lastGeckoTerminalFetchAtMs = Date.now();
+    const chainId = await this.requireChainId();
+
+    let added = 0;
+    for (const kind of ['trending_pools', 'new_pools']) {
+      let pools: GeckoTerminalPool[] = [];
+      try {
+        const response = await fetch(`${GECKOTERMINAL_API}/networks/${source.network}/${kind}?page=1`, { headers: { accept: 'application/json' } });
+        if (!response.ok) {
+          this.logger.warn({ status: response.status, kind }, 'Pool discovery: GeckoTerminal request failed');
+          continue;
+        }
+        pools = ((await response.json()) as { data?: GeckoTerminalPool[] }).data ?? [];
+      } catch (error) {
+        this.logger.warn({ err: error, kind }, 'Pool discovery: GeckoTerminal unreachable');
+        continue;
+      }
+      for (const pool of pools) {
+        const candidate = geckoTerminalCandidate(pool, source.dexIds);
+        if (!candidate) continue;
+        const poolKey = candidate.pool.toLowerCase();
+        if (await this.redis.hexists(this.pendingKey, poolKey)) continue;
+        const tracked = await prisma.tokenMarket.findFirst({ where: { chainId, pairAddress: { equals: candidate.pool, mode: 'insensitive' } }, select: { id: true } });
+        if (tracked) continue;
+        // Uniswap V3 orders a pool's tokens by address — token0 is the lower one.
+        const [token0, token1] = candidate.tokenA.toLowerCase() < candidate.tokenB.toLowerCase() ? [candidate.tokenA, candidate.tokenB] : [candidate.tokenB, candidate.tokenA];
+        const known = await this.knownSideOf(chainId, token0, token1);
+        if (known === null) continue;
+        const pending: PendingPool = { token0, token1, fee: 0, knownSide: known, firstSeenAtMs: Date.now(), source: 'geckoterminal' };
+        await this.redis.hset(this.pendingKey, poolKey, JSON.stringify(pending));
+        added += 1;
+      }
+    }
+    if (added > 0) this.logger.info({ added }, 'Pool discovery: GeckoTerminal candidates queued for an on-chain liquidity check');
+    return { geckoTerminalCandidates: added };
+  }
+
   async checkPendingPools(): Promise<{ pendingChecked: number; promoted: number; expired: number }> {
     const chainId = await this.requireChainId();
     const allPending = await this.redis.hgetall(this.pendingKey);
-    const poolAddresses = Object.keys(allPending).slice(0, MAX_PENDING_CHECKS_PER_TICK);
+    // GeckoTerminal candidates first (they already trade), then least recently checked —
+    // taking the hash's first N every tick re-checked the same pools forever and starved
+    // everything behind them (found 2026-09-30: "pendingChecked=10 promoted=0" every tick).
+    const poolAddresses = Object.entries(allPending)
+      .map(([address, json]) => ({ address, pending: JSON.parse(json) as PendingPool }))
+      .sort((a, b) => {
+        const priority = Number(b.pending.source === 'geckoterminal') - Number(a.pending.source === 'geckoterminal');
+        return priority !== 0 ? priority : (a.pending.lastCheckedAtMs ?? 0) - (b.pending.lastCheckedAtMs ?? 0);
+      })
+      .slice(0, MAX_PENDING_CHECKS_PER_TICK)
+      .map(({ address }) => address);
 
     let promoted = 0;
     let expired = 0;
@@ -229,6 +337,8 @@ export class PoolDiscoveryService {
         if (promotedNow) {
           await this.redis.hdel(this.pendingKey, poolAddress);
           promoted += 1;
+        } else {
+          await this.redis.hset(this.pendingKey, poolAddress, JSON.stringify({ ...pending, lastCheckedAtMs: Date.now() }));
         }
       } catch (error) {
         // One pool's check failing (an unexpected RPC/decoding error, not the ordinary

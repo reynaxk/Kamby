@@ -1,7 +1,7 @@
 import { EvmChainDataProvider, UniswapV3PoolReader } from '@kamby/chain-adapters';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PoolDiscoveryService } from './pool-discovery';
+import { geckoTerminalCandidate, PoolDiscoveryService } from './pool-discovery';
 
 const mockPrisma = vi.hoisted(() => ({
   chain: { upsert: vi.fn() },
@@ -287,4 +287,81 @@ describe('PoolDiscoveryService.checkPendingPools', () => {
     expect(result.pendingChecked).toBe(2);
     expect(fakeLogger.error).toHaveBeenCalledWith(expect.objectContaining({ pool: POOL_A.toLowerCase() }), expect.stringContaining('threw'));
   });
+});
+
+// A real Uniswap V3 pool row from GeckoTerminal's Base trending feed (2026-09-30), trimmed.
+function geckoPool(overrides: { dex?: string; reserve?: string; buyers?: number; sellers?: number; base?: string; quote?: string; address?: string } = {}) {
+  return {
+    attributes: {
+      address: overrides.address ?? POOL_B,
+      reserve_in_usd: overrides.reserve ?? '1833899.29',
+      transactions: { h24: { buyers: overrides.buyers ?? 12_807, sellers: overrides.sellers ?? 12_589 } },
+    },
+    relationships: {
+      base_token: { data: { id: `base_${overrides.base ?? UNKNOWN_TOKEN_B}` } },
+      quote_token: { data: { id: `base_${overrides.quote ?? USDC}` } },
+      dex: { data: { id: overrides.dex ?? 'uniswap-v3-base' } },
+    },
+  };
+}
+
+describe('geckoTerminalCandidate', () => {
+  const dexIds = ['uniswap-v3-base'];
+
+  it('accepts a readable V3 pool with real reserves and two-sided trading', () => {
+    expect(geckoTerminalCandidate(geckoPool(), dexIds)).toEqual({ pool: POOL_B, tokenA: UNKNOWN_TOKEN_B, tokenB: USDC });
+  });
+
+  it('skips pools ingestion cannot read, thin pools, and one-sided (honeypot-shaped) trading', () => {
+    expect(geckoTerminalCandidate(geckoPool({ dex: 'aerodrome-slipstream' }), dexIds)).toBeNull();
+    expect(geckoTerminalCandidate(geckoPool({ reserve: '9999' }), dexIds)).toBeNull();
+    expect(geckoTerminalCandidate(geckoPool({ sellers: 3 }), dexIds)).toBeNull();
+    expect(geckoTerminalCandidate(geckoPool({ buyers: 5 }), dexIds)).toBeNull();
+  });
+});
+
+describe('PoolDiscoveryService.enqueueFromGeckoTerminal', () => {
+  it('queues a qualifying pool for the on-chain check, ordered like the pool itself, at most every 3 minutes', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [geckoPool(), geckoPool({ address: POOL_A, dex: 'uniswap-v4-base' })] }) });
+    vi.stubGlobal('fetch', fetchMock);
+    const redis = fakeRedis();
+    const service = newService(redis);
+
+    expect(await service.enqueueFromGeckoTerminal()).toEqual({ geckoTerminalCandidates: 1 });
+    const queued = JSON.parse(redis._hashes.get('pool-discovery:pending:eip155:8453')!.get(POOL_B.toLowerCase())!);
+    // '0xbbbb…' sorts before '0xusdc…', so the unknown token is token0, as in the real pool.
+    expect(queued).toMatchObject({ token0: UNKNOWN_TOKEN_B, token1: USDC, knownSide: 'token1', source: 'geckoterminal' });
+
+    await service.enqueueFromGeckoTerminal();
+    expect(fetchMock).toHaveBeenCalledTimes(2); // trending + new, once — the second call was inside the window
+  });
+
+  it('skips a pool Kamby already tracks', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [geckoPool()] }) }));
+    mockPrisma.tokenMarket.findFirst.mockResolvedValue({ id: 'already-tracked' });
+
+    expect(await newService(fakeRedis()).enqueueFromGeckoTerminal()).toEqual({ geckoTerminalCandidates: 0 });
+  });
+});
+
+describe('PoolDiscoveryService.checkPendingPools — rotation', () => {
+  it('checks GeckoTerminal candidates first, then the least recently checked, instead of the same first 10 forever', async () => {
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(null); // nothing promotes
+    const redis = fakeRedis();
+    const key = 'pool-discovery:pending:eip155:8453';
+    for (let i = 0; i < 12; i++) {
+      await redis.hset(key, `0xpool${i}`, JSON.stringify({ token0: UNKNOWN_TOKEN_A, token1: USDC, fee: 0, knownSide: 'token1', firstSeenAtMs: Date.now(), source: i === 11 ? 'geckoterminal' : 'factory' }));
+    }
+    const service = newService(redis);
+    const checked = () => vi.mocked(UniswapV3PoolReader.prototype.getPoolState).mock.calls.length;
+
+    await service.checkPendingPools();
+    expect(checked()).toBe(10);
+    const lastChecked = (pool: string) => JSON.parse(redis._hashes.get(key)!.get(pool)!).lastCheckedAtMs as number | undefined;
+    expect(lastChecked('0xpool11')).toBeDefined(); // the GeckoTerminal one jumped the queue
+    expect(lastChecked('0xpool9')).toBeUndefined(); // never reached in the first pass
+
+    await service.checkPendingPools();
+    expect(lastChecked('0xpool9')).toBeDefined(); // the second pass reached what the first skipped
+  }, 30_000);
 });

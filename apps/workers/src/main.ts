@@ -210,8 +210,9 @@ async function main(): Promise<void> {
       const startedAt = Date.now();
       try {
         const discovered = await discovery.discoverNewPools();
+        const fromGeckoTerminal = await discovery.enqueueFromGeckoTerminal();
         const pending = await discovery.checkPendingPools();
-        logger.info({ ...discovered, ...pending, durationMs: Date.now() - startedAt }, 'Pool discovery tick complete');
+        logger.info({ ...discovered, ...fromGeckoTerminal, ...pending, durationMs: Date.now() - startedAt }, 'Pool discovery tick complete');
       } catch (error) {
         logger.error({ err: error }, 'Pool discovery tick failed — will retry next tick');
       } finally {
