@@ -294,9 +294,9 @@ describe('MarketService — discover/search', () => {
     it('excludes a market the real scoring formula rejects (stale, below the liquidity gate, or missing inputs)', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
         fakeDiscoverableRow({ id: 'good' }),
-        fakeDiscoverableRow({ id: 'stale', lastPriceUpdateAt: new Date(Date.now() - 60 * 60_000) }), // 1h old, gate is 30m
-        fakeDiscoverableRow({ id: 'illiquid', liquidityUsd: fakeDecimal(100) }), // below the 10_000 floor
-        fakeDiscoverableRow({ id: 'no-volume', volume24hUsd: null }),
+        fakeDiscoverableRow({ id: 'stale', token: { ...fakeDiscoverableRow().token, contractAddress: '0xstale' }, lastPriceUpdateAt: new Date(Date.now() - 60 * 60_000) }), // 1h old, gate is 30m
+        fakeDiscoverableRow({ id: 'illiquid', token: { ...fakeDiscoverableRow().token, contractAddress: '0xilliquid' }, liquidityUsd: fakeDecimal(100) }), // below the 10_000 floor
+        fakeDiscoverableRow({ id: 'no-volume', token: { ...fakeDiscoverableRow().token, contractAddress: '0xnovolume' }, volume24hUsd: null }),
       ]);
 
       const result = await service.discover({ sort: 'score', limit: 20 });
@@ -306,8 +306,8 @@ describe('MarketService — discover/search', () => {
 
     it('ranks by real computed score descending by default', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
-        fakeDiscoverableRow({ id: 'low', token: { ...fakeDiscoverableRow().token, symbol: 'LOW' }, volume24hUsd: fakeDecimal(100) }),
-        fakeDiscoverableRow({ id: 'high', token: { ...fakeDiscoverableRow().token, symbol: 'HIGH' }, volume24hUsd: fakeDecimal(10_000_000) }),
+        fakeDiscoverableRow({ id: 'low', token: { ...fakeDiscoverableRow().token, symbol: 'LOW', contractAddress: '0xlow' }, volume24hUsd: fakeDecimal(100) }),
+        fakeDiscoverableRow({ id: 'high', token: { ...fakeDiscoverableRow().token, symbol: 'HIGH', contractAddress: '0xhigh' }, volume24hUsd: fakeDecimal(10_000_000) }),
       ]);
 
       const result = await service.discover({ sort: 'score', limit: 20 });
@@ -320,8 +320,8 @@ describe('MarketService — discover/search', () => {
         // Deliberately inverted: the higher-volume row has the lower momentum, so a
         // score-sort and a volume-sort would disagree — proving `sort` actually changes
         // the real order rather than the default happening to already match.
-        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A' }, volume24hUsd: fakeDecimal(1_000), priceChange24hPct: fakeDecimal(50) }),
-        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B' }, volume24hUsd: fakeDecimal(1_000_000), priceChange24hPct: fakeDecimal(-50) }),
+        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A', contractAddress: '0xa' }, volume24hUsd: fakeDecimal(1_000), priceChange24hPct: fakeDecimal(50) }),
+        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B', contractAddress: '0xb' }, volume24hUsd: fakeDecimal(1_000_000), priceChange24hPct: fakeDecimal(-50) }),
       ]);
 
       const result = await service.discover({ sort: 'volume', limit: 20 });
@@ -342,9 +342,9 @@ describe('MarketService — discover/search', () => {
 
     it('respects the real limit even when more rows qualify, keeping the top-ranked ones', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
-        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A' }, volume24hUsd: fakeDecimal(3_000) }),
-        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B' }, volume24hUsd: fakeDecimal(2_000) }),
-        fakeDiscoverableRow({ id: 'c', token: { ...fakeDiscoverableRow().token, symbol: 'C' }, volume24hUsd: fakeDecimal(1_000) }),
+        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A', contractAddress: '0xa' }, volume24hUsd: fakeDecimal(3_000) }),
+        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B', contractAddress: '0xb' }, volume24hUsd: fakeDecimal(2_000) }),
+        fakeDiscoverableRow({ id: 'c', token: { ...fakeDiscoverableRow().token, symbol: 'C', contractAddress: '0xc' }, volume24hUsd: fakeDecimal(1_000) }),
       ]);
 
       const result = await service.discover({ sort: 'score', limit: 2 });
@@ -399,9 +399,9 @@ describe('MarketService — discover/search', () => {
 
     it('only fetches candles for the returned page, never every scored candidate — one bounded batched query', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
-        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A' }, volume24hUsd: fakeDecimal(3) }),
-        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B' }, volume24hUsd: fakeDecimal(2) }),
-        fakeDiscoverableRow({ id: 'c', token: { ...fakeDiscoverableRow().token, symbol: 'C' }, volume24hUsd: fakeDecimal(1) }),
+        fakeDiscoverableRow({ id: 'a', token: { ...fakeDiscoverableRow().token, symbol: 'A', contractAddress: '0xa' }, volume24hUsd: fakeDecimal(3) }),
+        fakeDiscoverableRow({ id: 'b', token: { ...fakeDiscoverableRow().token, symbol: 'B', contractAddress: '0xb' }, volume24hUsd: fakeDecimal(2) }),
+        fakeDiscoverableRow({ id: 'c', token: { ...fakeDiscoverableRow().token, symbol: 'C', contractAddress: '0xc' }, volume24hUsd: fakeDecimal(1) }),
       ]);
 
       await service.discover({ sort: 'score', limit: 2 }); // only 2 of the 3 scored rows make the page
@@ -429,6 +429,23 @@ describe('MarketService — discover/search', () => {
       const result = await service.discover({ sort: 'score', limit: 20 });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('one row per token', () => {
+    it('lists a token once, by its seed pool, even when a duplicate pool is tracked and more liquid', async () => {
+      const wbnb = { contractAddress: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', symbol: 'WBNB', name: 'Wrapped BNB', decimals: 18, logoUrl: null };
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
+        fakeDiscoverableRow({ id: 'dup', token: wbnb, chain: { identifier: 'eip155:56' }, pairAddress: '0x9999999999999999999999999999999999999999', liquidityUsd: fakeDecimal(5_000_000), quoteToken: { contractAddress: '0xbncb', symbol: 'BNCB', decimals: 18 } }),
+        fakeDiscoverableRow({ id: 'seed', token: wbnb, chain: { identifier: 'eip155:56' }, pairAddress: '0xf2688Fb5B81049DFB7703aDa5e770543770612C4', liquidityUsd: fakeDecimal(1_000_000) }),
+      ]);
+      (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([]);
+      (mockedPrisma.candle.findMany as jest.Mock).mockResolvedValue([]);
+
+      const result = await service.discover({ sort: 'score', limit: 20 });
+
+      expect(result.filter((m) => m.symbol === 'WBNB')).toHaveLength(1);
+      expect(result.find((m) => m.symbol === 'WBNB')?.quoteSymbol).toBe('USDC');
     });
   });
 

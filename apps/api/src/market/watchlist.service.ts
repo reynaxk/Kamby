@@ -9,6 +9,7 @@ import {
   type WatchlistPage,
 } from '@kamby/domain';
 import { toMarketSummary } from './market.mapper';
+import { findPrimaryMarket } from './primary-market';
 
 const MARKET_INCLUDE = { token: true, quoteToken: true, chain: true } as const;
 
@@ -33,11 +34,9 @@ export class WatchlistService {
     // See identifierForChainId's own doc comment for the real incident this fixes.
     const identifier = identifierForChainId(chainId);
     if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
-    const market = await prisma.tokenMarket.findFirst({
-      where: { chain: { identifier }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
-      orderBy: { liquidityUsd: 'desc' },
-      select: { id: true },
-    });
+    const market = await findPrimaryMarket(identifier, address, (where) =>
+      prisma.tokenMarket.findFirst({ where, orderBy: { liquidityUsd: 'desc' }, select: { id: true } }),
+    );
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
     return market.id;
   }

@@ -158,6 +158,15 @@ describe('DiscoverTokenList', () => {
     expect(push).toHaveBeenCalledWith('/solana');
   });
 
+  it('renders a token once even if a feed repeats it, so no stale row survives a tab switch', async () => {
+    const wbnb = fakeMarket({ symbol: 'WBNB', chainIdentifier: 'eip155:56', tokenAddress: '0xbb4c' });
+    render(<DiscoverTokenList {...defaultProps} feeds={feeds({ trending: { markets: [wbnb, { ...wbnb, quoteSymbol: 'BNCB' }], atIso } })} />);
+
+    expect(screen.getAllByText(/WBNB/)).toHaveLength(1);
+    await openTab('Trenches');
+    expect(screen.queryByText(/WBNB/)).not.toBeInTheDocument();
+  });
+
   it('shows an honest empty state per tab, never a blank panel', async () => {
     render(<DiscoverTokenList {...defaultProps} />);
 

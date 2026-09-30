@@ -132,7 +132,7 @@ export function DiscoverTokenList({
     rows.length === 0 ? <p className="col-span-full p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
 
   const tabContent: Record<MarketFeedTab, ReactNode> = {
-    trending: list(feeds.trending.markets.map(marketRow), 'Nothing trending yet.'),
+    trending: list(uniqueMarkets(feeds.trending.markets).map(marketRow), 'Nothing trending yet.'),
     trenches: list(
       feeds.trenches.tokens.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
       'No new Pump.fun launches right now.',
@@ -144,7 +144,7 @@ export function DiscoverTokenList({
     graduated: (
       <>
         {feeds.graduated.markets.length > 0 && <SectionLabel>New pools · Base &amp; BNB</SectionLabel>}
-        {feeds.graduated.markets.map(marketRow)}
+        {uniqueMarkets(feeds.graduated.markets).map(marketRow)}
         {feeds.graduated.pumpfun.length > 0 && <SectionLabel>Graduated from Pump.fun</SectionLabel>}
         {feeds.graduated.pumpfun.map((token) => (
           <PumpFunFeedRow key={token.mintAddress} token={token} />
@@ -211,6 +211,18 @@ export function DiscoverTokenList({
       </div>
     </div>
   );
+}
+
+/** One row per chain+token. React keys rows by that pair, and a duplicate (WBNB arrived
+ *  twice on 2026-09-30) left an orphaned row stuck at the top of every other tab. */
+function uniqueMarkets(markets: FeedMarket[]): FeedMarket[] {
+  const seen = new Set<string>();
+  return markets.filter((m) => {
+    const key = `${m.chainIdentifier}:${m.tokenAddress}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {

@@ -117,6 +117,21 @@ export class MarketIngestionService {
     });
     this.fanout = new NotificationFanoutService(redis, logger, whaleTradeUsdThreshold);
     this.seedTokenAddresses = new Set(config.seedMarkets.map((m) => m.baseTokenAddress.toLowerCase()));
+    this.seedPoolByToken = new Map(config.seedMarkets.map((m) => [m.baseTokenAddress.toLowerCase(), m.poolAddress.toLowerCase()]));
+  }
+
+  private readonly seedPoolByToken: ReadonlyMap<string, string>;
+
+  /**
+   * A second market for a seed-list token (not its seed pool) — found 2026-09-30: a
+   * discovered WBNB/BNCB pool. Refreshing it would recompute WBNB's USD price through BNCB
+   * (itself priced from WBNB) and could overwrite the real one for every WBNB-quoted market
+   * in the same tick, so it's never refreshed or ingested; the API also never lists or
+   * trades it (see findPrimaryMarket in apps/api).
+   */
+  private isShadowOfSeed(market: { pairAddress: string; token: { contractAddress: string } }): boolean {
+    const seedPool = this.seedPoolByToken.get(market.token.contractAddress.toLowerCase());
+    return seedPool !== undefined && seedPool !== market.pairAddress.toLowerCase();
   }
 
   private readonly seedTokenAddresses: ReadonlySet<string>;
@@ -272,7 +287,8 @@ export class MarketIngestionService {
       where: { chainId: this.requireChainId() },
       include: { token: true, quoteToken: true },
     });
-    const markets = this.isFullTick() ? allMarkets : allMarkets.filter((m) => !this.isDormant(m));
+    const live = allMarkets.filter((m) => !this.isShadowOfSeed(m));
+    const markets = this.isFullTick() ? live : live.filter((m) => !this.isDormant(m));
     const resolvedUsdPrices = new Map<string, number>([[this.config.quoteUsdcAddress.toLowerCase(), 1]]);
 
     let updated = 0;
@@ -411,6 +427,7 @@ export class MarketIngestionService {
     const fullTick = this.isFullTick();
     for (const market of markets) {
       if (!market.cursor) continue;
+      if (this.isShadowOfSeed(market)) continue;
       if (!fullTick && this.isDormant(market)) continue;
       const quoteUsd = quoteUsdPrices.get(market.quoteToken.contractAddress.toLowerCase());
       if (quoteUsd === undefined) {

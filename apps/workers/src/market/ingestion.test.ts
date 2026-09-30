@@ -323,6 +323,18 @@ describe('MarketIngestionService.refreshPricesAndLiquidity — DB-driven, order-
     expect(mockPrisma.tokenMarket.update).not.toHaveBeenCalled();
     expect(fakeLogger.info).toHaveBeenCalledWith(expect.objectContaining({ updated: 0, skipped: 1 }), 'Price/liquidity refresh complete');
   });
+  it('never refreshes a second market for a seed token (e.g. WBNB priced through a memecoin pool), only its seed pool', async () => {
+    const seed = BASE_SEED_MARKETS[0]!; // WETH/USDC
+    mockPrisma.tokenMarket.findMany.mockResolvedValue([
+      marketRow({ id: 'shadow', pairAddress: '0x9999999999999999999999999999999999999999', token: { contractAddress: seed.baseTokenAddress, decimals: 18, symbol: 'WETH' } }),
+    ]);
+
+    await newService().refreshPricesAndLiquidity();
+
+    expect(UniswapV3PoolReader.prototype.getPoolState).not.toHaveBeenCalledWith('0x9999999999999999999999999999999999999999');
+    expect(mockPrisma.tokenMarket.update).not.toHaveBeenCalled();
+  });
+
   it('refreshes a dormant discovered market (liquidity under the Discover minimum) only on every Nth tick', async () => {
     mockPrisma.tokenMarket.findMany.mockResolvedValue([
       marketRow({ id: 'dormant', liquidityUsd: 3 }),

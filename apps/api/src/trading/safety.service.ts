@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, UnprocessableEntityException } from '@ne
 import { prisma } from '@kamby/db';
 import type { Prisma } from '@kamby/db';
 import { DISCOVERY_RANKING, identifierForChainId, isPriceStale, normalizeEvmAddress } from '@kamby/domain';
+import { findPrimaryMarket } from '../market/primary-market';
 
 export type TradableMarket = Prisma.TokenMarketGetPayload<{
   include: { token: true; quoteToken: true; chain: true };
@@ -34,11 +35,11 @@ export class SafetyService {
     // quote request for every EVM token was silently 404ing before this.
     const identifier = identifierForChainId(chainId);
     if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
-    const market = await prisma.tokenMarket.findFirst({
-      where: { chain: { identifier }, token: { contractAddress: { equals: normalized, mode: 'insensitive' } } },
-      include: { token: true, quoteToken: true, chain: true },
-      orderBy: { liquidityUsd: 'desc' },
-    });
+    // The token's seed pool when it has one — never a duplicate pool quoted in another coin
+    // (see findPrimaryMarket).
+    const market = await findPrimaryMarket(identifier, normalized, (where) =>
+      prisma.tokenMarket.findFirst({ where, include: { token: true, quoteToken: true, chain: true }, orderBy: { liquidityUsd: 'desc' } }),
+    );
     if (!market) throw new NotFoundException(`"${tokenAddress}" is not a tracked, tradable market`);
     if (market.token.decimals === null || market.quoteToken.decimals === null) {
       throw new UnprocessableEntityException(`Token decimals unknown for "${tokenAddress}" — cannot trade it yet`);

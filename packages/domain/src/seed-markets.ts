@@ -351,6 +351,31 @@ const CURATED_MARKET_KEYS: ReadonlySet<string> = new Set(
  *  discovery promoted. `TokenMarket` rows deliberately don't record which path created them,
  *  so this list is the only record. Matches on the base token, not the pool — a curated token
  *  is trusted regardless of which pool is serving its price. */
+const SEED_POOL_BY_TOKEN: ReadonlyMap<string, string> = new Map(
+  Object.entries(SEED_MARKETS_BY_CHAIN_IDENTIFIER).flatMap(([chainIdentifier, { seedMarkets }]) =>
+    seedMarkets.map((m) => [`${chainIdentifier}:${m.baseTokenAddress.toLowerCase()}`, m.poolAddress.toLowerCase()] as const),
+  ),
+);
+
+/**
+ * The hand-picked pool for a seed-list token, lowercased — or null for any other token. When
+ * a token ends up with more than one tracked market (found 2026-09-30: pool discovery
+ * promoted a WBNB/BNCB pool beside the seed WBNB/USDC one), this is the market to trade,
+ * chart and price it by; see pickPrimaryMarket.
+ */
+export function seedPoolFor(chainIdentifier: string, tokenAddress: string): string | null {
+  return SEED_POOL_BY_TOKEN.get(`${chainIdentifier}:${tokenAddress.toLowerCase()}`) ?? null;
+}
+
+/** Of several tracked markets for one token, the one to use: its seed pool if it has one,
+ *  else the most liquid. `markets` need not be sorted. */
+export function pickPrimaryMarket<T extends { pairAddress: string; liquidityUsd: unknown }>(chainIdentifier: string, tokenAddress: string, markets: T[]): T | undefined {
+  const seedPool = seedPoolFor(chainIdentifier, tokenAddress);
+  const seeded = seedPool ? markets.find((m) => m.pairAddress.toLowerCase() === seedPool) : undefined;
+  if (seeded) return seeded;
+  return [...markets].sort((a, b) => Number(b.liquidityUsd ?? -1) - Number(a.liquidityUsd ?? -1))[0];
+}
+
 export function isCuratedMarket(chainIdentifier: string, tokenAddress: string): boolean {
   return CURATED_MARKET_KEYS.has(`${chainIdentifier}:${tokenAddress.toLowerCase()}`);
 }

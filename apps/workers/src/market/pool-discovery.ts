@@ -247,10 +247,14 @@ export class PoolDiscoveryService {
    *  enforces for every other market, just checked earlier (before ever tracking a pool as
    *  pending) rather than only discovered when a price refresh later fails. */
   private async knownSideOf(chainId: number, token0: string, token1: string): Promise<'token0' | 'token1' | null> {
-    if (token0.toLowerCase() === this.config.quoteUsdcAddress.toLowerCase()) return 'token0';
-    if (token1.toLowerCase() === this.config.quoteUsdcAddress.toLowerCase()) return 'token1';
-    if (await this.isTrackedToken(chainId, token0)) return 'token0';
-    if (await this.isTrackedToken(chainId, token1)) return 'token1';
+    const known0 = token0.toLowerCase() === this.config.quoteUsdcAddress.toLowerCase() || (await this.isTrackedToken(chainId, token0));
+    const known1 = token1.toLowerCase() === this.config.quoteUsdcAddress.toLowerCase() || (await this.isTrackedToken(chainId, token1));
+    // Both sides already known = a second market for a token Kamby already tracks, priced
+    // through the other side (found 2026-09-30: a WBNB/BNCB pool promoted beside the seed
+    // WBNB/USDC one — circular pricing, and a "Buy WBNB" that could ask for BNCB). Skipped.
+    if (known0 && known1) return null;
+    if (known0) return 'token0';
+    if (known1) return 'token1';
     return null;
   }
 
@@ -337,6 +341,13 @@ export class PoolDiscoveryService {
     let expired = 0;
     for (const poolAddress of poolAddresses) {
       const pending: PendingPool = JSON.parse(allPending[poolAddress]!);
+
+      // Queued before redundant pools were filtered out — see knownSideOf.
+      if ((await this.knownSideOf(chainId, pending.token0, pending.token1)) === null) {
+        await this.redis.hdel(this.pendingKey, poolAddress);
+        expired += 1;
+        continue;
+      }
 
       if (Date.now() - pending.firstSeenAtMs > PENDING_MAX_AGE_MS) {
         await this.redis.hdel(this.pendingKey, poolAddress);

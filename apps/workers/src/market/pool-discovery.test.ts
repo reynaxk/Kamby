@@ -390,3 +390,22 @@ describe('PoolDiscoveryService.enqueueFromGeckoTerminal — address casing', () 
     expect(result).toEqual({ geckoTerminalCandidates: 1 });
   });
 });
+
+describe('PoolDiscoveryService — redundant pools (both sides already tracked)', () => {
+  it('drops a queued pool pairing two tokens Kamby already tracks, instead of promoting a duplicate market', async () => {
+    // KNOWN_TOKEN is tracked (it has a priced market); USDC is known by definition.
+    mockPrisma.token.findUnique.mockImplementation(async ({ where }: { where: { chainId_contractAddress: { contractAddress: string } } }) =>
+      where.chainId_contractAddress.contractAddress === KNOWN_TOKEN ? { id: 'token-known' } : null,
+    );
+    mockPrisma.tokenMarket.findFirst.mockImplementation(async ({ where }: { where: { tokenId?: string } }) => (where.tokenId === 'token-known' ? { id: 'market-known' } : null));
+    const getPoolState = vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState');
+    const redis = fakeRedis();
+    await redis.hset('pool-discovery:pending:eip155:8453', POOL_A.toLowerCase(), JSON.stringify({ token0: KNOWN_TOKEN, token1: USDC, fee: 3000, knownSide: 'token1', firstSeenAtMs: Date.now() }));
+
+    const result = await newService(redis).checkPendingPools();
+
+    expect(result).toMatchObject({ promoted: 0, expired: 1 });
+    expect(redis._hashes.get('pool-discovery:pending:eip155:8453')!.has(POOL_A.toLowerCase())).toBe(false);
+    expect(getPoolState).not.toHaveBeenCalled();
+  });
+});

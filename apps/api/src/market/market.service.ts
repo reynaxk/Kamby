@@ -10,6 +10,7 @@ import {
   identifierForChainId,
   isCuratedMarket,
   LARGE_TRADE_USD_THRESHOLD,
+  pickPrimaryMarket,
   type Candle,
   type EvmChainConfig,
   type MarketSummary,
@@ -21,6 +22,7 @@ import { toSocialActivity } from '../social/social.mapper';
 import type { DiscoverQueryDto } from './dto/discover-query.dto';
 import type { SearchQueryDto } from './dto/search-query.dto';
 import { hideLookalikes } from './lookalike-filter';
+import { findPrimaryMarket } from './primary-market';
 import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { WatchlistService } from './watchlist.service';
@@ -186,7 +188,7 @@ export class MarketService {
         take: limit * 3, // headroom for what the filters below remove
       });
       const listedAt = new Map(rows.map((row) => [row.id, row.createdAt.toISOString()]));
-      const candidates = rows
+      const candidates = primaryRowsOnly(rows)
         .filter((row) => !isCuratedMarket(row.chain.identifier, row.token.contractAddress))
         .map((row) => ({ id: row.id, summary: toMarketSummary(row) }))
         .filter(({ summary }) => !summary.isStale);
@@ -210,7 +212,7 @@ export class MarketService {
       prisma.solanaTokenMarket.findMany(),
     ]);
 
-    const evmFiltered = query.search ? evmRows.filter((row) => matchesSearch(row, query.search!)) : evmRows;
+    const evmFiltered = primaryRowsOnly(query.search ? evmRows.filter((row) => matchesSearch(row, query.search!)) : evmRows);
     const solanaFiltered = query.search ? solanaRows.filter((row) => matchesSolanaSearch(row, query.search!)) : solanaRows;
 
     // evmMarketId is carried alongside (never part of MarketSummary itself) purely so the
@@ -298,11 +300,9 @@ export class MarketService {
    *  address exists on two chains. */
   async getToken(address: string, chainId: number): Promise<MarketSummary> {
     assertAddressShape(address);
-    const row = await prisma.tokenMarket.findFirst({
-      where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
-      include: MARKET_INCLUDE,
-      orderBy: { liquidityUsd: 'desc' },
-    });
+    const row = await findPrimaryMarket(requireChainIdentifier(chainId), address, (where) =>
+      prisma.tokenMarket.findFirst({ where, include: MARKET_INCLUDE, orderBy: { liquidityUsd: 'desc' } }),
+    );
     if (!row) throw new NotFoundException(`No tracked market for token address "${address}"`);
     return toMarketSummary(row);
   }
@@ -321,11 +321,9 @@ export class MarketService {
 
   private async computeTokenTraders(address: string, chainId: number, limit: number): Promise<TokenTraderConnection> {
     assertAddressShape(address);
-    const market = await prisma.tokenMarket.findFirst({
-      where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
-      include: MARKET_INCLUDE,
-      orderBy: { liquidityUsd: 'desc' },
-    });
+    const market = await findPrimaryMarket(requireChainIdentifier(chainId), address, (where) =>
+      prisma.tokenMarket.findFirst({ where, include: MARKET_INCLUDE, orderBy: { liquidityUsd: 'desc' } }),
+    );
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
 
     const since = new Date(Date.now() - TOKEN_TRADER_LOOKBACK_HOURS * 60 * 60_000);
@@ -430,10 +428,9 @@ export class MarketService {
 
   async getHistory(address: string, chainId: number, timeframe: Timeframe): Promise<Candle[]> {
     assertAddressShape(address);
-    const market = await prisma.tokenMarket.findFirst({
-      where: { chain: { identifier: requireChainIdentifier(chainId) }, token: { contractAddress: { equals: address, mode: 'insensitive' } } },
-      orderBy: { liquidityUsd: 'desc' },
-    });
+    const market = await findPrimaryMarket(requireChainIdentifier(chainId), address, (where) =>
+      prisma.tokenMarket.findFirst({ where, orderBy: { liquidityUsd: 'desc' } }),
+    );
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
 
     const { bucket, lookback } = TIMEFRAME_CONFIG[timeframe];
@@ -512,7 +509,7 @@ export class MarketService {
       }),
     ]);
 
-    const summaries = [...evmRows.map((row) => toMarketSummary(row)), ...solanaRows.map((row) => toSolanaMarketSummary(row))];
+    const summaries = [...primaryRowsOnly(evmRows).map((row) => toMarketSummary(row)), ...solanaRows.map((row) => toSolanaMarketSummary(row))];
     summaries.sort((a, b) => numDesc(a.liquidityUsd, b.liquidityUsd));
     // An exact-address search is someone asking for one specific token — never hide it.
     // A name search gets the same bar as Discover: no lookalikes, and nothing below
@@ -542,6 +539,28 @@ function requireChainIdentifier(chainId: number): string {
   const identifier = identifierForChainId(chainId);
   if (!identifier) throw new NotFoundException(`Chain id ${chainId} is not a chain Kamby trades on`);
   return identifier;
+}
+
+/**
+ * One row per token: a token with several tracked markets keeps only its primary one (seed
+ * pool, else most liquid — see pickPrimaryMarket). Found 2026-09-30: WBNB listed twice (its
+ * seed WBNB/USDC pool and a discovered WBNB/BNCB one), which also gave React duplicate keys
+ * and left a stale WBNB row stuck at the top of other tabs.
+ */
+function primaryRowsOnly<T extends Pick<MarketRow, 'pairAddress' | 'liquidityUsd' | 'chain' | 'token'>>(rows: T[]): T[] {
+  const groups = new Map<string, T[]>();
+  for (const row of rows) {
+    const key = `${row.chain.identifier}:${row.token.contractAddress.toLowerCase()}`;
+    const group = groups.get(key);
+    if (group) group.push(row);
+    else groups.set(key, [row]);
+  }
+  const keep = new Set<T>();
+  for (const group of groups.values()) {
+    const primary = group.length === 1 ? group[0] : pickPrimaryMarket(group[0]!.chain.identifier, group[0]!.token.contractAddress, group);
+    if (primary) keep.add(primary);
+  }
+  return rows.filter((row) => keep.has(row));
 }
 
 function matchesSearch(row: MarketRow, search: string): boolean {
