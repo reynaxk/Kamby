@@ -70,7 +70,9 @@ const {
 });
 
 vi.mock('@privy-io/react-auth', () => ({ usePrivy: usePrivyMock }));
+const { createSolanaWalletMock } = vi.hoisted(() => ({ createSolanaWalletMock: vi.fn().mockResolvedValue({ wallet: {} }) }));
 vi.mock('@privy-io/react-auth/solana', () => ({
+  useCreateWallet: () => ({ createWallet: createSolanaWalletMock }),
   useWallets: useWalletsMock,
   useSignAndSendTransaction: useSignAndSendTransactionMock,
   useSignTransaction: useSignTransactionMock,
@@ -188,6 +190,40 @@ describe('SolanaTradePanel', () => {
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Amount')).not.toBeInTheDocument();
+  });
+
+  it('creates a Solana wallet itself once signed in without one — Privy app-side auto-creation is off', async () => {
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: loginMock });
+    useWalletsMock.mockReturnValue({ wallets: [], ready: true });
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+
+    await vi.waitFor(() => expect(createSolanaWalletMock).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('button', { name: 'Setting up your wallet…' })).toBeDisabled();
+  });
+
+  it('never creates a Solana wallet before sign-in, while wallets are loading, or when one exists', () => {
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: false, login: loginMock });
+    useWalletsMock.mockReturnValue({ wallets: [], ready: true });
+    const { rerender } = render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: loginMock });
+    useWalletsMock.mockReturnValue({ wallets: [], ready: false });
+    rerender(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+
+    useWalletsMock.mockReturnValue({ wallets: [{ address: WALLET_ADDRESS }], ready: true });
+    rerender(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+
+    expect(createSolanaWalletMock).not.toHaveBeenCalled();
+  });
+
+  it('shows a retry, not an endless spinner, when creating the Solana wallet fails', async () => {
+    createSolanaWalletMock.mockRejectedValueOnce(new Error('Network error'));
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: loginMock });
+    useWalletsMock.mockReturnValue({ wallets: [], ready: true });
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Network error — tap to retry' }));
+    await vi.waitFor(() => expect(createSolanaWalletMock).toHaveBeenCalledTimes(2));
   });
 
   it('sign-in calls Privy login()', async () => {

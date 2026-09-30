@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { useSignAndSendTransaction, useSignTransaction, useWallets, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana';
+import { useCreateWallet, useSignAndSendTransaction, useSignTransaction, useWallets, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana';
 import { Connection } from '@solana/web3.js';
 import { Button, cn } from '@kamby/ui';
 import { isQuoteExpired, SOLANA_NATIVE_MINT, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
@@ -104,8 +104,27 @@ function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string
  */
 export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }: SolanaTradePanelProps) {
   const { ready, authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+  const { wallets, ready: walletsReady } = useWallets();
   const wallet = wallets[0];
+  const { createWallet } = useCreateWallet();
+  const [walletSetupError, setWalletSetupError] = useState<string | null>(null);
+  const creatingWalletRef = useRef(false);
+
+  // Solana counterpart to ConnectWalletButton's EVM useCreateWallet fallback: the Privy app's
+  // dashboard-side embedded_wallet_config.solana.create_on_login is "off" (confirmed via
+  // GET auth.privy.io/api/v1/apps/<id> for both the old and the new app, 2026-09-30) and the
+  // dashboard no longer exposes the setting, so `createOnLogin` in lib/privy-config.ts alone
+  // can't be relied on. Once signed in with no Solana wallet, create one — once, with a
+  // visible retry if it fails. A no-op as soon as Privy (or this) has made the wallet.
+  useEffect(() => {
+    if (!ready || !authenticated || !walletsReady || wallets.length > 0 || creatingWalletRef.current || walletSetupError) return;
+    creatingWalletRef.current = true;
+    createWallet()
+      .catch((error: unknown) => setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up your Solana wallet'))
+      .finally(() => {
+        creatingWalletRef.current = false;
+      });
+  }, [ready, authenticated, walletsReady, wallets.length, createWallet, walletSetupError]);
   const walletVerification = useSolanaWalletVerification();
   const { signAndSendTransaction } = useSignAndSendTransaction();
   const { signTransaction } = useSignTransaction();
@@ -373,6 +392,11 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
         <Button type="button" className="w-full" disabled={!ready || authenticated} onClick={() => login()}>
           {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
         </Button>
+        {walletSetupError && (
+          <button type="button" onClick={() => setWalletSetupError(null)} className="font-body text-xs text-down underline-offset-2 hover:underline">
+            {walletSetupError} — tap to retry
+          </button>
+        )}
         <LegalAgreementNote />
       </Panel>
     );
