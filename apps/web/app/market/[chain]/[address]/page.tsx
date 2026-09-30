@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { CHAIN_REGISTRY, isChainSlug, TIMEFRAMES, type Timeframe } from '@kamby/domain';
+import { CHAIN_REGISTRY, isChainSlug, isCuratedMarket, TIMEFRAMES, type Timeframe } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AutoRefresh } from '@/components/market/AutoRefresh';
 import { MarketHeader } from '@/components/market/MarketHeader';
+import { NewListingBanner } from '@/components/market/NewListingBanner';
 import { StaleBadge } from '@/components/market/StaleBadge';
 import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { WatchButton } from '@/components/market/WatchButton';
@@ -109,6 +110,11 @@ export default async function TokenDetailPage({
             />
           </div>
         </div>
+        {!isCuratedMarket(market.chainIdentifier, market.tokenAddress) && (
+          <div className="mt-3">
+            <NewListingBanner />
+          </div>
+        )}
       </div>
 
       <KambyTerminal

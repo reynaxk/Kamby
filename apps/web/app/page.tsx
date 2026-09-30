@@ -1,12 +1,12 @@
 import {
   CHAIN_REGISTRY,
   DEFAULT_CHAIN_SLUG,
+  emptyMarketFeeds,
   slugForIdentifier,
   type TokenTraderConnection,
 } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
-import { AutoRefresh } from '@/components/market/AutoRefresh';
 import { EmptyState } from '@/components/market/EmptyState';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { MarketTable } from '@/components/market/MarketTable';
@@ -19,7 +19,7 @@ import { SavedSearches } from '@/components/discovery/SavedSearches';
 import { WhatsMissedSection } from '@/components/discovery/WhatsMissedSection';
 import { ActivityCard } from '@/components/social/ActivityCard';
 import { TopTraders } from '@/components/social/TopTraders';
-import { fetchDiscoverMarkets, fetchSearch, fetchTokenHistory } from '@/lib/market-api';
+import { fetchDiscoverMarkets, fetchMarketFeeds, fetchSearch, fetchTokenHistory } from '@/lib/market-api';
 import { fetchGlobalActivity, fetchTraderSearch, fetchTrending } from '@/lib/social-api';
 import { fetchTokenTraders } from '@/lib/discovery-api';
 import { pickDefaultMarket } from '@/lib/default-market';
@@ -51,7 +51,8 @@ export default async function DiscoverPage({
   // own empty state (same as "no data yet") instead of failing this whole Promise.all,
   // which previously crashed the entire homepage on any single section's fetch error.
   const [
-    ranked,
+    feedsResult,
+    searchResults,
     movers,
     byVolume,
     trending,
@@ -61,19 +62,20 @@ export default async function DiscoverPage({
     largeTrades,
     rising,
   ] = await Promise.all([
+    // Browsing: the terminal's five feed tabs (Trending/Trenches/Bonding/Graduated/Crypto),
+    // server-rendered here and kept live in the browser over one stream (lib/market-feeds.ts)
+    // — which is why this page no longer auto-refreshes itself.
+    search ? Promise.resolve(null) : settledOr(fetchMarketFeeds(), null),
     // Ranked discovery (computeDiscoveryScore) deliberately excludes any market with no
     // 24h volume/momentum data yet — real, correct behavior for "what's trending," but it
     // means an explicit search for a token by name/symbol found NOTHING for any market that
     // hadn't accumulated trade history, even an exact match (confirmed live 2026-09-17: a
     // freshly-seeded BNB market, zero volume so far, was invisible to search even though it
     // was genuinely tracked and tradable). `fetchSearch` — the dedicated, ranking-gate-free
-    // endpoint that already existed but was never actually wired up here — is what an
-    // explicit search should hit instead; the ranked feed stays ranked-only when browsing.
-    search
-      ? settledOr(fetchSearch(search, 20), [])
-      : settledOr(fetchDiscoverMarkets({ sort: 'score', limit: 100 }), []),
-    settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 50, search }), []),
-    settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 50, search }), []),
+    // endpoint — is what an explicit search hits instead.
+    search ? settledOr(fetchSearch(search, 20), []) : Promise.resolve([]),
+    search ? settledOr(fetchDiscoverMarkets({ sort: 'priceChange', limit: 50, search }), []) : Promise.resolve([]),
+    search ? settledOr(fetchDiscoverMarkets({ sort: 'volume', limit: 50, search }), []) : Promise.resolve([]),
     // 12, not 6: the top few trending slots are usually majors (WETH/cbBTC/...), so a
     // shallower list starved both the Trending tab and pickDefaultMarket's pool of smaller
     // curated coins (ZORA/CLANKER/BRETT/TOSHI/DEGEN). The card grid below still shows 6.
@@ -100,6 +102,8 @@ export default async function DiscoverPage({
   // Now a random pick among trending *curated* markets — see lib/default-market.ts. The
   // highest-ranked row alone let a pool-discovered token trending on wash-traded volume
   // become every visitor's first impression.
+  const feeds = feedsResult ?? emptyMarketFeeds();
+  const ranked = search ? searchResults : feeds.trending.markets;
   const defaultMarket = !search ? pickDefaultMarket(ranked, trending) : undefined;
   const defaultChainId = defaultMarket
     ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG]
@@ -130,15 +134,11 @@ export default async function DiscoverPage({
           highest-visibility pages this theme rolled out to on 2026-09-15 (Market detail is
           the other); the rest of the product still runs the original light/dark palette. */}
       <div className="kamby-void kamby-terminal min-h-screen bg-bg">
-        <AutoRefresh intervalSeconds={30} />
         <MarketHeader searchValue={search} wide />
         {!search && (
           <div className="mx-auto max-w-[1920px] px-2 pt-2 sm:px-3">
             <DiscoverTerminal
-              ranked={ranked}
-              trending={trending}
-              movers={movers}
-              byVolume={byVolume}
+              feeds={feeds}
               initialMarket={defaultMarket ?? null}
               initialTimeframe="1D"
               initialCandles={heroCandles}

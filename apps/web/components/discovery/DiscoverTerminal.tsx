@@ -10,7 +10,7 @@ import {
   type SocialActivity,
   type Timeframe,
   type TokenTraderConnection,
-  type TrendingToken,
+  type MarketFeedSnapshot,
 } from '@kamby/domain';
 import { cn, Surface } from '@kamby/ui';
 import { LayoutGrid } from 'lucide-react';
@@ -26,6 +26,7 @@ import { type TradePanelStep } from '@/components/trading/TradePanel';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { fetchTokenTraders } from '@/lib/discovery-client';
 import { fetchTokenHistory } from '@/lib/market-client';
+import { useMarketFeeds } from '@/lib/market-feeds';
 import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
 import { GridTerminalCell } from './GridTerminalCell';
@@ -108,20 +109,15 @@ function dedupeMarkets(lists: MarketSummary[][]): MarketSummary[] {
  * today's unmodified single-terminal layout.
  */
 export function DiscoverTerminal({
-  ranked,
-  trending,
-  movers,
-  byVolume,
+  feeds: initialFeeds,
   initialMarket,
   initialTimeframe,
   initialCandles,
   initialActivity,
   initialTraders,
 }: {
-  ranked: MarketSummary[];
-  trending: TrendingToken[];
-  movers: MarketSummary[];
-  byVolume: MarketSummary[];
+  /** Server-rendered first paint of the five feed tabs — kept live by useMarketFeeds. */
+  feeds: MarketFeedSnapshot;
   initialMarket: MarketSummary | null;
   initialTimeframe: Timeframe;
   initialCandles: Candle[];
@@ -132,14 +128,12 @@ export function DiscoverTerminal({
   const [gridMode, setGridMode] = useState<GridMode>(1);
   const [tokenListOpen, setTokenListOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
-  // Recomputed on every render otherwise — a Set-based dedupe across ~32 items plus a fresh
-  // `.map()` allocation, redone on every polling/selection re-render even though ranked/
-  // trending/movers/byVolume (all server-fetched props) rarely change. Also passed straight
-  // through as a prop below, so a fresh array reference every render meant every consumer of
-  // it saw a "changed" prop each time too, not just wasted recomputation.
+  const { feeds } = useMarketFeeds(initialFeeds);
+  // Memoized on the two lists' identities — the stream only replaces a tab when its content
+  // changed, so this recomputes on real changes, not on every selection re-render.
   const availableMarkets = useMemo(
-    () => dedupeMarkets([ranked, trending.map((t) => t.market), movers, byVolume]),
-    [ranked, trending, movers, byVolume],
+    () => dedupeMarkets([feeds.trending.markets, feeds.graduated.markets]),
+    [feeds.trending.markets, feeds.graduated.markets],
   );
 
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
@@ -378,10 +372,7 @@ export function DiscoverTerminal({
         <MobileDrawer open={tokenListOpen} onClose={() => setTokenListOpen(false)} title="Tokens">
           <div className="h-[70vh]">
             <DiscoverTokenList
-              ranked={ranked}
-              trending={trending}
-              movers={movers}
-              byVolume={byVolume}
+              feeds={feeds}
               selectedKey={selectedKey}
               onSelect={(market) => {
                 handleSelect(market);
@@ -443,10 +434,7 @@ export function DiscoverTerminal({
       <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-[300px_minmax(0,1fr)_380px] xl:grid-cols-[340px_minmax(0,1fr)_420px]">
         <div className="h-[520px] lg:h-[calc(100vh-8rem)]">
           <DiscoverTokenList
-            ranked={ranked}
-            trending={trending}
-            movers={movers}
-            byVolume={byVolume}
+            feeds={feeds}
             selectedKey={selectedKey}
             onSelect={handleSelect}
             selectionDisabled={inFlight}

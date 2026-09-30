@@ -2,21 +2,30 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { type MarketSummary, slugForIdentifier } from '@kamby/domain';
+import { type MarketFeedEvents, type MarketSummary, slugForIdentifier } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatPercent, formatPrice, priceDirection, cashtag } from '@/lib/format';
-import { fetchDiscoverMarkets } from '@/lib/market-client';
+import { subscribeToMarketFeeds } from '@/lib/market-feeds';
 import { solanaMarketHref } from '@/lib/solana-links';
 
-const POLL_INTERVAL_MS = 20_000;
+const TICKER_SIZE = 20;
+
+/** Exported for tests. The ticker's rows: the Trending feed's highest 24h volume. */
+export function topByVolume(markets: MarketSummary[], size = TICKER_SIZE): MarketSummary[] {
+  return markets
+    .filter((m) => m.volume24hUsd !== null)
+    .slice()
+    .sort((a, b) => (b.volume24hUsd ?? 0) - (a.volume24hUsd ?? 0))
+    .slice(0, size);
+}
 
 /**
  * A persistent, app-wide scrolling price ticker — rendered once from the root layout
  * (app/layout.tsx), not per-page, since it's meant to stay visible everywhere the same way
- * a real trading floor ticker never turns off. Client-fetched (lib/market-client.ts's
- * fetchDiscoverMarkets) rather than server-seeded because the root layout wraps every page,
- * most of which don't otherwise fetch market data at all — polling from the browser keeps
- * this self-contained instead of forcing every route to plumb ticker data through.
+ * a real trading floor ticker never turns off. Fed by the live market stream (lib/market-
+ * feeds.ts — the same single connection Discover's token rail uses, no polling): the
+ * Trending snapshot arrives the moment it connects and again whenever it changes, and the
+ * ticker shows its highest-volume rows.
  *
  * Deliberately its own `kamby-void` scope (see globals.css) regardless of the page underneath
  * it — most of the product still runs the original light/dark palette (the Void rollout has
@@ -31,24 +40,17 @@ const POLL_INTERVAL_MS = 20_000;
 export function TickerBar() {
   const [markets, setMarkets] = useState<MarketSummary[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = () => {
-      fetchDiscoverMarkets({ sort: 'volume', limit: 20 })
-        .then((result) => {
-          if (!cancelled) setMarkets(result);
-        })
-        .catch(() => {
-          // A dead ticker just stays empty — never worth degrading the rest of the app for.
-        });
-    };
-    load();
-    const id = setInterval(load, POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
+  useEffect(
+    () =>
+      subscribeToMarketFeeds(
+        (type, data) => {
+          if (type === 'trending') setMarkets(topByVolume((data as MarketFeedEvents['trending']).markets));
+        },
+        // A dead stream just leaves the ticker as it was — never worth surfacing app-wide.
+        () => {},
+      ),
+    [],
+  );
 
   if (markets.length === 0) return null;
 

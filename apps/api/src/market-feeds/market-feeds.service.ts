@@ -4,6 +4,7 @@ import {
   NEW_MARKET_WINDOW_HOURS,
   type FeedMarket,
   type MarketFeedEvents,
+  type MarketFeedSnapshot,
   type MarketSummary,
   type PumpFunTokenSummary,
 } from '@kamby/domain';
@@ -23,7 +24,7 @@ const TRENDING_LIMIT = 100;
 const GRADUATED_LIMIT = 30;
 const TRENCHES_LIMIT = 50;
 
-type Snapshots = Omit<MarketFeedEvents, 'pumpfun' | 'heartbeat'>;
+type Snapshots = MarketFeedSnapshot;
 type TabData<K extends keyof Snapshots> = Omit<Snapshots[K], 'atIso'>;
 
 /** Every Solana market is from the curated list; an EVM market is vetted if it's on the seed list. */

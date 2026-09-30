@@ -1,10 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { MarketSummary } from '@kamby/domain';
-import { TickerBar } from './TickerBar';
+import { TickerBar, topByVolume } from './TickerBar';
 
+// The ticker now listens to the live market stream; this stands in for the stream's first
+// Trending snapshot, fed from whatever list each test sets up.
 const { fetchDiscoverMarkets } = vi.hoisted(() => ({ fetchDiscoverMarkets: vi.fn() }));
-vi.mock('@/lib/market-client', () => ({ fetchDiscoverMarkets }));
+vi.mock('@/lib/market-feeds', () => ({
+  subscribeToMarketFeeds: (listener: (type: string, data: unknown) => void) => {
+    let active = true;
+    Promise.resolve(fetchDiscoverMarkets())
+      .then((markets: MarketSummary[] | undefined) => {
+        if (active && markets) listener('trending', { markets, atIso: '' });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  },
+}));
 
 function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
   return {
@@ -50,13 +64,22 @@ describe('TickerBar', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('fetches the real volume-sorted top 20 on mount', async () => {
-    fetchDiscoverMarkets.mockResolvedValue([]);
+  it('shows the Trending feed ordered by 24h volume, skipping markets with no volume yet', async () => {
+    fetchDiscoverMarkets.mockResolvedValue([
+      fakeMarket({ symbol: 'LOW', tokenAddress: '0x1', volume24hUsd: 1_000 }),
+      fakeMarket({ symbol: 'NONE', tokenAddress: '0x2', volume24hUsd: null }),
+      fakeMarket({ symbol: 'HIGH', tokenAddress: '0x3', volume24hUsd: 9_000_000 }),
+    ]);
     render(<TickerBar />);
 
-    await vi.waitFor(() =>
-      expect(fetchDiscoverMarkets).toHaveBeenCalledWith({ sort: 'volume', limit: 20 }),
-    );
+    const symbols = (await screen.findAllByText(/^\$(LOW|HIGH|NONE)$/)).map((el) => el.textContent);
+    expect(symbols.slice(0, 2)).toEqual(['$HIGH', '$LOW']);
+    expect(symbols).not.toContain('$NONE');
+  });
+
+  it('caps the ticker at 20 markets', () => {
+    const many = Array.from({ length: 30 }, (_, i) => fakeMarket({ tokenAddress: `0x${i}`, volume24hUsd: i }));
+    expect(topByVolume(many)).toHaveLength(20);
   });
 
   it('doubles the real fetched list so the marquee loop point is invisible', async () => {
@@ -139,15 +162,12 @@ describe('TickerBar', () => {
     expect(pct).not.toHaveClass('text-down');
   });
 
-  it('polls again every 20s', async () => {
+  it('never polls — it only listens to the stream', async () => {
     vi.useFakeTimers();
     fetchDiscoverMarkets.mockResolvedValue([]);
     render(<TickerBar />);
-    await vi.advanceTimersByTimeAsync(0);
-    expect(fetchDiscoverMarkets).toHaveBeenCalledTimes(1);
-
-    await vi.advanceTimersByTimeAsync(20_000);
-    expect(fetchDiscoverMarkets).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(fetchDiscoverMarkets).toHaveBeenCalledTimes(1); // the one stream subscription
 
     vi.useRealTimers();
   });

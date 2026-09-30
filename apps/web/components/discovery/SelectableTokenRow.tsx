@@ -2,6 +2,7 @@ import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/do
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/format';
 import { Sparkline } from '@/components/market/Sparkline';
+import { NewListingBadge } from './feeds/NewListingBadge';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
@@ -13,11 +14,14 @@ export function SelectableTokenRow({
   selected,
   onSelect,
   disabled,
+  isNew = false,
 }: {
   market: MarketSummary;
   selected: boolean;
   onSelect: (market: MarketSummary) => void;
   disabled?: boolean;
+  /** A discovered, not hand-picked listing — shows the "New" high-risk pill. */
+  isNew?: boolean;
 }) {
   const isUp = (market.priceChange24hPct ?? 0) >= 0;
   const chainSlug = slugForIdentifier(market.chainIdentifier);
@@ -78,6 +82,7 @@ export function SelectableTokenRow({
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-[0.72rem] font-semibold tracking-tight text-ink-900">
           {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
+          {isNew && <NewListingBadge className="ml-1 align-middle" />}
         </span>
         <span className="terminal-token-row-meta block font-mono text-[0.58rem] tabular-nums text-ink-400">
           {chainLabel} · {formatCompactUsd(market.marketCapUsd)} MC

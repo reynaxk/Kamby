@@ -1,20 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import type { MarketSummary, TrendingToken } from '@kamby/domain';
+import { emptyMarketFeeds, type CryptoPrice, type FeedMarket, type MarketFeedSnapshot, type MarketSummary, type PumpFunTokenSummary } from '@kamby/domain';
 import { DiscoverTokenList } from './DiscoverTokenList';
 
-// TrenchesPanel/LeaderboardSidebar/TradersSidebar/SelectableTokenRow all have their own
-// separate coverage — mocked here so this file only exercises DiscoverTokenList's own
-// tab-routing and per-tab data-source mapping.
 const push = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
-vi.mock('@/components/terminal/TrenchesPanel', () => ({
-  TrenchesPanel: () => <div>TrenchesPanel</div>,
-}));
-vi.mock('./LeaderboardSidebar', () => ({
-  LeaderboardSidebar: () => <div>LeaderboardSidebar</div>,
-}));
+// LeaderboardSidebar/TradersSidebar/SelectableTokenRow have their own coverage — mocked here
+// so this file only exercises DiscoverTokenList's tab routing and per-tab data mapping.
+vi.mock('./LeaderboardSidebar', () => ({ LeaderboardSidebar: () => <div>LeaderboardSidebar</div> }));
 vi.mock('./TradersSidebar', () => ({ TradersSidebar: () => <div>TradersSidebar</div> }));
 vi.mock('./SelectableTokenRow', () => ({
   SelectableTokenRow: ({
@@ -22,19 +16,21 @@ vi.mock('./SelectableTokenRow', () => ({
     selected,
     disabled,
     onSelect,
+    isNew,
   }: {
     market: MarketSummary;
     selected: boolean;
     disabled: boolean;
     onSelect: (market: MarketSummary) => void;
+    isNew?: boolean;
   }) => (
     <button type="button" onClick={() => onSelect(market)}>
-      {market.symbol} {selected ? '(selected)' : ''} {disabled ? '(disabled)' : ''}
+      {market.symbol} {selected ? '(selected)' : ''} {disabled ? '(disabled)' : ''} {isNew ? '(new)' : ''}
     </button>
   ),
 }));
 
-function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
+function fakeMarket(overrides: Partial<FeedMarket> = {}): FeedMarket {
   return {
     chainIdentifier: 'eip155:8453',
     tokenAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -54,122 +50,120 @@ function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
     marketCapUsd: 1_000_000,
     lastPriceUpdateAt: new Date().toISOString(),
     isStale: false,
+    listing: 'vetted',
     ...overrides,
   };
 }
 
-const defaultProps = {
-  ranked: [],
-  trending: [] as TrendingToken[],
-  movers: [],
-  byVolume: [],
-  selectedKey: null,
-  onSelect: vi.fn(),
-  selectionDisabled: false,
-};
+function fakeCurve(overrides: Partial<PumpFunTokenSummary> = {}): PumpFunTokenSummary {
+  return {
+    mintAddress: 'MintAAAA1111111111111111111111111111111111',
+    name: 'Curve',
+    symbol: 'CURVE',
+    uri: null,
+    virtualSolReserves: '40000000000',
+    virtualTokenReserves: '800000000000000',
+    realSolReserves: '10000000000',
+    realTokenReserves: '520000000000000',
+    tokenTotalSupply: '1000000000000000',
+    graduationProgressPct: 11.76,
+    complete: false,
+    createdAt: new Date().toISOString(),
+    graduatedAt: null,
+    ...overrides,
+  };
+}
+
+const atIso = new Date(0).toISOString();
+function feeds(overrides: Partial<MarketFeedSnapshot> = {}): MarketFeedSnapshot {
+  return { ...emptyMarketFeeds(), ...overrides };
+}
+
+const defaultProps = { feeds: feeds(), selectedKey: null, onSelect: vi.fn(), selectionDisabled: false };
+
+async function openTab(name: string) {
+  await userEvent.click(screen.getByRole('tab', { name }));
+}
 
 describe('DiscoverTokenList', () => {
-  it('defaults to the Markets tab, showing the real ranked list', () => {
-    render(<DiscoverTokenList {...defaultProps} ranked={[fakeMarket({ symbol: 'AAA' })]} />);
+  it('shows the five live feed tabs, defaulting to Trending', () => {
+    render(<DiscoverTokenList {...defaultProps} feeds={feeds({ trending: { markets: [fakeMarket({ symbol: 'AAA' })], atIso } })} />);
 
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Trending', 'Trenches', 'Bonding', 'Graduated', 'Crypto']);
+    expect(screen.getByRole('tab', { name: 'Trending' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText(/AAA/)).toBeInTheDocument();
   });
 
-  it('shows the real trending list, unwrapped from its own trendingScore, under the Trending tab', async () => {
-    const user = userEvent.setup();
-    const trending: TrendingToken[] = [
-      { market: fakeMarket({ symbol: 'HOT' }), trendingScore: 9.5 },
-    ];
-    render(<DiscoverTokenList {...defaultProps} trending={trending} />);
-
-    await user.click(screen.getByRole('button', { name: 'Trending' }));
-
-    expect(screen.getByText(/HOT/)).toBeInTheDocument();
-  });
-
-  it('shows the real movers list under the Movers tab', async () => {
-    const user = userEvent.setup();
-    render(<DiscoverTokenList {...defaultProps} movers={[fakeMarket({ symbol: 'MOVE' })]} />);
-
-    await user.click(screen.getByRole('button', { name: 'Movers' }));
-
-    expect(screen.getByText(/MOVE/)).toBeInTheDocument();
-  });
-
-  it('shows the real byVolume list under the Volume tab', async () => {
-    const user = userEvent.setup();
-    render(<DiscoverTokenList {...defaultProps} byVolume={[fakeMarket({ symbol: 'VOL' })]} />);
-
-    await user.click(screen.getByRole('button', { name: 'Volume' }));
-
-    expect(screen.getByText(/VOL/)).toBeInTheDocument();
-  });
-
-  it('shows a real distinct "nothing here yet" message for an empty list tab, not a blank panel', () => {
-    render(<DiscoverTokenList {...defaultProps} ranked={[]} />);
-
-    expect(screen.getByText('Nothing here yet.')).toBeInTheDocument();
-  });
-
-  it('renders TrenchesPanel, unwrapped in a second border, under the Trenches tab', async () => {
-    const user = userEvent.setup();
-    render(<DiscoverTokenList {...defaultProps} />);
-
-    await user.click(screen.getByRole('button', { name: 'Trenches' }));
-
-    expect(screen.getByText('TrenchesPanel')).toBeInTheDocument();
-  });
-
-  it('renders LeaderboardSidebar under the Leaderboard tab', async () => {
-    const user = userEvent.setup();
-    render(<DiscoverTokenList {...defaultProps} />);
-
-    await user.click(screen.getByRole('button', { name: 'Leaderboard' }));
-
-    expect(screen.getByText('LeaderboardSidebar')).toBeInTheDocument();
-  });
-
-  it('renders TradersSidebar under the Feed tab', async () => {
-    const user = userEvent.setup();
-    render(<DiscoverTokenList {...defaultProps} />);
-
-    await user.click(screen.getByRole('button', { name: 'Feed' }));
-
-    expect(screen.getByText('TradersSidebar')).toBeInTheDocument();
-  });
-
-  it('shows a real honest "not built yet" message under the Alerts tab, never a fake empty list', async () => {
-    const user = userEvent.setup();
-    render(<DiscoverTokenList {...defaultProps} />);
-
-    await user.click(screen.getByRole('button', { name: 'Alerts' }));
-
-    expect(screen.getByText("Alerts aren't built yet")).toBeInTheDocument();
-  });
-
-  it("marks the real currently selected token's row as selected, using the composite chain+address key", () => {
-    const market = fakeMarket({
-      chainIdentifier: 'eip155:8453',
-      tokenAddress: '0xaaa',
-      symbol: 'AAA',
-    });
-    render(
-      <DiscoverTokenList {...defaultProps} ranked={[market]} selectedKey="eip155:8453:0xaaa" />,
-    );
-
-    expect(screen.getByText(/AAA \(selected\)/)).toBeInTheDocument();
-  });
-
-  it('passes the real selectionDisabled flag through to every row', () => {
+  it('marks discovered rows "new" in Trending, and hand-picked ones not', () => {
     render(
       <DiscoverTokenList
         {...defaultProps}
-        ranked={[fakeMarket({ symbol: 'AAA' })]}
-        selectionDisabled
+        feeds={feeds({ trending: { markets: [fakeMarket({ symbol: 'VET' }), fakeMarket({ symbol: 'NEWB', tokenAddress: '0xbbbb', listing: 'new' })], atIso } })}
       />,
     );
 
-    expect(screen.getByText(/AAA.*\(disabled\)/)).toBeInTheDocument();
+    expect(screen.getByText(/NEWB.*\(new\)/)).toBeInTheDocument();
+    expect(screen.getByText(/VET/)).not.toHaveTextContent('(new)');
+  });
+
+  it('shows bonding-curve coins in Trenches and Bonding as view-only rows with their progress', async () => {
+    render(
+      <DiscoverTokenList
+        {...defaultProps}
+        feeds={feeds({ trenches: { tokens: [fakeCurve({ symbol: 'FRESH' })], atIso }, bonding: { tokens: [fakeCurve({ symbol: 'CLOSE', mintAddress: 'MintBBBB', graduationProgressPct: 91 })], atIso } })}
+      />,
+    );
+
+    await openTab('Trenches');
+    expect(screen.getByText('$FRESH')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /FRESH/ })).not.toBeInTheDocument();
+
+    await openTab('Bonding');
+    expect(screen.getByText('$CLOSE')).toBeInTheDocument();
+    expect(screen.getByLabelText('91% of the way to graduating')).toBeInTheDocument();
+  });
+
+  it('lists new Base/BNB pools and Pump.fun graduations under Graduated, graduations linking to their Solana trade page', async () => {
+    render(
+      <DiscoverTokenList
+        {...defaultProps}
+        feeds={feeds({
+          graduated: {
+            markets: [fakeMarket({ symbol: 'POOL', listing: 'new' })],
+            pumpfun: [fakeCurve({ symbol: 'GRAD', mintAddress: 'MintGRAD', complete: true, graduatedAt: new Date().toISOString() })],
+            atIso,
+          },
+        })}
+      />,
+    );
+
+    await openTab('Graduated');
+    expect(screen.getByText('New pools · Base & BNB')).toBeInTheDocument();
+    expect(screen.getByText(/POOL.*\(new\)/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /GRAD/ })).toHaveAttribute('href', '/solana?mint=MintGRAD');
+  });
+
+  it('opens the market a Crypto row trades as — selecting it in the terminal when it is listed', async () => {
+    const onSelect = vi.fn();
+    const weth = fakeMarket({ symbol: 'WETH', tokenAddress: '0x4200000000000000000000000000000000000006' });
+    const eth: CryptoPrice = { symbol: 'ETH', priceUsd: 2700, change24hPct: -1.2, updatedAtIso: atIso };
+    const sol: CryptoPrice = { symbol: 'SOL', priceUsd: 120, change24hPct: 0.4, updatedAtIso: atIso };
+    render(<DiscoverTokenList {...defaultProps} onSelect={onSelect} feeds={feeds({ trending: { markets: [weth], atIso }, crypto: { prices: [eth, sol], atIso } })} />);
+
+    await openTab('Crypto');
+    await userEvent.click(screen.getByRole('button', { name: /^ETH/ }));
+    expect(onSelect).toHaveBeenCalledWith(weth);
+
+    await userEvent.click(screen.getByRole('button', { name: /^SOL/ }));
+    expect(push).toHaveBeenCalledWith('/solana');
+  });
+
+  it('shows an honest empty state per tab, never a blank panel', async () => {
+    render(<DiscoverTokenList {...defaultProps} />);
+
+    expect(screen.getByText('Nothing trending yet.')).toBeInTheDocument();
+    await openTab('Crypto');
+    expect(screen.getByText('Connecting to live prices…')).toBeInTheDocument();
   });
 
   it('keeps a Solana row clickable, opening the Solana trade page instead of selecting it into the EVM terminal', async () => {
@@ -178,9 +172,7 @@ describe('DiscoverTokenList', () => {
       <DiscoverTokenList
         {...defaultProps}
         onSelect={onSelect}
-        ranked={[
-          fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' }),
-        ]}
+        feeds={feeds({ trending: { markets: [fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' })], atIso } })}
       />,
     );
 
@@ -191,17 +183,20 @@ describe('DiscoverTokenList', () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it('does not disable a real EVM row just because a Solana row is also present', () => {
-    render(
-      <DiscoverTokenList
-        {...defaultProps}
-        ranked={[
-          fakeMarket({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: 'DezXAZ...' }),
-          fakeMarket({ symbol: 'AAA' }),
-        ]}
-      />,
-    );
+  it('marks the currently selected token by its chain+address key, and disables rows mid-trade', () => {
+    render(<DiscoverTokenList {...defaultProps} selectionDisabled selectedKey="eip155:8453:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" feeds={feeds({ trending: { markets: [fakeMarket({ symbol: 'AAA' })], atIso } })} />);
 
-    expect(screen.getByText('AAA')).toBeInTheDocument();
+    expect(screen.getByText(/AAA.*\(selected\).*\(disabled\)/)).toBeInTheDocument();
+  });
+
+  it('renders the Leaderboard and Feed sidebars and an honest "not built" Alerts tab', async () => {
+    render(<DiscoverTokenList {...defaultProps} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Leaderboard' }));
+    expect(screen.getByText('LeaderboardSidebar')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Feed' }));
+    expect(screen.getByText('TradersSidebar')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Alerts' }));
+    expect(screen.getByText("Alerts aren't built yet")).toBeInTheDocument();
   });
 });

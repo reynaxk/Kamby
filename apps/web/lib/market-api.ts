@@ -1,4 +1,4 @@
-import type { Candle, DiscoverSort, MarketSummary, Timeframe } from '@kamby/domain';
+import type { Candle, DiscoverSort, MarketFeedSnapshot, MarketSummary, PumpFunTokenSummary, Timeframe } from '@kamby/domain';
 import { env } from './env';
 
 /**
@@ -41,6 +41,23 @@ export async function fetchDiscoverMarkets(params: DiscoverParams = {}): Promise
   const suffix = query.toString() ? `?${query.toString()}` : '';
   const result = await apiGet<MarketSummary[]>(`/market/discover${suffix}`, 20);
   return result ?? [];
+}
+
+/** A Pump.fun coin Kamby has seen, or null. Errors degrade to null — callers only use this to
+ *  decide whether a graduated coin may be offered for trade, and "not confirmed" is the safe
+ *  answer. */
+export async function fetchPumpFunToken(mint: string): Promise<PumpFunTokenSummary | null> {
+  try {
+    return await apiGet<PumpFunTokenSummary>(`/tokens/pumpfun/${encodeURIComponent(mint)}`, 30);
+  } catch {
+    return null;
+  }
+}
+
+/** All five terminal tabs for the server-rendered first paint; the browser then keeps them
+ *  live over the stream (see lib/market-feeds.ts). */
+export async function fetchMarketFeeds(): Promise<MarketFeedSnapshot | null> {
+  return apiGet<MarketFeedSnapshot>('/market/feeds', 10);
 }
 
 /** Returns null only when the token genuinely isn't tracked — callers should render a

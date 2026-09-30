@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Candle, MarketSummary, TokenTraderConnection } from '@kamby/domain';
+import { emptyMarketFeeds, type Candle, type MarketFeedSnapshot, type MarketSummary, type TokenTraderConnection } from '@kamby/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as TradePanelCardModule from '@/components/terminal/TradePanelCard';
 import type * as WagmiModule from 'wagmi';
@@ -14,6 +14,7 @@ const { fetchTokenHistoryMock, fetchLatestActivityMock, fetchTokenTradersMock } 
 
 const routerPush = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: routerPush }) }));
+vi.mock('@/lib/market-feeds', () => ({ useMarketFeeds: (initial: MarketFeedSnapshot) => ({ feeds: initial, status: 'live' }) }));
 vi.mock('@/lib/market-client', () => ({ fetchTokenHistory: fetchTokenHistoryMock }));
 vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivityMock, checkFollowStatus: vi.fn().mockResolvedValue(false) }));
 // useChartOverlayFilter calls wagmi's useAccount directly (not through a mocked child
@@ -111,11 +112,13 @@ const marketSolana = marketSummary({
   feeTier: null,
 });
 
+/** The five feed tabs with `markets` as Trending — what app/page.tsx server-renders. */
+function feedsWith(markets: MarketSummary[]): MarketFeedSnapshot {
+  return { ...emptyMarketFeeds(), trending: { markets: markets.map((m) => ({ ...m, listing: 'vetted' as const })), atIso: new Date(0).toISOString() } };
+}
+
 const defaultProps = {
-  ranked: [marketA, marketB],
-  trending: [],
-  movers: [],
-  byVolume: [],
+  feeds: feedsWith([marketA, marketB]),
   initialMarket: marketA,
   initialTimeframe: '1D' as const,
   initialCandles: [{ bucketStart: '2026-01-01T00:00:00.000Z', open: 1, high: 2, low: 0.5, close: 1.5 }] as Candle[],
@@ -172,7 +175,7 @@ describe('DiscoverTerminal', () => {
     fetchLatestActivityMock.mockResolvedValue({ items: [], nextCursor: null });
     fetchTokenTradersMock.mockResolvedValue(emptyTraders);
     const marketC = marketSummary({ tokenAddress: '0xcccc000000000000000000000000000000000c', symbol: 'CCC' });
-    render(<DiscoverTerminal {...defaultProps} ranked={[marketA, marketB, marketC]} />);
+    render(<DiscoverTerminal {...defaultProps} feeds={feedsWith([marketA, marketB, marketC])} />);
     await screen.findByRole('button', { name: /AAA/ });
 
     // First click (slow, never resolves during this test) then a second, faster click.
@@ -203,7 +206,7 @@ describe('DiscoverTerminal', () => {
   // via a real click either — confirming that here too, since `disabled` is the only other
   // thing standing between a Solana row and this terminal's EVM-only fetch effects.
   it('never selects a Solana row into the EVM terminal — clicking it opens the Solana trade page', async () => {
-    render(<DiscoverTerminal {...defaultProps} ranked={[marketSolana, marketA]} />);
+    render(<DiscoverTerminal {...defaultProps} feeds={feedsWith([marketSolana, marketA])} />);
 
     const solanaButton = await screen.findByRole('button', { name: /Bonk/ });
     await userEvent.click(solanaButton);

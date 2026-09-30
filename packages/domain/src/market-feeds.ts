@@ -61,6 +61,21 @@ export interface MarketFeedEvents {
   heartbeat: { atIso: string };
 }
 
+/** Every tab's full state — GET /v1/market/feeds, and what the stream keeps current. */
+export type MarketFeedSnapshot = Omit<MarketFeedEvents, 'pumpfun' | 'heartbeat'>;
+
+/** Every tab empty — the first paint when the snapshot fetch failed; the stream fills it in. */
+export function emptyMarketFeeds(): MarketFeedSnapshot {
+  const atIso = new Date(0).toISOString();
+  return {
+    trending: { markets: [], atIso },
+    graduated: { markets: [], pumpfun: [], atIso },
+    trenches: { tokens: [], atIso },
+    bonding: { tokens: [], atIso },
+    crypto: { prices: [], atIso },
+  };
+}
+
 /** Minimum liquidity for a `new` Trending/Graduated row — same floor as Discover's ranking
  *  (DISCOVERY_RANKING.minLiquidityUsd). */
 export const NEW_PAIR_MIN_LIQUIDITY_USD = 10_000;
