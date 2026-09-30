@@ -47,6 +47,12 @@ const RPC_CALL_DELAY_MS = 350;
  *  above that, not a value tuned to any specific seed list. */
 const MAX_RESOLUTION_PASSES = 5;
 
+/** Blocks market data stays behind the chain head — market data reads go through a list of
+ *  free public endpoints (see PUBLIC_EVM_RPC_URLS), and this is what keeps a node that's a
+ *  few blocks behind from silently losing swaps; see UniswapV3PoolReader#getLatestBlockNumber.
+ *  ~20s on Base, ~8s on BNB Chain. */
+export const MARKET_HEAD_LAG_BLOCKS = 10;
+
 /** How often a dormant market (see `isDormant`) is still refreshed — every Nth tick. */
 export const DORMANT_REFRESH_EVERY_N_TICKS = 10;
 
@@ -82,13 +88,13 @@ export class MarketIngestionService {
 
   constructor(
     private readonly config: MarketIngestionConfig,
-    rpcUrl: string,
+    rpcUrl: string | readonly string[],
     private readonly logger: Logger,
     private readonly redis: Redis,
     whaleTradeUsdThreshold: number,
     rpcUrlFallback: string | null = null,
   ) {
-    this.poolReader = new UniswapV3PoolReader({ rpcUrl, rpcUrlFallback });
+    this.poolReader = new UniswapV3PoolReader({ rpcUrl, rpcUrlFallback, headLagBlocks: MARKET_HEAD_LAG_BLOCKS });
     this.tokenReader = new EvmChainDataProvider({
       chain: {
         identifier: config.chainIdentifier,

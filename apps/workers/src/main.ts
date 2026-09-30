@@ -1,5 +1,5 @@
 import { parseEnv, SEED_MARKETS_BY_CHAIN_IDENTIFIER } from '@kamby/domain';
-import { EvmChainDataProvider } from '@kamby/chain-adapters';
+import { EvmChainDataProvider, PUBLIC_EVM_RPC_URLS } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import { Connection } from '@solana/web3.js';
 import { Redis } from 'ioredis';
@@ -108,6 +108,19 @@ async function main(): Promise<void> {
     );
   }
 
+  // Market data (pool state, swap logs, pool discovery) reads free public RPCs, never the
+  // paid CHAIN_RPC_URL — see MARKET_DATA_RPC_URLS's own doc comment in config/env.ts.
+  const evmChainId = Number(env.CHAIN_IDENTIFIER.split(':')[1]);
+  const marketDataRpcUrls = env.MARKET_DATA_RPC_URLS ?? PUBLIC_EVM_RPC_URLS[evmChainId];
+  if (!marketDataRpcUrls || marketDataRpcUrls.length === 0) {
+    throw new Error(`No market-data RPC for ${env.CHAIN_IDENTIFIER}: set MARKET_DATA_RPC_URLS or add the chain to PUBLIC_EVM_RPC_URLS.`);
+  }
+  // Only the count and source are logged — an operator-supplied URL may embed an API key.
+  logger.info(
+    { endpoints: marketDataRpcUrls.length, source: env.MARKET_DATA_RPC_URLS ? 'MARKET_DATA_RPC_URLS' : 'PUBLIC_EVM_RPC_URLS' },
+    'Market data RPC configured (paid CHAIN_RPC_URL reserved for trades and balances)',
+  );
+
   let marketTicker: NodeJS.Timeout | undefined;
   {
     const ingestion = new MarketIngestionService(
@@ -119,11 +132,11 @@ async function main(): Promise<void> {
         seedMarkets: seedConfig.seedMarkets,
         quoteUsdcAddress: seedConfig.quoteUsdcAddress,
       },
-      env.CHAIN_RPC_URL,
+      marketDataRpcUrls,
       logger,
       redis,
       env.WHALE_TRADE_USD_THRESHOLD,
-      env.CHAIN_RPC_URL_FALLBACK ?? null,
+      null,
     );
 
     let tickRunning = false;
@@ -180,10 +193,10 @@ async function main(): Promise<void> {
         dex: env.POOL_DISCOVERY_DEX!,
         liquidityFloorUsd: env.POOL_DISCOVERY_LIQUIDITY_FLOOR_USD,
       },
-      env.CHAIN_RPC_URL,
+      marketDataRpcUrls,
       logger,
       redis,
-      env.CHAIN_RPC_URL_FALLBACK ?? null,
+      null,
     );
 
     let discoveryRunning = false;

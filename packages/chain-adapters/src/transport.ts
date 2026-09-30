@@ -23,8 +23,11 @@ import { fallback, http, type Transport } from 'viem';
  * can't occur here in the sense viem's default guards against; always trying the fallback is
  * correct for this package's actual usage, not just a workaround for one provider's quirk.
  */
-export function createEvmTransport(rpcUrl: string, rpcUrlFallback?: string | null): Transport {
-  return rpcUrlFallback ? fallback([http(rpcUrl), http(rpcUrlFallback)], { shouldThrow: alwaysTryFallback }) : http(rpcUrl);
+export function createEvmTransport(rpcUrl: string | readonly string[], rpcUrlFallback?: string | null): Transport {
+  // An ordered list (see PUBLIC_EVM_RPC_URLS) is the same fallback chain, just longer.
+  const urls = [...(typeof rpcUrl === 'string' ? [rpcUrl] : rpcUrl), ...(rpcUrlFallback ? [rpcUrlFallback] : [])];
+  if (urls.length === 0) throw new Error('createEvmTransport needs at least one RPC URL');
+  return urls.length === 1 ? http(urls[0]) : fallback(urls.map((url) => http(url)), { shouldThrow: alwaysTryFallback });
 }
 
 /** Named and exported purely so the exact production incident (QuickNode's -32003 "daily

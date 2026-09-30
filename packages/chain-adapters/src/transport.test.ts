@@ -1,5 +1,6 @@
 import { createClient, custom, fallback } from 'viem';
 import { describe, expect, it } from 'vitest';
+import { PUBLIC_EVM_RPC_URLS } from './public-rpcs';
 import { alwaysTryFallback, createEvmTransport } from './transport';
 
 // viem's transport factories are functions that, when invoked with a minimal client
@@ -21,6 +22,24 @@ describe('createEvmTransport', () => {
 
   it('builds a fallback transport when a second URL is given', () => {
     expect(transportType(createEvmTransport('https://primary.example.com', 'https://fallback.example.com'))).toBe('fallback');
+  });
+  it('builds a fallback transport from an ordered URL list, and plain http from a one-item list', () => {
+    expect(transportType(createEvmTransport(['https://a.example.com', 'https://b.example.com']))).toBe('fallback');
+    expect(transportType(createEvmTransport(['https://a.example.com']))).toBe('http');
+  });
+
+  it('refuses an empty URL list rather than building a transport that can never connect', () => {
+    expect(() => createEvmTransport([])).toThrow();
+  });
+});
+
+describe('PUBLIC_EVM_RPC_URLS', () => {
+  it('has at least two https endpoints for every chain Kamby indexes, so one outage never stops ingestion', () => {
+    for (const chainId of [8453, 56]) {
+      const urls = PUBLIC_EVM_RPC_URLS[chainId]!;
+      expect(urls.length).toBeGreaterThanOrEqual(2);
+      for (const url of urls) expect(url).toMatch(/^https:\/\//);
+    }
   });
 });
 

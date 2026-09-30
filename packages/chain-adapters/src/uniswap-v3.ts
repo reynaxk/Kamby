@@ -4,9 +4,12 @@ import { retryRpcCall } from './retry';
 import { createEvmTransport } from './transport';
 
 export interface UniswapV3ReaderConfig {
-  rpcUrl: string;
+  /** One URL, or an ordered fallback list (see PUBLIC_EVM_RPC_URLS). */
+  rpcUrl: string | readonly string[];
   /** Optional second endpoint — see createEvmTransport's own doc comment. */
   rpcUrlFallback?: string | null;
+  /** Blocks to stay behind the reported head — see getLatestBlockNumber. Default 0. */
+  headLagBlocks?: number;
 }
 
 export interface PoolState {
@@ -57,13 +60,23 @@ export interface DecodedSwapEvent {
  */
 export class UniswapV3PoolReader {
   private readonly client: PublicClient;
+  private readonly headLagBlocks: bigint;
 
   constructor(config: UniswapV3ReaderConfig) {
     this.client = createPublicClient({ transport: createEvmTransport(config.rpcUrl, config.rpcUrlFallback) });
+    this.headLagBlocks = BigInt(config.headLagBlocks ?? 0);
   }
 
+  /**
+   * The head block, minus `headLagBlocks`. With a multi-endpoint fallback list, the node
+   * that reports the head and the node that later answers `getSwapEvents` can differ, and a
+   * node a few blocks behind answers `[]` for blocks it hasn't seen yet — indistinguishable
+   * from "no swaps", so a cursor advanced to the reported head would skip real swaps for
+   * good. Staying a few blocks back makes every node that's merely slightly behind safe.
+   */
   async getLatestBlockNumber(): Promise<bigint> {
-    return this.client.getBlockNumber();
+    const head = await this.client.getBlockNumber();
+    return head > this.headLagBlocks ? head - this.headLagBlocks : 0n;
   }
 
   async getBlockTimestamp(blockNumber: bigint): Promise<Date | null> {

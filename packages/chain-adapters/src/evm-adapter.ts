@@ -11,7 +11,7 @@ export interface EvmChainConfig {
    * the caller resolves the URL from config/secrets and hands it in, so a leaked adapter
    * instance can't be traced back to how the URL was sourced.
    */
-  rpcUrl: string;
+  rpcUrl: string | readonly string[];
   /** Optional second endpoint — see createEvmTransport's own doc comment. `undefined`/`null`
    *  means "no fallback," same as leaving it unset. */
   rpcUrlFallback?: string | null;

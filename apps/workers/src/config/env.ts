@@ -24,6 +24,16 @@ export const EnvSchema = z.object({
    *  — running without one is valid, just unprotected against exactly that class of
    *  outage. */
   CHAIN_RPC_URL_FALLBACK: z.string().url('CHAIN_RPC_URL_FALLBACK must be a valid URL').optional(),
+  /** Comma-separated RPC URLs for market data only (pool state, swap logs, pool discovery),
+   *  tried in order. Unset = the free public list in PUBLIC_EVM_RPC_URLS
+   *  (packages/chain-adapters) for this chain. CHAIN_RPC_URL (paid) stays reserved for
+   *  trade confirmation and balance checks — market polling on it burned ~6M QuickNode
+   *  credits in 5 days once (2026-09-15). */
+  MARKET_DATA_RPC_URLS: z
+    .string()
+    .optional()
+    .transform((value) => (value ? value.split(',').map((url) => url.trim()).filter(Boolean) : undefined))
+    .pipe(z.array(z.string().url('every MARKET_DATA_RPC_URLS entry must be a valid URL')).min(1).optional()),
 
   HEARTBEAT_INTERVAL_SECONDS: z.coerce.number().int().positive().default(60),
   /** How often the market ingestion tick (price/liquidity refresh + swap backfill) runs. */

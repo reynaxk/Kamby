@@ -3,6 +3,7 @@ import { prisma } from '@kamby/db';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { createTrackedMarket } from './create-tracked-market';
+import { MARKET_HEAD_LAG_BLOCKS } from './ingestion';
 
 /** Same conservative bound MarketIngestionService already proved safe for eth_getLogs on
  *  this chain's public RPC — see ingestion.ts's own MAX_BLOCKS_PER_TICK doc comment for the
@@ -101,12 +102,12 @@ export class PoolDiscoveryService {
 
   constructor(
     private readonly config: PoolDiscoveryConfig,
-    rpcUrl: string,
+    rpcUrl: string | readonly string[],
     private readonly logger: Logger,
     private readonly redis: Redis,
     rpcUrlFallback: string | null = null,
   ) {
-    this.poolReader = new UniswapV3PoolReader({ rpcUrl, rpcUrlFallback });
+    this.poolReader = new UniswapV3PoolReader({ rpcUrl, rpcUrlFallback, headLagBlocks: MARKET_HEAD_LAG_BLOCKS });
     this.tokenReader = new EvmChainDataProvider({
       chain: { identifier: config.chainIdentifier, name: config.chainName, nativeSymbol: config.chainNativeSymbol },
       rpcUrl,
