@@ -176,6 +176,33 @@ describe('MarketService — chain scoping (2026-09-15 chainId/Chain.id mismatch 
       await expect(service.getTokenTraders(TOKEN_ADDRESS, 999_999, 10)).rejects.toThrow(NotFoundException);
       expect(mockedPrisma.tokenMarket.findFirst).not.toHaveBeenCalled();
     });
+
+    it('reads recent traders from a bounded scan of the newest swaps and counts buyers/sellers in one SQL pass', async () => {
+      (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(fakeMarketRow());
+      const t = (min: number) => new Date(Date.UTC(2026, 8, 30, 12, 60 - min));
+      (mockedPrisma.swap.findMany as jest.Mock)
+        // 1st call: the newest swaps — 0xa traded twice; the repeat must not appear twice.
+        .mockResolvedValueOnce([
+          { traderAddress: '0xa', blockTimestamp: t(1) },
+          { traderAddress: '0xb', blockTimestamp: t(2) },
+          { traderAddress: '0xa', blockTimestamp: t(3) },
+          { traderAddress: '0xc', blockTimestamp: t(4) },
+        ])
+        // 2nd call: large trades.
+        .mockResolvedValueOnce([]);
+      (mockedPrisma.$queryRaw as jest.Mock).mockResolvedValueOnce([{ buys: 648n, sells: 856n, buyers: 54n, sellers: 32n }]);
+      (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([{ address: '0xb', user: { username: 'bee', avatarUrl: null } }]);
+
+      const result = await service.getTokenTraders(TOKEN_ADDRESS, 8453, 2);
+
+      expect(result.recentTraders.map((r) => [r.address, r.username])).toEqual([['0xa', null], ['0xb', 'bee']]);
+      expect(result).toMatchObject({ buyCount24h: 648, sellCount24h: 856, buyerCount24h: 54, sellerCount24h: 32 });
+      const [recentQuery, largeQuery] = (mockedPrisma.swap.findMany as jest.Mock).mock.calls.map(([arg]) => arg);
+      expect(recentQuery).toMatchObject({ take: 500, orderBy: { blockTimestamp: 'desc' } });
+      expect(recentQuery).not.toHaveProperty('distinct'); // Prisma dedupes `distinct` in memory after loading every row
+      expect(largeQuery.where.blockTimestamp.gte).toBeInstanceOf(Date); // never an unbounded history scan
+      expect(mockedPrisma.swap.count).not.toHaveBeenCalled();
+    });
   });
 
   describe('getChains', () => {

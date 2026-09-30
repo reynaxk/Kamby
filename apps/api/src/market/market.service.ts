@@ -38,6 +38,10 @@ const ACTIVITY_INCLUDE = {
 /** How many recent trades a token page's "active traders" section considers — kept small
  *  and time-boxed (24h) so this is always a cheap, bounded query, never a full-history scan. */
 const TOKEN_TRADER_LOOKBACK_HOURS = 24;
+/** How many of a market's newest swaps are scanned for its most recent distinct traders. */
+const RECENT_TRADER_SWAP_SCAN = 500;
+/** "Recent large trades" look back this far — bounded so a market with none never scans its whole history. */
+const LARGE_TRADE_LOOKBACK_DAYS = 7;
 
 /** bucket width and lookback window per chart timeframe — see docs/MARKET_DATA.md#timeframes.
  *  `1m`/`5m` read from raw `swaps` (see `FINE_TIMEFRAMES` below), so their bucket width is
@@ -291,15 +295,19 @@ export class MarketService {
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
 
     const since = new Date(Date.now() - TOKEN_TRADER_LOOKBACK_HOURS * 60 * 60_000);
+    const largeTradesSince = new Date(Date.now() - LARGE_TRADE_LOOKBACK_DAYS * 24 * 60 * 60_000);
 
-    const [recentRows, activeGrouped, largeTradeRows, watcherCount, buyCount24h, sellCount24h, buyerGrouped, sellerGrouped] = await Promise.all([
-      // distinct + orderBy gives the N most-recently-active *distinct* traders in one query.
+    // Every query here is bounded by the (token_market_id, block_timestamp) index — found
+    // 2026-09-30 taking 10-19s cold for WETH/cbBTC/XDP under load: Prisma's `distinct` option
+    // dedupes in JavaScript after loading *every* matching row (a market's whole swap history),
+    // and the buyer/seller counts fetched every distinct trader just to count them.
+    const [recentSwaps, activeGrouped, largeTradeRows, watcherCount, [counts]] = await Promise.all([
+      // The newest swaps, deduped here — the most recent distinct traders are always in them.
       prisma.swap.findMany({
         where: { tokenMarketId: market.id, traderAddress: { not: null } },
         orderBy: { blockTimestamp: 'desc' },
-        distinct: ['traderAddress'],
-        take: limit,
-        include: { trader: { include: { user: true } } },
+        take: RECENT_TRADER_SWAP_SCAN,
+        select: { traderAddress: true, blockTimestamp: true },
       }),
       prisma.swap.groupBy({
         by: ['traderAddress'],
@@ -314,53 +322,54 @@ export class MarketService {
         take: limit,
       }),
       prisma.swap.findMany({
-        where: { tokenMarketId: market.id, volumeUsd: { gte: LARGE_TRADE_USD_THRESHOLD } },
+        where: { tokenMarketId: market.id, volumeUsd: { gte: LARGE_TRADE_USD_THRESHOLD }, blockTimestamp: { gte: largeTradesSince } },
         orderBy: { blockTimestamp: 'desc' },
         take: limit,
         include: ACTIVITY_INCLUDE,
       }),
       this.watchlist.getWatcherCount(market.id),
-      // Buy/sell counts + distinct buyer/seller counts, same 24h window and the identical
-      // count/groupBy pattern TraderService.getProfile already proved out for a trader's
-      // own stats — just filtered by tokenMarketId instead of traderAddress.
-      prisma.swap.count({ where: { tokenMarketId: market.id, side: 'buy', blockTimestamp: { gte: since } } }),
-      prisma.swap.count({ where: { tokenMarketId: market.id, side: 'sell', blockTimestamp: { gte: since } } }),
-      prisma.swap.groupBy({
-        by: ['traderAddress'],
-        where: { tokenMarketId: market.id, side: 'buy', traderAddress: { not: null }, blockTimestamp: { gte: since } },
-      }),
-      prisma.swap.groupBy({
-        by: ['traderAddress'],
-        where: { tokenMarketId: market.id, side: 'sell', traderAddress: { not: null }, blockTimestamp: { gte: since } },
-      }),
+      // Buy/sell counts + distinct buyer/seller counts over the same 24h window, in one pass.
+      prisma.$queryRaw<{ buys: bigint; sells: bigint; buyers: bigint; sellers: bigint }[]>`
+        SELECT
+          COUNT(*) FILTER (WHERE side = 'buy') AS buys,
+          COUNT(*) FILTER (WHERE side = 'sell') AS sells,
+          COUNT(DISTINCT trader_address) FILTER (WHERE side = 'buy') AS buyers,
+          COUNT(DISTINCT trader_address) FILTER (WHERE side = 'sell') AS sellers
+        FROM swaps
+        WHERE token_market_id = ${market.id} AND block_timestamp >= ${since}
+      `,
     ]);
 
-    const activeWallets =
-      activeGrouped.length > 0
-        ? await prisma.wallet.findMany({
-            where: { address: { in: activeGrouped.map((g) => g.traderAddress!) } },
-            include: { user: true },
-          })
+    const recentTraders: { address: string; lastTradeAt: Date }[] = [];
+    const seen = new Set<string>();
+    for (const swap of recentSwaps) {
+      if (!swap.traderAddress || seen.has(swap.traderAddress)) continue;
+      seen.add(swap.traderAddress);
+      recentTraders.push({ address: swap.traderAddress, lastTradeAt: swap.blockTimestamp });
+      if (recentTraders.length === limit) break;
+    }
+
+    const profileAddresses = [...new Set([...recentTraders.map((t) => t.address), ...activeGrouped.flatMap((g) => (g.traderAddress ? [g.traderAddress] : []))])];
+    const wallets =
+      profileAddresses.length > 0
+        ? await prisma.wallet.findMany({ where: { address: { in: profileAddresses } }, include: { user: true } })
         : [];
-    const walletByAddress = new Map(activeWallets.map((w) => [w.address, w]));
+    const walletByAddress = new Map(wallets.map((w) => [w.address, w]));
 
     const largeTradeLikeCounts = await batchLikeCounts(largeTradeRows.map((r) => r.id));
 
     return {
       uniqueTraders24h: market.uniqueTraders24h,
-      recentTraders: recentRows.flatMap((row) =>
-        row.traderAddress
-          ? [
-              {
-                address: row.traderAddress,
-                username: row.trader?.user?.username ?? null,
-                avatarUrl: row.trader?.user?.avatarUrl ?? null,
-                lastTradeAt: row.blockTimestamp.toISOString(),
-                tradeCount24h: null,
-              },
-            ]
-          : [],
-      ),
+      recentTraders: recentTraders.map((t) => {
+        const wallet = walletByAddress.get(t.address);
+        return {
+          address: t.address,
+          username: wallet?.user?.username ?? null,
+          avatarUrl: wallet?.user?.avatarUrl ?? null,
+          lastTradeAt: t.lastTradeAt.toISOString(),
+          tradeCount24h: null,
+        };
+      }),
       activeTraders: activeGrouped.flatMap((g) => {
         if (!g.traderAddress || !g._max.blockTimestamp) return [];
         const wallet = walletByAddress.get(g.traderAddress);
@@ -378,10 +387,10 @@ export class MarketService {
         toSocialActivity(row, largeTradeLikeCounts.get(row.id) ?? 0, null),
       ),
       watcherCount,
-      buyCount24h,
-      sellCount24h,
-      buyerCount24h: buyerGrouped.length,
-      sellerCount24h: sellerGrouped.length,
+      buyCount24h: Number(counts?.buys ?? 0),
+      sellCount24h: Number(counts?.sells ?? 0),
+      buyerCount24h: Number(counts?.buyers ?? 0),
+      sellerCount24h: Number(counts?.sellers ?? 0),
     };
   }
 
