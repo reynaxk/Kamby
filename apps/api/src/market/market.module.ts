@@ -21,6 +21,6 @@ import { WatchlistService } from './watchlist.service';
   imports: [IdentityModule],
   controllers: [MarketController],
   providers: [MarketService, WatchlistService],
-  exports: [WatchlistService],
+  exports: [WatchlistService, MarketService],
 })
 export class MarketModule {}

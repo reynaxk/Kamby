@@ -18,6 +18,7 @@ import { DiscoveryModule } from './discovery/discovery.module';
 import { TokensModule } from './tokens/tokens.module';
 import { ReferralsModule } from './referrals/referrals.module';
 import { SolanaModule } from './solana/solana.module';
+import { MarketFeedsModule } from './market-feeds/market-feeds.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { SolanaModule } from './solana/solana.module';
     TokensModule,
     ReferralsModule,
     SolanaModule,
+    MarketFeedsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -8,6 +8,7 @@ import {
   computeDiscoveryScore,
   DISCOVERY_RANKING,
   identifierForChainId,
+  isCuratedMarket,
   LARGE_TRADE_USD_THRESHOLD,
   type Candle,
   type EvmChainConfig,
@@ -131,6 +132,34 @@ export class MarketService {
    * scoring/sorting happens once, after mapping, rather than twice on two different row
    * shapes.
    */
+  /**
+   * Discovered (non-seed-list) EVM markets Kamby started tracking in the last `sinceHours`,
+   * newest first, each with the time it was listed — the Graduated tab's "new pools". Held
+   * to Discover's own bar: honest liquidity at or above the ranking minimum, fresh price, no
+   * lookalikes of a vetted token (see hideLookalikes).
+   */
+  async recentlyListed(sinceHours: number, limit: number): Promise<(MarketSummary & { listedAtIso: string })[]> {
+    return this.cached(`recently-listed:${sinceHours}:${limit}`, DISCOVER_CACHE_TTL_SECONDS, async () => {
+      const since = new Date(Date.now() - sinceHours * 60 * 60_000);
+      const rows = await prisma.tokenMarket.findMany({
+        where: { createdAt: { gte: since }, liquidityUsd: { gte: DISCOVERY_RANKING.minLiquidityUsd } },
+        include: MARKET_INCLUDE,
+        orderBy: { createdAt: 'desc' },
+        take: limit * 3, // headroom for what the filters below remove
+      });
+      const listedAt = new Map(rows.map((row) => [row.id, row.createdAt.toISOString()]));
+      const candidates = rows
+        .filter((row) => !isCuratedMarket(row.chain.identifier, row.token.contractAddress))
+        .map((row) => ({ id: row.id, summary: toMarketSummary(row) }))
+        .filter(({ summary }) => !summary.isStale);
+      const visible = new Set(hideLookalikes(candidates.map((c) => c.summary)));
+      return candidates
+        .filter((c) => visible.has(c.summary))
+        .slice(0, limit)
+        .map((c) => ({ ...c.summary, listedAtIso: listedAt.get(c.id)! }));
+    });
+  }
+
   async discover(query: DiscoverQueryDto): Promise<MarketSummary[]> {
     return this.cached(`discover:${query.sort}:${query.limit}:${query.search ?? ''}`, DISCOVER_CACHE_TTL_SECONDS, () =>
       this.computeDiscover(query),

@@ -2,8 +2,10 @@ import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@ne
 import {
   ACTIVITY_REALTIME_CHANNEL,
   NOTIFICATION_REALTIME_CHANNEL,
+  PUMPFUN_REALTIME_CHANNEL,
   SOLANA_ACTIVITY_REALTIME_CHANNEL,
   type NotificationPing,
+  type PumpFunLiveBatch,
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
@@ -41,6 +43,7 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly activitySubject = new Subject<ActivityPing>();
   private readonly notificationSubject = new Subject<NotificationPing>();
   private readonly solanaActivitySubject = new Subject<SolanaActivityPing>();
+  private readonly pumpFunSubject = new Subject<PumpFunLiveBatch>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -61,13 +64,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.notificationSubject.next(JSON.parse(message) as NotificationPing);
         } else if (channel === SOLANA_ACTIVITY_REALTIME_CHANNEL) {
           this.solanaActivitySubject.next(JSON.parse(message) as SolanaActivityPing);
+        } else if (channel === PUMPFUN_REALTIME_CHANNEL) {
+          this.pumpFunSubject.next(JSON.parse(message) as PumpFunLiveBatch);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -90,5 +95,11 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
 
   get solanaActivityEvents$() {
     return this.solanaActivitySubject.asObservable();
+  }
+
+  /** Pump.fun bonding-curve tokens that changed, published by the workers' PumpPortal
+   *  ingestion every flush — see PumpPortalIngestionService. */
+  get pumpFunEvents$() {
+    return this.pumpFunSubject.asObservable();
   }
 }

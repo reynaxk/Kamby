@@ -405,6 +405,21 @@ describe('MarketService — discover/search', () => {
     });
   });
 
+  describe('recentlyListed', () => {
+    it('returns only discovered markets, newest first, with when each was listed — never a seed-list token', async () => {
+      const seed = fakeDiscoverableRow({ id: 'seed', createdAt: new Date('2026-09-30T02:00:00Z'), token: { contractAddress: '0x63706e401c06ac8513145b7687A14804d17f814b', symbol: 'AAVE', name: 'Aave', decimals: 18, logoUrl: null } });
+      const fresh = fakeDiscoverableRow({ id: 'fresh', createdAt: new Date('2026-09-30T01:00:00Z') });
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([seed, fresh]);
+
+      const result = await service.recentlyListed(72, 10);
+
+      expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { createdAt: { gte: expect.any(Date) }, liquidityUsd: { gte: 10_000 } }, orderBy: { createdAt: 'desc' } }),
+      );
+      expect(result).toEqual([expect.objectContaining({ tokenAddress: TOKEN_ADDRESS, listedAtIso: '2026-09-30T01:00:00.000Z' })]);
+    });
+  });
+
   describe('search', () => {
     it('builds the real case-insensitive OR filter across symbol, name, and contractAddress', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([]);

@@ -9,5 +9,6 @@ import { TokenTrenchesService } from './token-trenches.service';
 @Module({
   controllers: [TokenTrenchesController],
   providers: [TokenTrenchesService],
+  exports: [TokenTrenchesService],
 })
 export class TokensModule {}
