@@ -37,7 +37,7 @@ const {
   const updateMock = vi.fn();
   return {
     usePrivyMock: vi.fn(() => ({ ready: true, authenticated: true, login: loginMock })),
-    useWalletsMock: vi.fn(() => ({ wallets: [{ address: WALLET_ADDRESS }] })),
+    useWalletsMock: vi.fn((): { wallets: { address: string }[]; ready?: boolean } => ({ wallets: [{ address: WALLET_ADDRESS }], ready: true })),
     useSignAndSendTransactionMock: vi.fn(() => ({ signAndSendTransaction })),
     signAndSendTransaction,
     useSignTransactionMock: vi.fn(() => ({ signTransaction })),

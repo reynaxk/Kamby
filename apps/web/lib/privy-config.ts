@@ -22,10 +22,9 @@ import { clientEnv } from './env';
  * `wagmiConfig` object via `wagmi/actions`, which `@privy-io/wagmi`'s `createConfig` is a
  * documented drop-in-compatible replacement for.
  *
- * `loginMethods`/`appearance` also added 2026-09-15: `wallet` is kept in `loginMethods`
- * alongside email/social specifically so a user who prefers an existing extension can still
- * connect one through Privy's own unified modal — nothing is actually removed, only the
- * bespoke wagmi-connector dropdown UI is, in favor of Privy's single entry point.
+ * `loginMethods`/`appearance` also added 2026-09-15. External wallets (`wallet`) were
+ * removed from `loginMethods` on 2026-09-30 at the user's request: sign-in is email or
+ * Google only, and every user trades from the embedded wallet Kamby creates for them.
  * `appearance` matches the Void theme's own real values (see globals.css's `.kamby-void`
  * block) — Privy's modal previously rendered with zero custom styling, even for the
  * already-live Solana flow.
@@ -88,7 +87,7 @@ export const privyAppId = clientEnv.NEXT_PUBLIC_PRIVY_APP_ID ?? null;
 const solanaRpcUrl = clientEnv.NEXT_PUBLIC_SOLANA_RPC_URL;
 
 export const privyConfig = {
-  loginMethods: ['email', 'google', 'wallet'] satisfies PrivyClientConfig['loginMethods'],
+  loginMethods: ['email', 'google'] satisfies PrivyClientConfig['loginMethods'],
   defaultChain: base,
   supportedChains: [base, bsc],
   appearance: {
