@@ -13,6 +13,7 @@ import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { explorerName, explorerTxUrl } from '@/lib/explorer';
 import { getQuote, getTransaction, relaySwap, submitFeeTransaction, submitTransaction } from '@/lib/trading-client';
+import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
 import { GaslessToggle } from './GaslessToggle';
@@ -726,7 +727,10 @@ export function TradePanel({
       ) : (
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —
         // side/amount are still freely settable, just inert until a wallet connects.
-        <ConnectWalletButton expectedChainId={chainId} />
+        <>
+          <ConnectWalletButton expectedChainId={chainId} />
+          <LegalAgreementNote />
+        </>
       )}
     </Panel>
   );

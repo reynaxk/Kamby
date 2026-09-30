@@ -6,6 +6,7 @@ import './globals.css';
 // this is where "fail fast on a bad env var" actually gets wired into the app's boot path.
 import '@/lib/env';
 import { OnboardingPrompt } from '@/components/account/OnboardingPrompt';
+import { SiteFooter } from '@/components/legal/SiteFooter';
 import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
 
@@ -39,7 +40,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {/* pb-8 reserves the TickerBar's own h-8 so its fixed position never overlaps the
               last bit of scrolled content underneath it. */}
-          <div className="pb-8">{children}</div>
+          <div className="pb-8">
+            {children}
+            <SiteFooter />
+          </div>
           <OnboardingPrompt />
           <TickerBar />
         </Providers>

@@ -24,6 +24,7 @@ import { JitoTipControl } from './JitoTipControl';
 import { SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
 import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
+import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
@@ -372,6 +373,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
         <Button type="button" className="w-full" disabled={!ready || authenticated} onClick={() => login()}>
           {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
         </Button>
+        <LegalAgreementNote />
       </Panel>
     );
   }

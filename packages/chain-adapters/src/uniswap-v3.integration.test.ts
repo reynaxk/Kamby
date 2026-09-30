@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UniswapV3PoolReader } from './uniswap-v3';
+import { PUBLIC_EVM_RPC_URLS } from './public-rpcs';
 
 /**
  * Runs against the real Base mainnet public RPC and the real, live WETH/USDC Uniswap V3
@@ -114,10 +115,12 @@ describe('UniswapV3PoolReader (live Base mainnet)', () => {
  * so a different topic0). Before 2026-09-29 the reader filtered on Uniswap's event only and
  * Kamby recorded zero BNB swaps, ever — this test fails on that code. WBNB/USDC is one of the
  * busiest pools on the chain (135 swaps in ~2.5 minutes when checked), so a short recent
- * window reliably has real events. publicnode, not bsc-dataseed: dataseed rejects eth_getLogs.
+ * window reliably has real events. Not bsc-dataseed: dataseed rejects eth_getLogs.
  */
 describe('UniswapV3PoolReader (live BNB Chain, PancakeSwap V3)', () => {
-  const BNB_RPC_URL = 'https://bsc-rpc.publicnode.com';
+  // The same ordered fallback list production market data uses — one rate-limited node
+  // (e.g. while turbo runs every package's tests at once) no longer fails the test.
+  const BNB_RPC_URL = PUBLIC_EVM_RPC_URLS[56]!;
   const WBNB_USDC_POOL = '0xf2688Fb5B81049DFB7703aDa5e770543770612C4';
 
   it("reads real recent PancakeSwap Swap events, not zero", async () => {
