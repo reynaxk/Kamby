@@ -7,7 +7,7 @@ import { CHAIN_REGISTRY, slugForChainId } from '@kamby/domain';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { ProfileMenu } from '@/components/account/ProfileMenu';
-import { createEmbeddedWalletOnce, WALLET_SETUP_SLOW_MS } from '@/lib/embedded-wallet-creation';
+import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS, WALLET_SETUP_SLOW_MS } from '@/lib/embedded-wallet-creation';
 
 /**
  * Phase 3 — see docs/TRADING.md#wallet-connectivity. Exposes exactly what the trading flow
@@ -95,17 +95,24 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
   const [retryTick, setRetryTick] = useState(0);
   const [setupSlow, setSetupSlow] = useState(false);
   const hasAttemptedSwitchRef = useRef(false);
-  // Every mounted instance runs this, so creation goes through the page-wide queue — see
-  // lib/embedded-wallet-creation.ts for the hang that concurrent calls caused.
+  // Backup only: Privy creates the wallet during sign-in. If it still doesn't exist
+  // WALLET_CREATION_FALLBACK_DELAY_MS later (or on a manual retry), create it — through the
+  // page-wide queue, since every mounted instance runs this (see lib/embedded-wallet-creation.ts).
   useEffect(() => {
     if (!ready || !authenticated || !walletsReady || wallets.length > 0) return;
     let cancelled = false;
     setWalletSetupError(null);
-    createEmbeddedWalletOnce('ethereum', () => createWallet()).catch((error: unknown) => {
-      if (!cancelled) setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up wallet');
-    });
+    const timer = setTimeout(
+      () => {
+        createEmbeddedWalletOnce('ethereum', () => createWallet()).catch((error: unknown) => {
+          if (!cancelled) setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up wallet');
+        });
+      },
+      retryTick > 0 ? 0 : WALLET_CREATION_FALLBACK_DELAY_MS,
+    );
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [ready, authenticated, walletsReady, wallets.length, createWallet, retryTick]);
 

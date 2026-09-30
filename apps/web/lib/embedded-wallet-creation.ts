@@ -31,6 +31,14 @@ export function createEmbeddedWalletOnce(kind: EmbeddedWalletKind, create: () =>
   return run.then(() => undefined);
 }
 
+/**
+ * Privy itself creates both wallets during sign-in (dashboard "Automatically create embedded
+ * wallets on login", EVM + Solana, turned on 2026-09-30). Kamby's own creation is only a
+ * backup for when that didn't happen: it waits this long after sign-in first, so it never
+ * races Privy's own creation — the race is what hung sign-in on "Creating your wallet".
+ */
+export const WALLET_CREATION_FALLBACK_DELAY_MS = 10_000;
+
 /** How long "Setting up your wallet…" may show before a "Try again" is offered. */
 export const WALLET_SETUP_SLOW_MS = 30_000;
 

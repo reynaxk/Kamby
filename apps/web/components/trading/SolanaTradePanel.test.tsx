@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SolanaTradeQuoteDto, SolanaTradeTransactionDto } from '@kamby/domain';
@@ -6,7 +6,7 @@ import type { SolanaWalletVerificationStatus } from '@/hooks/useSolanaWalletVeri
 import type * as SolAmountInputModule from './SolAmountInput';
 import { SolanaTradePanel } from './SolanaTradePanel';
 import type * as UsdPresetAmountInputModule from './UsdPresetAmountInput';
-import { resetEmbeddedWalletCreation } from '@/lib/embedded-wallet-creation';
+import { resetEmbeddedWalletCreation, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 
 const WALLET_ADDRESS = '8nTncbaJ8gc8ooDWRFt9TKjog7743iHC43iEcesAbAee';
 
@@ -194,13 +194,18 @@ describe('SolanaTradePanel', () => {
     expect(screen.queryByLabelText('Amount')).not.toBeInTheDocument();
   });
 
-  it('creates a Solana wallet itself once signed in without one — Privy app-side auto-creation is off', async () => {
+  it('backs up Privy: creates the Solana wallet itself only if none exists 10s after sign-in', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: loginMock });
     useWalletsMock.mockReturnValue({ wallets: [], ready: true });
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
+    act(() => vi.advanceTimersByTime(WALLET_CREATION_FALLBACK_DELAY_MS - 1));
+    expect(createSolanaWalletMock).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
     await vi.waitFor(() => expect(createSolanaWalletMock).toHaveBeenCalledTimes(1));
     expect(screen.getByRole('button', { name: 'Setting up your wallet…' })).toBeDisabled();
+    vi.useRealTimers();
   });
 
   it('never creates a Solana wallet before sign-in, while wallets are loading, or when one exists', () => {
@@ -219,12 +224,17 @@ describe('SolanaTradePanel', () => {
   });
 
   it('shows a retry, not an endless spinner, when creating the Solana wallet fails', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     createSolanaWalletMock.mockRejectedValueOnce(new Error('Network error'));
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: loginMock });
     useWalletsMock.mockReturnValue({ wallets: [], ready: true });
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+    act(() => vi.advanceTimersByTime(WALLET_CREATION_FALLBACK_DELAY_MS));
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Network error — tap to retry' }));
+    const retry = await screen.findByRole('button', { name: 'Network error — tap to retry' });
+    vi.useRealTimers();
+    // A manual retry goes immediately — no second 10s wait.
+    await userEvent.click(retry);
     await vi.waitFor(() => expect(createSolanaWalletMock).toHaveBeenCalledTimes(2));
   });
 

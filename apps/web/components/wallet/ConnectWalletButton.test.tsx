@@ -1,8 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConnectWalletButton } from './ConnectWalletButton';
-import { resetEmbeddedWalletCreation } from '@/lib/embedded-wallet-creation';
+import { resetEmbeddedWalletCreation, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 
 const { usePrivyMock, useWalletsMock, useCreateWalletMock, createWalletMock, useAccount, useSwitchChain } = vi.hoisted(() => ({
   usePrivyMock: vi.fn(),
@@ -75,7 +75,8 @@ describe('ConnectWalletButton', () => {
     expect(screen.getByRole('button', { name: 'Setting up your wallet…' })).toBeDisabled();
   });
 
-  it('explicitly creates an Ethereum embedded wallet when authenticated with zero wallets — the create_on_login "off" workaround', async () => {
+  it('backs up Privy: creates the Ethereum wallet itself only if none exists 10s after sign-in, never racing Privy', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout: vi.fn() });
     useAccount.mockReturnValue({ address: undefined, isConnected: false, chainId: undefined });
     useWalletsMock.mockReturnValue({ wallets: [], ready: true });
@@ -85,7 +86,11 @@ describe('ConnectWalletButton', () => {
 
     render(<ConnectWalletButton />);
 
+    act(() => vi.advanceTimersByTime(WALLET_CREATION_FALLBACK_DELAY_MS - 1));
+    expect(createWalletMock).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
     await waitFor(() => expect(createWalletMock).toHaveBeenCalledTimes(1));
+    vi.useRealTimers();
   });
 
   it('never calls createWallet while wallets are still loading or a wallet already exists', () => {
@@ -102,6 +107,7 @@ describe('ConnectWalletButton', () => {
   });
 
   it('shows a real error with a retry affordance when createWallet fails, rather than hanging forever', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout: vi.fn() });
     useAccount.mockReturnValue({ address: undefined, isConnected: false, chainId: undefined });
     useWalletsMock.mockReturnValue({ wallets: [], ready: true });
@@ -110,8 +116,10 @@ describe('ConnectWalletButton', () => {
     useSwitchChain.mockReturnValue({ switchChain: vi.fn(), isPending: false });
 
     render(<ConnectWalletButton />);
+    act(() => vi.advanceTimersByTime(WALLET_CREATION_FALLBACK_DELAY_MS));
 
     expect(await screen.findByText(/Wallet creation failed/)).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it('shows a "Wrong network" prompt rather than the address when connected off Base', () => {

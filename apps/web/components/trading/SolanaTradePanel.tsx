@@ -28,7 +28,7 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
-import { createEmbeddedWalletOnce } from '@/lib/embedded-wallet-creation';
+import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
 
 export interface SolanaTradePanelProps {
@@ -110,6 +110,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const { createWallet } = useCreateWallet();
   const [walletSetupError, setWalletSetupError] = useState<string | null>(null);
   const creatingWalletRef = useRef(false);
+  const hasRetriedRef = useRef(false);
 
   // Solana counterpart to ConnectWalletButton's EVM useCreateWallet fallback: the Privy app's
   // dashboard-side embedded_wallet_config.solana.create_on_login is "off" (confirmed via
@@ -119,12 +120,20 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   // visible retry if it fails. A no-op as soon as Privy (or this) has made the wallet.
   useEffect(() => {
     if (!ready || !authenticated || !walletsReady || wallets.length > 0 || creatingWalletRef.current || walletSetupError) return;
-    creatingWalletRef.current = true;
-    createEmbeddedWalletOnce('solana', () => createWallet())
-      .catch((error: unknown) => setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up your Solana wallet'))
-      .finally(() => {
-        creatingWalletRef.current = false;
-      });
+    // Backup only — Privy creates the Solana wallet during sign-in; see
+    // WALLET_CREATION_FALLBACK_DELAY_MS. A retry (walletSetupError cleared) goes immediately.
+    const timer = setTimeout(
+      () => {
+        creatingWalletRef.current = true;
+        createEmbeddedWalletOnce('solana', () => createWallet())
+          .catch((error: unknown) => setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up your Solana wallet'))
+          .finally(() => {
+            creatingWalletRef.current = false;
+          });
+      },
+      hasRetriedRef.current ? 0 : WALLET_CREATION_FALLBACK_DELAY_MS,
+    );
+    return () => clearTimeout(timer);
   }, [ready, authenticated, walletsReady, wallets.length, createWallet, walletSetupError]);
   const walletVerification = useSolanaWalletVerification();
   const { signAndSendTransaction } = useSignAndSendTransaction();
@@ -394,7 +403,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
         </Button>
         {walletSetupError && (
-          <button type="button" onClick={() => setWalletSetupError(null)} className="font-body text-xs text-down underline-offset-2 hover:underline">
+          <button
+            type="button"
+            onClick={() => {
+              hasRetriedRef.current = true;
+              setWalletSetupError(null);
+            }}
+            className="font-body text-xs text-down underline-offset-2 hover:underline"
+          >
             {walletSetupError} — tap to retry
           </button>
         )}
