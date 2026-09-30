@@ -129,8 +129,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
           </section>
 
           <aside>
-            <p className="font-body text-sm text-ink-600">Sign in with email — no wallet app needed. Kamby creates one for you.</p>
-            <div className="mt-3 rounded-2xl border border-line bg-surface p-4">
+            <div className="rounded-2xl border border-line bg-surface p-4">
               <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} />
             </div>
           </aside>
