@@ -18,6 +18,7 @@ import { getConfiguredChains, type Env } from '../config/env';
 import { toSocialActivity } from '../social/social.mapper';
 import type { DiscoverQueryDto } from './dto/discover-query.dto';
 import type { SearchQueryDto } from './dto/search-query.dto';
+import { hideLookalikes } from './lookalike-filter';
 import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { WatchlistService } from './watchlist.service';
@@ -148,10 +149,12 @@ export class MarketService {
     // post-slice sparkline fetch below can key back into `candles` — SolanaTokenMarket rows
     // have no candle history (DexScreener-sourced snapshots, not on-chain ingestion), so they
     // carry `null` and simply get no sparkline, same as any EVM market too new for one.
-    const candidates: { summary: MarketSummary; evmMarketId: string | null }[] = [
+    const allCandidates: { summary: MarketSummary; evmMarketId: string | null }[] = [
       ...evmFiltered.map((row) => ({ summary: toMarketSummary(row), evmMarketId: row.id })),
       ...solanaFiltered.map((row) => ({ summary: toSolanaMarketSummary(row), evmMarketId: null })),
     ];
+    const visible = new Set(hideLookalikes(allCandidates.map((c) => c.summary)));
+    const candidates = allCandidates.filter((c) => visible.has(c.summary));
 
     const scored = candidates
       .map((candidate) => ({
@@ -438,11 +441,14 @@ export class MarketService {
 
     const summaries = [...evmRows.map((row) => toMarketSummary(row)), ...solanaRows.map((row) => toSolanaMarketSummary(row))];
     summaries.sort((a, b) => numDesc(a.liquidityUsd, b.liquidityUsd));
-    return summaries.slice(0, query.limit);
+    // An exact-address search is someone asking for one specific token — never hide it.
+    const isAddressLookup = EVM_ADDRESS_PATTERN.test(query.q) || SOLANA_MINT_PATTERN.test(query.q);
+    return (isAddressLookup ? summaries : hideLookalikes(summaries)).slice(0, query.limit);
   }
 }
 
 const EVM_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+const SOLANA_MINT_PATTERN = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 function assertAddressShape(address: string): void {
   if (!EVM_ADDRESS_PATTERN.test(address)) {

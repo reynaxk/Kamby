@@ -20,7 +20,7 @@ import { Skeleton } from '../market/Skeleton';
  *  data instead. */
 export type ActivityScope =
   | { type: 'global' }
-  | { type: 'token'; address: string }
+  | { type: 'token'; address: string; chainId?: number }
   | { type: 'trader'; address: string }
   | { type: 'following' };
 
@@ -29,7 +29,7 @@ function fetchScopedPage(scope: ActivityScope, cursor: string | undefined): Prom
     case 'global':
       return fetchLatestActivity({ cursor, limit: 20 });
     case 'token':
-      return fetchLatestActivity({ cursor, limit: 20, tokenAddress: scope.address });
+      return fetchLatestActivity({ cursor, limit: 20, tokenAddress: scope.address, chainId: scope.chainId });
     case 'trader':
       return fetchLatestTraderActivity(scope.address, { cursor, limit: 20 });
     case 'following':

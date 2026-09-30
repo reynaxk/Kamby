@@ -50,6 +50,18 @@ describe('computePoolLiquidityUsd', () => {
     expect(liq!).toBeCloseTo(19726.284265 * 2455.23 + 69133727.18, 0);
   });
 
+  it('caps a pool at 2x its anchored (independently priced) side — a copycat token priced by its own pool cannot inflate it', () => {
+    // 1 WETH ($2,500) paired with 1,000,000 FAKE "priced" at $1,000 each by the pool itself.
+    const liq = computePoolLiquidityUsd(10n ** 18n, 18, 2_500, 10n ** 24n, 18, 1_000, 'token0');
+    expect(liq).toBeCloseTo(5_000, 6);
+  });
+
+  it('leaves an honest, balanced pool effectively unchanged when anchored', () => {
+    const unanchored = computePoolLiquidityUsd(REAL_WETH_BALANCE_RAW, REAL_WETH_DECIMALS, 2455.23, REAL_USDC_BALANCE_RAW, REAL_USDC_DECIMALS, 1);
+    const anchored = computePoolLiquidityUsd(REAL_WETH_BALANCE_RAW, REAL_WETH_DECIMALS, 2455.23, REAL_USDC_BALANCE_RAW, REAL_USDC_DECIMALS, 1, 'token1');
+    expect(anchored).toBeCloseTo(unanchored!, 0);
+  });
+
   it('returns null rather than a half-computed total when one side is unpriced', () => {
     expect(computePoolLiquidityUsd(100n, 18, null, 100n, 6, 1)).toBeNull();
     expect(computePoolLiquidityUsd(100n, 18, 1, 100n, 6, null)).toBeNull();

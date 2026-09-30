@@ -275,7 +275,7 @@ export class PoolDiscoveryService {
     ]);
     if (balance0 === null || balance1 === null) return false;
 
-    const liquidityUsd = computePoolLiquidityUsd(balance0, dec0, price0Usd, balance1, dec1, price1Usd);
+    const liquidityUsd = computePoolLiquidityUsd(balance0, dec0, price0Usd, balance1, dec1, price1Usd, pending.knownSide);
     if (liquidityUsd === null || liquidityUsd < this.config.liquidityFloorUsd) return false;
 
     const ok = await createTrackedMarket(this.poolReader, this.tokenReader, chainId, this.evmChainId(), poolAddress, unknownAddress, this.config.dex, this.logger);

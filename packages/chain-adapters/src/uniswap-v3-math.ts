@@ -39,6 +39,13 @@ export function priceFromSqrtPriceX96(
  * USD value of a pool's two token balances, given each token's already-resolved USD
  * price. Returns null if either price is unresolved — a pool with one unpriceable side
  * has no honest total, so we don't publish a half-computed number.
+ *
+ * `anchor` names the side whose USD price is independently known (the quote token — WETH,
+ * USDC, WBNB). When given, the total is capped at 2x that side's value: the other side's
+ * price is derived from this same pool, so whoever created the pool sets it. Without the
+ * cap, a copycat token paired with a few dollars of WETH at an absurd price showed $1.1B
+ * of "liquidity" (found 2026-09-30). For an honest pool the two sides are close to equal,
+ * so the cap barely moves the number.
  */
 export function computePoolLiquidityUsd(
   balance0Raw: bigint,
@@ -47,11 +54,13 @@ export function computePoolLiquidityUsd(
   balance1Raw: bigint,
   decimals1: number,
   price1Usd: number | null,
+  anchor?: 'token0' | 'token1',
 ): number | null {
   if (price0Usd === null || price1Usd === null) return null;
-  const amount0 = Number(balance0Raw) / 10 ** decimals0;
-  const amount1 = Number(balance1Raw) / 10 ** decimals1;
-  const total = amount0 * price0Usd + amount1 * price1Usd;
+  const value0 = (Number(balance0Raw) / 10 ** decimals0) * price0Usd;
+  const value1 = (Number(balance1Raw) / 10 ** decimals1) * price1Usd;
+  const sum = value0 + value1;
+  const total = anchor ? Math.min(sum, 2 * (anchor === 'token0' ? value0 : value1)) : sum;
   return Number.isFinite(total) && total >= 0 ? total : null;
 }
 

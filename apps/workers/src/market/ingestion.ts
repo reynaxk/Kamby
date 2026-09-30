@@ -306,7 +306,7 @@ export class MarketIngestionService {
     const price1Usd = baseIsToken0 ? quoteUsd : baseUsd;
     const liquidityUsd =
       balance0 !== null && balance1 !== null
-        ? computePoolLiquidityUsd(balance0, dec0, price0Usd, balance1, dec1, price1Usd)
+        ? computePoolLiquidityUsd(balance0, dec0, price0Usd, balance1, dec1, price1Usd, baseIsToken0 ? 'token1' : 'token0')
         : null;
 
     const totalSupply = await this.poolReader.getTotalSupply(market.token.contractAddress);

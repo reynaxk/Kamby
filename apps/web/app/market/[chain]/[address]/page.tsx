@@ -74,7 +74,7 @@ export default async function TokenDetailPage({
   if (!market) notFound();
 
   const candles = await fetchTokenHistory(params.address, timeframe, chainId);
-  const activity = await fetchGlobalActivity({ tokenAddress: params.address, limit: 10 });
+  const activity = await fetchGlobalActivity({ tokenAddress: params.address, chainId, limit: 10 });
   const traders = await fetchTokenTraders(params.address, chainId, 8);
 
   return (
