@@ -5,10 +5,12 @@ import { TokensModule } from '../tokens/tokens.module';
 import { CryptoPriceService } from './crypto-price.service';
 import { MarketFeedsController } from './market-feeds.controller';
 import { MarketFeedsService } from './market-feeds.service';
+import { SolanaChartController } from './solana-chart.controller';
+import { SolanaChartService } from './solana-chart.service';
 
 @Module({
   imports: [MarketModule, TokensModule, RealtimeModule],
-  controllers: [MarketFeedsController],
-  providers: [CryptoPriceService, MarketFeedsService],
+  controllers: [MarketFeedsController, SolanaChartController],
+  providers: [CryptoPriceService, MarketFeedsService, SolanaChartService],
 })
 export class MarketFeedsModule {}
