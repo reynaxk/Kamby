@@ -124,6 +124,15 @@ export class TokenTrenchesService {
     });
   }
 
+  /** One Pump.fun coin by mint, or null if Kamby has never seen it — lets the Solana trade
+   *  page confirm a coin really graduated before offering it (see app/solana/page.tsx). */
+  async byMint(mintAddress: string): Promise<PumpFunTokenSummary | null> {
+    return this.cached(`tokens:pumpfun:${mintAddress}`, async () => {
+      const row = await prisma.pumpFunToken.findUnique({ where: { mintAddress } });
+      return row ? toPumpFunTokenSummary(row) : null;
+    });
+  }
+
   /** Short TTL relative to Discovery's own cache — this reflects live trading activity
    *  (unique traders, volume), which staleness affects faster than Discovery's rankings. */
   private async cached<T>(key: string, compute: () => Promise<T>): Promise<T> {

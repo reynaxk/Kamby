@@ -15,7 +15,7 @@ function asPumpFun(result: unknown): PumpFunTokenSummary[] {
 jest.mock('@kamby/db', () => ({
   prisma: {
     tokenMarket: { findMany: jest.fn() },
-    pumpFunToken: { findMany: jest.fn() },
+    pumpFunToken: { findMany: jest.fn(), findUnique: jest.fn() },
   },
 }));
 
@@ -185,6 +185,16 @@ describe('TokenTrenchesService', () => {
 
       expect(result).toHaveLength(2);
       expect(result[0]?.mintAddress).toBe('Mint411111111111111111111111111111111111'); // highest reserves
+    });
+  });
+
+  describe('byMint', () => {
+    it('returns one coin with its progress, or null for a mint Kamby never saw', async () => {
+      (mockedPrisma.pumpFunToken.findUnique as jest.Mock).mockResolvedValueOnce(pumpFunRow({ complete: true, graduatedAt: new Date('2026-09-30T00:00:00Z') }));
+      expect(await service.byMint('MintAddress11111111111111111111111111111')).toMatchObject({ symbol: 'TEST', complete: true, graduatedAt: '2026-09-30T00:00:00.000Z' });
+
+      (mockedPrisma.pumpFunToken.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      expect(await service.byMint('Unknown1111111111111111111111111111111111')).toBeNull();
     });
   });
 
