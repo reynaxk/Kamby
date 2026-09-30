@@ -21,6 +21,10 @@ export const EnvSchema = z.object({
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 
+  /** Sentry project DSN — unset keeps error reporting off (see observability/error-reporting.ts). */
+  SENTRY_DSN: z.string().url('SENTRY_DSN must be a valid URL').optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
+
   THROTTLE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
   THROTTLE_LIMIT: z.coerce.number().int().positive().default(120),
 

@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { PinoLogger } from 'nestjs-pino';
+import { reportError } from '../../observability/error-reporting';
 
 interface ErrorResponseBody {
   statusCode: number;
@@ -37,6 +38,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (!isHttpException || status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error({ err: exception, path: request.url }, 'Unhandled exception');
+      // The path only — never the query string, which can carry wallet addresses or tickets.
+      reportError(exception, { method: request.method, path: request.url.split('?')[0]! });
     }
 
     const body: ErrorResponseBody = {

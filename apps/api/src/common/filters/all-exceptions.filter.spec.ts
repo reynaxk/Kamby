@@ -1,7 +1,10 @@
 import type { ArgumentsHost} from '@nestjs/common';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import type { PinoLogger } from 'nestjs-pino';
+import { reportError } from '../../observability/error-reporting';
 import { AllExceptionsFilter } from './all-exceptions.filter';
+
+jest.mock('../../observability/error-reporting', () => ({ reportError: jest.fn() }));
 
 function createHost(): { host: ArgumentsHost; json: jest.Mock; status: jest.Mock } {
   const json = jest.fn();
@@ -9,7 +12,7 @@ function createHost(): { host: ArgumentsHost; json: jest.Mock; status: jest.Mock
   const host = {
     switchToHttp: () => ({
       getResponse: () => ({ status }),
-      getRequest: () => ({ url: '/v1/example' }),
+      getRequest: () => ({ url: '/v1/example?wallet=0xabc', method: 'GET' }),
     }),
   } as unknown as ArgumentsHost;
   return { host, json, status };
@@ -21,6 +24,22 @@ describe('AllExceptionsFilter', () => {
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
+    jest.clearAllMocks();
+  });
+
+  it('reports an unexpected error to error tracking with its method and path, never the query string', () => {
+    const filter = new AllExceptionsFilter(logger);
+    const error = new Error('boom');
+
+    filter.catch(error, createHost().host);
+
+    expect(reportError).toHaveBeenCalledWith(error, { method: 'GET', path: '/v1/example' });
+  });
+
+  it('never reports a 4xx the caller caused', () => {
+    new AllExceptionsFilter(logger).catch(new HttpException('Token not found', HttpStatus.NOT_FOUND), createHost().host);
+
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it('passes through an HttpException status and message unchanged', () => {

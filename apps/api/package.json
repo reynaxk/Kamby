@@ -25,6 +25,7 @@
     "@nestjs/platform-express": "^10.4.4",
     "@nestjs/terminus": "^10.2.3",
     "@nestjs/throttler": "^6.2.1",
+    "@sentry/node": "8.55.2",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
     "bs58": "^5.0.0",

@@ -6,6 +6,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import type { Env } from './config/env';
+import { initErrorReporting } from './observability/error-reporting';
+
+// Before Nest boots, so a crash during startup is reported too. Read straight from the
+// environment (ConfigService doesn't exist yet); SENTRY_DSN is still validated by the env
+// schema once it does.
+initErrorReporting({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? 'development',
+  release: process.env.RAILWAY_GIT_COMMIT_SHA,
+});
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
