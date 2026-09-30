@@ -50,7 +50,7 @@ export async function generateMetadata({
   const name = market.symbol ?? market.name ?? truncateAddress(market.tokenAddress);
   const title =
     market.priceUsd === null ? `${name} — Kamby` : `${name} — ${formatPrice(market.priceUsd)} — Kamby`;
-  const description = `${name} on ${market.chainIdentifier}: price, 24h volume, liquidity, and live trading activity.`;
+  const description = `${name} on ${CHAIN_REGISTRY[params.chain].name}: price, 24h volume, liquidity, and live trading activity.`;
   return {
     title,
     description,
@@ -97,7 +97,7 @@ export default async function TokenDetailPage({
               size="sm"
             />
             <span className="rounded-full border border-line px-2.5 py-1 font-mono text-[0.7rem] uppercase tracking-wide text-ink-400">
-              {market.chainIdentifier}
+              {CHAIN_REGISTRY[params.chain].name}
             </span>
             {market.isStale && <StaleBadge />}
           </div>
