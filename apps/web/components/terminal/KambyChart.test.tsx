@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { Candle } from '@kamby/domain';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type * as IndicatorsModule from '@/lib/indicators';
-import { KambyChart } from './KambyChart';
+import { KambyChart, pricePrecision } from './KambyChart';
 
 const { computeBollingerBands, computeAtr, computeAdx, computeAwesomeOscillator, computePeriodHighLow, addSeriesMock, seriesApi } =
   vi.hoisted(() => {
@@ -138,5 +138,23 @@ describe('KambyChart — indicator picker', () => {
 
     expect(seriesApi.createPriceLine).toHaveBeenCalledWith(expect.objectContaining({ price: 150 }));
     expect(seriesApi.createPriceLine).toHaveBeenCalledWith(expect.objectContaining({ price: 90 }));
+  });
+});
+
+describe('pricePrecision', () => {
+  const candle = (low: number) => ({ bucketStart: '2026-09-30T00:00:00.000Z', open: low, high: low, low, close: low, volumeUsd: 0 });
+
+  it('keeps 2 decimals from $1 up', () => {
+    expect(pricePrecision([candle(84_265), candle(1.2)])).toEqual({ precision: 2, minMove: 0.01 });
+  });
+
+  it('shows ~3 significant digits for sub-dollar and sub-cent coins, instead of "0.00"', () => {
+    expect(pricePrecision([candle(0.5)]).precision).toBe(3);
+    expect(pricePrecision([candle(0.0237)]).precision).toBe(4);
+    expect(pricePrecision([candle(0.00000385)])).toEqual({ precision: 8, minMove: 0.00000001 });
+  });
+
+  it('ignores zero or broken lows and falls back to 2 decimals with no usable data', () => {
+    expect(pricePrecision([candle(0), candle(Number.NaN)]).precision).toBe(2);
   });
 });

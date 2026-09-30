@@ -53,6 +53,19 @@ function readColor(varName: string, el: Element): string {
   return raw ? `rgb(${raw})` : '#000000';
 }
 
+/**
+ * Price-axis precision from the data itself — lightweight-charts defaults to 2 decimals,
+ * which rendered every sub-cent memecoin's axis and last-price label as "0.00" (BONK at
+ * $0.0000038, found 2026-09-30). $1 and up keeps 2 decimals; below that, enough decimals
+ * for ~3 significant digits of the smallest price on screen. Exported for tests.
+ */
+export function pricePrecision(candles: Candle[]): { precision: number; minMove: number } {
+  const lows = candles.map((c) => c.low).filter((v) => Number.isFinite(v) && v > 0);
+  const smallest = lows.length > 0 ? Math.min(...lows) : 1;
+  const precision = smallest >= 1 ? 2 : Math.min(12, Math.ceil(-Math.log10(smallest)) + 2);
+  return { precision, minMove: Number((10 ** -precision).toFixed(precision)) };
+}
+
 function toSeriesData(candles: Candle[]) {
   return candles.map((c) => ({
     time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp,
@@ -260,7 +273,9 @@ export function KambyChart({
       height: container.clientHeight,
     });
 
+    const priceFormat = { type: 'price' as const, ...pricePrecision(candles) };
     const series = chart.addSeries(CandlestickSeries, {
+      priceFormat,
       upColor: up,
       downColor: down,
       borderVisible: false,
@@ -303,6 +318,7 @@ export function KambyChart({
     if (activeIndicators.has('bollinger')) {
       const bands = computeBollingerBands(candles);
       const bandOptions = {
+        priceFormat,
         lineWidth: 1 as const,
         priceLineVisible: false,
         lastValueVisible: false,
