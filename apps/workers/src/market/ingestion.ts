@@ -105,6 +105,7 @@ export class MarketIngestionService {
   private readonly seedTokenAddresses: ReadonlySet<string>;
   /** Counts refreshPricesAndLiquidity() calls — one per worker tick (see main.ts). */
   private tickCount = 0;
+  private logoBackfillCalls = 0;
 
   /**
    * A discovered (non-seed) market whose last measured liquidity is below Discover's own
@@ -165,6 +166,11 @@ export class MarketIngestionService {
    * plain DB query plus a DexScreener HTTP call per still-missing token, nothing more.
    */
   async backfillTokenLogos(): Promise<{ checked: number; updated: number }> {
+    // Runs every DORMANT_REFRESH_EVERY_N_TICKS-th call, not every tick: each still-missing
+    // token costs up to two HTTP lookups plus RPC_CALL_DELAY_MS, and with dozens of logo-less
+    // discovered tokens that alone added tens of seconds to every Base tick. A logo doesn't
+    // need retrying every minute.
+    if (this.logoBackfillCalls++ % DORMANT_REFRESH_EVERY_N_TICKS !== 0) return { checked: 0, updated: 0 };
     const chainId = this.requireChainId();
     const missing = await prisma.token.findMany({ where: { chainId, logoUrl: null } });
 

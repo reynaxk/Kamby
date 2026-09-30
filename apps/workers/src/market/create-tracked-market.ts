@@ -1,6 +1,7 @@
 import type { EvmChainDataProvider, UniswapV3PoolReader } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import type { Logger } from 'pino';
+import { getAddress } from 'viem';
 
 /** How far back a newly-tracked market's swap-ingestion cursor starts — see
  *  ingestion.ts's own MarketIngestionService.seed() for why this stays modest. Duplicated
@@ -14,6 +15,12 @@ const DEXSCREENER_TOKENS_URL = 'https://api.dexscreener.com/latest/dex/tokens';
  *  'bnb', matching every DexScreener query already used to research this session's seed
  *  list). Add an entry here before a new EVM chain can get real logos. */
 const DEXSCREENER_CHAIN_ID: Record<number, string> = { 8453: 'base', 56: 'bsc' };
+/** Trust Wallet's public assets repo — the fallback when DexScreener has no image, which is
+ *  common for exactly the biggest tokens (WBNB, CAKE, BTCB, ETH on BNB had none, found
+ *  2026-09-30). Paths use the checksummed address. */
+const TRUSTWALLET_CHAIN_DIR: Record<number, string> = { 8453: 'base', 56: 'smartchain' };
+const trustWalletLogoUrl = (dir: string, address: string) =>
+  `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${dir}/assets/${getAddress(address)}/logo.png`;
 
 /**
  * Best-effort token logo lookup — never a source of truth for price/liquidity/metadata
@@ -28,11 +35,17 @@ const DEXSCREENER_CHAIN_ID: Record<number, string> = { 8453: 'base', 56: 'bsc' }
  * or missing image carries no financial risk the way a wrong price or liquidity figure
  * would, unlike everything else this file and `ingestion.ts` compute.
  *
+ * Falls back to Trust Wallet's public assets repo when DexScreener has no image.
+ *
  * Returns `null` (never throws) on any failure — an unresolved logo is an honest empty
  * state (`SelectableTokenRow.tsx` already falls back to the token's own first letter), not
  * worth failing seeding or a whole tick over.
  */
 export async function fetchTokenLogoUrl(chainId: number, contractAddress: string): Promise<string | null> {
+  return (await fetchDexScreenerLogoUrl(chainId, contractAddress)) ?? (await fetchTrustWalletLogoUrl(chainId, contractAddress));
+}
+
+async function fetchDexScreenerLogoUrl(chainId: number, contractAddress: string): Promise<string | null> {
   const dexscreenerChainId = DEXSCREENER_CHAIN_ID[chainId];
   if (!dexscreenerChainId) return null;
   try {
@@ -41,6 +54,20 @@ export async function fetchTokenLogoUrl(chainId: number, contractAddress: string
     const body = (await response.json()) as { pairs?: { chainId: string; info?: { imageUrl?: string } }[] | null };
     const match = (body.pairs ?? []).find((p) => p.chainId === dexscreenerChainId && p.info?.imageUrl);
     return match?.info?.imageUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Only returns the URL once a HEAD request confirms the image actually exists — never a
+ *  guessed URL that renders as a broken image. */
+async function fetchTrustWalletLogoUrl(chainId: number, contractAddress: string): Promise<string | null> {
+  const dir = TRUSTWALLET_CHAIN_DIR[chainId];
+  if (!dir) return null;
+  try {
+    const url = trustWalletLogoUrl(dir, contractAddress);
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok ? url : null;
   } catch {
     return null;
   }
