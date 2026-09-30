@@ -110,6 +110,11 @@ export const EnvSchema = z.object({
    * since there is no meaningful SOLANA_RPC_URL without it.
    */
   PUMPFUN_INGESTION_ENABLED: z.coerce.boolean().default(false),
+  /** Where Pump.fun events come from when PUMPFUN_INGESTION_ENABLED. `pumpportal` (default):
+   *  PumpPortal's free, pre-decoded data stream — see pumpfun/pumpportal-ingestion.ts.
+   *  `rpc`: the original logsSubscribe on the Pump.fun program over SOLANA_RPC_URL (paid,
+   *  and dropping events under load as of 2026-09-30) — kept only as a fallback. */
+  PUMPFUN_SOURCE: z.enum(['pumpportal', 'rpc']).default('pumpportal'),
 
   /**
    * Established-Solana-token market data for the Markets/Trending/Movers/Volume tabs (BONK/

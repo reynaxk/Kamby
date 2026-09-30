@@ -9,6 +9,7 @@ import { MarketIngestionService } from './market/ingestion';
 import { PoolDiscoveryService } from './market/pool-discovery';
 import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
 import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
+import { PumpPortalIngestionService } from './pumpfun/pumpportal-ingestion';
 import { SolanaMarketIngestionService } from './market/solana-market-ingestion';
 import { SolanaSweepService } from './solana/solana-sweep';
 import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
@@ -407,10 +408,15 @@ async function main(): Promise<void> {
 
   // Pump.fun bonding-curve ingestion — see pumpfun/pumpfun-ingestion.ts's own doc comment
   // on why this is a persistent subscription, not a tick like everything else above.
-  let pumpFunIngestion: PumpFunIngestionService | undefined;
+  let pumpFunIngestion: PumpFunIngestionService | PumpPortalIngestionService | undefined;
   if (env.PUMPFUN_INGESTION_ENABLED) {
-    const wsUrl = env.SOLANA_RPC_URL!.replace(/^http/, 'ws');
-    pumpFunIngestion = new PumpFunIngestionService(env.SOLANA_RPC_URL!, wsUrl, logger);
+    if (env.PUMPFUN_SOURCE === 'pumpportal') {
+      pumpFunIngestion = new PumpPortalIngestionService(logger, redis);
+    } else {
+      const wsUrl = env.SOLANA_RPC_URL!.replace(/^http/, 'ws');
+      pumpFunIngestion = new PumpFunIngestionService(env.SOLANA_RPC_URL!, wsUrl, logger);
+    }
+    logger.info({ source: env.PUMPFUN_SOURCE }, 'Pump.fun ingestion starting');
     pumpFunIngestion.start();
   }
 

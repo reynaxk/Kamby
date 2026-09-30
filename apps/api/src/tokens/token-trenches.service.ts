@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { prisma } from '@kamby/db';
-import { PUMP_FUN_GRADUATION_THRESHOLD_LAMPORTS, type MarketSummary, type PumpFunTokenSummary } from '@kamby/domain';
+import { pumpFunGraduationProgressPct, type MarketSummary, type PumpFunTokenSummary } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -149,12 +149,7 @@ export class TokenTrenchesService {
 /** `Number.MAX_SAFE_INTEGER`-safe: dividing two BigInts first keeps the ratio itself small
  *  (well under 2^53) before it ever becomes a JS number, unlike converting a raw multi-
  *  billion-lamport reserve value directly — see docs/TRADING.md#financial-precision. */
-function graduationProgressPct(realSolReserves: string): number {
-  const raised = BigInt(realSolReserves);
-  const bps = (raised * 10_000n) / PUMP_FUN_GRADUATION_THRESHOLD_LAMPORTS;
-  const pct = Number(bps) / 100;
-  return Math.min(100, pct);
-}
+const graduationProgressPct = pumpFunGraduationProgressPct;
 
 function toPumpFunTokenSummary(row: {
   mintAddress: string;
