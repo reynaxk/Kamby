@@ -19,6 +19,7 @@ const OHLCV: Record<SolanaChartTimeframe, { unit: 'minute' | 'hour' | 'day'; agg
 };
 const CANDLE_LIMIT = 200;
 const POOL_TTL_SECONDS = 60 * 60;
+const LAST_GOOD_TTL_SECONDS = 24 * 60 * 60;
 
 interface GeckoPool {
   attributes?: { address?: string };
@@ -116,11 +117,24 @@ export class SolanaChartService {
     } catch {
       // Redis down — compute fresh.
     }
-    const value = await compute();
-    // An empty result (GeckoTerminal down, no pool) is only cached briefly, so it recovers fast.
+    let value: T = await compute();
     const empty = value === null || (Array.isArray(value) && value.length === 0);
+    const lastGoodKey = `${key}:last-good`;
+    if (empty) {
+      // GeckoTerminal's free tier rate-limits (429) under bursts — seen in production
+      // 2026-09-30, blanking charts. Serve the last good answer (kept a day) instead of
+      // an empty chart; only a coin never fetched successfully shows empty.
+      try {
+        const lastGood = await this.redis.get(lastGoodKey);
+        if (lastGood !== null) value = JSON.parse(lastGood) as T;
+      } catch {
+        // No fallback available.
+      }
+    }
     try {
+      // A failed lookup is only cached briefly, so it recovers fast.
       await this.redis.set(key, JSON.stringify(value), 'EX', empty ? 15 : ttlSeconds);
+      if (!empty) await this.redis.set(lastGoodKey, JSON.stringify(value), 'EX', LAST_GOOD_TTL_SECONDS);
     } catch {
       // Served uncached.
     }

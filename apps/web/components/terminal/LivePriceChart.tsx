@@ -25,9 +25,26 @@ interface Point {
   value: number;
 }
 
-/** Exported for tests. The seed line from 1m candles: their closes, oldest first. */
-export function seedPoints(candles: Candle[]): Point[] {
-  return candles.slice(-SEED_POINTS).map((c) => ({ time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp, value: c.close }));
+/** Only 1m closes this recent seed the line — a coin whose last trade was hours ago starts fresh. */
+const SEED_MAX_AGE_S = 2 * 60 * 60;
+/** Empty time slots laid out before the first live tick, so the line grows in from the right
+ *  edge instead of one point rendering as a single wide blob. */
+const LEAD_IN_S = 180;
+
+/** Exported for tests. The seed line from 1m candles: their recent closes, oldest first. */
+export function seedPoints(candles: Candle[], nowS: number): Point[] {
+  return candles
+    .slice(-SEED_POINTS)
+    .map((c) => ({ time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp, value: c.close }))
+    .filter((p) => p.time >= nowS - SEED_MAX_AGE_S && p.time < nowS);
+}
+
+/** Exported for tests. Whitespace (time-only) points every poll interval up to now. */
+export function leadInSlots(lastSeedS: number | null, nowS: number): { time: UTCTimestamp }[] {
+  const step = POLL_MS / 1000;
+  const slots: { time: UTCTimestamp }[] = [];
+  for (let t = Math.max((lastSeedS ?? 0) + step, nowS - LEAD_IN_S); t < nowS; t += step) slots.push({ time: t as UTCTimestamp });
+  return slots;
 }
 
 /**
@@ -42,6 +59,7 @@ export function LivePriceChart({ source, seedCandles }: { source: ChartSource; s
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
   const lastTimeRef = useRef(0);
+  const hasPriceHistoryRef = useRef(false);
   const [status, setStatus] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
   const [price, setPrice] = useState<number | null>(seedCandles[seedCandles.length - 1]?.close ?? null);
 
@@ -73,7 +91,9 @@ export function LivePriceChart({ source, seedCandles }: { source: ChartSource; s
     } catch {
       return;
     }
-    const seed = seedPoints(seedCandles);
+    const nowS = Math.floor(Date.now() / 1000);
+    const seed = seedPoints(seedCandles, nowS);
+    const slots = leadInSlots(seed[seed.length - 1]?.time ?? null, nowS);
     const series = chart.addSeries(AreaSeries, {
       lineColor: accent,
       lineWidth: 2,
@@ -86,9 +106,10 @@ export function LivePriceChart({ source, seedCandles }: { source: ChartSource; s
       priceLineColor: accent,
       crosshairMarkerRadius: 4,
     });
-    series.setData(seed);
+    series.setData([...seed, ...slots]);
     chart.timeScale().fitContent();
-    lastTimeRef.current = seed[seed.length - 1]?.time ?? 0;
+    lastTimeRef.current = slots[slots.length - 1]?.time ?? seed[seed.length - 1]?.time ?? 0;
+    hasPriceHistoryRef.current = seed.length > 0;
     chartRef.current = chart;
     seriesRef.current = series;
     return () => {
@@ -113,6 +134,15 @@ export function LivePriceChart({ source, seedCandles }: { source: ChartSource; s
             // Time must strictly increase for the series — a same-second repeat is skipped.
             const time = Math.floor(Date.now() / 1000) as UTCTimestamp;
             if (time > lastTimeRef.current && seriesRef.current) {
+              // No seed history (e.g. candles briefly unavailable): size the axis decimals
+              // from the live price itself, or a sub-cent coin's axis reads "0.00".
+              if (!hasPriceHistoryRef.current) {
+                hasPriceHistoryRef.current = true;
+                const p = live.priceUsd;
+                seriesRef.current.applyOptions({
+                  priceFormat: { type: 'price', ...pricePrecision([{ bucketStart: '', open: p, high: p, low: p, close: p, volumeUsd: 0 }]) },
+                });
+              }
               seriesRef.current.update({ time, value: live.priceUsd });
               lastTimeRef.current = time;
               if (++points > MAX_POINTS) chartRef.current?.timeScale().fitContent();

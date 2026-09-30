@@ -67,6 +67,22 @@ describe('SolanaChartService', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it('keeps serving the last good candles when GeckoTerminal rate-limits, instead of an empty chart', async () => {
+    const redis = memoryRedis();
+    const service = new SolanaChartService(redis, logger);
+    expect(await service.history(BONK, '1m')).toHaveLength(1);
+
+    // The fresh entry expires; the next lookup hits a 429.
+    await redis.set(`solana-chart:candles:${BONK}:1m`, 'x');
+    (redis.get as jest.Mock).mockImplementation(async (k: string) =>
+      k === `solana-chart:candles:${BONK}:1m` ? null : k.endsWith(':last-good') ? JSON.stringify([{ bucketStart: 'kept', open: 1, high: 1, low: 1, close: 1, volumeUsd: 0 }]) : null,
+    );
+    global.fetch = jest.fn(async () => ({ ok: false, status: 429 })) as unknown as typeof fetch;
+
+    const candles = await service.history(BONK, '1m');
+    expect(candles).toEqual([{ bucketStart: 'kept', open: 1, high: 1, low: 1, close: 1, volumeUsd: 0 }]);
+  });
+
   it('rejects widths GeckoTerminal cannot serve as true candles', async () => {
     await expect(new SolanaChartService(memoryRedis(), logger).history(BONK, '1W')).rejects.toThrow('timeframe must be one of');
   });
