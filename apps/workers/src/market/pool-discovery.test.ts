@@ -365,3 +365,28 @@ describe('PoolDiscoveryService.checkPendingPools — rotation', () => {
     expect(lastChecked('0xpool9')).toBeDefined(); // the second pass reached what the first skipped
   }, 30_000);
 });
+
+describe('PoolDiscoveryService.enqueueFromGeckoTerminal — address casing', () => {
+  it('recognizes a tracked quote token even though GeckoTerminal reports it lowercase', async () => {
+    const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+    const NEW_TOKEN = '0x1111111111111111111111111111111111111111';
+    const pool = {
+      attributes: { address: '0x2222222222222222222222222222222222222222', reserve_in_usd: '777776', transactions: { h24: { buyers: 1016, sellers: 1153 } } },
+      relationships: {
+        base_token: { data: { id: `bsc_${NEW_TOKEN}` } },
+        quote_token: { data: { id: `bsc_${WBNB.toLowerCase()}` } },
+        dex: { data: { id: 'pancakeswap-v3-bsc' } },
+      },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [pool] }) }));
+    // Tracked only under its checksummed spelling, exactly like the real tokens table.
+    mockPrisma.token.findUnique.mockImplementation(async ({ where }: { where: { chainId_contractAddress: { contractAddress: string } } }) =>
+      where.chainId_contractAddress.contractAddress === WBNB ? { id: 'token-wbnb' } : null,
+    );
+    mockPrisma.tokenMarket.findFirst.mockImplementation(async ({ where }: { where: { tokenId?: string } }) => (where.tokenId === 'token-wbnb' ? { id: 'wbnb-market' } : null));
+
+    const result = await newService(fakeRedis(), { chainIdentifier: 'eip155:56', dex: 'pancakeswap-v3' }).enqueueFromGeckoTerminal();
+
+    expect(result).toEqual({ geckoTerminalCandidates: 1 });
+  });
+});

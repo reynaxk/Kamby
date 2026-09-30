@@ -3,6 +3,7 @@ import { prisma } from '@kamby/db';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { NEW_PAIR_MIN_BUYERS_24H, NEW_PAIR_MIN_LIQUIDITY_USD, NEW_PAIR_MIN_SELLERS_24H } from '@kamby/domain';
+import { getAddress } from 'viem';
 import { createTrackedMarket } from './create-tracked-market';
 import { MARKET_HEAD_LAG_BLOCKS } from './ingestion';
 
@@ -53,6 +54,18 @@ export interface GeckoTerminalPool {
   };
 }
 
+/** GeckoTerminal reports addresses lowercase; Kamby stores them checksummed, and token lookups
+ *  (knownSideOf) are exact matches — found 2026-09-30 when every BNB candidate was silently
+ *  dropped because lowercase WBNB/USDT looked "unknown". Falls back to the input for a string
+ *  that isn't a valid address, which getAddress would reject. */
+function checksummed(address: string): string {
+  try {
+    return getAddress(address);
+  } catch {
+    return address;
+  }
+}
+
 /** Exported for tests. A GeckoTerminal pool worth checking on-chain: a DEX ingestion can
  *  read, reported reserves at the new-pair floor, and real two-sided trading — at least
  *  NEW_PAIR_MIN_SELLERS_24H distinct sellers, which a sell-blocking honeypot can't show.
@@ -69,7 +82,7 @@ export function geckoTerminalCandidate(pool: GeckoTerminalPool, dexIds: readonly
   if (Number(attrs?.reserve_in_usd ?? 0) < NEW_PAIR_MIN_LIQUIDITY_USD) return null;
   const h24 = attrs?.transactions?.h24;
   if ((h24?.buyers ?? 0) < NEW_PAIR_MIN_BUYERS_24H || (h24?.sellers ?? 0) < NEW_PAIR_MIN_SELLERS_24H) return null;
-  return { pool: address, tokenA, tokenB };
+  return { pool: checksummed(address), tokenA: checksummed(tokenA), tokenB: checksummed(tokenB) };
 }
 
 interface PendingPool {
