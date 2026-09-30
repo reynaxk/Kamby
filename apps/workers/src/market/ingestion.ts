@@ -53,6 +53,17 @@ const MAX_RESOLUTION_PASSES = 5;
  *  ~20s on Base, ~8s on BNB Chain. */
 export const MARKET_HEAD_LAG_BLOCKS = 10;
 
+/** Beyond these, a USD figure is a pricing artifact (a near-empty pool pushed to its extreme
+ *  tick), not a real trade — and past ~1e20 it overflows the Decimal(38, 18) columns
+ *  outright. Found 2026-09-30: one such swap on BNB threw from `swap.createMany`, which
+ *  aborted that whole ingestion tick for every market after it. */
+export const MAX_PLAUSIBLE_PRICE_USD = 1e15;
+export const MAX_PLAUSIBLE_SWAP_VOLUME_USD = 1e11;
+
+function isPlausibleUsd(value: number, max: number): boolean {
+  return Number.isFinite(value) && value >= 0 && value < max;
+}
+
 /** How often a dormant market (see `isDormant`) is still refreshed — every Nth tick. */
 export const DORMANT_REFRESH_EVERY_N_TICKS = 10;
 
@@ -278,7 +289,12 @@ export class MarketIngestionService {
           stillUnresolved.push(market);
           continue;
         }
-        const ok = await this.refreshOneMarket(market, resolvedUsdPrices);
+        let ok = false;
+        try {
+          ok = await this.refreshOneMarket(market, resolvedUsdPrices);
+        } catch (error) {
+          this.logger.error({ err: error, pool: market.pairAddress }, 'Price refresh failed for one market — continuing with the rest');
+        }
         if (ok) updated += 1;
         else skipped += 1;
         await sleep(RPC_CALL_DELAY_MS);
@@ -337,6 +353,10 @@ export class MarketIngestionService {
       return false;
     }
     const baseUsd = quotePerBase * quoteUsd;
+    if (!isPlausibleUsd(baseUsd, MAX_PLAUSIBLE_PRICE_USD)) {
+      this.logger.warn({ pool: market.pairAddress }, 'Skipped price refresh: implausible USD price (a near-empty pool at an extreme tick)');
+      return false;
+    }
     resolvedUsdPrices.set(market.token.contractAddress.toLowerCase(), baseUsd);
 
     const [balance0, balance1] = await Promise.all([
@@ -400,7 +420,13 @@ export class MarketIngestionService {
         );
         continue;
       }
-      await this.ingestSwapsForMarket(market, quoteUsd);
+      // One market's failure (bad data, a DB error) is logged and its cursor left where it
+      // was — never allowed to abort the tick for every market after it.
+      try {
+        await this.ingestSwapsForMarket(market, quoteUsd);
+      } catch (error) {
+        this.logger.error({ err: error, pool: market.pairAddress }, 'Swap ingestion failed for one market — cursor left unadvanced, continuing with the rest');
+      }
       await sleep(RPC_CALL_DELAY_MS);
     }
   }
@@ -461,6 +487,7 @@ export class MarketIngestionService {
         // never overwritten for a wallet we've already seen in an earlier tick (see the
         // skipDuplicates upsert below).
         const walletFirstSeen = new Map<string, Date>();
+        let implausibleSkipped = 0;
         for (const event of events) {
           const key = event.blockNumber.toString();
           let blockTimestamp = blockTimestampCache.get(key);
@@ -483,6 +510,10 @@ export class MarketIngestionService {
 
           const priceUsd = priceInQuote * quoteUsdPrice;
           const volumeUsd = Math.abs(baseAmount) * priceUsd;
+          if (!isPlausibleUsd(priceUsd, MAX_PLAUSIBLE_PRICE_USD) || !isPlausibleUsd(volumeUsd, MAX_PLAUSIBLE_SWAP_VOLUME_USD)) {
+            implausibleSkipped += 1;
+            continue; // an artifact, not a trade — see MAX_PLAUSIBLE_PRICE_USD
+          }
           // See the traderAddress/senderAddress comments on the Swap model in
           // schema.prisma — recipient is the trader-identity heuristic, sender is kept for
           // audit only. Null (not fabricated) when the log's indexed topic failed to decode.
@@ -513,6 +544,10 @@ export class MarketIngestionService {
 
           if (!minTs || blockTimestamp < minTs) minTs = blockTimestamp;
           if (!maxTs || blockTimestamp > maxTs) maxTs = blockTimestamp;
+        }
+
+        if (implausibleSkipped > 0) {
+          this.logger.warn({ pool: market.pairAddress, skipped: implausibleSkipped }, 'Skipped swaps with implausible USD values (pricing artifacts, not trades)');
         }
 
         // Persist first, advance the cursor only once that succeeds — a thrown error here

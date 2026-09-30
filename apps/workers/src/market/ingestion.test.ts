@@ -405,6 +405,39 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     });
   });
 
+  it('skips a swap priced at an extreme tick (an artifact that would overflow the DB) and still advances the cursor', async () => {
+    const market = buildMarket(100n);
+    mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
+    stubEmptyRollupState();
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents').mockResolvedValue([{ ...FAKE_SWAP_EVENT, sqrtPriceX96: 2n ** 150n }]);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
+
+    await newService().ingestSwaps();
+
+    expect(mockPrisma.swap.createMany).not.toHaveBeenCalled();
+    expect(fakeLogger.warn).toHaveBeenCalledWith(expect.objectContaining({ pool: PAIR_ADDRESS, skipped: 1 }), expect.stringContaining('implausible'));
+    expect(mockPrisma.ingestionCursor.update).toHaveBeenCalledWith({ where: { tokenMarketId: market.id }, data: { lastProcessedBlock: 103n } });
+  });
+
+  it('keeps ingesting the other markets when one market throws', async () => {
+    const broken = buildMarket(100n);
+    const healthy = { ...buildMarket(100n), id: 'market-2' };
+    mockPrisma.tokenMarket.findMany.mockResolvedValue([broken, healthy]);
+    stubEmptyRollupState();
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getPoolState').mockResolvedValue(POOL_STATE);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getLatestBlockNumber').mockResolvedValue(103n);
+    vi.spyOn(UniswapV3PoolReader.prototype, 'getSwapEvents')
+      .mockRejectedValueOnce(new Error('numeric field overflow'))
+      .mockResolvedValueOnce([]);
+
+    await newService().ingestSwaps();
+
+    expect(fakeLogger.error).toHaveBeenCalledWith(expect.objectContaining({ pool: PAIR_ADDRESS }), expect.stringContaining('continuing with the rest'));
+    expect(mockPrisma.ingestionCursor.update).toHaveBeenCalledWith({ where: { tokenMarketId: 'market-2' }, data: { lastProcessedBlock: 103n } });
+  });
+
   it('publishes a new-activity event to Redis after persisting new swaps', async () => {
     const market = buildMarket(100n);
     mockPrisma.tokenMarket.findMany.mockResolvedValue([market]);
@@ -519,7 +552,10 @@ describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
     vi.spyOn(UniswapV3PoolReader.prototype, 'getBlockTimestamp').mockResolvedValue(new Date());
     mockPrisma.swap.createMany.mockRejectedValue(new Error('DB write failed'));
 
-    await expect(newService().ingestSwaps()).rejects.toThrow('DB write failed');
+    // Logged and contained to this market (see "keeps ingesting the other markets") — the
+    // cursor staying put is what guarantees the range is retried.
+    await expect(newService().ingestSwaps()).resolves.toBeUndefined();
+    expect(fakeLogger.error).toHaveBeenCalledWith(expect.objectContaining({ pool: PAIR_ADDRESS }), expect.stringContaining('cursor left unadvanced'));
     expect(mockPrisma.ingestionCursor.update).not.toHaveBeenCalled();
   });
 });
