@@ -66,6 +66,14 @@ export function pricePrecision(candles: Candle[]): { precision: number; minMove:
   return { precision, minMove: Number((10 ** -precision).toFixed(precision)) };
 }
 
+/** The canvas can't resolve a CSS variable in `ctx.font` ("var(--font-jetbrains-mono)" made
+ *  every chart label fall back to 10px sans-serif) — read the variable's actual font family
+ *  (next/font's generated name) first. */
+function chartFontFamily(element: HTMLElement): string {
+  const family = getComputedStyle(element).getPropertyValue('--font-jetbrains-mono').trim();
+  return family ? `${family}, ui-monospace, monospace` : 'ui-monospace, monospace';
+}
+
 function toSeriesData(candles: Candle[]) {
   return candles.map((c) => ({
     time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp,
@@ -81,6 +89,10 @@ function toSeriesData(candles: Candle[]) {
  * canvas chart is initializing (and gives older/embedded browsers a usable visual if their
  * canvas implementation cannot paint the chart). It uses the same real OHLC values as the
  * interactive chart underneath; it is never a mock fallback or a generated trend line.
+ *
+ * Rendered only until the canvas chart has drawn (`canvasReady` in KambyChart) — it used to
+ * stay on top permanently, so every chart showed its candles twice, with this layer's own
+ * volume bars and "0.0000" axis labels spilling over the real price axis (found 2026-09-30).
  */
 function CandlePreview({ candles, trades }: { candles: Candle[]; trades: SocialActivity[] }) {
   const width = 1000;
@@ -232,6 +244,7 @@ export function KambyChart({
   const pickerRef = useRef<HTMLDivElement>(null);
   const [activeIndicators, setActiveIndicators] = useState<Set<IndicatorId>>(new Set());
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -255,23 +268,29 @@ export function KambyChart({
     const accent = readColor('--kamby-accent', container);
     const accentInk = readColor('--kamby-accent-ink', container);
 
-    const chart: IChartApi = createChart(container, {
-      layout: {
-        background: { type: ColorType.Solid, color: bg },
-        textColor: ink,
-        fontFamily: 'var(--font-jetbrains-mono), ui-monospace, monospace',
-        fontSize: 11,
-      },
-      grid: {
-        vertLines: { color: line },
-        horzLines: { color: line },
-      },
-      rightPriceScale: { borderColor: line },
-      timeScale: { borderColor: line, timeVisible: true },
-      crosshair: { vertLine: { color: line }, horzLine: { color: line } },
-      width: container.clientWidth,
-      height: container.clientHeight,
-    });
+    let chart: IChartApi;
+    try {
+      chart = createChart(container, {
+        layout: {
+          background: { type: ColorType.Solid, color: bg },
+          textColor: ink,
+          fontFamily: chartFontFamily(container),
+          fontSize: 11,
+        },
+        grid: {
+          vertLines: { color: line },
+          horzLines: { color: line },
+        },
+        rightPriceScale: { borderColor: line },
+        timeScale: { borderColor: line, timeVisible: true },
+        crosshair: { vertLine: { color: line }, horzLine: { color: line } },
+        width: container.clientWidth,
+        height: container.clientHeight,
+      });
+    } catch {
+      // No usable canvas (old/embedded browsers) — CandlePreview stays up as the chart.
+      return;
+    }
 
     const priceFormat = { type: 'price' as const, ...pricePrecision(candles) };
     const series = chart.addSeries(CandlestickSeries, {
@@ -288,6 +307,7 @@ export function KambyChart({
     });
     series.setData(toSeriesData(candles));
     chart.timeScale().fitContent();
+    setCanvasReady(true);
 
     // See chartTraderMarkers.ts's own doc comment for why this needs the primitive API
     // rather than the built-in setMarkers() — avatar images, not just colored shapes.
@@ -399,6 +419,7 @@ export function KambyChart({
       cancelAnimationFrame(fitFrame);
       resizeObserver.disconnect();
       chart.remove();
+      setCanvasReady(false);
     };
   }, [candles, trades, activeIndicators]);
 
@@ -423,7 +444,7 @@ export function KambyChart({
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" />
-      <CandlePreview candles={candles} trades={trades} />
+      {!canvasReady && <CandlePreview candles={candles} trades={trades} />}
       <div ref={pickerRef} className="absolute right-2 top-2 z-10">
         <button
           type="button"

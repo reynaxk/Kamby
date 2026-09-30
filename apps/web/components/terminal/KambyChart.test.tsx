@@ -158,3 +158,20 @@ describe('pricePrecision', () => {
     expect(pricePrecision([candle(0), candle(Number.NaN)]).precision).toBe(2);
   });
 });
+
+describe('KambyChart — preview layer', () => {
+  it('removes the SVG preview once the canvas chart has drawn, so candles are never shown twice', () => {
+    const { container } = render(<KambyChart candles={candles(10)} />);
+    // The canvas chart (mocked) is created synchronously in the mount effect.
+    expect(container.querySelector('svg[aria-hidden="true"].absolute')).toBeNull();
+  });
+
+  it('keeps the preview as the fallback when the canvas chart cannot be created', async () => {
+    const { createChart } = await import('lightweight-charts');
+    vi.mocked(createChart).mockImplementationOnce(() => {
+      throw new Error('no canvas');
+    });
+    const { container } = render(<KambyChart candles={candles(10)} />);
+    expect(container.querySelector('svg.absolute')).not.toBeNull();
+  });
+});
