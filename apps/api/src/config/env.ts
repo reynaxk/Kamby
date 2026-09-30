@@ -21,6 +21,14 @@ export const EnvSchema = z.object({
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 
+  /** Emergency switch: refuse every new quote (see trading/trading-paused.guard.ts). Parsed
+   *  strictly — only the literal "true" pauses — unlike the z.coerce.boolean() flags, where
+   *  the string "false" would count as true. */
+  TRADING_PAUSED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+
   /** Sentry project DSN — unset keeps error reporting off (see observability/error-reporting.ts). */
   SENTRY_DSN: z.string().url('SENTRY_DSN must be a valid URL').optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),

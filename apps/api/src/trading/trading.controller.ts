@@ -13,6 +13,7 @@ import { SubmitTransactionDto } from './dto/submit-transaction.dto';
 import { QuoteService } from './quote.service';
 import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
 import { TransactionService } from './transaction.service';
+import { TradingPausedGuard } from './trading-paused.guard';
 
 /**
  * Every endpoint here requires a session, and every mutation additionally verifies the
@@ -34,6 +35,7 @@ export class TradingController {
   // rapid re-quoting as a user adjusts an amount.
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Get('quote')
+  @UseGuards(TradingPausedGuard)
   async getQuote(@Query() query: QuoteQueryDto, @CurrentUser() user: SessionUser) {
     const chainId = query.chainId ?? DEFAULT_CHAIN_ID;
     const quote = await this.quotes.createQuote({

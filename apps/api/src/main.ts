@@ -54,9 +54,16 @@ async function bootstrap(): Promise<void> {
   // Capacity visibility (2026-09-30): how many Postgres connections every Kamby service holds
   // together vs. the server's own limit — the per-process pools (api 15, workers 5 each) must
   // stay well under it. Informational only; a failure here never affects startup.
+  // Only client backends count against max_connections (background workers such as
+  // Timescale's don't), and superuser_reserved_connections of those slots are held back.
   prisma
-    .$queryRaw<{ max: number; in_use: number }[]>`SELECT current_setting('max_connections')::int AS max, (SELECT count(*)::int FROM pg_stat_activity) AS in_use`
-    .then(([row]) => row && logger.log(`Postgres connections in use: ${row.in_use}/${row.max}`))
+    .$queryRaw<{ max: number; reserved: number; clients: number; background: number }[]>`
+      SELECT current_setting('max_connections')::int AS max,
+             current_setting('superuser_reserved_connections')::int AS reserved,
+             count(*) FILTER (WHERE backend_type = 'client backend')::int AS clients,
+             count(*) FILTER (WHERE backend_type <> 'client backend')::int AS background
+      FROM pg_stat_activity`
+    .then(([row]) => row && logger.log(`Postgres connections: ${row.clients} client of ${row.max} max (${row.reserved} reserved for superusers; ${row.background} background processes not counted)`))
     .catch(() => undefined);
 }
 

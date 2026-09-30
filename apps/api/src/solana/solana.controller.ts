@@ -12,6 +12,7 @@ import { GasRelayerService } from './gas-relayer.service';
 import { SolanaQuoteService } from './solana-quote.service';
 import { SolanaTopupService } from './solana-topup.service';
 import { SolanaTransactionService } from './solana-transaction.service';
+import { TradingPausedGuard } from '../trading/trading-paused.guard';
 
 /**
  * Solana's counterpart to TradingController — see that file's own doc comment for the
@@ -34,6 +35,7 @@ export class SolanaController {
   // aggregator calls are expensive and rate-limited upstream.
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('quote')
+  @UseGuards(TradingPausedGuard)
   getQuote(@Body() body: SolanaQuoteDto, @CurrentUser() user: SessionUser) {
     return this.quotes.createQuote({
       userId: user.id,
@@ -66,6 +68,7 @@ export class SolanaController {
    */
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('quote/sponsored')
+  @UseGuards(TradingPausedGuard)
   getSponsoredQuote(@Body() body: SolanaQuoteDto, @CurrentUser() user: SessionUser) {
     return this.quotes.createSponsoredQuote({
       userId: user.id,

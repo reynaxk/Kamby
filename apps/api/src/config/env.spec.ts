@@ -22,6 +22,13 @@ describe('API env schema', () => {
     PLATFORM_FEE_RECIPIENT_ADDRESS: '0x1234567890123456789012345678901234567890',
   };
 
+  it('parses TRADING_PAUSED strictly: off by default, off for "false", on only for "true", and rejects anything else', () => {
+    expect(parseEnv(ValidatedEnvSchema, validBase).TRADING_PAUSED).toBe(false);
+    expect(parseEnv(ValidatedEnvSchema, { ...validBase, TRADING_PAUSED: 'false' }).TRADING_PAUSED).toBe(false);
+    expect(parseEnv(ValidatedEnvSchema, { ...validBase, TRADING_PAUSED: 'true' }).TRADING_PAUSED).toBe(true);
+    expect(() => parseEnv(ValidatedEnvSchema, { ...validBase, TRADING_PAUSED: 'yes' })).toThrow();
+  });
+
   it('accepts a minimal valid configuration and fills in defaults', () => {
     const env = parseEnv(ValidatedEnvSchema, validBase);
     expect(env.PORT).toBe(4000);
