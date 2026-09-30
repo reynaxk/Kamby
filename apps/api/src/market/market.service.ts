@@ -40,6 +40,14 @@ const ACTIVITY_INCLUDE = {
 const TOKEN_TRADER_LOOKBACK_HOURS = 24;
 /** How many of a market's newest swaps are scanned for its most recent distinct traders. */
 const RECENT_TRADER_SWAP_SCAN = 500;
+/** Cached entries outlive their freshness window by this factor, served stale while a
+ *  background refresh runs — see MarketService#cached. */
+const STALE_RETENTION_MULTIPLIER = 30;
+interface CacheEntry<T> {
+  v: T;
+  /** When the value was computed (epoch ms). */
+  at: number;
+}
 /** "Recent large trades" look back this far — bounded so a market with none never scans its whole history. */
 const LARGE_TRADE_LOOKBACK_DAYS = 7;
 
@@ -81,27 +89,53 @@ export class MarketService {
     @Optional() @Inject(REDIS_CLIENT) private readonly redis?: Redis,
   ) {}
 
-  /** Cache-aside over Redis — same shape as LeaderboardService#cached, which is why the
-   *  leaderboard stayed at ~10-80ms under the 40-request burst that timed these endpoints out
-   *  (2026-09-29). Only for responses identical for every viewer. Redis failures fall through
-   *  to Postgres; errors (e.g. NotFound) are never cached. */
+  /** Cache-aside over Redis with stale-while-revalidate — same origin as
+   *  LeaderboardService#cached (the leaderboard stayed at ~10-80ms under the 40-request burst
+   *  that timed these endpoints out, 2026-09-29). Only for responses identical for every viewer.
+   *
+   *  An entry is fresh for `ttlSeconds`; after that it is still served *immediately* while one
+   *  background refresh recomputes it (added 2026-09-30: the token-traders panel for the
+   *  busiest pools, e.g. XDP at ~1,400 swaps a minute, takes ~8s to compute cold even with
+   *  bounded queries, and every viewer used to wait for it each time the entry expired).
+   *  Entries are kept STALE_RETENTION_MULTIPLIER x longer than their freshness window, so only
+   *  the first request after a long quiet period or a cold start ever waits.
+   *
+   *  Redis failures fall through to Postgres; errors (e.g. NotFound) are never cached, and a
+   *  failed background refresh keeps serving the last good value. */
   private async cached<T>(key: string, ttlSeconds: number, compute: () => Promise<T>): Promise<T> {
     if (!this.redis) return compute();
     const redisKey = `market:${key}`;
+    let stale: { value: T } | null = null;
     try {
       const hit = await this.redis.get(redisKey);
-      if (hit !== null) return JSON.parse(hit) as T;
+      if (hit !== null) {
+        const entry = JSON.parse(hit) as Partial<CacheEntry<T>>;
+        if (typeof entry.at === 'number' && 'v' in entry) {
+          if (Date.now() - entry.at < ttlSeconds * 1000) return entry.v as T;
+          stale = { value: entry.v as T };
+        }
+      }
     } catch (error) {
       this.logger.warn(`Market cache read failed for ${redisKey} — computing fresh: ${String(error)}`);
     }
 
+    const refresh = this.refreshEntry(redisKey, ttlSeconds, compute);
+    if (stale) {
+      refresh.catch((error: unknown) => this.logger.warn(`Background refresh failed for ${redisKey} — still serving the last value: ${String(error)}`));
+      return stale.value;
+    }
+    return refresh;
+  }
+
+  /** One recompute per key at a time (a burst of identical misses runs one query, not N). */
+  private refreshEntry<T>(redisKey: string, ttlSeconds: number, compute: () => Promise<T>): Promise<T> {
     const pending = this.inFlight.get(redisKey) as Promise<T> | undefined;
     if (pending) return pending;
-
     const run = (async () => {
       const value = await compute();
       try {
-        await this.redis!.set(redisKey, JSON.stringify(value), 'EX', ttlSeconds);
+        const entry: CacheEntry<T> = { v: value, at: Date.now() };
+        await this.redis!.set(redisKey, JSON.stringify(entry), 'EX', ttlSeconds * STALE_RETENTION_MULTIPLIER);
       } catch (error) {
         this.logger.warn(`Market cache write failed for ${redisKey}: ${String(error)}`);
       }

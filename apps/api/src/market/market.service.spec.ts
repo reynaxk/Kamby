@@ -532,7 +532,47 @@ describe('MarketService — Redis cache (2026-09-29 launch-load fix)', () => {
     const second = await service.discover({ sort: 'score', limit: 20 });
     expect(second).toEqual(first);
     expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
-    expect(redis.set).toHaveBeenCalledWith('market:discover:score:20:', expect.any(String), 'EX', 10);
+    // Fresh for 10s, kept 30x longer so it can be served stale while refreshing.
+    expect(redis.set).toHaveBeenCalledWith('market:discover:score:20:', expect.any(String), 'EX', 300);
+  });
+
+  it('serves a stale entry immediately and refreshes it in the background, instead of making the viewer wait', async () => {
+    const redis = fakeRedis();
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
+    const staleValue = [{ symbol: 'STALE' }];
+    redis.store.set('market:discover:score:20:', JSON.stringify({ v: staleValue, at: Date.now() - 60_000 }));
+
+    const result = await service.discover({ sort: 'score', limit: 20 });
+
+    expect(result).toEqual(staleValue); // returned without waiting on Postgres
+    await new Promise((r) => setImmediate(r));
+    await new Promise((r) => setImmediate(r));
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1); // the background refresh ran
+    const refreshed = JSON.parse(redis.store.get('market:discover:score:20:')!);
+    expect(refreshed.v).not.toEqual(staleValue);
+  });
+
+  it('keeps serving the last good value when a background refresh fails', async () => {
+    const redis = fakeRedis();
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
+    const staleValue = [{ symbol: 'LASTGOOD' }];
+    redis.store.set('market:discover:score:20:', JSON.stringify({ v: staleValue, at: Date.now() - 60_000 }));
+    (mockedPrisma.tokenMarket.findMany as jest.Mock).mockRejectedValueOnce(new Error('db down'));
+
+    await expect(service.discover({ sort: 'score', limit: 20 })).resolves.toEqual(staleValue);
+    await new Promise((r) => setImmediate(r));
+    expect(JSON.parse(redis.store.get('market:discover:score:20:')!).v).toEqual(staleValue);
+  });
+
+  it('treats an entry in the old (pre-envelope) cache format as a miss', async () => {
+    const redis = fakeRedis();
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
+    redis.store.set('market:discover:score:20:', JSON.stringify([{ symbol: 'OLDFORMAT' }]));
+
+    const result = await service.discover({ sort: 'score', limit: 20 });
+
+    expect(result).not.toEqual([{ symbol: 'OLDFORMAT' }]);
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('runs one query for a burst of identical concurrent misses, not one each', async () => {

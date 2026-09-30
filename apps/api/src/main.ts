@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import { prisma } from '@kamby/db';
 import { AppModule } from './app.module';
 import type { Env } from './config/env';
 import { initErrorReporting } from './observability/error-reporting';
@@ -49,6 +50,14 @@ async function bootstrap(): Promise<void> {
   const port = config.get('PORT', { infer: true });
   await app.listen(port, '0.0.0.0');
   logger.log(`API listening on port ${port} (${config.get('NODE_ENV', { infer: true })})`);
+
+  // Capacity visibility (2026-09-30): how many Postgres connections every Kamby service holds
+  // together vs. the server's own limit — the per-process pools (api 15, workers 5 each) must
+  // stay well under it. Informational only; a failure here never affects startup.
+  prisma
+    .$queryRaw<{ max: number; in_use: number }[]>`SELECT current_setting('max_connections')::int AS max, (SELECT count(*)::int FROM pg_stat_activity) AS in_use`
+    .then(([row]) => row && logger.log(`Postgres connections in use: ${row.in_use}/${row.max}`))
+    .catch(() => undefined);
 }
 
 bootstrap();
