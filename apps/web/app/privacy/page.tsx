@@ -3,7 +3,11 @@ import { LegalPage } from '@/components/legal/LegalPage';
 import { PrivacyContent } from '@/components/legal/PrivacyContent';
 import { LEGAL_DETAILS_CONFIRMED } from '@/lib/legal';
 
-export const metadata = { title: 'Privacy Policy — Kamby' };
+// While unpublished, the not-found screen below renders under this route — don't let its
+// title (or a crawler) treat it as the real document.
+export const metadata = LEGAL_DETAILS_CONFIRMED
+  ? { title: 'Privacy Policy — Kamby' }
+  : { title: 'Page not found — Kamby', robots: { index: false, follow: false } };
 
 export default function Page() {
   // Not published until the operator details in lib/legal.ts are real — see its doc comment.
