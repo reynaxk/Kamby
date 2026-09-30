@@ -433,6 +433,15 @@ describe('MarketService — discover/search', () => {
       expect(result[0]).not.toHaveProperty('discoveryScore');
     });
 
+    it('hides a near-empty pool from a name search, but still returns it for its exact address', async () => {
+      const dust = fakeDiscoverableRow({ liquidityUsd: fakeDecimal(3) });
+      (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([dust]);
+      (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([]);
+
+      expect(await service.search({ q: 'foo', limit: 10 })).toEqual([]);
+      expect(await service.search({ q: TOKEN_ADDRESS, limit: 10 })).toEqual([expect.objectContaining({ tokenAddress: TOKEN_ADDRESS })]);
+    });
+
     it('merges matching Solana rows in too, deliberately not chain-scoped — same reasoning as EVM', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([]);
       (mockedPrisma.solanaTokenMarket.findMany as jest.Mock).mockResolvedValue([fakeSolanaRow()]);

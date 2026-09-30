@@ -6,6 +6,7 @@ import type { SolanaTokenMarket } from '@kamby/db';
 import {
   CandleSchema,
   computeDiscoveryScore,
+  DISCOVERY_RANKING,
   identifierForChainId,
   LARGE_TRADE_USD_THRESHOLD,
   type Candle,
@@ -442,8 +443,12 @@ export class MarketService {
     const summaries = [...evmRows.map((row) => toMarketSummary(row)), ...solanaRows.map((row) => toSolanaMarketSummary(row))];
     summaries.sort((a, b) => numDesc(a.liquidityUsd, b.liquidityUsd));
     // An exact-address search is someone asking for one specific token — never hide it.
+    // A name search gets the same bar as Discover: no lookalikes, and nothing below
+    // Discover's liquidity minimum (a pool holding a few dollars isn't a tradeable market).
     const isAddressLookup = EVM_ADDRESS_PATTERN.test(query.q) || SOLANA_MINT_PATTERN.test(query.q);
-    return (isAddressLookup ? summaries : hideLookalikes(summaries)).slice(0, query.limit);
+    if (isAddressLookup) return summaries.slice(0, query.limit);
+    const liquid = summaries.filter((m) => m.liquidityUsd !== null && m.liquidityUsd >= DISCOVERY_RANKING.minLiquidityUsd);
+    return hideLookalikes(liquid).slice(0, query.limit);
   }
 }
 
