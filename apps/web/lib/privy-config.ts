@@ -97,12 +97,15 @@ export const privyConfig = {
     accentColor: '#22C55E' as const,
     logo: 'https://kambesh.com/icon.png',
   },
+  // 'off': Kamby creates embedded wallets itself, through one page-wide queue
+  // (lib/embedded-wallet-creation.ts) — the app-side dashboard setting is "off" anyway, and a
+  // second, SDK-initiated creation racing Kamby's own was one way sign-in could hang.
   embeddedWallets: {
     solana: {
-      createOnLogin: 'users-without-wallets' as const,
+      createOnLogin: 'off' as const,
     },
     ethereum: {
-      createOnLogin: 'users-without-wallets' as const,
+      createOnLogin: 'off' as const,
     },
     showWalletUIs: false,
   },

@@ -6,6 +6,7 @@ import type { SolanaWalletVerificationStatus } from '@/hooks/useSolanaWalletVeri
 import type * as SolAmountInputModule from './SolAmountInput';
 import { SolanaTradePanel } from './SolanaTradePanel';
 import type * as UsdPresetAmountInputModule from './UsdPresetAmountInput';
+import { resetEmbeddedWalletCreation } from '@/lib/embedded-wallet-creation';
 
 const WALLET_ADDRESS = '8nTncbaJ8gc8ooDWRFt9TKjog7743iHC43iEcesAbAee';
 
@@ -170,6 +171,7 @@ async function fillAmountAndWaitForSponsoredQuote() {
 
 describe('SolanaTradePanel', () => {
   beforeEach(() => {
+    resetEmbeddedWalletCreation();
     vi.clearAllMocks();
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: loginMock });
     useWalletsMock.mockReturnValue({ wallets: [{ address: WALLET_ADDRESS }] });

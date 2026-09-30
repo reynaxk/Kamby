@@ -7,6 +7,7 @@ import { CHAIN_REGISTRY, slugForChainId } from '@kamby/domain';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { ProfileMenu } from '@/components/account/ProfileMenu';
+import { createEmbeddedWalletOnce, WALLET_SETUP_SLOW_MS } from '@/lib/embedded-wallet-creation';
 
 /**
  * Phase 3 — see docs/TRADING.md#wallet-connectivity. Exposes exactly what the trading flow
@@ -91,22 +92,29 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
   const { wallets, ready: walletsReady } = useWallets();
   const { createWallet } = useCreateWallet();
   const [walletSetupError, setWalletSetupError] = useState<string | null>(null);
-  const creatingWalletRef = useRef(false);
+  const [retryTick, setRetryTick] = useState(0);
+  const [setupSlow, setSetupSlow] = useState(false);
   const hasAttemptedSwitchRef = useRef(false);
+  // Every mounted instance runs this, so creation goes through the page-wide queue — see
+  // lib/embedded-wallet-creation.ts for the hang that concurrent calls caused.
   useEffect(() => {
-    if (!ready || !authenticated || !walletsReady) return;
-    if (wallets.length > 0 || creatingWalletRef.current) return;
-
-    creatingWalletRef.current = true;
+    if (!ready || !authenticated || !walletsReady || wallets.length > 0) return;
+    let cancelled = false;
     setWalletSetupError(null);
-    createWallet()
-      .catch((error: unknown) => {
-        setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up wallet');
-      })
-      .finally(() => {
-        creatingWalletRef.current = false;
-      });
-  }, [ready, authenticated, walletsReady, wallets.length, createWallet]);
+    createEmbeddedWalletOnce('ethereum', () => createWallet()).catch((error: unknown) => {
+      if (!cancelled) setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up wallet');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, authenticated, walletsReady, wallets.length, createWallet, retryTick]);
+
+  useEffect(() => {
+    setSetupSlow(false);
+    if (!ready || !authenticated || isConnected) return;
+    const timer = setTimeout(() => setSetupSlow(true), WALLET_SETUP_SLOW_MS);
+    return () => clearTimeout(timer);
+  }, [ready, authenticated, isConnected]);
 
   useEffect(() => {
     if (!isConnected || chainId === expectedChainId) {
@@ -130,17 +138,24 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
         <Button type="button" variant="primary" disabled={!ready || authenticated} onClick={() => login()}>
           {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
         </Button>
-        {walletSetupError && (
+        {walletSetupError ? (
           <button
             type="button"
             onClick={() => {
               setWalletSetupError(null);
-              creatingWalletRef.current = false;
+              setRetryTick((t) => t + 1);
             }}
             className="font-body text-xs text-down underline-offset-2 hover:underline"
           >
             {walletSetupError} — tap to retry
           </button>
+        ) : (
+          setupSlow && (
+            // The wallet may already exist but not be connected here yet — a reload picks it up.
+            <button type="button" onClick={() => window.location.reload()} className="font-body text-xs text-ink-600 underline-offset-2 hover:underline">
+              Taking longer than usual — tap to reload
+            </button>
+          )
         )}
       </div>
     );

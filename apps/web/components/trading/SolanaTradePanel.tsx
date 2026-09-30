@@ -28,6 +28,7 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
+import { createEmbeddedWalletOnce } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
 
 export interface SolanaTradePanelProps {
@@ -119,7 +120,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   useEffect(() => {
     if (!ready || !authenticated || !walletsReady || wallets.length > 0 || creatingWalletRef.current || walletSetupError) return;
     creatingWalletRef.current = true;
-    createWallet()
+    createEmbeddedWalletOnce('solana', () => createWallet())
       .catch((error: unknown) => setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up your Solana wallet'))
       .finally(() => {
         creatingWalletRef.current = false;

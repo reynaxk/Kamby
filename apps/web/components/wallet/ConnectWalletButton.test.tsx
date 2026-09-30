@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConnectWalletButton } from './ConnectWalletButton';
+import { resetEmbeddedWalletCreation } from '@/lib/embedded-wallet-creation';
 
 const { usePrivyMock, useWalletsMock, useCreateWalletMock, createWalletMock, useAccount, useSwitchChain } = vi.hoisted(() => ({
   usePrivyMock: vi.fn(),
@@ -22,7 +23,10 @@ vi.mock('wagmi/chains', () => ({ base: { id: 8453 } }));
 const { fetchMyProfileMock } = vi.hoisted(() => ({ fetchMyProfileMock: vi.fn() }));
 vi.mock('@/lib/profile-client', () => ({ fetchMyProfile: fetchMyProfileMock }));
 
-beforeEach(() => fetchMyProfileMock.mockResolvedValue({ username: null, avatarUrl: null }));
+beforeEach(() => {
+  fetchMyProfileMock.mockResolvedValue({ username: null, avatarUrl: null });
+  resetEmbeddedWalletCreation();
+});
 afterEach(() => vi.clearAllMocks());
 
 const ADDRESS = '0x1234567890123456789012345678901234567890';
