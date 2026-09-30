@@ -175,7 +175,7 @@ describe('MarketIngestionService.seed — RPC budget', () => {
 
     expect(getPoolState).not.toHaveBeenCalled();
     expect(fakeLogger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ seeded: 12 }),
+      expect.objectContaining({ seeded: 18 }),
       'Market seeding complete',
     );
   });
@@ -194,7 +194,9 @@ describe('MarketIngestionService.seed — RPC budget', () => {
       expect.objectContaining({ seeded: 0 }),
       'Market seeding complete',
     );
-  });
+    // Real RPC_CALL_DELAY_MS between every seed-list market (18 x 350ms) — longer than the
+    // default 5s test timeout.
+  }, 20_000);
 });
 
 describe('MarketIngestionService.backfillTokenLogos — RPC-free logo backfill', () => {

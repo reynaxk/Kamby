@@ -142,6 +142,41 @@ export const BASE_SEED_MARKETS: SeedMarket[] = [
     poolAddress: '0xEdc625B74537eE3a10874f53D170E9c17A906B9c',
     baseTokenAddress: '0x1111111111166b7FE7bd91427724B487980aFc69',
     dex: 'uniswap-v3',
+  },  {
+    // AERO/WETH — added 2026-09-30. $1.44M liquidity. Aerodrome's own token; its deepest pools are on Aerodrome (unreadable here), but this Uniswap V3 pool is independently deep. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official Uniswap V3 factory on Base, initialized).
+    poolAddress: '0x3d5D143381916280ff91407FeBEB52f2b60f33Cf',
+    baseTokenAddress: '0x940181a94A35A4569E4529A3CDfB74e38FD98631',
+    dex: 'uniswap-v3',
+  },
+  {
+    // VVV/USDC — added 2026-09-30. $682K liquidity (Venice). Quoted in USDC, no ordering dependency. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official Uniswap V3 factory on Base, initialized).
+    poolAddress: '0x67A11022B7B6ed66f81233F6C8Ed6e48F7826530',
+    baseTokenAddress: '0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf',
+    dex: 'uniswap-v3',
+  },
+  {
+    // UNI/WETH — added 2026-09-30. $356K liquidity (Uniswap, bridged). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official Uniswap V3 factory on Base, initialized).
+    poolAddress: '0xAb365f161Dd501473a1ff0D2ef0dCE94E7398839',
+    baseTokenAddress: '0xc3De830EA07524a0761646a6a4e4be0e114a3C83',
+    dex: 'uniswap-v3',
+  },
+  {
+    // AIXBT/USDC — added 2026-09-30. $346K liquidity. Quoted in USDC, no ordering dependency. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official Uniswap V3 factory on Base, initialized).
+    poolAddress: '0xf1Fdc83c3A336bdbDC9fB06e318B08EadDC82FF4',
+    baseTokenAddress: '0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825',
+    dex: 'uniswap-v3',
+  },
+  {
+    // DRB/WETH — added 2026-09-30. $1.59M liquidity (DebtReliefBot). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official Uniswap V3 factory on Base, initialized).
+    poolAddress: '0x5116773e18A9C7bB03EBB961b38678E45E238923',
+    baseTokenAddress: '0x3ec2156D4c0A9CBdAB4a016633b7BcF6a8d68Ea2',
+    dex: 'uniswap-v3',
+  },
+  {
+    // DOGINME/WETH — added 2026-09-30. $1.33M liquidity. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official Uniswap V3 factory on Base, initialized).
+    poolAddress: '0xADE9BcD4b968EE26Bed102dd43A55f6A8c2416df',
+    baseTokenAddress: '0x6921B130D297cc43754afba22e5EAc0FBf8Db75b',
+    dex: 'uniswap-v3',
   },
 ];
 
@@ -210,6 +245,89 @@ export const BNB_SEED_MARKETS: SeedMarket[] = [
     // token1 = SFP, initialized).
     poolAddress: '0x64ebB904e169cB94e9788FcB68283B4C894ED881',
     baseTokenAddress: '0xD41FDb03Ba84762dD66a0af1a6C8540FF1ba5dfb',
+    dex: 'pancakeswap-v3',
+  },  {
+    // BTCB/WBNB — added 2026-09-30. $28.4M liquidity (Binance-Peg BTC). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x6bbc40579ad1BBD243895cA0ACB086BB6300d636',
+    baseTokenAddress: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // ETH/WBNB — added 2026-09-30. $17.1M liquidity (Binance-Peg ETH). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0xD0e226f674bBf064f54aB47F42473fF80DB98CBA',
+    baseTokenAddress: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // ASTER/WBNB — added 2026-09-30. $1.18M liquidity. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0xb040ea24a4Ef35a3ED400B0fF26D8B6F30DEEcaD',
+    baseTokenAddress: '0x000Ae314E2A2172a039B26378814C252734f556A',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // DOGE/WBNB — added 2026-09-30. $656K liquidity (Binance-Peg DOGE). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0xce6160bB594fC055c943F59De92ceE30b8c6B32c',
+    baseTokenAddress: '0xbA2aE424d960c26247Dd6c32edC70B295c744C43',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // MUBARAK/WBNB — added 2026-09-30. $2.95M liquidity. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x90A54475D512B8f3852351611c38faD30a513491',
+    baseTokenAddress: '0x5C85D6C6825aB4032337F11Ee92a72DF936b46F6',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // BROCCOLI/WBNB — added 2026-09-30. $2.49M liquidity ("CZ'S DOG"). Several BROCCOLI tokens exist; this is the deepest, and the only one listed. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0xA5067360b13Fc7A2685Dc82dcD1bF2B4B8D7868B',
+    baseTokenAddress: '0x6d5AD1592ed9D6D1dF9b93c793AB759573Ed6714',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // B2/WBNB — added 2026-09-30. $851K liquidity (BSquared). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0xc1A780989734a0e5df875cEbe410748562e1c5e6',
+    baseTokenAddress: '0x783c3f003f172c6Ac5AC700218a357d2D66Ee2a2',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // BANK/WBNB — added 2026-09-30. $587K liquidity (Lorenzo). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0xee6fF918A1f68B5d2FDEcb14b367FA2EB5C6951c',
+    baseTokenAddress: '0x3AeE7602b612de36088F3ffEd8c8f10E86EbF2bF',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // MYX/WBNB — added 2026-09-30. $258K liquidity. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x6eC31Af1Bb9a72aaCEc12E4dED508861b05F4503',
+    baseTokenAddress: '0xD82544bf0dfe8385eF8FA34D67e6e4940CC63e16',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // UNI/WBNB — added 2026-09-30. $182K liquidity (Binance-Peg UNI). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x647D99772863e09f47435782cbb6C96eC4A75f12',
+    baseTokenAddress: '0xBf5140A22578168FD562DCcF235E5D43A02ce9B1',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // DOT/WBNB — added 2026-09-30. $177K liquidity (Binance-Peg DOT). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x62F0546cBcd684F7C394D8549119e072527C41Bc',
+    baseTokenAddress: '0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // AVAX/WBNB — added 2026-09-30. $136K liquidity (Binance-Peg AVAX). token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x1D8B1eD9b3da5d510FD3723e0Dd02476E0d7e781',
+    baseTokenAddress: '0x1CE0c2827e2eF14D5C4f29a091d735A204794041',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // XPL/USDT — added 2026-09-30. $420K liquidity (Plasma). USDT-quoted, so it must stay after the USDT/WBNB entry above. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x50203DF8eFcddBa9755C886F086b9B2D537a15F9',
+    baseTokenAddress: '0x405FBc9004D857903bFD6b3357792D71a50726b0',
+    dex: 'pancakeswap-v3',
+  },
+  {
+    // FORM/USDT — added 2026-09-30. $620K liquidity (Four). USDT-quoted, so it must stay after the USDT/WBNB entry above. token0/token1/factory/slot0 verified directly against this pool contract (factory is the official PancakeSwap V3 factory on BNB Chain, initialized).
+    poolAddress: '0x7Cb113B487e025b3a69537fcA579559433240cb5',
+    baseTokenAddress: '0x5b73A93b4E5e4f1FD27D8b3F8C97D69908b5E284',
     dex: 'pancakeswap-v3',
   },
 ];
