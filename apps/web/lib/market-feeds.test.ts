@@ -43,6 +43,11 @@ describe('applyPumpFunBatch', () => {
     expect(next.trenches.tokens.map((t) => t.mintAddress)).toEqual(['NEW', 'A']);
   });
 
+  it('does not add a new launch whose ticker is already listed (mass-launch spam)', () => {
+    const next = applyPumpFunBatch(state([curve('A', { symbol: 'save' })]), { tokens: [curve('B', { symbol: '$SAVE' })], atIso: '' }, NOW);
+    expect(next.trenches.tokens.map((t) => t.mintAddress)).toEqual(['A']);
+  });
+
   it('keeps Bonding ordered by progress as curves fill', () => {
     const next = applyPumpFunBatch(state([], [curve('X', { graduationProgressPct: 90 }), curve('Y', { graduationProgressPct: 80 })]), { tokens: [curve('Y', { graduationProgressPct: 95 })], atIso: '' }, NOW);
     expect(next.bonding.tokens.map((t) => t.mintAddress)).toEqual(['Y', 'X']);

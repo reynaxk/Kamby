@@ -74,6 +74,7 @@ function upsertBy<T>(list: T[], item: T, key: (t: T) => string): { list: T[]; fo
 }
 
 const byMint = (t: PumpFunTokenSummary) => t.mintAddress;
+const normalizedTicker = (symbol: string | null) => symbol?.trim().replace(/^\$+/, '').toLowerCase() || null;
 
 /** Exported for tests. Folds one Pump.fun live batch into the three tabs it touches. */
 export function applyPumpFunBatch(state: MarketFeedSnapshot, batch: PumpFunLiveBatch, now = Date.now()): MarketFeedSnapshot {
@@ -92,7 +93,11 @@ export function applyPumpFunBatch(state: MarketFeedSnapshot, batch: PumpFunLiveB
     trenches = inTrenches.list;
     const inBonding = upsertBy(bonding, token, byMint);
     bonding = inBonding.list;
-    if (!inTrenches.found && !inBonding.found && now - Date.parse(token.createdAt) < NEW_LAUNCH_WINDOW_MS) {
+    // Same one-per-ticker rule the API applies to Trenches (distinctLaunches), so a wallet
+    // mass-launching one name can't refill the tab between snapshots.
+    const ticker = normalizedTicker(token.symbol);
+    const tickerTaken = ticker !== null && trenches.some((t) => normalizedTicker(t.symbol) === ticker);
+    if (!inTrenches.found && !inBonding.found && !tickerTaken && now - Date.parse(token.createdAt) < NEW_LAUNCH_WINDOW_MS) {
       trenches = [token, ...trenches].slice(0, TRENCHES_MAX);
     }
   }

@@ -79,9 +79,9 @@ export class TokenTrenchesService {
       const rows = await prisma.pumpFunToken.findMany({
         where: { complete: false },
         orderBy: { createdAt: 'desc' },
-        take: limit,
+        take: limit * SPAM_HEADROOM,
       });
-      return rows.map((row) => toPumpFunTokenSummary(row));
+      return distinctLaunches(rows, limit).map((row) => toPumpFunTokenSummary(row));
     });
   }
 
@@ -107,7 +107,7 @@ export class TokenTrenchesService {
         const diff = BigInt(b.realSolReserves) - BigInt(a.realSolReserves);
         return diff > 0n ? 1 : diff < 0n ? -1 : 0;
       });
-      return sorted.slice(0, limit).map((row) => toPumpFunTokenSummary(row));
+      return distinctLaunches(sorted, limit).map((row) => toPumpFunTokenSummary(row));
     });
   }
 
@@ -153,6 +153,29 @@ export class TokenTrenchesService {
 
     return value;
   }
+}
+
+/** How many extra rows FRESH reads so there's still a full page after distinctLaunches. */
+const SPAM_HEADROOM = 4;
+
+/**
+ * At most one coin per creator wallet and per ticker, keeping the first in the given order —
+ * found 2026-09-30: one wallet mass-launching coins ("$save" x9, "$dead…" x7, each with a
+ * 20 SOL buy) filled most of the Bonding tab by itself. Exported for tests.
+ */
+export function distinctLaunches<T extends { creatorAddress: string | null; symbol: string | null }>(rows: T[], limit: number): T[] {
+  const creators = new Set<string>();
+  const symbols = new Set<string>();
+  const result: T[] = [];
+  for (const row of rows) {
+    const symbol = row.symbol?.trim().replace(/^\$+/, '').toLowerCase() || null;
+    if ((row.creatorAddress && creators.has(row.creatorAddress)) || (symbol && symbols.has(symbol))) continue;
+    if (row.creatorAddress) creators.add(row.creatorAddress);
+    if (symbol) symbols.add(symbol);
+    result.push(row);
+    if (result.length === limit) break;
+  }
+  return result;
 }
 
 /** `Number.MAX_SAFE_INTEGER`-safe: dividing two BigInts first keeps the ratio itself small

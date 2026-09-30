@@ -129,7 +129,7 @@ export function DiscoverTokenList({
   };
 
   const list = (rows: ReactNode[], emptyText: string) =>
-    rows.length === 0 ? <p className="p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
+    rows.length === 0 ? <p className="col-span-full p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
 
   const tabContent: Record<MarketFeedTab, ReactNode> = {
     trending: list(feeds.trending.markets.map(marketRow), 'Nothing trending yet.'),
@@ -150,7 +150,7 @@ export function DiscoverTokenList({
           <PumpFunFeedRow key={token.mintAddress} token={token} />
         ))}
         {feeds.graduated.markets.length === 0 && feeds.graduated.pumpfun.length === 0 && (
-          <p className="p-3 font-body text-xs text-ink-400">Nothing has graduated recently.</p>
+          <p className="col-span-full p-3 font-body text-xs text-ink-400">Nothing has graduated recently.</p>
         )}
       </>
     ),
@@ -215,7 +215,7 @@ export function DiscoverTokenList({
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="border-b border-line/60 bg-surface-raised/40 px-2 py-1 font-mono text-[0.55rem] uppercase tracking-wide text-ink-400">
+    <p className="col-span-full border-b border-line/60 bg-surface-raised/40 px-2 py-1 font-mono text-[0.55rem] uppercase tracking-wide text-ink-400">
       {children}
     </p>
   );

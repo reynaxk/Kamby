@@ -2,7 +2,7 @@ import { prisma } from '@kamby/db';
 import type { PumpFunTokenSummary } from '@kamby/domain';
 import type { PinoLogger } from 'nestjs-pino';
 import type { Redis } from 'ioredis';
-import { TokenTrenchesService } from './token-trenches.service';
+import { distinctLaunches, TokenTrenchesService } from './token-trenches.service';
 import { TrenchesCategory } from './trenches-category.enum';
 
 /** `byCategory`'s return type is a union across all four categories — a plain type
@@ -50,10 +50,14 @@ const marketRow = {
 };
 
 function pumpFunRow(overrides: Partial<Record<string, unknown>> = {}) {
+  // Each distinct mint gets its own ticker by default — distinctLaunches (see the service)
+  // collapses rows that share one, which is a separate behavior with its own test below.
+  const mintAddress = (overrides.mintAddress as string | undefined) ?? 'MintAddress11111111111111111111111111111';
   return {
-    mintAddress: 'MintAddress11111111111111111111111111111',
+    mintAddress,
+    creatorAddress: null,
     name: 'Test Coin',
-    symbol: 'TEST',
+    symbol: mintAddress === 'MintAddress11111111111111111111111111111' ? 'TEST' : mintAddress.slice(0, 8),
     uri: 'https://example.com/meta.json',
     virtualSolReserves: '30000000000',
     virtualTokenReserves: '1073000000000000',
@@ -131,7 +135,7 @@ describe('TokenTrenchesService', () => {
       const call = (mockedPrisma.pumpFunToken.findMany as jest.Mock).mock.calls[0][0];
       expect(call.where).toEqual({ complete: false });
       expect(call.orderBy).toEqual({ createdAt: 'desc' });
-      expect(call.take).toBe(20);
+      expect(call.take).toBe(80); // 4x headroom for what distinctLaunches removes
     });
 
     it('computes graduationProgressPct from real reserves, never leaves it undefined/fabricated at 0 by accident', async () => {
@@ -185,6 +189,20 @@ describe('TokenTrenchesService', () => {
 
       expect(result).toHaveLength(2);
       expect(result[0]?.mintAddress).toBe('Mint411111111111111111111111111111111111'); // highest reserves
+    });
+  });
+
+  describe('distinctLaunches', () => {
+    it('keeps one coin per creator wallet and per ticker, in order — a mass-launching wallet cannot fill a tab', () => {
+      const rows = [
+        { id: 1, creatorAddress: 'Spammer', symbol: 'save' },
+        { id: 2, creatorAddress: 'Spammer', symbol: 'dead' },
+        { id: 3, creatorAddress: 'Other', symbol: '$SAVE' },
+        { id: 4, creatorAddress: 'Real', symbol: 'REAL' },
+        { id: 5, creatorAddress: null, symbol: null },
+      ];
+      expect(distinctLaunches(rows, 10).map((r) => r.id)).toEqual([1, 4, 5]);
+      expect(distinctLaunches(rows, 1).map((r) => r.id)).toEqual([1]);
     });
   });
 
