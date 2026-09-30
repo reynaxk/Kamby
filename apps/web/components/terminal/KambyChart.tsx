@@ -5,6 +5,8 @@ import {
   CandlestickSeries,
   ColorType,
   createChart,
+  CrosshairMode,
+  HistogramSeries,
   LineSeries,
   LineStyle,
   type IChartApi,
@@ -53,6 +55,20 @@ function readColor(varName: string, el: Element): string {
   return raw ? `rgb(${raw})` : '#000000';
 }
 
+/** Same as readColor, with transparency — `rgba(r, g, b, a)`, the form every canvas and
+ *  lightweight-charts' own color parser accept. Exported for LivePriceChart. */
+export function readRgba(varName: string, el: Element, alpha: number): string {
+  const parts = getComputedStyle(el).getPropertyValue(varName).trim().split(/[\s,]+/).filter(Boolean);
+  return parts.length >= 3 ? `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})` : `rgba(0, 0, 0, ${alpha})`;
+}
+
+/** Bars shown on first paint: enough to read at ~7px per candle, never all 200 squeezed in. */
+function initialBarCount(width: number): number {
+  return Math.max(30, Math.floor(width / 7));
+}
+
+const NO_TRADES: SocialActivity[] = [];
+
 /**
  * Price-axis precision from the data itself — lightweight-charts defaults to 2 decimals,
  * which rendered every sub-cent memecoin's axis and last-price label as "0.00" (BONK at
@@ -69,7 +85,7 @@ export function pricePrecision(candles: Candle[]): { precision: number; minMove:
 /** The canvas can't resolve a CSS variable in `ctx.font` ("var(--font-jetbrains-mono)" made
  *  every chart label fall back to 10px sans-serif) — read the variable's actual font family
  *  (next/font's generated name) first. */
-function chartFontFamily(element: HTMLElement): string {
+export function chartFontFamily(element: HTMLElement): string {
   const family = getComputedStyle(element).getPropertyValue('--font-jetbrains-mono').trim();
   return family ? `${family}, ui-monospace, monospace` : 'ui-monospace, monospace';
 }
@@ -235,7 +251,7 @@ function CandlePreview({ candles, trades }: { candles: Candle[]; trades: SocialA
  */
 export function KambyChart({
   candles,
-  trades = [],
+  trades = NO_TRADES,
 }: {
   candles: Candle[];
   trades?: SocialActivity[];
@@ -245,6 +261,9 @@ export function KambyChart({
   const [activeIndicators, setActiveIndicators] = useState<Set<IndicatorId>>(new Set());
   const [pickerOpen, setPickerOpen] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
+  const markersRef = useRef<ChartTraderMarkers | null>(null);
+  const tradesRef = useRef(trades);
+  tradesRef.current = trades;
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -261,7 +280,9 @@ export function KambyChart({
     if (!container || candles.length < 2) return;
 
     const bg = readColor('--kamby-bg', container);
-    const line = readColor('--kamby-line', container);
+    const gridLine = readRgba('--kamby-line', container, 0.45);
+    const crosshairLine = readRgba('--kamby-ink-400', container, 0.5);
+    const raised = readColor('--kamby-surface-raised', container);
     const ink = readColor('--kamby-ink-600', container);
     const up = readColor('--kamby-up', container);
     const down = readColor('--kamby-down', container);
@@ -277,15 +298,20 @@ export function KambyChart({
           fontFamily: chartFontFamily(container),
           fontSize: 11,
         },
+        // Horizontal guides only, faint — full-strength grid lines both ways made the
+        // candles hard to read (user feedback 2026-09-30: "the charts are bad looking").
         grid: {
-          vertLines: { color: line },
-          horzLines: { color: line },
+          vertLines: { visible: false },
+          horzLines: { color: gridLine },
         },
-        rightPriceScale: { borderColor: line },
-        timeScale: { borderColor: line, timeVisible: true },
-        crosshair: { vertLine: { color: line }, horzLine: { color: line } },
-        width: container.clientWidth,
-        height: container.clientHeight,
+        rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.08, bottom: 0.22 } },
+        timeScale: { borderVisible: false, timeVisible: true, rightOffset: 4, minBarSpacing: 2 },
+        crosshair: {
+          mode: CrosshairMode.Normal,
+          vertLine: { color: crosshairLine, style: LineStyle.Dashed, labelBackgroundColor: raised },
+          horzLine: { color: crosshairLine, style: LineStyle.Dashed, labelBackgroundColor: raised },
+        },
+        autoSize: true,
       });
     } catch {
       // No usable canvas (old/embedded browsers) — CandlePreview stays up as the chart.
@@ -306,7 +332,30 @@ export function KambyChart({
       lastValueVisible: false,
     });
     series.setData(toSeriesData(candles));
-    chart.timeScale().fitContent();
+
+    // Volume along the bottom fifth, on its own hidden scale, colored by candle direction.
+    if (candles.some((c) => (c.volumeUsd ?? 0) > 0)) {
+      const upVolume = readRgba('--kamby-up', container, 0.35);
+      const downVolume = readRgba('--kamby-down', container, 0.35);
+      const volume = chart.addSeries(HistogramSeries, {
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+      volume.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+      volume.setData(
+        candles.map((c) => ({
+          time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp,
+          value: c.volumeUsd ?? 0,
+          color: c.close >= c.open ? upVolume : downVolume,
+        })),
+      );
+    }
+
+    const bars = initialBarCount(container.clientWidth);
+    if (candles.length > bars) chart.timeScale().setVisibleLogicalRange({ from: candles.length - bars, to: candles.length + 3 });
+    else chart.timeScale().fitContent();
     setCanvasReady(true);
 
     // See chartTraderMarkers.ts's own doc comment for why this needs the primitive API
@@ -314,7 +363,8 @@ export function KambyChart({
     const traderMarkers = new ChartTraderMarkers();
     series.attachPrimitive(traderMarkers);
     traderMarkers.setColors(up, down);
-    traderMarkers.setTrades(trades);
+    traderMarkers.setTrades(tradesRef.current);
+    markersRef.current = traderMarkers;
 
     // The chart is canvas-rendered, so none of the CSS glow shadows used elsewhere in the
     // terminal can reach it — a saturated accent line + filled axis-label chip is the
@@ -396,32 +446,19 @@ export function KambyChart({
         .setData(toLineSeriesData(points));
     });
 
-    const fitChartToContainer = () => {
-      const width = Math.max(container.clientWidth, 1);
-      const height = Math.max(container.clientHeight, 1);
-      chart.applyOptions({ width, height });
-      chart.timeScale().fitContent();
-    };
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      chart.applyOptions({
-        width: Math.max(entry.contentRect.width, 1),
-        height: Math.max(entry.contentRect.height, 1),
-      });
-      chart.timeScale().fitContent();
-    });
-    resizeObserver.observe(container);
-    const fitFrame = requestAnimationFrame(fitChartToContainer);
-
+    // `autoSize` keeps the canvas matched to its container; the chart is only rebuilt when the
+    // candles or indicators change — never on a parent re-render, and not for new trades
+    // (the effect below updates those markers in place).
     return () => {
-      cancelAnimationFrame(fitFrame);
-      resizeObserver.disconnect();
+      markersRef.current = null;
       chart.remove();
       setCanvasReady(false);
     };
-  }, [candles, trades, activeIndicators]);
+  }, [candles, activeIndicators]);
+
+  useEffect(() => {
+    markersRef.current?.setTrades(trades);
+  }, [trades]);
 
   if (candles.length < 2) {
     return (

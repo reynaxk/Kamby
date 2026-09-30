@@ -1,11 +1,12 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { ToastProvider } from '@/components/terminal/ToastProvider';
+import { TokenLinks } from '@/components/terminal/TokenLinks';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 import { NewListingBanner } from '@/components/market/NewListingBanner';
 import { TokenIdentity } from '@/components/market/TokenIdentity';
-import Link from 'next/link';
 import { cn } from '@kamby/ui';
-import { KambyChart } from '@/components/terminal/KambyChart';
+import { TokenChartCard } from '@/components/terminal/TokenChartCard';
+import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
 import { formatPercent, formatPrice } from '@/lib/format';
 
@@ -60,6 +61,8 @@ export async function generateMetadata({ searchParams }: { searchParams: { mint?
   return { title: market === NATIVE_SOL ? 'Solana — Kamby' : `${market.symbol ?? 'Token'} on Solana — Kamby` };
 }
 
+const SOLANA_TIMEFRAMES: readonly ChartTimeframe[] = ['live', ...SOLANA_CHART_TIMEFRAMES];
+
 function isChartTimeframe(value: string | undefined): value is SolanaChartTimeframe {
   return (SOLANA_CHART_TIMEFRAMES as readonly string[]).includes(value ?? '');
 }
@@ -67,10 +70,10 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
   const market = await resolveMarket(searchParams.mint);
   const isSol = market === NATIVE_SOL;
-  const timeframe: SolanaChartTimeframe = isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
-  const candles = await fetchSolanaHistory(market.tokenAddress, timeframe);
+  const timeframe: ChartTimeframe =
+    searchParams.timeframe === 'live' ? 'live' : isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
+  const candles = await fetchSolanaHistory(market.tokenAddress, timeframe === 'live' ? '1m' : timeframe);
   const lastClose = candles.at(-1)?.close ?? null;
-  const tabHref = (tf: SolanaChartTimeframe) => `/solana?${new URLSearchParams({ ...(isSol ? {} : { mint: market.tokenAddress }), timeframe: tf }).toString()}`;
 
   return (
     <ToastProvider>
@@ -101,37 +104,20 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 <NewListingBanner />
               </div>
             )}
-            <div className="mt-3 rounded-2xl border border-line bg-surface p-2">
-              <nav aria-label="Chart timeframe" className="flex gap-1 px-1 pb-2">
-                {SOLANA_CHART_TIMEFRAMES.map((tf) => (
-                  <Link
-                    key={tf}
-                    href={tabHref(tf)}
-                    scroll={false}
-                    aria-current={tf === timeframe ? 'page' : undefined}
-                    className={cn(
-                      'rounded-md px-2 py-1 font-mono text-[0.7rem]',
-                      tf === timeframe ? 'bg-accent font-semibold text-black' : 'text-ink-400 hover:text-ink-900',
-                    )}
-                  >
-                    {tf}
-                  </Link>
-                ))}
-              </nav>
-              <div className="h-[320px] sm:h-[420px]">
-                {candles.length > 0 ? (
-                  <KambyChart candles={candles} />
-                ) : (
-                  <p className="flex h-full items-center justify-center font-body text-sm text-ink-400">No price history available right now.</p>
-                )}
-              </div>
-            </div>
+            <TokenChartCard
+              source={{ kind: 'solana', mint: market.tokenAddress }}
+              initialTimeframe={timeframe}
+              initialCandles={candles}
+              timeframes={SOLANA_TIMEFRAMES}
+              className="mt-3 h-[260px] sm:h-[320px]"
+            />
           </section>
 
           <aside>
             <div className="rounded-2xl border border-line bg-surface p-4">
               <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} />
             </div>
+            <TokenLinks chain="solana" address={market.tokenAddress} cardTitle={`About $${market.symbol}`} />
           </aside>
         </main>
       </div>

@@ -39,3 +39,19 @@ describe('InlineTimeframeTabs', () => {
     expect(onChange).toHaveBeenCalledWith('1D');
   });
 });
+
+describe('InlineTimeframeTabs — Live', () => {
+  it('offers "Live" first by default and reports it as the "live" timeframe', async () => {
+    const onChange = vi.fn();
+    render(<InlineTimeframeTabs active="1D" onChange={onChange} />);
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0]).toHaveAccessibleName('Live');
+    await userEvent.click(buttons[0]!);
+    expect(onChange).toHaveBeenCalledWith('live');
+  });
+
+  it('shows only the timeframes it is given', () => {
+    render(<InlineTimeframeTabs active="1H" onChange={vi.fn()} timeframes={['1m', '1H']} />);
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['1m', '1H']);
+  });
+});

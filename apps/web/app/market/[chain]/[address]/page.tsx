@@ -15,6 +15,7 @@ import { formatDateTime, formatPrice, truncateAddress } from '@/lib/format';
 import { fetchToken, fetchTokenHistory } from '@/lib/market-api';
 import { fetchGlobalActivity } from '@/lib/social-api';
 import { fetchTokenTraders } from '@/lib/discovery-api';
+import type { ChartTimeframe } from '@/lib/chart-data';
 
 export const revalidate = 15;
 
@@ -69,14 +70,18 @@ export default async function TokenDetailPage({
 }) {
   if (!isChainSlug(params.chain)) notFound();
   const chainId = CHAIN_REGISTRY[params.chain].numericId;
-  const timeframe: Timeframe = isTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1D';
+  const timeframe: ChartTimeframe =
+    searchParams.timeframe === 'live' ? 'live' : isTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1D';
 
   const market = await fetchToken(params.address, chainId);
   if (!market) notFound();
 
-  const candles = await fetchTokenHistory(params.address, timeframe, chainId);
-  const activity = await fetchGlobalActivity({ tokenAddress: params.address, chainId, limit: 10 });
-  const traders = await fetchTokenTraders(params.address, chainId, 8);
+  // In parallel — one after another, the page waited for the sum of all three.
+  const [candles, activity, traders] = await Promise.all([
+    fetchTokenHistory(params.address, timeframe === 'live' ? '1m' : timeframe, chainId),
+    fetchGlobalActivity({ tokenAddress: params.address, chainId, limit: 10 }),
+    fetchTokenTraders(params.address, chainId, 8),
+  ]);
 
   return (
     // kamby-void — see globals.css's own doc comment. Market detail is one of the two

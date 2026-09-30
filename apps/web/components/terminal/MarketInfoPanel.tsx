@@ -2,12 +2,13 @@ import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/do
 import { Surface } from '@kamby/ui';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { formatCompactUsd, formatPercent, formatPrice, truncateAddress } from '@/lib/format';
+import { TokenLinks } from './TokenLinks';
 
 /**
  * Compact market context for the terminal's right rail. This fills the same orientation
  * role as a competitor's "About" card, but only renders facts Kamby actually owns: chain,
- * venue, quote asset, liquidity, market cap, and the real token address. Descriptions and
- * social links stay out until Kamby has an authoritative source for them.
+ * venue, quote asset, liquidity, market cap, and the real token address — plus the project's
+ * own description, website and socials (TokenLinks), labeled as project-provided.
  */
 export function MarketInfoPanel({ market }: { market: MarketSummary }) {
   const slug = slugForIdentifier(market.chainIdentifier);
@@ -61,6 +62,8 @@ export function MarketInfoPanel({ market }: { market: MarketSummary }) {
           </span>
         </div>
       </div>
+
+      {(slug === 'base' || slug === 'bnb') && <TokenLinks chain={slug} address={market.tokenAddress} />}
     </Surface>
   );
 }

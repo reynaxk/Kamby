@@ -5,6 +5,7 @@ import {
   CHAIN_REGISTRY,
   DEFAULT_CHAIN_SLUG,
   slugForIdentifier,
+  TIMEFRAMES,
   type Candle,
   type MarketSummary,
   type Timeframe,
@@ -89,7 +90,7 @@ export function GridTerminalCell({
   const chainId = selected ? chainIdFor(selected) : null;
   const canTrade = selected !== null && selected.decimals !== null && selected.quoteDecimals !== null && chainId !== null;
   const selectedKey = selected ? `${selected.chainIdentifier}:${selected.tokenAddress}` : null;
-  const chartHeight = compact ? 'h-[160px]' : 'h-[220px]';
+  const chartHeight = compact ? 'h-[140px]' : 'h-[190px]';
 
   return (
     <Surface variant="elevated" className="flex h-full flex-col gap-2 p-2.5">
@@ -112,7 +113,7 @@ export function GridTerminalCell({
 
       {!compact && (
         <div className="flex justify-end">
-          <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
+          <InlineTimeframeTabs active={timeframe} onChange={(tf) => tf !== 'live' && setTimeframe(tf)} timeframes={TIMEFRAMES} />
         </div>
       )}
 

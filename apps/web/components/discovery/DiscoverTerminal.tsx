@@ -19,6 +19,8 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { DataHub } from '@/components/terminal/DataHub';
 import { KambyChart } from '@/components/terminal/KambyChart';
+import { LivePriceChart } from '@/components/terminal/LivePriceChart';
+import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
 import { MarketInfoPanel } from '@/components/terminal/MarketInfoPanel';
 import { TokenMetricsBar } from '@/components/terminal/TokenMetricsBar';
 import { IN_FLIGHT_STEPS, TradePanelCard } from '@/components/terminal/TradePanelCard';
@@ -137,7 +139,9 @@ export function DiscoverTerminal({
   );
 
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
-  const [timeframe, setTimeframe] = useState<Timeframe>(initialTimeframe);
+  const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
+  // "Live" draws the real-time price line, seeded from 1m candles.
+  const candleTimeframe: Timeframe = timeframe === 'live' ? '1m' : timeframe;
   const [tradeStep, setTradeStep] = useState<TradePanelStep>('form');
   const inFlight = IN_FLIGHT_STEPS.has(tradeStep);
 
@@ -161,7 +165,7 @@ export function DiscoverTerminal({
     if (!selected || !isEvmSelectable(selected)) return;
     let cancelled = false;
     setCandlesStatus('loading');
-    fetchTokenHistory(selected.tokenAddress, timeframe, chainIdFor(selected))
+    fetchTokenHistory(selected.tokenAddress, candleTimeframe, chainIdFor(selected))
       .then((result) => {
         if (cancelled) return;
         setCandles(result);
@@ -173,7 +177,7 @@ export function DiscoverTerminal({
     return () => {
       cancelled = true;
     };
-  }, [selected, timeframe]);
+  }, [selected, candleTimeframe]);
 
   useEffect(() => {
     if (skipActivityFetch.current) {
@@ -227,6 +231,15 @@ export function DiscoverTerminal({
 
   const selectedKey = selected ? marketKey(selected) : null;
   const chainId = selected ? chainIdFor(selected) : null;
+
+  const chartFor = (market: MarketSummary) => {
+    const slug = slugForIdentifier(market.chainIdentifier);
+    if (timeframe === 'live' && (slug === 'base' || slug === 'bnb')) {
+      const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
+      return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} />;
+    }
+    return <KambyChart candles={candles} trades={filteredTrades} />;
+  };
   const canTrade =
     selected !== null &&
     selected.decimals !== null &&
@@ -300,7 +313,7 @@ export function DiscoverTerminal({
           </div>
         )}
 
-        <Surface className="mb-3 flex h-[300px] flex-col gap-2 p-2">
+        <Surface className="mb-3 flex h-[250px] flex-col gap-2 p-2">
           <div className="kamby-chart-toolbar flex flex-wrap items-center justify-between gap-2">
             {overlayControls}
             <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
@@ -316,7 +329,7 @@ export function DiscoverTerminal({
                 detail="Try selecting the token again in a moment."
               />
             ) : (
-              <KambyChart candles={candles} trades={filteredTrades} />
+              chartFor(selected)
             )}
           </div>
         </Surface>
@@ -452,7 +465,7 @@ export function DiscoverTerminal({
             </Surface>
           )}
 
-          <Surface className="flex h-[min(46vh,460px)] min-h-[380px] flex-col gap-2 p-2">
+          <Surface className="flex h-[min(38vh,360px)] min-h-[280px] flex-col gap-2 p-2">
             <div className="kamby-chart-toolbar flex flex-wrap items-center justify-between gap-2">
               {overlayControls}
               <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
@@ -468,7 +481,7 @@ export function DiscoverTerminal({
                   detail="Try selecting the token again in a moment."
                 />
               ) : (
-                <KambyChart candles={candles} trades={filteredTrades} />
+                chartFor(selected)
               )}
             </div>
           </Surface>

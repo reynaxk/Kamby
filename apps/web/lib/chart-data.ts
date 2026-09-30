@@ -1,0 +1,81 @@
+'use client';
+
+import type { Candle, LivePrice, Timeframe, TokenInfoChain } from '@kamby/domain';
+import { API_BASE } from './session-client';
+import { fetchTokenHistory } from './market-client';
+
+/** What the chart's timeframe tabs offer: a real-time price line plus the candle widths. */
+export type ChartTimeframe = 'live' | Timeframe;
+
+/** A coin as the chart needs it: which history API serves its candles, and its live-price key. */
+export type ChartSource =
+  | { kind: 'evm'; chain: 'base' | 'bnb'; address: string; chainId: number }
+  | { kind: 'solana'; mint: string };
+
+export function livePriceKey(source: ChartSource): { chain: TokenInfoChain; address: string } {
+  return source.kind === 'solana' ? { chain: 'solana', address: source.mint } : { chain: source.chain, address: source.address };
+}
+
+/** How long fetched candles count as fresh — short widths move fast. */
+function freshForMs(timeframe: Timeframe): number {
+  return timeframe === '1m' || timeframe === '5m' ? 20_000 : 60_000;
+}
+
+const candleCache = new Map<string, { candles: Candle[]; at: number }>();
+const inFlight = new Map<string, Promise<Candle[]>>();
+
+function cacheKey(source: ChartSource, timeframe: Timeframe): string {
+  return source.kind === 'solana' ? `sol:${source.mint}:${timeframe}` : `${source.chainId}:${source.address.toLowerCase()}:${timeframe}`;
+}
+
+/** Candles already on hand for this coin + width (possibly stale), for an instant first paint. */
+export function cachedCandles(source: ChartSource, timeframe: Timeframe): Candle[] | null {
+  return candleCache.get(cacheKey(source, timeframe))?.candles ?? null;
+}
+
+export function primeCandles(source: ChartSource, timeframe: Timeframe, candles: Candle[]): void {
+  const key = cacheKey(source, timeframe);
+  if (!candleCache.has(key)) candleCache.set(key, { candles, at: Date.now() });
+}
+
+/**
+ * Candles for a coin, shared across every chart on the page: served from memory while fresh,
+ * one request at a time per coin + width. Switching timeframes back and forth is instant.
+ */
+export function loadCandles(source: ChartSource, timeframe: Timeframe, { force = false } = {}): Promise<Candle[]> {
+  const key = cacheKey(source, timeframe);
+  const hit = candleCache.get(key);
+  if (!force && hit && Date.now() - hit.at < freshForMs(timeframe)) return Promise.resolve(hit.candles);
+  const pending = inFlight.get(key);
+  if (pending) return pending;
+  const request = (source.kind === 'solana' ? fetchSolanaCandles(source.mint, timeframe) : fetchTokenHistory(source.address, timeframe, source.chainId))
+    .then((candles) => {
+      candleCache.set(key, { candles, at: Date.now() });
+      return candles;
+    })
+    .finally(() => inFlight.delete(key));
+  inFlight.set(key, request);
+  return request;
+}
+
+async function fetchSolanaCandles(mint: string, timeframe: Timeframe): Promise<Candle[]> {
+  const res = await fetch(`${API_BASE}/v1/market/solana/${encodeURIComponent(mint)}/history?timeframe=${timeframe}`);
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error(`Failed to fetch candles (${res.status})`);
+  return res.json();
+}
+
+/** The latest live price, or null when the API has none yet (an empty body). */
+export async function fetchLivePrice(source: ChartSource): Promise<LivePrice | null> {
+  const { chain, address } = livePriceKey(source);
+  const res = await fetch(`${API_BASE}/v1/market/live-price/${chain}/${encodeURIComponent(address)}`);
+  if (!res.ok) throw new Error(`Failed to fetch live price (${res.status})`);
+  const text = await res.text();
+  return text ? (JSON.parse(text) as LivePrice) : null;
+}
+
+/** Test seam. */
+export function resetChartDataCache(): void {
+  candleCache.clear();
+  inFlight.clear();
+}

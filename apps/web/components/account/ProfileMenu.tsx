@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Copy, LogOut, User, Wallet } from 'lucide-react';
+import { AtSign, ChevronDown, Copy, LogOut, Pencil, User, Wallet } from 'lucide-react';
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
 
@@ -72,12 +72,26 @@ export function ProfileMenu({ address, onSignOut }: { address: string; onSignOut
             <Avatar url={profile?.avatarUrl ?? null} />
             <span className="truncate font-display text-sm font-semibold text-ink-900">{displayName}</span>
           </div>
+          {profile && !profile.username && (
+            // Skipping the onboarding prompt must never lose the way back to it.
+            <Link
+              role="menuitem"
+              href="/account#profile"
+              onClick={() => setOpen(false)}
+              className="mx-1 mb-1 flex items-center gap-2.5 rounded-lg bg-accent/10 px-3 py-2 font-body text-sm font-semibold text-accent hover:bg-accent/20"
+            >
+              <AtSign className="h-4 w-4" aria-hidden /> Set your username
+            </Link>
+          )}
           <div className="my-1 border-t border-line" />
           <Link role="menuitem" href={`/trader/${address}`} onClick={() => setOpen(false)} className={itemClass}>
             <User className="h-4 w-4 text-ink-400" aria-hidden /> My profile
           </Link>
           <Link role="menuitem" href="/account" onClick={() => setOpen(false)} className={itemClass}>
             <Wallet className="h-4 w-4 text-ink-400" aria-hidden /> Wallet &amp; settings
+          </Link>
+          <Link role="menuitem" href="/account#profile" onClick={() => setOpen(false)} className={itemClass}>
+            <Pencil className="h-4 w-4 text-ink-400" aria-hidden /> Edit profile
           </Link>
           <button
             type="button"

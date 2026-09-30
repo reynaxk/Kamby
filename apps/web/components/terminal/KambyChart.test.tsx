@@ -11,6 +11,7 @@ const { computeBollingerBands, computeAtr, computeAdx, computeAwesomeOscillator,
       setData: vi.fn(),
       createPriceLine: vi.fn(),
       attachPrimitive: vi.fn(),
+      priceScale: () => ({ applyOptions: vi.fn() }),
     };
     return {
       computeBollingerBands: vi.fn().mockReturnValue({ upper: [], middle: [], lower: [] }),
@@ -38,12 +39,14 @@ vi.mock('@/lib/indicators', async (importOriginal) => {
 vi.mock('lightweight-charts', () => ({
   createChart: vi.fn().mockReturnValue({
     addSeries: addSeriesMock,
-    timeScale: () => ({ fitContent: vi.fn() }),
+    timeScale: () => ({ fitContent: vi.fn(), setVisibleLogicalRange: vi.fn() }),
     applyOptions: vi.fn(),
     remove: vi.fn(),
   }),
   CandlestickSeries: 'CandlestickSeries',
   LineSeries: 'LineSeries',
+  HistogramSeries: 'HistogramSeries',
+  CrosshairMode: { Normal: 0 },
   ColorType: { Solid: 'solid' },
   LineStyle: { Dashed: 2, Dotted: 1 },
 }));

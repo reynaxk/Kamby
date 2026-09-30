@@ -1,19 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import type { Candle, MarketSummary, SocialActivity, Timeframe, TokenTraderConnection } from '@kamby/domain';
+import { useMemo, useState } from 'react';
+import type { Candle, MarketSummary, SocialActivity, TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
-import { TimeframeTabs } from '@/components/market/TimeframeTabs';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
+import { MarketInfoPanel } from './MarketInfoPanel';
 import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DataHub } from './DataHub';
-import { KambyChart } from './KambyChart';
 import { TerminalLeftRail } from './TerminalLeftRail';
 import { TokenMetricsBar } from './TokenMetricsBar';
 import { TradePanelCard } from './TradePanelCard';
 import { cashtag } from '@/lib/format';
+import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
+import { TokenChartCard } from './TokenChartCard';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -70,12 +71,16 @@ export function KambyTerminal({
   candles: Candle[];
   activity: SocialActivity[];
   traders: TokenTraderConnection;
-  timeframe: Timeframe;
+  timeframe: ChartTimeframe;
 }) {
   const isMobile = useIsMobile();
   const [trenchesOpen, setTrenchesOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
+  const chartSource = useMemo<ChartSource>(
+    () => ({ kind: 'evm', chain: chain === 'bnb' ? 'bnb' : 'base', address: market.tokenAddress, chainId }),
+    [chain, market.tokenAddress, chainId],
+  );
 
   const tradePanel = canTrade ? (
     <TradePanelCard
@@ -122,14 +127,13 @@ export function KambyTerminal({
             <TokenMetricsBar market={market} />
           </div>
 
-          <Surface variant="elevated" className="mb-3 flex h-[300px] flex-col gap-2 p-2 shadow-glow-accent">
-            <div className="flex justify-end">
-              <TimeframeTabs chain={chain} address={market.tokenAddress} active={timeframe} />
-            </div>
-            <div className="min-h-0 flex-1">
-              <KambyChart candles={candles} trades={traders.recentLargeTrades} />
-            </div>
-          </Surface>
+          <TokenChartCard
+            source={chartSource}
+            initialTimeframe={timeframe}
+            initialCandles={candles}
+            trades={traders.recentLargeTrades}
+            className="mb-3 h-[260px]"
+          />
 
           <div className="mb-3 h-[300px]">
             <DataHub activity={activity} />
@@ -137,6 +141,10 @@ export function KambyTerminal({
 
           <div className="mb-3">
             <MyPositionsPanel />
+          </div>
+
+          <div className="mb-3">
+            <MarketInfoPanel market={market} />
           </div>
 
           <div className="rounded-2xl border border-line bg-surface p-4">
@@ -172,14 +180,13 @@ export function KambyTerminal({
             {/* The visual hero of the terminal — elevated + a restrained accent glow rather
                 than glass: lightweight-charts renders to a <canvas>, so nothing sits behind
                 this card for a backdrop-blur to reveal. */}
-            <Surface variant="elevated" className="flex h-[380px] flex-col gap-2 p-2 shadow-glow-accent">
-              <div className="flex justify-end">
-                <TimeframeTabs chain={chain} address={market.tokenAddress} active={timeframe} />
-              </div>
-              <div className="min-h-0 flex-1">
-                <KambyChart candles={candles} trades={traders.recentLargeTrades} />
-              </div>
-            </Surface>
+            <TokenChartCard
+              source={chartSource}
+              initialTimeframe={timeframe}
+              initialCandles={candles}
+              trades={traders.recentLargeTrades}
+              className="h-[320px]"
+            />
             <div className="h-[300px]">
               <DataHub activity={activity} />
             </div>
@@ -191,6 +198,7 @@ export function KambyTerminal({
                 the token contract; never pass a null decimals into TradePanel. */}
             {tradePanel}
             <MyPositionsPanel />
+            <MarketInfoPanel market={market} />
             <div className="rounded-2xl border border-line bg-surface p-4">
               <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
             </div>

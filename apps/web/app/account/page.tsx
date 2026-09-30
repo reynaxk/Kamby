@@ -35,7 +35,7 @@ export default function AccountPage() {
             <BlurBalancesToggle variant="labeled" />
           </div>
         </section>
-        <div className="mt-6">
+        <div id="profile" className="mt-6 scroll-mt-20">
           <ProfileEditor />
         </div>
         <div className="mt-8">
