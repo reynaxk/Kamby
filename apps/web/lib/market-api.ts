@@ -54,6 +54,18 @@ export async function fetchPumpFunToken(mint: string): Promise<PumpFunTokenSumma
   }
 }
 
+export const SOLANA_CHART_TIMEFRAMES = ['1m', '5m', '1H', '4H', '1D'] as const;
+export type SolanaChartTimeframe = (typeof SOLANA_CHART_TIMEFRAMES)[number];
+
+/** A Solana coin's candles (GeckoTerminal via the API). Errors degrade to an empty chart. */
+export async function fetchSolanaHistory(mint: string, timeframe: SolanaChartTimeframe): Promise<Candle[]> {
+  try {
+    return (await apiGet<Candle[]>(`/market/solana/${encodeURIComponent(mint)}/history?timeframe=${timeframe}`, 30)) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 /** All five terminal tabs for the server-rendered first paint; the browser then keeps them
  *  live over the stream (see lib/market-feeds.ts). */
 export async function fetchMarketFeeds(): Promise<MarketFeedSnapshot | null> {

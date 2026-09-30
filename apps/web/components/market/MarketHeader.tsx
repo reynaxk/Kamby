@@ -1,12 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
-import { FundButton } from '@/components/wallet/FundButton';
-import { SendButton } from '@/components/wallet/SendButton';
 import { SearchBar } from './SearchBar';
 
 /**
@@ -16,6 +13,11 @@ import { SearchBar } from './SearchBar';
  * Leaderboard/Feed — see DiscoverTerminal.tsx), not a permanent top-level link row. The
  * underlying routes (`/trades`, `/watchlist`, `/leaderboard`, `/referrals`, `/solana`)
  * still exist and are still reachable directly — only the header links to them are gone.
+ *
+ * Wallet tools (hide balances, Fund, Send) moved off the header to /account on 2026-09-30
+ * (user request) — the header keeps search, notifications and the profile menu
+ * (ConnectWalletButton's signed-in state, see ProfileMenu), and never prints the wallet
+ * address.
  */
 export function MarketHeader({
   searchValue,
@@ -61,9 +63,6 @@ export function MarketHeader({
           <div className={wide ? 'w-full sm:mx-auto sm:flex-1 sm:max-w-xl' : 'w-full sm:w-auto'}>
             <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
           </div>
-          <BlurBalancesToggle />
-          <FundButton />
-          <SendButton />
           <NotificationBell />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} />
         </div>

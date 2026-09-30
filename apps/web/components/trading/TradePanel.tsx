@@ -532,16 +532,22 @@ export function TradePanel({
   if (isConnected && onCorrectChain && walletVerification.status !== 'verified') {
     return (
       <Panel title="Trade" onClose={onClose} animKey="verify">
-        <p className="font-body text-sm text-ink-600">Verify this wallet with a free signature (no gas, no transaction) before trading with it.</p>
-        <Button
-          type="button"
-          onClick={() => void walletVerification.verify()}
-          disabled={walletVerification.status === 'verifying' || walletVerification.status === 'checking'}
-        >
-          {walletVerification.status === 'verifying' ? 'Check your wallet…' : 'Verify wallet'}
-        </Button>
-        {walletVerification.status === 'rejected' && walletVerification.error && (
-          <p className="font-body text-xs text-down">{walletVerification.error}</p>
+        {/* Verification runs by itself (see useWalletVerification) — a button only
+            appears if it failed, e.g. an external wallet's signature was declined. */}
+        {walletVerification.status === 'rejected' ? (
+          <>
+            <p className="font-body text-sm text-ink-600">
+              Couldn&apos;t finish setting up your wallet for trading. It only takes a free signature — no gas, no transaction.
+            </p>
+            <Button type="button" onClick={() => void walletVerification.verify()}>
+              Try again
+            </Button>
+            {walletVerification.error && <p className="font-body text-xs text-down">{walletVerification.error}</p>}
+          </>
+        ) : (
+          <p className="font-body text-sm text-ink-600" role="status">
+            Setting up your wallet for trading…
+          </p>
         )}
       </Panel>
     );

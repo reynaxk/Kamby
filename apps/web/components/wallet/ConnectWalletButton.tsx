@@ -4,10 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useCreateWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { Button } from '@kamby/ui';
 import { CHAIN_REGISTRY, slugForChainId } from '@kamby/domain';
-import Link from 'next/link';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { truncateAddress } from '@/lib/format';
+import { ProfileMenu } from '@/components/account/ProfileMenu';
 
 /**
  * Phase 3 — see docs/TRADING.md#wallet-connectivity. Exposes exactly what the trading flow
@@ -70,12 +69,10 @@ import { truncateAddress } from '@/lib/format';
  * never a silent or infinite loop. Resets the moment the wallet is actually on the right
  * chain (or disconnects), so a later disconnect-then-reconnect-wrong gets a fresh attempt.
  *
- * Connected-state dropdown added 2026-09-16, real bug the user hit live: the address button
- * used to call `logout()` directly on click, so there was no way to ever see or copy the
- * full address — clicking it for *any* reason just signed you out, including when a user
- * genuinely needed their own address (e.g. to fund a fresh embedded wallet with gas). Now it
- * opens a small menu with the full address (click to copy, with a real clipboard call and a
- * "Copied!" confirmation) and sign-out as a separate, explicit action.
+ * Signed-in state: ProfileMenu (2026-09-30) — a profile avatar with a menu (profile, wallet
+ * & settings, copy address, sign out) instead of a button labelled with the wallet address.
+ * Sign-out stays a separate, explicit menu action (it used to fire on any click of the
+ * address button, 2026-09-16).
  *
  * `expectedChainId` added 2026-09-16 for BNB Chain going live: this button used to hardcode
  * `base.id` as "the" correct network everywhere — fine when Base was the only chain Kamby
@@ -96,19 +93,6 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
   const [walletSetupError, setWalletSetupError] = useState<string | null>(null);
   const creatingWalletRef = useRef(false);
   const hasAttemptedSwitchRef = useRef(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, [menuOpen]);
-
   useEffect(() => {
     if (!ready || !authenticated || !walletsReady) return;
     if (wallets.length > 0 || creatingWalletRef.current) return;
@@ -184,47 +168,5 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
     );
   }
 
-  return (
-    <div ref={menuRef} className="relative">
-      <Button type="button" variant="secondary" onClick={() => setMenuOpen((open) => !open)}>
-        {truncateAddress(address as string)}
-      </Button>
-      {menuOpen && (
-        <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-line bg-surface p-1.5 shadow-lg">
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard
-                .writeText(address as string)
-                .then(() => {
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1500);
-                })
-                .catch(() => {});
-            }}
-            className="block w-full truncate rounded-lg px-3 py-2 text-left font-mono text-xs text-ink-900 hover:bg-surface-raised"
-          >
-            {copied ? 'Copied!' : address}
-          </button>
-          <Link
-            href={`/trader/${address}`}
-            onClick={() => setMenuOpen(false)}
-            className="block w-full rounded-lg px-3 py-2 text-left font-body text-sm text-ink-900 hover:bg-surface-raised"
-          >
-            View my profile
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setMenuOpen(false);
-              logout();
-            }}
-            className="block w-full rounded-lg px-3 py-2 text-left font-body text-sm text-down hover:bg-surface-raised"
-          >
-            Sign out
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  return <ProfileMenu address={address as string} onSignOut={() => void logout()} />;
 }

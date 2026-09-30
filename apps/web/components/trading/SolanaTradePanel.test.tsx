@@ -198,7 +198,7 @@ describe('SolanaTradePanel', () => {
     expect(loginMock).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a verify prompt, never the trade form, for a connected but unverified wallet', () => {
+  it('shows setup progress, never the trade form or a "Verify wallet" button, while a connected wallet is still being verified', () => {
     useSolanaWalletVerificationMock.mockReturnValue({
       status: 'unverified',
       error: null,
@@ -207,8 +207,23 @@ describe('SolanaTradePanel', () => {
       address: WALLET_ADDRESS,
     });
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    expect(screen.getByRole('button', { name: 'Verify wallet' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Setting up your wallet for trading…');
+    expect(screen.queryByRole('button', { name: /verify/i })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Amount')).not.toBeInTheDocument();
+  });
+
+  it('offers a manual retry only when automatic verification failed', async () => {
+    useSolanaWalletVerificationMock.mockReturnValue({
+      status: 'rejected',
+      error: 'User rejected the request',
+      verify: verifyMock,
+      isConnected: true,
+      address: WALLET_ADDRESS,
+    });
+    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(verifyMock).toHaveBeenCalled();
+    expect(screen.getByText('User rejected the request')).toBeInTheDocument();
   });
 
   it('fetches a real quote after an amount is entered and enables Review once it resolves', async () => {

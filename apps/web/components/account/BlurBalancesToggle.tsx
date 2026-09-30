@@ -1,20 +1,29 @@
 'use client';
 
+import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from './BalanceVisibilityContext';
 
-export function BlurBalancesToggle() {
+/** `labeled` is the /account wallet-section style, matching FundButton/SendButton there. */
+export function BlurBalancesToggle({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
   const { hidden, toggle } = useBalanceVisibility();
+  const label = hidden ? 'Show balances' : 'Hide balances';
 
   return (
     <button
       type="button"
       onClick={toggle}
       aria-pressed={hidden}
-      aria-label={hidden ? 'Show balances' : 'Hide balances'}
-      title={hidden ? 'Show balances' : 'Hide balances'}
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      aria-label={label}
+      title={label}
+      className={cn(
+        variant === 'icon'
+          ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
+          : 'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-line bg-surface-raised px-4 py-2.5 font-body text-sm font-semibold text-ink-900 transition-colors hover:border-accent/60 hover:text-accent',
+        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
+      )}
     >
       {hidden ? <EyeOffIcon /> : <EyeIcon />}
+      {variant === 'labeled' && label}
     </button>
   );
 }

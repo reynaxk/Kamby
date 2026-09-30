@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConnectWalletButton } from './ConnectWalletButton';
 
 const { usePrivyMock, useWalletsMock, useCreateWalletMock, createWalletMock, useAccount, useSwitchChain } = vi.hoisted(() => ({
@@ -19,7 +19,10 @@ vi.mock('@privy-io/react-auth', () => ({
 }));
 vi.mock('wagmi', () => ({ useAccount, useSwitchChain }));
 vi.mock('wagmi/chains', () => ({ base: { id: 8453 } }));
+const { fetchMyProfileMock } = vi.hoisted(() => ({ fetchMyProfileMock: vi.fn() }));
+vi.mock('@/lib/profile-client', () => ({ fetchMyProfile: fetchMyProfileMock }));
 
+beforeEach(() => fetchMyProfileMock.mockResolvedValue({ username: null, avatarUrl: null }));
 afterEach(() => vi.clearAllMocks());
 
 const ADDRESS = '0x1234567890123456789012345678901234567890';
@@ -176,41 +179,46 @@ describe('ConnectWalletButton', () => {
     expect(switchChain).toHaveBeenCalledWith({ chainId: 8453 });
   });
 
-  it('shows the truncated address once connected to the right network', () => {
+  it('shows a profile avatar, never the wallet address, once connected to the right network', async () => {
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout: vi.fn() });
     useAccount.mockReturnValue({ address: ADDRESS, isConnected: true, chainId: 8453 });
     mockConnectedDefaults();
 
     render(<ConnectWalletButton />);
 
-    expect(screen.getByRole('button', { name: '0x1234…7890' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open your profile menu' })).toBeInTheDocument();
+    expect(screen.queryByText(/0x1234/)).not.toBeInTheDocument();
+    await waitFor(() => expect(fetchMyProfileMock).toHaveBeenCalled());
   });
 
-  it('opens a menu with the full address, rather than signing out, when the connected button is clicked', async () => {
+  it("shows the user's own picture and username once they have set them", async () => {
+    fetchMyProfileMock.mockResolvedValue({ username: 'kamby_whale', avatarUrl: 'https://cdn.example.com/me.png' });
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout: vi.fn() });
+    useAccount.mockReturnValue({ address: ADDRESS, isConnected: true, chainId: 8453 });
+    mockConnectedDefaults();
+
+    const { container } = render(<ConnectWalletButton />);
+    await waitFor(() => expect(container.querySelector('img')).toHaveAttribute('src', 'https://cdn.example.com/me.png'));
+    await userEvent.click(screen.getByRole('button', { name: 'Open your profile menu' }));
+    expect(screen.getByText('@kamby_whale')).toBeInTheDocument();
+  });
+
+  it('opens a menu to the profile and wallet pages, rather than signing out, when the avatar is clicked', async () => {
     const logout = vi.fn();
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout });
     useAccount.mockReturnValue({ address: ADDRESS, isConnected: true, chainId: 8453 });
     mockConnectedDefaults();
 
     render(<ConnectWalletButton />);
-    await userEvent.click(screen.getByRole('button', { name: '0x1234…7890' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Open your profile menu' }));
 
-    expect(screen.getByText(ADDRESS)).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /My profile/ })).toHaveAttribute('href', `/trader/${ADDRESS}`);
+    expect(screen.getByRole('menuitem', { name: /Wallet & settings/ })).toHaveAttribute('href', '/account');
+    expect(screen.queryByText(ADDRESS)).not.toBeInTheDocument();
     expect(logout).not.toHaveBeenCalled();
   });
 
-  it('links to the own trader profile from the connected-wallet menu', async () => {
-    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn(), logout: vi.fn() });
-    useAccount.mockReturnValue({ address: ADDRESS, isConnected: true, chainId: 8453 });
-    mockConnectedDefaults();
-
-    render(<ConnectWalletButton />);
-    await userEvent.click(screen.getByRole('button', { name: '0x1234…7890' }));
-
-    expect(screen.getByRole('link', { name: /view my profile/i })).toHaveAttribute('href', `/trader/${ADDRESS}`);
-  });
-
-  it('copies the full address to the clipboard and shows confirmation, rather than signing out', async () => {
+  it('copies the full address to the clipboard only when asked, and shows confirmation', async () => {
     // userEvent.setup() installs its own navigator.clipboard stub — stubbing clipboard
     // before setup() gets silently overwritten by it, so this must stub clipboard after.
     const user = userEvent.setup();
@@ -222,8 +230,8 @@ describe('ConnectWalletButton', () => {
     mockConnectedDefaults();
 
     render(<ConnectWalletButton />);
-    await user.click(screen.getByRole('button', { name: '0x1234…7890' }));
-    await user.click(screen.getByText(ADDRESS));
+    await user.click(screen.getByRole('button', { name: 'Open your profile menu' }));
+    await user.click(screen.getByRole('menuitem', { name: /Copy wallet address/ }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(ADDRESS));
     expect(await screen.findByText('Copied!')).toBeInTheDocument();
@@ -239,8 +247,8 @@ describe('ConnectWalletButton', () => {
     mockConnectedDefaults();
 
     render(<ConnectWalletButton />);
-    await userEvent.click(screen.getByRole('button', { name: '0x1234…7890' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Open your profile menu' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: /Sign out/ }));
 
     expect(logout).toHaveBeenCalledTimes(1);
   });

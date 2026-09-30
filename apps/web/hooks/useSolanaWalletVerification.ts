@@ -6,14 +6,15 @@ import bs58 from 'bs58';
 import { ensureSolanaWalletFunded } from '@/lib/solana-trading-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { listLinkedSolanaWallets, requestSolanaWalletChallenge, verifySolanaWalletChallenge } from '@/lib/solana-wallet-client';
+import { claimAutoAttempt, isVerified, onVerified, verifyOnce } from '@/lib/wallet-verification-registry';
 
 export type SolanaWalletVerificationStatus = 'disconnected' | 'checking' | 'unverified' | 'verifying' | 'verified' | 'rejected';
 
 /**
  * Solana's counterpart to useWalletVerification.ts — see that hook's own doc comment for
  * the shared "a connected wallet is never treated as proof of anything; trading is gated
- * on status === 'verified'" principle, and the "never mints a session just to check"
- * ordering.
+ * on status === 'verified'" principle, the "never mints a session just to check" ordering,
+ * and the automatic-verification behavior (2026-09-30) this hook shares.
  *
  * Written against Privy's React SDK as documented at the time this was built (`useWallets`/
  * `useSignMessage` from `@privy-io/react-auth/solana`, `signMessage({ message, wallet })`
@@ -27,13 +28,18 @@ export function useSolanaWalletVerification() {
   const { signMessage } = useSignMessage();
   const wallet = wallets[0];
   const address = wallet?.address;
+  const key = address ? `solana:${address}` : null;
 
   const [status, setStatus] = useState<SolanaWalletVerificationStatus>('disconnected');
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!address) {
+    if (!address || !key) {
       setStatus('disconnected');
+      return;
+    }
+    if (isVerified(key)) {
+      setStatus('verified');
       return;
     }
     if (!hasStoredSession()) {
@@ -56,30 +62,38 @@ export function useSolanaWalletVerification() {
     } catch {
       setStatus('unverified');
     }
-  }, [address]);
+  }, [address, key]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => (key ? onVerified((verifiedKey) => verifiedKey === key && setStatus('verified')) : undefined), [key]);
+
   const verify = useCallback(async () => {
-    if (!address || !wallet) return;
+    if (!address || !wallet || !key) return;
     setStatus('verifying');
     setError(null);
     try {
-      const challenge = await requestSolanaWalletChallenge(address);
-      const { signature } = await signMessage({ message: new TextEncoder().encode(challenge.message), wallet });
-      await verifySolanaWalletChallenge(challenge.nonce, bs58.encode(signature));
+      await verifyOnce(key, async () => {
+        const challenge = await requestSolanaWalletChallenge(address);
+        const { signature } = await signMessage({ message: new TextEncoder().encode(challenge.message), wallet });
+        await verifySolanaWalletChallenge(challenge.nonce, bs58.encode(signature));
+        // A failed top-up is never fatal to verification succeeding — see
+        // SolanaTopupService's own doc comment on why a funding shortfall doesn't block the
+        // user from proceeding (they'll just need to fund the wallet themselves if it fails).
+        void ensureSolanaWalletFunded(address).catch(() => undefined);
+      });
       setStatus('verified');
-      // A failed top-up is never fatal to verification succeeding — see
-      // SolanaTopupService's own doc comment on why a funding shortfall doesn't block the
-      // user from proceeding (they'll just need to fund the wallet themselves if it fails).
-      void ensureSolanaWalletFunded(address).catch(() => undefined);
     } catch (err) {
       setStatus('rejected');
       setError(err instanceof Error ? err.message : 'Wallet verification failed');
     }
-  }, [address, wallet, signMessage]);
+  }, [address, wallet, key, signMessage]);
+
+  useEffect(() => {
+    if (status === 'unverified' && key && claimAutoAttempt(key)) void verify();
+  }, [status, key, verify]);
 
   return { status, error, verify, isConnected: Boolean(address), address };
 }

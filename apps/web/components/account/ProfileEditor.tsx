@@ -7,6 +7,7 @@ import { useAccount } from 'wagmi';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { fetchMyProfile, updateUsername, uploadAvatar, type MyProfile } from '@/lib/profile-client';
+import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
 import { hasStoredSession } from '@/lib/session-client';
 
 type State = 'no-session' | 'loading' | 'loaded' | 'error';
@@ -68,6 +69,7 @@ export function ProfileEditor() {
       const updated = await updateUsername(normalized);
       setProfile(updated);
       setUsernameInput(updated.username ?? '');
+      window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
       setUsernameSaved(true);
     } catch (err) {
       setUsernameError(err instanceof Error ? err.message : 'Could not save that username.');
@@ -90,6 +92,7 @@ export function ProfileEditor() {
     try {
       const updated = await uploadAvatar(file);
       setProfile(updated);
+      window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
     } catch (err) {
       setAvatarError(err instanceof Error ? err.message : 'Could not upload that image.');
     } finally {
