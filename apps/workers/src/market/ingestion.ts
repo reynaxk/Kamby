@@ -7,7 +7,7 @@ import {
 } from '@kamby/chain-adapters';
 import type { Prisma } from '@kamby/db';
 import { prisma } from '@kamby/db';
-import { ACTIVITY_REALTIME_CHANNEL, normalizeEvmAddress, type SeedMarket } from '@kamby/domain';
+import { ACTIVITY_REALTIME_CHANNEL, DISCOVERY_RANKING, normalizeEvmAddress, type SeedMarket } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import {
@@ -46,6 +46,9 @@ const RPC_CALL_DELAY_MS = 350;
  *  quoted in USDC) is at most 2-3 levels deep; this is deliberately generous headroom
  *  above that, not a value tuned to any specific seed list. */
 const MAX_RESOLUTION_PASSES = 5;
+
+/** How often a dormant market (see `isDormant`) is still refreshed — every Nth tick. */
+export const DORMANT_REFRESH_EVERY_N_TICKS = 10;
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -96,6 +99,31 @@ export class MarketIngestionService {
       rpcUrlFallback,
     });
     this.fanout = new NotificationFanoutService(redis, logger, whaleTradeUsdThreshold);
+    this.seedTokenAddresses = new Set(config.seedMarkets.map((m) => m.baseTokenAddress.toLowerCase()));
+  }
+
+  private readonly seedTokenAddresses: ReadonlySet<string>;
+  /** Counts refreshPricesAndLiquidity() calls — one per worker tick (see main.ts). */
+  private tickCount = 0;
+
+  /**
+   * A discovered (non-seed) market whose last measured liquidity is below Discover's own
+   * minimum — nothing anyone can see or sensibly trade. Found 2026-09-30: once liquidity was
+   * measured honestly (see computePoolLiquidityUsd's `anchor`), ~65 of Base's ~85 markets
+   * were copycat pools holding a few dollars, yet each still cost a full set of RPC calls
+   * every tick, stretching one Base tick to ~6 minutes — long enough that swap cursors
+   * (150 blocks per tick) fell further behind Base's ~180 blocks every tick. They're still
+   * refreshed every DORMANT_REFRESH_EVERY_N_TICKS-th tick, so one that gains real
+   * liquidity comes back on its own. Unknown liquidity (null) is never dormant.
+   */
+  private isDormant(market: { liquidityUsd: Prisma.Decimal | null; token: { contractAddress: string } }): boolean {
+    if (this.seedTokenAddresses.has(market.token.contractAddress.toLowerCase())) return false;
+    return market.liquidityUsd !== null && Number(market.liquidityUsd) < DISCOVERY_RANKING.minLiquidityUsd;
+  }
+
+  /** True on the ticks where dormant markets are processed too. */
+  private isFullTick(): boolean {
+    return this.tickCount % DORMANT_REFRESH_EVERY_N_TICKS === 1;
   }
 
   /** Idempotent — upserts the chain, tokens, and markets. Safe to call every tick. */
@@ -216,10 +244,12 @@ export class MarketIngestionService {
    * most 2-3 levels deep (a token quoted in a token quoted in USDC).
    */
   async refreshPricesAndLiquidity(): Promise<void> {
-    const markets = await prisma.tokenMarket.findMany({
+    this.tickCount += 1;
+    const allMarkets = await prisma.tokenMarket.findMany({
       where: { chainId: this.requireChainId() },
       include: { token: true, quoteToken: true },
     });
+    const markets = this.isFullTick() ? allMarkets : allMarkets.filter((m) => !this.isDormant(m));
     const resolvedUsdPrices = new Map<string, number>([[this.config.quoteUsdcAddress.toLowerCase(), 1]]);
 
     let updated = 0;
@@ -346,8 +376,10 @@ export class MarketIngestionService {
         quoteUsdPrices.set(m.token.contractAddress.toLowerCase(), Number(m.priceUsd));
     }
 
+    const fullTick = this.isFullTick();
     for (const market of markets) {
       if (!market.cursor) continue;
+      if (!fullTick && this.isDormant(market)) continue;
       const quoteUsd = quoteUsdPrices.get(market.quoteToken.contractAddress.toLowerCase());
       if (quoteUsd === undefined) {
         this.logger.warn(

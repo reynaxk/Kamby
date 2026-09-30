@@ -3,7 +3,7 @@ import { UniswapV3PoolReader } from '@kamby/chain-adapters';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MarketIngestionService } from './ingestion';
+import { DORMANT_REFRESH_EVERY_N_TICKS, MarketIngestionService } from './ingestion';
 
 const mockPrisma = vi.hoisted(() => ({
   chain: {
@@ -323,6 +323,29 @@ describe('MarketIngestionService.refreshPricesAndLiquidity — DB-driven, order-
     expect(mockPrisma.tokenMarket.update).not.toHaveBeenCalled();
     expect(fakeLogger.info).toHaveBeenCalledWith(expect.objectContaining({ updated: 0, skipped: 1 }), 'Price/liquidity refresh complete');
   });
+  it('refreshes a dormant discovered market (liquidity under the Discover minimum) only on every Nth tick', async () => {
+    mockPrisma.tokenMarket.findMany.mockResolvedValue([
+      marketRow({ id: 'dormant', liquidityUsd: 3 }),
+      marketRow({ id: 'unknown-liquidity', pairAddress: RESOLVER_POOL, liquidityUsd: null }),
+    ]);
+    const service = newService();
+    const refreshedIds = () =>
+      (mockPrisma.tokenMarket.update.mock.calls as [{ where: { id: string } }][]).map(([arg]) => arg.where.id);
+
+    await service.refreshPricesAndLiquidity(); // tick 1 — a full tick
+    expect(refreshedIds()).toEqual(['dormant', 'unknown-liquidity']);
+
+    mockPrisma.tokenMarket.update.mockClear();
+    for (let tick = 2; tick <= DORMANT_REFRESH_EVERY_N_TICKS; tick++) await service.refreshPricesAndLiquidity();
+    expect(refreshedIds()).not.toContain('dormant');
+    expect(refreshedIds()).toContain('unknown-liquidity');
+
+    mockPrisma.tokenMarket.update.mockClear();
+    await service.refreshPricesAndLiquidity(); // tick N+1 — full again
+    expect(refreshedIds()).toContain('dormant');
+ 
+    // Real RPC_CALL_DELAY_MS between markets across 11 ticks — over the default 5s timeout.
+  }, 30_000);
 });
 
 describe('MarketIngestionService.ingestSwaps — cursor safety', () => {
