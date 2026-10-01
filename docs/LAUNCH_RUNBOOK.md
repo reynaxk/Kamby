@@ -88,7 +88,7 @@ Kamby degrades rather than breaks. Nothing below needs action unless it lasts.
 
 Owner actions — accounts and billing only the owner can change:
 
-- [ ] **Cloudflare Workers Paid ($5/mo)** — the site runs on the Free plan: 10 ms CPU per
+- [x] **Cloudflare Workers Paid ($5/mo)** — done 2026-10-01; re-test 800 req @60 concurrent: 0 errors (was ~7% 1102). — the site runs on the Free plan: 10 ms CPU per
       request and 100,000 requests/day. A load test (60 concurrent) got ~7% `Error 1102
       Worker exceeded resource limits`; a busy launch day would also exhaust the daily cap.
       dash.cloudflare.com → Workers & Pages → Plans.
@@ -97,7 +97,7 @@ Owner actions — accounts and billing only the owner can change:
 - [ ] **QuickNode usage alerts** at 50% / 80% of monthly credits.
 - [ ] **Privy app to production mode**; tick "SVM (Solana) wallets" under automatic wallet
       creation.
-- [ ] **Sentry DSN** → `SENTRY_DSN` on the api service (error reporting is off without it).
+- [x] **Sentry DSN** — set on the api service 2026-10-01 (EU region, org Kamby); test event received.
 - [ ] **Legal name + contact email** → `lib/legal.ts`, `LEGAL_DETAILS_CONFIRMED=true`
       (Terms/Privacy/Risk pages 404 until then).
 - [ ] **Real $1–2 trades** on Base, BNB and Solana (buy and sell) from a fresh account.
