@@ -94,14 +94,14 @@ Owner actions — accounts and billing only the owner can change:
       dash.cloudflare.com → Workers & Pages → Plans.
 - [ ] **Jupiter paid plan (10 req/s)** — then set `SOLANA_JUPITER_MAX_RPS=10` on the api
       service (the API spaces Jupiter calls to this limit; default 1 = free plan).
-- [ ] **QuickNode usage alerts** at 50% / 80% of monthly credits.
+- [x] **QuickNode usage alerts** at 50% / 80% of monthly credits — done 2026-10-01.
 - [ ] **Privy app to production mode**; tick "SVM (Solana) wallets" under automatic wallet
       creation.
 - [x] **Sentry DSN** — set on the api service 2026-10-01 (EU region, org Kamby); test event received.
 - [ ] **Legal name + contact email** → `lib/legal.ts`, `LEGAL_DETAILS_CONFIRMED=true`
       (Terms/Privacy/Risk pages 404 until then).
 - [ ] **Real $1–2 trades** on Base, BNB and Solana (buy and sell) from a fresh account.
-- [ ] **Postgres backups** enabled on Railway.
+- [x] **Postgres backups** enabled on Railway — done 2026-10-01 (owner).
 
 Done (2026-10-01):
 
