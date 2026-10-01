@@ -39,6 +39,22 @@ Railway redeploys `api`, `workers` and `workers-bnb` on every push to `main`.
   Redeploy.
 - **In git:** `git revert <bad-commit> && git push` (triggers a normal redeploy).
 
+## 3b. Database restore — read before clicking "Restore"
+
+**"Restore" on a Postgres backup replaces the live database with that backup.** Everything
+newer disappears from the site (it happened 2026-10-01: a restore from a Sep 19 backup took
+the coin lists down for ~10 minutes). Railway keeps the previous volume, unmounted, so it can
+be undone:
+
+```sh
+railway.cmd volume list                      # the live data volume shows "Attached to: N/A"
+railway.cmd volume -s <postgres service id> detach -v <restored volume id> -y
+railway.cmd volume -s <postgres service id> attach -v <previous volume id> -y
+```
+
+The live data volume is `postgres-volume-hvol` (~18 GB). Get the Postgres service ID from
+`railway.cmd status --json`. Never delete a volume during an incident.
+
 ## 4. Turn off one subsystem
 
 Workers-side switches (set on `workers` and/or `workers-bnb`):
