@@ -1,5 +1,5 @@
 import { parseEnv, SEED_MARKETS_BY_CHAIN_IDENTIFIER } from '@kamby/domain';
-import { EvmChainDataProvider, PUBLIC_EVM_RPC_URLS } from '@kamby/chain-adapters';
+import { EvmChainDataProvider, PUBLIC_EVM_RPC_URLS, startRpcUsageReporter } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import { Connection } from '@solana/web3.js';
 import { Redis } from 'ioredis';
@@ -27,6 +27,8 @@ async function main(): Promise<void> {
   const logger = createLogger(env);
 
   logger.info('Worker starting');
+  // Paid-RPC visibility (2026-10-01, QuickNode limit hit): calls by provider + method, every 10 min.
+  startRpcUsageReporter((message, entries) => logger.info({ rpcUsage: entries }, message));
 
   const redis = new Redis(env.REDIS_URL, { maxRetriesPerRequest: 2 });
   // Without a listener, ioredis dumps reconnect errors straight to stderr, bypassing

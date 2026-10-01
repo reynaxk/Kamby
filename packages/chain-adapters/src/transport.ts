@@ -1,4 +1,5 @@
 import { fallback, http, type Transport } from 'viem';
+import { recordRpcRequest } from './rpc-usage';
 
 /**
  * A single RPC URL, or a primary + fallback pair via viem's own `fallback()` transport —
@@ -27,7 +28,9 @@ export function createEvmTransport(rpcUrl: string | readonly string[], rpcUrlFal
   // An ordered list (see PUBLIC_EVM_RPC_URLS) is the same fallback chain, just longer.
   const urls = [...(typeof rpcUrl === 'string' ? [rpcUrl] : rpcUrl), ...(rpcUrlFallback ? [rpcUrlFallback] : [])];
   if (urls.length === 0) throw new Error('createEvmTransport needs at least one RPC URL');
-  return urls.length === 1 ? http(urls[0]) : fallback(urls.map((url) => http(url)), { shouldThrow: alwaysTryFallback });
+  // Every request is counted (provider + method) for the usage reports — see rpc-usage.ts.
+  const metered = (url: string) => http(url, { onFetchRequest: (_request, init) => recordRpcRequest(url, init.body) });
+  return urls.length === 1 ? metered(urls[0]!) : fallback(urls.map(metered), { shouldThrow: alwaysTryFallback });
 }
 
 /** Named and exported purely so the exact production incident (QuickNode's -32003 "daily

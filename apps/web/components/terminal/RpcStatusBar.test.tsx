@@ -81,7 +81,7 @@ describe('RpcStatusBar', () => {
     expect(ms).toHaveClass('text-warn');
   });
 
-  it('pings again every real 15s', async () => {
+  it('pings again once a minute — not every 15s, each ping spends the Helius key', async () => {
     vi.useFakeTimers();
     const getSlot = vi.fn().mockResolvedValue(1);
     state.connection = { getSlot };
@@ -90,6 +90,19 @@ describe('RpcStatusBar', () => {
     expect(getSlot).toHaveBeenCalledTimes(1);
 
     await vi.advanceTimersByTimeAsync(15_000);
+    expect(getSlot).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(45_000);
     expect(getSlot).toHaveBeenCalledTimes(2);
+  });
+
+  it('never pings while the tab is hidden', async () => {
+    vi.useFakeTimers();
+    const getSlot = vi.fn().mockResolvedValue(1);
+    state.connection = { getSlot };
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    render(<RpcStatusBar />);
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(getSlot).not.toHaveBeenCalled();
+    visibility.mockRestore();
   });
 });

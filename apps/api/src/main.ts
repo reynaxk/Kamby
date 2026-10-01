@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import { startRpcUsageReporter } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import { AppModule } from './app.module';
 import type { Env } from './config/env';
@@ -50,6 +51,9 @@ async function bootstrap(): Promise<void> {
   const port = config.get('PORT', { infer: true });
   await app.listen(port, '0.0.0.0');
   logger.log(`API listening on port ${port} (${config.get('NODE_ENV', { infer: true })})`);
+
+  // Paid-RPC visibility (2026-10-01, QuickNode limit hit): calls by provider + method, every 10 min.
+  startRpcUsageReporter((message, entries) => logger.log({ rpcUsage: entries }, message));
 
   // Capacity visibility (2026-09-30): how many Postgres connections every Kamby service holds
   // together vs. the server's own limit — the per-process pools (api 15, workers 5 each) must

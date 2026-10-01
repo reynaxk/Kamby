@@ -27,6 +27,8 @@ export function RpcStatusBar() {
     let cancelled = false;
 
     async function check() {
+      // Every open tab pings the Helius key — never while hidden, and once a minute is plenty.
+      if (document.visibilityState !== 'visible') return;
       const startedAt = performance.now();
       try {
         await solanaConnection!.getSlot();
@@ -37,7 +39,7 @@ export function RpcStatusBar() {
     }
 
     void check();
-    const interval = setInterval(check, 15_000);
+    const interval = setInterval(check, 60_000);
     return () => {
       cancelled = true;
       clearInterval(interval);
