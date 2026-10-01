@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
+import { JupiterBusyError, JupiterRateLimiter } from './jupiter-rate-limiter';
 import { getSolanaConfig, type Env } from '../config/env';
 
 // Jupiter's old free/keyless `quote-api.jup.ag/v6/*` domain no longer resolves at all
@@ -94,12 +95,15 @@ export interface JupiterQuoteResult {
 @Injectable()
 export class JupiterQuoteService {
   private readonly apiKey: string | null;
+  private readonly limiter: JupiterRateLimiter;
 
   constructor(
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
   ) {
-    this.apiKey = getSolanaConfig((key) => config.get(key, { infer: true }))?.jupiterApiKey ?? null;
+    const solana = getSolanaConfig((key) => config.get(key, { infer: true }));
+    this.apiKey = solana?.jupiterApiKey ?? null;
+    this.limiter = new JupiterRateLimiter(solana?.jupiterMaxRps ?? 1);
     this.logger.setContext('JupiterQuoteService');
   }
 
@@ -201,6 +205,7 @@ export class JupiterQuoteService {
         addressLookupTableAddresses: body.addressLookupTableAddresses,
       };
     } catch (error) {
+      if (error instanceof JupiterBusyError) throw new ServiceUnavailableException(error.message);
       this.logger.warn({ err: error }, 'swap-instructions endpoint unreachable');
       return null;
     }
@@ -249,6 +254,7 @@ export class JupiterQuoteService {
       }
       return (await response.json()) as JupiterQuoteResponse;
     } catch (error) {
+      if (error instanceof JupiterBusyError) throw new ServiceUnavailableException(error.message);
       this.logger.warn({ err: error }, 'quote endpoint unreachable');
       return null;
     }
@@ -284,6 +290,7 @@ export class JupiterQuoteService {
       }
       return (await response.json()) as JupiterSwapResponse;
     } catch (error) {
+      if (error instanceof JupiterBusyError) throw new ServiceUnavailableException(error.message);
       this.logger.warn({ err: error }, 'swap endpoint unreachable');
       return null;
     }
@@ -297,6 +304,7 @@ export class JupiterQuoteService {
    * concurrent requests don't all retry in lockstep and re-collide on the next attempt.
    */
   private async fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+    await this.limiter.take();
     let response = await fetch(url, init);
     for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS && response.status === 429; attempt++) {
       const retryAfterHeader = response.headers.get('retry-after');
@@ -308,6 +316,7 @@ export class JupiterQuoteService {
 
       this.logger.warn({ attempt: attempt + 1, delayMs: Math.round(delayMs) }, 'Jupiter rate limit (429) — retrying after backoff');
       await sleep(delayMs);
+      this.limiter.note();
       response = await fetch(url, init);
     }
     return response;

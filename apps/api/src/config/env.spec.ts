@@ -231,6 +231,7 @@ describe('API env schema', () => {
         rpcUrlFallback: null,
         treasuryUsdcAta: 'FakeAtaAddressForTestingOnly1111111111111',
         jupiterPlatformFeeBps: 50,
+        jupiterMaxRps: 1,
         newWalletTopupSol: 0.01,
         topupFundingSecretKey: 'fake-base58-secret-key-for-testing-only',
         jupiterApiKey: 'fake-jupiter-api-key-for-testing-only',

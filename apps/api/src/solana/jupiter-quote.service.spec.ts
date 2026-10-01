@@ -217,7 +217,11 @@ describe('JupiterQuoteService', () => {
         .mockResolvedValueOnce(jsonResponse(validSwapBody));
 
       const resultPromise = service.getQuote(baseParams);
-      await jest.advanceTimersByTimeAsync(2000);
+      await jest.advanceTimersByTimeAsync(1999);
+      expect(fetchMock).toHaveBeenCalledTimes(1); // still honoring the 2s Retry-After
+      // +2s Retry-After, then the swap-build call is spaced 1s behind the retry (the
+      // 1 req/s default plan limit — see jupiter-rate-limiter.ts).
+      await jest.advanceTimersByTimeAsync(1001);
       const result = await resultPromise;
 
       expect(result).not.toBeNull();

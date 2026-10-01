@@ -157,6 +157,10 @@ export const EnvSchema = z.object({
   /** See docs/TRADING.md#fees — matches the EVM side's 0.50% default, not the 0.75% first
    *  floated for this feature before the actual configured platform fee was checked. */
   SOLANA_JUPITER_PLATFORM_FEE_BPS: z.coerce.number().int().min(0).max(1000).default(50),
+  /** The Jupiter key's plan limit, in requests/second — every Jupiter call is spaced to stay
+   *  under it (see solana/jupiter-rate-limiter.ts). 1 = the free plan; set it to the paid
+   *  plan's limit (e.g. 10) once upgraded at https://portal.jup.ag. */
+  SOLANA_JUPITER_MAX_RPS: z.coerce.number().positive().max(1000).default(1),
   /** How much SOL a brand-new embedded wallet receives once, on creation, so "gasless-
    *  feeling" holds even though launch ships non-custodial (the wallet pays its own gas
    *  after this). Deliberately small — see SOLANA_TOPUP_FUNDING_SECRET_KEY below. */
@@ -477,6 +481,7 @@ export interface SolanaConfig {
   treasuryUsdcAta: string;
   jupiterApiKey: string;
   jupiterPlatformFeeBps: number;
+  jupiterMaxRps: number;
   newWalletTopupSol: number;
   topupFundingSecretKey: string;
   /** `null` unless `GasRelayerService` is actually configured with a real fee-payer secret
@@ -515,6 +520,7 @@ export function getSolanaConfig(get: <K extends keyof Env>(key: K) => Env[K]): S
     treasuryUsdcAta: get('SOLANA_TREASURY_USDC_ATA')!,
     jupiterApiKey: get('SOLANA_JUPITER_API_KEY')!,
     jupiterPlatformFeeBps: get('SOLANA_JUPITER_PLATFORM_FEE_BPS'),
+    jupiterMaxRps: get('SOLANA_JUPITER_MAX_RPS'),
     newWalletTopupSol: get('SOLANA_NEW_WALLET_TOPUP_SOL'),
     topupFundingSecretKey: get('SOLANA_TOPUP_FUNDING_SECRET_KEY')!,
     gasRelayerFeePayerSecretKey: get('SOLANA_GAS_RELAYER_FEE_PAYER_SECRET_KEY') ?? null,
