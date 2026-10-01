@@ -35,6 +35,9 @@ export const EnvSchema = z.object({
 
   THROTTLE_TTL_SECONDS: z.coerce.number().int().positive().default(60),
   THROTTLE_LIMIT: z.coerce.number().int().positive().default(120),
+  /** Shared secret the website's server-side rendering sends (x-kamby-ssr) to skip per-IP
+   *  throttling — see common/guards/client-throttler.guard.ts. Unset = nothing is exempt. */
+  SSR_API_TOKEN: z.string().min(32).optional(),
 
   /**
    * Signs the anonymous session issued by POST /v1/identity/session — see

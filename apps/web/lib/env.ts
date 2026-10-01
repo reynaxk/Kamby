@@ -10,6 +10,10 @@ import { z } from 'zod';
 export const ServerEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_BASE_URL: z.string().url().default('http://localhost:4000'),
+  /** Sent as x-kamby-ssr so the API doesn't rate-limit server-side rendering per IP — every
+   *  visitor's page render reaches the API from a few shared Cloudflare IPs. A Cloudflare
+   *  secret (wrangler secret put API_SSR_TOKEN), never a committed var. */
+  API_SSR_TOKEN: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;

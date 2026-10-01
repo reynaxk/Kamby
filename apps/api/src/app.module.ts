@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ClientThrottlerGuard } from './common/guards/client-throttler.guard';
 import { parseEnv } from '@kamby/domain';
 import { LoggerModule, type Params } from 'nestjs-pino';
 import { ValidatedEnvSchema, type Env } from './config/env';
@@ -79,7 +80,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     MarketFeedsModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: ClientThrottlerGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })
