@@ -39,30 +39,23 @@ export function MarketHeader({
   wide?: boolean;
 }) {
   const shellClass = wide ? 'max-w-[1920px] px-2 sm:px-3' : 'max-w-6xl px-6';
-  const actionsClass = wide
-    ? 'ml-0 flex flex-1 flex-wrap items-center gap-2'
-    : 'ml-auto flex flex-wrap items-center gap-3';
-
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur">
       <div
-        className={`mx-auto flex flex-wrap items-center gap-3 ${wide ? 'py-2.5' : 'py-4'} ${shellClass}`}
+        className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 ${wide ? 'py-2.5' : 'py-3 sm:py-4'} ${shellClass}`}
       >
         <Link href="/" className="flex items-center gap-2">
           <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
-        <div className={`${actionsClass} ${wide ? 'kamby-header-actions' : ''}`}>
-          {/* w-full below sm: the search input has no room to be usable squeezed onto the
-              same row as five icon buttons + Sign in on a narrow phone (it was clipping to
-              ~2 visible characters of its own placeholder) — full-width forces it onto its
-              own wrapped row instead. Keyed on the server-known term so navigating between
-              searches (or back to plain Discover) fully remounts SearchBar — its live-
-              typeahead state (typed value, dropdown results) is now lifted into the
-              component itself rather than living in the DOM input node, so only a real
-              remount resets it. */}
-          <div className={wide ? 'w-full sm:mx-auto sm:flex-1 sm:max-w-xl' : 'w-full sm:w-auto'}>
-            <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
-          </div>
+        {/* Phones: logo + bell + Sign in share the first row and search gets its own full-width
+            row below (`order-last`) — it used to push the bell and Sign in onto a second row
+            of their own, ~150px of header on every page. From sm up: logo · search · actions.
+            Keyed on the server-known term so navigating between searches (or back to plain
+            Discover) fully remounts SearchBar and resets its typeahead state. */}
+        <div className={`order-last w-full sm:order-none ${wide ? 'sm:mx-auto sm:max-w-xl sm:flex-1' : 'sm:ml-auto sm:w-auto'}`}>
+          <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
+        </div>
+        <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
           <NotificationBell />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} />
         </div>

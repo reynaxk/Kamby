@@ -15,7 +15,8 @@ const WINDOWS: readonly PnlWindow[] = ['24h', '7d', '30d'];
 const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d': '30D' };
 
 /** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
-const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', ...SUPPORTED_CHAIN_SLUGS];
+// Only chains Kamby trades on — Arbitrum/Ethereum are in the registry but have no markets.
+const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', 'base', 'bnb'];
 
 function isPnlWindow(value: string | undefined): value is PnlWindow {
   return WINDOWS.includes(value as PnlWindow);

@@ -107,7 +107,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
             </h2>
             <p className="mb-4 font-body text-xs text-ink-400">
               Only trades placed through Kamby itself, matched buy-to-sell — never this
-              wallet&apos;s full on-chain activity. See docs/TRADER_INTELLIGENCE.md#realized-pnl.
+              wallet&apos;s full on-chain activity.
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {PNL_WINDOWS.map((window) => {
@@ -137,7 +137,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
             </h2>
             <p className="mb-4 font-body text-xs text-ink-400">
               Derived only from this wallet&apos;s own confirmed, indexed trades — not investment
-              advice. See docs/TRADER_INTELLIGENCE.md.
+              advice.
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="Unique tokens" value={profile.stats.uniqueTokensTraded.toString()} />

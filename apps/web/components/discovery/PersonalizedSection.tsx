@@ -27,8 +27,7 @@ export function PersonalizedSection() {
     <section className="mb-12">
       <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">For you</h2>
       <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
-        Tokens and activity picked from who you follow, what you&apos;ve traded, and what&apos;s active on the market
-        — see docs/TRADER_INTELLIGENCE.md#personalization for exactly why.
+        Tokens and activity picked from who you follow, what you&apos;ve traded, and what&apos;s active on the market.
       </p>
       <div className="mt-5">
         <PersonalizedDiscovery />

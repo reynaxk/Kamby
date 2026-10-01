@@ -112,12 +112,12 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
                 {filteredActivity.map((row) => (
                   <tr key={row.id} className="border-b border-line/50">
                     <td
-                      className="px-2.5 py-1 tracking-tight text-ink-400"
+                      className="whitespace-nowrap px-2.5 py-1 tracking-tight text-ink-400"
                       suppressHydrationWarning
                     >
                       {formatRelativeTime(row.timestamp)}
                     </td>
-                    <td className="px-2.5 py-1 tracking-tight text-ink-600">
+                    <td className="whitespace-nowrap px-2.5 py-1 tracking-tight text-ink-600">
                       {row.trader.address ? truncateAddress(row.trader.address) : 'Unknown'}
                     </td>
                     <td
@@ -129,9 +129,9 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
                       {row.action}
                     </td>
                     <td className="px-2.5 py-1 text-right tabular-nums text-ink-900">
-                      ${row.amountUsd.toLocaleString('en-US')}
+                      ${row.amountUsd.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                     </td>
-                    <td className="px-2.5 py-1 tracking-tight text-ink-400">
+                    <td className="hidden px-2.5 py-1 tracking-tight text-ink-400 sm:table-cell">
                       {truncateAddress(row.txHash)}
                     </td>
                   </tr>

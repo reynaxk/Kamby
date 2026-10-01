@@ -78,7 +78,7 @@ export function ReferralsView() {
           <p className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-400">Referred</p>
           <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-ink-900">{summary.referredCount}</p>
         </Surface>
-        <Surface className="p-4" title="Only counts trades whose fee was collected in guaranteed USDC — see docs/REFERRALS.md#currency-scope">
+        <Surface className="p-4" title="Only counts trades whose fee was collected in guaranteed USDC">
           <p className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-400">Earned (USDC)</p>
           <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-ink-900">
             {summary.earnedUsdcAmountFormatted}

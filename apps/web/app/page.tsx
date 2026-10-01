@@ -201,7 +201,6 @@ export default async function DiscoverPage({
                 </h2>
                 <p className="mt-1 font-body text-sm text-ink-600">
                   Ranked by real trading activity — unique traders and trade count, not just volume.
-                  See docs/SOCIAL.md#trending.
                 </p>
                 <div className="mt-5">
                   {trending.length === 0 ? (
