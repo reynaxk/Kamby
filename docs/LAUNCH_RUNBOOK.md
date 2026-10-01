@@ -84,7 +84,35 @@ Kamby degrades rather than breaks. Nothing below needs action unless it lasts.
 | Coinbase public feed | Crypto tab | Last prices stay; reconnects on its own |
 | Privy | Sign-in, wallets, card funding | Nobody can sign in; check status.privy.io |
 
-## 7. Launch day
+## 7. Pre-launch checklist (target: Oct 9)
+
+Owner actions — accounts and billing only the owner can change:
+
+- [ ] **Cloudflare Workers Paid ($5/mo)** — the site runs on the Free plan: 10 ms CPU per
+      request and 100,000 requests/day. A load test (60 concurrent) got ~7% `Error 1102
+      Worker exceeded resource limits`; a busy launch day would also exhaust the daily cap.
+      dash.cloudflare.com → Workers & Pages → Plans.
+- [ ] **Jupiter paid plan (10 req/s)** — then set `SOLANA_JUPITER_MAX_RPS=10` on the api
+      service (the API spaces Jupiter calls to this limit; default 1 = free plan).
+- [ ] **QuickNode usage alerts** at 50% / 80% of monthly credits.
+- [ ] **Privy app to production mode**; tick "SVM (Solana) wallets" under automatic wallet
+      creation.
+- [ ] **Sentry DSN** → `SENTRY_DSN` on the api service (error reporting is off without it).
+- [ ] **Legal name + contact email** → `lib/legal.ts`, `LEGAL_DETAILS_CONFIRMED=true`
+      (Terms/Privacy/Risk pages 404 until then).
+- [ ] **Real $1–2 trades** on Base, BNB and Solana (buy and sell) from a fresh account.
+- [ ] **Postgres backups** enabled on Railway.
+
+Done (2026-10-01):
+
+- Rate limits keyed on the visitor's real IP (not Railway's proxy); the site's own
+  server-side rendering is exempt via `SSR_API_TOKEN` / `API_SSR_TOKEN`.
+- Paid-RPC usage logged every 10 min (`railway.cmd logs --service api --filter "RPC usage"`).
+- Jupiter calls capped at the plan limit; overload returns "busy, try again", not "no quote".
+- Uptime check every 10 min (`.github/workflows/uptime.yml`): site, API health, price
+  freshness per chain, live stream. Failures email the team.
+
+## 8. Launch day
 
 - **T-24h:** CI green on `main`; web deployed from `main`; all health checks (§5) pass;
   one real $1–2 test trade each on Base, BNB and Solana.
