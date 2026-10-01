@@ -42,6 +42,18 @@ type FetchStatus = 'loading' | 'ready' | 'error';
 type GridMode = 1 | 4 | 6;
 const GRID_MODES: GridMode[] = [1, 4, 6];
 
+const EMPTY_TRADERS: TokenTraderConnection = {
+  uniqueTraders24h: null,
+  recentTraders: [],
+  activeTraders: [],
+  recentLargeTrades: [],
+  watcherCount: 0,
+  buyCount24h: 0,
+  sellCount24h: 0,
+  buyerCount24h: 0,
+  sellerCount24h: 0,
+};
+
 function chainIdFor(market: MarketSummary): number {
   const slug = slugForIdentifier(market.chainIdentifier) ?? DEFAULT_CHAIN_SLUG;
   return CHAIN_REGISTRY[slug].numericId;
@@ -122,9 +134,10 @@ export function DiscoverTerminal({
   feeds: MarketFeedSnapshot;
   initialMarket: MarketSummary | null;
   initialTimeframe: Timeframe;
-  initialCandles: Candle[];
-  initialActivity: SocialActivity[];
-  initialTraders: TokenTraderConnection;
+  /** `undefined` = the server didn't have it in time (app/page.tsx's budget) — fetched here. */
+  initialCandles: Candle[] | undefined;
+  initialActivity: SocialActivity[] | undefined;
+  initialTraders: TokenTraderConnection | undefined;
 }) {
   const isMobile = useIsMobile();
   const [gridMode, setGridMode] = useState<GridMode>(1);
@@ -145,17 +158,18 @@ export function DiscoverTerminal({
   const [tradeStep, setTradeStep] = useState<TradePanelStep>('form');
   const inFlight = IN_FLIGHT_STEPS.has(tradeStep);
 
-  const [candles, setCandles] = useState<Candle[]>(initialCandles);
-  const [candlesStatus, setCandlesStatus] = useState<FetchStatus>('ready');
-  const skipCandlesFetch = useRef(true);
+  // Each panel skips its first fetch only when the server already provided it.
+  const [candles, setCandles] = useState<Candle[]>(initialCandles ?? []);
+  const [candlesStatus, setCandlesStatus] = useState<FetchStatus>(initialCandles ? 'ready' : 'loading');
+  const skipCandlesFetch = useRef(initialCandles !== undefined);
 
-  const [activity, setActivity] = useState<SocialActivity[]>(initialActivity);
-  const [activityStatus, setActivityStatus] = useState<FetchStatus>('ready');
-  const skipActivityFetch = useRef(true);
+  const [activity, setActivity] = useState<SocialActivity[]>(initialActivity ?? []);
+  const [activityStatus, setActivityStatus] = useState<FetchStatus>(initialActivity ? 'ready' : 'loading');
+  const skipActivityFetch = useRef(initialActivity !== undefined);
 
-  const [traders, setTraders] = useState<TokenTraderConnection>(initialTraders);
-  const [tradersStatus, setTradersStatus] = useState<FetchStatus>('ready');
-  const skipTradersFetch = useRef(true);
+  const [traders, setTraders] = useState<TokenTraderConnection>(initialTraders ?? EMPTY_TRADERS);
+  const [tradersStatus, setTradersStatus] = useState<FetchStatus>(initialTraders ? 'ready' : 'loading');
+  const skipTradersFetch = useRef(initialTraders !== undefined);
 
   useEffect(() => {
     if (skipCandlesFetch.current) {

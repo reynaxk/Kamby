@@ -214,3 +214,20 @@ describe('DiscoverTerminal', () => {
     expect(fetchTokenHistoryMock).not.toHaveBeenCalled();
   });
 });
+
+describe('DiscoverTerminal — panels the server ran out of time for', () => {
+  it('fetches the default coin\'s chart, activity and traders itself when the server sent none', async () => {
+    fetchTokenHistoryMock.mockResolvedValue([
+      { bucketStart: '2026-01-01T00:00:00.000Z', open: 1, high: 1, low: 1, close: 1 },
+      { bucketStart: '2026-01-01T01:00:00.000Z', open: 1, high: 1, low: 1, close: 1 },
+    ]);
+    fetchLatestActivityMock.mockResolvedValue({ items: [], nextCursor: null });
+    fetchTokenTradersMock.mockResolvedValue(emptyTraders);
+    render(<DiscoverTerminal {...defaultProps} initialCandles={undefined} initialActivity={undefined} initialTraders={undefined} />);
+
+    await waitFor(() => expect(screen.getByTestId('chart')).toHaveTextContent('2 candles'));
+    expect(fetchTokenHistoryMock).toHaveBeenCalledWith(marketA.tokenAddress, '1D', expect.any(Number));
+    expect(fetchLatestActivityMock).toHaveBeenCalled();
+    expect(fetchTokenTradersMock).toHaveBeenCalled();
+  });
+});

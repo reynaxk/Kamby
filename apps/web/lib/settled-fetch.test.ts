@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { settledOr } from './settled-fetch';
+import { settledOr, settledWithin } from './settled-fetch';
 
 describe('settledOr', () => {
   it('returns the resolved value when the promise succeeds', async () => {
@@ -22,5 +22,15 @@ describe('settledOr', () => {
 
     expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('a page section fetch failed'), error);
     consoleError.mockRestore();
+  });
+});
+
+describe('settledWithin', () => {
+  it('returns the value when it arrives in time', async () => {
+    expect(await settledWithin(Promise.resolve(5), 50)).toBe(5);
+  });
+  it('returns undefined when the fetch is too slow or fails', async () => {
+    expect(await settledWithin(new Promise((r) => setTimeout(() => r(5), 200)), 20)).toBeUndefined();
+    expect(await settledWithin(Promise.reject(new Error('x')), 50)).toBeUndefined();
   });
 });

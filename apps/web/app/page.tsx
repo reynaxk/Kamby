@@ -23,7 +23,9 @@ import { fetchDiscoverMarkets, fetchMarketFeeds, fetchSearch, fetchTokenHistory 
 import { fetchGlobalActivity, fetchTraderSearch, fetchTrending } from '@/lib/social-api';
 import { fetchTokenTraders } from '@/lib/discovery-api';
 import { pickDefaultMarket } from '@/lib/default-market';
-import { settledOr } from '@/lib/settled-fetch';
+import { settledOr, settledWithin } from '@/lib/settled-fetch';
+
+const HERO_BUDGET_MS = 1200;
 
 const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
   uniqueTraders24h: null,
@@ -109,17 +111,14 @@ export default async function DiscoverPage({
     ? CHAIN_REGISTRY[slugForIdentifier(defaultMarket.chainIdentifier) ?? DEFAULT_CHAIN_SLUG]
         .numericId
     : CHAIN_REGISTRY[DEFAULT_CHAIN_SLUG].numericId;
+  // The default coin's panels get a time budget: whatever isn't ready in HERO_BUDGET_MS ships
+  // as `undefined` and DiscoverTerminal fetches it in the browser, so no visitor waits on a
+  // cold traders/activity query (see settledWithin).
   const [heroCandles, heroActivity, heroTraders] = defaultMarket
     ? await Promise.all([
-        settledOr(fetchTokenHistory(defaultMarket.tokenAddress, '1D', defaultChainId), []),
-        settledOr(fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, chainId: defaultChainId, limit: 10 }), {
-          items: [],
-          nextCursor: null,
-        }),
-        settledOr(
-          fetchTokenTraders(defaultMarket.tokenAddress, defaultChainId, 8),
-          EMPTY_TOKEN_TRADER_CONNECTION,
-        ),
+        settledWithin(fetchTokenHistory(defaultMarket.tokenAddress, '1D', defaultChainId), HERO_BUDGET_MS),
+        settledWithin(fetchGlobalActivity({ tokenAddress: defaultMarket.tokenAddress, chainId: defaultChainId, limit: 10 }), HERO_BUDGET_MS),
+        settledWithin(fetchTokenTraders(defaultMarket.tokenAddress, defaultChainId, 8), HERO_BUDGET_MS),
       ])
     : [[], { items: [], nextCursor: null }, EMPTY_TOKEN_TRADER_CONNECTION];
 
@@ -142,7 +141,7 @@ export default async function DiscoverPage({
               initialMarket={defaultMarket ?? null}
               initialTimeframe="1D"
               initialCandles={heroCandles}
-              initialActivity={heroActivity.items}
+              initialActivity={heroActivity?.items}
               initialTraders={heroTraders}
             />
           </div>

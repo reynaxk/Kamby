@@ -12,6 +12,24 @@
  * without that fetch should still 404/error clearly, not silently render an empty shell
  * that looks like a real "no data" state.
  */
+/**
+ * Like settledOr, but with a time budget: resolves `undefined` when the fetch is slower than
+ * `ms` (or fails), so a page can ship without a non-essential section and let the browser
+ * fetch it instead of every visitor waiting on the slowest query (2026-10-01: the home page's
+ * activity/traders panels sometimes took 4-8s cold and held the whole page).
+ */
+export async function settledWithin<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => resolve(undefined), ms);
+  });
+  try {
+    return await Promise.race([promise.catch(() => undefined), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function settledOr<T>(promise: Promise<T>, fallback: T): Promise<T> {
   try {
     return await promise;
