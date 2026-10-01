@@ -20,7 +20,8 @@ export const PUBLIC_EVM_RPC_URLS: Readonly<Record<number, readonly string[]>> = 
   ],
   56: [
     'https://bsc-rpc.publicnode.com',
-    'https://bsc.rpc.blxrbdn.com',
+    // bsc.rpc.blxrbdn.com removed 2026-10-01: answers eth_blockNumber but times out (15s+) on
+    // every eth_getLogs, stalling each ingestion call that fell back to it.
     'https://rpc-bsc.48.club',
     'https://0.48.club',
   ],

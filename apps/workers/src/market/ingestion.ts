@@ -23,7 +23,11 @@ const BUCKET_MINUTES = 5;
  *  tick pulling an unbounded number of events) and each getLogs response a predictable size.
  *  LOG_CHUNK_BLOCKS below is deliberately tied to this value, not an independent constant —
  *  see its own comment for why. */
-const MAX_BLOCKS_PER_TICK = 150n;
+const MAX_BLOCKS_PER_TICK = 2000n;
+/** A market further behind the chain head than this skips ahead instead of crawling — BNB
+ *  (0.75s blocks) fell days behind at 150 blocks/tick and showed $0 24h volume on every major
+ *  pair (2026-10-01). The skipped range is logged; 24h volume rebuilds from the jump on. */
+const MAX_LAG_BLOCKS = 20_000n;
 /** eth_getLogs range per request — deliberately equal to MAX_BLOCKS_PER_TICK, so the
  *  chunking loop in ingestSwapsForMarket always resolves in exactly one iteration per
  *  market per tick: chunkEnd = min(target, cursor + LOG_CHUNK_BLOCKS) can never need a
@@ -464,7 +468,15 @@ export class MarketIngestionService {
       : [market.quoteToken.decimals, market.token.decimals];
 
     const latestBlock = await this.poolReader.getLatestBlockNumber();
-    const cursorBlock = market.cursor!.lastProcessedBlock;
+    let cursorBlock = market.cursor!.lastProcessedBlock;
+    if (latestBlock - cursorBlock > MAX_LAG_BLOCKS) {
+      const resumeFrom = latestBlock - MAX_BLOCKS_PER_TICK;
+      this.logger.warn(
+        { pool: market.pairAddress, symbol: market.token.symbol, fromBlock: cursorBlock.toString(), toBlock: resumeFrom.toString() },
+        'Swap ingestion too far behind the chain head — skipping ahead; swaps in this range are not indexed',
+      );
+      cursorBlock = resumeFrom;
+    }
 
     if (latestBlock > cursorBlock) {
       const targetBlock = bigintMin(latestBlock, cursorBlock + MAX_BLOCKS_PER_TICK);
@@ -505,9 +517,25 @@ export class MarketIngestionService {
         // skipDuplicates upsert below).
         const walletFirstSeen = new Map<string, Date>();
         let implausibleSkipped = 0;
+        // Two timestamp lookups per chunk instead of one (plus a 350ms pause) per block:
+        // Base and BNB produce blocks at a fixed interval, so a block's time interpolated
+        // between the chunk's first and last block is accurate to about a second — far finer
+        // than the 5-minute candles. Falls back to per-block lookups if an anchor fails.
+        const anchors =
+          events.length > 0
+            ? await Promise.all([this.poolReader.getBlockTimestamp(cursor + 1n), this.poolReader.getBlockTimestamp(chunkEnd)])
+            : [null, null];
+        const interpolate = (blockNumber: bigint): Date | null => {
+          const [start, end] = anchors;
+          if (!start || !end) return null;
+          const span = Number(chunkEnd - (cursor + 1n));
+          if (span <= 0) return start;
+          const offset = Number(blockNumber - (cursor + 1n));
+          return new Date(start.getTime() + ((end.getTime() - start.getTime()) * offset) / span);
+        };
         for (const event of events) {
           const key = event.blockNumber.toString();
-          let blockTimestamp = blockTimestampCache.get(key);
+          let blockTimestamp = blockTimestampCache.get(key) ?? interpolate(event.blockNumber) ?? undefined;
           if (!blockTimestamp) {
             const ts = await this.poolReader.getBlockTimestamp(event.blockNumber);
             if (!ts) continue; // can't honestly place this swap in time — skip it, don't guess
