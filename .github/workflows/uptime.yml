@@ -1,0 +1,27 @@
+name: Production uptime
+
+# Every 10 minutes: website, API health, fresh prices on Base/BNB/Solana, live stream.
+# A failed run emails whoever last changed this schedule — see scripts/uptime-check.mjs.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check production
+        # One retry after 60s, so a single blip (a deploy restarting the API) doesn't page anyone.
+        run: node scripts/uptime-check.mjs || (sleep 60 && node scripts/uptime-check.mjs)
