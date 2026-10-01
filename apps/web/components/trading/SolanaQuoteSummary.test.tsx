@@ -35,7 +35,7 @@ describe('SolanaQuoteSummary', () => {
     render(<SolanaQuoteSummary quote={baseQuote()} />);
 
     expect(screen.getByText('You pay')).toBeInTheDocument();
-    expect(screen.getByText('$10')).toBeInTheDocument();
+    expect(screen.getByText('$10.00')).toBeInTheDocument();
     expect(screen.getByText('You receive')).toBeInTheDocument();
     expect(screen.getByText('98600000 raw units')).toBeInTheDocument();
     expect(screen.getByText('Minimum received')).toBeInTheDocument();
@@ -55,8 +55,8 @@ describe('SolanaQuoteSummary', () => {
     expect(screen.getByText('You pay')).toBeInTheDocument();
     expect(screen.getByText('500000000 raw units')).toBeInTheDocument();
     expect(screen.getByText('You receive')).toBeInTheDocument();
-    expect(screen.getByText('$9.5')).toBeInTheDocument();
-    expect(screen.getByText('$9.4')).toBeInTheDocument();
+    expect(screen.getByText('$9.50')).toBeInTheDocument();
+    expect(screen.getByText('$9.40')).toBeInTheDocument();
   });
 
   it('shows an em dash for price impact rather than fabricating a number when Jupiter did not return one', () => {
@@ -68,6 +68,12 @@ describe('SolanaQuoteSummary', () => {
     render(<SolanaQuoteSummary quote={baseQuote({ platformFeeAmountRaw: null })} />);
     const feeRow = screen.getByText(/Kamby fee/).closest('div');
     expect(feeRow).toHaveTextContent('—');
+  });
+
+  it('shows a buy fee in dollars even though Jupiter reports it in the bought token (a $5 BONK buy once read "$2,662.18")', () => {
+    // $5 USDC in, 2% fee, Jupiter's fee amount = 26,621.8 BONK in raw units (5 decimals).
+    render(<SolanaQuoteSummary quote={baseQuote({ side: 'BUY', inputAmountRaw: '5000000', platformFeeBps: 200, platformFeeAmountRaw: '2662180000' })} compact />);
+    expect(screen.getByText('$0.10 fee (2.00%)')).toBeInTheDocument();
   });
 
   it('does not warn-color a low price-impact trade', () => {
@@ -90,13 +96,13 @@ describe('SolanaQuoteSummary', () => {
 
     expect(screen.getByText('98600000 raw units')).toBeInTheDocument();
     expect(screen.getByText('0.22% impact')).toBeInTheDocument();
-    expect(screen.getByText('$0.05 fee')).toBeInTheDocument();
+    expect(screen.getByText('$0.05 fee (0.50%)')).toBeInTheDocument();
     expect(screen.queryByText('You pay')).not.toBeInTheDocument();
     expect(screen.queryByText('Provider')).not.toBeInTheDocument();
   });
 
   it('compact mode shows the USDC side for a SELL trade\'s output, not raw units', () => {
     render(<SolanaQuoteSummary quote={baseQuote({ side: 'SELL', outputAmountRaw: '9500000' })} compact />);
-    expect(screen.getByText('$9.5')).toBeInTheDocument();
+    expect(screen.getByText('$9.50')).toBeInTheDocument();
   });
 });

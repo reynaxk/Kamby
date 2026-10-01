@@ -6,7 +6,7 @@ import { formatTokenAmount } from '@/lib/solana-mint';
 const USDC_DECIMALS = 6;
 
 function usdcDisplay(raw: string): string {
-  return `$${(Number(raw) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+  return `$${(Number(raw) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function impactSeverity(bps: number | null): 'normal' | 'warn' | 'high' {
@@ -50,7 +50,15 @@ export function SolanaQuoteSummary({
   const isBuy = quote.side === 'BUY';
   const severity = impactSeverity(quote.priceImpactBps);
   const impactLabel = quote.priceImpactBps === null ? '—' : `${(quote.priceImpactBps / 100).toFixed(2)}%`;
-  const feeDisplay = quote.platformFeeAmountRaw ? usdcDisplay(quote.platformFeeAmountRaw) : '—';
+  // Jupiter reports the platform fee in the *output* mint's units — on a buy that's the
+  // token (a $5 BONK buy showed "$2,662.18 fee": 26,622 BONK formatted as USDC, found
+  // 2026-10-01). Show what the user pays in dollars: on a buy, fee bps of the USDC paid;
+  // on a sell the output is USDC, so Jupiter's own amount is already in dollars.
+  const feeDisplay = !quote.platformFeeAmountRaw || quote.platformFeeBps === 0
+    ? '—'
+    : isBuy
+    ? usdcDisplay(((BigInt(quote.inputAmountRaw) * BigInt(quote.platformFeeBps)) / 10_000n).toString())
+    : usdcDisplay(quote.platformFeeAmountRaw);
 
   if (compact) {
     return (
@@ -64,7 +72,9 @@ export function SolanaQuoteSummary({
         <span className="text-ink-400">•</span>
         <span className={IMPACT_CLASS[severity]}>{impactLabel} impact</span>
         <span className="text-ink-400">•</span>
-        <span>{feeDisplay} fee</span>
+        <span>
+          {feeDisplay} fee ({(quote.platformFeeBps / 100).toFixed(2)}%)
+        </span>
       </div>
     );
   }
