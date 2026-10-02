@@ -114,7 +114,7 @@ Owner actions — accounts and billing only the owner can change:
 - [ ] **Privy app to production mode**; tick "SVM (Solana) wallets" under automatic wallet
       creation.
 - [x] **Sentry DSN** — set on the api service 2026-10-01 (EU region, org Kamby); test event received.
-- [ ] **Legal name + contact email** → `lib/legal.ts`, `LEGAL_DETAILS_CONFIRMED=true`
+- [x] **Legal name + contact email** — done 2026-10-02: "Kamby", support@kambesh.com (Cloudflare Email Routing → owner's Gmail). → `lib/legal.ts`, `LEGAL_DETAILS_CONFIRMED=true`
       (Terms/Privacy/Risk pages 404 until then).
 - [ ] **Real $1–2 trades** on Base, BNB and Solana (buy and sell) from a fresh account.
 - [x] **Postgres backups** enabled on Railway — done 2026-10-01 (owner).
