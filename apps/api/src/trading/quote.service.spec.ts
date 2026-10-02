@@ -13,6 +13,7 @@ jest.mock('@kamby/db', () => ({
   prisma: {
     wallet: { findUnique: jest.fn() },
     tradeQuote: { create: jest.fn() },
+    token: { findFirst: jest.fn() },
   },
 }));
 
@@ -93,6 +94,8 @@ describe('QuoteService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (mockedPrisma.wallet.findUnique as jest.Mock).mockResolvedValue({ userId: USER_ID, verifiedAt: new Date() });
+    // No USDC token row by default — existing tests keep trading in the pool's pair token.
+    (mockedPrisma.token.findFirst as jest.Mock).mockResolvedValue(null);
     (mockedPrisma.tradeQuote.create as jest.Mock).mockImplementation(({ data }: { data: Record<string, unknown> }) =>
       Promise.resolve({ id: 'quote-1', createdAt: new Date(), ...data }),
     );
@@ -263,6 +266,30 @@ describe('QuoteService', () => {
       const sellService = buildService({ router: sellRouter });
       await sellService.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'SELL', amount: '1', slippageBps: 50 });
       expect(sellRouter.getQuote).toHaveBeenCalledWith(expect.objectContaining({ sellToken: TOKEN.contractAddress, buyToken: QUOTE_TOKEN.contractAddress }));
+    });
+  });
+
+  describe('USDC in, USDC out (2026-10-02)', () => {
+    it("pays a WETH-paired coin with the chain's USDC, on the guaranteed USDC fee path", async () => {
+      (mockedPrisma.token.findFirst as jest.Mock).mockResolvedValue(USDC_QUOTE_TOKEN);
+      const router = fakeRouter();
+      const service = buildService({ router, safety: fakeSafety(fakeMarket()) }); // pool pair is WETH
+
+      const quote = await service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'BUY', amount: '10', slippageBps: 50 });
+
+      expect(router.getQuote).toHaveBeenCalledWith(expect.objectContaining({ sellToken: CONFIGURED_USDC, buyToken: TOKEN.contractAddress }));
+      expect(quote.quoteToken.symbol).toBe('USDC');
+      expect(quote.feeUnsignedTx).not.toBeNull();
+    });
+
+    it('sells into USDC', async () => {
+      (mockedPrisma.token.findFirst as jest.Mock).mockResolvedValue(USDC_QUOTE_TOKEN);
+      const router = fakeRouter();
+      const service = buildService({ router, safety: fakeSafety(fakeMarket()) });
+
+      await service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'SELL', amount: '1', slippageBps: 50 });
+
+      expect(router.getQuote).toHaveBeenCalledWith(expect.objectContaining({ sellToken: TOKEN.contractAddress, buyToken: CONFIGURED_USDC }));
     });
   });
 

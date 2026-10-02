@@ -18,7 +18,23 @@ export const TRANSACTION_INCLUDE = {
 
 export type TransactionRow = Prisma.TradeTransactionGetPayload<{ include: typeof TRANSACTION_INCLUDE }>;
 
+/** USDC's decimals per chain — fixed by each token contract. Trades pay and sell into USDC
+ *  (since 2026-10-02) whatever the pool's own pair token is — see QuoteService#createQuote. */
+const USDC_DECIMALS_BY_CHAIN_ID: Record<number, number> = { 8453: 6, 42161: 6, 1: 6, 56: 18 };
+
+/** The trade's USDC/pair side ("pay with" on a buy, "receive" on a sell): the token actually
+ *  traded, as stored on the transaction — the pool's pair token for older trades, USDC after. */
+function paySideToken(row: TransactionRow): { address: string; symbol: string | null; decimals: number } {
+  const address = row.side === 'BUY' ? row.inputToken : row.outputToken;
+  const pair = row.tokenMarket.quoteToken;
+  if (!address || address.toLowerCase() === pair.contractAddress.toLowerCase()) {
+    return { address: pair.contractAddress, symbol: pair.symbol, decimals: pair.decimals! };
+  }
+  return { address, symbol: 'USDC', decimals: USDC_DECIMALS_BY_CHAIN_ID[row.chainId] ?? pair.decimals! };
+}
+
 export function toDto(row: TransactionRow): TradeTransactionDto {
+  const payToken = paySideToken(row);
   // Whether this trade's fee rides a separate, guaranteed-USDC transfer (see
   // docs/TRADING.md#guaranteed-usdc-fees) — the quote's own feeUnsignedTx is the single
   // source of truth for this, set once at quote time and never re-derived from the side or
@@ -29,10 +45,10 @@ export function toDto(row: TransactionRow): TradeTransactionDto {
   // uses for its output-side fee. Everywhere else, unchanged: fee formats with the output
   // token's decimals, matching the aggregator's own embedded-fee convention.
   const feeDecimals = usesGuaranteedUsdcFee
-    ? row.tokenMarket.quoteToken.decimals!
+    ? payToken.decimals
     : row.side === 'BUY'
       ? row.tokenMarket.token.decimals!
-      : row.tokenMarket.quoteToken.decimals!;
+      : payToken.decimals;
 
   return {
     id: row.id,
@@ -40,20 +56,16 @@ export function toDto(row: TransactionRow): TradeTransactionDto {
     txHash: row.txHash,
     side: row.side as 'BUY' | 'SELL',
     token: { address: row.tokenMarket.token.contractAddress, symbol: row.tokenMarket.token.symbol, decimals: row.tokenMarket.token.decimals! },
-    quoteToken: {
-      address: row.tokenMarket.quoteToken.contractAddress,
-      symbol: row.tokenMarket.quoteToken.symbol,
-      decimals: row.tokenMarket.quoteToken.decimals!,
-    },
+    quoteToken: payToken,
     inputAmount: row.inputAmount,
     expectedOutputAmount: row.expectedOutputAmount,
     inputAmountFormatted: formatUnits(
       BigInt(row.inputAmount),
-      row.side === 'BUY' ? row.tokenMarket.quoteToken.decimals! : row.tokenMarket.token.decimals!,
+      row.side === 'BUY' ? payToken.decimals : row.tokenMarket.token.decimals!,
     ),
     expectedOutputAmountFormatted: formatUnits(
       BigInt(row.expectedOutputAmount),
-      row.side === 'BUY' ? row.tokenMarket.token.decimals! : row.tokenMarket.quoteToken.decimals!,
+      row.side === 'BUY' ? row.tokenMarket.token.decimals! : payToken.decimals,
     ),
     platformFeeAmount: row.platformFeeAmount,
     platformFeeAmountFormatted: formatUnits(BigInt(row.platformFeeAmount), feeDecimals),

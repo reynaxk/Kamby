@@ -1,5 +1,6 @@
 'use client';
 
+import { USDC_BY_CHAIN_ID } from '@/lib/usdc';
 import { useEffect, useRef, useState } from 'react';
 import { useSignTypedData } from '@privy-io/react-auth';
 import { Button, cn } from '@kamby/ui';
@@ -125,14 +126,21 @@ export function TradePanel({
   tokenAddress,
   tokenSymbol,
   tokenDecimals,
-  quoteTokenAddress,
-  quoteTokenSymbol,
-  quoteTokenDecimals,
+  quoteTokenAddress: poolPairAddress,
+  quoteTokenSymbol: poolPairSymbol,
+  quoteTokenDecimals: poolPairDecimals,
   initialSide = 'BUY',
   onClose,
   onStepChange,
   dense = false,
 }: TradePanelProps) {
+  // Every trade pays with / sells into this chain's USDC, not the pool's pair token (WETH,
+  // WBNB…) — the API quotes it the same way (QuoteService#createQuote).
+  const usdc = USDC_BY_CHAIN_ID[chainId];
+  const useUsdc = usdc !== undefined && usdc.address.toLowerCase() !== tokenAddress.toLowerCase();
+  const quoteTokenAddress = useUsdc ? usdc.address : poolPairAddress;
+  const quoteTokenSymbol = useUsdc ? usdc.symbol : poolPairSymbol;
+  const quoteTokenDecimals = useUsdc ? usdc.decimals : poolPairDecimals;
   const { address, isConnected, chainId: walletChainId } = useAccount();
   const walletVerification = useWalletVerification();
   const { signTypedData } = useSignTypedData();

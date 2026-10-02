@@ -66,6 +66,11 @@ export class QuoteService {
    *  isn't one of this deployment's configured chains is a real misconfiguration (the DTO
    *  boundary already rejects a chainId nothing in this codebase knows about at all; this
    *  catches "known chain, not enabled on this deployment"). */
+  /** This chain's USDC Token row (decimals included — 6 on Base, 18 for BNB Chain's USDC). */
+  private async chainUsdcToken(chainDbId: number, usdcAddress: string): Promise<TradableMarket['quoteToken'] | null> {
+    return prisma.token.findFirst({ where: { chainId: chainDbId, contractAddress: { equals: usdcAddress, mode: 'insensitive' } } });
+  }
+
   private resolveChain(chainId: number): ConfiguredChain {
     const chain = this.chains.get(chainId);
     if (!chain) throw new UnprocessableEntityException(`Chain ${chainId} is not configured on this deployment`);
@@ -129,7 +134,18 @@ export class QuoteService {
     await this.assertWalletOwnership(params.userId, walletAddress);
 
     const chain = this.resolveChain(params.chainId);
-    const market = await this.safety.assertTradable(params.tokenAddress, params.chainId);
+    const listedMarket = await this.safety.assertTradable(params.tokenAddress, params.chainId);
+    // USDC in, USDC out (product decision 2026-10-02: users only ever hold USDC). Every EVM
+    // trade pays with — and sells into — this chain's USDC, whatever the coin's pool is paired
+    // with (WETH, WBNB, USDT…); the aggregator routes USDC → coin itself. That also puts every
+    // trade on the guaranteed-USDC fee path below. Falls back to the pool's own pair token
+    // only if this chain's USDC token row is missing.
+    const usdc = await this.chainUsdcToken(listedMarket.chainId, chain.usdcAddress);
+    if (!usdc) this.logger.warn({ chainId: params.chainId }, "chain USDC token row missing — quoting in the pool's own pair token");
+    const market: TradableMarket =
+      usdc && normalizeEvmAddress(listedMarket.token.contractAddress) !== normalizeEvmAddress(usdc.contractAddress)
+        ? { ...listedMarket, quoteToken: usdc }
+        : listedMarket;
     const { inputToken, outputToken } = resolveTokens(market, params.side);
 
     const inputAmountRaw = parseInputAmount(params.amount, inputToken.decimals!);
