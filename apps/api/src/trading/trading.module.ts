@@ -1,3 +1,4 @@
+import { EvmGasTopupService } from './evm-gas-topup.service';
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { KyberSwapRouter } from './router/kyberswap-router.service';
@@ -29,6 +30,7 @@ import { TransactionService } from './transaction.service';
   imports: [IdentityModule],
   controllers: [TradingController],
   providers: [
+    EvmGasTopupService,
     QuoteService,
     SafetyService,
     TransactionService,

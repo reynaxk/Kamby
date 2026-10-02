@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Optional, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
 import {
@@ -17,6 +17,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { formatUnits, parseUnits } from 'viem';
 import { getConfiguredChains, type ConfiguredChain, type Env } from '../config/env';
 import { buildErc20TransferTx } from './erc20-transfer';
+import { EvmGasTopupService } from './evm-gas-topup.service';
 import { SWAP_ROUTER } from './router/swap-router.token';
 import type { SwapRouter } from './router/swap-router.interface';
 import { SafetyService, type TradableMarket } from './safety.service';
@@ -49,6 +50,7 @@ export class QuoteService {
     @Inject(SWAP_ROUTER) private readonly router: SwapRouter,
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
+    @Optional() private readonly gasTopup?: EvmGasTopupService,
   ) {
     // PLATFORM_FEE_BPS is no longer read here as of 2026-09-16 — the fee is now resolved
     // per-trade from PLATFORM_FEE_TIERS (see resolveAggregatorTierFeeBps below), not a
@@ -147,6 +149,10 @@ export class QuoteService {
         ? { ...listedMarket, quoteToken: usdc }
         : listedMarket;
     const { inputToken, outputToken } = resolveTokens(market, params.side);
+    // Kamby pays the gas: a USDC-holding wallet with no ETH/BNB gets a few cents of it first.
+    if (usdc && this.gasTopup) {
+      await this.gasTopup.ensureGas(params.chainId, walletAddress, { address: usdc.contractAddress, decimals: usdc.decimals! });
+    }
 
     const inputAmountRaw = parseInputAmount(params.amount, inputToken.decimals!);
 
