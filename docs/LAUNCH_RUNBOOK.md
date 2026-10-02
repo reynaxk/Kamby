@@ -111,8 +111,7 @@ Owner actions — accounts and billing only the owner can change:
 - [x] **Jupiter paid plan (10 req/s)** — paid 2026-10-02, `SOLANA_JUPITER_MAX_RPS=10` set. — then set `SOLANA_JUPITER_MAX_RPS=10` on the api
       service (the API spaces Jupiter calls to this limit; default 1 = free plan).
 - [x] **QuickNode usage alerts** at 50% / 80% of monthly credits — done 2026-10-01.
-- [ ] **Privy app to production mode**; tick "SVM (Solana) wallets" under automatic wallet
-      creation.
+- [x] **Privy app in production mode** — done 2026-10-02; allowed origins kambesh.com + www only; EVM + Solana wallets auto-created at sign-in.
 - [x] **Sentry DSN** — set on the api service 2026-10-01 (EU region, org Kamby); test event received.
 - [x] **Legal name + contact email** — done 2026-10-02: "Kamby", support@kambesh.com (Cloudflare Email Routing → owner's Gmail). → `lib/legal.ts`, `LEGAL_DETAILS_CONFIRMED=true`
       (Terms/Privacy/Risk pages 404 until then).
