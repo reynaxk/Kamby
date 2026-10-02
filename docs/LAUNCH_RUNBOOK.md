@@ -108,7 +108,7 @@ Owner actions — accounts and billing only the owner can change:
       request and 100,000 requests/day. A load test (60 concurrent) got ~7% `Error 1102
       Worker exceeded resource limits`; a busy launch day would also exhaust the daily cap.
       dash.cloudflare.com → Workers & Pages → Plans.
-- [ ] **Jupiter paid plan (10 req/s)** — then set `SOLANA_JUPITER_MAX_RPS=10` on the api
+- [x] **Jupiter paid plan (10 req/s)** — paid 2026-10-02, `SOLANA_JUPITER_MAX_RPS=10` set. — then set `SOLANA_JUPITER_MAX_RPS=10` on the api
       service (the API spaces Jupiter calls to this limit; default 1 = free plan).
 - [x] **QuickNode usage alerts** at 50% / 80% of monthly credits — done 2026-10-01.
 - [ ] **Privy app to production mode**; tick "SVM (Solana) wallets" under automatic wallet
