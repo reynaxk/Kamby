@@ -21,6 +21,25 @@ import { CryptoPriceService } from './crypto-price.service';
 export const FEED_REFRESH_MS = 10_000;
 const HEARTBEAT_MS = 25_000;
 const TRENDING_LIMIT = 100;
+/** Trending is for coins people chase, not majors (user feedback 2026-10-03: "why are you
+ *  working on the big coins again"). Stablecoins, wrapped/bridged majors and anything with a
+ *  market cap of $500M+ are left out — still tradable and searchable, and BTC/ETH/SOL/BNB/AVAX
+ *  have the Crypto tab. */
+const TRENDING_MAX_MARKET_CAP_USD = 500_000_000;
+const TRENDING_MIN_ROWS = 15;
+const NOT_TRENDING_SYMBOLS = new Set([
+  'USDT', 'USDC', 'DAI', 'FDUSD', 'TUSD', 'USDE', 'USD1', 'BUSD', 'PYUSD',
+  'WETH', 'ETH', 'WBNB', 'BNB', 'BTCB', 'CBBTC', 'WBTC', 'BTC', 'SOL', 'WSOL', 'CBETH', 'WSTETH', 'STETH',
+]);
+
+/** Exported for tests. Majors out, the rest in score order; topped up from the majors only if
+ *  too few remain, so the tab is never empty. */
+export function trendingMarkets<T extends { symbol: string | null; marketCapUsd: number | null }>(ranked: readonly T[]): T[] {
+  const isMajor = (m: T) =>
+    NOT_TRENDING_SYMBOLS.has((m.symbol ?? '').toUpperCase()) || (m.marketCapUsd ?? 0) >= TRENDING_MAX_MARKET_CAP_USD;
+  const picks = ranked.filter((m) => !isMajor(m));
+  return picks.length >= TRENDING_MIN_ROWS ? picks : [...picks, ...ranked.filter(isMajor)].slice(0, Math.max(TRENDING_MIN_ROWS, picks.length));
+}
 const GRADUATED_LIMIT = 30;
 const TRENCHES_LIMIT = 50;
 
@@ -50,7 +69,9 @@ export function toFeedMarket(market: MarketSummary, listedAtIso?: string): FeedM
  */
 @Injectable()
 export class MarketFeedsService {
-  private readonly trending$ = this.sharedTab('trending', async () => ({ markets: (await this.market.discover(discoverQuery())).map((m) => toFeedMarket(m)) }));
+  private readonly trending$ = this.sharedTab('trending', async () => ({
+    markets: trendingMarkets(await this.market.discover(discoverQuery())).map((m) => toFeedMarket(m)),
+  }));
   private readonly graduated$ = this.sharedTab('graduated', async () => this.buildGraduated());
   private readonly trenches$ = this.sharedTab('trenches', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.FRESH) }));
   private readonly bonding$ = this.sharedTab('bonding', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.NEAR_GRADUATED) }));
@@ -75,7 +96,7 @@ export class MarketFeedsService {
       this.trenchesTokens(TrenchesCategory.NEAR_GRADUATED),
     ]);
     return {
-      trending: { markets: trending.map((m) => toFeedMarket(m)), atIso },
+      trending: { markets: trendingMarkets(trending).map((m) => toFeedMarket(m)), atIso },
       graduated: { ...graduated, atIso },
       trenches: { tokens: trenches, atIso },
       bonding: { tokens: bonding, atIso },

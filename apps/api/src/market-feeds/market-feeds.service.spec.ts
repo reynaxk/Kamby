@@ -5,7 +5,7 @@ import type { MarketService } from '../market/market.service';
 import type { RealtimeService } from '../realtime/realtime.service';
 import type { TokenTrenchesService } from '../tokens/token-trenches.service';
 import type { CryptoPriceService } from './crypto-price.service';
-import { MarketFeedsService, toFeedMarket } from './market-feeds.service';
+import { MarketFeedsService, toFeedMarket, trendingMarkets } from './market-feeds.service';
 
 const logger = { setContext: jest.fn(), warn: jest.fn() } as unknown as PinoLogger;
 const REAL_AAVE = '0x63706e401c06ac8513145b7687A14804d17f814b'; // on the Base seed list
@@ -95,5 +95,18 @@ describe('MarketFeedsService', () => {
 
     expect(events.map((e) => e.type)).not.toContain('trending');
     expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ tab: 'trending' }), expect.any(String));
+  });
+});
+
+describe('trendingMarkets', () => {
+  const m = (symbol: string, marketCapUsd: number | null) => ({ symbol, marketCapUsd });
+  it('leaves out stablecoins, wrapped majors and $500M+ coins, keeping score order', () => {
+    const many = Array.from({ length: 20 }, (_, i) => m(`MEME${i}`, 1_000_000));
+    const out = trendingMarkets([m('WETH', 7e8), m('USDT', 9e9), m('JUP', 1.06e9), ...many]);
+    expect(out.map((x) => x.symbol)).toEqual(many.map((x) => x.symbol));
+  });
+  it('tops up from the majors when too few coins remain, so the tab is never empty', () => {
+    const out = trendingMarkets([m('AAA', 1e6), m('WETH', 7e8)]);
+    expect(out.map((x) => x.symbol)).toEqual(['AAA', 'WETH']);
   });
 });
