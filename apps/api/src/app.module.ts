@@ -41,6 +41,9 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
             paths: [
               'req.headers.authorization',
               'req.headers.cookie',
+              // The website's SSR shared secret (common/guards/client-throttler.guard.ts) —
+              // was logged in full on every server-side request until 2026-10-03.
+              'req.headers["x-kamby-ssr"]',
               'res.headers["set-cookie"]',
               '*.password',
               '*.secret',
