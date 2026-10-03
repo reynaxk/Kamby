@@ -1,6 +1,8 @@
 import { prisma } from '@kamby/db';
 import { SOLANA_USDC_MINT } from '@kamby/domain';
+import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
+import { PUMPFUN_HOT_MINTS_KEY } from '../pumpfun/pumpfun-curve-refresher';
 import { SOLANA_SEED_MARKETS } from './solana-seed-markets';
 
 /** Jupiter's free Tokens API v2 (the keyless lite host; verified 2026-10-03). */
@@ -61,7 +63,10 @@ export function passesSafety(t: JupiterToken): boolean {
  * is tradable: Jupiter routes it, bonding curves included.
  */
 export class JupiterSolanaDiscoveryService {
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly redis?: Redis,
+  ) {}
 
   async run(): Promise<{ listed: number; refreshed: number; removed: number; rejected: number }> {
     const seeds = new Set(SOLANA_SEED_MARKETS.map((s) => s.mintAddress));
@@ -87,6 +92,8 @@ export class JupiterSolanaDiscoveryService {
         }
       }
     }
+
+    await this.publishHotPumpFunMints();
 
     const now = new Date();
     for (const t of found.values()) {
@@ -116,6 +123,21 @@ export class JupiterSolanaDiscoveryService {
       where: { mintAddress: { notIn: [...seeds] }, OR: [{ lastPriceUpdateAt: null }, { lastPriceUpdateAt: { lt: new Date(Date.now() - DISCOVERED_TTL_MS) } }] },
     });
     return { listed: found.size, refreshed, removed, rejected };
+  }
+
+  /** Pump.fun coins active in the last 5 minutes — the curves PumpFunCurveRefresher reads first. */
+  private async publishHotPumpFunMints(): Promise<void> {
+    if (!this.redis) return;
+    const mints = new Set<string>();
+    for (const list of ['toptrending/5m', 'toptraded/5m']) {
+      for (const t of await this.fetchList(`${JUPITER_TOKENS}/${list}?limit=100`)) if (t.launchpad === 'pump.fun') mints.add(t.id);
+    }
+    if (mints.size === 0) return;
+    try {
+      await this.redis.multi().del(PUMPFUN_HOT_MINTS_KEY).sadd(PUMPFUN_HOT_MINTS_KEY, ...mints).expire(PUMPFUN_HOT_MINTS_KEY, 300).exec();
+    } catch (error) {
+      this.logger.warn({ err: error }, 'Jupiter discovery: could not publish hot Pump.fun mints');
+    }
   }
 
   private async fetchList(url: string): Promise<JupiterToken[]> {

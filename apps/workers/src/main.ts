@@ -12,6 +12,7 @@ import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
 import { PumpPortalIngestionService } from './pumpfun/pumpportal-ingestion';
 import { SolanaMarketIngestionService } from './market/solana-market-ingestion';
 import { JupiterSolanaDiscoveryService } from './market/jupiter-solana-discovery';
+import { PumpFunCurveRefresher } from './pumpfun/pumpfun-curve-refresher';
 import { SolanaSweepService } from './solana/solana-sweep';
 import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
 import { checkEvmRelayerBalance } from './trading/evm-relayer-balance-monitor';
@@ -386,7 +387,7 @@ async function main(): Promise<void> {
   let solanaMarketIngestionTicker: NodeJS.Timeout | undefined;
   if (env.SOLANA_ENABLED && env.SOLANA_MARKET_INGESTION_ENABLED) {
     const solanaMarketIngestion = new SolanaMarketIngestionService(logger);
-    const jupiterDiscovery = new JupiterSolanaDiscoveryService(logger);
+    const jupiterDiscovery = new JupiterSolanaDiscoveryService(logger, redis);
 
     let solanaMarketIngestionRunning = false;
     const runSolanaMarketIngestion = async (): Promise<void> => {
@@ -426,6 +427,27 @@ async function main(): Promise<void> {
     }
     logger.info({ source: env.PUMPFUN_SOURCE }, 'Pump.fun ingestion starting');
     pumpFunIngestion.start();
+
+    // Real bonding-curve progress, read on-chain in batches — see pumpfun-curve-refresher.ts.
+    if (env.SOLANA_RPC_URL) {
+      const curveRefresher = new PumpFunCurveRefresher(new Connection(env.SOLANA_RPC_URL, 'confirmed'), redis, logger);
+      let curveRefreshRunning = false;
+      const runCurveRefresh = async (): Promise<void> => {
+        if (curveRefreshRunning) return;
+        curveRefreshRunning = true;
+        const startedAt = Date.now();
+        try {
+          const result = await curveRefresher.run();
+          logger.info({ ...result, durationMs: Date.now() - startedAt }, 'Pump.fun curve refresh complete');
+        } catch (error) {
+          logger.error({ err: error }, 'Pump.fun curve refresh failed — will retry next tick');
+        } finally {
+          curveRefreshRunning = false;
+        }
+      };
+      const curveRefreshTicker = setInterval(() => void runCurveRefresh(), 45_000);
+      curveRefreshTicker.unref();
+    }
   }
 
   // Realized-PnL ledger sweep — see pnl/pnl-ledger-sweep.ts's own doc comment and
