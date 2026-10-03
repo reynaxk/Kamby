@@ -9,6 +9,9 @@ import { solanaConnection } from './solana-config';
 import { USDC_BY_CHAIN_ID } from './usdc';
 
 const REFRESH_MS = 30_000;
+/** Solana reads spend the paid Helius key (one call per open tab) — refreshed less often, plus
+ *  immediately whenever the user returns to the tab, so a fresh deposit still shows quickly. */
+const SOLANA_REFRESH_MS = 120_000;
 
 export interface UsdcBalances {
   base: number | null;
@@ -28,7 +31,8 @@ export function totalUsdc(parts: (number | null)[]): number | null {
  * The user's USDC across Base, BNB Chain and Solana — one number, the way Kamby shows a
  * balance (users only ever hold USDC, product decision 2026-10-02). EVM reads go through the
  * browser's own public RPCs (wagmi), Solana through the browser's Helius key — never the
- * API's paid RPC. Refreshes every 30s, only while the tab is visible.
+ * API's paid RPC. EVM refreshes every 30s, Solana every 2 min (and on returning to the tab); never
+ * while the tab is hidden.
  */
 export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: string | undefined): UsdcBalances {
   const base = USDC_BY_CHAIN_ID[8453]!;
@@ -65,10 +69,13 @@ export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: s
       }
     };
     void load();
-    const timer = setInterval(() => void load(), REFRESH_MS);
+    const timer = setInterval(() => void load(), SOLANA_REFRESH_MS);
+    const onVisible = () => document.visibilityState === 'visible' && void load();
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       cancelled = true;
       clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [solanaAddress]);
 
