@@ -1,4 +1,5 @@
 import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/domain';
+import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/format';
 import { Sparkline } from '@/components/market/Sparkline';
@@ -60,6 +61,7 @@ export function SelectableTokenRow({
           aria-hidden
         />
       )}
+      <span className="relative shrink-0">
       {market.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -79,6 +81,8 @@ export function SelectableTokenRow({
           {(market.symbol ?? market.tokenAddress).slice(0, 1).toUpperCase()}
         </span>
       )}
+      {badgeChainFor(market.chainIdentifier) && <ChainBadge chain={badgeChainFor(market.chainIdentifier)!} />}
+      </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-[0.72rem] font-semibold tracking-tight text-ink-900">
           {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}

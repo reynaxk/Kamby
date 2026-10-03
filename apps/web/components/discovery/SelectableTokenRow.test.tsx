@@ -171,7 +171,7 @@ describe('SelectableTokenRow', () => {
     const { container } = render(
       <SelectableTokenRow market={fakeMarket()} selected={false} onSelect={vi.fn()} />,
     );
-    expect(container.querySelector('svg')).not.toBeInTheDocument();
+    expect(container.querySelector('.terminal-token-sparkline svg')).not.toBeInTheDocument();
     expect(screen.queryByText('no history')).not.toBeInTheDocument();
   });
 

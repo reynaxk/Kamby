@@ -132,6 +132,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
                   name={market.name}
                   logoUrl={market.logoUrl}
                   size="sm"
+                  chainIdentifier={market.chainIdentifier}
                 />
                 <span className="shrink-0 font-mono text-xs tabular-nums text-ink-600">
                   {formatPrice(market.priceUsd)}

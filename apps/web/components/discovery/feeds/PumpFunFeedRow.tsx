@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ChainBadge } from '@/components/market/ChainBadge';
 import type { PumpFunTokenSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { cashtag, formatRelativeTime, truncateAddress } from '@/lib/format';
@@ -18,8 +19,11 @@ function lamportsToSol(raw: string): number {
 export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: PumpFunTokenSummary; emphasizeProgress?: boolean }) {
   const content = (
     <>
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-[0.65rem] font-bold text-ink-600">
-        {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
+      <span className="relative shrink-0">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-raised font-display text-[0.65rem] font-bold text-ink-600">
+          {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
+        </span>
+        <ChainBadge chain="solana" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-[0.72rem] font-semibold tracking-tight text-ink-900">

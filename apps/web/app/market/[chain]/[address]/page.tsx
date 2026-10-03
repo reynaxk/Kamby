@@ -100,6 +100,7 @@ export default async function TokenDetailPage({
               symbol={market.symbol}
               name={market.name}
               logoUrl={market.logoUrl}
+              chainIdentifier={market.chainIdentifier}
               size="sm"
             />
             <span className="rounded-full border border-line px-2.5 py-1 font-mono text-[0.7rem] uppercase tracking-wide text-ink-400">

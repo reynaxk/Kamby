@@ -1,3 +1,4 @@
+import { badgeChainFor, ChainBadge } from './ChainBadge';
 import { cn } from '@kamby/ui';
 
 /**
@@ -13,17 +14,22 @@ export function TokenIdentity({
   name,
   logoUrl,
   size = 'md',
+  chainIdentifier,
 }: {
   symbol: string | null;
   name: string | null;
   logoUrl: string | null;
   size?: 'sm' | 'md' | 'lg';
+  /** Shows the chain badge on the logo's corner (see ChainBadge). */
+  chainIdentifier?: string;
 }) {
+  const badge = chainIdentifier ? badgeChainFor(chainIdentifier) : null;
   const display = symbol ?? name ?? '?';
   const dims = size === 'lg' ? 'h-11 w-11 text-base' : size === 'sm' ? 'h-7 w-7 text-[0.65rem]' : 'h-9 w-9 text-xs';
 
   return (
     <div className="flex min-w-0 items-center gap-3">
+      <span className="relative shrink-0">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={logoUrl} alt="" className={cn('shrink-0 rounded-full object-cover', dims)} />
@@ -38,6 +44,8 @@ export function TokenIdentity({
           {display.slice(0, 2).toUpperCase()}
         </div>
       )}
+      {badge && <ChainBadge chain={badge} className={size === 'lg' ? 'h-4 w-4' : undefined} />}
+      </span>
       <div className="min-w-0">
         <div className="truncate font-display text-sm font-semibold text-ink-900">{symbol ?? '—'}</div>
         {name && <div className="truncate font-body text-xs text-ink-400">{name}</div>}
