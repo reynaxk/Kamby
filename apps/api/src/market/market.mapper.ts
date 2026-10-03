@@ -21,7 +21,7 @@ export function toMarketSummary(row: MarketRow, discoveryScore?: number | null):
     quoteSymbol: row.quoteToken.symbol,
     quoteAddress: row.quoteToken.contractAddress,
     quoteDecimals: row.quoteToken.decimals,
-    dex: row.dex,
+    dex: displayDex(row.dex),
     feeTier: row.feeTier,
     priceUsd: toNumber(row.priceUsd),
     liquidityUsd: toNumber(row.liquidityUsd),
@@ -61,4 +61,16 @@ export function toSolanaMarketSummary(row: SolanaTokenMarket, discoveryScore?: n
     isStale: isPriceStale(row.lastPriceUpdateAt),
     ...(discoveryScore !== undefined ? { discoveryScore } : {}),
   };
+}
+
+/** Exported for tests. A venue name for people: aggregator-priced markets are stored as
+ *  "agg:<GeckoTerminal dex id>" (e.g. "agg:aerodrome-base") — shown as "aerodrome". */
+export function displayDex(dex: string | null): string | null {
+  if (!dex?.startsWith('agg:')) return dex;
+  return dex
+    .slice(4)
+    .replace(/_/g, '-')
+    .replace(/-(base|bsc)$/, '')
+    .replace(/-(clmm|slipstream-\d+|cl-\d+)$/, '')
+    .replace(/-\d+$/, '');
 }

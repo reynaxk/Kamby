@@ -1,4 +1,5 @@
 import { EvmChainDataProvider, UniswapV3PoolReader, computePoolLiquidityUsd, priceFromSqrtPriceX96 } from '@kamby/chain-adapters';
+import { AggregatorMarketService, type GeckoPool } from './aggregator-markets';
 import { prisma } from '@kamby/db';
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
@@ -163,6 +164,7 @@ export class PoolDiscoveryService {
   private readonly pendingKey: string;
   private chainId: number | null = null;
   private lastGeckoTerminalFetchAtMs = 0;
+  private readonly aggregator: AggregatorMarketService;
 
   constructor(
     private readonly config: PoolDiscoveryConfig,
@@ -177,6 +179,7 @@ export class PoolDiscoveryService {
       rpcUrl,
       rpcUrlFallback,
     });
+    this.aggregator = new AggregatorMarketService(Number(config.chainIdentifier.split(':')[1]), config.quoteUsdcAddress, this.tokenReader, logger);
     this.cursorKey = `pool-discovery:cursor:${config.chainIdentifier}`;
     this.pendingKey = `pool-discovery:pending:${config.chainIdentifier}`;
   }
@@ -289,6 +292,7 @@ export class PoolDiscoveryService {
     const chainId = await this.requireChainId();
 
     let added = 0;
+    const allPools: GeckoTerminalPool[] = [];
     for (const kind of ['trending_pools', 'new_pools']) {
       let pools: GeckoTerminalPool[] = [];
       try {
@@ -298,6 +302,7 @@ export class PoolDiscoveryService {
           continue;
         }
         pools = ((await response.json()) as { data?: GeckoTerminalPool[] }).data ?? [];
+        allPools.push(...pools);
       } catch (error) {
         this.logger.warn({ err: error, kind }, 'Pool discovery: GeckoTerminal unreachable');
         continue;
@@ -319,7 +324,19 @@ export class PoolDiscoveryService {
       }
     }
     if (added > 0) this.logger.info({ added }, 'Pool discovery: GeckoTerminal candidates queued for an on-chain liquidity check');
-    return { geckoTerminalCandidates: added };
+    // Everything Kamby's own reader can't read (Aerodrome, Uniswap v4/v2, PancakeSwap v2/
+    // Infinity, launchpad pools) is listed as an aggregator-priced market instead.
+    // Never allowed to break regular discovery.
+    const aggregatorListed = await this.aggregator.ingestCandidates(chainId, allPools as GeckoPool[], source.dexIds).catch((error: unknown) => {
+      this.logger.warn({ err: error }, 'Aggregator markets: listing failed this tick');
+      return 0;
+    });
+    return { geckoTerminalCandidates: added + aggregatorListed };
+  }
+
+  /** Re-prices aggregator-priced markets from DexScreener — called every discovery tick. */
+  async refreshAggregatorPrices(): Promise<number> {
+    return this.aggregator.refreshPrices(await this.requireChainId());
   }
 
   async checkPendingPools(): Promise<{ pendingChecked: number; promoted: number; expired: number }> {

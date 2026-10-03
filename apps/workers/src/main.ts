@@ -216,7 +216,8 @@ async function main(): Promise<void> {
         const discovered = await discovery.discoverNewPools();
         const fromGeckoTerminal = await discovery.enqueueFromGeckoTerminal();
         const pending = await discovery.checkPendingPools();
-        logger.info({ ...discovered, ...fromGeckoTerminal, ...pending, durationMs: Date.now() - startedAt }, 'Pool discovery tick complete');
+        const aggregatorRepriced = await discovery.refreshAggregatorPrices();
+        logger.info({ ...discovered, ...fromGeckoTerminal, ...pending, aggregatorRepriced, durationMs: Date.now() - startedAt }, 'Pool discovery tick complete');
       } catch (error) {
         logger.error({ err: error }, 'Pool discovery tick failed — will retry next tick');
       } finally {

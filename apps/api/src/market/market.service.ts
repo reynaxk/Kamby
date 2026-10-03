@@ -25,6 +25,7 @@ import { hideLookalikes } from './lookalike-filter';
 import { findPrimaryMarket } from './primary-market';
 import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { fetchPoolCandles, GECKO_NETWORK_BY_CHAIN_ID, GECKO_OHLCV_TTL_SECONDS } from './gecko-ohlcv';
 import { WatchlistService } from './watchlist.service';
 
 /** Prices refresh roughly every 60s (workers' ingestion tick), so 10s staleness is invisible —
@@ -432,6 +433,16 @@ export class MarketService {
       prisma.tokenMarket.findFirst({ where, orderBy: { liquidityUsd: 'desc' } }),
     );
     if (!market) throw new NotFoundException(`No tracked market for token address "${address}"`);
+
+    // Aggregator-priced coins (Aerodrome, Uniswap v4, PancakeSwap v2…) have no indexed swaps —
+    // their candles come from GeckoTerminal, cached and shared by every viewer.
+    if (market.dex?.startsWith('agg:')) {
+      const network = GECKO_NETWORK_BY_CHAIN_ID[chainId];
+      if (!network) return [];
+      return this.cached(`agg-history:${market.id}:${timeframe}`, GECKO_OHLCV_TTL_SECONDS[timeframe], () =>
+        fetchPoolCandles(network, market.pairAddress, address, timeframe),
+      );
+    }
 
     const { bucket, lookback } = TIMEFRAME_CONFIG[timeframe];
     type CandleRow = { bucket_start: Date; open: unknown; high: unknown; low: unknown; close: unknown; volume_usd: unknown };

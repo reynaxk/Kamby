@@ -1,4 +1,5 @@
 import { EvmChainDataProvider, UniswapV3PoolReader } from '@kamby/chain-adapters';
+import { AGGREGATOR_DEX_PREFIX } from './aggregator-markets';
 import {
   computeFullyDilutedMarketCapUsd,
   computePoolLiquidityUsd,
@@ -288,7 +289,8 @@ export class MarketIngestionService {
   async refreshPricesAndLiquidity(): Promise<void> {
     this.tickCount += 1;
     const allMarkets = await prisma.tokenMarket.findMany({
-      where: { chainId: this.requireChainId() },
+      // Aggregator-priced markets (aggregator-markets.ts) aren't Uniswap-v3-readable — skipped.
+      where: { chainId: this.requireChainId(), OR: [{ dex: null }, { NOT: { dex: { startsWith: AGGREGATOR_DEX_PREFIX } } }] },
       include: { token: true, quoteToken: true },
     });
     const live = allMarkets.filter((m) => !this.isShadowOfSeed(m));
@@ -412,7 +414,7 @@ export class MarketIngestionService {
   /** Incrementally scans new Swap events for every market, from its persisted cursor. */
   async ingestSwaps(): Promise<void> {
     const markets = await prisma.tokenMarket.findMany({
-      where: { chainId: this.requireChainId() },
+      where: { chainId: this.requireChainId(), OR: [{ dex: null }, { NOT: { dex: { startsWith: AGGREGATOR_DEX_PREFIX } } }] },
       include: { token: true, quoteToken: true, cursor: true },
     });
 
