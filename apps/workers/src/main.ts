@@ -11,6 +11,7 @@ import { PnlLedgerSweepService } from './pnl/pnl-ledger-sweep';
 import { PumpFunIngestionService } from './pumpfun/pumpfun-ingestion';
 import { PumpPortalIngestionService } from './pumpfun/pumpportal-ingestion';
 import { SolanaMarketIngestionService } from './market/solana-market-ingestion';
+import { JupiterSolanaDiscoveryService } from './market/jupiter-solana-discovery';
 import { SolanaSweepService } from './solana/solana-sweep';
 import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
 import { checkEvmRelayerBalance } from './trading/evm-relayer-balance-monitor';
@@ -385,6 +386,7 @@ async function main(): Promise<void> {
   let solanaMarketIngestionTicker: NodeJS.Timeout | undefined;
   if (env.SOLANA_ENABLED && env.SOLANA_MARKET_INGESTION_ENABLED) {
     const solanaMarketIngestion = new SolanaMarketIngestionService(logger);
+    const jupiterDiscovery = new JupiterSolanaDiscoveryService(logger);
 
     let solanaMarketIngestionRunning = false;
     const runSolanaMarketIngestion = async (): Promise<void> => {
@@ -397,6 +399,9 @@ async function main(): Promise<void> {
       try {
         const result = await solanaMarketIngestion.run();
         logger.info({ ...result, durationMs: Date.now() - startedAt }, 'Solana market ingestion tick complete');
+        // Coins from every launchpad via Jupiter's lists — see jupiter-solana-discovery.ts.
+        const discovered = await jupiterDiscovery.run();
+        logger.info({ ...discovered, durationMs: Date.now() - startedAt }, 'Jupiter Solana discovery tick complete');
       } catch (error) {
         logger.error({ err: error }, 'Solana market ingestion tick failed — will retry next tick');
       } finally {
