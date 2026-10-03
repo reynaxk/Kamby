@@ -41,6 +41,9 @@ export interface InsertedSwap {
  * duplicate a notification. Every public method is wrapped in try/catch by its caller in
  * ingestion.ts — a notification failure here must never break indexing.
  */
+/** Max "now trending" notifications per user per UTC day. */
+export const TRENDING_DAILY_CAP = 5;
+
 export class NotificationFanoutService {
   constructor(
     private readonly redis: Redis,
@@ -363,10 +366,24 @@ export class NotificationFanoutService {
     });
     if (enabledUsers.length === 0) return;
 
+    // At most TRENDING_DAILY_CAP of these per user per day — with hundreds of launchpad and
+    // every-DEX coins listed (2026-10-03), coins enter Trending constantly and a fresh
+    // account showed 99+ unread within hours.
+    const startOfDay = new Date(now);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    const counts = await prisma.notification.groupBy({
+      by: ['userId'],
+      where: { type: 'TRENDING_TOKEN', createdAt: { gte: startOfDay } },
+      _count: { _all: true },
+    });
+    const atCap = new Set(counts.filter((c) => c._count._all >= TRENDING_DAILY_CAP).map((c) => c.userId));
+    const recipients = enabledUsers.filter((u) => !atCap.has(u.id));
+    if (recipients.length === 0) return;
+
     const dedupeKey = trendingTokenDedupeKey(tokenMarketId, now.toISOString());
     await this.bulkCreate(
       'TRENDING_TOKEN',
-      enabledUsers.map((u) => ({ userId: u.id, dedupeKey, tokenMarketId })),
+      recipients.map((u) => ({ userId: u.id, dedupeKey, tokenMarketId })),
     );
   }
 

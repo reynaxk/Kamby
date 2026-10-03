@@ -13,7 +13,7 @@ const mockPrisma = vi.hoisted(() => ({
   follow: { findMany: vi.fn() },
   wallet: { findMany: vi.fn() },
   tradeTransaction: { findMany: vi.fn() },
-  notification: { findMany: vi.fn(), createMany: vi.fn() },
+  notification: { findMany: vi.fn(), createMany: vi.fn(), groupBy: vi.fn().mockResolvedValue([]) },
   notificationPreference: { findMany: vi.fn() },
   tokenMarket: { findUnique: vi.fn() },
   tokenTrendingState: { findUnique: vi.fn(), create: vi.fn(), upsert: vi.fn() },

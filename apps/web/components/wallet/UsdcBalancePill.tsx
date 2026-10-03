@@ -25,8 +25,10 @@ export function UsdcBalancePill() {
   if (!authenticated || !address) return null;
   const label = hidden ? '••••' : `$${(total ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+  // Wrapped in a span: the terminal header styles its direct child buttons as small square
+  // icons (globals.css .kamby-header-actions > button), which crushed this pill.
   return (
-    <>
+    <span className="shrink-0">
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -39,6 +41,6 @@ export function UsdcBalancePill() {
         </span>
       </button>
       <FundModal open={open} onClose={() => setOpen(false)} />
-    </>
+    </span>
   );
 }
