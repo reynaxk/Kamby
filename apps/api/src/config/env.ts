@@ -236,7 +236,14 @@ export const EnvSchema = z.object({
    */
   /** Kamby's gas-tank wallet (an EVM private key, same address on Base and BNB) — see
    *  trading/evm-gas-topup.service.ts. Unset = no top-ups. Never logged. */
-  EVM_GAS_TOPUP_PRIVATE_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/, 'EVM_GAS_TOPUP_PRIVATE_KEY must be a 0x-prefixed 32-byte hex key').optional(),
+  // Accepts the key with or without "0x" (Trust Wallet exports it without) and trims stray
+  // whitespace from pasting.
+  EVM_GAS_TOPUP_PRIVATE_KEY: z
+    .string()
+    .transform((k) => k.trim())
+    .transform((k) => (k.startsWith('0x') ? k : `0x${k}`))
+    .pipe(z.string().regex(/^0x[0-9a-fA-F]{64}$/, 'EVM_GAS_TOPUP_PRIVATE_KEY must be a 32-byte hex private key'))
+    .optional(),
   /** Max gas top-ups per chain per UTC day. */
   EVM_GAS_TOPUP_DAILY_CAP: z.coerce.number().int().positive().default(300),
   EVM_GAS_RELAYER_ENABLED: z.coerce.boolean().default(false),
