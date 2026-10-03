@@ -22,7 +22,7 @@ export async function isListedCoin(chain: TokenInfoChain, address: string): Prom
     else {
       const [curated, graduated] = await Promise.all([
         prisma.solanaTokenMarket.findFirst({ where: { mintAddress: address }, select: { id: true } }),
-        prisma.pumpFunToken.findFirst({ where: { mintAddress: address, complete: true }, select: { id: true } }),
+        prisma.pumpFunToken.findFirst({ where: { mintAddress: address }, select: { id: true } }),
       ]);
       listed = curated !== null || graduated !== null;
     }

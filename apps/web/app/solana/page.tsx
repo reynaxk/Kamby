@@ -35,6 +35,8 @@ interface SolanaTradeTarget {
   logoUrl: string | null;
   /** A Pump.fun graduate — found automatically, not hand-picked; shows the risk banner. */
   isNewListing: boolean;
+  /** Still on a launchpad bonding curve — tradable through Jupiter, with a stronger warning. */
+  onBondingCurve?: boolean;
   priceChange24hPct: number | null;
 }
 
@@ -42,17 +44,20 @@ const NATIVE_SOL: SolanaTradeTarget = { tokenAddress: 'So11111111111111111111111
 
 /** `?mint=` only ever resolves to a coin Kamby itself vouches for — never an arbitrary mint
  *  from the URL, so a shared link can't dress an unknown token up as a Kamby market:
- *  1. a curated Solana market (the SolanaTokenMarket rows in /market/discover), or
- *  2. a Pump.fun coin Kamby watched graduate (`complete`). A coin still on its bonding curve
- *     is never offered — those stay browse-only (a product decision, 2026-09-30).
+ *  1. a Solana market Kamby lists (curated, or discovered from Jupiter's lists — looked up by
+ *     its exact mint, not just the top of Discover), or
+ *  2. a Pump.fun coin Kamby tracks — graduated, or still on its bonding curve (tradable since
+ *     2026-10-03, with the stronger warning).
  *  Anything else falls back to SOL. */
 async function resolveMarket(mint: string | undefined): Promise<SolanaTradeTarget> {
   if (!mint || mint === NATIVE_SOL.tokenAddress) return NATIVE_SOL;
-  const markets = await fetchDiscoverMarkets({ sort: 'score', limit: 100 });
+  const markets = await fetchDiscoverMarkets({ sort: 'score', limit: 5, search: mint });
   const found = markets.find((m) => m.chainIdentifier === 'solana' && m.tokenAddress === mint);
   if (found) return { tokenAddress: found.tokenAddress, symbol: found.symbol, name: found.name, logoUrl: found.logoUrl, isNewListing: false, priceChange24hPct: found.priceChange24hPct };
   const pumpFun = await fetchPumpFunToken(mint);
-  if (pumpFun?.complete) return { tokenAddress: pumpFun.mintAddress, symbol: pumpFun.symbol, name: pumpFun.name, logoUrl: null, isNewListing: true, priceChange24hPct: null };
+  if (pumpFun) {
+    return { tokenAddress: pumpFun.mintAddress, symbol: pumpFun.symbol, name: pumpFun.name, logoUrl: null, isNewListing: true, onBondingCurve: !pumpFun.complete, priceChange24hPct: null };
+  }
   return NATIVE_SOL;
 }
 
@@ -101,7 +106,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             </div>
             {market.isNewListing && (
               <div className="mt-3">
-                <NewListingBanner />
+                <NewListingBanner onBondingCurve={market.onBondingCurve} />
               </div>
             )}
             <TokenChartCard

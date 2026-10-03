@@ -77,7 +77,7 @@ export class SolanaChartService {
     if (mint === SOL_MINT) return true;
     const [curated, graduated] = await Promise.all([
       prisma.solanaTokenMarket.findFirst({ where: { mintAddress: mint }, select: { id: true } }),
-      prisma.pumpFunToken.findFirst({ where: { mintAddress: mint, complete: true }, select: { id: true } }),
+      prisma.pumpFunToken.findFirst({ where: { mintAddress: mint }, select: { id: true } }),
     ]);
     return curated !== null || graduated !== null;
   }

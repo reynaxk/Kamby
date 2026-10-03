@@ -46,17 +46,12 @@ export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: Pu
       )}
     </>
   );
+  // Every coin opens its trade page — bonding-curve coins included (user decision 2026-10-03;
+  // Jupiter routes Pump.fun curves). The trade page shows the early-stage risk warning.
   const className = 'flex items-center gap-1.5 border-b border-line/60 px-2 py-1.5';
-  if (token.complete) {
-    return (
-      <Link href={solanaMarketHref(token.mintAddress)} className={cn(className, 'transition-colors hover:bg-surface-raised')}>
-        {content}
-      </Link>
-    );
-  }
   return (
-    <div className={className} title="Still on Pump.fun's bonding curve — view only until it graduates">
+    <Link href={solanaMarketHref(token.mintAddress)} className={cn(className, 'transition-colors hover:bg-surface-raised')}>
       {content}
-    </div>
+    </Link>
   );
 }
