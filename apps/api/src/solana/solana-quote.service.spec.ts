@@ -262,6 +262,8 @@ describe('SolanaQuoteService', () => {
         feePayerPublicKey: RELAYER_PUBLIC_KEY,
         relayerConnection: {
           getAddressLookupTable: jest.fn().mockResolvedValue({ value: null }),
+          // By default the wallet already holds the coin's token account → no setup charge.
+          getAccountInfo: jest.fn().mockResolvedValue({ owner: SystemProgram.programId, data: Buffer.alloc(0) }),
           getLatestBlockhash: jest.fn().mockResolvedValue({ blockhash: Keypair.generate().publicKey.toBase58() }),
         },
         ...overrides,
@@ -364,6 +366,26 @@ describe('SolanaQuoteService', () => {
       await service.createSponsoredQuote(baseParams);
 
       expect(jupiter.getSwapInstructions).toHaveBeenCalledWith(expect.objectContaining({ payer: RELAYER_PUBLIC_KEY, userPublicKey: WALLET }));
+    });
+
+    it("charges the new-coin setup fee on a gasless first buy and swaps the rest of the amount", async () => {
+      const jupiter = fakeJupiterWithSwapInstructions();
+      const gasRelayer = fakeConfiguredGasRelayer();
+      // Mint exists (classic SPL Token); the wallet's token account for it does not.
+      (gasRelayer.relayerConnection.getAccountInfo as jest.Mock).mockResolvedValueOnce({ owner: SystemProgram.programId, data: Buffer.alloc(0) }).mockResolvedValueOnce(null);
+      const service = new SolanaQuoteService(
+        jupiter as never,
+        gasRelayer as never,
+        fakeConfig({ SOLANA_TREASURY_USDC_ATA: Keypair.generate().publicKey.toBase58() }),
+        fakeLogger(),
+      );
+
+      const params = { ...baseParams, walletAddress: Keypair.generate().publicKey.toBase58(), amount: '5000000' }; // $5
+      const result = await service.createSponsoredQuote(params);
+
+      const fee = BigInt(result.setupFeeAmountRaw!);
+      expect(fee).toBeGreaterThanOrEqual(100_000n); // at least $0.10
+      expect(jupiter.getSwapInstructions).toHaveBeenCalledWith(expect.objectContaining({ amountRaw: (5_000_000n - fee).toString() }));
     });
 
     it('rejects when Jupiter cannot produce live swap instructions', async () => {

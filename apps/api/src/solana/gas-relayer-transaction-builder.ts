@@ -56,15 +56,18 @@ export async function buildSponsoredSwapTransaction(
   relayerPubkey: PublicKey,
   outputMint: string,
   result: JupiterSwapInstructionsResult,
+  /** Appended after the swap — e.g. the new-coin setup charge (new-coin-setup-fee.ts). */
+  extraInstructions: TransactionInstruction[] = [],
 ): Promise<VersionedTransaction> {
   const cleanup =
     result.cleanupInstruction && outputMint !== SOLANA_NATIVE_MINT
       ? redirectWsolCloseToRelayer(result.cleanupInstruction, result.setupInstructions, relayerPubkey)
       : result.cleanupInstruction;
 
-  const instructions = [...result.computeBudgetInstructions, ...result.setupInstructions, result.swapInstruction, ...(cleanup ? [cleanup] : [])].map(
-    toTransactionInstruction,
-  );
+  const instructions = [
+    ...[...result.computeBudgetInstructions, ...result.setupInstructions, result.swapInstruction, ...(cleanup ? [cleanup] : [])].map(toTransactionInstruction),
+    ...extraInstructions,
+  ];
 
   const lookupTableAccounts = await resolveLookupTables(connection, result.addressLookupTableAddresses);
 

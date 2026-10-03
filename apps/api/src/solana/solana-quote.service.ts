@@ -6,6 +6,7 @@ import { PLATFORM_FEE_FALLBACK_BPS, resolveTierFeeBps, SOLANA_USDC_MINT, TRADING
 import { PinoLogger } from 'nestjs-pino';
 import { getSolanaConfig, type Env } from '../config/env';
 import { buildSponsoredSwapTransaction } from './gas-relayer-transaction-builder';
+import { resolveNewCoinSetupFee, setupFeeInstruction } from './new-coin-setup-fee';
 import { GasRelayerService } from './gas-relayer.service';
 import { JupiterQuoteService } from './jupiter-quote.service';
 
@@ -34,6 +35,8 @@ export interface SolanaQuoteResult {
   priceImpactBps: number | null;
   platformFeeBps: number;
   platformFeeAmountRaw: string | null;
+  /** See new-coin-setup-fee.ts — only on a gasless first buy of a coin. */
+  setupFeeAmountRaw?: string | null;
   unsignedTxBase64: string;
   expiresAt: string;
   createdAt: string;
@@ -175,10 +178,26 @@ export class SolanaQuoteService {
 
     const platformFeeBps = await this.resolvePlatformFeeBps(params.side, inputMint, outputMint, params.amount, params.slippageBps);
 
+    // New-coin setup charge: on a buy of a coin this wallet has never held, the relayer pays
+    // ~0.002 SOL of rent for its token account — charged back in USDC from the amount entered
+    // (see new-coin-setup-fee.ts). The swap uses the rest, so the user pays exactly what they typed.
+    // A failed check never blocks the trade — Kamby absorbs that one setup instead.
+    const setupFeeRaw =
+      params.side === 'BUY'
+        ? await resolveNewCoinSetupFee(relayerConnection, params.walletAddress, outputMint).catch((error: unknown) => {
+            this.logger.warn({ err: error }, 'new-coin setup check failed — no setup charge on this quote');
+            return 0n;
+          })
+        : 0n;
+    const swapAmountRaw = BigInt(params.amount) - setupFeeRaw;
+    if (swapAmountRaw <= 0n) {
+      throw new UnprocessableEntityException(`First buy of this coin needs more than $${(Number(setupFeeRaw) / 1e6).toFixed(2)} (new coin setup)`);
+    }
+
     const instructions = await this.jupiter.getSwapInstructions({
       inputMint,
       outputMint,
-      amountRaw: params.amount,
+      amountRaw: swapAmountRaw.toString(),
       slippageBps: params.slippageBps,
       userPublicKey: params.walletAddress,
       platformFeeBps,
@@ -189,7 +208,13 @@ export class SolanaQuoteService {
       throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');
     }
 
-    const transaction = await buildSponsoredSwapTransaction(relayerConnection, new PublicKey(relayerPublicKey), outputMint, instructions);
+    const transaction = await buildSponsoredSwapTransaction(
+      relayerConnection,
+      new PublicKey(relayerPublicKey),
+      outputMint,
+      instructions,
+      setupFeeRaw > 0n ? [setupFeeInstruction(params.walletAddress, this.treasuryUsdcAta, setupFeeRaw)] : [],
+    );
     const unsignedTxBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
     const expiresAt = new Date(Date.now() + TRADING_DEFAULTS.quoteTtlSeconds * 1000);
@@ -224,6 +249,7 @@ export class SolanaQuoteService {
       priceImpactBps: instructions.priceImpactBps,
       platformFeeBps,
       platformFeeAmountRaw: instructions.platformFeeAmountRaw,
+      setupFeeAmountRaw: setupFeeRaw > 0n ? setupFeeRaw.toString() : null,
       unsignedTxBase64,
       expiresAt: expiresAt.toISOString(),
       createdAt: row.createdAt.toISOString(),

@@ -374,6 +374,8 @@ export const SolanaTradeQuoteSchema = z.object({
   priceImpactBps: z.number().int().nullable(),
   platformFeeBps: z.number().int(),
   platformFeeAmountRaw: z.string().nullable(),
+  /** Gasless first buy of a coin: the USDC "new coin setup" charge (token-account rent). */
+  setupFeeAmountRaw: z.string().nullable().optional(),
   unsignedTxBase64: z.string(),
   expiresAt: z.string().datetime(),
   createdAt: z.string().datetime(),
