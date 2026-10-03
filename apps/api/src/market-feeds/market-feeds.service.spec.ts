@@ -5,7 +5,7 @@ import type { MarketService } from '../market/market.service';
 import type { RealtimeService } from '../realtime/realtime.service';
 import type { TokenTrenchesService } from '../tokens/token-trenches.service';
 import type { CryptoPriceService } from './crypto-price.service';
-import { MarketFeedsService, toFeedMarket, trendingMarkets } from './market-feeds.service';
+import { MarketFeedsService, mixChains, toFeedMarket, trendingMarkets } from './market-feeds.service';
 
 const logger = { setContext: jest.fn(), warn: jest.fn() } as unknown as PinoLogger;
 const REAL_AAVE = '0x63706e401c06ac8513145b7687A14804d17f814b'; // on the Base seed list
@@ -99,7 +99,7 @@ describe('MarketFeedsService', () => {
 });
 
 describe('trendingMarkets', () => {
-  const m = (symbol: string, marketCapUsd: number | null) => ({ symbol, marketCapUsd });
+  const m = (symbol: string, marketCapUsd: number | null, chainIdentifier = 'solana') => ({ symbol, marketCapUsd, chainIdentifier });
   it('leaves out stablecoins, wrapped majors and $500M+ coins, keeping score order', () => {
     const many = Array.from({ length: 20 }, (_, i) => m(`MEME${i}`, 1_000_000));
     const out = trendingMarkets([m('WETH', 7e8), m('USDT', 9e9), m('JUP', 1.06e9), ...many]);
@@ -108,5 +108,12 @@ describe('trendingMarkets', () => {
   it('tops up from the majors when too few coins remain, so the tab is never empty', () => {
     const out = trendingMarkets([m('AAA', 1e6), m('WETH', 7e8)]);
     expect(out.map((x) => x.symbol)).toEqual(['AAA', 'WETH']);
+  });
+});
+
+describe('mixChains', () => {
+  it('alternates chains while keeping each chain in its own score order', () => {
+    const r = [{ id: 's1', chainIdentifier: 'solana' }, { id: 's2', chainIdentifier: 'solana' }, { id: 's3', chainIdentifier: 'solana' }, { id: 'b1', chainIdentifier: 'eip155:56' }, { id: 'e1', chainIdentifier: 'eip155:8453' }];
+    expect(mixChains(r).map((x) => x.id)).toEqual(['s1', 'b1', 'e1', 's2', 's3']);
   });
 });

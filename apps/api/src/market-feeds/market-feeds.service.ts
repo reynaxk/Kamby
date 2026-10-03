@@ -34,11 +34,23 @@ const NOT_TRENDING_SYMBOLS = new Set([
 
 /** Exported for tests. Majors out, the rest in score order; topped up from the majors only if
  *  too few remain, so the tab is never empty. */
-export function trendingMarkets<T extends { symbol: string | null; marketCapUsd: number | null }>(ranked: readonly T[]): T[] {
+export function trendingMarkets<T extends { symbol: string | null; marketCapUsd: number | null; chainIdentifier: string }>(ranked: readonly T[]): T[] {
   const isMajor = (m: T) =>
     NOT_TRENDING_SYMBOLS.has((m.symbol ?? '').toUpperCase()) || (m.marketCapUsd ?? 0) >= TRENDING_MAX_MARKET_CAP_USD;
-  const picks = ranked.filter((m) => !isMajor(m));
+  const picks = mixChains(ranked.filter((m) => !isMajor(m))).slice(0, TRENDING_LIMIT);
   return picks.length >= TRENDING_MIN_ROWS ? picks : [...picks, ...ranked.filter(isMajor)].slice(0, Math.max(TRENDING_MIN_ROWS, picks.length));
+}
+
+/** Exported for tests. Round-robin across chains, each chain keeping its own score order — so
+ *  hundreds of Solana launchpad coins can't push every Base and BNB coin off Trending
+ *  (seen 2026-10-03: 93 Solana vs 3 EVM after Jupiter discovery went live). */
+export function mixChains<T extends { chainIdentifier: string }>(ranked: readonly T[]): T[] {
+  const byChain = new Map<string, T[]>();
+  for (const m of ranked) byChain.set(m.chainIdentifier, [...(byChain.get(m.chainIdentifier) ?? []), m]);
+  const queues = [...byChain.values()];
+  const out: T[] = [];
+  for (let i = 0; out.length < ranked.length; i++) for (const q of queues) if (q[i]) out.push(q[i]!);
+  return out;
 }
 const GRADUATED_LIMIT = 30;
 const TRENCHES_LIMIT = 50;
@@ -151,5 +163,6 @@ export class MarketFeedsService {
 }
 
 function discoverQuery(): DiscoverQueryDto {
-  return { sort: 'score', limit: TRENDING_LIMIT } as DiscoverQueryDto;
+  // Deeper than the tab itself, so every chain has enough candidates to mix (see mixChains).
+  return { sort: 'score', limit: TRENDING_LIMIT * 4 } as DiscoverQueryDto;
 }
