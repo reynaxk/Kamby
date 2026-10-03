@@ -6,9 +6,10 @@ import { NewListingBanner } from '@/components/market/NewListingBanner';
 import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
+import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
-import { formatPercent, formatPrice } from '@/lib/format';
+import { formatPercent } from '@/lib/format';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -97,7 +98,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               )}
               {lastClose !== null && (
                 <p className="font-mono text-lg font-semibold tabular-nums text-ink-900">
-                  {formatPrice(lastClose)}
+                  <LivePriceText mint={market.tokenAddress} initial={lastClose} />
                   {market.priceChange24hPct !== null && (
                     <span className={cn('ml-2 text-sm', market.priceChange24hPct >= 0 ? 'text-up' : 'text-down')}>{formatPercent(market.priceChange24hPct)}</span>
                   )}

@@ -1,3 +1,5 @@
+'use client';
+
 import {
   CHAIN_REGISTRY,
   DISCOVERY_RANKING,
@@ -6,6 +8,7 @@ import {
 } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { formatCompactUsd, formatPrice, cashtag } from '@/lib/format';
+import { liveSourceFor, useLivePrice } from '@/lib/use-live-price';
 import { LowLiquidityBadge } from '@/components/market/LowLiquidityBadge';
 import { PriceChange } from '@/components/market/PriceChange';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
@@ -23,6 +26,8 @@ import { WatchButton } from '@/components/market/WatchButton';
  * terminal, separated from the flat panels below it without adding density.
  */
 export function TokenMetricsBar({ market }: { market: MarketSummary }) {
+  // Live price every 5s — the market snapshot alone froze at page/selection load.
+  const livePrice = useLivePrice(liveSourceFor(market));
   const display = market.symbol ?? market.name ?? '?';
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const chainName = chainSlug ? CHAIN_REGISTRY[chainSlug].name : market.chainIdentifier;
@@ -61,7 +66,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
           </div>
         </div>
       </div>
-      <Metric label="Price" value={formatPrice(market.priceUsd)} />
+      <Metric label="Price" value={formatPrice(livePrice ?? market.priceUsd)} />
       <Metric label="Mkt Cap" value={formatCompactUsd(market.marketCapUsd)} />
       <Metric label="24h Vol" value={formatCompactUsd(market.volume24hUsd)} />
       <Metric label="Liquidity" value={formatCompactUsd(market.liquidityUsd)} />

@@ -72,6 +72,8 @@ export const PumpFunTokenSummarySchema = z.object({
   name: z.string().nullable(),
   symbol: z.string().nullable(),
   uri: z.string().nullable(),
+  /** The coin's picture (Jupiter's index), attached by the market feeds; absent elsewhere. */
+  imageUrl: z.string().nullable().optional(),
   virtualSolReserves: z.string(),
   virtualTokenReserves: z.string(),
   realSolReserves: z.string(),

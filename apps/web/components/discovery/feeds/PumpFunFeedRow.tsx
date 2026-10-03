@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 import { ChainBadge } from '@/components/market/ChainBadge';
 import type { PumpFunTokenSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -17,12 +20,18 @@ function lamportsToSol(raw: string): number {
  * pushes new curve state.
  */
 export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: PumpFunTokenSummary; emphasizeProgress?: boolean }) {
+  const [imageBroken, setImageBroken] = useState(false);
   const content = (
     <>
       <span className="relative shrink-0">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-raised font-display text-[0.65rem] font-bold text-ink-600">
-          {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
-        </span>
+        {token.imageUrl && !imageBroken ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={token.imageUrl} alt="" loading="lazy" onError={() => setImageBroken(true)} className="h-6 w-6 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-raised font-display text-[0.65rem] font-bold text-ink-600">
+            {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
+          </span>
+        )}
         <ChainBadge chain="solana" />
       </span>
       <span className="min-w-0 flex-1">

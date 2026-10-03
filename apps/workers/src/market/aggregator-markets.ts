@@ -87,6 +87,7 @@ interface DexScreenerPair {
   priceChange?: { h24?: number };
   marketCap?: number;
   fdv?: number;
+  info?: { imageUrl?: string };
 }
 
 export class AggregatorMarketService {
@@ -162,6 +163,11 @@ export class AggregatorMarketService {
           pickSanePair(own.map((p) => ({ pair: p, priceUsd: Number(p.priceUsd), liquidityUsd: p.liquidity?.usd ?? 0 })))?.pair;
         const price = Number(best?.priceUsd);
         if (!best || !Number.isFinite(price) || price <= 0) continue;
+        // Coin picture from DexScreener when the token has none (user feedback 2026-10-03).
+        const image = own.find((p) => p.info?.imageUrl)?.info?.imageUrl;
+        if (!m.token.logoUrl && image?.startsWith('https://')) {
+          await prisma.token.update({ where: { id: m.token.id }, data: { logoUrl: image } }).catch(() => undefined);
+        }
         await prisma.tokenMarket.update({
           where: { id: m.id },
           data: {

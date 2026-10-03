@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/market/Skeleton';
 import { DEFAULT_CHART_TIMEFRAMES, InlineTimeframeTabs } from '@/components/discovery/InlineTimeframeTabs';
 import { cachedCandles, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
 import { KambyChart } from './KambyChart';
+import { ChartStyleToggle, useChartStyle } from './ChartStyleToggle';
 import { LivePriceChart } from './LivePriceChart';
 
 const NO_TRADES: SocialActivity[] = [];
@@ -38,6 +39,7 @@ export function TokenChartCard({
   className?: string;
 }) {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
+  const [chartStyle, setChartStyle] = useChartStyle();
   const candleTimeframe: Timeframe = timeframe === 'live' ? '1m' : timeframe;
   const [candles, setCandles] = useState<Candle[] | null>(initialCandles);
   /** Which width `candles` actually are — the previous chart stays up until the new one lands. */
@@ -94,7 +96,10 @@ export function TokenChartCard({
   return (
     <div className={cn('flex flex-col gap-1.5 rounded-2xl border border-line bg-surface p-2', className)}>
       <div className="flex items-center justify-between gap-2 px-0.5">
-        <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
+        <div className="flex items-center gap-1.5">
+          <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
+          {timeframe !== 'live' && <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />}
+        </div>
         {loading && candles !== null && (
           <span aria-live="polite" className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
             Updating…
@@ -109,7 +114,7 @@ export function TokenChartCard({
         ) : timeframe === 'live' && candlesFor === '1m' ? (
           <LivePriceChart source={source} seedCandles={candles} />
         ) : (
-          <KambyChart candles={candles} trades={trades} />
+          <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} />
         )}
       </div>
     </div>

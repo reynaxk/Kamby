@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/market/Skeleton';
 import { DataHub } from '@/components/terminal/DataHub';
 import { KambyChart } from '@/components/terminal/KambyChart';
 import { LivePriceChart } from '@/components/terminal/LivePriceChart';
+import { ChartStyleToggle, useChartStyle } from '@/components/terminal/ChartStyleToggle';
 import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
 import { MarketInfoPanel } from '@/components/terminal/MarketInfoPanel';
 import { TokenMetricsBar } from '@/components/terminal/TokenMetricsBar';
@@ -152,7 +153,18 @@ export function DiscoverTerminal({
   );
 
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
+  // The selected coin as the live feeds have it now — `selected` is the snapshot from the
+  // click, so its price/volume/mcap never moved (user feedback 2026-10-03). Display only; the
+  // fetch effects keep keying off `selected` so a feed refresh never refetches the chart.
+  const selectedLive = useMemo(
+    () =>
+      selected
+        ? (availableMarkets.find((m) => m.chainIdentifier === selected.chainIdentifier && m.tokenAddress.toLowerCase() === selected.tokenAddress.toLowerCase()) ?? selected)
+        : null,
+    [selected, availableMarkets],
+  );
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
+  const [chartStyle, setChartStyle] = useChartStyle();
   // "Live" draws the real-time price line, seeded from 1m candles.
   const candleTimeframe: Timeframe = timeframe === 'live' ? '1m' : timeframe;
   const [tradeStep, setTradeStep] = useState<TradePanelStep>('form');
@@ -252,7 +264,7 @@ export function DiscoverTerminal({
       const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
       return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} />;
     }
-    return <KambyChart candles={candles} trades={filteredTrades} />;
+    return <KambyChart candles={candles} trades={filteredTrades} chartStyle={chartStyle} />;
   };
   const canTrade =
     selected !== null &&
@@ -323,14 +335,17 @@ export function DiscoverTerminal({
 
         {selected && (
           <div className="mb-3">
-            <TokenMetricsBar market={selected} />
+            <TokenMetricsBar market={selectedLive ?? selected} />
           </div>
         )}
 
         <Surface className="mb-3 flex h-[250px] flex-col gap-2 p-2">
           <div className="kamby-chart-toolbar flex flex-wrap items-center justify-between gap-2">
             {overlayControls}
-            <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
+            <div className="flex items-center gap-1.5">
+              <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
+              {timeframe !== 'live' && <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />}
+            </div>
           </div>
           <div className="min-h-0 flex-1">
             {!selected ? (
@@ -373,7 +388,7 @@ export function DiscoverTerminal({
 
         {selected && (
           <div className="mb-3">
-            <MarketInfoPanel market={selected} />
+            <MarketInfoPanel market={selectedLive ?? selected} />
           </div>
         )}
 
@@ -470,7 +485,7 @@ export function DiscoverTerminal({
 
         <div className="flex min-w-0 flex-col gap-3">
           {selected ? (
-            <TokenMetricsBar market={selected} />
+            <TokenMetricsBar market={selectedLive ?? selected} />
           ) : (
             <Surface variant="glass" className="p-4">
               <p className="font-body text-sm text-ink-600">
@@ -482,7 +497,10 @@ export function DiscoverTerminal({
           <Surface className="flex h-[min(38vh,360px)] min-h-[280px] flex-col gap-2 p-2">
             <div className="kamby-chart-toolbar flex flex-wrap items-center justify-between gap-2">
               {overlayControls}
+              <div className="flex items-center gap-1.5">
               <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
+              {timeframe !== 'live' && <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />}
+            </div>
             </div>
             <div className="min-h-0 flex-1">
               {!selected ? (
@@ -546,7 +564,7 @@ export function DiscoverTerminal({
 
           <MyPositionsPanel />
 
-          {selected && <MarketInfoPanel market={selected} />}
+          {selected && <MarketInfoPanel market={selectedLive ?? selected} />}
 
           {!selected ? (
             <div className="flex items-center rounded-2xl border border-line bg-surface">

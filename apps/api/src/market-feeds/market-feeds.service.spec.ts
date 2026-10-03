@@ -49,6 +49,7 @@ function setup() {
     crypto as unknown as CryptoPriceService,
     realtime as unknown as RealtimeService,
     logger,
+    { attach: async (t: unknown) => t } as never,
   );
   return { service, marketService, pumpfun };
 }

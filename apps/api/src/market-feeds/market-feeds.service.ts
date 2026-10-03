@@ -16,6 +16,7 @@ import { RealtimeService } from '../realtime/realtime.service';
 import { TokenTrenchesService } from '../tokens/token-trenches.service';
 import { TrenchesCategory } from '../tokens/trenches-category.enum';
 import { CryptoPriceService } from './crypto-price.service';
+import { PumpFunIconService } from './pumpfun-icon.service';
 
 /** How often each tab's snapshot is rebuilt — the same 10s the underlying Redis caches use. */
 export const FEED_REFRESH_MS = 10_000;
@@ -94,6 +95,7 @@ export class MarketFeedsService {
     private readonly cryptoPrices: CryptoPriceService,
     private readonly realtime: RealtimeService,
     private readonly logger: PinoLogger,
+    private readonly icons: PumpFunIconService,
   ) {
     this.logger.setContext('MarketFeedsService');
   }
@@ -141,7 +143,7 @@ export class MarketFeedsService {
   }
 
   private async trenchesTokens(category: TrenchesCategory, limit = TRENCHES_LIMIT): Promise<PumpFunTokenSummary[]> {
-    return (await this.trenches.byCategory(category, limit)) as PumpFunTokenSummary[];
+    return this.icons.attach((await this.trenches.byCategory(category, limit)) as PumpFunTokenSummary[]);
   }
 
   private sharedTab<K extends keyof Snapshots>(tab: K, build: () => Promise<TabData<K>>): Observable<Snapshots[K]> {

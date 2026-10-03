@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
+  AreaSeries,
   CandlestickSeries,
   ColorType,
   createChart,
@@ -10,6 +11,7 @@ import {
   LineSeries,
   LineStyle,
   type IChartApi,
+  type ISeriesApi,
   type UTCTimestamp,
 } from 'lightweight-charts';
 import type { Candle, SocialActivity } from '@kamby/domain';
@@ -26,6 +28,8 @@ import {
   type TimedValue,
 } from '@/lib/indicators';
 import { ChartTraderMarkers } from './chartTraderMarkers';
+
+export type ChartStyle = 'candles' | 'line';
 
 const INDICATOR_LABELS: Record<IndicatorId, string> = {
   bollinger: 'Bollinger Bands',
@@ -252,9 +256,12 @@ function CandlePreview({ candles, trades }: { candles: Candle[]; trades: SocialA
 export function KambyChart({
   candles,
   trades = NO_TRADES,
+  chartStyle = 'candles',
 }: {
   candles: Candle[];
   trades?: SocialActivity[];
+  /** 'line' draws closes as a line (the chart-style toggle). */
+  chartStyle?: ChartStyle;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -319,19 +326,34 @@ export function KambyChart({
     }
 
     const priceFormat = { type: 'price' as const, ...pricePrecision(candles) };
-    const series = chart.addSeries(CandlestickSeries, {
-      priceFormat,
-      upColor: up,
-      downColor: down,
-      borderVisible: false,
-      wickUpColor: up,
-      wickDownColor: down,
-      // The library's own default last-price line/label is replaced by the accent-styled
-      // one below — leaving both on drew two overlapping labels for the same value.
-      priceLineVisible: false,
-      lastValueVisible: false,
-    });
-    series.setData(toSeriesData(candles));
+    // Candles, or a line of closes (the chart-style toggle, 2026-10-03). The library's own
+    // last-price line/label is off either way — the accent-styled one below replaces it.
+    const series =
+      chartStyle === 'line'
+        ? chart.addSeries(AreaSeries, {
+            priceFormat,
+            lineColor: accent,
+            lineWidth: 2,
+            topColor: readRgba('--kamby-accent', container, 0.25),
+            bottomColor: readRgba('--kamby-accent', container, 0.02),
+            priceLineVisible: false,
+            lastValueVisible: false,
+          })
+        : chart.addSeries(CandlestickSeries, {
+            priceFormat,
+            upColor: up,
+            downColor: down,
+            borderVisible: false,
+            wickUpColor: up,
+            wickDownColor: down,
+            priceLineVisible: false,
+            lastValueVisible: false,
+          });
+    if (chartStyle === 'line') {
+      (series as ISeriesApi<'Area'>).setData(toSeriesData(candles).map((c) => ({ time: c.time, value: c.close })));
+    } else {
+      (series as ISeriesApi<'Candlestick'>).setData(toSeriesData(candles));
+    }
 
     // Volume along the bottom fifth, on its own hidden scale, colored by candle direction.
     if (candles.some((c) => (c.volumeUsd ?? 0) > 0)) {
@@ -454,7 +476,7 @@ export function KambyChart({
       chart.remove();
       setCanvasReady(false);
     };
-  }, [candles, activeIndicators]);
+  }, [candles, activeIndicators, chartStyle]);
 
   useEffect(() => {
     markersRef.current?.setTrades(trades);
