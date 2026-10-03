@@ -6,6 +6,7 @@ export * from './env';
 export * from './market';
 export * from './market-feeds';
 export * from './token-info';
+export * from './pair-sanity';
 export * from './wallet';
 export * from './social';
 export * from './wallet-auth';

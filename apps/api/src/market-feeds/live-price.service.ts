@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, type OnModuleDestroy } from '@nestjs/common';
-import type { LivePrice, TokenInfoChain } from '@kamby/domain';
+import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { isListedCoin } from './listed-coins';
 
@@ -12,6 +12,7 @@ const WATCH_TTL_MS = 20_000;
 
 interface DexScreenerPair {
   baseToken?: { address?: string };
+  quoteToken?: { address?: string };
   priceUsd?: string;
   liquidity?: { usd?: number };
 }
@@ -19,17 +20,21 @@ interface DexScreenerPair {
 /** Exported for tests. The price of each requested token from DexScreener's pairs: only
  *  pairs where it's the *base* token (priceUsd is the base token's price), the deepest one. */
 export function pricesFromPairs(pairs: DexScreenerPair[], chain: TokenInfoChain): Map<string, number> {
-  const best = new Map<string, { price: number; liquidity: number }>();
+  const byToken = new Map<string, PricedPair[]>();
   for (const pair of pairs) {
     const address = pair.baseToken?.address;
     const price = Number(pair.priceUsd);
     if (!address || !Number.isFinite(price) || price <= 0) continue;
     const key = chain === 'solana' ? address : address.toLowerCase();
-    const liquidity = pair.liquidity?.usd ?? 0;
-    const current = best.get(key);
-    if (!current || liquidity > current.liquidity) best.set(key, { price, liquidity });
+    byToken.set(key, [...(byToken.get(key) ?? []), { priceUsd: price, liquidityUsd: pair.liquidity?.usd ?? 0, quoteAddress: pair.quoteToken?.address }]);
   }
-  return new Map([...best].map(([key, v]) => [key, v.price]));
+  // The deepest sane pool per coin — mispriced outlier pools are ignored (see pickSanePair).
+  const prices = new Map<string, number>();
+  for (const [key, candidates] of byToken) {
+    const best = pickSanePair(candidates, chain === 'solana' ? SOLANA_STANDARD_QUOTE_MINTS : undefined);
+    if (best) prices.set(key, best.priceUsd);
+  }
+  return prices;
 }
 
 /**

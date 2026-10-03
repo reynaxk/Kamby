@@ -1,4 +1,5 @@
 import { prisma } from '@kamby/db';
+import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS } from '@kamby/domain';
 import type { Logger } from 'pino';
 import { SOLANA_SEED_MARKETS } from './solana-seed-markets';
 
@@ -78,10 +79,11 @@ export class SolanaMarketIngestionService {
     const pairs = (body.pairs ?? []).filter((p) => p.chainId === 'solana' && p.baseToken.address === mintAddress);
     if (pairs.length === 0) return false;
 
-    // Deepest real pool wins — same "the pair with genuine liquidity, not the first result"
-    // rule the EVM seed-list research this session already applied by hand.
-    const best = pairs.reduce((a, b) => ((b.liquidity?.usd ?? 0) > (a.liquidity?.usd ?? 0) ? b : a));
-    if (best.priceUsd === null) return false;
+    // The deepest *sane* pool — see pickSanePair: standard quotes (SOL/USDC/USDT) first, and
+    // pools priced far from the rest (a mispriced JUP/BONK pool once read $5,134) ignored.
+    const priced = pairs.map((p) => ({ pair: p, priceUsd: Number(p.priceUsd), liquidityUsd: p.liquidity?.usd ?? 0, quoteAddress: p.quoteToken.address }));
+    const best = pickSanePair(priced, SOLANA_STANDARD_QUOTE_MINTS)?.pair;
+    if (!best || best.priceUsd === null) return false;
 
     await prisma.solanaTokenMarket.upsert({
       where: { mintAddress },
