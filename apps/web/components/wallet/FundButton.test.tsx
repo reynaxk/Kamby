@@ -21,14 +21,14 @@ describe('FundButton', () => {
     const user = userEvent.setup();
     render(<FundButton />);
 
-    await user.click(screen.getByRole('button', { name: 'Fund wallet' }));
+    await user.click(screen.getByRole('button', { name: 'Deposit' }));
 
     expect(screen.getByTestId('fund-modal')).toBeInTheDocument();
   });
 
   it('shows visible "Fund wallet" text for the labeled variant (profile page), not just an icon', () => {
     render(<FundButton variant="labeled" />);
-    const button = screen.getByRole('button', { name: 'Fund wallet' });
-    expect(button).toHaveTextContent('Fund wallet');
+    const button = screen.getByRole('button', { name: 'Deposit' });
+    expect(button).toHaveTextContent('Deposit');
   });
 });

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import { UsdcBalancePill } from '@/components/wallet/UsdcBalancePill';
 import { SearchBar } from './SearchBar';
 
 /**
@@ -56,6 +57,7 @@ export function MarketHeader({
           <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
         </div>
         <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
+          <UsdcBalancePill />
           <NotificationBell />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} />
         </div>

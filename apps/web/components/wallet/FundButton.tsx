@@ -20,8 +20,8 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Fund wallet"
-        title="Fund wallet"
+        aria-label="Deposit"
+        title="Deposit"
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
@@ -33,7 +33,7 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         )}
       >
         <FundIcon />
-        {variant === 'labeled' && 'Fund wallet'}
+        {variant === 'labeled' && 'Deposit'}
       </button>
       <FundModal open={open} onClose={() => setOpen(false)} />
     </>

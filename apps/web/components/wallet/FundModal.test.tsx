@@ -56,26 +56,29 @@ describe('FundModal', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows ConnectWalletButton when no EVM wallet is connected on the default (Base) chain', async () => {
+  it('asks a signed-out visitor to sign in before depositing', () => {
     usePrivyMock.mockReturnValue({ ready: true, authenticated: false, login: vi.fn() });
     useAccountMock.mockReturnValue({ address: undefined, chainId: undefined });
     useSolanaWalletsMock.mockReturnValue({ wallets: [] });
 
     render(<FundModal open onClose={vi.fn()} />);
 
-    expect(await screen.findByTestId('connect-wallet-button')).toHaveTextContent('chain 8453');
+    expect(screen.getByRole('button', { name: 'Sign in to deposit' })).toBeInTheDocument();
   });
 
-  it('shows a Solana "Sign in" button once Solana is selected with no wallet', async () => {
-    usePrivyMock.mockReturnValue({ ready: true, authenticated: false, login: vi.fn() });
-    useAccountMock.mockReturnValue({ address: undefined, chainId: undefined });
-    useSolanaWalletsMock.mockReturnValue({ wallets: [] });
+  it("Deposit USDC shows this wallet's own address for the picked network, with a USDC-only warning", async () => {
+    usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn() });
+    useAccountMock.mockReturnValue({ address: '0x1111111111111111111111111111111111111111', chainId: 8453 });
+    useSolanaWalletsMock.mockReturnValue({ wallets: [{ address: 'SoLWaLLet1111111111111111111111111111111111' }] });
     const user = userEvent.setup();
 
     render(<FundModal open onClose={vi.fn()} />);
-    await user.click(screen.getByRole('button', { name: 'Solana' }));
+    await user.click(screen.getByRole('button', { name: /Deposit USDC/ }));
+    expect(screen.getByText('0x1111111111111111111111111111111111111111')).toBeInTheDocument();
 
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Solana' }));
+    expect(screen.getByText('SoLWaLLet1111111111111111111111111111111111')).toBeInTheDocument();
+    expect(screen.getByText(/Send only/)).toHaveTextContent('Send only USDC on Solana');
   });
 
   it('calls addFunds with the real connected EVM address, the real Base CAIP-2 identifier, and the real USDC address — never a placeholder', async () => {
@@ -85,6 +88,7 @@ describe('FundModal', () => {
     const onClose = vi.fn();
 
     render(<FundModal open onClose={onClose} />);
+    await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled());
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
@@ -103,6 +107,7 @@ describe('FundModal', () => {
     const user = userEvent.setup();
 
     render(<FundModal open onClose={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
     await user.click(screen.getByRole('button', { name: 'Solana' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
@@ -120,6 +125,7 @@ describe('FundModal', () => {
     const user = userEvent.setup();
 
     render(<FundModal open onClose={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled());
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
@@ -135,6 +141,7 @@ describe('FundModal', () => {
     const user = userEvent.setup();
 
     render(<FundModal open onClose={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
     await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
 
     expect(await screen.findByRole('button', { name: 'Continue' })).toBeDisabled();
