@@ -159,11 +159,18 @@ describe('TradePanel', () => {
     getTransactionMock.mockResolvedValue(null);
   });
 
+  /** One-tap trading (2026-10-03): this now just gets a ready quote on the form. */
   async function driveToReview(quote: TradeQuoteDto) {
     getQuoteMock.mockResolvedValue(quote);
     render(<TradePanel {...defaultProps} />);
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review trade' }));
+    await screen.findByRole('button', { name: /^(Buy|Sell) FOO$/ });
+  }
+
+  /** Taps the trade button: "Buy/Sell FOO" on the form, or "Confirm & sign" back on review. */
+  async function clickTrade() {
+    // Waits: under load the quote can refresh, briefly relabeling the button "Getting quote…".
+    await userEvent.click(await screen.findByRole('button', { name: /^((Buy|Sell) FOO|Confirm & sign)$/ }, { timeout: 3000 }));
   }
 
   it('shows the real Buy/Sell form — not just a Sign-in message — while disconnected, with no Review trade CTA', () => {
@@ -173,7 +180,7 @@ describe('TradePanel', () => {
     expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument();
     expect(screen.getByLabelText('Amount')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Review trade/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^(Buy|Sell) FOO$/ })).not.toBeInTheDocument();
     // Never fetches a quote for a wallet that isn't connected — canQuote requires isConnected.
     expect(getQuoteMock).not.toHaveBeenCalled();
   });
@@ -181,13 +188,17 @@ describe('TradePanel', () => {
   it('shows the up-to-3-signature disclosure when both approval and a guaranteed-USDC fee apply', async () => {
     await driveToReview(fakeQuote({ requiresApproval: true, approvalSpender: '0xrouter', feeUnsignedTx: { to: '0xfee', data: '0x', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null } }));
 
-    expect(screen.getByText(/up to 3 quick wallet approvals/i)).toBeInTheDocument();
+    sendTransactionMock.mockReturnValueOnce(new Promise(() => {})); // wallet prompt left open
+    await clickTrade();
+    expect(await screen.findByText(/up to 3 quick wallet approvals/i)).toBeInTheDocument();
   });
 
   it('shows the 2-signature disclosure when only the guaranteed-USDC fee applies (token already approved)', async () => {
     await driveToReview(fakeQuote({ requiresApproval: false, feeUnsignedTx: { to: '0xfee', data: '0x', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null } }));
 
-    expect(screen.getByText(/2 quick wallet approvals/i)).toBeInTheDocument();
+    sendTransactionMock.mockReturnValueOnce(new Promise(() => {}));
+    await clickTrade();
+    expect(await screen.findByText(/2 quick wallet approvals/i)).toBeInTheDocument();
   });
 
   it('shows no disclosure at all for a trade with no guaranteed-USDC fee', async () => {
@@ -209,7 +220,7 @@ describe('TradePanel', () => {
     submitTransactionMock.mockResolvedValue(fakeTransaction());
     submitFeeTransactionMock.mockResolvedValue(fakeTransaction({ feeTxHash: `0x${'3'.repeat(64)}`, feeStatus: 'PENDING' }));
 
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+    await clickTrade();
 
     // The swap signature happens first...
     await waitFor(() => expect(submitTransactionMock).toHaveBeenCalledWith(expect.objectContaining({ quoteId: quote.id })));
@@ -231,7 +242,7 @@ describe('TradePanel', () => {
       .mockRejectedValueOnce(new Error('User rejected the request')); // the auto-fired fee signature is rejected
     submitTransactionMock.mockResolvedValue(fakeTransaction());
 
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+    await clickTrade();
 
     // The swap itself is never affected — still shows a real trade in flight.
     expect(await screen.findByText(/waiting for confirmation on-chain/i)).toBeInTheDocument();
@@ -248,7 +259,7 @@ describe('TradePanel', () => {
     sendTransactionMock.mockResolvedValueOnce(`0x${'2'.repeat(64)}`);
     submitTransactionMock.mockResolvedValue(fakeTransaction());
 
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+    await clickTrade();
 
     await waitFor(() => expect(submitTransactionMock).toHaveBeenCalled());
     expect(sendTransactionMock).toHaveBeenCalledTimes(1);
@@ -282,14 +293,18 @@ describe('TradePanel', () => {
         fakeQuote({ requiresApproval: false, sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData(), feeUnsignedTx: { to: '0xfee', data: '0x', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null } }),
       );
 
-      expect(screen.getByText(/Kamby pays the network fee/i)).toBeInTheDocument();
+      signTypedDataMock.mockImplementationOnce(() => {}); // consent prompt left open
+      await clickTrade();
+      expect(await screen.findByText(/Kamby pays the network fee/i)).toBeInTheDocument();
       expect(screen.queryByText(/quick wallet approvals/i)).not.toBeInTheDocument();
     });
 
     it('shows the 1-approval-then-free-signature disclosure when the eligible quote still needs a token approval', async () => {
       await driveToReview(fakeQuote({ requiresApproval: true, approvalSpender: '0xrouter', sponsorshipAvailable: true, consentTypedData: fakeConsentTypedData() }));
 
-      expect(screen.getByText(/1 quick wallet approval, then a free signature/i)).toBeInTheDocument();
+      sendTransactionMock.mockReturnValueOnce(new Promise(() => {})); // approval prompt left open
+      await clickTrade();
+      expect(await screen.findByText(/1 quick wallet approval, then a free signature/i)).toBeInTheDocument();
     });
 
     it('signs the EIP-712 consent object and relays instead of broadcasting a transaction itself', async () => {
@@ -298,7 +313,7 @@ describe('TradePanel', () => {
       signTypedDataMock.mockResolvedValue({ signature: '0xconsentsig' });
       relaySwapMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true, relayerFeePayer: '0xrelayer' }));
 
-      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+      await clickTrade();
 
       await waitFor(() => expect(relaySwapMock).toHaveBeenCalledWith({ quoteId: quote.id, walletAddress: WALLET_ADDRESS, signature: '0xconsentsig' }));
       // The real uint256 fields must be reconstructed as bigint, never left as the wire strings.
@@ -316,7 +331,7 @@ describe('TradePanel', () => {
       await driveToReview(quote);
       signTypedDataMock.mockRejectedValue(new Error('User rejected the request'));
 
-      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+      await clickTrade();
 
       expect(await screen.findByText(/User rejected the request/i)).toBeInTheDocument();
       expect(relaySwapMock).not.toHaveBeenCalled();
@@ -329,7 +344,7 @@ describe('TradePanel', () => {
       sendTransactionMock.mockResolvedValueOnce(`0x${'4'.repeat(64)}`);
       submitTransactionMock.mockResolvedValue(fakeTransaction());
 
-      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+      await clickTrade();
 
       await waitFor(() => expect(sendTransactionMock).toHaveBeenCalled());
       expect(signTypedDataMock).not.toHaveBeenCalled();
@@ -342,7 +357,7 @@ describe('TradePanel', () => {
       signTypedDataMock.mockResolvedValue({ signature: '0xconsentsig' });
       relaySwapMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true, relayerFeePayer: '0xrelayer', feeTxHash: null }));
 
-      await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+      await clickTrade();
 
       expect(await screen.findByText(/Kamby is sending the platform fee/i)).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Send platform fee' })).not.toBeInTheDocument();
@@ -358,13 +373,13 @@ describe('TradePanel', () => {
     expect(onStepChange).toHaveBeenCalledWith('form');
 
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review trade' }));
-    expect(onStepChange).toHaveBeenLastCalledWith('review');
+    await screen.findByRole('button', { name: /^(Buy|Sell) FOO$/ });
+    expect(onStepChange).toHaveBeenLastCalledWith('form'); // one tap: no review step
 
     sendTransactionMock.mockResolvedValueOnce(`0x${'2'.repeat(64)}`);
     submitTransactionMock.mockResolvedValue(fakeTransaction());
 
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm & sign' }));
+    await clickTrade();
 
     await waitFor(() => expect(onStepChange).toHaveBeenCalledWith('signing'));
     await waitFor(() => expect(onStepChange).toHaveBeenCalledWith('pending'));

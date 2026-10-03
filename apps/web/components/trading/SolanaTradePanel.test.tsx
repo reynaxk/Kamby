@@ -280,7 +280,7 @@ describe('SolanaTradePanel', () => {
 
     await fillAmountAndWaitForQuote();
 
-    expect(await screen.findByRole('button', { name: 'Review buy' })).toBeEnabled();
+    expect(await screen.findByRole('button', { name: 'Buy now' })).toBeEnabled();
   });
 
   it('never enables Review while the quote is still loading or failed', async () => {
@@ -291,7 +291,7 @@ describe('SolanaTradePanel', () => {
     await waitFor(() => expect(getSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
 
     expect(await screen.findByText('No live quote is available')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Review buy' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Buy now' })).toBeDisabled();
   });
 
   it('switching to SELL relabels the review/confirm actions accordingly', async () => {
@@ -301,7 +301,7 @@ describe('SolanaTradePanel', () => {
     await userEvent.click(screen.getByRole('button', { name: /Sell SOL/i }));
     await fillAmountAndWaitForQuote();
 
-    expect(await screen.findByRole('button', { name: 'Review sell' })).toBeEnabled();
+    expect(await screen.findByRole('button', { name: 'Sell now' })).toBeEnabled();
   });
 
   it('clears a typed amount when switching sides, rather than reinterpreting it in the wrong unit', async () => {
@@ -325,8 +325,7 @@ describe('SolanaTradePanel', () => {
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
     await waitFor(() =>
       expect(submitSolanaTransactionMock).toHaveBeenCalledWith({
@@ -351,8 +350,7 @@ describe('SolanaTradePanel', () => {
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Low' })); // JitoTipControl preset
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
     await waitFor(() => expect(sendRawTransactionMock).toHaveBeenCalledWith(new Uint8Array([9, 9, 9])));
     expect(signAndSendTransaction).not.toHaveBeenCalled();
@@ -367,7 +365,7 @@ describe('SolanaTradePanel', () => {
     await fillAmountAndWaitForSponsoredQuote();
 
     expect(getSolanaQuoteMock).not.toHaveBeenCalled();
-    expect(await screen.findByRole('button', { name: 'Review buy' })).toBeEnabled();
+    expect(await screen.findByRole('button', { name: 'Buy now' })).toBeEnabled();
     // A sponsored transaction always broadcasts via the relayer's own RPC call, never
     // through Jito — the control offering a choice that would silently do nothing is
     // hidden entirely while gasless is on.
@@ -383,9 +381,7 @@ describe('SolanaTradePanel', () => {
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    expect(screen.getByText(/Kamby pays the Solana network fee/)).toBeInTheDocument();
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
     await waitFor(() =>
       expect(submitSponsoredSolanaTransactionMock).toHaveBeenCalledWith({
@@ -408,8 +404,7 @@ describe('SolanaTradePanel', () => {
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
     expect(await screen.findByText('Gas sponsorship is not enabled on this deployment')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirm & buy' })).toBeInTheDocument();
@@ -421,8 +416,7 @@ describe('SolanaTradePanel', () => {
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
     expect(await screen.findByText('User rejected the request')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirm & buy' })).toBeInTheDocument();
@@ -436,8 +430,7 @@ describe('SolanaTradePanel', () => {
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
     expect(await screen.findByText(/couldn.t record it/i)).toBeInTheDocument();
     const solscanLink = screen.getByRole('link', { name: /View on Solscan/i });
@@ -453,8 +446,7 @@ describe('SolanaTradePanel', () => {
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
     await screen.findByRole('button', { name: 'Retry' });
 
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
@@ -476,8 +468,7 @@ describe('SolanaTradePanel', () => {
 
       render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
       await fillAmountAndWaitForQuote();
-      await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-      await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
       await screen.findByText('Waiting for confirmation…');
 
       expect(await screen.findByText('Trade confirmed', {}, { timeout: 5000 })).toBeInTheDocument();
@@ -501,8 +492,7 @@ describe('SolanaTradePanel', () => {
 
       render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
       await fillAmountAndWaitForQuote();
-      await userEvent.click(await screen.findByRole('button', { name: 'Review buy' }));
-      await userEvent.click(await screen.findByRole('button', { name: 'Confirm & buy' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
       await screen.findByText('Waiting for confirmation…');
       await screen.findByText('Trade confirmed', {}, { timeout: 5000 });
 
@@ -530,8 +520,7 @@ describe('SolanaTradePanel', () => {
       render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
       await userEvent.click(await screen.findByRole('button', { name: 'Sell SOL' }));
       await fillAmountAndWaitForQuote();
-      await userEvent.click(await screen.findByRole('button', { name: 'Review sell' }));
-      await userEvent.click(await screen.findByRole('button', { name: 'Confirm & sell' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Sell now' }));
       await screen.findByText('Waiting for confirmation…');
       await screen.findByText('Trade confirmed', {}, { timeout: 5000 });
 

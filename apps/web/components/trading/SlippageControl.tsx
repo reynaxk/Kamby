@@ -6,6 +6,14 @@ import { isValidSlippageBps, TRADING_DEFAULTS } from '@kamby/domain';
 
 const PRESETS_BPS = [10, 50, 100]; // 0.1% / 0.5% / 1%
 
+/** Exported for tests. "Auto" slippage: ~2× the quote's price impact plus 0.5%, kept within
+ *  1–5% — tight for liquid coins, enough room that thin memecoin trades don't keep failing.
+ *  1% before any quote exists. */
+export function autoSlippageBps(priceImpactBps: number | null | undefined): number {
+  if (priceImpactBps === null || priceImpactBps === undefined) return 100;
+  return Math.min(500, Math.max(100, Math.round((2 * priceImpactBps + 50) / 10) * 10));
+}
+
 function formatBpsAsPercent(bps: number): string {
   return `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 1)}%`;
 }
@@ -20,13 +28,16 @@ export function SlippageControl({
   valueBps,
   onChange,
   className,
+  auto,
 }: {
   valueBps: number;
   onChange: (bps: number) => void;
   className?: string;
+  /** The "Auto" option — `active` when the panel is using autoSlippageBps. */
+  auto?: { active: boolean; onSelect: () => void };
 }) {
   const isPreset = PRESETS_BPS.includes(valueBps);
-  const [customOpen, setCustomOpen] = useState(!isPreset);
+  const [customOpen, setCustomOpen] = useState(!isPreset && !auto?.active);
   const [customInput, setCustomInput] = useState(isPreset ? '' : (valueBps / 100).toString());
   // Previously: an out-of-range or malformed custom value was silently ignored — `onChange`
   // just never fired, so the trade still used whatever the last *valid* value was while the
@@ -38,9 +49,27 @@ export function SlippageControl({
     <div className={className}>
       <div className="flex items-center justify-between">
         <span className="font-body text-xs text-ink-600">Slippage tolerance</span>
-        <span className="font-mono text-xs text-ink-600">{formatBpsAsPercent(valueBps)}</span>
+        <span className="font-mono text-xs text-ink-600">
+          {auto?.active ? `Auto · ${formatBpsAsPercent(valueBps)}` : formatBpsAsPercent(valueBps)}
+        </span>
       </div>
       <div className="mt-1.5 flex gap-1.5">
+        {auto && (
+          <button
+            type="button"
+            onClick={() => {
+              setCustomOpen(false);
+              setCustomError(null);
+              auto.onSelect();
+            }}
+            className={cn(
+              'flex-1 rounded-lg px-2 py-1.5 font-body text-xs font-medium transition-colors',
+              auto.active ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
+            )}
+          >
+            Auto
+          </button>
+        )}
         {PRESETS_BPS.map((preset) => (
           <button
             key={preset}
@@ -52,7 +81,7 @@ export function SlippageControl({
             }}
             className={cn(
               'flex-1 rounded-lg px-2 py-1.5 font-body text-xs font-medium transition-colors',
-              !customOpen && valueBps === preset ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
+              !customOpen && !auto?.active && valueBps === preset ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
             )}
           >
             {formatBpsAsPercent(preset)}

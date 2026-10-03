@@ -21,7 +21,7 @@ import {
 } from '@/lib/solana-trading-client';
 import { GaslessToggle } from './GaslessToggle';
 import { JitoTipControl } from './JitoTipControl';
-import { SlippageControl } from './SlippageControl';
+import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
 import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
@@ -148,12 +148,20 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
-  const [slippageBps, setSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
+  // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
+  const [autoSlippage, setAutoSlippage] = useState(true);
+  const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null));
+  const [manualSlippageBps, setManualSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
+  const slippageBps = autoSlippage ? autoBps : manualSlippageBps;
   const [jitoTipLamports, setJitoTipLamports] = useState(0);
   const [gasless, setGasless] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
+  // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
+  useEffect(() => {
+    if (autoSlippage && quote) setAutoBps(autoSlippageBps(quote.priceImpactBps));
+  }, [autoSlippage, quote]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -472,12 +480,27 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     );
   }
 
+  /** One tap to trade (user request 2026-10-03) — the wallet prompt is the only confirmation.
+   *  Still stops on review for a ≥10% price impact; an expired quote is refreshed, never traded. */
+  async function handleOneTap() {
+    if (!quote) return;
+    if (isExpired) {
+      setRefreshTick((n) => n + 1);
+      return;
+    }
+    if ((quote.priceImpactBps ?? 0) >= 1000) {
+      setStep('review');
+      return;
+    }
+    await handleConfirmAndSign();
+  }
+
   // --- Review step --------------------------------------------------------------------------
 
   if (step === 'review' || step === 'signing') {
     if (!quote) return null;
     return (
-      <Panel title="Review trade" onBack={step === 'review' ? () => setStep('form') : undefined}>
+      <Panel title={step === 'review' ? 'Review trade' : 'Confirm in your wallet'} onBack={step === 'review' ? () => setStep('form') : undefined}>
         <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} />
         {gasless && (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
@@ -568,7 +591,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
             />
           )
         )}
-        <SlippageControl valueBps={slippageBps} onChange={setSlippageBps} />
+        <SlippageControl
+          valueBps={slippageBps}
+          onChange={(bps) => {
+            setAutoSlippage(false);
+            setManualSlippageBps(bps);
+          }}
+          auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
+        />
         <GaslessToggle value={gasless} onChange={setGasless} label="Gasless (no SOL needed)" />
         {/* A sponsored transaction always broadcasts via the relayer's own RPC call, never
             through Jito — showing this control while gasless is on would offer a choice
@@ -581,9 +611,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className="w-full text-base font-bold uppercase tracking-wide"
           disabled={quoteStatus !== 'ready' || !quote}
-          onClick={() => setStep('review')}
+          onClick={() => void handleOneTap()}
         >
-          {quoteStatus === 'loading' ? 'Getting quote…' : `Review ${side === 'BUY' ? 'buy' : 'sell'}`}
+          {quoteStatus === 'loading' ? 'Getting quote…' : `${side === 'BUY' ? 'Buy' : 'Sell'} now`}
         </Button>
       </Panel>
 
@@ -612,7 +642,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className="mt-1.5 w-full text-sm font-bold uppercase tracking-wide"
           disabled={quoteStatus !== 'ready' || !quote}
-          onClick={() => setStep('review')}
+          onClick={() => void handleOneTap()}
         >
           {quoteStatus === 'loading' ? 'Getting quote…' : `Instant ${side === 'BUY' ? 'buy' : 'sell'}`}
         </Button>

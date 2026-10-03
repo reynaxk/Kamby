@@ -18,7 +18,7 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
 import { GaslessToggle } from './GaslessToggle';
-import { SlippageControl } from './SlippageControl';
+import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
 
 export interface TradePanelProps {
@@ -149,7 +149,11 @@ export function TradePanel({
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   const [amount, setAmount] = useState('');
-  const [slippageBps, setSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
+  // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
+  const [autoSlippage, setAutoSlippage] = useState(true);
+  const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null));
+  const [manualSlippageBps, setManualSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
+  const slippageBps = autoSlippage ? autoBps : manualSlippageBps;
   // Opt-in gas sponsorship — see docs/GAS_RELAYER_PLAN.md's EVM section. Whether a given
   // quote actually ends up sponsored is never decided by this flag alone: it only *asks*;
   // `quote.consentTypedData` (present only when the backend confirms both "requested" AND
@@ -158,6 +162,10 @@ export function TradePanel({
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [quote, setQuote] = useState<TradeQuoteDto | null>(null);
+  // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
+  useEffect(() => {
+    if (autoSlippage && quote) setAutoBps(autoSlippageBps(quote.priceImpactBps));
+  }, [autoSlippage, quote]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -304,6 +312,26 @@ export function TradePanel({
       return;
     }
     await handleConfirmAndSign();
+  }
+
+  /**
+   * One tap to trade (user request 2026-10-03: "remove the review order and confirm thing, it
+   * will slow down the users"): approve if needed, then sign — the wallet's own prompt is the
+   * only confirmation. Two cases still stop on the review screen: an extreme price impact (it
+   * needs the explicit "I understand" there) and an expired quote (refreshed, never traded).
+   */
+  async function handleOneTap() {
+    if (!quote) return;
+    if (isExpired) {
+      setRefreshTick((n) => n + 1);
+      return;
+    }
+    if (quote.priceImpactLevel === 'extreme') {
+      setStep('review');
+      return;
+    }
+    if (quote.requiresApproval) await handleApprove();
+    else await handleConfirmAndSign();
   }
 
   async function handleConfirmAndSign() {
@@ -614,7 +642,7 @@ export function TradePanel({
   if (step === 'review' || step === 'approving' || step === 'signing') {
     if (!quote) return null;
     return (
-      <Panel title="Review trade" onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined} animKey="review">
+      <Panel title={step === 'review' ? 'Review trade' : 'Confirm in your wallet'} onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined} animKey="review">
         <QuoteSummary quote={quote} />
         {quote.consentTypedData ? (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
@@ -719,7 +747,11 @@ export function TradePanel({
 
       <SlippageControl
         valueBps={slippageBps}
-        onChange={setSlippageBps}
+        onChange={(bps) => {
+          setAutoSlippage(false);
+          setManualSlippageBps(bps);
+        }}
+        auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
         className={dense ? 'trade-slippage-compact' : undefined}
       />
 
@@ -735,8 +767,8 @@ export function TradePanel({
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
       {isConnected ? (
-        <Button type="button" disabled={quoteStatus !== 'ready' || !quote} onClick={() => setStep('review')} className="w-full">
-          {quoteStatus === 'loading' ? 'Getting quote…' : 'Review trade'}
+        <Button type="button" disabled={quoteStatus !== 'ready' || !quote} onClick={() => void handleOneTap()} className="w-full">
+          {quoteStatus === 'loading' ? 'Getting quote…' : `${side === 'BUY' ? 'Buy' : 'Sell'} ${tokenSymbol ?? ''}`.trim()}
         </Button>
       ) : (
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —
