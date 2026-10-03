@@ -106,7 +106,7 @@ describe('DiscoverTokenList', () => {
     expect(screen.getByText(/VET/)).not.toHaveTextContent('(new)');
   });
 
-  it('shows bonding-curve coins in Trenches and Bonding as view-only rows with their progress', async () => {
+  it('shows bonding-curve coins in Trenches and Bonding with their progress, each opening its trade page', async () => {
     render(
       <DiscoverTokenList
         {...defaultProps}
@@ -116,7 +116,8 @@ describe('DiscoverTokenList', () => {
 
     await openTab('Trenches');
     expect(screen.getByText('$FRESH')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /FRESH/ })).not.toBeInTheDocument();
+    // Tradable before graduating since 2026-10-03 (Jupiter routes bonding curves).
+    expect(screen.getByRole('link', { name: /FRESH/ })).toHaveAttribute('href', expect.stringContaining('/solana?mint='));
 
     await openTab('Bonding');
     expect(screen.getByText('$CLOSE')).toBeInTheDocument();

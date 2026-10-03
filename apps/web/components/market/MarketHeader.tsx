@@ -59,7 +59,7 @@ export function MarketHeader({
         <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
           <UsdcBalancePill />
           <NotificationBell />
-          <ConnectWalletButton expectedChainId={expectedWalletChainId} />
+          <ConnectWalletButton expectedChainId={expectedWalletChainId} enforceChain={false} />
         </div>
       </div>
     </header>

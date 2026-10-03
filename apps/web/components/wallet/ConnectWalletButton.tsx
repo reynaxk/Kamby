@@ -83,7 +83,17 @@ import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS, WALLET_SET
  * default, matching this app's existing "Base is the back-compat default" convention
  * (`DEFAULT_CHAIN_ID` in `@kamby/domain`) rather than guessing.
  */
-export function ConnectWalletButton({ expectedChainId = base.id }: { expectedChainId?: number } = {}) {
+export function ConnectWalletButton({
+  expectedChainId = base.id,
+  enforceChain = true,
+}: {
+  expectedChainId?: number;
+  /** false for the site header: it must never switch the wallet's network. Only a trade
+   *  panel that's about to trade on a chain does — two instances with different chains
+   *  (header = Base, home terminal's trade panel = BNB) kept switching the wallet back and
+   *  forth, a stuck "Switching…" (found again 2026-10-03 once Trending mixed chains). */
+  enforceChain?: boolean;
+} = {}) {
   const { ready, authenticated, login, logout } = usePrivy();
   const { address, isConnected, chainId } = useAccount();
   const expectedChainSlug = slugForChainId(expectedChainId);
@@ -124,6 +134,7 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
   }, [ready, authenticated, isConnected]);
 
   useEffect(() => {
+    if (!enforceChain) return;
     if (!isConnected || chainId === expectedChainId) {
       hasAttemptedSwitchRef.current = false;
       return;
@@ -137,7 +148,7 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
     // at compile time which chain a given caller will ask for; the cast is safe because
     // every real call site passes a chainId that's actually in that configured set.
     switchChain({ chainId: expectedChainId as 8453 | 56 });
-  }, [isConnected, chainId, expectedChainId, isSwitching, switchChain]);
+  }, [enforceChain, isConnected, chainId, expectedChainId, isSwitching, switchChain]);
 
   if (!ready || !authenticated || !isConnected) {
     return (
@@ -168,7 +179,7 @@ export function ConnectWalletButton({ expectedChainId = base.id }: { expectedCha
     );
   }
 
-  if (chainId !== expectedChainId) {
+  if (enforceChain && chainId !== expectedChainId) {
     return (
       <div className="flex flex-col items-end gap-1">
         <Button

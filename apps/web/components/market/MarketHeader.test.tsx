@@ -16,6 +16,7 @@ vi.mock('@/components/wallet/ConnectWalletButton', () => ({
   },
 }));
 vi.mock('@/components/notifications/NotificationBell', () => ({ NotificationBell: () => <div /> }));
+vi.mock('@/components/wallet/UsdcBalancePill', () => ({ UsdcBalancePill: () => <div /> }));
 // SendButton's own SendModal is independently tested (SendModal.test.tsx) and calls several
 // Privy/wagmi hooks unconditionally on mount, open or not — stubbed here for the same
 // reason ConnectWalletButton is.
