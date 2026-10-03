@@ -1,4 +1,7 @@
+'use client';
+
 import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/domain';
+import { useState } from 'react';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/format';
@@ -7,7 +10,7 @@ import { NewListingBadge } from './feeds/NewListingBadge';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
- *  Link that navigates away. No 'use client' needed: no hooks here, same reasoning
+ *  Link that navigates away. 'use client' since 2026-10-03 (broken-logo fallback state); before that it had no hooks, same reasoning
  *  TokenMetricsBar/TokenTradersPanel already rely on for living safely inside a client
  *  subtree. */
 export function SelectableTokenRow({
@@ -25,6 +28,8 @@ export function SelectableTokenRow({
   isNew?: boolean;
 }) {
   const isUp = (market.priceChange24hPct ?? 0) >= 0;
+  // A dead logo link (common for brand-new coins) falls back to the coin's initial.
+  const [logoBroken, setLogoBroken] = useState(false);
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const chainLabel = chainSlug
     ? CHAIN_REGISTRY[chainSlug].name
@@ -62,11 +67,12 @@ export function SelectableTokenRow({
         />
       )}
       <span className="relative shrink-0">
-      {market.logoUrl ? (
+      {market.logoUrl && !logoBroken ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={market.logoUrl}
           alt=""
+          onError={() => setLogoBroken(true)}
           className="terminal-token-avatar h-6 w-6 shrink-0 rounded-full object-cover"
         />
       ) : (
