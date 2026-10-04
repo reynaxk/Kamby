@@ -6,7 +6,7 @@ import { cn } from '@kamby/ui';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { DEFAULT_CHART_TIMEFRAMES, InlineTimeframeTabs } from '@/components/discovery/InlineTimeframeTabs';
-import { CANDLE_REFRESH_MS, cachedCandles, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
+import { CANDLE_REFRESH_MS, cachedCandles, candleWidthFor, isTickTimeframe, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
 import { KambyChart } from './KambyChart';
 import { ChartStyleToggle, useChartStyle } from './ChartStyleToggle';
 import { LivePriceChart } from './LivePriceChart';
@@ -39,16 +39,16 @@ export function TokenChartCard({
 }) {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
   const [chartStyle, setChartStyle] = useChartStyle();
-  const candleTimeframe: Timeframe = timeframe === 'live' ? '1m' : timeframe;
+  const candleTimeframe: Timeframe = candleWidthFor(timeframe);
   const [candles, setCandles] = useState<Candle[] | null>(initialCandles);
   /** Which width `candles` actually are — the previous chart stays up until the new one lands. */
-  const [candlesFor, setCandlesFor] = useState<Timeframe>(initialTimeframe === 'live' ? '1m' : initialTimeframe);
+  const [candlesFor, setCandlesFor] = useState<Timeframe>(candleWidthFor(initialTimeframe));
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
 
   // The server already fetched the first width — seed the cache so switching back is instant.
   useEffect(() => {
-    primeCandles(source, initialTimeframe === 'live' ? '1m' : initialTimeframe, initialCandles);
+    primeCandles(source, candleWidthFor(initialTimeframe), initialCandles);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export function TokenChartCard({
         })
         .finally(() => !cancelled && setLoading(false));
     void load(false);
-    const every = timeframe === 'live' ? undefined : CANDLE_REFRESH_MS[candleTimeframe];
+    const every = isTickTimeframe(timeframe) ? undefined : CANDLE_REFRESH_MS[candleTimeframe];
     const timer = every ? setInterval(() => document.visibilityState === 'visible' && void load(true), every) : null;
     return () => {
       cancelled = true;
@@ -110,8 +110,8 @@ export function TokenChartCard({
           <EmptyState title="Couldn't load this chart" detail="Try again in a moment." />
         ) : candles === null ? (
           <Skeleton className="h-full w-full" />
-        ) : timeframe === 'live' && candlesFor === '1m' ? (
-          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} />
+        ) : isTickTimeframe(timeframe) && candlesFor === '1m' ? (
+          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === '10s' ? 10 : 60} />
         ) : (
           <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} />
         )}

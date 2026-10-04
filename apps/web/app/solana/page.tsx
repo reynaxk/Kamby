@@ -68,7 +68,7 @@ export async function generateMetadata({ searchParams }: { searchParams: { mint?
   return { title: market === NATIVE_SOL ? 'Solana — Kamby' : `${market.symbol ?? 'Token'} on Solana — Kamby` };
 }
 
-const SOLANA_TIMEFRAMES: readonly ChartTimeframe[] = ['live', ...SOLANA_CHART_TIMEFRAMES];
+const SOLANA_TIMEFRAMES: readonly ChartTimeframe[] = ['live', '10s', ...SOLANA_CHART_TIMEFRAMES];
 
 function isChartTimeframe(value: string | undefined): value is SolanaChartTimeframe {
   return (SOLANA_CHART_TIMEFRAMES as readonly string[]).includes(value ?? '');

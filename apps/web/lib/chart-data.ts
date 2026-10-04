@@ -6,7 +6,18 @@ import { fetchTokenHistory } from './market-client';
 import { fetchGeckoCandles, geckoNetworkFor } from './gecko-browser';
 
 /** What the chart's timeframe tabs offer: a real-time price line plus the candle widths. */
-export type ChartTimeframe = 'live' | Timeframe;
+export type ChartTimeframe = 'live' | '10s' | Timeframe;
+
+/** Built in the browser from the 2s live-price feed (no candle API serves them — GeckoTerminal's
+ *  second-level OHLCV is paid-only): the Live line and 10-second candles (added 2026-10-04). */
+export function isTickTimeframe(tf: ChartTimeframe): tf is 'live' | '10s' {
+  return tf === 'live' || tf === '10s';
+}
+
+/** The candle width fetched for a timeframe — tick timeframes seed from the last 1m candles. */
+export function candleWidthFor(tf: ChartTimeframe): Timeframe {
+  return isTickTimeframe(tf) ? '1m' : tf;
+}
 
 /** A coin as the chart needs it: which history API serves its candles, and its live-price key. */
 export type ChartSource =

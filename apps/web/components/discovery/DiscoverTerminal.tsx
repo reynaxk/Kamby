@@ -21,7 +21,7 @@ import { DataHub } from '@/components/terminal/DataHub';
 import { KambyChart } from '@/components/terminal/KambyChart';
 import { LivePriceChart } from '@/components/terminal/LivePriceChart';
 import { ChartStyleToggle, useChartStyle } from '@/components/terminal/ChartStyleToggle';
-import { CANDLE_REFRESH_MS, evmChartSource, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
+import { CANDLE_REFRESH_MS, candleWidthFor, evmChartSource, isTickTimeframe, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
 import { MarketInfoPanel } from '@/components/terminal/MarketInfoPanel';
 import { TokenMetricsBar } from '@/components/terminal/TokenMetricsBar';
 import { IN_FLIGHT_STEPS, TradePanelCard } from '@/components/terminal/TradePanelCard';
@@ -166,7 +166,7 @@ export function DiscoverTerminal({
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
   const [chartStyle, setChartStyle] = useChartStyle();
   // "Live" draws the real-time price line, seeded from 1m candles.
-  const candleTimeframe: Timeframe = timeframe === 'live' ? '1m' : timeframe;
+  const candleTimeframe: Timeframe = candleWidthFor(timeframe);
   const [tradeStep, setTradeStep] = useState<TradePanelStep>('form');
   const inFlight = IN_FLIGHT_STEPS.has(tradeStep);
 
@@ -204,13 +204,13 @@ export function DiscoverTerminal({
         });
     if (!skipFirst) void load(false);
     // The Live line streams its own prices; only candle views refetch.
-    const every = timeframe === 'live' ? undefined : CANDLE_REFRESH_MS[candleTimeframe];
+    const every = isTickTimeframe(timeframe) ? undefined : CANDLE_REFRESH_MS[candleTimeframe];
     const timer = every ? setInterval(() => document.visibilityState === 'visible' && void load(true), every) : null;
     return () => {
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, [selected, candleTimeframe, timeframe === 'live']); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selected, candleTimeframe, isTickTimeframe(timeframe)]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (skipActivityFetch.current) {
@@ -267,9 +267,9 @@ export function DiscoverTerminal({
 
   const chartFor = (market: MarketSummary) => {
     const slug = slugForIdentifier(market.chainIdentifier);
-    if (timeframe === 'live' && (slug === 'base' || slug === 'bnb')) {
+    if (isTickTimeframe(timeframe) && (slug === 'base' || slug === 'bnb')) {
       const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
-      return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} chartStyle={chartStyle} />;
+      return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === '10s' ? 10 : 60} />;
     }
     return <KambyChart candles={candles} trades={filteredTrades} chartStyle={chartStyle} />;
   };

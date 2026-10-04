@@ -119,7 +119,7 @@ export function GridTerminalCell({
 
       {!compact && (
         <div className="flex justify-end">
-          <InlineTimeframeTabs active={timeframe} onChange={(tf) => tf !== 'live' && setTimeframe(tf)} timeframes={TIMEFRAMES} />
+          <InlineTimeframeTabs active={timeframe} onChange={(tf) => tf !== 'live' && tf !== '10s' && setTimeframe(tf)} timeframes={TIMEFRAMES} />
         </div>
       )}
 

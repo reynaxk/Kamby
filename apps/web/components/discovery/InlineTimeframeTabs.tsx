@@ -4,7 +4,7 @@ import { TIMEFRAMES } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import type { ChartTimeframe } from '@/lib/chart-data';
 
-export const DEFAULT_CHART_TIMEFRAMES: readonly ChartTimeframe[] = ['live', ...TIMEFRAMES];
+export const DEFAULT_CHART_TIMEFRAMES: readonly ChartTimeframe[] = ['live', '10s', ...TIMEFRAMES];
 
 /** The chart's timeframe switcher — buttons, not links: switching refetches (or reuses cached)
  *  candles in place without leaving the page. Used by every chart (Discover's terminal, the

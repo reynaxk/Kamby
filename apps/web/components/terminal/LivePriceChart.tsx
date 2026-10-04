@@ -14,7 +14,7 @@ import {
 } from 'lightweight-charts';
 import type { Candle } from '@kamby/domain';
 import type { ChartSource } from '@/lib/chart-data';
-import { subscribeLivePrice } from '@/lib/use-live-price';
+import { recentTicks, subscribeLivePrice } from '@/lib/use-live-price';
 import { chartFontFamily, pricePrecision, readRgba, type ChartStyle } from './KambyChart';
 
 const POLL_MS = 2_000;
@@ -65,10 +65,10 @@ export function seedCandlesFor(candles: Candle[], nowS: number): LiveCandle[] {
     .filter((c) => c.time >= nowS - SEED_MAX_AGE_S && c.time <= nowS);
 }
 
-/** Exported for tests. Folds a live price into the 1m candles: extends the current minute's
- *  candle, or opens the next one at the previous close. */
-export function foldTick(last: LiveCandle | null, price: number, nowS: number): LiveCandle {
-  const bucket = (Math.floor(nowS / 60) * 60) as UTCTimestamp;
+/** Exported for tests. Folds a live price into candles `bucketSeconds` wide: extends the
+ *  current candle, or opens the next one at the previous close. */
+export function foldTick(last: LiveCandle | null, price: number, nowS: number, bucketSeconds = 60): LiveCandle {
+  const bucket = (Math.floor(nowS / bucketSeconds) * bucketSeconds) as UTCTimestamp;
   if (last && last.time === bucket) return { ...last, high: Math.max(last.high, price), low: Math.min(last.low, price), close: price };
   const open = last?.close ?? price;
   return { time: bucket, open, high: Math.max(open, price), low: Math.min(open, price), close: price };
@@ -81,7 +81,18 @@ export function foldTick(last: LiveCandle | null, price: number, nowS: number): 
  * is watching). Polling pauses while the tab is hidden. Updated in place with
  * `series.update()`, never rebuilt per tick.
  */
-export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { source: ChartSource; seedCandles: Candle[]; chartStyle?: ChartStyle }) {
+export function LivePriceChart({
+  source,
+  seedCandles,
+  chartStyle = 'line',
+  bucketSeconds = 60,
+}: {
+  source: ChartSource;
+  seedCandles: Candle[];
+  chartStyle?: ChartStyle;
+  /** Candle width in candle mode: 60 for Live, 10 for the 10s timeframe (built from ticks). */
+  bucketSeconds?: number;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
@@ -123,7 +134,16 @@ export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { s
     }
     const nowS = Math.floor(Date.now() / 1000);
     if (chartStyle === 'candles') {
-      const seeded = seedCandlesFor(seedCandles, nowS);
+      // 1m candles seed from the API's; 10s ones from the live prices recorded while browsing.
+      const seeded =
+        bucketSeconds === 60
+          ? seedCandlesFor(seedCandles, nowS)
+          : recentTicks(source).reduce<LiveCandle[]>((acc, tick) => {
+              const next = foldTick(acc[acc.length - 1] ?? null, tick.p, tick.t, bucketSeconds);
+              if (acc.length > 0 && acc[acc.length - 1]!.time === next.time) acc[acc.length - 1] = next;
+              else acc.push(next);
+              return acc;
+            }, []);
       const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: readRgba('--kamby-up', container, 1),
         downColor: readRgba('--kamby-down', container, 1),
@@ -136,7 +156,10 @@ export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { s
         priceLineStyle: LineStyle.Dashed,
       });
       candleSeries.setData(seeded);
-      chart.timeScale().fitContent();
+      // A handful of candles stretched to the full width read as giant blocks — keep a normal
+      // candle width and grow in from the right instead.
+      if (seeded.length >= 40) chart.timeScale().fitContent();
+      else chart.timeScale().applyOptions({ barSpacing: 8 });
       lastCandleRef.current = seeded[seeded.length - 1] ?? null;
       hasPriceHistoryRef.current = seeded.length > 0;
       chartRef.current = chart;
@@ -173,7 +196,7 @@ export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { s
       seriesRef.current = null;
     };
     // Rebuilt only for a different coin, style or new seed history, never per tick.
-  }, [sourceKey, seedCandles, chartStyle]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourceKey, seedCandles, chartStyle, bucketSeconds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let points = 0;
@@ -185,7 +208,7 @@ export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { s
       const firstPrice = !hasPriceHistoryRef.current;
       if (candleSeriesRef.current) {
         if (firstPrice) candleSeriesRef.current.applyOptions({ priceFormat: formatFor(priceUsd) });
-        const next = foldTick(lastCandleRef.current, priceUsd, nowS);
+        const next = foldTick(lastCandleRef.current, priceUsd, nowS, bucketSeconds);
         if (!lastCandleRef.current || next.time >= lastCandleRef.current.time) {
           candleSeriesRef.current.update(next);
           lastCandleRef.current = next;
@@ -204,7 +227,7 @@ export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { s
     };
     // The shared 2s feed (lib/use-live-price) — the header and holders read the same poll.
     return subscribeLivePrice(source, onPrice, () => setStatus('reconnecting'));
-  }, [sourceKey, chartStyle]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourceKey, chartStyle, bucketSeconds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="relative h-full w-full">

@@ -27,6 +27,16 @@ interface Subscription {
 }
 const subscriptions = new Map<string, Subscription>();
 
+/** The last 30 minutes of live prices per coin (one per 2s tick), kept while browsing so the
+ *  10s candles open with recent history instead of an empty chart. */
+const TICK_HISTORY_MAX = 900;
+const tickHistory = new Map<string, { t: number; p: number }[]>();
+
+/** This coin's recorded live prices (unix seconds, oldest first). */
+export function recentTicks(source: ChartSource): readonly { t: number; p: number }[] {
+  return tickHistory.get(keyFor(source)) ?? [];
+}
+
 function keyFor(source: ChartSource): string {
   return source.kind === 'solana' ? `sol:${source.mint}` : `${source.chainId}:${source.address.toLowerCase()}`;
 }
@@ -44,6 +54,10 @@ export function subscribeLivePrice(source: ChartSource, onPrice: (price: number)
           const live = await fetchLivePrice(source);
           if (live) {
             created.last = live.priceUsd;
+            const ticks = tickHistory.get(key) ?? [];
+            ticks.push({ t: Math.floor(Date.now() / 1000), p: live.priceUsd });
+            if (ticks.length > TICK_HISTORY_MAX) ticks.splice(0, ticks.length - TICK_HISTORY_MAX);
+            tickHistory.set(key, ticks);
             created.listeners.forEach((l) => l(live.priceUsd));
           }
         } catch {
