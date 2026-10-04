@@ -2,12 +2,12 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { TokenHolder, TokenHolders, TokenInfoChain } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
+import { PublicKey } from '@solana/web3.js';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { SOLANA_CONNECTION_POOL, type SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { isListedCoin } from './listed-coins';
 
 const GOPLUS_EVM_CHAIN_ID: Record<Exclude<TokenInfoChain, 'solana'>, number> = { base: 8453, bnb: 56 };
-/** Solana's free public RPC — market data stays off the paid QuickNode plan (trades only). */
-const SOLANA_PUBLIC_RPC = 'https://api.mainnet-beta.solana.com';
 const HOLDERS_TTL_SECONDS = 60;
 const FAILED_TTL_SECONDS = 15;
 const MAX_HOLDERS = 20;
@@ -63,6 +63,7 @@ export class HoldersService {
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly logger: PinoLogger,
+    @Inject(SOLANA_CONNECTION_POOL) private readonly solanaPool: SolanaConnectionPool | null,
   ) {
     this.logger.setContext('HoldersService');
   }
@@ -107,43 +108,30 @@ export class HoldersService {
     return chain === 'solana' ? this.solanaLargestAccounts(address) : null;
   }
 
-  /** A brand-new Solana coin: its 20 largest token accounts straight from the chain. */
+  /**
+   * A Solana coin too new for GoPlus: its 20 largest token accounts straight from the chain,
+   * through the API's Solana pool (Helius, falling back to the public node). Found 2026-10-04:
+   * the public node alone answers this call with "429 Too many requests for a specific RPC
+   * call" nearly every time, so new coins showed no holders. Cached like every other answer.
+   */
   private async solanaLargestAccounts(mint: string): Promise<TokenHolders | null> {
-    const [largest, supply] = await Promise.all([
-      this.rpc<{ value?: { address: string; uiAmount: number | null }[] }>('getTokenLargestAccounts', [mint]),
-      this.rpc<{ value?: { uiAmount: number | null } }>('getTokenSupply', [mint]),
-    ]);
-    const accounts = (largest?.value ?? []).filter((a) => (a.uiAmount ?? 0) > 0).slice(0, MAX_HOLDERS);
-    const total = supply?.value?.uiAmount ?? 0;
-    if (accounts.length === 0 || total <= 0) return null;
-    // Token accounts → their owner wallets (one call for all of them).
-    const parsed = await this.rpc<{ value?: ({ data?: { parsed?: { info?: { owner?: string } } } } | null)[] }>('getMultipleAccounts', [
-      accounts.map((a) => a.address),
-      { encoding: 'jsonParsed' },
-    ]);
-    const holders = accounts.map((a, i): TokenHolder => {
-      const owner = parsed?.value?.[i]?.data?.parsed?.info?.owner;
-      return { address: owner ?? a.address, balance: a.uiAmount ?? 0, percent: ((a.uiAmount ?? 0) / total) * 100, isContract: false, tag: null };
-    });
-    return { holderCount: null, holders, atIso: new Date().toISOString() };
-  }
-
-  private async rpc<T>(method: string, params: unknown[]): Promise<T | null> {
+    if (!this.solanaPool) return null;
     try {
-      const res = await fetch(SOLANA_PUBLIC_RPC, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      const mintKey = new PublicKey(mint);
+      const [largest, supply] = await this.solanaPool.withFailover((c) => Promise.all([c.getTokenLargestAccounts(mintKey), c.getTokenSupply(mintKey)]));
+      const accounts = largest.value.filter((a) => (a.uiAmount ?? 0) > 0).slice(0, MAX_HOLDERS);
+      const total = supply.value.uiAmount ?? 0;
+      if (accounts.length === 0 || total <= 0) return null;
+      // Token accounts → their owner wallets (one call for all of them).
+      const parsed = await this.solanaPool.withFailover((c) => c.getMultipleParsedAccounts(accounts.map((a) => a.address)));
+      const holders = accounts.map((a, i): TokenHolder => {
+        const data = parsed.value[i]?.data;
+        const owner = data && 'parsed' in data ? (data.parsed as { info?: { owner?: string } }).info?.owner : undefined;
+        return { address: owner ?? a.address.toBase58(), balance: a.uiAmount ?? 0, percent: ((a.uiAmount ?? 0) / total) * 100, isContract: false, tag: null };
       });
-      if (!res.ok) {
-        this.logger.warn({ status: res.status, method }, 'Solana public RPC request failed');
-        return null;
-      }
-      const body = (await res.json()) as { result?: T };
-      return body.result ?? null;
+      return { holderCount: null, holders, atIso: new Date().toISOString() };
     } catch (error) {
-      this.logger.warn({ err: error, method }, 'Solana public RPC unreachable');
+      this.logger.warn({ err: error }, 'Solana largest-accounts lookup failed');
       return null;
     }
   }
