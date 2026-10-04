@@ -47,6 +47,11 @@ body {
   color: rgb(var(--kamby-ink-900));
 }
 
+/* The landing page is dark to the very bottom (the layout's ticker gap below the footer). */
+body:has(.kamby-landing) {
+  background-color: rgb(8 10 15);
+}
+
 /*
  * "Void" theme — the product's deliberate, committed dark identity (not
  * prefers-color-scheme-driven; same reasoning artifact-design gives for a single-theme
