@@ -17,6 +17,7 @@ import { TokenTrenchesService } from '../tokens/token-trenches.service';
 import { TrenchesCategory } from '../tokens/trenches-category.enum';
 import { CryptoPriceService } from './crypto-price.service';
 import { PumpFunIconService } from './pumpfun-icon.service';
+import { XxxRiskService } from './xxxrisk.service';
 
 /** How often each tab's snapshot is rebuilt — the same 10s the underlying Redis caches use. */
 export const FEED_REFRESH_MS = 10_000;
@@ -88,6 +89,7 @@ export class MarketFeedsService {
   private readonly graduated$ = this.sharedTab('graduated', async () => this.buildGraduated());
   private readonly trenches$ = this.sharedTab('trenches', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.FRESH) }));
   private readonly bonding$ = this.sharedTab('bonding', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.NEAR_GRADUATED) }));
+  private readonly xxxrisk$ = this.sharedTab('xxxrisk', async () => ({ tokens: await this.xxxrisk.build() }));
 
   constructor(
     private readonly market: MarketService,
@@ -96,6 +98,7 @@ export class MarketFeedsService {
     private readonly realtime: RealtimeService,
     private readonly logger: PinoLogger,
     private readonly icons: PumpFunIconService,
+    private readonly xxxrisk: XxxRiskService,
   ) {
     this.logger.setContext('MarketFeedsService');
   }
@@ -103,17 +106,19 @@ export class MarketFeedsService {
   /** Every tab at once — the server-rendered first paint, before the stream connects. */
   async snapshot(): Promise<Snapshots> {
     const atIso = new Date().toISOString();
-    const [trending, graduated, trenches, bonding] = await Promise.all([
+    const [trending, graduated, trenches, bonding, xxxrisk] = await Promise.all([
       this.market.discover(discoverQuery()),
       this.buildGraduated(),
       this.trenchesTokens(TrenchesCategory.FRESH),
       this.trenchesTokens(TrenchesCategory.NEAR_GRADUATED),
+      this.xxxrisk.cached(),
     ]);
     return {
       trending: { markets: trendingMarkets(trending).map((m) => toFeedMarket(m)), atIso },
       graduated: { ...graduated, atIso },
       trenches: { tokens: trenches, atIso },
       bonding: { tokens: bonding, atIso },
+      xxxrisk: { tokens: xxxrisk, atIso },
       crypto: { prices: this.cryptoPrices.snapshot(), atIso },
     };
   }
@@ -125,6 +130,7 @@ export class MarketFeedsService {
       this.graduated$.pipe(map((d) => event('graduated', d))),
       this.trenches$.pipe(map((d) => event('trenches', d))),
       this.bonding$.pipe(map((d) => event('bonding', d))),
+      this.xxxrisk$.pipe(map((d) => event('xxxrisk', d))),
       this.cryptoPrices.prices$.pipe(
         filter((prices) => prices.length > 0),
         map((prices) => event('crypto', { prices, atIso: new Date().toISOString() })),

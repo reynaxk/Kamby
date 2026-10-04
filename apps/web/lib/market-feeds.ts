@@ -7,7 +7,7 @@ import type { RealtimeStatus } from './social-client';
 
 export type { MarketFeedSnapshot };
 
-const SNAPSHOT_EVENTS = ['trending', 'graduated', 'trenches', 'bonding', 'crypto'] as const;
+const SNAPSHOT_EVENTS = ['trending', 'graduated', 'trenches', 'bonding', 'xxxrisk', 'crypto'] as const;
 const TRENCHES_MAX = 50;
 const GRADUATED_PUMPFUN_MAX = 30;
 /** A live update for a coin not already listed only joins Trenches if it's this new —

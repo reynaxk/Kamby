@@ -7,7 +7,7 @@ import { PUMP_FUN_GRADUATION_THRESHOLD_LAMPORTS } from './trading';
  * ticker, GeckoTerminal, PumpPortal, Kamby's own markets read over free public RPC), never
  * paid RPC; paid RPC is reserved for trade execution, balances and broadcasting.
  */
-export const MARKET_FEED_TABS = ['trending', 'trenches', 'bonding', 'graduated', 'crypto'] as const;
+export const MARKET_FEED_TABS = ['trending', 'trenches', 'bonding', 'graduated', 'xxxrisk', 'crypto'] as const;
 export type MarketFeedTab = (typeof MARKET_FEED_TABS)[number];
 
 /** Worker -> API: Pump.fun bonding-curve tokens whose state changed since the last batch
@@ -46,6 +46,37 @@ export type FeedMarket = MarketSummary & {
   listedAtIso?: string | null;
 };
 
+/**
+ * An "XXXRisk" row (user spec 2026-10-03): a Pump.fun coin under XXXRISK_FILTER.maxAgeSeconds
+ * old with $1K–3K in its curve and a $5K–15K market cap — the earliest, riskiest launches,
+ * shown below Kamby's normal safety bar on purpose and labeled as such.
+ */
+export interface XxxRiskToken {
+  mintAddress: string;
+  symbol: string | null;
+  name: string | null;
+  imageUrl: string | null;
+  ageSeconds: number;
+  /** SOL in the bonding curve, in USD. */
+  liquidityUsd: number;
+  marketCapUsd: number;
+  /** Jupiter's last-5-minute buy + sell volume (its shortest window). */
+  volume5mUsd: number | null;
+  traders5m: number | null;
+  /** Rug-risk flags; empty = none of these checks tripped. */
+  riskFlags: XxxRiskFlag[];
+}
+export type XxxRiskFlag = 'mintable' | 'freezable' | 'dev-holds-over-20pct' | 'top-holders-over-50pct' | 'unverified-audit';
+
+export const XXXRISK_FILTER = {
+  maxAgeSeconds: 300,
+  minLiquidityUsd: 1_000,
+  maxLiquidityUsd: 3_000,
+  minMarketCapUsd: 5_000,
+  maxMarketCapUsd: 15_000,
+  limit: 20,
+} as const;
+
 /** Server-Sent Event names on GET /v1/market/feeds/stream, and each one's `data`. */
 export interface MarketFeedEvents {
   trending: { markets: FeedMarket[]; atIso: string };
@@ -55,6 +86,7 @@ export interface MarketFeedEvents {
   graduated: { markets: FeedMarket[]; pumpfun: PumpFunTokenSummary[]; atIso: string };
   trenches: { tokens: PumpFunTokenSummary[]; atIso: string };
   bonding: { tokens: PumpFunTokenSummary[]; atIso: string };
+  xxxrisk: { tokens: XxxRiskToken[]; atIso: string };
   crypto: { prices: CryptoPrice[]; atIso: string };
   /** Incremental: merge into trenches/bonding by mintAddress. */
   pumpfun: PumpFunLiveBatch;
@@ -72,6 +104,7 @@ export function emptyMarketFeeds(): MarketFeedSnapshot {
     graduated: { markets: [], pumpfun: [], atIso },
     trenches: { tokens: [], atIso },
     bonding: { tokens: [], atIso },
+    xxxrisk: { tokens: [], atIso },
     crypto: { prices: [], atIso },
   };
 }

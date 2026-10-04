@@ -50,6 +50,7 @@ function setup() {
     realtime as unknown as RealtimeService,
     logger,
     { attach: async (t: unknown) => t } as never,
+    { build: async () => [], cached: async () => [] } as never,
   );
   return { service, marketService, pumpfun };
 }

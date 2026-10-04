@@ -11,10 +11,11 @@ import { TokenInfoController } from './token-info.controller';
 import { TokenInfoService } from './token-info.service';
 import { LivePriceService } from './live-price.service';
 import { PumpFunIconService } from './pumpfun-icon.service';
+import { XxxRiskService } from './xxxrisk.service';
 
 @Module({
   imports: [MarketModule, TokensModule, RealtimeModule],
   controllers: [MarketFeedsController, SolanaChartController, TokenInfoController],
-  providers: [CryptoPriceService, MarketFeedsService, SolanaChartService, TokenInfoService, LivePriceService, PumpFunIconService],
+  providers: [CryptoPriceService, MarketFeedsService, SolanaChartService, TokenInfoService, LivePriceService, PumpFunIconService, XxxRiskService],
 })
 export class MarketFeedsModule {}
