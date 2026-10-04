@@ -55,6 +55,13 @@ railway.cmd volume -s <postgres service id> attach -v <previous volume id> -y
 The live data volume is `postgres-volume-hvol` (~18 GB). Get the Postgres service ID from
 `railway.cmd status --json`. Never delete a volume during an incident.
 
+## 3c. Running a database migration (Postgres has no public access)
+
+Since 2026-10-04 the postgres service's public TCP proxy is removed — api, workers and
+workers-bnb only use `postgres.railway.internal`. To run a migration from a laptop:
+postgres → Settings → Networking → add a TCP Proxy (port 5432), run the migration, then
+delete the proxy again straight after. Never leave it on.
+
 ## 4. Turn off one subsystem
 
 Workers-side switches (set on `workers` and/or `workers-bnb`):
