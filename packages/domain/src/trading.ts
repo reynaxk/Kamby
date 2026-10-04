@@ -97,7 +97,8 @@ export function isValidSlippageBps(bps: number): boolean {
  * drift apart silently.
  */
 export const PLATFORM_FEE_TIERS: readonly { minUsd: number; feeBps: number }[] = [
-  { minUsd: 0, feeBps: 200 }, // up to $99.99…: 2.00%
+  { minUsd: 0, feeBps: 400 }, // micro trades, $2–$9.99… (the $2 minimum is enforced separately): 4.00% — 2026-10-04
+  { minUsd: 10, feeBps: 200 }, // $10–$99.99…: 2.00%
   { minUsd: 100, feeBps: 100 }, // $100–$499.99…: 1.00%
   { minUsd: 500, feeBps: 75 }, // $500 and up: 0.75%
 ];
@@ -106,9 +107,10 @@ export const PLATFORM_FEE_TIERS: readonly { minUsd: number; feeBps: number }[] =
  *  be confirmed before a %-based fee must be decided — on EVM, a non-USDC-quoted BUY's
  *  size needs a fee-free pre-quote that can, rarely, come back empty (see `QuoteService`'s
  *  own doc comment); on Solana, a SELL's size-discovery pre-quote can likewise fail (see
- *  `SolanaQuoteService#resolvePlatformFeeBps`). Deliberately the most expensive tier, never
- *  a cheaper one — never silently apply an unconfirmed lower rate. */
-export const PLATFORM_FEE_FALLBACK_BPS = PLATFORM_FEE_TIERS[0]!.feeBps;
+ *  `SolanaQuoteService#resolvePlatformFeeBps`). The highest standard rate, 2% — not the 4%
+ *  micro-trade tier (added 2026-10-04), which would overcharge a large trade whose size
+ *  simply couldn't be confirmed far more than it could undercharge a $2–$10 one. */
+export const PLATFORM_FEE_FALLBACK_BPS = 200;
 
 /** Resolves a trade's USD size to its tier's fee, in basis points — walks `tiers` (ordered
  *  ascending by `minUsd`) and returns the highest tier whose `minUsd` the amount meets or

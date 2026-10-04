@@ -44,8 +44,13 @@ describe('calculateFeeAmount', () => {
 });
 
 describe('resolveTierFeeBps', () => {
-  it('applies the 2% tier below $100', () => {
-    expect(resolveTierFeeBps(1)).toBe(200);
+  it('applies the 4% micro-trade tier below $10', () => {
+    expect(resolveTierFeeBps(2)).toBe(400);
+    expect(resolveTierFeeBps(9.99)).toBe(400);
+  });
+
+  it('applies the 2% tier from $10 up to (not including) $100', () => {
+    expect(resolveTierFeeBps(10)).toBe(200);
     expect(resolveTierFeeBps(99.99)).toBe(200);
   });
 
@@ -60,8 +65,8 @@ describe('resolveTierFeeBps', () => {
   });
 
   it('treats a trade below $1 (including exactly $0) as the cheapest, most-expensive-rate tier — never extrapolates below the schedule', () => {
-    expect(resolveTierFeeBps(0)).toBe(200);
-    expect(resolveTierFeeBps(0.01)).toBe(200);
+    expect(resolveTierFeeBps(0)).toBe(400);
+    expect(resolveTierFeeBps(0.01)).toBe(400);
   });
 
   it('rejects a negative or non-finite amount', () => {
@@ -79,15 +84,16 @@ describe('resolveTierFeeBps', () => {
     expect(resolveTierFeeBps(50, fixture)).toBe(5);
   });
 
-  it('matches the locked-in schedule: 2%/1%/0.75% at $1/$100/$500', () => {
+  it('matches the locked-in schedule: 4%/2%/1%/0.75% at $0/$10/$100/$500', () => {
     expect(PLATFORM_FEE_TIERS).toEqual([
-      { minUsd: 0, feeBps: 200 },
+      { minUsd: 0, feeBps: 400 },
+      { minUsd: 10, feeBps: 200 },
       { minUsd: 100, feeBps: 100 },
       { minUsd: 500, feeBps: 75 },
     ]);
   });
 
-  it('the fallback bps is the most expensive tier, never a cheaper unconfirmed one', () => {
+  it('the fallback bps is the highest standard rate (2%), not the micro-trade tier', () => {
     expect(PLATFORM_FEE_FALLBACK_BPS).toBe(200);
   });
 });

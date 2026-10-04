@@ -324,7 +324,8 @@ by a client (there is no fee field anywhere in the request shape a client could 
 
 | Trade size | Rate |
 |---|---|
-| up to $99.99… | 2.00% |
+| $2–$9.99… (micro trades, since 2026-10-04) | 4.00% |
+| $10–$99.99… | 2.00% |
 | $100–$499.99… | 1.00% |
 | $500 and up | 0.75% |
 

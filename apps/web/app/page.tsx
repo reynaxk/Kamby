@@ -95,9 +95,10 @@ export default function LandingPage() {
         {/* Fees */}
         <section className="mx-auto max-w-3xl px-5 pb-20 text-center">
           <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Simple fees. Gas on us.</h2>
-          <div className="mt-6 grid grid-cols-3 gap-3">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              ['2%', 'under $100'],
+              ['4%', '$2 – $9.99'],
+              ['2%', '$10 – $99'],
               ['1%', '$100 – $499'],
               ['0.75%', '$500 and up'],
             ].map(([fee, size]) => (
