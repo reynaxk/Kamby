@@ -88,6 +88,25 @@ describe('PnlLedgerSweepService', () => {
       expect(result).toEqual({ checked: 1, lotsCreated: 1, eventsCreated: 0, skippedNoPrice: 0 });
     });
 
+    it('uses the real USDC spent and received when the trade has a USDC leg — never price × quantity', async () => {
+      const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+      // $100 USDC bought 2 tokens while the quote's market price said $60/token ($120): price
+      // impact. Cost basis is the $100 actually spent.
+      mockPrisma.tradeTransaction.findMany.mockResolvedValue([
+        evmRow({ quote: { priceUsd: '60', chainId: 8453, inputToken: BASE_USDC.toLowerCase(), outputToken: '0xtoken' } }),
+      ]);
+      await buildService().sweep();
+      expect(mockPrisma.tokenLot.create).toHaveBeenCalledWith({ data: expect.objectContaining({ costBasisUsd: 100 }) });
+
+      // And it never needs a price at all: no priceUsd, still a real lot.
+      mockPrisma.tokenLot.create.mockClear();
+      mockPrisma.tradeTransaction.findMany.mockResolvedValue([
+        evmRow({ quote: { priceUsd: null, chainId: 8453, inputToken: BASE_USDC, outputToken: '0xtoken' } }),
+      ]);
+      await buildService().sweep();
+      expect(mockPrisma.tokenLot.create).toHaveBeenCalledWith({ data: expect.objectContaining({ costBasisUsd: 100 }) });
+    });
+
     it('skips and marks processed (never fabricates a cost basis) when the quote has no priceUsd', async () => {
       mockPrisma.tradeTransaction.findMany.mockResolvedValue([evmRow({ quote: { priceUsd: null } })]);
       const service = buildService();

@@ -1,5 +1,5 @@
 import { prisma, type Prisma } from '@kamby/db';
-import { computeFifoRealizedPnl, SOLANA_USDC_MINT, type OpenLot } from '@kamby/domain';
+import { computeFifoRealizedPnl, EVM_USDC_BY_CHAIN_ID, SOLANA_USDC_MINT, type OpenLot } from '@kamby/domain';
 import type { Logger } from 'pino';
 
 /** Bounds one sweep tick's DB work — same philosophy as MarketIngestionService's
@@ -115,9 +115,21 @@ export class PnlLedgerSweepService {
    *  work from, or the token's decimals aren't known yet — see this class's own doc
    *  comment on why that's a real, non-retried skip rather than an error. */
   private async processEvmRow(row: EvmSweepRow): Promise<boolean> {
+    // The real dollars when the trade's USDC leg is known (every EVM trade since 2026-10-02:
+    // USDC in on a buy, USDC out on a sell) — found in the 2026-10-04 audit: pricing at
+    // quantity × quote-time market price ignored price impact, so a small coin bought with
+    // 5% impact showed a 5% "loss" the moment it was bought. Falls back to that price
+    // valuation only for a trade whose quote isn't USDC on the expected side.
+    const usdc = row.quote.chainId !== undefined ? EVM_USDC_BY_CHAIN_ID[row.quote.chainId] : undefined;
+    const usdcLeg = row.side === 'BUY' ? row.quote.inputToken : row.quote.outputToken;
+    const usdcUsd =
+      usdc && usdcLeg && usdcLeg.toLowerCase() === usdc.address.toLowerCase()
+        ? rawToDecimal(row.side === 'BUY' ? row.inputAmount : row.expectedOutputAmount, usdc.decimals)
+        : null;
+
     const priceUsd = row.quote.priceUsd === null ? null : Number(row.quote.priceUsd);
     const decimals = row.tokenMarket.token.decimals;
-    if (priceUsd === null || decimals === null) {
+    if (usdcUsd === null && (priceUsd === null || decimals === null)) {
       await prisma.tradeTransaction.update({ where: { id: row.id }, data: { pnlProcessedAt: new Date() } });
       this.logger.info(
         { transactionId: row.id, reason: priceUsd === null ? 'no priceUsd' : 'no token decimals' },
@@ -137,7 +149,7 @@ export class PnlLedgerSweepService {
         // it, so this is the one figure available uniformly whether or not this market
         // happens to be USDC-quoted.
         const quantityRaw = row.expectedOutputAmount;
-        const costBasisUsd = rawToDecimal(quantityRaw, decimals) * priceUsd;
+        const costBasisUsd = usdcUsd ?? rawToDecimal(quantityRaw, decimals!) * priceUsd!;
         await tx.tokenLot.create({
           data: {
             userId: row.userId,
@@ -152,7 +164,7 @@ export class PnlLedgerSweepService {
         });
       } else {
         const quantityRaw = row.inputAmount;
-        const proceedsUsd = rawToDecimal(quantityRaw, decimals) * priceUsd;
+        const proceedsUsd = usdcUsd ?? rawToDecimal(quantityRaw, decimals!) * priceUsd!;
         await this.matchAndRecordSell(tx, {
           userId: row.userId,
           chain: 'EVM',
@@ -320,7 +332,7 @@ interface EvmSweepRow {
   expectedOutputAmount: string;
   inputAmount: string;
   confirmedAt: Date | null;
-  quote: { priceUsd: unknown | null };
+  quote: { priceUsd: unknown | null; chainId?: number; inputToken?: string; outputToken?: string };
   tokenMarket: { tokenId: string; token: { decimals: number | null } };
 }
 
