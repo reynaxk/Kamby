@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { type MarketFeedEvents, type MarketSummary, slugForIdentifier } from '@kamby/domain';
@@ -38,6 +39,7 @@ export function topByVolume(markets: MarketSummary[], size = TICKER_SIZE): Marke
  * (`hover:[animation-play-state:paused]`) so a symbol can actually be read/clicked.
  */
 export function TickerBar() {
+  const pathname = usePathname();
   const [markets, setMarkets] = useState<MarketSummary[]>([]);
 
   useEffect(
@@ -55,6 +57,9 @@ export function TickerBar() {
   if (markets.length === 0) return null;
 
   const items = [...markets, ...markets];
+
+  // Not on the landing page — new visitors don't see coins before signing in (2026-10-04).
+  if (pathname === '/') return null;
 
   return (
     <div className="kamby-void fixed inset-x-0 bottom-0 z-40 h-8 overflow-hidden border-t border-line bg-surface">

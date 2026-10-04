@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { LandingCta } from '@/components/landing/LandingCta';
 import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
-import { SiteFooter } from '@/components/legal/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Kamby — trade every new coin with just USDC',
@@ -16,7 +15,8 @@ export const metadata: Metadata = {
  */
 export default function LandingPage() {
   return (
-    <div className="kamby-void min-h-screen overflow-x-hidden bg-bg text-ink-900">
+    // -mb-8/pb-8: covers the space the root layout reserves for the ticker (hidden here).
+    <div className="kamby-void -mb-8 min-h-screen overflow-x-hidden bg-bg pb-8 text-ink-900">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(60%_50%_at_50%_0%,rgb(var(--kamby-accent)/0.18),transparent_70%)]" />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
@@ -126,8 +126,6 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-
-      <SiteFooter />
     </div>
   );
 }
