@@ -31,7 +31,7 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
         valueClassName={impactColor}
       />
       <Row label="Slippage tolerance" value={`${(quote.slippageBps / 100).toFixed(quote.slippageBps % 100 === 0 ? 0 : 1)}%`} />
-      <Row label={`Kamby fee (${(quote.platformFeeBps / 100).toFixed(2)}%)`} value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
+      <Row label="Kamby fee" value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
       <Row label="Provider" value={quote.provider} />
       {quote.requiresApproval && <Row label="Token approval" value="Required before this trade" />}
 

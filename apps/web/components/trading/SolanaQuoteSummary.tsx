@@ -73,7 +73,7 @@ export function SolanaQuoteSummary({
         <span className={IMPACT_CLASS[severity]}>{impactLabel} impact</span>
         <span className="text-ink-400">•</span>
         <span>
-          {feeDisplay} fee ({(quote.platformFeeBps / 100).toFixed(2)}%)
+          {feeDisplay} fee
         </span>
         {quote.setupFeeAmountRaw && (
           <>
@@ -103,7 +103,7 @@ export function SolanaQuoteSummary({
         numericValue={quote.minOutputAmountRaw}
       />
       <Row label="Price impact" value={impactLabel} valueClassName={IMPACT_CLASS[severity]} />
-      <Row label={`Kamby fee (${(quote.platformFeeBps / 100).toFixed(2)}%)`} value={feeDisplay} />
+      <Row label="Kamby fee" value={feeDisplay} />
       {quote.setupFeeAmountRaw && (
         // Gasless first buy of a coin: the token account Kamby opens in the user's wallet.
         <Row label="New coin setup (first buy only)" value={usdcDisplay(quote.setupFeeAmountRaw)} />

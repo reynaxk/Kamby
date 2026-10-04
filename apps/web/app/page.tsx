@@ -92,24 +92,12 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        {/* Fees */}
+        {/* Gas — fee rates are deliberately not published (owner decision 2026-10-04); each trade's
+            fee amount is shown before confirming, as the Terms promise. */}
         <section className="mx-auto max-w-3xl px-5 pb-20 text-center">
-          <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Simple fees. Gas on us.</h2>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              ['4%', '$2 – $9.99'],
-              ['2%', '$10 – $99'],
-              ['1%', '$100 – $499'],
-              ['0.75%', '$500 and up'],
-            ].map(([fee, size]) => (
-              <div key={fee} className="rounded-2xl border border-line bg-surface/70 px-3 py-5">
-                <div className="font-display text-2xl font-extrabold text-ink-900">{fee}</div>
-                <div className="mt-1 font-mono text-[0.7rem] uppercase tracking-wide text-ink-400">{size}</div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 font-body text-xs text-ink-400">
-            Per trade. Network fees are covered by Kamby. First buy of a new Solana coin includes a small one-time setup (~$0.30).
+          <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">Just USDC. Gas on us.</h2>
+          <p className="mx-auto mt-3 max-w-xl font-body text-sm text-ink-600">
+            Kamby pays every network fee, so you never need ETH, BNB or SOL. You see exactly what you pay before every trade.
           </p>
         </section>
 

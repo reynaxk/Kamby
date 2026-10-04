@@ -73,7 +73,7 @@ describe('SolanaQuoteSummary', () => {
   it('shows a buy fee in dollars even though Jupiter reports it in the bought token (a $5 BONK buy once read "$2,662.18")', () => {
     // $5 USDC in, 2% fee, Jupiter's fee amount = 26,621.8 BONK in raw units (5 decimals).
     render(<SolanaQuoteSummary quote={baseQuote({ side: 'BUY', inputAmountRaw: '5000000', platformFeeBps: 200, platformFeeAmountRaw: '2662180000' })} compact />);
-    expect(screen.getByText('$0.10 fee (2.00%)')).toBeInTheDocument();
+    expect(screen.getByText('$0.10 fee')).toBeInTheDocument();
   });
 
   it('does not warn-color a low price-impact trade', () => {
@@ -96,7 +96,7 @@ describe('SolanaQuoteSummary', () => {
 
     expect(screen.getByText('98600000 raw units')).toBeInTheDocument();
     expect(screen.getByText('0.22% impact')).toBeInTheDocument();
-    expect(screen.getByText('$0.05 fee (0.50%)')).toBeInTheDocument();
+    expect(screen.getByText('$0.05 fee')).toBeInTheDocument();
     expect(screen.queryByText('You pay')).not.toBeInTheDocument();
     expect(screen.queryByText('Provider')).not.toBeInTheDocument();
   });

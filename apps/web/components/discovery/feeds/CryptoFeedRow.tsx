@@ -13,18 +13,18 @@ export function CryptoFeedRow({ price, onOpen }: { price: CryptoPrice; onOpen: (
       type="button"
       onClick={() => onOpen(price)}
       aria-label={`${price.symbol} ${formatPrice(price.priceUsd)} — open ${target.label}`}
-      className="flex w-full items-center gap-1.5 border-b border-line/60 px-2 py-2 text-left transition-colors hover:bg-surface-raised"
+      className="flex w-full items-center gap-2.5 border-b border-line/60 px-2 py-2 text-left transition-colors hover:bg-surface-raised"
     >
-      <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-[0.6rem] font-bold text-ink-600">
+      <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-[0.76rem] font-bold text-ink-600">
         {price.symbol.slice(0, 1)}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-display text-[0.72rem] font-semibold tracking-tight text-ink-900">{price.symbol}</span>
-        <span className="block truncate font-mono text-[0.58rem] text-ink-400">{target.label}</span>
+        <span className="block font-display text-[0.88rem] font-semibold tracking-tight text-ink-900">{price.symbol}</span>
+        <span className="block truncate font-mono text-[0.7rem] text-ink-400">{target.label}</span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-0.5">
-        <GlowValue value={String(price.priceUsd)} display={formatPrice(price.priceUsd)} className="font-mono text-[0.68rem] font-semibold tabular-nums text-ink-900" />
-        <span className={cn('rounded-full px-1 py-0.5 font-mono text-[0.58rem] font-semibold tabular-nums', isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>
+        <GlowValue value={String(price.priceUsd)} display={formatPrice(price.priceUsd)} className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900" />
+        <span className={cn('rounded-full px-1 py-0.5 font-mono text-[0.7rem] font-semibold tabular-nums', isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>
           {formatPercent(price.change24hPct)}
         </span>
       </span>
