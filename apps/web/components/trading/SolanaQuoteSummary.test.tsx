@@ -35,7 +35,7 @@ describe('SolanaQuoteSummary', () => {
     render(<SolanaQuoteSummary quote={baseQuote()} />);
 
     expect(screen.getByText('You pay')).toBeInTheDocument();
-    expect(screen.getByText('$10.00')).toBeInTheDocument();
+    expect(screen.getByText('$10.05')).toBeInTheDocument(); // $10.00 swapped + $0.05 Kamby fee
     expect(screen.getByText('You receive')).toBeInTheDocument();
     expect(screen.getByText('98600000 raw units')).toBeInTheDocument();
     expect(screen.getByText('Minimum received')).toBeInTheDocument();
@@ -70,9 +70,9 @@ describe('SolanaQuoteSummary', () => {
     expect(feeRow).toHaveTextContent('—');
   });
 
-  it('shows a buy fee in dollars even though Jupiter reports it in the bought token (a $5 BONK buy once read "$2,662.18")', () => {
-    // $5 USDC in, 2% fee, Jupiter's fee amount = 26,621.8 BONK in raw units (5 decimals).
-    render(<SolanaQuoteSummary quote={baseQuote({ side: 'BUY', inputAmountRaw: '5000000', platformFeeBps: 200, platformFeeAmountRaw: '2662180000' })} compact />);
+  it('shows a buy fee in dollars — the sponsored quote carries it as USDC raw (never in the bought token units, which once read "$2,662.18")', () => {
+    // $5 entered: $4.90 swapped + $0.10 Kamby fee, both USDC raw.
+    render(<SolanaQuoteSummary quote={baseQuote({ side: 'BUY', inputAmountRaw: '4900000', platformFeeBps: 200, platformFeeAmountRaw: '100000' })} compact />);
     expect(screen.getByText('$0.10 fee')).toBeInTheDocument();
   });
 

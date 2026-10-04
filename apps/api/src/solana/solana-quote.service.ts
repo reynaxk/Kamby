@@ -192,7 +192,12 @@ export class SolanaQuoteService {
             return 0n;
           })
         : 0n;
-    const swapAmountRaw = BigInt(params.amount) - setupFeeRaw;
+    // On a buy Kamby takes its fee itself, as a USDC transfer in the same transaction (like the
+    // setup charge), never through Jupiter's platform fee: that fails with Jupiter error 6014
+    // on Token-2022 coins with a transfer tax (found 2026-10-04 on a stonk.fun coin — the
+    // same swap without Jupiter's fee simulates fine). Off the USDC entered, like EVM buys.
+    const buyFeeRaw = params.side === 'BUY' ? (BigInt(params.amount) * BigInt(platformFeeBps)) / 10_000n : 0n;
+    const swapAmountRaw = BigInt(params.amount) - setupFeeRaw - buyFeeRaw;
     if (swapAmountRaw <= 0n) {
       throw new UnprocessableEntityException(`First buy of this coin needs more than $${(Number(setupFeeRaw) / 1e6).toFixed(2)} (new coin setup)`);
     }
@@ -203,7 +208,7 @@ export class SolanaQuoteService {
       amountRaw: swapAmountRaw.toString(),
       slippageBps: params.slippageBps,
       userPublicKey: params.walletAddress,
-      platformFeeBps,
+      platformFeeBps: params.side === 'BUY' ? 0 : platformFeeBps,
       feeAccount: this.treasuryUsdcAta,
       payer: relayerPublicKey,
     });
@@ -216,7 +221,7 @@ export class SolanaQuoteService {
       new PublicKey(relayerPublicKey),
       outputMint,
       instructions,
-      setupFeeRaw > 0n ? [setupFeeInstruction(params.walletAddress, this.treasuryUsdcAta, setupFeeRaw)] : [],
+      setupFeeRaw + buyFeeRaw > 0n ? [setupFeeInstruction(params.walletAddress, this.treasuryUsdcAta, setupFeeRaw + buyFeeRaw)] : [],
     );
     const unsignedTxBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
@@ -234,7 +239,7 @@ export class SolanaQuoteService {
         priceImpactBps: instructions.priceImpactBps,
         slippageBps: params.slippageBps,
         platformFeeBps,
-        platformFeeAmount: instructions.platformFeeAmountRaw ?? '0',
+        platformFeeAmount: params.side === 'BUY' ? buyFeeRaw.toString() : (instructions.platformFeeAmountRaw ?? '0'),
         unsignedTx: { base64: unsignedTxBase64 },
         expiresAt,
       },
@@ -251,7 +256,8 @@ export class SolanaQuoteService {
       minOutputAmountRaw: instructions.minOutputAmountRaw,
       priceImpactBps: instructions.priceImpactBps,
       platformFeeBps,
-      platformFeeAmountRaw: instructions.platformFeeAmountRaw,
+      // USDC raw on both sides here: a buy's fee is Kamby's own transfer, a sell's is Jupiter's (USDC output).
+      platformFeeAmountRaw: params.side === 'BUY' ? buyFeeRaw.toString() : instructions.platformFeeAmountRaw,
       setupFeeAmountRaw: setupFeeRaw > 0n ? setupFeeRaw.toString() : null,
       unsignedTxBase64,
       expiresAt: expiresAt.toISOString(),

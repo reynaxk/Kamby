@@ -17,9 +17,10 @@ jest.mock('@kamby/db', () => ({
 
 const mockedPrisma = jest.mocked(prisma, { shallow: true });
 
-const WALLET = 'FakeWalletAddressForTestingOnly1111111111';
+// Real base58 keys — buys now build a real USDC fee-transfer instruction for these addresses.
+const WALLET = Keypair.generate().publicKey.toBase58();
 const TOKEN_MINT = 'So11111111111111111111111111111111111111112';
-const TREASURY_ATA = 'TreasuryUsdcAtaForTestingOnly11111111111';
+const TREASURY_ATA = Keypair.generate().publicKey.toBase58();
 
 function fakeLogger(): PinoLogger {
   return { setContext: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as PinoLogger;
@@ -392,7 +393,10 @@ describe('SolanaQuoteService', () => {
 
       const fee = BigInt(result.setupFeeAmountRaw!);
       expect(fee).toBeGreaterThanOrEqual(100_000n); // at least $0.10
-      expect(jupiter.getSwapInstructions).toHaveBeenCalledWith(expect.objectContaining({ amountRaw: (5_000_000n - fee).toString() }));
+      // Kamby's fee (4% micro tier, capped at 255 bps) also comes off the USDC entered — never via Jupiter on a buy.
+      const kambyFee = (5_000_000n * 255n) / 10_000n;
+      expect(result.platformFeeAmountRaw).toBe(kambyFee.toString());
+      expect(jupiter.getSwapInstructions).toHaveBeenCalledWith(expect.objectContaining({ amountRaw: (5_000_000n - fee - kambyFee).toString(), platformFeeBps: 0 }));
     });
 
     it('rejects when Jupiter cannot produce live swap instructions', async () => {
@@ -421,7 +425,7 @@ describe('SolanaQuoteService', () => {
             walletAddress: WALLET,
             inputAmount: '10000000',
             expectedOutputAmount: '50000000',
-            platformFeeAmount: '50000',
+            platformFeeAmount: '127500', // Kamby's own buy fee: $5 × 2.55% (micro tier, capped)
           }),
         }),
       );

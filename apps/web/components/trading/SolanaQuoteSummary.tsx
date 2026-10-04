@@ -35,6 +35,11 @@ const IMPACT_CLASS: Record<ReturnType<typeof impactSeverity>, string> = {
  * ask) — same data as the full breakdown below it, condensed, so a real quote refresh still
  * only glows what actually changed rather than duplicating fetch logic.
  */
+/** What a buy actually costs: the swapped USDC plus Kamby's fee and any new-coin setup charge. */
+function buyTotalRaw(quote: SolanaTradeQuoteDto): string {
+  return (BigInt(quote.inputAmountRaw) + BigInt(quote.platformFeeAmountRaw ?? '0') + BigInt(quote.setupFeeAmountRaw ?? '0')).toString();
+}
+
 export function SolanaQuoteSummary({
   quote,
   compact = false,
@@ -50,15 +55,11 @@ export function SolanaQuoteSummary({
   const isBuy = quote.side === 'BUY';
   const severity = impactSeverity(quote.priceImpactBps);
   const impactLabel = quote.priceImpactBps === null ? '—' : `${(quote.priceImpactBps / 100).toFixed(2)}%`;
-  // Jupiter reports the platform fee in the *output* mint's units — on a buy that's the
-  // token (a $5 BONK buy showed "$2,662.18 fee": 26,622 BONK formatted as USDC, found
-  // 2026-10-01). Show what the user pays in dollars: on a buy, fee bps of the USDC paid;
-  // on a sell the output is USDC, so Jupiter's own amount is already in dollars.
-  const feeDisplay = !quote.platformFeeAmountRaw || quote.platformFeeBps === 0
-    ? '—'
-    : isBuy
-    ? usdcDisplay(((BigInt(quote.inputAmountRaw) * BigInt(quote.platformFeeBps)) / 10_000n).toString())
-    : usdcDisplay(quote.platformFeeAmountRaw);
+  // Every Solana trade is gas-sponsored, and a sponsored quote's fee is always USDC raw: on a
+  // buy it's Kamby's own USDC transfer, on a sell Jupiter's fee on the USDC output (2026-10-04).
+  // (Jupiter's own buy fee was in the bought token — a $5 BONK buy once read "$2,662.18".)
+  // A buy's inputAmountRaw is only what's swapped — the user pays that plus the fee and any setup charge.
+  const feeDisplay = !quote.platformFeeAmountRaw || quote.platformFeeBps === 0 ? '—' : usdcDisplay(quote.platformFeeAmountRaw);
 
   if (compact) {
     return (
@@ -89,7 +90,7 @@ export function SolanaQuoteSummary({
     <dl className="space-y-2 rounded-xl border border-line bg-surface-raised p-3 font-body text-sm">
       <Row
         label="You pay"
-        value={isBuy ? usdcDisplay(quote.inputAmountRaw) : tokenDisplay(quote.inputAmountRaw)}
+        value={isBuy ? usdcDisplay(buyTotalRaw(quote)) : tokenDisplay(quote.inputAmountRaw)}
         numericValue={quote.inputAmountRaw}
       />
       <Row
