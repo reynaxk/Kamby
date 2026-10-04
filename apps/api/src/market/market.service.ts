@@ -476,7 +476,7 @@ export class MarketService {
           ORDER BY 1 ASC
         `;
 
-    return rows.map((r) =>
+    const candles = rows.map((r) =>
       CandleSchema.parse({
         bucketStart: r.bucket_start.toISOString(),
         open: Number(r.open),
@@ -486,6 +486,16 @@ export class MarketService {
         volumeUsd: Number(r.volume_usd),
       }),
     );
+    // A just-listed coin has almost no indexed swaps yet, so its chart sat on "Not enough price
+    // history" for hours — fall back to GeckoTerminal's candles for the same pool until ours fill in.
+    const network = GECKO_NETWORK_BY_CHAIN_ID[chainId];
+    if (candles.length < 2 && network) {
+      const fallback = await this.cached(`young-history:${market.id}:${timeframe}`, GECKO_OHLCV_TTL_SECONDS[timeframe], () =>
+        fetchPoolCandles(network, market.pairAddress, address, timeframe),
+      );
+      if (fallback.length >= 2) return fallback;
+    }
+    return candles;
   }
 
   /** Deliberately not chain-scoped: unlike getToken/getTokenTraders/getHistory (a single
