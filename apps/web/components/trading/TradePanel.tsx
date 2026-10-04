@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, X, XCircle } from 'lucide-react';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
-import { sendTransaction, writeContract } from 'wagmi/actions';
+import { call, sendTransaction, writeContract } from 'wagmi/actions';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { explorerName, explorerTxUrl } from '@/lib/explorer';
@@ -86,6 +86,28 @@ function friendlyError(err: unknown): string {
  *  real: EVM only charges for gas actually consumed, never the limit itself, so over-buffering
  *  has no downside beyond the wallet needing enough native-token balance to cover the
  *  worst-case ceiling. */
+const WOULD_REVERT_MESSAGE = 'This trade would fail right now (the price moved, or this coin blocks it) — nothing was sent and no gas was used. Try again in a moment.';
+
+/**
+ * Dry-runs the exact swap (eth_call — free, nothing broadcast) right before it's signed
+ * (security audit 2026-10-04): a swap that would revert — price moved past the slippage
+ * floor, a honeypot that blocks selling — is stopped here instead of burning Kamby-paid gas.
+ * Retries once (an approval mined a moment ago may not have reached the RPC node yet).
+ * Fails open: only a real revert blocks the trade, never an RPC hiccup.
+ */
+async function wouldRevert(tx: { account: `0x${string}`; to: `0x${string}`; data: `0x${string}`; value: bigint; chainId: number }): Promise<boolean> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await call(wagmiConfig, tx as Parameters<typeof call<typeof wagmiConfig>>[1]);
+      return false;
+    } catch (err) {
+      if (!/revert/i.test(err instanceof Error ? err.message : String(err))) return false;
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+  return true;
+}
+
 function withGasBuffer(gas: string | null | undefined): bigint | undefined {
   if (!gas) return undefined;
   return (BigInt(gas) * 150n) / 100n;
@@ -358,6 +380,19 @@ export function TradePanel({
     // covers that leg, see GaslessToggle's own doc comment.
     if (quote.consentTypedData) {
       await handleConfirmAndRelay(quote, address);
+      return;
+    }
+
+    const swapTx = {
+      account: address,
+      to: quote.unsignedTx.to as `0x${string}`,
+      data: quote.unsignedTx.data as `0x${string}`,
+      value: BigInt(quote.unsignedTx.value),
+      chainId,
+    };
+    if (await wouldRevert(swapTx)) {
+      setFlowError(WOULD_REVERT_MESSAGE);
+      setStep('review');
       return;
     }
 

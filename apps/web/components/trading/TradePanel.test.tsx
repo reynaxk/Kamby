@@ -16,6 +16,7 @@ const {
   useWalletVerificationMock,
   verifyMock,
   getQuoteMock,
+  callMock,
   getTransactionMock,
   submitTransactionMock,
   submitFeeTransactionMock,
@@ -28,6 +29,7 @@ const {
   useWalletVerificationMock: vi.fn(),
   verifyMock: vi.fn(),
   getQuoteMock: vi.fn(),
+  callMock: vi.fn(),
   getTransactionMock: vi.fn(),
   submitTransactionMock: vi.fn(),
   submitFeeTransactionMock: vi.fn(),
@@ -36,7 +38,7 @@ const {
 }));
 
 vi.mock('wagmi', () => ({ useAccount: useAccountMock }));
-vi.mock('wagmi/actions', () => ({ sendTransaction: sendTransactionMock, writeContract: writeContractMock }));
+vi.mock('wagmi/actions', () => ({ call: callMock, sendTransaction: sendTransactionMock, writeContract: writeContractMock }));
 vi.mock('@/lib/wagmi-config', () => ({ wagmiConfig: {} }));
 vi.mock('@/hooks/useWalletVerification', () => ({ useWalletVerification: useWalletVerificationMock }));
 vi.mock('@privy-io/react-auth', () => ({ useSignTypedData: () => ({ signTypedData: signTypedDataMock }) }));
@@ -157,6 +159,7 @@ describe('TradePanel', () => {
       verify: verifyMock,
     });
     getTransactionMock.mockResolvedValue(null);
+    callMock.mockResolvedValue({});
   });
 
   it('shows "Minimum trade size is $2.00" for a buy under $2 and never asks for a quote', async () => {
@@ -258,6 +261,17 @@ describe('TradePanel', () => {
     expect(await screen.findByRole('button', { name: 'Send platform fee' })).toBeInTheDocument();
     expect(screen.getByText(/User rejected the request/i)).toBeInTheDocument();
     expect(submitFeeTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it('never broadcasts a swap whose dry run reverts — the user sees why, and no gas is spent', async () => {
+    const quote = fakeQuote({ requiresApproval: false, feeUnsignedTx: null });
+    await driveToReview(quote);
+    callMock.mockRejectedValue(new Error('Execution reverted: Return amount is not enough'));
+
+    await clickTrade();
+
+    expect(await screen.findByText(/This trade would fail right now/, {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(sendTransactionMock).not.toHaveBeenCalled();
   });
 
   it('never auto-fires a fee signature for a trade with no guaranteed-USDC fee', async () => {
