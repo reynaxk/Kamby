@@ -224,7 +224,7 @@ describe('SendModal', () => {
     await user.click(screen.getByRole('button', { name: 'Review' }));
     await user.click(screen.getByRole('button', { name: /confirm.*send/i }));
 
-    expect(await screen.findByText('User rejected the request.')).toBeInTheDocument();
+    expect(await screen.findByText('You cancelled this in your wallet — nothing was sent.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /basescan/i })).not.toBeInTheDocument();
   });

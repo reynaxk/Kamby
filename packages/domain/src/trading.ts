@@ -43,6 +43,11 @@ export const TRADING_DEFAULTS = {
    *  polling forever — see docs/TRADING.md#transaction-lifecycle. Base's block time is
    *  ~2s, so 30 minutes is generous, not tight. */
   pendingTransactionTimeoutMinutes: 30,
+  /** Solana only (2026-10-04 audit): a transaction can't land once its blockhash expires
+   *  (~60–90s), so one still unseen after this long — checked against full history first —
+   *  was dropped by the network and moved no funds. The 30-minute wait above left the
+   *  trade panel on "Waiting for confirmation…" for half an hour. */
+  solanaDroppedTransactionMinutes: 3,
   /** A successful receipt alone was previously treated as final the instant it was seen —
    *  a real reorg gap on an OP-stack L2 like Base, where a just-mined block can still be
    *  dropped/reordered before it's sufficiently settled. CONFIRMED now additionally

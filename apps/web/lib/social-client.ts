@@ -2,6 +2,7 @@
 
 import type { Leaderboard, LeaderboardChainFilter, PnlWindow, SocialActivity, TopTrader } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
+import { openResilientEventSource } from './resilient-event-source';
 
 /**
  * Everything the social layer needs beyond the shared session primitives in
@@ -124,13 +125,5 @@ export type RealtimeStatus = 'connecting' | 'live' | 'reconnecting';
  * unsubscribe function.
  */
 export function subscribeToActivityStream(onPing: () => void, onStatus: (status: RealtimeStatus) => void): () => void {
-  onStatus('connecting');
-  const source = new EventSource(`${API_BASE}/v1/social/activity/stream`);
-
-  source.addEventListener('activity', () => onPing());
-  source.addEventListener('heartbeat', () => onStatus('live'));
-  source.onopen = () => onStatus('live');
-  source.onerror = () => onStatus('reconnecting'); // the browser retries EventSource on its own
-
-  return () => source.close();
+  return openResilientEventSource(`${API_BASE}/v1/social/activity/stream`, { activity: onPing }, onStatus);
 }

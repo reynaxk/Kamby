@@ -1,5 +1,6 @@
 'use client';
 
+import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useMemo, useState } from 'react';
 import { useAddFunds, usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
@@ -75,7 +76,7 @@ export function FundModal({ open, onClose }: { open: boolean; onClose: () => voi
       });
       close(); // Privy's own modal already showed submitted/confirmed status before returning
     } catch (err) {
-      setFlowError(err instanceof Error ? err.message : 'Something went wrong — please try again.');
+      setFlowError(friendlyError(err));
       setStep('error');
       setSubmitting(false);
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import type { SolanaSocialActivity } from '@kamby/domain';
+import { openResilientEventSource } from './resilient-event-source';
 import { API_BASE } from './session-client';
 import type { RealtimeStatus } from './social-client';
 
@@ -39,13 +40,5 @@ export async function fetchLatestSolanaActivity(params: { cursor?: string; limit
  * any retry logic of its own. Returns an unsubscribe function.
  */
 export function subscribeToSolanaActivityStream(onPing: () => void, onStatus: (status: RealtimeStatus) => void): () => void {
-  onStatus('connecting');
-  const source = new EventSource(`${API_BASE}/v1/social/solana-activity/stream`);
-
-  source.addEventListener('solana-activity', () => onPing());
-  source.addEventListener('heartbeat', () => onStatus('live'));
-  source.onopen = () => onStatus('live');
-  source.onerror = () => onStatus('reconnecting');
-
-  return () => source.close();
+  return openResilientEventSource(`${API_BASE}/v1/social/solana-activity/stream`, { 'solana-activity': onPing }, onStatus);
 }

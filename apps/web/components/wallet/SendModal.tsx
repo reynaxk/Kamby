@@ -27,15 +27,12 @@ import {
   type SendAsset,
   type SendChainOption,
 } from '@/lib/send';
+import { friendlyError } from '@/lib/friendly-error';
 import { TradeModal } from '../trading/TradeModal';
 import { ConnectWalletButton } from './ConnectWalletButton';
 
 type Step = 'form' | 'review' | 'signing' | 'confirmed' | 'failed';
 
-function friendlyError(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return 'Something went wrong — please try again.';
-}
 
 /** Reads the connected wallet's real balance of `asset` on `chain` — one hook covering all
  *  four cases (EVM native/token via wagmi's own useBalance, Solana native via a live RPC

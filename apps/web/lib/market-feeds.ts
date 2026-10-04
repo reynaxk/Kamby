@@ -19,6 +19,35 @@ const listeners = new Set<Listener>();
 const statusListeners = new Set<(status: RealtimeStatus) => void>();
 let source: EventSource | null = null;
 let lastStatus: RealtimeStatus = 'connecting';
+/** Resilience (2026-10-04 audit). A browser's EventSource retries a dropped connection by
+ *  itself — but not one the server answered with an error (a 502 while the API redeploys, a
+ *  429): that closes it for good, and every open tab sat on a dead feed until reloaded. It
+ *  also never notices a silently stalled connection (Wi-Fi switch, sleep). So: reconnect a
+ *  closed stream with backoff, restart one that's been silent past two heartbeats (the API
+ *  sends one every 25s), and reconnect at once when the browser comes back online. */
+const STALL_MS = 60_000;
+const BACKOFF_MS = [1_000, 2_000, 5_000, 10_000, 30_000];
+let lastEventAt = 0;
+let retries = 0;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let watchdog: ReturnType<typeof setInterval> | null = null;
+
+function reconnectSoon(delayMs: number): void {
+  if (retryTimer || listeners.size === 0) return;
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    if (listeners.size === 0) return;
+    source?.close();
+    connect();
+  }, delayMs);
+}
+
+function onBackOnline(): void {
+  if (listeners.size > 0 && lastStatus !== 'live') {
+    retries = 0;
+    reconnectSoon(0);
+  }
+}
 
 function setStatus(status: RealtimeStatus): void {
   lastStatus = status;
@@ -28,6 +57,7 @@ function setStatus(status: RealtimeStatus): void {
 function connect(): void {
   const es = new EventSource(`${API_BASE}/v1/market/feeds/stream`);
   source = es;
+  lastEventAt = Date.now();
   setStatus('connecting');
   for (const type of [...SNAPSHOT_EVENTS, 'pumpfun'] as const) {
     es.addEventListener(type, (event) => {
@@ -37,12 +67,33 @@ function connect(): void {
       } catch {
         return; // one malformed event — the next snapshot catches up
       }
+      lastEventAt = Date.now();
       for (const listener of listeners) listener(type, data);
     });
   }
-  es.addEventListener('heartbeat', () => setStatus('live'));
-  es.onopen = () => setStatus('live');
-  es.onerror = () => setStatus('reconnecting'); // EventSource retries on its own
+  es.addEventListener('heartbeat', () => {
+    lastEventAt = Date.now();
+    setStatus('live');
+  });
+  es.onopen = () => {
+    lastEventAt = Date.now();
+    retries = 0;
+    setStatus('live');
+  };
+  es.onerror = () => {
+    setStatus('reconnecting');
+    // A transient drop retries on its own; a closed stream needs us.
+    if (es.readyState === EventSource.CLOSED) reconnectSoon(BACKOFF_MS[Math.min(retries++, BACKOFF_MS.length - 1)]!);
+  };
+  if (!watchdog) {
+    watchdog = setInterval(() => {
+      if (listeners.size > 0 && document.visibilityState === 'visible' && Date.now() - lastEventAt > STALL_MS) {
+        lastEventAt = Date.now();
+        reconnectSoon(0);
+      }
+    }, 15_000);
+    window.addEventListener('online', onBackOnline);
+  }
 }
 
 /**
@@ -61,6 +112,11 @@ export function subscribeToMarketFeeds(listener: Listener, onStatus: (status: Re
     if (listeners.size === 0 && source) {
       source.close();
       source = null;
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = null;
+      if (watchdog) clearInterval(watchdog);
+      watchdog = null;
+      window.removeEventListener('online', onBackOnline);
     }
   };
 }

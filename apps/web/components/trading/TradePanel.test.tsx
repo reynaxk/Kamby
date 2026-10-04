@@ -259,7 +259,7 @@ describe('TradePanel', () => {
     expect(await screen.findByText(/waiting for confirmation on-chain/i)).toBeInTheDocument();
     // The manual fallback appears, with the real rejection surfaced, never a silent retry.
     expect(await screen.findByRole('button', { name: 'Send platform fee' })).toBeInTheDocument();
-    expect(screen.getByText(/User rejected the request/i)).toBeInTheDocument();
+    expect(screen.getByText('You cancelled this in your wallet — nothing was sent.')).toBeInTheDocument();
     expect(submitFeeTransactionMock).not.toHaveBeenCalled();
   });
 
@@ -355,7 +355,7 @@ describe('TradePanel', () => {
 
       await clickTrade();
 
-      expect(await screen.findByText(/User rejected the request/i)).toBeInTheDocument();
+      expect(await screen.findByText('You cancelled this in your wallet — nothing was sent.')).toBeInTheDocument();
       expect(relaySwapMock).not.toHaveBeenCalled();
       expect(await screen.findByRole('button', { name: 'Confirm & sign' })).toBeInTheDocument();
     });

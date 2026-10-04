@@ -159,7 +159,9 @@ export class SolanaTransactionService {
 
   private async refreshStatus(row: SolanaTradeTransactionRow): Promise<SolanaTradeTransactionRow> {
     const pool = this.requirePool();
-    const { value } = await pool.withFailover((connection) => connection.getSignatureStatuses([row.signature]));
+    // Past ~1 minute the recent-status cache may have rolled over — search full history.
+    const searchTransactionHistory = Date.now() - row.submittedAt.getTime() > 60_000;
+    const { value } = await pool.withFailover((connection) => connection.getSignatureStatuses([row.signature], { searchTransactionHistory }));
     const status = value[0];
 
     if (!status) {

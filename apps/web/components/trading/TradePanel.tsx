@@ -1,6 +1,7 @@
 'use client';
 
 import { USDC_BY_CHAIN_ID } from '@/lib/usdc';
+import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
 import { useSignTypedData } from '@privy-io/react-auth';
 import { Button, cn } from '@kamby/ui';
@@ -20,6 +21,7 @@ import { AmountInput } from './AmountInput';
 import { GaslessToggle } from './GaslessToggle';
 import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
+import { SlowConfirmationNote } from './SlowConfirmationNote';
 
 export interface TradePanelProps {
   /** The real chain this specific token trades on — see lib/explorer.ts and
@@ -57,13 +59,6 @@ export type TradePanelStep =
   | 'record-failed';
 type Step = TradePanelStep;
 
-function friendlyError(err: unknown): string {
-  if (err && typeof err === 'object' && 'shortMessage' in err && typeof (err as { shortMessage?: unknown }).shortMessage === 'string') {
-    return (err as { shortMessage: string }).shortMessage;
-  }
-  if (err instanceof Error) return err.message;
-  return 'Something went wrong — please try again.';
-}
 
 /**
  * A 20% buffer on top of the quote provider's own gas estimate — real incident, 2026-09-16:
@@ -262,7 +257,7 @@ export function TradePanel({
         .catch((err: unknown) => {
           setQuote(null);
           setQuoteStatus('error');
-          setQuoteError(err instanceof Error ? err.message : 'Could not get a quote');
+          setQuoteError(friendlyError(err, 'Could not get a quote — please try again.'));
         });
     }, silent ? 0 : 500);
     return () => clearTimeout(timeout);
@@ -909,6 +904,7 @@ function TradeStatusView({
     <div className="space-y-3 text-center">
       {step === 'submitted' && <p className="font-body text-sm text-ink-600">Transaction submitted — waiting for it to be picked up…</p>}
       {step === 'pending' && <p className="font-body text-sm text-ink-600">Waiting for confirmation on-chain…</p>}
+      {(step === 'submitted' || step === 'pending') && <SlowConfirmationNote />}
       {step === 'confirmed' && (
         <div className="flex items-center justify-center gap-2">
           <CheckCircle2 className="h-5 w-5 text-up" />

@@ -6,6 +6,7 @@ import { PublicKey } from '@solana/web3.js';
 import { Wallet } from 'lucide-react';
 import { SOLANA_USDC_MINT } from '@kamby/domain';
 import { cn } from '@kamby/ui';
+import { useDecimalText } from './useDecimalText';
 import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 
@@ -35,6 +36,7 @@ export function UsdPresetAmountInput({
   onChange: (value: string) => void;
   walletAddress: string | undefined;
 }) {
+  const [text, setText] = useDecimalText(value, USDC_DECIMALS, onChange);
   const [usdcBalanceRaw, setUsdcBalanceRaw] = useState<bigint | null>(null);
 
   useEffect(() => {
@@ -90,15 +92,8 @@ export function UsdPresetAmountInput({
         type="text"
         inputMode="decimal"
         placeholder="0"
-        value={value ? (Number(value) / 10 ** USDC_DECIMALS).toString() : ''}
-        onChange={(event) => {
-          const raw = event.target.value;
-          if (raw === '') {
-            onChange('');
-          } else if (/^\d*\.?\d*$/.test(raw)) {
-            onChange(Math.round(Number(raw) * 10 ** USDC_DECIMALS).toString());
-          }
-        }}
+        value={text}
+        onChange={(event) => setText(event.target.value)}
         className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-3 font-mono text-2xl font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-accent"
       />
       <div className="mt-1.5 flex gap-1.5">

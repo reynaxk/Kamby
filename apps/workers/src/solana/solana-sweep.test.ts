@@ -97,7 +97,7 @@ describe('SolanaSweepService', () => {
   });
 
   it('marks EXPIRED once a signature the RPC has never seen sits past the timeout — the backstop the on-demand refresh never does', async () => {
-    const staleSubmittedAt = new Date(Date.now() - (TRADING_DEFAULTS.pendingTransactionTimeoutMinutes + 1) * 60_000);
+    const staleSubmittedAt = new Date(Date.now() - (TRADING_DEFAULTS.solanaDroppedTransactionMinutes + 1) * 60_000);
     mockPrisma.solanaTradeTransaction.findMany.mockResolvedValue([fakeRow({ submittedAt: staleSubmittedAt })]);
     getSignatureStatuses.mockResolvedValue({ value: [null] });
 
@@ -105,9 +105,11 @@ describe('SolanaSweepService', () => {
 
     expect(mockPrisma.solanaTradeTransaction.update).toHaveBeenCalledWith({
       where: { id: 'tx-1' },
-      data: { status: 'EXPIRED', failureReason: 'No confirmation received within the expected time' },
+      data: { status: 'EXPIRED', failureReason: 'Dropped by the network before it landed — no funds moved' },
     });
     expect(result.expired).toBe(1);
+    // Only after a full-history lookup — a trade that did land is never mistaken for dropped.
+    expect(getSignatureStatuses).toHaveBeenCalledWith([expect.any(String)], { searchTransactionHistory: true });
   });
 
   it('leaves a transaction PENDING when it has landed but not yet reached confirmed/finalized', async () => {
@@ -127,7 +129,7 @@ describe('SolanaSweepService', () => {
 
     const result = await buildService(true).sweepPendingTransactions();
 
-    expect(fallbackGetSignatureStatuses).toHaveBeenCalledWith([SIGNATURE]);
+    expect(fallbackGetSignatureStatuses).toHaveBeenCalledWith([SIGNATURE], expect.objectContaining({ searchTransactionHistory: expect.any(Boolean) }));
     expect(result.confirmed).toBe(1);
   });
 

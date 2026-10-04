@@ -1,5 +1,6 @@
 'use client';
 
+import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
 import { useCreateWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { Button } from '@kamby/ui';
@@ -115,7 +116,7 @@ export function ConnectWalletButton({
     const timer = setTimeout(
       () => {
         createEmbeddedWalletOnce('ethereum', () => createWallet()).catch((error: unknown) => {
-          if (!cancelled) setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up wallet');
+          if (!cancelled) setWalletSetupError(friendlyError(error, 'Could not set up your wallet — please try again.'));
         });
       },
       retryTick > 0 ? 0 : WALLET_CREATION_FALLBACK_DELAY_MS,

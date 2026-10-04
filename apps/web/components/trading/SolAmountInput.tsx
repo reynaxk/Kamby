@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { Wallet } from 'lucide-react';
 import { cn } from '@kamby/ui';
+import { useDecimalText } from './useDecimalText';
 import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 
@@ -35,6 +36,7 @@ export function SolAmountInput({
   onChange: (value: string) => void;
   walletAddress: string | undefined;
 }) {
+  const [text, setText] = useDecimalText(value, 9, onChange);
   const [solBalanceLamports, setSolBalanceLamports] = useState<bigint | null>(null);
 
   useEffect(() => {
@@ -86,15 +88,8 @@ export function SolAmountInput({
         type="text"
         inputMode="decimal"
         placeholder="0"
-        value={value ? (Number(value) / LAMPORTS_PER_SOL).toString() : ''}
-        onChange={(event) => {
-          const raw = event.target.value;
-          if (raw === '') {
-            onChange('');
-          } else if (/^\d*\.?\d*$/.test(raw)) {
-            onChange(solToRawLamports(Number(raw)));
-          }
-        }}
+        value={text}
+        onChange={(event) => setText(event.target.value)}
         className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-3 font-mono text-2xl font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-accent"
       />
       <div className="mt-1.5 flex gap-1.5">

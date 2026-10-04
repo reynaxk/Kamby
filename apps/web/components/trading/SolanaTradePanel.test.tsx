@@ -92,7 +92,6 @@ vi.mock('@/lib/solana-trading-client', () => ({
   getSponsoredSolanaQuote: getSponsoredSolanaQuoteMock,
   submitSponsoredSolanaTransaction: submitSponsoredSolanaTransactionMock,
 }));
-vi.mock('@/components/terminal/RpcStatusBar', () => ({ RpcStatusBar: () => null }));
 // UsdPresetAmountInput does its own live RPC balance read (@solana/spl-token) — already
 // covered by its own test file. Stubbed here to a plain input so this file can drive
 // `amount` directly without also mocking @solana/spl-token/solanaConnection.
@@ -362,7 +361,7 @@ describe('SolanaTradePanel', () => {
     await fillAmountAndWaitForQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
-    expect(await screen.findByText('User rejected the request')).toBeInTheDocument();
+    expect(await screen.findByText('You cancelled this in your wallet — nothing was sent.')).toBeInTheDocument(); // friendly, never the raw wallet error
     expect(screen.getByRole('button', { name: 'Confirm & buy' })).toBeInTheDocument();
     expect(submitSponsoredSolanaTransactionMock).not.toHaveBeenCalled();
   });

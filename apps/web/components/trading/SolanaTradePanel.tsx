@@ -1,5 +1,6 @@
 'use client';
 
+import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useCreateWallet, useSignAndSendTransaction, useSignTransaction, useWallets, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana';
@@ -10,7 +11,6 @@ import bs58 from 'bs58';
 import { ArrowLeft, CheckCircle2, TrendingDown, TrendingUp, XCircle } from 'lucide-react';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
-import { RpcStatusBar } from '@/components/terminal/RpcStatusBar';
 import { useTerminalToast } from '@/components/terminal/ToastProvider';
 import {
   getSolanaQuote,
@@ -23,6 +23,7 @@ import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
 import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
+import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
@@ -37,10 +38,6 @@ export interface SolanaTradePanelProps {
 
 type Step = 'form' | 'review' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
 
-function friendlyError(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return 'Something went wrong — please try again.';
-}
 
 /** `Buffer` is a Node global — nothing polyfills it in this browser bundle (Next's
  *  webpack 5 base config dropped automatic Node polyfills), so decode base64 the
@@ -124,7 +121,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
       () => {
         creatingWalletRef.current = true;
         createEmbeddedWalletOnce('solana', () => createWallet())
-          .catch((error: unknown) => setWalletSetupError(error instanceof Error ? error.message : 'Failed to set up your Solana wallet'))
+          .catch((error: unknown) => setWalletSetupError(friendlyError(error, 'Could not set up your Solana wallet — please try again.')))
           .finally(() => {
             creatingWalletRef.current = false;
           });
@@ -177,7 +174,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const canQuote = walletVerification.status === 'verified' && Boolean(wallet);
 
   useEffect(() => {
-    if (!canQuote || !amount || Number(amount) <= 0) {
+    if (!canQuote || !amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
       setQuote(null);
       setQuoteStatus('idle');
       return;
@@ -560,7 +557,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
 
   return (
     <>
-      <Panel title="Trade" headerRight={<RpcStatusBar />}>
+      <Panel title="Trade">
         <div className="flex gap-1.5">
           {(['BUY', 'SELL'] as const).map((s) => {
             const isActive = side === s;
@@ -729,6 +726,7 @@ function SolanaTradeStatusView({
         <p className={cn('font-body text-sm font-semibold', color)}>{label}</p>
       </div>
       {transaction?.failureReason && <p className="font-body text-xs text-ink-600">{transaction.failureReason}</p>}
+      {step !== 'confirmed' && step !== 'failed' && <SlowConfirmationNote />}
       {explorerUrl && (
         <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
           View on Solscan

@@ -63,15 +63,17 @@ export class SolanaSweepService {
     for (const row of pending) {
       result.checked += 1;
       try {
-        const { value } = await this.getSignatureStatuses(row.signature);
+        const ageMinutes = (Date.now() - row.submittedAt.getTime()) / 60_000;
+        // The recent-status cache only covers ~2 minutes: an older row is looked up in full
+        // history, so a trade that did land is never mistaken for a dropped one.
+        const { value } = await this.getSignatureStatuses(row.signature, ageMinutes > 1);
         const status = value[0];
 
         if (!status) {
-          const ageMinutes = (Date.now() - row.submittedAt.getTime()) / 60_000;
-          if (ageMinutes > TRADING_DEFAULTS.pendingTransactionTimeoutMinutes) {
+          if (ageMinutes > TRADING_DEFAULTS.solanaDroppedTransactionMinutes) {
             await prisma.solanaTradeTransaction.update({
               where: { id: row.id },
-              data: { status: 'EXPIRED', failureReason: 'No confirmation received within the expected time' },
+              data: { status: 'EXPIRED', failureReason: 'Dropped by the network before it landed — no funds moved' },
             });
             result.expired += 1;
           }
@@ -113,13 +115,13 @@ export class SolanaSweepService {
    * doesn't share — one attempt per pending row per tick, not concurrent user quotes — so
    * there's no cascading-429 risk here to guard against with persistent breaker state.
    */
-  private async getSignatureStatuses(signature: string): ReturnType<Connection['getSignatureStatuses']> {
+  private async getSignatureStatuses(signature: string, searchTransactionHistory = false): ReturnType<Connection['getSignatureStatuses']> {
     try {
-      return await this.connection.getSignatureStatuses([signature]);
+      return await this.connection.getSignatureStatuses([signature], { searchTransactionHistory });
     } catch (error) {
       if (!this.fallbackConnection) throw error;
       this.logger.warn({ err: error }, 'solana sweep: primary RPC failed — retrying against fallback endpoint');
-      return this.fallbackConnection.getSignatureStatuses([signature]);
+      return this.fallbackConnection.getSignatureStatuses([signature], { searchTransactionHistory });
     }
   }
 
