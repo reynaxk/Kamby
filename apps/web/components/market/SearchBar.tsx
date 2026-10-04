@@ -74,7 +74,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
   return (
     <form
       ref={rootRef}
-      action="/"
+      action="/terminal"
       method="get"
       role="search"
       className="relative w-full max-w-none"

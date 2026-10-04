@@ -37,7 +37,7 @@ vi.mock('@/components/account/BalanceVisibilityContext', () => ({
 describe('MarketHeader', () => {
   it('renders the logo as a link back to Discover', () => {
     render(<MarketHeader />);
-    expect(screen.getByRole('link', { name: /kamby/i })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: /kamby/i })).toHaveAttribute('href', '/terminal');
   });
 
   // Real removal, 2026-09-22: the top-level text nav (Discover/Trades/Watchlist/

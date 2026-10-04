@@ -93,7 +93,7 @@ export default async function TokenDetailPage({
       <div className="mx-auto max-w-[1600px] px-3 pt-3">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link href="/" className="font-mono text-xs text-ink-400 hover:text-ink-900">
+            <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900">
               ← Back to Discover
             </Link>
             <TokenIdentity

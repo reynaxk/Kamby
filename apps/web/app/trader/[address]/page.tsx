@@ -61,7 +61,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-3xl px-6 py-10">
-        <Link href="/" className="font-mono text-xs text-ink-400 hover:text-ink-900">
+        <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900">
           ← Back to Discover
         </Link>
 

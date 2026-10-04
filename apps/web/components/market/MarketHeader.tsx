@@ -44,7 +44,7 @@ export function MarketHeader({
       <div
         className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 ${wide ? 'py-2.5' : 'py-3 sm:py-4'} ${shellClass}`}
       >
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/terminal" className="flex items-center gap-2">
           <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
         {/* Phones: logo + bell + Sign in share the first row and search gets its own full-width
