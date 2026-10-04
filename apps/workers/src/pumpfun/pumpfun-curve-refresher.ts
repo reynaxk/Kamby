@@ -7,7 +7,7 @@ import type { Logger } from 'pino';
 export const PUMPFUN_HOT_MINTS_KEY = 'pumpfun:hot-mints';
 const BATCH = 100;
 const TOP_BY_RESERVES = 200;
-const MOST_RECENT = 100;
+const MOST_RECENT = 200; // covers the XXXRisk tab's 10-minute window
 
 export interface CurveState {
   virtualTokenReserves: string;

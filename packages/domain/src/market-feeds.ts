@@ -68,12 +68,13 @@ export interface XxxRiskToken {
 }
 export type XxxRiskFlag = 'mintable' | 'freezable' | 'dev-holds-over-20pct' | 'top-holders-over-50pct' | 'unverified-audit';
 
+/** Widened 2026-10-04 (user: "I want more coins") from <5 min, $1–3K, $5–15K. */
 export const XXXRISK_FILTER = {
-  maxAgeSeconds: 300,
-  minLiquidityUsd: 1_000,
-  maxLiquidityUsd: 3_000,
-  minMarketCapUsd: 5_000,
-  maxMarketCapUsd: 15_000,
+  maxAgeSeconds: 600,
+  minLiquidityUsd: 500,
+  maxLiquidityUsd: 5_000,
+  minMarketCapUsd: 4_000,
+  maxMarketCapUsd: 25_000,
   limit: 20,
 } as const;
 
