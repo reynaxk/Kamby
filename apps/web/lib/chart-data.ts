@@ -3,6 +3,7 @@
 import type { Candle, LivePrice, Timeframe, TokenInfoChain } from '@kamby/domain';
 import { API_BASE } from './session-client';
 import { fetchTokenHistory } from './market-client';
+import { fetchGeckoCandles, geckoNetworkFor } from './gecko-browser';
 
 /** What the chart's timeframe tabs offer: a real-time price line plus the candle widths. */
 export type ChartTimeframe = 'live' | Timeframe;
@@ -14,6 +15,14 @@ export type ChartSource =
 
 export function livePriceKey(source: ChartSource): { chain: TokenInfoChain; address: string } {
   return source.kind === 'solana' ? { chain: 'solana', address: source.mint } : { chain: source.chain, address: source.address };
+}
+
+/** How often an open chart refetches its candles, so the newest one keeps moving. */
+export const CANDLE_REFRESH_MS: Partial<Record<Timeframe, number>> = { '1m': 20_000, '5m': 30_000, '1H': 60_000 };
+
+/** The chart source for a Base/BNB coin by chain id. */
+export function evmChartSource(address: string, chainId: number): ChartSource {
+  return { kind: 'evm', chain: chainId === 56 ? 'bnb' : 'base', address, chainId };
 }
 
 /** How long fetched candles count as fresh — short widths move fast. */
@@ -48,7 +57,7 @@ export function loadCandles(source: ChartSource, timeframe: Timeframe, { force =
   if (!force && hit && Date.now() - hit.at < freshForMs(timeframe)) return Promise.resolve(hit.candles);
   const pending = inFlight.get(key);
   if (pending) return pending;
-  const request = (source.kind === 'solana' ? fetchSolanaCandles(source.mint, timeframe) : fetchTokenHistory(source.address, timeframe, source.chainId))
+  const request = fetchWithFallback(source, timeframe)
     .then((candles) => {
       candleCache.set(key, { candles, at: Date.now() });
       return candles;
@@ -56,6 +65,26 @@ export function loadCandles(source: ChartSource, timeframe: Timeframe, { force =
     .finally(() => inFlight.delete(key));
   inFlight.set(key, request);
   return request;
+}
+
+/** Too few candles to draw a chart — a brand-new coin, or the API was rate-limited upstream. */
+const MIN_USEFUL_CANDLES = 2;
+
+/** The API first (cached, shared by every viewer); if it has nothing, GeckoTerminal from this browser. */
+async function fetchWithFallback(source: ChartSource, timeframe: Timeframe): Promise<Candle[]> {
+  let fromApi: Candle[] = [];
+  let apiError: unknown = null;
+  try {
+    fromApi = source.kind === 'solana' ? await fetchSolanaCandles(source.mint, timeframe) : await fetchTokenHistory(source.address, timeframe, source.chainId);
+  } catch (error) {
+    apiError = error;
+  }
+  if (fromApi.length >= MIN_USEFUL_CANDLES) return fromApi;
+  const network = geckoNetworkFor(source);
+  const fromGecko = network ? await fetchGeckoCandles(network, source.kind === 'solana' ? source.mint : source.address, timeframe) : [];
+  if (fromGecko.length > fromApi.length) return fromGecko;
+  if (apiError && fromApi.length === 0) throw apiError;
+  return fromApi;
 }
 
 async function fetchSolanaCandles(mint: string, timeframe: Timeframe): Promise<Candle[]> {

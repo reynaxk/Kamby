@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { emptyMarketFeeds, type Candle, type MarketFeedSnapshot, type MarketSummary, type TokenTraderConnection } from '@kamby/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetChartDataCache } from '@/lib/chart-data';
 import type * as TradePanelCardModule from '@/components/terminal/TradePanelCard';
 import type * as WagmiModule from 'wagmi';
 import { DiscoverTerminal } from './DiscoverTerminal';
@@ -125,6 +126,9 @@ const defaultProps = {
   initialActivity: [],
   initialTraders: emptyTraders,
 };
+
+// Candles are cached per coin across the page (lib/chart-data.ts) — start each test clean.
+beforeEach(() => resetChartDataCache());
 
 describe('DiscoverTerminal', () => {
   beforeEach(() => {

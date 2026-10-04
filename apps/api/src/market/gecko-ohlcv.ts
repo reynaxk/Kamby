@@ -17,17 +17,43 @@ const OHLCV: Record<Timeframe, { unit: 'minute' | 'hour' | 'day'; aggregate: num
 export const GECKO_OHLCV_TTL_SECONDS: Record<Timeframe, number> = { '1m': 30, '5m': 30, '1H': 60, '4H': 120, '1D': 300, '1W': 600, '1M': 600 };
 
 /**
+ * GeckoTerminal's free tier is ~30 calls/minute for this whole process. Once it answers 429,
+ * calling again only extends the limit, so every caller backs off for a short while — the
+ * last cached chart keeps showing, and browsers fetch candles themselves (apps/web
+ * lib/gecko-browser.ts) in the meantime.
+ */
+const COOLDOWN_MS = 20_000;
+let coolingUntil = 0;
+
+export function geckoCoolingDown(): boolean {
+  return Date.now() < coolingUntil;
+}
+
+export function noteGeckoStatus(status: number): void {
+  if (status === 429) coolingUntil = Date.now() + COOLDOWN_MS;
+}
+
+/** An empty answer is a failure to cache around: throwing keeps the last good chart (stale-while-revalidate). */
+export async function candlesOrThrow(pending: Promise<Candle[]>): Promise<Candle[]> {
+  const candles = await pending;
+  if (candles.length === 0) throw new Error('GeckoTerminal returned no candles');
+  return candles;
+}
+
+/**
  * Candles for an aggregator-priced coin (one Kamby doesn't index swaps for — see
  * apps/workers/src/market/aggregator-markets.ts) straight from GeckoTerminal's free OHLCV, priced
  * in USD for `tokenAddress` within `pool`. Returns [] on any failure; callers cache.
  */
 export async function fetchPoolCandles(network: string, pool: string, tokenAddress: string, timeframe: Timeframe): Promise<Candle[]> {
   const { unit, aggregate, limit } = OHLCV[timeframe];
+  if (geckoCoolingDown()) return [];
   try {
     const res = await fetch(
       `https://api.geckoterminal.com/api/v2/networks/${network}/pools/${pool}/ohlcv/${unit}?aggregate=${aggregate}&limit=${limit}&currency=usd&token=${tokenAddress}`,
       { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(8000) },
     );
+    noteGeckoStatus(res.status);
     if (!res.ok) return [];
     const body = (await res.json()) as { data?: { attributes?: { ohlcv_list?: unknown } } };
     const rows = body.data?.attributes?.ohlcv_list;

@@ -21,14 +21,13 @@ import { DataHub } from '@/components/terminal/DataHub';
 import { KambyChart } from '@/components/terminal/KambyChart';
 import { LivePriceChart } from '@/components/terminal/LivePriceChart';
 import { ChartStyleToggle, useChartStyle } from '@/components/terminal/ChartStyleToggle';
-import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
+import { CANDLE_REFRESH_MS, evmChartSource, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
 import { MarketInfoPanel } from '@/components/terminal/MarketInfoPanel';
 import { TokenMetricsBar } from '@/components/terminal/TokenMetricsBar';
 import { IN_FLIGHT_STEPS, TradePanelCard } from '@/components/terminal/TradePanelCard';
 import { type TradePanelStep } from '@/components/trading/TradePanel';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { fetchTokenTraders } from '@/lib/discovery-client';
-import { fetchTokenHistory } from '@/lib/market-client';
 import { useMarketFeeds } from '@/lib/market-feeds';
 import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
@@ -184,26 +183,33 @@ export function DiscoverTerminal({
   const skipTradersFetch = useRef(initialTraders !== undefined);
 
   useEffect(() => {
-    if (skipCandlesFetch.current) {
-      skipCandlesFetch.current = false;
-      return;
-    }
     if (!selected || !isEvmSelectable(selected)) return;
     let cancelled = false;
-    setCandlesStatus('loading');
-    fetchTokenHistory(selected.tokenAddress, candleTimeframe, chainIdFor(selected))
-      .then((result) => {
-        if (cancelled) return;
-        setCandles(result);
-        setCandlesStatus('ready');
-      })
-      .catch(() => {
-        if (!cancelled) setCandlesStatus('error');
-      });
+    const source = evmChartSource(selected.tokenAddress, chainIdFor(selected));
+    // The server already rendered these candles — no refetch, but keep them moving.
+    const skipFirst = skipCandlesFetch.current;
+    skipCandlesFetch.current = false;
+    if (skipFirst) primeCandles(source, candleTimeframe, candles);
+    else setCandlesStatus('loading');
+    const load = (force: boolean) =>
+      loadCandles(source, candleTimeframe, { force })
+        .then((result) => {
+          if (cancelled) return;
+          setCandles(result);
+          setCandlesStatus('ready');
+        })
+        .catch(() => {
+          if (!cancelled && !force) setCandlesStatus('error');
+        });
+    if (!skipFirst) void load(false);
+    // The Live line streams its own prices; only candle views refetch.
+    const every = timeframe === 'live' ? undefined : CANDLE_REFRESH_MS[candleTimeframe];
+    const timer = every ? setInterval(() => document.visibilityState === 'visible' && void load(true), every) : null;
     return () => {
       cancelled = true;
+      if (timer) clearInterval(timer);
     };
-  }, [selected, candleTimeframe]);
+  }, [selected, candleTimeframe, timeframe === 'live']); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (skipActivityFetch.current) {

@@ -6,14 +6,13 @@ import { cn } from '@kamby/ui';
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { DEFAULT_CHART_TIMEFRAMES, InlineTimeframeTabs } from '@/components/discovery/InlineTimeframeTabs';
-import { cachedCandles, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
+import { CANDLE_REFRESH_MS, cachedCandles, loadCandles, primeCandles, type ChartSource, type ChartTimeframe } from '@/lib/chart-data';
 import { KambyChart } from './KambyChart';
 import { ChartStyleToggle, useChartStyle } from './ChartStyleToggle';
 import { LivePriceChart } from './LivePriceChart';
 
 const NO_TRADES: SocialActivity[] = [];
 /** Short widths refresh while open so the newest candle keeps moving. */
-const REFRESH_MS: Partial<Record<Timeframe, number>> = { '1m': 20_000, '5m': 30_000, '1H': 60_000 };
 
 /**
  * A coin's chart card with its own timeframe switching (user feedback 2026-09-30: "the charts
@@ -74,7 +73,7 @@ export function TokenChartCard({
         })
         .finally(() => !cancelled && setLoading(false));
     void load(false);
-    const every = timeframe === 'live' ? undefined : REFRESH_MS[candleTimeframe];
+    const every = timeframe === 'live' ? undefined : CANDLE_REFRESH_MS[candleTimeframe];
     const timer = every ? setInterval(() => document.visibilityState === 'visible' && void load(true), every) : null;
     return () => {
       cancelled = true;

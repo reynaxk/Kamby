@@ -25,7 +25,7 @@ import { hideLookalikes } from './lookalike-filter';
 import { findPrimaryMarket } from './primary-market';
 import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
 import { REDIS_CLIENT } from '../redis/redis.module';
-import { fetchPoolCandles, GECKO_NETWORK_BY_CHAIN_ID, GECKO_OHLCV_TTL_SECONDS } from './gecko-ohlcv';
+import { candlesOrThrow, fetchPoolCandles, GECKO_NETWORK_BY_CHAIN_ID, GECKO_OHLCV_TTL_SECONDS } from './gecko-ohlcv';
 import { WatchlistService } from './watchlist.service';
 
 /** Prices refresh roughly every 60s (workers' ingestion tick), so 10s staleness is invisible —
@@ -440,8 +440,8 @@ export class MarketService {
       const network = GECKO_NETWORK_BY_CHAIN_ID[chainId];
       if (!network) return [];
       return this.cached(`agg-history:${market.id}:${timeframe}`, GECKO_OHLCV_TTL_SECONDS[timeframe], () =>
-        fetchPoolCandles(network, market.pairAddress, address, timeframe),
-      );
+        candlesOrThrow(fetchPoolCandles(network, market.pairAddress, address, timeframe)),
+      ).catch(() => []);
     }
 
     const { bucket, lookback } = TIMEFRAME_CONFIG[timeframe];
@@ -491,8 +491,8 @@ export class MarketService {
     const network = GECKO_NETWORK_BY_CHAIN_ID[chainId];
     if (candles.length < 2 && network) {
       const fallback = await this.cached(`young-history:${market.id}:${timeframe}`, GECKO_OHLCV_TTL_SECONDS[timeframe], () =>
-        fetchPoolCandles(network, market.pairAddress, address, timeframe),
-      );
+        candlesOrThrow(fetchPoolCandles(network, market.pairAddress, address, timeframe)),
+      ).catch(() => [] as Candle[]);
       if (fallback.length >= 2) return fallback;
     }
     return candles;

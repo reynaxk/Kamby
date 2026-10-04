@@ -4,6 +4,7 @@ import type { Candle } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
 
 const GECKOTERMINAL_API = 'https://api.geckoterminal.com/api/v2/networks/solana';
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
@@ -97,8 +98,10 @@ export class SolanaChartService {
   }
 
   private async fetchJson<T>(url: string): Promise<T | null> {
+    if (geckoCoolingDown()) return null;
     try {
-      const response = await fetch(url, { headers: { accept: 'application/json' } });
+      const response = await fetch(url, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
+      noteGeckoStatus(response.status);
       if (!response.ok) {
         this.logger.warn({ status: response.status }, 'GeckoTerminal request failed');
         return null;

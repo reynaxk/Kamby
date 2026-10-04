@@ -18,7 +18,7 @@ import { IN_FLIGHT_STEPS, TradePanelCard } from '@/components/terminal/TradePane
 import { type TradePanelStep } from '@/components/trading/TradePanel';
 import { PriceChange } from '@/components/market/PriceChange';
 import { formatPrice } from '@/lib/format';
-import { fetchTokenHistory } from '@/lib/market-client';
+import { CANDLE_REFRESH_MS, evmChartSource, loadCandles } from '@/lib/chart-data';
 import { CellTokenSelector } from './CellTokenSelector';
 import { InlineTimeframeTabs } from './InlineTimeframeTabs';
 
@@ -67,17 +67,23 @@ export function GridTerminalCell({
     }
     let cancelled = false;
     setCandlesStatus('loading');
-    fetchTokenHistory(selected.tokenAddress, timeframe, chainIdFor(selected))
-      .then((result) => {
-        if (cancelled) return;
-        setCandles(result);
-        setCandlesStatus('ready');
-      })
-      .catch(() => {
-        if (!cancelled) setCandlesStatus('error');
-      });
+    const source = evmChartSource(selected.tokenAddress, chainIdFor(selected));
+    const load = (force: boolean) =>
+      loadCandles(source, timeframe, { force })
+        .then((result) => {
+          if (cancelled) return;
+          setCandles(result);
+          setCandlesStatus('ready');
+        })
+        .catch(() => {
+          if (!cancelled && !force) setCandlesStatus('error');
+        });
+    void load(false);
+    const every = CANDLE_REFRESH_MS[timeframe];
+    const timer = every ? setInterval(() => document.visibilityState === 'visible' && void load(true), every) : null;
     return () => {
       cancelled = true;
+      if (timer) clearInterval(timer);
     };
   }, [selected, timeframe]);
 

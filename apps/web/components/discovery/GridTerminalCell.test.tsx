@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetChartDataCache } from '@/lib/chart-data';
 import type { MarketSummary } from '@kamby/domain';
 import { GridTerminalCell } from './GridTerminalCell';
 import type { TradePanelStep } from '@/components/trading/TradePanel';
@@ -63,6 +64,9 @@ function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
     ...overrides,
   };
 }
+
+// Candles are cached per coin across the page (lib/chart-data.ts) — start each test clean.
+beforeEach(() => resetChartDataCache());
 
 describe('GridTerminalCell', () => {
   afterEach(() => {
