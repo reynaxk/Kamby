@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, UnprocessableEntityException } from '@n
 import { ConfigService } from '@nestjs/config';
 import { PublicKey } from '@solana/web3.js';
 import { prisma } from '@kamby/db';
-import { PLATFORM_FEE_FALLBACK_BPS, resolveTierFeeBps, SOLANA_USDC_MINT, TRADING_DEFAULTS, type TradeSide } from '@kamby/domain';
+import { MIN_TRADE_MESSAGE, MIN_TRADE_USD, PLATFORM_FEE_FALLBACK_BPS, resolveTierFeeBps, SOLANA_USDC_MINT, TRADING_DEFAULTS, type TradeSide } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { getSolanaConfig, type Env } from '../config/env';
 import { buildSponsoredSwapTransaction } from './gas-relayer-transaction-builder';
@@ -270,13 +270,16 @@ export class SolanaQuoteService {
    * separate schedule.
    */
   private async resolvePlatformFeeBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
+    // The $2 minimum rides on the same trade-size lookup (USDC in for a buy, USDC out for a sell).
     if (side === 'BUY') {
       const tradeSizeUsd = Number(amount) / 10 ** 6;
+      if (tradeSizeUsd < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
       return resolveTierFeeBps(tradeSizeUsd);
     }
     const estimatedOutputRaw = await this.jupiter.getEstimatedOutputRaw({ inputMint, outputMint, amountRaw: amount, slippageBps });
     if (estimatedOutputRaw === null) return PLATFORM_FEE_FALLBACK_BPS;
     const tradeSizeUsd = Number(estimatedOutputRaw) / 10 ** 6;
+    if (tradeSizeUsd < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
     return resolveTierFeeBps(tradeSizeUsd);
   }
 

@@ -133,7 +133,7 @@ function fakeConsentTypedData(quoteId = 'quote-1'): NonNullable<TradeQuoteDto['c
 }
 
 async function fillAmountAndWaitForQuote() {
-  await userEvent.type(screen.getByLabelText('Amount'), '1');
+  await userEvent.type(screen.getByLabelText('Amount'), '5');
   await waitFor(() => expect(getQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
 }
 
@@ -157,6 +157,14 @@ describe('TradePanel', () => {
       verify: verifyMock,
     });
     getTransactionMock.mockResolvedValue(null);
+  });
+
+  it('shows "Minimum trade size is $2.00" for a buy under $2 and never asks for a quote', async () => {
+    render(<TradePanel {...defaultProps} />);
+    await userEvent.type(screen.getByLabelText('Amount'), '1.5');
+    expect(await screen.findByText('Minimum trade size is $2.00')).toBeInTheDocument();
+    await new Promise((r) => setTimeout(r, 600));
+    expect(getQuoteMock).not.toHaveBeenCalled();
   });
 
   /** One-tap trading (2026-10-03): this now just gets a ready quote on the form. */
@@ -271,7 +279,7 @@ describe('TradePanel', () => {
       getQuoteMock.mockResolvedValue(fakeQuote({ sponsorshipAvailable: false }));
       render(<TradePanel {...defaultProps} />);
 
-      await userEvent.type(screen.getByLabelText('Amount'), '1');
+      await userEvent.type(screen.getByLabelText('Amount'), '5');
       await waitFor(() => expect(getQuoteMock).toHaveBeenCalled());
 
       expect(screen.queryByRole('button', { name: 'Gasless (no gas needed)' })).not.toBeInTheDocument();
@@ -280,7 +288,7 @@ describe('TradePanel', () => {
     it('shows the toggle once a quote confirms sponsorship is available, and requests it on the next fetch once switched on', async () => {
       getQuoteMock.mockResolvedValue(fakeQuote({ sponsorshipAvailable: true }));
       render(<TradePanel {...defaultProps} />);
-      await userEvent.type(screen.getByLabelText('Amount'), '1');
+      await userEvent.type(screen.getByLabelText('Amount'), '5');
       await waitFor(() => expect(getQuoteMock).toHaveBeenCalled());
 
       await userEvent.click(await screen.findByRole('button', { name: 'Gasless (no gas needed)' }));

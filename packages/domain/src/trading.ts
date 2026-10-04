@@ -20,6 +20,11 @@ export type TradeStatus = z.infer<typeof TradeStatusSchema>;
  * Deliberately configuration, not scattered literals — see docs/TRADING.md#fees. Every one
  * of these can be overridden by the API's env config; these are only the shipped defaults.
  */
+/** Smallest trade Kamby accepts, buy or sell, in USD (product rule 2026-10-04). Enforced by the
+ *  API on every quote and shown in the trade panels before a quote is even requested. */
+export const MIN_TRADE_USD = 2;
+export const MIN_TRADE_MESSAGE = 'Minimum trade size is $2.00';
+
 export const TRADING_DEFAULTS = {
   /** 0.50% — see docs/TRADING.md#fees. */
   platformFeeBps: 50,

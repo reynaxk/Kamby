@@ -74,7 +74,7 @@ const baseParams: CreateSolanaQuoteParams = {
   walletAddress: WALLET,
   side: 'BUY',
   tokenMint: TOKEN_MINT,
-  amount: '10',
+  amount: '5000000', // $5 raw USDC — above the $2 minimum
   slippageBps: 50,
 };
 
@@ -135,12 +135,19 @@ describe('SolanaQuoteService', () => {
     const jupiter = fakeJupiter();
     const service = new SolanaQuoteService(jupiter as never, fakeGasRelayer() as never, fakeConfig(), fakeLogger());
 
-    // baseParams.amount ('10' raw units = $0.00001) is well under the $100 tier boundary.
+    // baseParams.amount ($5) is well under the $100 tier boundary.
     await service.createQuote({ ...baseParams, side: 'BUY' });
 
     expect(jupiter.getQuote).toHaveBeenCalledWith(
       expect.objectContaining({ inputMint: SOLANA_USDC_MINT, outputMint: TOKEN_MINT, feeAccount: TREASURY_ATA, platformFeeBps: 200 }),
     );
+  });
+
+  it('rejects a buy under the $2 minimum before asking Jupiter', async () => {
+    const jupiter = fakeJupiter();
+    const service = new SolanaQuoteService(jupiter as never, fakeGasRelayer() as never, fakeConfig(), fakeLogger());
+    await expect(service.createQuote({ ...baseParams, side: 'BUY', amount: '1990000' })).rejects.toThrow('Minimum trade size is $2.00');
+    expect(jupiter.getQuote).not.toHaveBeenCalled();
   });
 
   it('BUY: a $100-$499.99 trade gets the middle 100bps tier, resolved from the input amount directly', async () => {

@@ -2,6 +2,8 @@ import { ForbiddenException, Inject, Injectable, Optional, UnprocessableEntityEx
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@kamby/db';
 import {
+  MIN_TRADE_MESSAGE,
+  MIN_TRADE_USD,
   calculateFeeAmount,
   calculateMinOutputAmount,
   classifyPriceImpactBps,
@@ -149,6 +151,10 @@ export class QuoteService {
         ? { ...listedMarket, quoteToken: usdc }
         : listedMarket;
     const { inputToken, outputToken } = resolveTokens(market, params.side);
+    // $2 minimum (2026-10-04). A buy's USDC input is its size — checked before any gas is sent.
+    if (usdc && params.side === 'BUY' && Number(params.amount) < MIN_TRADE_USD) {
+      throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
+    }
     // Kamby pays the gas: a USDC-holding wallet with no ETH/BNB gets a few cents of it first.
     if (usdc && this.gasTopup) {
       await this.gasTopup.ensureGas(params.chainId, walletAddress, { address: usdc.contractAddress, decimals: usdc.decimals! });
@@ -220,6 +226,10 @@ export class QuoteService {
     // A guaranteed-USDC SELL's tier wasn't resolvable until now — the trade's USD size is
     // the gross USDC the swap actually produced, only known once the router has priced it.
     // Every other case already resolved its tier above, before this call.
+    // A sell's size is the USDC it produces — only known now.
+    if (usesGuaranteedUsdcFee && params.side === 'SELL' && Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)) < MIN_TRADE_USD) {
+      throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
+    }
     const appliedFeeBps =
       usesGuaranteedUsdcFee && params.side === 'SELL'
         ? resolveTierFeeBps(Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)))

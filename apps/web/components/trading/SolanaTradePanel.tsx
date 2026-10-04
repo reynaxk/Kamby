@@ -5,7 +5,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useCreateWallet, useSignAndSendTransaction, useSignTransaction, useWallets, type ConnectedStandardSolanaWallet } from '@privy-io/react-auth/solana';
 import { Connection } from '@solana/web3.js';
 import { Button, cn } from '@kamby/ui';
-import { isQuoteExpired, SOLANA_NATIVE_MINT, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
+import { MIN_TRADE_MESSAGE, MIN_TRADE_USD, isQuoteExpired, SOLANA_NATIVE_MINT, TRADING_DEFAULTS, type SolanaTradeQuoteDto, type SolanaTradeTransactionDto, type TradeSide } from '@kamby/domain';
 import bs58 from 'bs58';
 import { ArrowLeft, CheckCircle2, TrendingDown, TrendingUp, XCircle } from 'lucide-react';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
@@ -179,6 +179,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
     if (!canQuote || !amount || Number(amount) <= 0) {
       setQuote(null);
       setQuoteStatus('idle');
+      return;
+    }
+    // $2 minimum — `amount` is raw USDC on a buy; a sell's value comes back from the API's check.
+    if (side === 'BUY' && Number(amount) < MIN_TRADE_USD * 10 ** 6) {
+      setQuote(null);
+      setQuoteStatus('error');
+      setQuoteError(MIN_TRADE_MESSAGE);
       return;
     }
     setQuoteStatus('loading');

@@ -4,7 +4,7 @@ import { USDC_BY_CHAIN_ID } from '@/lib/usdc';
 import { useEffect, useRef, useState } from 'react';
 import { useSignTypedData } from '@privy-io/react-auth';
 import { Button, cn } from '@kamby/ui';
-import { CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
+import { MIN_TRADE_MESSAGE, MIN_TRADE_USD, CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, X, XCircle } from 'lucide-react';
 import { erc20Abi } from 'viem';
@@ -212,6 +212,14 @@ export function TradePanel({
     if (!amount || !Number.isFinite(amountNum) || amountNum <= 0) {
       setQuote(null);
       setQuoteStatus('idle');
+      return;
+    }
+    // $2 minimum: a buy's USDC amount is checked right here; a sell's USDC value is only known
+    // from the quote, so the API answers with the same message.
+    if (side === 'BUY' && amountNum < MIN_TRADE_USD) {
+      setQuote(null);
+      setQuoteStatus('error');
+      setQuoteError(MIN_TRADE_MESSAGE);
       return;
     }
     setQuoteStatus('loading');
