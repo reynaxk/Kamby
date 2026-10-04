@@ -47,8 +47,9 @@ body {
   color: rgb(var(--kamby-ink-900));
 }
 
-/* The landing page is dark to the very bottom (the layout's ticker gap below the footer). */
-body:has(.kamby-landing) {
+/* Every dark page is dark to the very bottom — the layout's ticker gap below the footer
+   showed the light body background as a white strip (landing 10-04, then coin pages). */
+body:has(.kamby-void) {
   background-color: rgb(8 10 15);
 }
 
