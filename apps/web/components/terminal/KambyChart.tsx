@@ -375,9 +375,11 @@ export function KambyChart({
       );
     }
 
+    // Always a normal candle width (~7px), newest on the right. Fitting a young coin's handful
+    // of candles to the full width drew each one huge (user feedback 2026-10-04); with fewer
+    // candles than fit, the left side simply stays empty.
     const bars = initialBarCount(container.clientWidth);
-    if (candles.length > bars) chart.timeScale().setVisibleLogicalRange({ from: candles.length - bars, to: candles.length + 3 });
-    else chart.timeScale().fitContent();
+    chart.timeScale().setVisibleLogicalRange({ from: candles.length - bars, to: candles.length + 3 });
     setCanvasReady(true);
 
     // See chartTraderMarkers.ts's own doc comment for why this needs the primitive API
