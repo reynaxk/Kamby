@@ -159,9 +159,10 @@ function fakeTransaction(overrides: Partial<SolanaTradeTransactionDto> = {}): So
   };
 }
 
+// Every Solana trade is gas-sponsored now (2026-10-04) — there is no self-paid quote path left.
 async function fillAmountAndWaitForQuote() {
   await userEvent.type(screen.getByLabelText('Amount'), '10000000');
-  await waitFor(() => expect(getSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
+  await waitFor(() => expect(getSponsoredSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
 }
 
 async function fillAmountAndWaitForSponsoredQuote() {
@@ -275,7 +276,7 @@ describe('SolanaTradePanel', () => {
   });
 
   it('fetches a real quote after an amount is entered and enables Review once it resolves', async () => {
-    getSolanaQuoteMock.mockResolvedValue(fakeQuote());
+    getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await fillAmountAndWaitForQuote();
@@ -284,18 +285,18 @@ describe('SolanaTradePanel', () => {
   });
 
   it('never enables Review while the quote is still loading or failed', async () => {
-    getSolanaQuoteMock.mockRejectedValue(new Error('No live quote is available'));
+    getSponsoredSolanaQuoteMock.mockRejectedValue(new Error('No live quote is available'));
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await userEvent.type(screen.getByLabelText('Amount'), '10000000');
-    await waitFor(() => expect(getSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
+    await waitFor(() => expect(getSponsoredSolanaQuoteMock).toHaveBeenCalled(), { timeout: 3000 });
 
     expect(await screen.findByText('No live quote is available')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Buy now' })).toBeDisabled();
   });
 
   it('switching to SELL relabels the review/confirm actions accordingly', async () => {
-    getSolanaQuoteMock.mockResolvedValue(fakeQuote({ side: 'SELL' }));
+    getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote({ side: 'SELL' }));
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
 
     await userEvent.click(screen.getByRole('button', { name: /Sell SOL/i }));
@@ -317,61 +318,6 @@ describe('SolanaTradePanel', () => {
     expect(screen.getByLabelText('Amount')).toHaveValue('');
   });
 
-  it('confirm & sign broadcasts the real transaction, records it, and shows the submitted state', async () => {
-    const quote = fakeQuote();
-    getSolanaQuoteMock.mockResolvedValue(quote);
-    signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
-    submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
-
-    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
-
-    await waitFor(() =>
-      expect(submitSolanaTransactionMock).toHaveBeenCalledWith({
-        quoteId: quote.id,
-        walletAddress: WALLET_ADDRESS,
-        signature: expect.any(String),
-      }),
-    );
-    expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
-    // The toast is updated as the trade progresses (signature obtained, then recorded) —
-    // never left stuck on its initial "Confirm in your wallet…" pending state.
-    expect(updateMock).toHaveBeenCalledWith('toast-1', expect.objectContaining({ title: 'Trade submitted' }));
-  });
-
-  it('opting into a Jito tip signs only (never sign-and-send) and broadcasts via Jito, not the normal RPC path', async () => {
-    const quote = fakeQuote();
-    getSolanaQuoteMock.mockResolvedValue(quote);
-    signTransaction.mockResolvedValue({ signedTransaction: new Uint8Array([9, 9, 9]) });
-    sendRawTransactionMock.mockResolvedValue('a-real-looking-signature');
-    submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
-
-    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    await userEvent.click(screen.getByRole('button', { name: 'Low' })); // JitoTipControl preset
-    await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
-
-    await waitFor(() => expect(sendRawTransactionMock).toHaveBeenCalledWith(new Uint8Array([9, 9, 9])));
-    expect(signAndSendTransaction).not.toHaveBeenCalled();
-    expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
-  });
-
-  it('turning on Gasless fetches a sponsored quote instead of the normal one', async () => {
-    getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
-    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-
-    await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
-    await fillAmountAndWaitForSponsoredQuote();
-
-    expect(getSolanaQuoteMock).not.toHaveBeenCalled();
-    expect(await screen.findByRole('button', { name: 'Buy now' })).toBeEnabled();
-    // A sponsored transaction always broadcasts via the relayer's own RPC call, never
-    // through Jito — the control offering a choice that would silently do nothing is
-    // hidden entirely while gasless is on.
-    expect(screen.queryByRole('button', { name: 'Low' })).not.toBeInTheDocument();
-  });
-
   it('gasless confirm & sign signs only (never sign-and-send, never Jito) and submits the partially-signed bytes to the sponsored endpoint', async () => {
     const quote = fakeQuote();
     getSponsoredSolanaQuoteMock.mockResolvedValue(quote);
@@ -379,7 +325,6 @@ describe('SolanaTradePanel', () => {
     submitSponsoredSolanaTransactionMock.mockResolvedValue(fakeTransaction({ sponsoredByRelayer: true }));
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
@@ -402,7 +347,6 @@ describe('SolanaTradePanel', () => {
     submitSponsoredSolanaTransactionMock.mockRejectedValue(new Error('Gas sponsorship is not enabled on this deployment'));
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    await userEvent.click(screen.getByRole('button', { name: 'Gasless (no SOL needed)' }));
     await fillAmountAndWaitForSponsoredQuote();
     await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
 
@@ -411,8 +355,8 @@ describe('SolanaTradePanel', () => {
   });
 
   it('keeps the user on the review step and shows the real error if signing is rejected', async () => {
-    getSolanaQuoteMock.mockResolvedValue(fakeQuote());
-    signAndSendTransaction.mockRejectedValue(new Error('User rejected the request'));
+    getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
+    signTransaction.mockRejectedValueOnce(new Error('User rejected the request'));
 
     render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
     await fillAmountAndWaitForQuote();
@@ -420,50 +364,15 @@ describe('SolanaTradePanel', () => {
 
     expect(await screen.findByText('User rejected the request')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirm & buy' })).toBeInTheDocument();
-    expect(submitSolanaTransactionMock).not.toHaveBeenCalled();
-  });
-
-  it('never loses a real broadcast signature if recording it afterward fails', async () => {
-    getSolanaQuoteMock.mockResolvedValue(fakeQuote());
-    signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
-    submitSolanaTransactionMock.mockRejectedValue(new Error('network blip'));
-
-    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
-
-    expect(await screen.findByText(/couldn.t record it/i)).toBeInTheDocument();
-    const solscanLink = screen.getByRole('link', { name: /View on Solscan/i });
-    expect(solscanLink.getAttribute('href')).toMatch(/^https:\/\/solscan\.io\/tx\//);
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
-  });
-
-  it('Retry after a record-failure resubmits the exact same real signature, not a new one', async () => {
-    getSolanaQuoteMock.mockResolvedValue(fakeQuote());
-    signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
-    submitSolanaTransactionMock.mockRejectedValueOnce(new Error('network blip'));
-    submitSolanaTransactionMock.mockResolvedValueOnce(fakeTransaction());
-
-    render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
-    await fillAmountAndWaitForQuote();
-    await userEvent.click(await screen.findByRole('button', { name: 'Buy now' }));
-    await screen.findByRole('button', { name: 'Retry' });
-
-    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
-
-    await waitFor(() => expect(submitSolanaTransactionMock).toHaveBeenCalledTimes(2));
-    const firstSignature = submitSolanaTransactionMock.mock.calls[0]?.[0]?.signature;
-    const secondSignature = submitSolanaTransactionMock.mock.calls[1]?.[0]?.signature;
-    expect(secondSignature).toBe(firstSignature);
-    expect(await screen.findByText('Waiting for confirmation…')).toBeInTheDocument();
+    expect(submitSponsoredSolanaTransactionMock).not.toHaveBeenCalled();
   });
 
   it(
     'polling picks up a CONFIRMED status and shows the confirmed view with a working Solscan link',
     async () => {
-      getSolanaQuoteMock.mockResolvedValue(fakeQuote());
+      getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
       signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
-      submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
+      submitSponsoredSolanaTransactionMock.mockResolvedValue(fakeTransaction());
       getSolanaTransactionMock.mockResolvedValue(fakeTransaction({ status: 'CONFIRMED', confirmedAt: new Date().toISOString() }));
 
       render(<SolanaTradePanel tokenMint="So11111111111111111111111111111111111111112" tokenSymbol="SOL" />);
@@ -481,9 +390,9 @@ describe('SolanaTradePanel', () => {
   it(
     "shows a real, decimal-scaled SOL amount in the confirmed toast for a BUY, never the bare raw lamport integer",
     async () => {
-      getSolanaQuoteMock.mockResolvedValue(fakeQuote());
+      getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote());
       signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
-      submitSolanaTransactionMock.mockResolvedValue(fakeTransaction());
+      submitSponsoredSolanaTransactionMock.mockResolvedValue(fakeTransaction());
       // expectedOutputAmount '98600000' raw lamports (BUY's output is always SOL, 9
       // decimals) must render as '0.0986 SOL', not the bare raw integer — see
       // formatReceivedAmount's own doc comment for why this toast can't reuse
@@ -507,12 +416,12 @@ describe('SolanaTradePanel', () => {
   it(
     'shows a real, decimal-scaled USDC amount in the confirmed toast for a SELL, never the bare raw micro-unit integer',
     async () => {
-      getSolanaQuoteMock.mockResolvedValue(fakeQuote({ side: 'SELL' }));
+      getSponsoredSolanaQuoteMock.mockResolvedValue(fakeQuote({ side: 'SELL' }));
       signAndSendTransaction.mockResolvedValue({ signature: new Uint8Array([1, 2, 3, 4]) });
       // '5000000' raw USDC micro-units (6 decimals) — SELL's output is always USDC — must
       // render as '$5 USDC' (same maximumFractionDigits:2, no forced trailing zeros
       // convention as SolanaQuoteSummary's own usdcDisplay), not the bare raw integer.
-      submitSolanaTransactionMock.mockResolvedValue(fakeTransaction({ side: 'SELL', expectedOutputAmount: '5000000' }));
+      submitSponsoredSolanaTransactionMock.mockResolvedValue(fakeTransaction({ side: 'SELL', expectedOutputAmount: '5000000' }));
       getSolanaTransactionMock.mockResolvedValue(
         fakeTransaction({ side: 'SELL', expectedOutputAmount: '5000000', status: 'CONFIRMED', confirmedAt: new Date().toISOString() }),
       );

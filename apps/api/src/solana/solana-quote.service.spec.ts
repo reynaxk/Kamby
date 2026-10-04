@@ -135,11 +135,11 @@ describe('SolanaQuoteService', () => {
     const jupiter = fakeJupiter();
     const service = new SolanaQuoteService(jupiter as never, fakeGasRelayer() as never, fakeConfig(), fakeLogger());
 
-    // baseParams.amount ($5) is a micro trade — the 4% tier.
+    // baseParams.amount ($5) is a micro trade — the 4% tier, capped at Jupiter's 255 bps maximum.
     await service.createQuote({ ...baseParams, side: 'BUY' });
 
     expect(jupiter.getQuote).toHaveBeenCalledWith(
-      expect.objectContaining({ inputMint: SOLANA_USDC_MINT, outputMint: TOKEN_MINT, feeAccount: TREASURY_ATA, platformFeeBps: 400 }),
+      expect.objectContaining({ inputMint: SOLANA_USDC_MINT, outputMint: TOKEN_MINT, feeAccount: TREASURY_ATA, platformFeeBps: 255 }),
     );
   });
 

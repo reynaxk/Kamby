@@ -59,6 +59,9 @@ export interface SolanaQuoteResult {
  * schedule (the old two-tier `resolveJupiterPlatformFeeBps` is gone). The env var is left
  * defined (harmless if set) but has no effect on this service any more.
  */
+/** The highest platform fee Jupiter's swap endpoints accept (a u8 on their side): 2.55%. */
+export const JUPITER_MAX_PLATFORM_FEE_BPS = 255;
+
 @Injectable()
 export class SolanaQuoteService {
   private readonly treasuryUsdcAta: string | null;
@@ -270,6 +273,13 @@ export class SolanaQuoteService {
    * separate schedule.
    */
   private async resolvePlatformFeeBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
+    // Jupiter's /swap and /swap-instructions take platformFeeBps as a u8: anything above 255
+    // fails with a 500 ("out of range integral type conversion") even though /quote accepts it
+    // — found 2026-10-04 when the 4% micro tier broke every Solana trade under $10.
+    return Math.min(JUPITER_MAX_PLATFORM_FEE_BPS, await this.resolveTierBps(side, inputMint, outputMint, amount, slippageBps));
+  }
+
+  private async resolveTierBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
     // The $2 minimum rides on the same trade-size lookup (USDC in for a buy, USDC out for a sell).
     if (side === 'BUY') {
       const tradeSizeUsd = Number(amount) / 10 ** 6;

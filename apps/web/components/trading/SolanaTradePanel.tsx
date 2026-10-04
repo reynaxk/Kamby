@@ -19,8 +19,6 @@ import {
   submitSolanaTransaction,
   submitSponsoredSolanaTransaction,
 } from '@/lib/solana-trading-client';
-import { GaslessToggle } from './GaslessToggle';
-import { JitoTipControl } from './JitoTipControl';
 import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
 import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
@@ -153,8 +151,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null));
   const [manualSlippageBps, setManualSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
   const slippageBps = autoSlippage ? autoBps : manualSlippageBps;
-  const [jitoTipLamports, setJitoTipLamports] = useState(0);
-  const [gasless, setGasless] = useState(false);
+  const jitoTipLamports = 0; // Jito tips only apply to self-paid trades, which no longer exist
+  // Always gasless (2026-10-04): users hold only USDC, never SOL, so Kamby's relayer pays every
+  // network fee. The old on/off switch defaulted to off — a USDC-only wallet can't pay its own fee.
+  const gasless = true;
   const [refreshTick, setRefreshTick] = useState(0);
 
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
@@ -606,11 +606,6 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           }}
           auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
         />
-        <GaslessToggle value={gasless} onChange={setGasless} label="Gasless (no SOL needed)" />
-        {/* A sponsored transaction always broadcasts via the relayer's own RPC call, never
-            through Jito — showing this control while gasless is on would offer a choice
-            that silently does nothing, see GaslessToggle's own doc comment. */}
-        {!gasless && <JitoTipControl valueLamports={jitoTipLamports} onChange={setJitoTipLamports} />}
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
         {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
         <Button
