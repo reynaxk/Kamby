@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import type { ActivityAction, SocialActivity } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatRelativeTime, truncateAddress } from '@/lib/format';
+import type { ChartSource } from '@/lib/chart-data';
+import { HoldersPanel } from './HoldersPanel';
 
 type Tab = 'transactions' | 'holders' | 'caller-alpha';
 const TABS: { id: Tab; label: string }[] = [
@@ -26,7 +28,7 @@ const MIN_SIZE_OPTIONS = [0, 1_000, 5_000] as const;
  * either yet (holder-percentage tracking, or any caller-alpha feed at all), and a fake row
  * next to real ones is worse than admitting the gap.
  */
-export function DataHub({ activity }: { activity: SocialActivity[] }) {
+export function DataHub({ activity, source = null }: { activity: SocialActivity[]; source?: ChartSource | null }) {
   const [tab, setTab] = useState<Tab>('transactions');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('ALL');
   const [minSizeUsd, setMinSizeUsd] = useState<number>(0);
@@ -139,11 +141,7 @@ export function DataHub({ activity }: { activity: SocialActivity[] }) {
               </tbody>
             </table>
           ))}
-        {tab === 'holders' && (
-          <p className="p-4 text-ink-400">
-            Holder tracking <span className="text-ink-400">— soon</span>.
-          </p>
-        )}
+        {tab === 'holders' && (source ? <HoldersPanel source={source} /> : <p className="p-4 text-ink-400">Pick a coin to see its holders.</p>)}
         {tab === 'caller-alpha' && (
           <p className="p-4 text-ink-400">
             Trade theses <span className="text-ink-400">— soon</span>. Post a thesis from the

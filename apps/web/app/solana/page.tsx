@@ -6,6 +6,7 @@ import { NewListingBanner } from '@/components/market/NewListingBanner';
 import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
+import { HoldersPanel } from '@/components/terminal/HoldersPanel';
 import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
@@ -117,6 +118,10 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               timeframes={SOLANA_TIMEFRAMES}
               className="mt-3 h-[260px] sm:h-[320px]"
             />
+            <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
+              <p className="border-b border-line px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide text-ink-900">Holders</p>
+              <HoldersPanel source={{ kind: 'solana', mint: market.tokenAddress }} />
+            </div>
           </section>
 
           <aside>

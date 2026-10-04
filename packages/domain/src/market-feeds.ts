@@ -133,3 +133,39 @@ export function pumpFunGraduationProgressPct(realSolReservesLamports: string): n
   const bps = (raised * 10_000n) / PUMP_FUN_GRADUATION_THRESHOLD_LAMPORTS;
   return Math.min(100, Number(bps) / 100);
 }
+
+/** One of a coin's largest holders (GET /market/holders/:chain/:address). */
+export interface TokenHolder {
+  /** The holder's wallet (on Solana the token account's owner, not the token account). */
+  address: string;
+  /** Tokens held, in whole-token units. */
+  balance: number;
+  /** Share of total supply, 0–100. */
+  percent: number;
+  /** A contract (pool, locker, bridge) — never labelled as a whale. */
+  isContract: boolean;
+  /** The source's label for a known address, e.g. a DEX pool or exchange. */
+  tag: string | null;
+}
+
+export interface TokenHolders {
+  /** Total holders, when the source knows it. */
+  holderCount: number | null;
+  /** Largest first, at most 20. */
+  holders: TokenHolder[];
+  atIso: string;
+}
+
+/** Position-size labels (owner definition 2026-10-04): $1M+ whale, $500K+ shark, $100K+ fish. */
+export type HolderTier = 'whale' | 'shark' | 'fish';
+export const HOLDER_TIERS: readonly { tier: HolderTier; minUsd: number }[] = [
+  { tier: 'whale', minUsd: 1_000_000 },
+  { tier: 'shark', minUsd: 500_000 },
+  { tier: 'fish', minUsd: 100_000 },
+];
+
+/** The label for a position worth `valueUsd`, or null below $100K. */
+export function holderTier(valueUsd: number): HolderTier | null {
+  if (!Number.isFinite(valueUsd)) return null;
+  return HOLDER_TIERS.find((t) => valueUsd >= t.minUsd)?.tier ?? null;
+}

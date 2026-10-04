@@ -136,7 +136,7 @@ export function KambyTerminal({
           />
 
           <div className="mb-3 h-[300px]">
-            <DataHub activity={activity} />
+            <DataHub activity={activity} source={chartSource} />
           </div>
 
           <div className="mb-3">
@@ -188,7 +188,7 @@ export function KambyTerminal({
               className="h-[320px]"
             />
             <div className="h-[300px]">
-              <DataHub activity={activity} />
+              <DataHub activity={activity} source={chartSource} />
             </div>
           </div>
 

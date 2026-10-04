@@ -18,7 +18,7 @@ export function livePriceKey(source: ChartSource): { chain: TokenInfoChain; addr
 }
 
 /** How often an open chart refetches its candles, so the newest one keeps moving. */
-export const CANDLE_REFRESH_MS: Partial<Record<Timeframe, number>> = { '1m': 20_000, '5m': 30_000, '1H': 60_000 };
+export const CANDLE_REFRESH_MS: Partial<Record<Timeframe, number>> = { '1m': 10_000, '5m': 15_000, '1H': 30_000 };
 
 /** The chart source for a Base/BNB coin by chain id. */
 export function evmChartSource(address: string, chainId: number): ChartSource {
@@ -27,7 +27,7 @@ export function evmChartSource(address: string, chainId: number): ChartSource {
 
 /** How long fetched candles count as fresh — short widths move fast. */
 function freshForMs(timeframe: Timeframe): number {
-  return timeframe === '1m' || timeframe === '5m' ? 20_000 : 60_000;
+  return timeframe === '1m' || timeframe === '5m' ? 8_000 : 25_000;
 }
 
 const candleCache = new Map<string, { candles: Candle[]; at: number }>();

@@ -36,13 +36,13 @@ function fakeActivity(overrides: Partial<SocialActivity> = {}): SocialActivity {
 }
 
 describe('DataHub', () => {
-  it('shows a real honest placeholder, not fake rows, under the Holders tab', async () => {
+  it('asks for a coin, never shows fake rows, under the Holders tab when no coin is selected', async () => {
     const user = userEvent.setup();
     render(<DataHub activity={[fakeActivity()]} />);
 
     await user.click(screen.getByRole('button', { name: 'Holders' }));
 
-    expect(screen.getByText(/Holder tracking/)).toBeInTheDocument();
+    expect(screen.getByText('Pick a coin to see its holders.')).toBeInTheDocument();
   });
 
   it('shows a real honest placeholder, not fake rows, under the Thesis tab', async () => {

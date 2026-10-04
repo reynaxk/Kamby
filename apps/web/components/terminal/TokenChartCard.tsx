@@ -97,7 +97,7 @@ export function TokenChartCard({
       <div className="flex items-center justify-between gap-2 px-0.5">
         <div className="flex items-center gap-1.5">
           <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
-          {timeframe !== 'live' && <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />}
+          <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />
         </div>
         {loading && candles !== null && (
           <span aria-live="polite" className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
@@ -111,7 +111,7 @@ export function TokenChartCard({
         ) : candles === null ? (
           <Skeleton className="h-full w-full" />
         ) : timeframe === 'live' && candlesFor === '1m' ? (
-          <LivePriceChart source={source} seedCandles={candles} />
+          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} />
         ) : (
           <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} />
         )}

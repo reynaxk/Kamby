@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { slugForIdentifier, CHAIN_REGISTRY, type MarketSummary } from '@kamby/domain';
 import { fetchLivePrice, type ChartSource } from './chart-data';
 
-const REFRESH_MS = 5_000;
+const REFRESH_MS = 2_000;
 
 /** A market's chart/live-price source, or null for chains without one. */
 export function liveSourceFor(market: Pick<MarketSummary, 'chainIdentifier' | 'tokenAddress'>): ChartSource | null {
@@ -15,33 +15,68 @@ export function liveSourceFor(market: Pick<MarketSummary, 'chainIdentifier' | 't
 }
 
 /**
- * The coin's latest price, refreshed every 5s while the tab is visible (user feedback
- * 2026-10-03: "some coins I clicked don't move the prices" — the header showed the price from
- * when the page or selection loaded). Uses the shared live-price feed (one batched DexScreener
- * lookup server-side for every coin anyone is watching). null until the first answer.
+ * One shared 2s poll per coin, however many components show its price (header, Live chart,
+ * holders…) — user feedback 2026-10-04: "make the prices move more and respond faster". Each
+ * component used to poll on its own (header every 5s, chart every 2s). Pauses while hidden.
  */
+interface Subscription {
+  listeners: Set<(price: number) => void>;
+  errors: Set<() => void>;
+  timer: ReturnType<typeof setTimeout> | null;
+  last: number | null;
+}
+const subscriptions = new Map<string, Subscription>();
+
+function keyFor(source: ChartSource): string {
+  return source.kind === 'solana' ? `sol:${source.mint}` : `${source.chainId}:${source.address.toLowerCase()}`;
+}
+
+/** Calls `onPrice` with each new live price (immediately with the last one, if known). Returns an unsubscribe. */
+export function subscribeLivePrice(source: ChartSource, onPrice: (price: number) => void, onError?: () => void): () => void {
+  const key = keyFor(source);
+  let entry = subscriptions.get(key);
+  if (!entry) {
+    const created: Subscription = { listeners: new Set(), errors: new Set(), timer: null, last: null };
+    subscriptions.set(key, created);
+    const tick = async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          const live = await fetchLivePrice(source);
+          if (live) {
+            created.last = live.priceUsd;
+            created.listeners.forEach((l) => l(live.priceUsd));
+          }
+        } catch {
+          created.errors.forEach((e) => e());
+        }
+      }
+      if (subscriptions.get(key) === created) created.timer = setTimeout(() => void tick(), REFRESH_MS);
+    };
+    void tick();
+    entry = created;
+  }
+  const current = entry;
+  current.listeners.add(onPrice);
+  if (onError) current.errors.add(onError);
+  if (current.last !== null) onPrice(current.last);
+  return () => {
+    current.listeners.delete(onPrice);
+    if (onError) current.errors.delete(onError);
+    if (current.listeners.size === 0) {
+      if (current.timer) clearTimeout(current.timer);
+      subscriptions.delete(key);
+    }
+  };
+}
+
+/** The coin's latest price from the shared 2s feed (see subscribeLivePrice). null until the first answer. */
 export function useLivePrice(source: ChartSource | null): number | null {
-  const key = source ? (source.kind === 'solana' ? `sol:${source.mint}` : `${source.chainId}:${source.address}`) : null;
+  const key = source ? keyFor(source) : null;
   const [price, setPrice] = useState<number | null>(null);
   useEffect(() => {
     setPrice(null);
     if (!source) return;
-    let cancelled = false;
-    const load = async () => {
-      if (document.visibilityState !== 'visible') return;
-      try {
-        const live = await fetchLivePrice(source);
-        if (!cancelled && live) setPrice(live.priceUsd);
-      } catch {
-        // keep the last price
-      }
-    };
-    void load();
-    const timer = setInterval(() => void load(), REFRESH_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
+    return subscribeLivePrice(source, setPrice);
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   return price;
 }

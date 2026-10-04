@@ -29,6 +29,7 @@ import { type TradePanelStep } from '@/components/trading/TradePanel';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { fetchTokenTraders } from '@/lib/discovery-client';
 import { useMarketFeeds } from '@/lib/market-feeds';
+import { liveSourceFor } from '@/lib/use-live-price';
 import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
 import { GridTerminalCell } from './GridTerminalCell';
@@ -268,7 +269,7 @@ export function DiscoverTerminal({
     const slug = slugForIdentifier(market.chainIdentifier);
     if (timeframe === 'live' && (slug === 'base' || slug === 'bnb')) {
       const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
-      return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} />;
+      return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} chartStyle={chartStyle} />;
     }
     return <KambyChart candles={candles} trades={filteredTrades} chartStyle={chartStyle} />;
   };
@@ -350,7 +351,7 @@ export function DiscoverTerminal({
             {overlayControls}
             <div className="flex items-center gap-1.5">
               <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
-              {timeframe !== 'live' && <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />}
+              <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />
             </div>
           </div>
           <div className="min-h-0 flex-1">
@@ -384,7 +385,7 @@ export function DiscoverTerminal({
               />
             </div>
           ) : (
-            <DataHub activity={activity} />
+            <DataHub activity={activity} source={selected ? liveSourceFor(selected) : null} />
           )}
         </div>
 
@@ -505,7 +506,7 @@ export function DiscoverTerminal({
               {overlayControls}
               <div className="flex items-center gap-1.5">
               <InlineTimeframeTabs active={timeframe} onChange={setTimeframe} />
-              {timeframe !== 'live' && <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />}
+              <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />
             </div>
             </div>
             <div className="min-h-0 flex-1">
@@ -539,7 +540,7 @@ export function DiscoverTerminal({
                 />
               </div>
             ) : (
-              <DataHub activity={activity} />
+              <DataHub activity={activity} source={selected ? liveSourceFor(selected) : null} />
             )}
           </div>
         </div>

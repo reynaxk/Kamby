@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   AreaSeries,
+  CandlestickSeries,
   ColorType,
   createChart,
   CrosshairMode,
@@ -12,8 +13,9 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import type { Candle } from '@kamby/domain';
-import { fetchLivePrice, type ChartSource } from '@/lib/chart-data';
-import { chartFontFamily, pricePrecision, readRgba } from './KambyChart';
+import type { ChartSource } from '@/lib/chart-data';
+import { subscribeLivePrice } from '@/lib/use-live-price';
+import { chartFontFamily, pricePrecision, readRgba, type ChartStyle } from './KambyChart';
 
 const POLL_MS = 2_000;
 /** The last hour of 1m closes as the line's starting history. */
@@ -47,6 +49,31 @@ export function leadInSlots(lastSeedS: number | null, nowS: number): { time: UTC
   return slots;
 }
 
+interface LiveCandle {
+  time: UTCTimestamp;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+/** Exported for tests. Seed candles for Live's candle mode: the recent 1m candles, oldest first. */
+export function seedCandlesFor(candles: Candle[], nowS: number): LiveCandle[] {
+  return candles
+    .slice(-SEED_POINTS)
+    .map((c) => ({ time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp, open: c.open, high: c.high, low: c.low, close: c.close }))
+    .filter((c) => c.time >= nowS - SEED_MAX_AGE_S && c.time <= nowS);
+}
+
+/** Exported for tests. Folds a live price into the 1m candles: extends the current minute's
+ *  candle, or opens the next one at the previous close. */
+export function foldTick(last: LiveCandle | null, price: number, nowS: number): LiveCandle {
+  const bucket = (Math.floor(nowS / 60) * 60) as UTCTimestamp;
+  if (last && last.time === bucket) return { ...last, high: Math.max(last.high, price), low: Math.min(last.low, price), close: price };
+  const open = last?.close ?? price;
+  return { time: bucket, open, high: Math.max(open, price), low: Math.min(open, price), close: price };
+}
+
 /**
  * The chart's "Live" timeframe (user request 2026-09-30): a price line that moves in real
  * time. Starts from the last hour of 1-minute closes, then appends the latest price every 2s
@@ -54,10 +81,13 @@ export function leadInSlots(lastSeedS: number | null, nowS: number): { time: UTC
  * is watching). Polling pauses while the tab is hidden. Updated in place with
  * `series.update()`, never rebuilt per tick.
  */
-export function LivePriceChart({ source, seedCandles }: { source: ChartSource; seedCandles: Candle[] }) {
+export function LivePriceChart({ source, seedCandles, chartStyle = 'line' }: { source: ChartSource; seedCandles: Candle[]; chartStyle?: ChartStyle }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
+  /** Candle mode (2026-10-04: "the live button needs a candle option too") — 1m candles that grow with every tick. */
+  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const lastCandleRef = useRef<LiveCandle | null>(null);
   const lastTimeRef = useRef(0);
   const hasPriceHistoryRef = useRef(false);
   const [status, setStatus] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
@@ -92,6 +122,31 @@ export function LivePriceChart({ source, seedCandles }: { source: ChartSource; s
       return;
     }
     const nowS = Math.floor(Date.now() / 1000);
+    if (chartStyle === 'candles') {
+      const seeded = seedCandlesFor(seedCandles, nowS);
+      const candleSeries = chart.addSeries(CandlestickSeries, {
+        upColor: readRgba('--kamby-up', container, 1),
+        downColor: readRgba('--kamby-down', container, 1),
+        wickUpColor: readRgba('--kamby-up', container, 1),
+        wickDownColor: readRgba('--kamby-down', container, 1),
+        borderVisible: false,
+        priceFormat: { type: 'price', ...pricePrecision(seedCandles.length > 0 ? seedCandles : []) },
+        lastValueVisible: true,
+        priceLineVisible: true,
+        priceLineStyle: LineStyle.Dashed,
+      });
+      candleSeries.setData(seeded);
+      chart.timeScale().fitContent();
+      lastCandleRef.current = seeded[seeded.length - 1] ?? null;
+      hasPriceHistoryRef.current = seeded.length > 0;
+      chartRef.current = chart;
+      candleSeriesRef.current = candleSeries;
+      return () => {
+        chart.remove();
+        chartRef.current = null;
+        candleSeriesRef.current = null;
+      };
+    }
     const seed = seedPoints(seedCandles, nowS);
     const slots = leadInSlots(seed[seed.length - 1]?.time ?? null, nowS);
     const series = chart.addSeries(AreaSeries, {
@@ -117,51 +172,39 @@ export function LivePriceChart({ source, seedCandles }: { source: ChartSource; s
       chartRef.current = null;
       seriesRef.current = null;
     };
-    // Rebuilt only for a different coin or new seed history, never per tick.
-  }, [sourceKey, seedCandles]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Rebuilt only for a different coin, style or new seed history, never per tick.
+  }, [sourceKey, seedCandles, chartStyle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
     let points = 0;
-
-    const tick = async () => {
-      if (document.visibilityState === 'visible') {
-        try {
-          const live = await fetchLivePrice(source);
-          if (cancelled) return;
-          if (live) {
-            // Time must strictly increase for the series — a same-second repeat is skipped.
-            const time = Math.floor(Date.now() / 1000) as UTCTimestamp;
-            if (time > lastTimeRef.current && seriesRef.current) {
-              // No seed history (e.g. candles briefly unavailable): size the axis decimals
-              // from the live price itself, or a sub-cent coin's axis reads "0.00".
-              if (!hasPriceHistoryRef.current) {
-                hasPriceHistoryRef.current = true;
-                const p = live.priceUsd;
-                seriesRef.current.applyOptions({
-                  priceFormat: { type: 'price', ...pricePrecision([{ bucketStart: '', open: p, high: p, low: p, close: p, volumeUsd: 0 }]) },
-                });
-              }
-              seriesRef.current.update({ time, value: live.priceUsd });
-              lastTimeRef.current = time;
-              if (++points > MAX_POINTS) chartRef.current?.timeScale().fitContent();
-            }
-            setPrice(live.priceUsd);
-            setStatus('live');
-          }
-        } catch {
-          if (!cancelled) setStatus('reconnecting');
+    const formatFor = (p: number) => ({ type: 'price' as const, ...pricePrecision([{ bucketStart: '', open: p, high: p, low: p, close: p, volumeUsd: 0 }]) });
+    const onPrice = (priceUsd: number) => {
+      const nowS = Math.floor(Date.now() / 1000);
+      // No seed history (e.g. candles briefly unavailable): size the axis decimals from the
+      // live price itself, or a sub-cent coin's axis reads "0.00".
+      const firstPrice = !hasPriceHistoryRef.current;
+      if (candleSeriesRef.current) {
+        if (firstPrice) candleSeriesRef.current.applyOptions({ priceFormat: formatFor(priceUsd) });
+        const next = foldTick(lastCandleRef.current, priceUsd, nowS);
+        if (!lastCandleRef.current || next.time >= lastCandleRef.current.time) {
+          candleSeriesRef.current.update(next);
+          lastCandleRef.current = next;
         }
+        hasPriceHistoryRef.current = true;
+      } else if (seriesRef.current && nowS > lastTimeRef.current) {
+        // Time must strictly increase for the series — a same-second repeat is skipped.
+        if (firstPrice) seriesRef.current.applyOptions({ priceFormat: formatFor(priceUsd) });
+        seriesRef.current.update({ time: nowS as UTCTimestamp, value: priceUsd });
+        lastTimeRef.current = nowS;
+        hasPriceHistoryRef.current = true;
+        if (++points > MAX_POINTS) chartRef.current?.timeScale().fitContent();
       }
-      if (!cancelled) timer = setTimeout(() => void tick(), POLL_MS);
+      setPrice(priceUsd);
+      setStatus('live');
     };
-    void tick();
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, [sourceKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    // The shared 2s feed (lib/use-live-price) — the header and holders read the same poll.
+    return subscribeLivePrice(source, onPrice, () => setStatus('reconnecting'));
+  }, [sourceKey, chartStyle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="relative h-full w-full">
