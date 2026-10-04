@@ -182,6 +182,7 @@ export function TradePanel({
   // "eligible") is the single source of truth every later branch below reads instead.
   const [gasless, setGasless] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  const silentRefreshRef = useRef(false);
 
   const [quote, setQuote] = useState<TradeQuoteDto | null>(null);
   // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
@@ -244,10 +245,14 @@ export function TradePanel({
       setQuoteError(MIN_TRADE_MESSAGE);
       return;
     }
-    setQuoteStatus('loading');
-    setQuoteError(null);
-    setApproved(false);
-    setPriceImpactAcknowledged(false);
+    const silent = silentRefreshRef.current;
+    silentRefreshRef.current = false;
+    if (!silent) {
+      setQuoteStatus('loading');
+      setQuoteError(null);
+      setApproved(false);
+      setPriceImpactAcknowledged(false);
+    }
     const timeout = setTimeout(() => {
       getQuote({ chainId, side, tokenAddress, walletAddress: address, amount, slippageBps, sponsorshipRequested: gasless })
         .then((result) => {
@@ -259,10 +264,24 @@ export function TradePanel({
           setQuoteStatus('error');
           setQuoteError(err instanceof Error ? err.message : 'Could not get a quote');
         });
-    }, 500);
+    }, silent ? 0 : 500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick, gasless]);
+
+  // Quotes live 30s — keep the one on screen fresh while the user decides, so a tap never
+  // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly
+  // ~6s before expiry: the current quote and button stay as they are until the new one lands.
+  useEffect(() => {
+    if (!quote || quoteStatus !== 'ready' || step !== 'form') return;
+    const due = new Date(quote.expiresAt).getTime() - Date.now() - 6000;
+    const timer = setTimeout(() => {
+      if (document.visibilityState !== 'visible') return;
+      silentRefreshRef.current = true;
+      setRefreshTick((n) => n + 1);
+    }, Math.max(due, 1000));
+    return () => clearTimeout(timer);
+  }, [quote, quoteStatus, step]);
 
   // Ticks once a second only while a quote is live, purely to re-render the expiry check.
   useEffect(() => {

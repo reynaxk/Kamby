@@ -156,6 +156,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   // network fee. The old on/off switch defaulted to off — a USDC-only wallet can't pay its own fee.
   const gasless = true;
   const [refreshTick, setRefreshTick] = useState(0);
+  const silentRefreshRef = useRef(false);
 
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
   // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
@@ -188,8 +189,12 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
       setQuoteError(MIN_TRADE_MESSAGE);
       return;
     }
-    setQuoteStatus('loading');
-    setQuoteError(null);
+    const silent = silentRefreshRef.current;
+    silentRefreshRef.current = false;
+    if (!silent) {
+      setQuoteStatus('loading');
+      setQuoteError(null);
+    }
     const handle = setTimeout(() => {
       // Gasless quotes come from a dedicated endpoint (a different fee payer baked into the
       // returned unsigned transaction, not just a broadcast-path choice like the Jito tip
@@ -208,10 +213,24 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
           setQuoteStatus('error');
           setQuoteError(friendlyError(err));
         });
-    }, 500);
+    }, silent ? 0 : 500);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [side, tokenMint, amount, slippageBps, jitoTipLamports, gasless, canQuote, refreshTick]);
+
+  // Quotes live 30s — keep the one on screen fresh while the user decides, so a tap never
+  // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly
+  // ~6s before expiry: the current quote and button stay as they are until the new one lands.
+  useEffect(() => {
+    if (!quote || quoteStatus !== 'ready' || step !== 'form') return;
+    const due = new Date(quote.expiresAt).getTime() - Date.now() - 6000;
+    const timer = setTimeout(() => {
+      if (document.visibilityState !== 'visible') return;
+      silentRefreshRef.current = true;
+      setRefreshTick((n) => n + 1);
+    }, Math.max(due, 1000));
+    return () => clearTimeout(timer);
+  }, [quote, quoteStatus, step]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
