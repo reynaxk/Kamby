@@ -120,7 +120,7 @@ export default function LandingPage() {
             </span>
           </h2>
 
-          <LandingCta label="Launch Terminal" variant="neon" className="mt-12 px-10 py-4 text-base" />
+          <LandingCta label="Go Trade" variant="neon" className="mt-12 px-10 py-4 text-base" />
         </div>
       </section>
 
@@ -135,7 +135,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center rounded-[2rem] border border-white/5 bg-white/[0.015] px-6 py-16 text-center backdrop-blur-xl sm:py-20">
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">Next runner in</p>
             <RunnerCountdown className={`${orbitron.className} mt-4 text-[clamp(3.6rem,14vw,7.5rem)] font-black leading-none text-white`} />
-            <LandingCta label="Launch Terminal" variant="neon" className="mt-12 px-10 py-4 text-base" />
+            <LandingCta label="Go Trade" variant="neon" className="mt-12 px-10 py-4 text-base" />
           </div>
         </section>
       </main>
