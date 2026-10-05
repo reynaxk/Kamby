@@ -319,3 +319,19 @@ body:has(.kamby-void) {
   padding: 0.12rem 0.25rem;
   font-size: 0.58rem;
 }
+
+/* Landing page motion (2026-10-05) — gentle, and off for anyone who asks for less motion. */
+@keyframes kamby-float {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-46%, 26px); }
+}
+@keyframes kamby-badge-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(0, 255, 135, 0.25); text-shadow: 0 0 8px rgba(0, 255, 135, 0.45); }
+  50% { box-shadow: 0 0 30px rgba(0, 255, 135, 0.55); text-shadow: 0 0 14px rgba(0, 255, 135, 0.8); }
+}
+.kamby-float-a { animation: kamby-float 14s ease-in-out infinite; }
+.kamby-float-b { animation: kamby-float 18s ease-in-out infinite reverse; }
+.kamby-badge-pulse { animation: kamby-badge-pulse 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .kamby-float-a, .kamby-float-b, .kamby-badge-pulse { animation: none; }
+}

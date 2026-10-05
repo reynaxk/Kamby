@@ -25,7 +25,7 @@ export function LandingCta({ label = 'Get started', variant = 'primary', classNa
       className={cn(
         'rounded-xl px-6 py-3 font-display text-sm font-bold transition-all disabled:opacity-60',
         variant === 'neon'
-          ? 'bg-[#00FF87] px-8 py-3.5 text-[#05140c] shadow-[0_0_24px_rgba(0,255,135,0.35)] hover:shadow-[0_0_44px_rgba(0,255,135,0.6)] hover:brightness-105 active:scale-[0.98]'
+          ? 'bg-[#00FF87] px-8 py-3.5 text-black ring-1 ring-[#00FF87]/60 shadow-[0_0_28px_rgba(0,255,135,0.45),0_0_70px_rgba(0,255,135,0.18)] hover:shadow-[0_0_44px_rgba(0,255,135,0.75),0_0_110px_rgba(0,255,135,0.35)] hover:brightness-105 active:scale-[0.98]'
           : variant === 'primary'
             ? 'bg-accent text-accent-ink shadow-glow-accent hover:brightness-110'
             : 'border border-white/15 bg-white/[0.04] text-ink-900 backdrop-blur hover:border-[#00FF87]/50',
