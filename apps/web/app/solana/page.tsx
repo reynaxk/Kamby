@@ -8,9 +8,10 @@ import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
+import { CoinRail } from '@/components/discovery/CoinRail';
 import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
-import { fetchDiscoverMarkets, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
+import { fetchDiscoverMarkets, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
 import { formatPercent } from '@/lib/format';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
@@ -113,13 +114,25 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
     candles = await fetchSolanaHistory(market.tokenAddress, '1m');
   }
   const lastClose = candles.at(-1)?.close ?? null;
+  const feeds = await fetchMarketFeeds();
 
   return (
     <ToastProvider>
       <div className="kamby-void min-h-screen bg-bg">
         <MarketHeader />
-        {/* Chart first, trade panel second — stacked on phones, side by side from lg up. */}
-        <main className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {/* Coin list on the left (xl and up, like the terminal), chart, then trade panel —
+            stacked on phones. */}
+        <main
+          className={cn(
+            'mx-auto grid grid-cols-1 gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]',
+            feeds ? 'max-w-[1500px] xl:grid-cols-[320px_minmax(0,1fr)_380px]' : 'max-w-6xl',
+          )}
+        >
+          {feeds && (
+            <aside className="hidden h-[calc(100vh-7rem)] xl:sticky xl:top-4 xl:block">
+              <CoinRail initial={feeds} selectedKey={`solana:${market.tokenAddress}`} />
+            </aside>
+          )}
           <section className="min-w-0">
             <div className="flex flex-wrap items-end justify-between gap-2">
               {isSol ? (
