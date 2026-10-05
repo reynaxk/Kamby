@@ -6,7 +6,7 @@
  */
 const RULES: { test: RegExp; message: string }[] = [
   { test: /user (rejected|denied|cancel)|rejected the request|request rejected|cancelled by user|user closed/i, message: 'You cancelled this in your wallet — nothing was sent.' },
-  { test: /insufficient (funds|balance|lamports)|exceeds balance|not enough (funds|balance)/i, message: 'Not enough balance for this trade.' },
+  { test: /insufficient (funds|balance|lamports)|exceeds (the )?balance|not enough (funds|balance)/i, message: 'Not enough balance for this trade.' },
   { test: /blockhash not found|block height exceeded|transaction expired|expired blockhash/i, message: 'The network took too long and this trade expired — nothing was charged. Please try again.' },
   { test: /\b429\b|too many requests|rate.?limit/i, message: 'Too many requests right now — wait a few seconds and try again.' },
   { test: /failed to fetch|networkerror|network request failed|load failed|timed? ?out|timeout|econn|socket hang up/i, message: 'Connection problem — check your internet and try again.' },

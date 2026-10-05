@@ -155,6 +155,18 @@ export class QuoteService {
     if (usdc && params.side === 'BUY' && Number(params.amount) < MIN_TRADE_USD) {
       throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
     }
+    // Not enough USDC on this chain: say so plainly instead of quoting a trade the wallet then
+    // rejects with "total cost … exceeds the balance" (seen 2026-10-05: a Solana-funded user
+    // buying on Base, which also meant no gas top-up — that needs ≥$1 USDC on the chain).
+    if (usdc && this.gasTopup && params.side === 'BUY') {
+      const balanceRaw = await this.gasTopup.usdcBalance(params.chainId, walletAddress, usdc.contractAddress);
+      const neededRaw = parseInputAmount(params.amount, usdc.decimals!);
+      if (balanceRaw !== null && balanceRaw < neededRaw) {
+        const have = Number(formatUnits(balanceRaw, usdc.decimals!)).toFixed(2);
+        const chainName = params.chainId === 56 ? 'BNB Chain' : params.chainId === 8453 ? 'Base' : 'this chain';
+        throw new UnprocessableEntityException(`Not enough USDC on ${chainName} — you have $${have}. Deposit USDC on ${chainName} to trade this coin.`);
+      }
+    }
     // Kamby pays the gas: a USDC-holding wallet with no ETH/BNB gets a few cents of it first.
     if (usdc && this.gasTopup) {
       await this.gasTopup.ensureGas(params.chainId, walletAddress, { address: usdc.contractAddress, decimals: usdc.decimals! });

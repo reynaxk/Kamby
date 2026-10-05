@@ -282,6 +282,19 @@ describe('QuoteService', () => {
       expect(quote.feeUnsignedTx).not.toBeNull();
     });
 
+    it('refuses a buy with a clear message when the wallet holds less USDC on this chain than the amount — before any gas is sent', async () => {
+      (mockedPrisma.token.findFirst as jest.Mock).mockResolvedValue(USDC_QUOTE_TOKEN);
+      const router = fakeRouter();
+      const gasTopup = { usdcBalance: jest.fn().mockResolvedValue(1_500_000n), ensureGas: jest.fn() }; // $1.50 held
+      const service = new QuoteService(fakeSafety(fakeMarket()), router, fakeConfig(), fakeLogger(), gasTopup as never);
+
+      await expect(
+        service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'BUY', amount: '3', slippageBps: 50 }),
+      ).rejects.toThrow('Not enough USDC on Base — you have $1.50. Deposit USDC on Base to trade this coin.');
+      expect(gasTopup.ensureGas).not.toHaveBeenCalled();
+      expect(router.getQuote).not.toHaveBeenCalled();
+    });
+
     it('sells into USDC', async () => {
       (mockedPrisma.token.findFirst as jest.Mock).mockResolvedValue(USDC_QUOTE_TOKEN);
       const router = fakeRouter();

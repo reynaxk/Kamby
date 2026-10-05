@@ -81,6 +81,18 @@ export class EvmGasTopupService {
     this.logger.info({ address: this.account.address, chains: [...this.clients.keys()] }, 'EVM gas top-up enabled');
   }
 
+  /** The wallet's USDC on this chain, raw — or null when it can't be read (callers fail open). */
+  async usdcBalance(chainId: number, wallet: string, usdcAddress: string): Promise<bigint | null> {
+    const clients = this.clients.get(chainId);
+    if (!clients) return null;
+    try {
+      return await clients.publicClient.readContract({ address: usdcAddress as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [wallet as `0x${string}`] });
+    } catch (error) {
+      this.logger.warn({ err: error, chainId }, 'USDC balance read failed — not blocking the quote');
+      return null;
+    }
+  }
+
   async ensureGas(chainId: number, wallet: string, usdc: { address: string; decimals: number }): Promise<void> {
     const clients = this.clients.get(chainId);
     if (!clients) return;

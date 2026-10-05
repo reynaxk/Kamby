@@ -16,3 +16,9 @@ describe('friendlyError', () => {
     expect(friendlyError({ weird: true })).toBe('Something went wrong — please try again.');
   });
 });
+
+describe('friendlyError — balances', () => {
+  it("reads a wallet's gas-balance error as a plain balance problem", () => {
+    expect(friendlyError(new Error('The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.'))).toBe('Not enough balance for this trade.');
+  });
+});

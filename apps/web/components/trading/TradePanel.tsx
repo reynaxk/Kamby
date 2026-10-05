@@ -268,7 +268,8 @@ export function TradePanel({
   // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly
   // ~6s before expiry: the current quote and button stay as they are until the new one lands.
   useEffect(() => {
-    if (!quote || quoteStatus !== 'ready' || step !== 'form') return;
+    // The review step too: after a wallet error it waits there, and its quote kept expiring.
+    if (!quote || quoteStatus !== 'ready' || (step !== 'form' && step !== 'review')) return;
     const due = new Date(quote.expiresAt).getTime() - Date.now() - 6000;
     const timer = setTimeout(() => {
       if (document.visibilityState !== 'visible') return;
