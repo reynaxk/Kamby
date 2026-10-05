@@ -13,11 +13,12 @@ import { LivePriceService } from './live-price.service';
 import { PumpFunIconService } from './pumpfun-icon.service';
 import { XxxRiskService } from './xxxrisk.service';
 import { HoldersService } from './holders.service';
+import { FeedPricesService } from './feed-prices.service';
 
 @Module({
   imports: [MarketModule, TokensModule, RealtimeModule],
   controllers: [MarketFeedsController, SolanaChartController, TokenInfoController],
-  providers: [CryptoPriceService, MarketFeedsService, SolanaChartService, TokenInfoService, LivePriceService, PumpFunIconService, XxxRiskService, HoldersService],
+  providers: [CryptoPriceService, MarketFeedsService, SolanaChartService, TokenInfoService, LivePriceService, PumpFunIconService, XxxRiskService, HoldersService, FeedPricesService],
   // Positions price Solana holdings off the same live feed the charts use.
   exports: [LivePriceService],
 })

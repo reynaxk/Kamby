@@ -1,4 +1,4 @@
-import { Injectable, type MessageEvent } from '@nestjs/common';
+import { Injectable, Optional, type MessageEvent } from '@nestjs/common';
 import {
   isCuratedMarket,
   NEW_MARKET_WINDOW_HOURS,
@@ -18,6 +18,7 @@ import { TrenchesCategory } from '../tokens/trenches-category.enum';
 import { CryptoPriceService } from './crypto-price.service';
 import { PumpFunIconService } from './pumpfun-icon.service';
 import { XxxRiskService } from './xxxrisk.service';
+import { FeedPricesService } from './feed-prices.service';
 
 /** How often each tab's snapshot is rebuilt — the same 10s the underlying Redis caches use. */
 export const FEED_REFRESH_MS = 10_000;
@@ -84,7 +85,7 @@ export function toFeedMarket(market: MarketSummary, listedAtIso?: string): FeedM
 @Injectable()
 export class MarketFeedsService {
   private readonly trending$ = this.sharedTab('trending', async () => ({
-    markets: trendingMarkets(await this.market.discover(discoverQuery())).map((m) => toFeedMarket(m)),
+    markets: (await this.livePrices(trendingMarkets(await this.market.discover(discoverQuery())))).map((m) => toFeedMarket(m)),
   }));
   private readonly graduated$ = this.sharedTab('graduated', async () => this.buildGraduated());
   private readonly trenches$ = this.sharedTab('trenches', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.FRESH) }));
@@ -99,6 +100,7 @@ export class MarketFeedsService {
     private readonly logger: PinoLogger,
     private readonly icons: PumpFunIconService,
     private readonly xxxrisk: XxxRiskService,
+    @Optional() private readonly feedPrices?: FeedPricesService,
   ) {
     this.logger.setContext('MarketFeedsService');
   }
@@ -114,7 +116,7 @@ export class MarketFeedsService {
       this.xxxrisk.cached(),
     ]);
     return {
-      trending: { markets: trendingMarkets(trending).map((m) => toFeedMarket(m)), atIso },
+      trending: { markets: (await this.livePrices(trendingMarkets(trending))).map((m) => toFeedMarket(m)), atIso },
       graduated: { ...graduated, atIso },
       trenches: { tokens: trenches, atIso },
       bonding: { tokens: bonding, atIso },
@@ -145,7 +147,13 @@ export class MarketFeedsService {
       this.market.recentlyListed(NEW_MARKET_WINDOW_HOURS, GRADUATED_LIMIT),
       this.trenchesTokens(TrenchesCategory.JUST_GRADUATED, GRADUATED_LIMIT),
     ]);
-    return { markets: listed.map(({ listedAtIso, ...m }) => toFeedMarket(m, listedAtIso)), pumpfun };
+    const priced = await this.livePrices(listed);
+    return { markets: priced.map(({ listedAtIso, ...m }) => toFeedMarket(m, listedAtIso)), pumpfun };
+  }
+
+  /** Fresh DexScreener prices on every list row — see FeedPricesService. */
+  private async livePrices<T extends MarketSummary>(markets: T[]): Promise<T[]> {
+    return this.feedPrices ? this.feedPrices.apply(markets) : markets;
   }
 
   private async trenchesTokens(category: TrenchesCategory, limit = TRENCHES_LIMIT): Promise<PumpFunTokenSummary[]> {
