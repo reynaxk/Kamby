@@ -91,11 +91,15 @@ export interface MarketFeedEvents {
   crypto: { prices: CryptoPrice[]; atIso: string };
   /** Incremental: merge into trenches/bonding by mintAddress. */
   pumpfun: PumpFunLiveBatch;
+  /** Incremental (2026-10-05): only prices moved in a list since the last full snapshot — patch
+   *  rows by `${chainIdentifier}:${tokenAddress}`. A full `trending`/`graduated` event follows
+   *  whenever coins join, leave or reorder. Tuple: [priceUsd, marketCapUsd, priceChange24hPct]. */
+  prices: { tab: 'trending' | 'graduated'; prices: Record<string, [number | null, number | null, number | null]>; atIso: string };
   heartbeat: { atIso: string };
 }
 
 /** Every tab's full state — GET /v1/market/feeds, and what the stream keeps current. */
-export type MarketFeedSnapshot = Omit<MarketFeedEvents, 'pumpfun' | 'heartbeat'>;
+export type MarketFeedSnapshot = Omit<MarketFeedEvents, 'pumpfun' | 'heartbeat' | 'prices'>;
 
 /** Every tab empty — the first paint when the snapshot fetch failed; the stream fills it in. */
 export function emptyMarketFeeds(): MarketFeedSnapshot {

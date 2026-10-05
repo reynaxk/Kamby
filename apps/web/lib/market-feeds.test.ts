@@ -69,3 +69,14 @@ describe('applyFeedEvent', () => {
     expect(applyFeedEvent(start, 'heartbeat', {})).toBe(start);
   });
 });
+
+describe('applyPriceDelta', () => {
+  it('moves only the listed rows, keeping everything else', async () => {
+    const { applyPriceDelta } = await import('./market-feeds');
+    const m = (addr: string, price: number) => ({ chainIdentifier: 'solana', tokenAddress: addr, priceUsd: price, marketCapUsd: 1, priceChange24hPct: 0, symbol: addr }) as never;
+    const state = { trending: { markets: [m('A', 1), m('B', 2)], atIso: 'old' }, graduated: { markets: [], pumpfun: [], atIso: 'old' } } as never;
+    const next = applyPriceDelta(state, { tab: 'trending', prices: { 'solana:B': [3, 3e6, 50] }, atIso: 'now' }) as unknown as { trending: { markets: { priceUsd: number; marketCapUsd: number }[] } };
+    expect(next.trending.markets[0]!.priceUsd).toBe(1);
+    expect(next.trending.markets[1]).toMatchObject({ priceUsd: 3, marketCapUsd: 3e6 });
+  });
+});

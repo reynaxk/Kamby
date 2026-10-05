@@ -26,7 +26,9 @@ import { pickDefaultMarket } from '@/lib/default-market';
 import { settledOr, settledWithin } from '@/lib/settled-fetch';
 import { SignedInOnly } from '@/components/landing/SignedInOnly';
 
-const HERO_BUDGET_MS = 1200;
+// The terminal fetches anything not ready by then itself — waiting longer only delays first
+// paint (2026-10-05: the page took ~2s before sending a byte).
+const HERO_BUDGET_MS = 400;
 
 const EMPTY_TOKEN_TRADER_CONNECTION: TokenTraderConnection = {
   uniqueTraders24h: null,

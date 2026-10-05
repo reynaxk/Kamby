@@ -5,7 +5,7 @@ import type { MarketService } from '../market/market.service';
 import type { RealtimeService } from '../realtime/realtime.service';
 import type { TokenTrenchesService } from '../tokens/token-trenches.service';
 import type { CryptoPriceService } from './crypto-price.service';
-import { MarketFeedsService, mixChains, toFeedMarket, trendingMarkets } from './market-feeds.service';
+import { MarketFeedsService, mixChains, priceDelta, toFeedMarket, trendingMarkets } from './market-feeds.service';
 
 const logger = { setContext: jest.fn(), warn: jest.fn() } as unknown as PinoLogger;
 const REAL_AAVE = '0x63706e401c06ac8513145b7687A14804d17f814b'; // on the Base seed list
@@ -117,5 +117,19 @@ describe('mixChains', () => {
   it('alternates chains while keeping each chain in its own score order', () => {
     const r = [{ id: 's1', chainIdentifier: 'solana' }, { id: 's2', chainIdentifier: 'solana' }, { id: 's3', chainIdentifier: 'solana' }, { id: 'b1', chainIdentifier: 'eip155:56' }, { id: 'e1', chainIdentifier: 'eip155:8453' }];
     expect(mixChains(r).map((x) => x.id)).toEqual(['s1', 'b1', 'e1', 's2', 's3']);
+  });
+});
+
+describe('priceDelta', () => {
+  const row = (addr: string, price: number) => ({ chainIdentifier: 'solana', tokenAddress: addr, symbol: addr, priceUsd: price, marketCapUsd: price * 1e6, priceChange24hPct: 5, liquidityUsd: 1 });
+
+  it('sends only the rows whose prices moved when nothing else changed', () => {
+    expect(priceDelta([row('A', 1), row('B', 2)], [row('A', 1), row('B', 2.5)])).toEqual({ 'solana:B': [2.5, 2.5e6, 5] });
+  });
+
+  it('asks for a full snapshot when coins join, leave, reorder or change otherwise', () => {
+    expect(priceDelta([row('A', 1)], [row('A', 1), row('B', 2)])).toBeNull();
+    expect(priceDelta([row('A', 1), row('B', 2)], [row('B', 2), row('A', 1)])).toBeNull();
+    expect(priceDelta([row('A', 1)], [{ ...row('A', 1), liquidityUsd: 9 }])).toBeNull();
   });
 });

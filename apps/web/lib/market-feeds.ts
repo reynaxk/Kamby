@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { MarketFeedSnapshot, PumpFunLiveBatch, PumpFunTokenSummary } from '@kamby/domain';
+import type { MarketFeedEvents, MarketFeedSnapshot, PumpFunLiveBatch, PumpFunTokenSummary } from '@kamby/domain';
 import { API_BASE } from './session-client';
 import type { RealtimeStatus } from './social-client';
 
@@ -59,7 +59,7 @@ function connect(): void {
   source = es;
   lastEventAt = Date.now();
   setStatus('connecting');
-  for (const type of [...SNAPSHOT_EVENTS, 'pumpfun'] as const) {
+  for (const type of [...SNAPSHOT_EVENTS, 'pumpfun', 'prices'] as const) {
     es.addEventListener(type, (event) => {
       let data: unknown;
       try {
@@ -167,8 +167,22 @@ export function applyPumpFunBatch(state: MarketFeedSnapshot, batch: PumpFunLiveB
 }
 
 /** Exported for tests. Full snapshots replace their tab; `pumpfun` merges. */
+/** Exported for tests. Patches a list's rows with a price-only update (see MarketFeedEvents.prices). */
+export function applyPriceDelta(state: MarketFeedSnapshot, update: MarketFeedEvents['prices']): MarketFeedSnapshot {
+  const current = state[update.tab];
+  let changed = false;
+  const markets = current.markets.map((m) => {
+    const p = update.prices[`${m.chainIdentifier}:${m.tokenAddress}`];
+    if (!p) return m;
+    changed = true;
+    return { ...m, priceUsd: p[0], marketCapUsd: p[1], priceChange24hPct: p[2], lastPriceUpdateAt: update.atIso };
+  });
+  return changed ? { ...state, [update.tab]: { ...current, markets, atIso: update.atIso } } : state;
+}
+
 export function applyFeedEvent(state: MarketFeedSnapshot, type: string, data: unknown): MarketFeedSnapshot {
   if (type === 'pumpfun') return applyPumpFunBatch(state, data as PumpFunLiveBatch);
+  if (type === 'prices') return applyPriceDelta(state, data as MarketFeedEvents['prices']);
   if ((SNAPSHOT_EVENTS as readonly string[]).includes(type)) return { ...state, [type]: data };
   return state;
 }

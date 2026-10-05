@@ -9,7 +9,7 @@ import {
   type PumpFunTokenSummary,
 } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
-import { catchError, distinctUntilChanged, EMPTY, filter, from, interval, map, merge, type Observable, shareReplay, switchMap, timer } from 'rxjs';
+import { catchError, concat, distinctUntilChanged, EMPTY, filter, from, interval, map, merge, type Observable, pairwise, share, shareReplay, switchMap, take, timer } from 'rxjs';
 import type { DiscoverQueryDto } from '../market/dto/discover-query.dto';
 import { MarketService } from '../market/market.service';
 import { RealtimeService } from '../realtime/realtime.service';
@@ -62,6 +62,31 @@ type Snapshots = MarketFeedSnapshot;
 type TabData<K extends keyof Snapshots> = Omit<Snapshots[K], 'atIso'>;
 
 /** Every Solana market is from the curated list; an EVM market is vetted if it's on the seed list. */
+type PricedRow = { chainIdentifier: string; tokenAddress: string; priceUsd: number | null; marketCapUsd: number | null; priceChange24hPct: number | null };
+type PriceTuple = [number | null, number | null, number | null];
+const rowKey = (m: PricedRow) => `${m.chainIdentifier}:${m.tokenAddress}`;
+/** A row without its moving price fields — two snapshots with equal shapes differ only in prices. */
+const shape = (m: PricedRow) => JSON.stringify({ ...m, priceUsd: undefined, marketCapUsd: undefined, priceChange24hPct: undefined, lastPriceUpdateAt: undefined, discoveryScore: undefined });
+
+/**
+ * Exported for tests. The price-only update between two snapshots of a list, or null when they
+ * differ in more than prices (coins joined, left, reordered or changed) — then the full snapshot
+ * goes out. Only rows whose price fields actually moved are included.
+ */
+export function priceDelta(prev: readonly PricedRow[], next: readonly PricedRow[]): Record<string, PriceTuple> | null {
+  if (prev.length !== next.length) return null;
+  const prices: Record<string, PriceTuple> = {};
+  for (let i = 0; i < next.length; i++) {
+    const a = prev[i]!;
+    const b = next[i]!;
+    if (rowKey(a) !== rowKey(b) || shape(a) !== shape(b)) return null;
+    if (a.priceUsd !== b.priceUsd || a.marketCapUsd !== b.marketCapUsd || a.priceChange24hPct !== b.priceChange24hPct) {
+      prices[rowKey(b)] = [b.priceUsd, b.marketCapUsd, b.priceChange24hPct];
+    }
+  }
+  return prices;
+}
+
 export function toFeedMarket(market: MarketSummary, listedAtIso?: string): FeedMarket {
   const vetted = market.chainIdentifier === 'solana' || isCuratedMarket(market.chainIdentifier, market.tokenAddress);
   return { ...market, listing: vetted ? 'vetted' : 'new', ...(listedAtIso ? { listedAtIso } : {}) };
@@ -88,6 +113,8 @@ export class MarketFeedsService {
     markets: (await this.livePrices(trendingMarkets(await this.market.discover(discoverQuery())))).map((m) => toFeedMarket(m)),
   }));
   private readonly graduated$ = this.sharedTab('graduated', async () => this.buildGraduated());
+  private readonly trendingChanges$ = this.changes('trending', this.trending$, (d) => d.markets);
+  private readonly graduatedChanges$ = this.changes('graduated', this.graduated$, (d) => d.markets);
   private readonly trenches$ = this.sharedTab('trenches', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.FRESH) }));
   private readonly bonding$ = this.sharedTab('bonding', async () => ({ tokens: await this.trenchesTokens(TrenchesCategory.NEAR_GRADUATED) }));
   private readonly xxxrisk$ = this.sharedTab('xxxrisk', async () => ({ tokens: await this.xxxrisk.build() }));
@@ -128,8 +155,11 @@ export class MarketFeedsService {
   stream(): Observable<MessageEvent> {
     const event = <K extends keyof MarketFeedEvents>(type: K, data: MarketFeedEvents[K]): MessageEvent => ({ type, data });
     return merge(
-      this.trending$.pipe(map((d) => event('trending', d))),
-      this.graduated$.pipe(map((d) => event('graduated', d))),
+      // Trending and Graduated re-price every rebuild: after one full snapshot, a viewer gets only
+      // the prices that moved (a few KB instead of ~120 KB every 10s — 2026-10-05 measurement),
+      // and the full list again only when its coins change. Deltas are computed once, shared.
+      concat(this.trending$.pipe(take(1), map((d) => event('trending', d))), this.trendingChanges$),
+      concat(this.graduated$.pipe(take(1), map((d) => event('graduated', d))), this.graduatedChanges$),
       this.trenches$.pipe(map((d) => event('trenches', d))),
       this.bonding$.pipe(map((d) => event('bonding', d))),
       this.xxxrisk$.pipe(map((d) => event('xxxrisk', d))),
@@ -158,6 +188,21 @@ export class MarketFeedsService {
 
   private async trenchesTokens(category: TrenchesCategory, limit = TRENCHES_LIMIT): Promise<PumpFunTokenSummary[]> {
     return this.icons.attach((await this.trenches.byCategory(category, limit)) as PumpFunTokenSummary[]);
+  }
+
+  /** After the first snapshot: a shared price-only `prices` event when only prices moved, else the full snapshot. */
+  private changes<K extends 'trending' | 'graduated'>(tab: K, full$: Observable<Snapshots[K]>, rows: (d: Snapshots[K]) => readonly PricedRow[]): Observable<MessageEvent> {
+    return full$.pipe(
+      pairwise(),
+      map(([prev, next]): MessageEvent => {
+        // Graduated also carries Pump.fun coins: any change there means a full snapshot.
+        const otherChanged = tab === 'graduated' && JSON.stringify((prev as Snapshots['graduated']).pumpfun) !== JSON.stringify((next as Snapshots['graduated']).pumpfun);
+        const delta = otherChanged ? null : priceDelta(rows(prev), rows(next));
+        return delta ? { type: 'prices', data: { tab, prices: delta, atIso: next.atIso } } : { type: tab, data: next };
+      }),
+      filter((e) => e.type !== 'prices' || Object.keys((e.data as { prices: object }).prices).length > 0),
+      share(),
+    );
   }
 
   private sharedTab<K extends keyof Snapshots>(tab: K, build: () => Promise<TabData<K>>): Observable<Snapshots[K]> {
