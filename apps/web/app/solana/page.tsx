@@ -55,12 +55,36 @@ async function resolveMarket(mint: string | undefined): Promise<SolanaTradeTarge
   if (!mint || mint === NATIVE_SOL.tokenAddress) return NATIVE_SOL;
   const markets = await fetchDiscoverMarkets({ sort: 'score', limit: 5, search: mint });
   const found = markets.find((m) => m.chainIdentifier === 'solana' && m.tokenAddress === mint);
-  if (found) return { tokenAddress: found.tokenAddress, symbol: found.symbol, name: found.name, logoUrl: found.logoUrl, isNewListing: false, priceChange24hPct: found.priceChange24hPct };
+  if (found) {
+    const logoUrl = found.logoUrl ?? (await jupiterIcon(found.tokenAddress));
+    return { tokenAddress: found.tokenAddress, symbol: found.symbol, name: found.name, logoUrl, isNewListing: false, priceChange24hPct: found.priceChange24hPct };
+  }
   const pumpFun = await fetchPumpFunToken(mint);
   if (pumpFun) {
-    return { tokenAddress: pumpFun.mintAddress, symbol: pumpFun.symbol, name: pumpFun.name, logoUrl: null, isNewListing: true, onBondingCurve: !pumpFun.complete, priceChange24hPct: null };
+    return {
+      tokenAddress: pumpFun.mintAddress,
+      symbol: pumpFun.symbol,
+      name: pumpFun.name,
+      logoUrl: pumpFun.imageUrl ?? (await jupiterIcon(pumpFun.mintAddress)),
+      isNewListing: true,
+      onBondingCurve: !pumpFun.complete,
+      priceChange24hPct: null,
+    };
   }
   return NATIVE_SOL;
+}
+
+/** A coin's icon from Jupiter's free token search, when Kamby's listing has none (2026-10-05:
+ *  brand-new Pump.fun coins showed initials). Cached an hour; never blocks the page on failure. */
+async function jupiterIcon(mint: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://lite-api.jup.ag/tokens/v2/search?query=${mint}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(2500) });
+    if (!res.ok) return null;
+    const tokens = (await res.json()) as { id?: string; icon?: string }[];
+    return tokens.find((t) => t.id === mint)?.icon ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: { mint?: string } }) {
@@ -77,9 +101,16 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
   const market = await resolveMarket(searchParams.mint);
   const isSol = market === NATIVE_SOL;
-  const timeframe: ChartTimeframe =
-    searchParams.timeframe === 'live' ? 'live' : isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
-  const candles = await fetchSolanaHistory(market.tokenAddress, timeframe === 'live' ? '1m' : timeframe);
+  const requested: ChartTimeframe =
+    searchParams.timeframe === 'live' || searchParams.timeframe === '10s' ? searchParams.timeframe : isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
+  let timeframe = requested;
+  let candles = await fetchSolanaHistory(market.tokenAddress, isChartTimeframe(timeframe) ? timeframe : '1m');
+  // A brand-new coin has no candle history yet — open on 10s, built live from the price feed,
+  // instead of an empty chart (2026-10-05). Only when the visitor didn't pick a width.
+  if (candles.length < 2 && !searchParams.timeframe) {
+    timeframe = '10s';
+    candles = await fetchSolanaHistory(market.tokenAddress, '1m');
+  }
   const lastClose = candles.at(-1)?.close ?? null;
 
   return (
@@ -97,7 +128,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                   <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" chainIdentifier="solana" />
                 </h1>
               )}
-              {lastClose !== null && (
+              {!isSol && (
                 <p className="font-mono text-lg font-semibold tabular-nums text-ink-900">
                   <LivePriceText mint={market.tokenAddress} initial={lastClose} />
                   {market.priceChange24hPct !== null && (

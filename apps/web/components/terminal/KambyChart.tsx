@@ -490,8 +490,8 @@ export function KambyChart({
   if (candles.length < 2) {
     return (
       <EmptyState
-        title="Not enough price history yet"
-        detail="The ingestion worker is still building up real history for this market. Check back once it's had more time to index."
+        title="Brand-new coin — no candles at this width yet"
+        detail="Switch to Live or 10s to watch it move in real time."
       />
     );
   }

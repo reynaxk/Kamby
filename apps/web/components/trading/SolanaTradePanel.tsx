@@ -591,11 +591,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
         </div>
         <div className="flex items-center justify-between rounded-lg border border-line bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
           <span className="truncate">
-            Your wallet:{' '}
+            Your Solana wallet{' '}
             <span className="font-mono text-ink-900">
               {wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}
             </span>
-            {' — send USDC (Solana network) here to trade.'}
           </span>
           <CopyAddressButton address={wallet.address} />
         </div>

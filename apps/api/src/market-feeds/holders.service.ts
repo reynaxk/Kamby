@@ -47,6 +47,22 @@ export function fromGoPlus(token: GoPlusToken | undefined): TokenHolders | null 
   return { holderCount: Number.isFinite(count) && count > 0 ? count : null, holders: rows, atIso: new Date().toISOString() };
 }
 
+/** Exported for tests. A Solana "holder" whose address is off the ed25519 curve is a program
+ *  account — a launchpad bonding curve, an AMM pool, a vault — not a person: labelled as such,
+ *  so it never gets a whale badge (2026-10-05: a bonding curve showed as the 36% top holder). */
+export function markSolanaPrograms(holders: TokenHolders): TokenHolders {
+  return {
+    ...holders,
+    holders: holders.holders.map((h) => {
+      try {
+        return PublicKey.isOnCurve(new PublicKey(h.address).toBytes()) ? h : { ...h, isContract: true, tag: h.tag ?? 'Pool / curve' };
+      } catch {
+        return h;
+      }
+    }),
+  };
+}
+
 /**
  * A coin's largest holders for the terminal's Holders tab (user request 2026-10-04 — the tab
  * was an empty "soon" placeholder). GoPlus's free token-security API (already used for
@@ -103,9 +119,8 @@ export class HoldersService {
         : `https://api.gopluslabs.io/api/v1/token_security/${GOPLUS_EVM_CHAIN_ID[chain]}?contract_addresses=${address}`;
     const body = await this.fetchJson<{ result?: Record<string, GoPlusToken> }>(url);
     const token = body?.result ? (body.result[address] ?? body.result[address.toLowerCase()] ?? Object.values(body.result)[0]) : undefined;
-    const fromSource = fromGoPlus(token);
-    if (fromSource) return fromSource;
-    return chain === 'solana' ? this.solanaLargestAccounts(address) : null;
+    const result = fromGoPlus(token) ?? (chain === 'solana' ? await this.solanaLargestAccounts(address) : null);
+    return result && chain === 'solana' ? markSolanaPrograms(result) : result;
   }
 
   /**

@@ -72,9 +72,9 @@ function candles(count: number): Candle[] {
 describe('KambyChart — indicator picker', () => {
   afterEach(() => vi.clearAllMocks());
 
-  it('shows "Not enough price history yet" and never opens a picker for fewer than 2 candles', () => {
+  it('shows a friendly brand-new-coin note and never opens a picker for fewer than 2 candles', () => {
     render(<KambyChart candles={[]} />);
-    expect(screen.getByText(/not enough price history/i)).toBeInTheDocument();
+    expect(screen.getByText(/brand-new coin/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /indicators/i })).not.toBeInTheDocument();
   });
 
