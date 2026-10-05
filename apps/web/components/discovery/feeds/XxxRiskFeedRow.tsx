@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import type { XxxRiskFlag, XxxRiskToken } from '@kamby/domain';
 import { ChainBadge } from '@/components/market/ChainBadge';
 import { cashtag, formatCompactUsd, truncateAddress } from '@/lib/format';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 const FLAG_LABEL: Record<XxxRiskFlag, string> = {
   mintable: 'Mintable',
@@ -20,21 +20,13 @@ function age(seconds: number): string {
 
 /** One XXXRisk row: picture, age, liquidity / market cap / 5-minute volume, rug-risk flags. */
 export function XxxRiskFeedRow({ token }: { token: XxxRiskToken }) {
-  const [imageBroken, setImageBroken] = useState(false);
   return (
     <Link
       href={`/solana?mint=${encodeURIComponent(token.mintAddress)}`}
       className="flex items-center gap-2 border-b border-line/60 px-2.5 py-2.5 transition-colors hover:bg-surface-raised"
     >
       <span className="relative shrink-0">
-        {token.imageUrl && !imageBroken ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={token.imageUrl} alt="" loading="lazy" onError={() => setImageBroken(true)} className="h-9 w-9 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised font-display text-[0.78rem] font-bold text-ink-600">
-            {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
-          </span>
-        )}
+        <TokenAvatar src={token.imageUrl} seed={token.mintAddress} label={token.symbol ?? token.name} className="h-9 w-9 text-[0.85rem]" />
         <ChainBadge chain="solana" />
       </span>
       <span className="min-w-0 flex-1">

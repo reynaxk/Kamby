@@ -125,7 +125,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 <h1 className="font-display text-xl font-bold text-ink-900">Trade on Solana</h1>
               ) : (
                 <h1 className="font-display text-xl font-bold text-ink-900">
-                  <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" chainIdentifier="solana" />
+                  <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" chainIdentifier="solana" seed={market.tokenAddress} />
                 </h1>
               )}
               {!isSol && (

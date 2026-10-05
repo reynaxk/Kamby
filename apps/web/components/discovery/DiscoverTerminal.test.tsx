@@ -49,6 +49,10 @@ vi.mock('@/components/account/BalanceVisibilityContext', () => ({
 vi.mock('@/components/terminal/KambyChart', () => ({
   KambyChart: ({ candles }: { candles: Candle[] }) => <div data-testid="chart">{candles.length} candles</div>,
 }));
+// A coin with no candle history renders the live 10s chart — same test id, so the panel checks still hold.
+vi.mock('@/components/terminal/LivePriceChart', () => ({
+  LivePriceChart: ({ seedCandles }: { seedCandles: Candle[] }) => <div data-testid="chart">{seedCandles.length} candles</div>,
+}));
 vi.mock('@/components/terminal/TradePanelCard', async () => {
   const actual = await vi.importActual<typeof TradePanelCardModule>('@/components/terminal/TradePanelCard');
   return {

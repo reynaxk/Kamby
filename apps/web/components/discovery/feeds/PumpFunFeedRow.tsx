@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { ChainBadge } from '@/components/market/ChainBadge';
 import type { PumpFunTokenSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { cashtag, formatRelativeTime, truncateAddress } from '@/lib/format';
 import { solanaMarketHref } from '@/lib/solana-links';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 function lamportsToSol(raw: string): number {
   return Number(raw) / 1_000_000_000;
@@ -20,18 +20,10 @@ function lamportsToSol(raw: string): number {
  * pushes new curve state.
  */
 export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: PumpFunTokenSummary; emphasizeProgress?: boolean }) {
-  const [imageBroken, setImageBroken] = useState(false);
   const content = (
     <>
       <span className="relative shrink-0">
-        {token.imageUrl && !imageBroken ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={token.imageUrl} alt="" loading="lazy" onError={() => setImageBroken(true)} className="h-9 w-9 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised font-display text-[0.78rem] font-bold text-ink-600">
-            {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
-          </span>
-        )}
+        <TokenAvatar src={token.imageUrl} seed={token.mintAddress} label={token.symbol ?? token.name} className="h-9 w-9 text-[0.85rem]" />
         <ChainBadge chain="solana" />
       </span>
       <span className="min-w-0 flex-1">

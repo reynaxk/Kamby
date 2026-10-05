@@ -110,8 +110,8 @@ export function TokenChartCard({
           <EmptyState title="Couldn't load this chart" detail="Try again in a moment." />
         ) : candles === null ? (
           <Skeleton className="h-full w-full" />
-        ) : isTickTimeframe(timeframe) && candlesFor === '1m' ? (
-          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === '10s' ? 10 : 60} />
+        ) : (isTickTimeframe(timeframe) && candlesFor === '1m') || (!loading && candles.length < 2) ? (
+          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === 'live' ? 60 : 10} />
         ) : (
           <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} />
         )}

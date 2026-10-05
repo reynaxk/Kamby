@@ -25,14 +25,14 @@ describe('TokenIdentity', () => {
     expect(container.querySelector('.text-ink-400')).not.toBeInTheDocument();
   });
 
-  it('computes initials from the symbol when one exists', () => {
+  it('shows the first letter of the symbol when one exists', () => {
     render(<TokenIdentity symbol="FOO" name="Foo Token" logoUrl={null} />);
-    expect(screen.getByText('FO')).toBeInTheDocument();
+    expect(screen.getByText('F')).toBeInTheDocument();
   });
 
-  it('falls back to initials from the name when there is no symbol', () => {
+  it('falls back to the first letter of the name when there is no symbol', () => {
     render(<TokenIdentity symbol={null} name="Baz Token" logoUrl={null} />);
-    expect(screen.getByText('BA')).toBeInTheDocument();
+    expect(screen.getByText('B')).toBeInTheDocument();
   });
 
   it('falls back to a bare "?" initial when neither symbol nor name exists', () => {

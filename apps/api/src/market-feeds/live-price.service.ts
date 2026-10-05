@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, type OnModuleDestroy } from '@nestjs/common';
 import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain } from '@kamby/domain';
+import { prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
+import { CryptoPriceService } from './crypto-price.service';
 import { isListedCoin } from './listed-coins';
 
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
@@ -37,6 +39,15 @@ export function pricesFromPairs(pairs: DexScreenerPair[], chain: TokenInfoChain)
   return prices;
 }
 
+/** Exported for tests. A Pump.fun coin's USD price from its bonding curve's virtual reserves
+ *  (SOL has 9 decimals, Pump.fun tokens 6): SOL per token × the SOL price. */
+export function curvePriceUsd(virtualSolReserves: string, virtualTokenReserves: string, solUsd: number): number | null {
+  const sol = Number(virtualSolReserves) / 1e9;
+  const tokens = Number(virtualTokenReserves) / 1e6;
+  if (!(sol > 0) || !(tokens > 0) || !(solUsd > 0)) return null;
+  return (sol / tokens) * solUsd;
+}
+
 /**
  * Near-real-time prices for the chart's "Live" timeframe (user request 2026-09-30). One
  * batched DexScreener call per chain every 2s covers every coin anyone is currently watching
@@ -50,7 +61,10 @@ export class LivePriceService implements OnModuleDestroy {
   private timer: NodeJS.Timeout | null = null;
   private polling = false;
 
-  constructor(private readonly logger: PinoLogger) {
+  constructor(
+    private readonly logger: PinoLogger,
+    private readonly cryptoPrices: CryptoPriceService,
+  ) {
     this.logger.setContext('LivePriceService');
   }
 
@@ -127,13 +141,35 @@ export class LivePriceService implements OnModuleDestroy {
       const body = (await response.json()) as unknown;
       const prices = pricesFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain);
       const atIso = new Date().toISOString();
+      const missing: string[] = [];
       for (const address of addresses) {
         const price = prices.get(chain === 'solana' ? address : address.toLowerCase());
         if (price !== undefined) this.latest.set(this.key(chain, address), { priceUsd: price, atIso });
+        else missing.push(address);
       }
+      // A brand-new Pump.fun coin DexScreener hasn't listed yet (2026-10-05: Trenches coins had
+      // no price at all): its bonding curve, which the workers keep current on-chain, prices it.
+      if (chain === 'solana' && missing.length > 0) await this.curvePrices(missing, atIso);
     } catch (error) {
       // Keep the last known price; the next tick retries.
       this.logger.warn({ err: error }, 'DexScreener unreachable for live prices');
+    }
+  }
+
+  private async curvePrices(mints: string[], atIso: string): Promise<void> {
+    const solUsd = this.cryptoPrices.snapshot().find((p) => p.symbol === 'SOL')?.priceUsd;
+    if (!solUsd) return;
+    try {
+      const curves = await prisma.pumpFunToken.findMany({
+        where: { mintAddress: { in: mints }, complete: false },
+        select: { mintAddress: true, virtualSolReserves: true, virtualTokenReserves: true },
+      });
+      for (const curve of curves) {
+        const price = curvePriceUsd(curve.virtualSolReserves, curve.virtualTokenReserves, solUsd);
+        if (price !== null) this.latest.set(this.key('solana', curve.mintAddress), { priceUsd: price, atIso });
+      }
+    } catch (error) {
+      this.logger.warn({ err: error }, 'bonding-curve live prices unavailable');
     }
   }
 }

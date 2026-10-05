@@ -1,5 +1,5 @@
 import { badgeChainFor, ChainBadge } from './ChainBadge';
-import { cn } from '@kamby/ui';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 /**
  * No token in Phase 1 has a `logoUrl` — see docs/MARKET_DATA.md#token-discovery, the
@@ -15,6 +15,7 @@ export function TokenIdentity({
   logoUrl,
   size = 'md',
   chainIdentifier,
+  seed,
 }: {
   symbol: string | null;
   name: string | null;
@@ -22,6 +23,8 @@ export function TokenIdentity({
   size?: 'sm' | 'md' | 'lg';
   /** Shows the chain badge on the logo's corner (see ChainBadge). */
   chainIdentifier?: string;
+  /** The coin's address — gives a coin without a logo its own generated colours. */
+  seed?: string;
 }) {
   const badge = chainIdentifier ? badgeChainFor(chainIdentifier) : null;
   const display = symbol ?? name ?? '?';
@@ -30,20 +33,7 @@ export function TokenIdentity({
   return (
     <div className="flex min-w-0 items-center gap-3">
       <span className="relative shrink-0">
-      {logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt="" className={cn('shrink-0 rounded-full object-cover', dims)} />
-      ) : (
-        <div
-          aria-hidden
-          className={cn(
-            'flex shrink-0 items-center justify-center rounded-full border border-line bg-surface-raised font-display font-bold text-accent',
-            dims,
-          )}
-        >
-          {display.slice(0, 2).toUpperCase()}
-        </div>
-      )}
+      <TokenAvatar src={logoUrl} seed={seed ?? display} label={display} className={dims} />
       {badge && <ChainBadge chain={badge} className={size === 'lg' ? 'h-4 w-4' : undefined} />}
       </span>
       <div className="min-w-0">

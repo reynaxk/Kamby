@@ -267,9 +267,13 @@ export function DiscoverTerminal({
 
   const chartFor = (market: MarketSummary) => {
     const slug = slugForIdentifier(market.chainIdentifier);
-    if (isTickTimeframe(timeframe) && (slug === 'base' || slug === 'bnb')) {
+    // A coin with no candle history yet (brand new, or a pool nobody indexes) still gets a
+    // moving chart: 10-second candles built live from the price feed (2026-10-05).
+    const noHistory = candlesStatus === 'ready' && candles.length < 2;
+    if ((isTickTimeframe(timeframe) || noHistory) && (slug === 'base' || slug === 'bnb')) {
       const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
-      return <LivePriceChart key={market.tokenAddress} source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === '10s' ? 10 : 60} />;
+      const bucketSeconds = timeframe === 'live' ? 60 : 10;
+      return <LivePriceChart key={`${market.tokenAddress}:${bucketSeconds}`} source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={bucketSeconds} />;
     }
     return <KambyChart candles={candles} trades={filteredTrades} chartStyle={chartStyle} />;
   };

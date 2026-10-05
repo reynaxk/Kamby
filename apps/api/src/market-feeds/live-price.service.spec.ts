@@ -1,4 +1,4 @@
-import { pricesFromPairs } from './live-price.service';
+import { curvePriceUsd, pricesFromPairs } from './live-price.service';
 
 describe('pricesFromPairs', () => {
   it('uses only pairs where the coin is the base token, the deepest one winning', () => {
@@ -20,5 +20,18 @@ describe('pricesFromPairs', () => {
     const prices = pricesFromPairs([{ baseToken: { address: 'DezXAZ8z' }, priceUsd: '0.00000377' }], 'solana');
     expect(prices.get('DezXAZ8z')).toBe(0.00000377);
     expect(prices.has('dezxaz8z')).toBe(false);
+  });
+});
+
+describe('curvePriceUsd', () => {
+  it("prices a Pump.fun coin from its bonding curve: SOL per token × SOL's price", () => {
+    // A fresh curve: 30 virtual SOL against 1,073,000,000 virtual tokens, SOL at $150.
+    expect(curvePriceUsd('30000000000', '1073000000000000', 150)).toBeCloseTo((30 / 1_073_000_000) * 150, 12);
+  });
+
+  it('never invents a price from empty reserves or an unknown SOL price', () => {
+    expect(curvePriceUsd('0', '1073000000000000', 150)).toBeNull();
+    expect(curvePriceUsd('30000000000', '0', 150)).toBeNull();
+    expect(curvePriceUsd('30000000000', '1073000000000000', 0)).toBeNull();
   });
 });

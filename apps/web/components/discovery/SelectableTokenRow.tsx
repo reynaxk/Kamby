@@ -1,12 +1,12 @@
 'use client';
 
 import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/domain';
-import { useState } from 'react';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/format';
 import { Sparkline } from '@/components/market/Sparkline';
 import { NewListingBadge } from './feeds/NewListingBadge';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
@@ -29,7 +29,6 @@ export function SelectableTokenRow({
 }) {
   const isUp = (market.priceChange24hPct ?? 0) >= 0;
   // A dead logo link (common for brand-new coins) falls back to the coin's initial.
-  const [logoBroken, setLogoBroken] = useState(false);
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const chainLabel = chainSlug
     ? CHAIN_REGISTRY[chainSlug].name
@@ -67,26 +66,12 @@ export function SelectableTokenRow({
         />
       )}
       <span className="relative shrink-0">
-      {market.logoUrl && !logoBroken ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={market.logoUrl}
-          alt=""
-          onError={() => setLogoBroken(true)}
-          className="terminal-token-avatar h-9 w-9 shrink-0 rounded-full object-cover"
-        />
-      ) : (
-        <span
-          className={cn(
-            'terminal-token-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-[0.78rem] font-bold',
-            selected
-              ? 'bg-accent/15 text-accent shadow-glow-accent'
-              : 'bg-surface-raised text-ink-600',
-          )}
-        >
-          {(market.symbol ?? market.tokenAddress).slice(0, 1).toUpperCase()}
-        </span>
-      )}
+      <TokenAvatar
+        src={market.logoUrl}
+        seed={market.tokenAddress}
+        label={market.symbol ?? market.tokenAddress}
+        className={cn('terminal-token-avatar h-9 w-9 text-[0.85rem]', selected && 'ring-2 ring-accent/60')}
+      />
       {badgeChainFor(market.chainIdentifier) && <ChainBadge chain={badgeChainFor(market.chainIdentifier)!} />}
       </span>
       <span className="min-w-0 flex-1">

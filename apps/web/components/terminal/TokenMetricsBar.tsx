@@ -13,6 +13,7 @@ import { LowLiquidityBadge } from '@/components/market/LowLiquidityBadge';
 import { PriceChange } from '@/components/market/PriceChange';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { WatchButton } from '@/components/market/WatchButton';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 /**
  * Top metrics strip in the terminal, ported to production 2026-09-16 — see
@@ -37,17 +38,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
   return (
     <Surface className="kamby-token-metrics flex flex-wrap items-center gap-x-5 gap-y-2 px-3.5 py-2.5">
       <div className="flex min-w-[180px] flex-1 items-center gap-2.5">
-        {market.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={market.logoUrl} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
-        ) : (
-          <span
-            aria-hidden
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-sm font-bold text-accent"
-          >
-            {display.slice(0, 1).toUpperCase()}
-          </span>
-        )}
+        <TokenAvatar src={market.logoUrl} seed={market.tokenAddress} label={display} className="h-8 w-8 text-sm" />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-display text-sm font-bold tracking-tight text-ink-900">
