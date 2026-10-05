@@ -3,28 +3,25 @@
 import { motion } from 'framer-motion';
 
 export interface LandingFeature {
-  icon: string;
   title: string;
   body: string;
 }
 
-/** The landing page's feature grid: glass panels that rise in as they scroll into view. */
+/** The landing page's features: quiet text panels that rise in on scroll; a thin green border on hover. */
 export function FeatureCards({ features }: { features: readonly LandingFeature[] }) {
   return (
-    <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
       {features.map((f, i) => (
         <motion.div
           key={f.title}
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.45, delay: (i % 3) * 0.08, ease: 'easeOut' }}
-          className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md transition-[border-color,box-shadow] duration-300 hover:border-[#00FF87]/45 hover:shadow-[0_0_28px_rgba(0,255,135,0.12)]"
+          transition={{ duration: 0.45, delay: (i % 3) * 0.07, ease: 'easeOut' }}
+          className="rounded-xl border border-transparent px-4 py-5 transition-colors duration-300 hover:border-[#00FF87]/30"
         >
-          <div aria-hidden className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[radial-gradient(closest-side,rgba(0,255,135,0.2),transparent)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#00FF87]/30 bg-[#00FF87]/10 text-lg">{f.icon}</div>
-          <h3 className="mt-4 font-display text-base font-bold text-white">{f.title}</h3>
-          <p className="mt-1.5 font-body text-sm leading-relaxed text-[#94A3B8]">{f.body}</p>
+          <h3 className="font-display text-[0.95rem] font-bold tracking-tight text-white">{f.title}</h3>
+          <p className="mt-2 font-body text-[0.84rem] leading-[1.7] text-[#64748B]">{f.body}</p>
         </motion.div>
       ))}
     </div>

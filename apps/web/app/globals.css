@@ -50,7 +50,7 @@ body {
 /* Every dark page is dark to the very bottom — the layout's ticker gap below the footer
    showed the light body background as a white strip (landing 10-04, then coin pages). */
 body:has(.kamby-void) {
-  background-color: rgb(8 10 15);
+  background-color: rgb(8 10 14);
 }
 
 /*
@@ -332,6 +332,11 @@ body:has(.kamby-void) {
 .kamby-float-a { animation: kamby-float 14s ease-in-out infinite; }
 .kamby-float-b { animation: kamby-float 18s ease-in-out infinite reverse; }
 .kamby-badge-pulse { animation: kamby-badge-pulse 2.4s ease-in-out infinite; }
+@keyframes kamby-wordmark-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.8; }
+}
+.kamby-wordmark-pulse { animation: kamby-wordmark-pulse 3.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .kamby-float-a, .kamby-float-b, .kamby-badge-pulse { animation: none; }
+  .kamby-float-a, .kamby-float-b, .kamby-badge-pulse, .kamby-wordmark-pulse { animation: none; }
 }
