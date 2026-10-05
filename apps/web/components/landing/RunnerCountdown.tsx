@@ -2,24 +2,23 @@
 
 import { useEffect, useState } from 'react';
 
-const CYCLE_S = 195; // 03:15, then round again
 
 /**
  * The closing panel's digital countdown (owner request 2026-10-05). Decorative: it loops
- * every 3:15 rather than counting to a real event — new coins launch every few seconds and
+ * every `cycleSeconds` (2:47 by default) rather than counting to a real event — new coins launch every few seconds and
  * nothing schedules "the next runner". Starts on the client only, so the static page never
  * renders a mismatched time. `className` sets the type (font, size, colour) of the digits.
  */
-export function RunnerCountdown({ className }: { className?: string }) {
+export function RunnerCountdown({ className, cycleSeconds = 167 }: { className?: string; cycleSeconds?: number }) {
   const [left, setLeft] = useState<number | null>(null);
   useEffect(() => {
     const start = Date.now();
-    const tick = () => setLeft(CYCLE_S - (Math.floor((Date.now() - start) / 1000) % CYCLE_S));
+    const tick = () => setLeft(cycleSeconds - (Math.floor((Date.now() - start) / 1000) % cycleSeconds));
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, []);
-  const s = left ?? CYCLE_S;
+  }, [cycleSeconds]);
+  const s = left ?? cycleSeconds;
   const mm = String(Math.floor(s / 60)).padStart(2, '0');
   const ss = String(s % 60).padStart(2, '0');
   return (
