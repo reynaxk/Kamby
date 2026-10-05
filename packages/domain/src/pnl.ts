@@ -200,6 +200,8 @@ export type Leaderboard = z.infer<typeof LeaderboardSchema>;
  *  /trades for realized PnL and full trade history instead, which already cover that. */
 export const TokenPositionSchema = z.object({
   tokenAddress: z.string(),
+  /** 'solana' for a Solana mint; absent (EVM) on older responses. Added 2026-10-05. */
+  chain: z.enum(['evm', 'solana']).optional(),
   symbol: z.string().nullable(),
   name: z.string().nullable(),
   logoUrl: z.string().nullable(),

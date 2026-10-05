@@ -5,12 +5,21 @@ jest.mock('@kamby/db', () => ({
   prisma: {
     tokenLot: { findMany: jest.fn() },
     token: { findMany: jest.fn() },
+    solanaTokenMarket: { findMany: jest.fn().mockResolvedValue([]) },
+    pumpFunToken: { findMany: jest.fn().mockResolvedValue([]) },
     tokenMarket: { findMany: jest.fn() },
     realizedPnlEvent: { findMany: jest.fn() },
   },
 }));
 
 const mockedPrisma = jest.mocked(prisma, { shallow: true });
+
+/** These tests cover EVM positions: the Solana lots query gets none (the mock ignores `where`). */
+function evmLotsOnly(lots: unknown[]) {
+  (mockedPrisma.tokenLot.findMany as jest.Mock).mockImplementation(({ where }: { where: { chain: string } }) =>
+    Promise.resolve(where.chain === 'EVM' ? lots : []),
+  );
+}
 
 const TOKEN_ADDRESS = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
@@ -35,7 +44,7 @@ describe('PositionService', () => {
   });
 
   it('returns an empty list without any further queries when the user has no lots at all', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([]);
+    evmLotsOnly([]);
 
     const result = await service.getMine('user-1');
 
@@ -44,7 +53,7 @@ describe('PositionService', () => {
   });
 
   it('computes quantity/cost-basis/unrealized PnL for a real open position', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([
+    evmLotsOnly([
       { evmTokenId: 'token-1', quantityOriginalRaw: '1000000000000000000', quantityRemainingRaw: '1000000000000000000', costBasisUsd: 100 },
     ]);
     (mockedPrisma.token.findMany as jest.Mock).mockResolvedValue([fakeToken()]);
@@ -55,6 +64,7 @@ describe('PositionService', () => {
     expect(result).toEqual([
       {
         tokenAddress: TOKEN_ADDRESS,
+        chain: 'evm',
         symbol: 'FOO',
         name: 'Foo Token',
         logoUrl: null,
@@ -69,7 +79,7 @@ describe('PositionService', () => {
   });
 
   it('never fabricates a quantity for a token whose decimals are still unresolved — skips it entirely', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([
+    evmLotsOnly([
       { evmTokenId: 'token-1', quantityOriginalRaw: '1000000000000000000', quantityRemainingRaw: '1000000000000000000', costBasisUsd: 100 },
     ]);
     (mockedPrisma.token.findMany as jest.Mock).mockResolvedValue([fakeToken({ decimals: null })]);
@@ -81,7 +91,7 @@ describe('PositionService', () => {
   });
 
   it('excludes a fully-closed position (zero remaining across all its lots) — realized PnL/trade history cover that, not this endpoint', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([
+    evmLotsOnly([
       { evmTokenId: 'token-1', quantityOriginalRaw: '1000000000000000000', quantityRemainingRaw: '0', costBasisUsd: 100 },
     ]);
     (mockedPrisma.token.findMany as jest.Mock).mockResolvedValue([fakeToken()]);
@@ -93,7 +103,7 @@ describe('PositionService', () => {
   });
 
   it('sums multiple lots of the same token into one position', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([
+    evmLotsOnly([
       { evmTokenId: 'token-1', quantityOriginalRaw: '1000000000000000000', quantityRemainingRaw: '1000000000000000000', costBasisUsd: 100 },
       { evmTokenId: 'token-1', quantityOriginalRaw: '2000000000000000000', quantityRemainingRaw: '1000000000000000000', costBasisUsd: 300 },
     ]);
@@ -108,7 +118,7 @@ describe('PositionService', () => {
   });
 
   it('reports a null price/value/PnL — never a stale or fabricated figure — when no market has priced this token yet', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([
+    evmLotsOnly([
       { evmTokenId: 'token-1', quantityOriginalRaw: '1000000000000000000', quantityRemainingRaw: '1000000000000000000', costBasisUsd: 100 },
     ]);
     (mockedPrisma.token.findMany as jest.Mock).mockResolvedValue([fakeToken()]);
@@ -120,7 +130,7 @@ describe('PositionService', () => {
   });
 
   it('picks the first (highest-liquidity, per the query\'s own orderBy) priced market when a token trades through several pools', async () => {
-    (mockedPrisma.tokenLot.findMany as jest.Mock).mockResolvedValue([
+    evmLotsOnly([
       { evmTokenId: 'token-1', quantityOriginalRaw: '1000000000000000000', quantityRemainingRaw: '1000000000000000000', costBasisUsd: 100 },
     ]);
     (mockedPrisma.token.findMany as jest.Mock).mockResolvedValue([fakeToken()]);
@@ -182,5 +192,22 @@ describe('PositionService#getMyPnlHistory', () => {
     expect(mockedPrisma.realizedPnlEvent.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: expect.objectContaining({ userId: 'user-42' }) }),
     );
+  });
+});
+
+describe('PositionService — Solana', () => {
+  it('shows a Solana coin bought through Kamby, priced off the live feed', async () => {
+    const MINT = 'CscZaq5twomhUkvCY8Jdd1tge32L4Yj9FbkFFEZQpump';
+    (mockedPrisma.tokenLot.findMany as jest.Mock).mockImplementation(({ where }: { where: { chain: string } }) =>
+      Promise.resolve(where.chain === 'SOLANA' ? [{ solanaMint: MINT, quantityOriginalRaw: '1470992210', quantityRemainingRaw: '1470992210', costBasisUsd: 2.67 }] : []),
+    );
+    (mockedPrisma.pumpFunToken.findMany as jest.Mock).mockResolvedValue([{ mintAddress: MINT, symbol: 'CAT', name: 'Cat' }]);
+    const livePrices = { price: jest.fn().mockResolvedValue({ priceUsd: 0.002, atIso: '' }) };
+
+    const [position] = await new PositionService(livePrices as never).getMine('user-1');
+
+    expect(position).toMatchObject({ tokenAddress: MINT, chain: 'solana', symbol: 'CAT', costBasisUsd: 2.67 });
+    expect(position!.quantity).toBeCloseTo(1470.99221, 5); // Pump.fun coins have 6 decimals
+    expect(position!.currentValueUsd).toBeCloseTo(1470.99221 * 0.002, 6);
   });
 });

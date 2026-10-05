@@ -444,7 +444,7 @@ describe('GasRelayerService', () => {
 
     await expect(
       service().submitSponsoredTransaction({ userId: 'user-1', walletAddress: USER_WALLET, quoteId: QUOTE_ID, partiallySignedTxBase64: toBase64(tx) }),
-    ).rejects.toThrow(/failed simulation/i);
+    ).rejects.toThrow(/would fail right now/i);
     expect(mockSendTransaction).not.toHaveBeenCalled();
   });
 

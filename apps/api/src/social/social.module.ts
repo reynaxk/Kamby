@@ -1,3 +1,4 @@
+import { MarketFeedsModule } from '../market-feeds/market-feeds.module';
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { MarketModule } from '../market/market.module';
@@ -37,7 +38,7 @@ import { SocialController } from './social.controller';
  * a one-way dependency, SolanaModule doesn't import this module back.
  */
 @Module({
-  imports: [IdentityModule, RealtimeModule, NotificationsModule, MarketModule, SolanaModule],
+  imports: [IdentityModule, RealtimeModule, NotificationsModule, MarketModule, SolanaModule, MarketFeedsModule],
   controllers: [SocialController],
   providers: [
     ActivityService,

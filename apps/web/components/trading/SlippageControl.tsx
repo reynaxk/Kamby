@@ -9,9 +9,12 @@ const PRESETS_BPS = [10, 50, 100]; // 0.1% / 0.5% / 1%
 /** Exported for tests. "Auto" slippage: ~2× the quote's price impact plus 0.5%, kept within
  *  1–5% — tight for liquid coins, enough room that thin memecoin trades don't keep failing.
  *  1% before any quote exists. */
-export function autoSlippageBps(priceImpactBps: number | null | undefined): number {
-  if (priceImpactBps === null || priceImpactBps === undefined) return 100;
-  return Math.min(500, Math.max(100, Math.round((2 * priceImpactBps + 50) / 10) * 10));
+export function autoSlippageBps(priceImpactBps: number | null | undefined, volatile = false): number {
+  // Brand-new and bonding-curve coins can move 10% between quote and send — at 1–5% their
+  // trades kept failing Jupiter's slippage check (error 6001, 2026-10-05). They get 5–15%.
+  const [floor, cap] = volatile ? [500, 1500] : [100, 500];
+  if (priceImpactBps === null || priceImpactBps === undefined) return floor;
+  return Math.min(cap, Math.max(floor, Math.round((2 * priceImpactBps + 50) / 10) * 10));
 }
 
 function formatBpsAsPercent(bps: number): string {

@@ -7,6 +7,7 @@ import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
+import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
@@ -157,7 +158,10 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
 
           <aside>
             <div className="rounded-2xl border border-line bg-surface p-4">
-              <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} />
+              <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
+            </div>
+            <div className="mt-3">
+              <MyPositionsPanel />
             </div>
             <TokenLinks chain="solana" address={market.tokenAddress} cardTitle={`About $${market.symbol}`} />
           </aside>

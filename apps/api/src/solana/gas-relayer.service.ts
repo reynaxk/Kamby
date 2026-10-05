@@ -222,7 +222,11 @@ export class GasRelayerService {
     const simulation = await connection.simulateTransaction(transaction, { sigVerify: false, replaceRecentBlockhash: true });
     if (simulation.value.err) {
       this.logger.warn({ err: simulation.value.err }, 'gas relayer transaction failed simulation');
-      throw new UnprocessableEntityException('This transaction failed simulation and was not sponsored');
+      // Jupiter 6001 = SlippageToleranceExceeded: the price moved past the user's slippage.
+      const slippage = JSON.stringify(simulation.value.err).includes('"Custom":6001');
+      throw new UnprocessableEntityException(
+        slippage ? 'Price moved more than your slippage allows — try again, or raise slippage.' : 'This trade would fail right now — nothing was sent. Please try again.',
+      );
     }
 
     // 8. Hard balance-ceiling backstop — defense in depth, not the primary control (step 6
@@ -238,7 +242,22 @@ export class GasRelayerService {
     //    make this fee payer's real net cost lower than this worst-case bound, never higher.
     const feeResult = await connection.getFeeForMessage(transaction.message, 'confirmed');
     const signatureFeeLamports = feeResult.value ?? 0;
-    const ataCreateCount = resolvedInstructions.filter((ix) => ix.programId === ASSOCIATED_TOKEN_PROGRAM_ID.toBase58()).length;
+    // Only accounts that don't exist yet cost rent: Jupiter adds an idempotent create for every
+    // account the route touches, even ones the user already has (a sell's USDC account) — and
+    // a create of an existing account is free. Counting them all rejected ordinary sells as
+    // "over the ceiling" (2026-10-05: 2 existing accounts priced at 0.0041 SOL vs a 0.003 cap).
+    // Unreadable lookups are counted, so the bound can only ever be conservative.
+    const ataCreates = resolvedInstructions.filter((ix) => ix.programId === ASSOCIATED_TOKEN_PROGRAM_ID.toBase58());
+    let ataCreateCount = ataCreates.length;
+    if (ataCreates.length > 0) {
+      try {
+        const targets = ataCreates.map((ix) => new PublicKey(ix.accounts[1]!));
+        const existing = await connection.getMultipleAccountsInfo(targets, 'confirmed');
+        ataCreateCount = existing.filter((info) => info === null).length;
+      } catch (error) {
+        this.logger.warn({ err: error }, 'gas relayer: could not check which token accounts exist — pricing every create as new');
+      }
+    }
     const worstCaseLamports = signatureFeeLamports + ataCreateCount * ATA_RENT_LAMPORTS;
     if (worstCaseLamports > this.maxLamportsCeiling) {
       this.logger.warn({ worstCaseLamports, ceiling: this.maxLamportsCeiling }, 'gas relayer rejected: worst-case cost exceeds ceiling');

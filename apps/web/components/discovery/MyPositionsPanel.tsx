@@ -6,6 +6,7 @@ import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
 import { formatCompactUsd, formatPercent, formatSignedCompactUsd, priceDirection, cashtag } from '@/lib/format';
 import { fetchMyPositions, hasStoredSession } from '@/lib/discovery-client';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 const POLL_INTERVAL_MS = 30_000;
 
@@ -68,12 +69,15 @@ export function MyPositionsPanel() {
                 aria-expanded={isExpanded}
                 className="flex w-full items-center justify-between gap-2 p-2.5 text-left"
               >
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-2">
+                  <TokenAvatar src={position.logoUrl} seed={position.tokenAddress} label={position.symbol ?? position.name} className="h-7 w-7 text-xs" />
+                  <div className="min-w-0">
                   <div className="truncate font-display text-sm font-semibold text-ink-900">
                     {position.symbol ? cashtag(position.symbol) : 'Unknown'}
                   </div>
                   <div className={cn('font-mono text-[0.65rem] text-ink-400', hidden && 'blur-sm select-none')}>
                     {formatCompactUsd(position.costBasisUsd)} cost basis
+                  </div>
                   </div>
                 </div>
                 <div className={cn('shrink-0 text-right font-mono text-xs tabular-nums', hidden && 'blur-sm select-none')}>
@@ -92,6 +96,11 @@ export function MyPositionsPanel() {
                     {formatSignedCompactUsd(position.unrealizedPnlUsd)} ({formatPercent(position.unrealizedPnlPct)})
                   </span>{' '}
                   vs. your {formatCompactUsd(position.costBasisUsd)} cost basis.
+                  {position.chain === 'solana' && (
+                    <a href={`/solana?mint=${position.tokenAddress}`} className="mt-2 block font-semibold text-accent hover:underline">
+                      Open to sell →
+                    </a>
+                  )}
                 </div>
               )}
             </div>

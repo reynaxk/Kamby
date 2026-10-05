@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { prisma } from '@kamby/db';
 import type { PnlHistory, PnlHistoryPoint, TokenPosition } from '@kamby/domain';
 import { formatUnits } from 'viem';
+import { LivePriceService } from '../../market-feeds/live-price.service';
+
+/** Pump.fun coins (and almost every launchpad coin) use 6 decimals. */
+const PUMPFUN_DECIMALS = 6;
+const MAX_SOLANA_POSITIONS = 20;
 
 /**
  * A signed-in user's currently-open positions — see TokenPositionSchema's own doc comment
@@ -13,7 +18,73 @@ import { formatUnits } from 'viem';
  */
 @Injectable()
 export class PositionService {
+  constructor(@Optional() private readonly livePrices?: LivePriceService) {}
+
   async getMine(userId: string): Promise<TokenPosition[]> {
+    const [evm, solana] = await Promise.all([this.evmPositions(userId), this.solanaPositions(userId)]);
+    return [...evm, ...solana].sort((a, b) => (b.currentValueUsd ?? 0) - (a.currentValueUsd ?? 0));
+  }
+
+  /**
+   * Solana holdings (2026-10-05: a user bought a Solana coin and saw no position anywhere —
+   * positions were EVM-only). Lots come from the same ledger; the price is the live feed the
+   * charts use (DexScreener, or a brand-new coin's bonding curve), the name from Kamby's
+   * listing or the Pump.fun record.
+   */
+  private async solanaPositions(userId: string): Promise<TokenPosition[]> {
+    const lots = await prisma.tokenLot.findMany({
+      where: { userId, chain: 'SOLANA', solanaMint: { not: null }, quantityRemainingRaw: { not: '0' } },
+      select: { solanaMint: true, quantityOriginalRaw: true, quantityRemainingRaw: true, costBasisUsd: true },
+    });
+    if (lots.length === 0) return [];
+    const lotsByMint = new Map<string, typeof lots>();
+    for (const lot of lots) lotsByMint.set(lot.solanaMint!, [...(lotsByMint.get(lot.solanaMint!) ?? []), lot]);
+    const mints = [...lotsByMint.keys()].slice(0, MAX_SOLANA_POSITIONS);
+    const [listed, pumpFun, prices] = await Promise.all([
+      prisma.solanaTokenMarket.findMany({ where: { mintAddress: { in: mints } }, select: { mintAddress: true, symbol: true, name: true, decimals: true, logoUrl: true } }),
+      prisma.pumpFunToken.findMany({ where: { mintAddress: { in: mints } }, select: { mintAddress: true, symbol: true, name: true } }),
+      Promise.all(mints.map((mint) => (this.livePrices ? this.livePrices.price('solana', mint).catch(() => null) : Promise.resolve(null)))),
+    ]);
+    const listedByMint = new Map(listed.map((m) => [m.mintAddress, m]));
+    const pumpByMint = new Map(pumpFun.map((t) => [t.mintAddress, t]));
+
+    return mints.flatMap((mint, i): TokenPosition[] => {
+      const meta = listedByMint.get(mint);
+      const pump = pumpByMint.get(mint);
+      const decimals = meta?.decimals ?? (pump ? PUMPFUN_DECIMALS : null);
+      if (decimals === null) return []; // never compute a quantity off unknown decimals
+      let remainingRaw = 0n;
+      let remainingCostBasisUsd = 0;
+      for (const lot of lotsByMint.get(mint)!) {
+        const original = BigInt(lot.quantityOriginalRaw);
+        const remaining = BigInt(lot.quantityRemainingRaw);
+        remainingRaw += remaining;
+        if (original > 0n) remainingCostBasisUsd += Number(lot.costBasisUsd) * (Number(remaining) / Number(original));
+      }
+      if (remainingRaw <= 0n) return [];
+      const quantity = Number(formatUnits(remainingRaw, decimals));
+      const currentPriceUsd = prices[i]?.priceUsd ?? null;
+      const currentValueUsd = currentPriceUsd !== null ? quantity * currentPriceUsd : null;
+      const unrealizedPnlUsd = currentValueUsd !== null ? currentValueUsd - remainingCostBasisUsd : null;
+      return [
+        {
+          tokenAddress: mint,
+          chain: 'solana',
+          symbol: meta?.symbol ?? pump?.symbol ?? null,
+          name: meta?.name ?? pump?.name ?? null,
+          logoUrl: meta?.logoUrl ?? null,
+          quantity,
+          costBasisUsd: remainingCostBasisUsd,
+          currentPriceUsd,
+          currentValueUsd,
+          unrealizedPnlUsd,
+          unrealizedPnlPct: unrealizedPnlUsd !== null && remainingCostBasisUsd > 0 ? (unrealizedPnlUsd / remainingCostBasisUsd) * 100 : null,
+        },
+      ];
+    });
+  }
+
+  private async evmPositions(userId: string): Promise<TokenPosition[]> {
     const lots = await prisma.tokenLot.findMany({
       where: { userId, chain: 'EVM', evmTokenId: { not: null } },
       select: { evmTokenId: true, quantityOriginalRaw: true, quantityRemainingRaw: true, costBasisUsd: true },
@@ -77,6 +148,7 @@ export class PositionService {
 
       positions.push({
         tokenAddress: token.contractAddress,
+        chain: 'evm',
         symbol: token.symbol,
         name: token.name,
         logoUrl: token.logoUrl,

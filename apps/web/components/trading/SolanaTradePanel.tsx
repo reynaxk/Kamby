@@ -34,6 +34,8 @@ export interface SolanaTradePanelProps {
   tokenMint: string;
   tokenSymbol: string | null;
   initialSide?: TradeSide;
+  /** A brand-new or bonding-curve coin — Auto slippage allows more room (see autoSlippageBps). */
+  volatile?: boolean;
 }
 
 type Step = 'form' | 'review' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
@@ -98,7 +100,7 @@ function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string
  * where both sides used the same highlight color would defeat the point of the color
  * coding), via the `up`/`down` tokens instead.
  */
-export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }: SolanaTradePanelProps) {
+export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false }: SolanaTradePanelProps) {
   const { ready, authenticated, login } = usePrivy();
   const { wallets, ready: walletsReady } = useWallets();
   const wallet = wallets[0];
@@ -145,7 +147,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const [amount, setAmount] = useState('');
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
-  const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null));
+  const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));
   const [manualSlippageBps, setManualSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
   const slippageBps = autoSlippage ? autoBps : manualSlippageBps;
   const jitoTipLamports = 0; // Jito tips only apply to self-paid trades, which no longer exist
@@ -158,8 +160,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY' }
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
   // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
   useEffect(() => {
-    if (autoSlippage && quote) setAutoBps(autoSlippageBps(quote.priceImpactBps));
-  }, [autoSlippage, quote]);
+    if (autoSlippage && quote) setAutoBps(autoSlippageBps(quote.priceImpactBps, volatile));
+  }, [autoSlippage, quote, volatile]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
