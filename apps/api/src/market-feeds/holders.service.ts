@@ -119,7 +119,13 @@ export class HoldersService {
         : `https://api.gopluslabs.io/api/v1/token_security/${GOPLUS_EVM_CHAIN_ID[chain]}?contract_addresses=${address}`;
     const body = await this.fetchJson<{ result?: Record<string, GoPlusToken> }>(url);
     const token = body?.result ? (body.result[address] ?? body.result[address.toLowerCase()] ?? Object.values(body.result)[0]) : undefined;
-    const result = fromGoPlus(token) ?? (chain === 'solana' ? await this.solanaLargestAccounts(address) : null);
+    // GoPlus sometimes knows only the pool (2026-10-05: "1 holder, 100%" on a graduated coin) —
+    // a Solana answer with under 3 holders is re-read from the chain, keeping whichever is fuller.
+    let result = fromGoPlus(token);
+    if (chain === 'solana' && (result === null || result.holders.length < 3)) {
+      const fromChain = await this.solanaLargestAccounts(address);
+      if (fromChain && fromChain.holders.length > (result?.holders.length ?? 0)) result = { ...fromChain, holderCount: result?.holderCount && result.holderCount > 1 ? result.holderCount : null };
+    }
     return result && chain === 'solana' ? markSolanaPrograms(result) : result;
   }
 
