@@ -70,13 +70,16 @@ describe('applyFeedEvent', () => {
   });
 });
 
-describe('applyPriceDelta', () => {
-  it('moves only the listed rows, keeping everything else', async () => {
-    const { applyPriceDelta } = await import('./market-feeds');
-    const m = (addr: string, price: number) => ({ chainIdentifier: 'solana', tokenAddress: addr, priceUsd: price, marketCapUsd: 1, priceChange24hPct: 0, symbol: addr }) as never;
-    const state = { trending: { markets: [m('A', 1), m('B', 2)], atIso: 'old' }, graduated: { markets: [], pumpfun: [], atIso: 'old' } } as never;
-    const next = applyPriceDelta(state, { tab: 'trending', prices: { 'solana:B': [3, 3e6, 50] }, atIso: 'now' }) as unknown as { trending: { markets: { priceUsd: number; marketCapUsd: number }[] } };
-    expect(next.trending.markets[0]!.priceUsd).toBe(1);
-    expect(next.trending.markets[1]).toMatchObject({ priceUsd: 3, marketCapUsd: 3e6 });
+describe('applyListPatch', () => {
+  it('reorders, re-prices and adds rows from a patch, leaving other tabs alone', async () => {
+    const { applyListPatch } = await import('./market-feeds');
+    const m = (addr: string, price: number) => ({ chainIdentifier: 'solana', tokenAddress: addr, priceUsd: price, symbol: addr });
+    const state = { trending: { markets: [m('A', 1), m('B', 2)], atIso: 'old' }, trenches: { tokens: [], atIso: 'old' } } as never;
+    const next = applyListPatch(state, { tab: 'trending', lists: { markets: { order: ['solana:B', 'solana:C'], rows: { 'solana:B': { priceUsd: 3 }, 'solana:C': m('C', 7) } } }, atIso: 'now' }) as unknown as {
+      trending: { markets: { tokenAddress: string; priceUsd: number }[] };
+      trenches: unknown;
+    };
+    expect(next.trending.markets.map((r) => [r.tokenAddress, r.priceUsd])).toEqual([['B', 3], ['C', 7]]);
+    expect(next.trenches).toBe((state as unknown as { trenches: unknown }).trenches);
   });
 });

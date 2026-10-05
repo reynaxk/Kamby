@@ -91,15 +91,65 @@ export interface MarketFeedEvents {
   crypto: { prices: CryptoPrice[]; atIso: string };
   /** Incremental: merge into trenches/bonding by mintAddress. */
   pumpfun: PumpFunLiveBatch;
-  /** Incremental (2026-10-05): only prices moved in a list since the last full snapshot — patch
-   *  rows by `${chainIdentifier}:${tokenAddress}`. A full `trending`/`graduated` event follows
-   *  whenever coins join, leave or reorder. Tuple: [priceUsd, marketCapUsd, priceChange24hPct]. */
-  prices: { tab: 'trending' | 'graduated'; prices: Record<string, [number | null, number | null, number | null]>; atIso: string };
+  /** Incremental (2026-10-05): what changed in a tab since the viewer's last state. For each of
+   *  the tab's lists: the new `order` of row keys, and in `rows` a full row for each key new to
+   *  the list or only the changed fields of an existing one. Keys: `${chainIdentifier}:${tokenAddress}`
+   *  for markets, `mintAddress` for Pump.fun/XXXRisk tokens. */
+  listpatch: { tab: FeedListTab; lists: Record<string, { order: string[]; rows: Record<string, Record<string, unknown>> }>; atIso: string };
   heartbeat: { atIso: string };
 }
 
 /** Every tab's full state — GET /v1/market/feeds, and what the stream keeps current. */
-export type MarketFeedSnapshot = Omit<MarketFeedEvents, 'pumpfun' | 'heartbeat' | 'prices'>;
+export type MarketFeedSnapshot = Omit<MarketFeedEvents, 'pumpfun' | 'heartbeat' | 'listpatch'>;
+
+/** The tabs sent as patches after their first snapshot, and the key of each row in their lists. */
+export type FeedListTab = 'trending' | 'graduated' | 'trenches' | 'bonding' | 'xxxrisk';
+export const FEED_LIST_FIELDS: Record<FeedListTab, readonly string[]> = {
+  trending: ['markets'],
+  graduated: ['markets', 'pumpfun'],
+  trenches: ['tokens'],
+  bonding: ['tokens'],
+  xxxrisk: ['tokens'],
+};
+export function feedRowKey(row: { chainIdentifier?: string; tokenAddress?: string; mintAddress?: string }): string {
+  return row.mintAddress ?? `${row.chainIdentifier}:${row.tokenAddress}`;
+}
+
+type Row = Record<string, unknown>;
+type ListPatch = { order: string[]; rows: Record<string, Row> };
+
+/** The patch turning list `prev` into `next`, or null when nothing changed. */
+export function diffFeedList(prev: readonly Row[], next: readonly Row[]): ListPatch | null {
+  const before = new Map(prev.map((r) => [feedRowKey(r), r]));
+  const order = next.map((r) => feedRowKey(r));
+  const rows: Record<string, Row> = {};
+  for (const row of next) {
+    const key = feedRowKey(row);
+    const old = before.get(key);
+    if (!old) {
+      rows[key] = row;
+      continue;
+    }
+    const changed: Row = {};
+    for (const field of Object.keys(row)) if (JSON.stringify(row[field]) !== JSON.stringify(old[field])) changed[field] = row[field];
+    if (Object.keys(changed).length > 0) rows[key] = changed;
+  }
+  const sameOrder = order.length === prev.length && order.every((k, i) => k === feedRowKey(prev[i]!));
+  return sameOrder && Object.keys(rows).length === 0 ? null : { order, rows };
+}
+
+/** Applies a list patch; null when a key is neither in the current list nor the patch (resync needed). */
+export function applyFeedList(current: readonly Row[], patch: ListPatch): Row[] | null {
+  const byKey = new Map(current.map((r) => [feedRowKey(r), r]));
+  const out: Row[] = [];
+  for (const key of patch.order) {
+    const base = byKey.get(key);
+    const delta = patch.rows[key];
+    if (!base && !delta) return null;
+    out.push(base ? (delta ? { ...base, ...delta } : base) : delta!);
+  }
+  return out;
+}
 
 /** Every tab empty — the first paint when the snapshot fetch failed; the stream fills it in. */
 export function emptyMarketFeeds(): MarketFeedSnapshot {
