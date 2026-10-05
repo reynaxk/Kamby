@@ -56,17 +56,19 @@ export function ChainBalancesCard() {
               </span>
               <span className="flex-1 font-display text-sm font-semibold text-ink-900">{name}</span>
               <span className={cn('font-mono text-sm tabular-nums', empty ? 'text-ink-400' : 'text-ink-900', hidden && 'select-none blur-sm')}>{usd(amount)}</span>
-              {empty ? (
-                <button
-                  type="button"
-                  onClick={() => setDepositChain(chain)}
-                  className="rounded-full border border-[#00FF87]/40 bg-[#00FF87]/10 px-3 py-1 font-display text-xs font-bold text-[#00FF87] transition-colors hover:bg-[#00FF87]/20"
-                >
-                  Deposit
-                </button>
-              ) : (
-                <span className="w-[4.6rem]" />
-              )}
+              {/* Every chain can be topped up; an empty one gets the bright pill. */}
+              <button
+                type="button"
+                onClick={() => setDepositChain(chain)}
+                className={cn(
+                  'rounded-full border px-3 py-1 font-display text-xs font-bold transition-colors',
+                  empty
+                    ? 'border-[#00FF87]/40 bg-[#00FF87]/10 text-[#00FF87] hover:bg-[#00FF87]/20'
+                    : 'border-white/15 text-ink-600 hover:border-[#00FF87]/40 hover:text-[#00FF87]',
+                )}
+              >
+                Deposit
+              </button>
             </li>
           );
         })}
