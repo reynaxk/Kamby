@@ -5,7 +5,6 @@ import './globals.css';
 // time (see lib/env.ts), and the root layout is the one module every request loads, so
 // this is where "fail fast on a bad env var" actually gets wired into the app's boot path.
 import '@/lib/env';
-import { OnboardingPrompt } from '@/components/account/OnboardingPrompt';
 import { SiteFooter } from '@/components/legal/SiteFooter';
 import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
@@ -44,7 +43,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             <SiteFooter />
           </div>
-          <OnboardingPrompt />
           <TickerBar />
         </Providers>
       </body>
