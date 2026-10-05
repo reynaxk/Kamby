@@ -4,6 +4,7 @@ import { ProfileEditor } from '@/components/account/ProfileEditor';
 import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
 import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
+import { ChainBalancesCard } from '@/components/wallet/ChainBalancesCard';
 
 export const metadata = { title: 'Your profile — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
@@ -29,7 +30,10 @@ export default function AccountPage() {
         <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl border border-line bg-surface p-4">
           <h2 id="wallet-heading" className="font-display text-sm font-semibold text-ink-900">Wallet</h2>
           <p className="mt-1 font-body text-xs text-ink-600">Add funds, send, or hide balances across Kamby.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-4">
+            <ChainBalancesCard />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
             <FundButton variant="labeled" />
             <SendButton variant="labeled" />
             <BlurBalancesToggle variant="labeled" />

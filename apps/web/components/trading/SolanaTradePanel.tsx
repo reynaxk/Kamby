@@ -29,6 +29,7 @@ import { SplAmountInput } from './SplAmountInput';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
+import { ChainUsdcLine } from './ChainUsdcLine';
 
 export interface SolanaTradePanelProps {
   tokenMint: string;
@@ -601,7 +602,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           <CopyAddressButton address={wallet.address} />
         </div>
         {side === 'BUY' ? (
-          <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+          <>
+            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+            <ChainUsdcLine chain="solana" amountUsd={(Number(amount) || 0) / 1e6} />
+          </>
         ) : (
           isNativeSol ? (
             <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />

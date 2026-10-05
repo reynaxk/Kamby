@@ -9,7 +9,7 @@ import { CHAIN_REGISTRY, type EvmChainConfig } from '@kamby/domain';
 import QRCode from 'qrcode';
 import { useAccount } from 'wagmi';
 import { fetchEvmChainConfigs } from '@/lib/market-client';
-import { assetsForChain, SEND_CHAINS, type SendChainOption } from '@/lib/send';
+import { assetsForChain, SEND_CHAINS, type SendChainOption, type SendChainSlug } from '@/lib/send';
 import { TradeModal } from '../trading/TradeModal';
 import { ConnectWalletButton } from './ConnectWalletButton';
 
@@ -29,7 +29,7 @@ const SOLANA_FUND_CHAIN = 'solana:mainnet';
  * Requires the funding providers to be enabled in the Privy Dashboard (Configuration →
  * Funding); if they aren't, `addFunds` fails and the error step says so.
  */
-export function FundModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function FundModal({ open, onClose, initialChain }: { open: boolean; onClose: () => void; initialChain?: SendChainSlug }) {
   const { ready, authenticated, login } = usePrivy();
   const { address: evmAddress, chainId: evmChainId } = useAccount();
   const { wallets: solanaWallets } = useSolanaWallets();
@@ -37,6 +37,11 @@ export function FundModal({ open, onClose }: { open: boolean; onClose: () => voi
   const { addFunds } = useAddFunds();
 
   const [chain, setChain] = useState<SendChainOption>(SEND_CHAINS[1]!); // Base — matches privyConfig.defaultChain
+  // Opened from a chain's own "Deposit" button: start on that chain.
+  useEffect(() => {
+    const preset = initialChain ? SEND_CHAINS.find((c) => c.slug === initialChain) : undefined;
+    if (open && preset) setChain(preset);
+  }, [open, initialChain]);
   const [evmChainConfigs, setEvmChainConfigs] = useState<EvmChainConfig[]>([]);
   const usdc = useMemo(() => assetsForChain(chain, evmChainConfigs).find((a) => a.kind === 'token') ?? null, [chain, evmChainConfigs]);
   const [step, setStep] = useState<Step>('choose');

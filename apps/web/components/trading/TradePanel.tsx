@@ -22,6 +22,7 @@ import { GaslessToggle } from './GaslessToggle';
 import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
+import { ChainUsdcLine } from './ChainUsdcLine';
 
 export interface TradePanelProps {
   /** The real chain this specific token trades on — see lib/explorer.ts and
@@ -802,6 +803,7 @@ export function TradePanel({
         inputTokenDecimals={inputTokenDecimals}
         className={dense ? 'trade-amount-compact' : undefined}
       />
+      {side === 'BUY' && <ChainUsdcLine chain={chainId === 56 ? 'bnb' : 'base'} amountUsd={Number.parseFloat(amount) || 0} />}
 
       <SlippageControl
         valueBps={slippageBps}

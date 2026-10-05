@@ -70,6 +70,8 @@ const {
   };
 });
 
+// The per-chain balance line reads wallets through wagmi — not under test here.
+vi.mock('./ChainUsdcLine', () => ({ ChainUsdcLine: () => null }));
 vi.mock('@privy-io/react-auth', () => ({ usePrivy: usePrivyMock }));
 const { createSolanaWalletMock } = vi.hoisted(() => ({ createSolanaWalletMock: vi.fn().mockResolvedValue({ wallet: {} }) }));
 vi.mock('@privy-io/react-auth/solana', () => ({
