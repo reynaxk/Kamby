@@ -239,6 +239,11 @@ export class JupiterQuoteService {
       slippageBps: params.slippageBps.toString(),
     });
     if (params.platformFeeBps > 0) query.set('platformFeeBps', params.platformFeeBps.toString());
+    // Keep the route small enough to fit one transaction with Kamby's additions (the relayer as
+    // a second signer, the USDC fee/setup transfer): found 2026-10-05, an unbounded BONK route
+    // came out at 1,648 bytes against Solana's 1,644 limit. Jupiter picks the best route within it.
+    query.set('maxAccounts', '40');
+    query.set('restrictIntermediateTokens', 'true');
 
     const url = `${JUPITER_QUOTE_URL}?${query.toString()}`;
     try {
