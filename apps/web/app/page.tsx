@@ -36,7 +36,9 @@ export default function LandingPage() {
       <div aria-hidden className="pointer-events-none absolute left-[62%] top-[180px] h-[420px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(0,229,255,0.16),transparent)] blur-2xl" />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <KambyLogo />
+        <div className="flex items-center gap-2">
+          <KambyLogo />
+        </div>
         <div className="flex items-center gap-2">
           <Link href="/leaderboard" className="hidden rounded-xl px-3 py-2 font-display text-sm font-semibold text-ink-600 transition-colors hover:text-ink-900 sm:block">
             Leaderboard
@@ -74,7 +76,7 @@ export default function LandingPage() {
             <span className="relative inline-block">
               Repeat.
               <span
-                className="absolute -right-2 -top-7 hidden translate-x-full -rotate-3 whitespace-nowrap rounded-full border px-3 py-1 font-display text-sm font-bold sm:block"
+                className="absolute -right-2 -top-7 hidden translate-x-full -rotate-3 whitespace-nowrap rounded-full border px-3 py-1 font-display text-sm font-bold tracking-normal sm:block"
                 style={{ color: NEON, borderColor: `${NEON}55`, background: `${NEON}14`, textShadow: `0 0 12px ${NEON}aa`, boxShadow: `0 0 24px ${NEON}33` }}
               >
                 (and yeah... it&apos;s Gas-Free.)
