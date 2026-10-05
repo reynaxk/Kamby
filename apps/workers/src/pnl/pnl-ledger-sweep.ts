@@ -214,7 +214,10 @@ export class PnlLedgerSweepService {
 
     await this.withUserTokenLock(row.userId, 'SOLANA', trackedMint, async (tx) => {
       if (row.side === 'BUY') {
-        const usdSpent = rawToDecimal(row.inputAmount, USDC_DECIMALS);
+        // What the user really paid: the quote's recorded total (swap + Kamby fee + setup charge)
+        // when present — inputAmount alone is only the swapped part, which overstated profit.
+        const totalPaidRaw = (row.quote?.unsignedTx as { totalPaidRaw?: unknown } | null | undefined)?.totalPaidRaw;
+        const usdSpent = rawToDecimal(typeof totalPaidRaw === 'string' && /^\d+$/.test(totalPaidRaw) ? totalPaidRaw : row.inputAmount, USDC_DECIMALS);
         await tx.tokenLot.create({
           data: {
             userId: row.userId,
@@ -338,6 +341,7 @@ interface EvmSweepRow {
 
 interface SolanaSweepRow {
   id: string;
+  quote?: { unsignedTx: unknown } | null;
   userId: string;
   side: string;
   inputMint: string;

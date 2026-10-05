@@ -240,7 +240,9 @@ export class SolanaQuoteService {
         slippageBps: params.slippageBps,
         platformFeeBps,
         platformFeeAmount: params.side === 'BUY' ? buyFeeRaw.toString() : (instructions.platformFeeAmountRaw ?? '0'),
-        unsignedTx: { base64: unsignedTxBase64 },
+        // A buy's full USDC cost (swap + Kamby fee + new-coin setup) — what the PnL ledger counts as
+        // its cost basis; inputAmount is only the swapped part (2026-10-05: PnL overstated profit).
+        unsignedTx: params.side === 'BUY' ? { base64: unsignedTxBase64, totalPaidRaw: params.amount } : { base64: unsignedTxBase64 },
         expiresAt,
       },
     });

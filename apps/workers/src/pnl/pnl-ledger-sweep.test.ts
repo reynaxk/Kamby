@@ -200,6 +200,15 @@ describe('PnlLedgerSweepService', () => {
       expect(result.lotsCreated).toBe(1);
     });
 
+    it("counts a Solana buy's full cost — swap + Kamby fee + setup — not just the swapped part", async () => {
+      // $3.00 paid: $2.6735 swapped, $0.0765 fee, $0.25 new-coin setup (the 2026-10-05 trade).
+      mockPrisma.solanaTradeTransaction.findMany.mockResolvedValue([
+        solanaRow({ inputAmount: '2673500', quote: { unsignedTx: { base64: 'x', totalPaidRaw: '3000000' } } }),
+      ]);
+      await buildService().sweep();
+      expect(mockPrisma.tokenLot.create).toHaveBeenCalledWith({ data: expect.objectContaining({ costBasisUsd: 3 }) });
+    });
+
     it('matches a Solana SELL against its own open lots, pricing proceeds off the USDC leg', async () => {
       mockPrisma.solanaTradeTransaction.findMany.mockResolvedValue([
         solanaRow({
