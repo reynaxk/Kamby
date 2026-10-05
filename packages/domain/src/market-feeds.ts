@@ -116,6 +116,10 @@ export function feedRowKey(row: { chainIdentifier?: string; tokenAddress?: strin
 }
 
 type Row = Record<string, unknown>;
+
+/** Change on every row every rebuild but are never shown in the lists — left out of patches
+ *  (a new row still carries them; the next full snapshot refreshes them). */
+const UNSENT_FIELDS = new Set(['lastPriceUpdateAt', 'discoveryScore']);
 type ListPatch = { order: string[]; rows: Record<string, Row> };
 
 /** The patch turning list `prev` into `next`, or null when nothing changed. */
@@ -131,7 +135,10 @@ export function diffFeedList(prev: readonly Row[], next: readonly Row[]): ListPa
       continue;
     }
     const changed: Row = {};
-    for (const field of Object.keys(row)) if (JSON.stringify(row[field]) !== JSON.stringify(old[field])) changed[field] = row[field];
+    for (const field of Object.keys(row)) {
+      if (UNSENT_FIELDS.has(field)) continue;
+      if (JSON.stringify(row[field]) !== JSON.stringify(old[field])) changed[field] = row[field];
+    }
     if (Object.keys(changed).length > 0) rows[key] = changed;
   }
   const sameOrder = order.length === prev.length && order.every((k, i) => k === feedRowKey(prev[i]!));
