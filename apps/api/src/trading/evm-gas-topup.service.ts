@@ -17,8 +17,12 @@ export const GAS_TOPUP_BY_CHAIN_ID: Record<number, { dripWei: bigint; minWei: bi
   8453: { dripWei: 30_000_000_000_000n, minWei: 10_000_000_000_000n, name: 'Base', symbol: 'ETH' }, // 0.00003 / 0.00001 ETH
   56: { dripWei: 150_000_000_000_000n, minWei: 50_000_000_000_000n, name: 'BNB Chain', symbol: 'BNB' }, // 0.00015 / 0.00005 BNB
 };
-const ONE_PER_WALLET_SECONDS = 24 * 60 * 60;
-const HAS_GAS_CACHE_SECONDS = 10 * 60;
+const DAY_SECONDS = 24 * 60 * 60;
+/** A wallet seen with enough gas isn't re-checked for this long — kept short so a wallet that
+ *  spends its gas gets its next top-up within a minute (was 10 min, 2026-10-05). */
+const HAS_GAS_CACHE_SECONDS = 60;
+/** One top-up in flight per wallet per chain — concurrent quotes never double-send. */
+const IN_FLIGHT_SECONDS = 60;
 
 /** Exported for tests. Whether a wallet should get a top-up — pure, no I/O. */
 export function needsTopup(nativeWei: bigint, usdcRaw: bigint, usdcDecimals: number, minWei: bigint): boolean {
@@ -47,6 +51,7 @@ interface ChainClients {
 export class EvmGasTopupService {
   private readonly account: PrivateKeyAccount | null;
   private readonly dailyCap: number;
+  private readonly perWalletDaily: number;
   private readonly clients = new Map<number, ChainClients>();
 
   constructor(
@@ -57,6 +62,7 @@ export class EvmGasTopupService {
     this.logger.setContext('EvmGasTopupService');
     const key = config.get('EVM_GAS_TOPUP_PRIVATE_KEY', { infer: true });
     this.dailyCap = config.get('EVM_GAS_TOPUP_DAILY_CAP', { infer: true });
+    this.perWalletDaily = config.get('EVM_GAS_TOPUP_PER_WALLET_DAILY', { infer: true });
     this.account = key ? privateKeyToAccount(key as `0x${string}`) : null;
     if (!this.account) return;
     for (const chain of getConfiguredChains((k) => config.get(k, { infer: true }))) {
@@ -107,16 +113,29 @@ export class EvmGasTopupService {
         if (nativeWei >= clients.minWei) await this.redis.set(`gas-ok:${chainId}:${walletKey}`, '1', 'EX', HAS_GAS_CACHE_SECONDS);
         return;
       }
-      const claimed = await this.redis.set(`gas-topup:${chainId}:${walletKey}`, '1', 'EX', ONE_PER_WALLET_SECONDS, 'NX');
-      if (claimed !== 'OK') return; // already topped up in the last 24h
+      const inFlightKey = `gas-topup:inflight:${chainId}:${walletKey}`;
+      if ((await this.redis.set(inFlightKey, '1', 'EX', IN_FLIGHT_SECONDS, 'NX')) !== 'OK') return; // one already on its way
       const day = new Date().toISOString().slice(0, 10);
+      const walletCountKey = `gas-topup:wallet:${chainId}:${walletKey}:${day}`;
       const countKey = `gas-topup:count:${chainId}:${day}`;
+      const walletCount = await this.redis.incr(walletCountKey);
+      if (walletCount === 1) await this.redis.expire(walletCountKey, 2 * DAY_SECONDS);
+      if (walletCount > this.perWalletDaily) {
+        await this.redis.del(inFlightKey);
+        this.logger.warn({ chainId, wallet: walletKey, walletCount, cap: this.perWalletDaily }, 'EVM gas top-up per-wallet daily limit reached');
+        return;
+      }
       const count = await this.redis.incr(countKey);
-      if (count === 1) await this.redis.expire(countKey, 2 * ONE_PER_WALLET_SECONDS);
+      if (count === 1) await this.redis.expire(countKey, 2 * DAY_SECONDS);
       if (count > this.dailyCap) {
+        await this.redis.del(inFlightKey);
         this.logger.warn({ chainId, count, cap: this.dailyCap }, 'EVM gas top-up daily cap reached — not topping up');
         return;
       }
+      // A top-up that fails to send (e.g. an empty tank) gives the wallet its allowance back.
+      const refund = async () => {
+        await Promise.all([this.redis.decr(walletCountKey), this.redis.decr(countKey), this.redis.del(inFlightKey)]).catch(() => undefined);
+      };
 
       const run = clients.queue.catch(() => undefined).then(async () => {
         const hash = await clients.walletClient.sendTransaction({
@@ -129,7 +148,11 @@ export class EvmGasTopupService {
         this.logger.info({ chainId, wallet: walletKey, hash, valueWei: clients.dripWei.toString() }, 'EVM gas top-up sent');
       });
       clients.queue = run;
-      await run;
+      await run.catch(async (error: unknown) => {
+        await refund();
+        throw error;
+      });
+      await this.redis.del(inFlightKey);
     } catch (error) {
       this.logger.error({ err: error, chainId, wallet: walletKey }, 'EVM gas top-up failed — quote continues');
     }

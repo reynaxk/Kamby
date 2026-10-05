@@ -246,6 +246,9 @@ export const EnvSchema = z.object({
     .optional(),
   /** Max gas top-ups per chain per UTC day. */
   EVM_GAS_TOPUP_DAILY_CAP: z.coerce.number().int().positive().default(300),
+  /** Top-ups one wallet can get per chain per day (owner decision 2026-10-05: 15 — one drip
+   *  covers ~6–10 trades, and active traders ran dry with the old one-a-day limit). */
+  EVM_GAS_TOPUP_PER_WALLET_DAILY: z.coerce.number().int().positive().default(15),
   EVM_GAS_RELAYER_ENABLED: z.coerce.boolean().default(false),
   /** One key, reused across every chain in EVM_GAS_RELAYER_CHAINS — an EVM private key
    *  produces the same address on every EVM chain, unlike Solana's per-chain-by-necessity
