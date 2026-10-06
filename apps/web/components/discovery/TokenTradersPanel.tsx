@@ -33,7 +33,7 @@ export function TokenTradersPanel({
   if (connection.recentTraders.length === 0) {
     return (
       <EmptyState
-        title="No traders indexed yet."
+        title="No Kamby traders on this coin yet."
         detail="Recent traders on this token will show up here."
       />
     );

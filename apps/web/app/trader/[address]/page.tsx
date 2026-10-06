@@ -191,7 +191,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
             initialItems={activity.items}
             initialCursor={activity.nextCursor}
             scope={{ type: 'trader', address: profile.address }}
-            emptyTitle="No activity indexed yet."
+            emptyTitle="No trades yet."
             emptyDetail={`${truncateAddress(profile.address)} hasn't traded on a tracked market recently.`}
           />
         </Surface>

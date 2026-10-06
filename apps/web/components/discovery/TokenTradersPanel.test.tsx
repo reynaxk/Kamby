@@ -53,7 +53,7 @@ describe('TokenTradersPanel', () => {
   it('shows a real empty state, not a blank panel, when no traders have been indexed', () => {
     fetchTheses.mockResolvedValue([]);
     render(<TokenTradersPanel connection={fakeConnection({ recentTraders: [] })} tokenAddress="0xabc" chainId={8453} />);
-    expect(screen.getByText('No traders indexed yet.')).toBeInTheDocument();
+    expect(screen.getByText('No Kamby traders on this coin yet.')).toBeInTheDocument();
   });
 
   it('shows neither the unique-traders nor the watching line when both are absent (null/zero)', () => {

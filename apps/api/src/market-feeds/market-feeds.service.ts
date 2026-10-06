@@ -67,6 +67,12 @@ type Snapshots = MarketFeedSnapshot;
 type TabData<K extends keyof Snapshots> = Omit<Snapshots[K], 'atIso'>;
 
 /** Every Solana market is from the curated list; an EVM market is vetted if it's on the seed list. */
+/** Exported for tests. A coin worth listing: priced above zero and not collapsed (2026-10-06: a
+ *  rugged coin sat in Trending at "$0.00000000 -100.00%"). */
+export function isAlive(market: Pick<MarketSummary, 'priceUsd' | 'priceChange24hPct'>): boolean {
+  return (market.priceUsd ?? 0) > 0 && (market.priceChange24hPct === null || market.priceChange24hPct > -95);
+}
+
 export function toFeedMarket(market: MarketSummary, listedAtIso?: string): FeedMarket {
   const vetted = market.chainIdentifier === 'solana' || isCuratedMarket(market.chainIdentifier, market.tokenAddress);
   return { ...market, listing: vetted ? 'vetted' : 'new', ...(listedAtIso ? { listedAtIso } : {}) };
@@ -163,9 +169,10 @@ export class MarketFeedsService {
     return { markets: priced.map(({ listedAtIso, ...m }) => toFeedMarket(m, listedAtIso)), pumpfun };
   }
 
-  /** Fresh DexScreener prices on every list row — see FeedPricesService. */
+  /** Fresh DexScreener prices on every list row — see FeedPricesService — with dead coins dropped. */
   private async livePrices<T extends MarketSummary>(markets: T[]): Promise<T[]> {
-    return this.feedPrices ? this.feedPrices.apply(markets) : markets;
+    const priced = this.feedPrices ? await this.feedPrices.apply(markets) : markets;
+    return priced.filter(isAlive);
   }
 
   private async trenchesTokens(category: TrenchesCategory, limit = TRENCHES_LIMIT): Promise<PumpFunTokenSummary[]> {

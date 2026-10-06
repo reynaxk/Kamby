@@ -66,7 +66,7 @@ describe('DataHub', () => {
   it('shows a real distinct "no activity indexed" message when there is truly nothing for this token', () => {
     render(<DataHub activity={[]} />);
 
-    expect(screen.getByText('No activity indexed yet for this token.')).toBeInTheDocument();
+    expect(screen.getByText('No trades on Kamby for this coin yet — be the first.')).toBeInTheDocument();
   });
 
   it('never shows the filter row at all when there is no real activity to filter', () => {
@@ -198,7 +198,7 @@ describe('DataHub', () => {
     await user.click(screen.getByRole('button', { name: 'SELL' }));
 
     expect(screen.getByText('No activity matches these filters.')).toBeInTheDocument();
-    expect(screen.queryByText('No activity indexed yet for this token.')).not.toBeInTheDocument();
+    expect(screen.queryByText('No trades on Kamby for this coin yet — be the first.')).not.toBeInTheDocument();
   });
 
   it('composes the action, size, and trader filters together (AND, not OR)', async () => {

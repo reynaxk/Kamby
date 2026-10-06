@@ -45,7 +45,14 @@ export function AmountInput({
     <div className={className}>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
         <span>Amount ({inputTokenSymbol ?? 'token'})</span>
-        {balance && <span>Balance: {Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })}</span>}
+        {balance && (
+          <span>
+            Balance:{' '}
+            {inputTokenSymbol === 'USDC'
+              ? `$${Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })}
+          </span>
+        )}
       </div>
       <input
         type="text"

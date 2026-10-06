@@ -105,7 +105,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
       <div className="flex-1 overflow-y-auto font-mono text-xs">
         {tab === 'transactions' &&
           (activity.length === 0 ? (
-            <p className="p-4 text-ink-400">No activity indexed yet for this token.</p>
+            <p className="p-4 text-ink-400">No trades on Kamby for this coin yet — be the first.</p>
           ) : filteredActivity.length === 0 ? (
             <p className="p-4 text-ink-400">No activity matches these filters.</p>
           ) : (

@@ -647,7 +647,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       {/* Mobile speed dock — see handleQuickPreset's own doc comment on why this still
           lands on the review step rather than executing directly. `pb-[env(safe-area-inset-bottom)]`
           keeps it clear of a phone's home-bar gesture area. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden">
+      {/* bottom-8: sits above the coin ticker (h-8) — at bottom-0 the ticker covered the buy button (2026-10-06). */}
+      <div className="fixed inset-x-0 bottom-8 z-40 border-t border-line bg-surface/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur md:hidden">
         {/* SOL presets only make sense when selling SOL itself — an SPL sell uses the main
             form's percentage presets instead (see SplAmountInput). */}
         {(side === 'BUY' || isNativeSol) && (
