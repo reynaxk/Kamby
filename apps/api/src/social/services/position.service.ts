@@ -7,6 +7,14 @@ import { LivePriceService } from '../../market-feeds/live-price.service';
 /** Pump.fun coins (and almost every launchpad coin) use 6 decimals. */
 const PUMPFUN_DECIMALS = 6;
 const MAX_SOLANA_POSITIONS = 20;
+/** A position worth less than this is closed for display (sell rounding leaves a few raw units). */
+const MIN_POSITION_USD = 0.01;
+
+/** Exported for tests. Under 0.5% of what was bought still held: a sold-out position's rounding
+ *  leftover, not a holding (2026-10-06: a sold coin kept showing as a "$0.00" position). */
+export function isDust(remainingRaw: bigint, originalRaw: bigint): boolean {
+  return remainingRaw <= 0n || (originalRaw > 0n && remainingRaw * 200n < originalRaw);
+}
 
 /**
  * A signed-in user's currently-open positions — see TokenPositionSchema's own doc comment
@@ -54,17 +62,20 @@ export class PositionService {
       const decimals = meta?.decimals ?? (pump ? PUMPFUN_DECIMALS : null);
       if (decimals === null) return []; // never compute a quantity off unknown decimals
       let remainingRaw = 0n;
+      let originalRaw = 0n;
       let remainingCostBasisUsd = 0;
       for (const lot of lotsByMint.get(mint)!) {
         const original = BigInt(lot.quantityOriginalRaw);
+        originalRaw += original;
         const remaining = BigInt(lot.quantityRemainingRaw);
         remainingRaw += remaining;
         if (original > 0n) remainingCostBasisUsd += Number(lot.costBasisUsd) * (Number(remaining) / Number(original));
       }
-      if (remainingRaw <= 0n) return [];
+      if (isDust(remainingRaw, originalRaw)) return [];
       const quantity = Number(formatUnits(remainingRaw, decimals));
       const currentPriceUsd = prices[i]?.priceUsd ?? null;
       const currentValueUsd = currentPriceUsd !== null ? quantity * currentPriceUsd : null;
+      if (currentValueUsd !== null && currentValueUsd < MIN_POSITION_USD) return [];
       const unrealizedPnlUsd = currentValueUsd !== null ? currentValueUsd - remainingCostBasisUsd : null;
       return [
         {
@@ -128,20 +139,23 @@ export class PositionService {
       if (!token || token.decimals === null) continue;
 
       let remainingRaw = 0n;
+      let originalRaw = 0n;
       let remainingCostBasisUsd = 0;
       for (const lot of tokenLots) {
         const original = BigInt(lot.quantityOriginalRaw);
+        originalRaw += original;
         const remaining = BigInt(lot.quantityRemainingRaw);
         remainingRaw += remaining;
         if (original > 0n) {
           remainingCostBasisUsd += Number(lot.costBasisUsd) * (Number(remaining) / Number(original));
         }
       }
-      if (remainingRaw <= 0n) continue; // fully closed — see the schema's own doc comment
+      if (isDust(remainingRaw, originalRaw)) continue; // closed — see isDust
 
       const quantity = Number(formatUnits(remainingRaw, token.decimals));
       const currentPriceUsd = priceByToken.get(tokenId) ?? null;
       const currentValueUsd = currentPriceUsd !== null ? quantity * currentPriceUsd : null;
+      if (currentValueUsd !== null && currentValueUsd < MIN_POSITION_USD) continue;
       const unrealizedPnlUsd = currentValueUsd !== null ? currentValueUsd - remainingCostBasisUsd : null;
       const unrealizedPnlPct =
         unrealizedPnlUsd !== null && remainingCostBasisUsd > 0 ? (unrealizedPnlUsd / remainingCostBasisUsd) * 100 : null;
