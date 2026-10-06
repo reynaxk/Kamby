@@ -5,6 +5,7 @@ import { PinoLogger } from 'nestjs-pino';
 import type { Redis } from 'ioredis';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { CryptoPriceService } from './crypto-price.service';
+import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
 import { isListedCoin } from './listed-coins';
 
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
@@ -152,7 +153,8 @@ export class LivePriceService implements OnModuleDestroy {
         signal: AbortSignal.timeout(4000),
       });
       if (!response.ok) {
-        this.logger.warn({ status: response.status }, 'DexScreener live price request failed');
+        this.logger.warn({ status: response.status }, 'DexScreener live price request failed — using backup sources');
+        await this.backupPrices(chain, addresses, new Date().toISOString());
         return;
       }
       const body = (await response.json()) as unknown;
@@ -167,9 +169,58 @@ export class LivePriceService implements OnModuleDestroy {
       // A brand-new Pump.fun coin DexScreener hasn't listed yet (2026-10-05: Trenches coins had
       // no price at all): its bonding curve, which the workers keep current on-chain, prices it.
       if (chain === 'solana' && missing.length > 0) await this.curvePrices(missing, atIso);
+      const stillMissing = missing.filter((a) => !this.freshlyPriced(chain, a, atIso));
+      if (stillMissing.length > 0) await this.backupPrices(chain, stillMissing, atIso);
     } catch (error) {
-      // Keep the last known price; the next tick retries.
-      this.logger.warn({ err: error }, 'DexScreener unreachable for live prices');
+      this.logger.warn({ err: error }, 'DexScreener unreachable for live prices — using backup sources');
+      await this.backupPrices(chain, addresses, new Date().toISOString());
+    }
+  }
+
+  private freshlyPriced(chain: TokenInfoChain, address: string, atIso: string): boolean {
+    return this.latest.get(this.key(chain, address))?.atIso === atIso;
+  }
+
+  /**
+   * Backup live prices (2026-10-06: "we can't rely on one provider"), used only when DexScreener
+   * errors, rate-limits, or has no price for a coin. Solana: Jupiter's price API (prices from the
+   * pools Jupiter routes through). Base/BNB: GeckoTerminal's token prices (its shared budget is
+   * respected — skipped while it's cooling down). The last known price stays otherwise.
+   */
+  private async backupPrices(chain: TokenInfoChain, addresses: string[], atIso: string): Promise<void> {
+    try {
+      if (chain === 'solana') {
+        for (let i = 0; i < addresses.length; i += 50) {
+          const ids = addresses.slice(i, i + 50);
+          const res = await fetch(`https://lite-api.jup.ag/price/v3?ids=${ids.join(',')}`, { signal: AbortSignal.timeout(4000) });
+          if (!res.ok) continue;
+          const body = (await res.json()) as Record<string, { usdPrice?: number } | null>;
+          for (const id of ids) {
+            const usd = body[id]?.usdPrice;
+            if (typeof usd === 'number' && usd > 0) this.latest.set(this.key('solana', id), { ...this.latest.get(this.key('solana', id)), priceUsd: usd, atIso });
+          }
+        }
+        return;
+      }
+      if (geckoCoolingDown()) return;
+      const network = chain === 'base' ? 'base' : 'bsc';
+      for (let i = 0; i < addresses.length; i += 30) {
+        const ids = addresses.slice(i, i + 30);
+        const res = await fetch(`https://api.geckoterminal.com/api/v2/simple/networks/${network}/token_price/${ids.join(',')}`, {
+          headers: { accept: 'application/json' },
+          signal: AbortSignal.timeout(4000),
+        });
+        noteGeckoStatus(res.status);
+        if (!res.ok) return;
+        const body = (await res.json()) as { data?: { attributes?: { token_prices?: Record<string, string> } } };
+        const prices = body.data?.attributes?.token_prices ?? {};
+        for (const id of ids) {
+          const usd = Number(prices[id.toLowerCase()] ?? prices[id]);
+          if (usd > 0) this.latest.set(this.key(chain, id), { ...this.latest.get(this.key(chain, id)), priceUsd: usd, atIso });
+        }
+      }
+    } catch (error) {
+      this.logger.warn({ err: error, chain }, 'backup live prices unavailable — keeping the last known price');
     }
   }
 
