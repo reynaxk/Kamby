@@ -13,6 +13,7 @@ import { PumpPortalIngestionService } from './pumpfun/pumpportal-ingestion';
 import { SolanaMarketIngestionService } from './market/solana-market-ingestion';
 import { JupiterSolanaDiscoveryService } from './market/jupiter-solana-discovery';
 import { PumpFunCurveRefresher } from './pumpfun/pumpfun-curve-refresher';
+import { PumpFunCurveStream } from './pumpfun/pumpfun-curve-stream';
 import { SolanaSweepService } from './solana/solana-sweep';
 import { checkTreasuryBalances, type MonitoredWallet } from './solana/treasury-balance-monitor';
 import { checkEvmRelayerBalance } from './trading/evm-relayer-balance-monitor';
@@ -448,6 +449,9 @@ async function main(): Promise<void> {
       };
       const curveRefreshTicker = setInterval(() => void runCurveRefresh(), 45_000);
       curveRefreshTicker.unref();
+      // Live curve prices on top (see pumpfun-curve-stream.ts); the 45s refresh above is the fallback.
+      const wsEndpoint = env.SOLANA_RPC_URL.replace(/^http/, 'ws');
+      new PumpFunCurveStream(new Connection(env.SOLANA_RPC_URL, { commitment: 'confirmed', wsEndpoint }), curveRefresher, redis, logger).start();
     }
   }
 

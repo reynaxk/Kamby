@@ -11,6 +11,8 @@ import { isListedCoin } from './listed-coins';
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
 /** DexScreener's token endpoint takes up to 30 addresses per call. */
 const BATCH_SIZE = 30;
+/** A live curve read older than this is ignored (the stream is down or the coin went quiet). */
+const LIVE_CURVE_MAX_AGE_MS = 60_000;
 const POLL_MS = 1_500; // 2026-10-06: prices felt slow at 2s; DexScreener's 300/min allows it
 /** A coin stays watched this long after its last viewer asked for it. */
 const WATCH_TTL_MS = 20_000;
@@ -169,6 +171,8 @@ export class LivePriceService implements OnModuleDestroy {
       // A brand-new Pump.fun coin DexScreener hasn't listed yet (2026-10-05: Trenches coins had
       // no price at all): its bonding curve, which the workers keep current on-chain, prices it.
       if (chain === 'solana' && missing.length > 0) await this.curvePrices(missing, atIso);
+      // Bonding-curve coins: the live curve beats every polled source.
+      if (chain === 'solana') await this.liveCurvePrices(addresses, atIso);
       const stillMissing = missing.filter((a) => !this.freshlyPriced(chain, a, atIso));
       if (stillMissing.length > 0) await this.backupPrices(chain, stillMissing, atIso);
     } catch (error) {
@@ -264,6 +268,30 @@ export class LivePriceService implements OnModuleDestroy {
       this.logger.warn({ err: error }, 'chart pools unavailable — live prices use the deepest pool');
     }
     return pools;
+  }
+
+  /**
+   * Real-time prices for bonding-curve coins (2026-10-06): the workers' live curve subscription
+   * (pf-curve-live:<mint>, written on every trade) priced × SOL. Applied after DexScreener each
+   * tick so a coin still on its curve shows the price of its latest trade, not DexScreener's
+   * few-seconds-old read. Entries older than LIVE_CURVE_MAX_AGE_MS are ignored.
+   */
+  private async liveCurvePrices(mints: string[], atIso: string): Promise<void> {
+    if (!this.redis || mints.length === 0) return;
+    const solUsd = this.cryptoPrices.snapshot().find((p) => p.symbol === 'SOL')?.priceUsd;
+    if (!solUsd) return;
+    try {
+      const values = await this.redis.mget(mints.map((m) => `pf-curve-live:${m}`));
+      values.forEach((raw, i) => {
+        if (!raw) return;
+        const live = JSON.parse(raw) as { virtualSolReserves?: string; virtualTokenReserves?: string; complete?: boolean; at?: number };
+        if (live.complete || !live.at || Date.now() - live.at > LIVE_CURVE_MAX_AGE_MS) return;
+        const price = curvePriceUsd(live.virtualSolReserves ?? '0', live.virtualTokenReserves ?? '0', solUsd);
+        if (price !== null) this.latest.set(this.key('solana', mints[i]!), { ...this.latest.get(this.key('solana', mints[i]!)), priceUsd: price, atIso });
+      });
+    } catch (error) {
+      this.logger.warn({ err: error }, 'live curve prices unavailable');
+    }
   }
 
   private async curvePrices(mints: string[], atIso: string): Promise<void> {

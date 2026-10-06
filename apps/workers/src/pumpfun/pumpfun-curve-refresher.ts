@@ -47,19 +47,25 @@ export class PumpFunCurveRefresher {
     private readonly logger: Logger,
   ) {}
 
-  async run(): Promise<{ read: number; updated: number; graduated: number }> {
+  /** The curves that matter right now — hot on Jupiter first, then the newest, then the most
+   *  raised — keyed by curve address. Shared with PumpFunCurveStream, which watches them live. */
+  async selectCurves(): Promise<Map<string, { id: string; bondingCurveAddress: string; mintAddress: string }>> {
     const hotMints = await this.redis.smembers(PUMPFUN_HOT_MINTS_KEY).catch(() => [] as string[]);
+    const select = { id: true, bondingCurveAddress: true, realSolReserves: true, mintAddress: true } as const;
     const [hot, topByReserves, recent] = await Promise.all([
-      hotMints.length > 0
-        ? prisma.pumpFunToken.findMany({ where: { mintAddress: { in: hotMints }, complete: false }, select: { id: true, bondingCurveAddress: true, realSolReserves: true } })
-        : Promise.resolve([]),
+      hotMints.length > 0 ? prisma.pumpFunToken.findMany({ where: { mintAddress: { in: hotMints }, complete: false }, select }) : Promise.resolve([]),
       // realSolReserves is a string column, so "highest" comes from a recent pool sorted here.
-      prisma.pumpFunToken.findMany({ where: { complete: false }, orderBy: { lastStateUpdateAt: 'desc' }, take: 1000, select: { id: true, bondingCurveAddress: true, realSolReserves: true } }),
-      prisma.pumpFunToken.findMany({ where: { complete: false }, orderBy: { createdAt: 'desc' }, take: MOST_RECENT, select: { id: true, bondingCurveAddress: true, realSolReserves: true } }),
+      prisma.pumpFunToken.findMany({ where: { complete: false }, orderBy: { lastStateUpdateAt: 'desc' }, take: 1000, select }),
+      prisma.pumpFunToken.findMany({ where: { complete: false }, orderBy: { createdAt: 'desc' }, take: MOST_RECENT, select }),
     ]);
     const top = [...topByReserves].sort((a, b) => (BigInt(b.realSolReserves) > BigInt(a.realSolReserves) ? 1 : -1)).slice(0, TOP_BY_RESERVES);
-    const rows = new Map<string, { id: string; bondingCurveAddress: string }>();
-    for (const r of [...hot, ...top, ...recent]) rows.set(r.bondingCurveAddress, r);
+    const rows = new Map<string, { id: string; bondingCurveAddress: string; mintAddress: string }>();
+    for (const r of [...hot, ...recent, ...top]) rows.set(r.bondingCurveAddress, r);
+    return rows;
+  }
+
+  async run(): Promise<{ read: number; updated: number; graduated: number }> {
+    const rows = await this.selectCurves();
 
     const addresses = [...rows.keys()];
     let updated = 0;
