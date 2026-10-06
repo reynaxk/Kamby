@@ -9,6 +9,7 @@ export interface PricedPair {
   priceUsd: number;
   liquidityUsd: number;
   quoteAddress?: string;
+  pairAddress?: string;
 }
 
 /**
@@ -29,4 +30,15 @@ export function pickSanePair<T extends PricedPair>(pairs: readonly T[], standard
   const median = sorted[Math.floor(sorted.length / 2)]!;
   const sane = candidates.filter((p) => p.priceUsd <= median * 2 && p.priceUsd >= median / 2);
   return sane.reduce((a, b) => (b.liquidityUsd > a.liquidityUsd ? b : a));
+}
+
+/** `pickSanePair`, but the coin's chart pool wins whenever it's among the sane ones — so the live
+ *  price and the candles always come from the same market. */
+export function pickChartPair<T extends PricedPair>(pairs: readonly T[], preferredPool: string | undefined, standardQuotes?: ReadonlySet<string>): T | null {
+  const best = pickSanePair(pairs, standardQuotes);
+  if (!best || !preferredPool) return best;
+  const preferred = pairs.find((p) => p.pairAddress?.toLowerCase() === preferredPool.toLowerCase());
+  if (!preferred || !(preferred.priceUsd > 0)) return best;
+  // Same sanity band as pickSanePair: never follow a pool whose price is off by 2× from the best.
+  return preferred.priceUsd <= best.priceUsd * 2 && preferred.priceUsd >= best.priceUsd / 2 ? preferred : best;
 }

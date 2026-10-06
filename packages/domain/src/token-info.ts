@@ -24,4 +24,7 @@ export function emptyTokenInfo(): TokenInfo {
 export interface LivePrice {
   priceUsd: number;
   atIso: string;
+  /** The pool this price is from — the coin's chart pool, so every timeframe shows one market
+   *  (2026-10-05: Live and the candle widths read different pools and disagreed). */
+  poolAddress?: string;
 }

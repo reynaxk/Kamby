@@ -58,7 +58,7 @@ describe('SolanaChartService', () => {
     await service.history(BONK, '1H');
     await service.history(BONK, '1H');
 
-    expect(global.fetch).toHaveBeenCalledTimes(2); // one pool lookup + one candles call, total
+    expect(global.fetch).toHaveBeenCalledTimes(3); // DexScreener + GeckoTerminal pool lookups + one candles call — none repeated for the second viewer
   });
 
   it('refuses coins Kamby does not list, so arbitrary mints cannot spend the shared GeckoTerminal budget', async () => {

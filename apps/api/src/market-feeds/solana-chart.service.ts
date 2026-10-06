@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { prisma } from '@kamby/db';
-import type { Candle } from '@kamby/domain';
+import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS, type Candle } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -83,9 +83,26 @@ export class SolanaChartService {
     return curated !== null || graduated !== null;
   }
 
-  /** The coin's first-listed GeckoTerminal pool, and which side of it the coin is on. */
+  /**
+   * The coin's chart pool: chosen exactly like the live price's (DexScreener's deepest sane pool —
+   * pickSanePair), and saved as `chart-pool:solana:<mint>` so the live price then follows the same
+   * pool (2026-10-05: candles from GeckoTerminal's first-listed pool and Live/10s from DexScreener's
+   * deepest pool disagreed). GeckoTerminal's first pool only when DexScreener has none.
+   */
   private async mainPool(mint: string): Promise<{ address: string; side: 'base' | 'quote' } | null> {
-    return this.cached(`solana-chart:pool:${mint}`, POOL_TTL_SECONDS, async () => {
+    return this.cached(`solana-chart:pool:v2:${mint}`, POOL_TTL_SECONDS, async () => {
+      const dex = await this.fetchJson<{ pairAddress?: string; baseToken?: { address?: string }; quoteToken?: { address?: string }; priceUsd?: string; liquidity?: { usd?: number } }[]>(
+        `https://api.dexscreener.com/tokens/v1/solana/${mint}`,
+        true,
+      );
+      const candidates = (Array.isArray(dex) ? dex : [])
+        .filter((p) => p.baseToken?.address === mint && p.pairAddress)
+        .map((p) => ({ priceUsd: Number(p.priceUsd), liquidityUsd: p.liquidity?.usd ?? 0, quoteAddress: p.quoteToken?.address, pairAddress: p.pairAddress! }));
+      const best = pickSanePair(candidates, SOLANA_STANDARD_QUOTE_MINTS);
+      if (best) {
+        await this.redis.set(`chart-pool:solana:${mint}`, best.pairAddress, 'EX', POOL_TTL_SECONDS).catch(() => undefined);
+        return { address: best.pairAddress, side: 'base' as const };
+      }
       const body = await this.fetchJson<{ data?: GeckoPool[] }>(`${GECKOTERMINAL_API}/tokens/${mint}/pools?page=1`);
       for (const pool of body?.data ?? []) {
         const address = pool.attributes?.address;
@@ -97,11 +114,11 @@ export class SolanaChartService {
     });
   }
 
-  private async fetchJson<T>(url: string): Promise<T | null> {
-    if (geckoCoolingDown()) return null;
+  private async fetchJson<T>(url: string, notGecko = false): Promise<T | null> {
+    if (!notGecko && geckoCoolingDown()) return null;
     try {
       const response = await fetch(url, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
-      noteGeckoStatus(response.status);
+      if (!notGecko) noteGeckoStatus(response.status);
       if (!response.ok) {
         this.logger.warn({ status: response.status }, 'GeckoTerminal request failed');
         return null;

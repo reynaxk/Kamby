@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException, type OnModuleDestroy } from '@nestjs/common';
-import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain } from '@kamby/domain';
+import { Inject, Injectable, NotFoundException, Optional, type OnModuleDestroy } from '@nestjs/common';
+import { pickChartPair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain } from '@kamby/domain';
 import { prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
+import type { Redis } from 'ioredis';
+import { REDIS_CLIENT } from '../redis/redis.module';
 import { CryptoPriceService } from './crypto-price.service';
 import { isListedCoin } from './listed-coins';
 
@@ -13,6 +15,7 @@ const POLL_MS = 2_000;
 const WATCH_TTL_MS = 20_000;
 
 interface DexScreenerPair {
+  pairAddress?: string;
   baseToken?: { address?: string };
   quoteToken?: { address?: string };
   priceUsd?: string;
@@ -22,19 +25,29 @@ interface DexScreenerPair {
 /** Exported for tests. The price of each requested token from DexScreener's pairs: only
  *  pairs where it's the *base* token (priceUsd is the base token's price), the deepest one. */
 export function pricesFromPairs(pairs: DexScreenerPair[], chain: TokenInfoChain): Map<string, number> {
+  return new Map([...poolPricesFromPairs(pairs, chain)].map(([k, v]) => [k, v.priceUsd]));
+}
+
+/** Exported for tests. Each token's price and the pool it's from — its chart pool when that's
+ *  one of DexScreener's sane pairs (`preferred`, keyed like the result), else the deepest sane pair. */
+export function poolPricesFromPairs(
+  pairs: DexScreenerPair[],
+  chain: TokenInfoChain,
+  preferred: ReadonlyMap<string, string> = new Map(),
+): Map<string, { priceUsd: number; poolAddress?: string }> {
   const byToken = new Map<string, PricedPair[]>();
   for (const pair of pairs) {
     const address = pair.baseToken?.address;
     const price = Number(pair.priceUsd);
     if (!address || !Number.isFinite(price) || price <= 0) continue;
     const key = chain === 'solana' ? address : address.toLowerCase();
-    byToken.set(key, [...(byToken.get(key) ?? []), { priceUsd: price, liquidityUsd: pair.liquidity?.usd ?? 0, quoteAddress: pair.quoteToken?.address }]);
+    byToken.set(key, [...(byToken.get(key) ?? []), { priceUsd: price, liquidityUsd: pair.liquidity?.usd ?? 0, quoteAddress: pair.quoteToken?.address, pairAddress: pair.pairAddress }]);
   }
-  // The deepest sane pool per coin — mispriced outlier pools are ignored (see pickSanePair).
-  const prices = new Map<string, number>();
+  // The chart pool, else the deepest sane pool — mispriced outlier pools are ignored (see pickSanePair).
+  const prices = new Map<string, { priceUsd: number; poolAddress?: string }>();
   for (const [key, candidates] of byToken) {
-    const best = pickSanePair(candidates, chain === 'solana' ? SOLANA_STANDARD_QUOTE_MINTS : undefined);
-    if (best) prices.set(key, best.priceUsd);
+    const best = pickChartPair(candidates, preferred.get(key), chain === 'solana' ? SOLANA_STANDARD_QUOTE_MINTS : undefined);
+    if (best) prices.set(key, { priceUsd: best.priceUsd, poolAddress: best.pairAddress });
   }
   return prices;
 }
@@ -61,9 +74,13 @@ export class LivePriceService implements OnModuleDestroy {
   private timer: NodeJS.Timeout | null = null;
   private polling = false;
 
+  /** Base/BNB coins' chart pools (Kamby's indexed market), cached — they rarely change. */
+  private readonly evmPools = new Map<string, { pool: string | null; at: number }>();
+
   constructor(
     private readonly logger: PinoLogger,
     private readonly cryptoPrices: CryptoPriceService,
+    @Optional() @Inject(REDIS_CLIENT) private readonly redis?: Redis,
   ) {
     this.logger.setContext('LivePriceService');
   }
@@ -139,12 +156,12 @@ export class LivePriceService implements OnModuleDestroy {
         return;
       }
       const body = (await response.json()) as unknown;
-      const prices = pricesFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain);
+      const prices = poolPricesFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain, await this.chartPools(chain, addresses));
       const atIso = new Date().toISOString();
       const missing: string[] = [];
       for (const address of addresses) {
         const price = prices.get(chain === 'solana' ? address : address.toLowerCase());
-        if (price !== undefined) this.latest.set(this.key(chain, address), { priceUsd: price, atIso });
+        if (price !== undefined) this.latest.set(this.key(chain, address), { priceUsd: price.priceUsd, atIso, ...(price.poolAddress ? { poolAddress: price.poolAddress } : {}) });
         else missing.push(address);
       }
       // A brand-new Pump.fun coin DexScreener hasn't listed yet (2026-10-05: Trenches coins had
@@ -154,6 +171,48 @@ export class LivePriceService implements OnModuleDestroy {
       // Keep the last known price; the next tick retries.
       this.logger.warn({ err: error }, 'DexScreener unreachable for live prices');
     }
+  }
+
+  /**
+   * Each coin's chart pool, so its live price comes from the market its candles show
+   * (2026-10-05: Live/10s and the candle widths read different pools and disagreed). Base/BNB:
+   * the pool Kamby indexes (TokenMarket — the candles' own source). Solana: the pool the candle
+   * service chose (`chart-pool:solana:<mint>`, see SolanaChartService). Keyed like poolPricesFromPairs.
+   */
+  private async chartPools(chain: TokenInfoChain, addresses: string[]): Promise<Map<string, string>> {
+    const pools = new Map<string, string>();
+    try {
+      if (chain === 'solana') {
+        if (!this.redis || addresses.length === 0) return pools;
+        const values = await this.redis.mget(addresses.map((a) => `chart-pool:solana:${a}`));
+        addresses.forEach((a, i) => values[i] && pools.set(a, values[i]!));
+        return pools;
+      }
+      const now = Date.now();
+      const missing = addresses.filter((a) => {
+        const hit = this.evmPools.get(`${chain}:${a.toLowerCase()}`);
+        return !hit || now - hit.at > 10 * 60_000;
+      });
+      if (missing.length > 0) {
+        const markets = await prisma.tokenMarket.findMany({
+          where: { token: { contractAddress: { in: missing, mode: 'insensitive' } } },
+          select: { pairAddress: true, liquidityUsd: true, token: { select: { contractAddress: true } } },
+          orderBy: { liquidityUsd: 'desc' },
+        });
+        for (const a of missing) this.evmPools.set(`${chain}:${a.toLowerCase()}`, { pool: null, at: now });
+        for (const m of markets) {
+          const key = `${chain}:${m.token.contractAddress.toLowerCase()}`;
+          if (this.evmPools.get(key)?.pool === null) this.evmPools.set(key, { pool: m.pairAddress, at: now }); // deepest first
+        }
+      }
+      for (const a of addresses) {
+        const pool = this.evmPools.get(`${chain}:${a.toLowerCase()}`)?.pool;
+        if (pool) pools.set(a.toLowerCase(), pool);
+      }
+    } catch (error) {
+      this.logger.warn({ err: error }, 'chart pools unavailable — live prices use the deepest pool');
+    }
+    return pools;
   }
 
   private async curvePrices(mints: string[], atIso: string): Promise<void> {

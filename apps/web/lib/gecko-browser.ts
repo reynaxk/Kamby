@@ -63,8 +63,9 @@ export function toCandles(rows: unknown): Candle[] {
     .sort((a, b) => a.bucketStart.localeCompare(b.bucketStart));
 }
 
-export async function fetchGeckoCandles(network: GeckoNetwork, token: string, timeframe: Timeframe): Promise<Candle[]> {
-  const pool = await topPool(network, token);
+/** `pool`: the coin's chart pool when known (from its live price), so these candles match Live/10s. */
+export async function fetchGeckoCandles(network: GeckoNetwork, token: string, timeframe: Timeframe, pool?: string): Promise<Candle[]> {
+  pool = pool ?? (await topPool(network, token)) ?? undefined;
   if (!pool) return [];
   const { unit, aggregate, limit } = OHLCV[timeframe];
   const body = await getJson<{ data?: { attributes?: { ohlcv_list?: unknown } } }>(

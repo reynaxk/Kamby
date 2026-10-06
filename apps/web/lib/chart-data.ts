@@ -92,7 +92,9 @@ async function fetchWithFallback(source: ChartSource, timeframe: Timeframe): Pro
   }
   if (fromApi.length >= MIN_USEFUL_CANDLES) return fromApi;
   const network = geckoNetworkFor(source);
-  const fromGecko = network ? await fetchGeckoCandles(network, source.kind === 'solana' ? source.mint : source.address, timeframe) : [];
+  // The pool the live price reports is the coin's chart pool — the same market as Live/10s.
+  const pool = network ? await fetchLivePrice(source).then((p) => p?.poolAddress).catch(() => undefined) : undefined;
+  const fromGecko = network ? await fetchGeckoCandles(network, source.kind === 'solana' ? source.mint : source.address, timeframe, pool) : [];
   if (fromGecko.length > fromApi.length) return fromGecko;
   if (apiError && fromApi.length === 0) throw apiError;
   return fromApi;
