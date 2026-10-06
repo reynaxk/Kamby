@@ -241,10 +241,20 @@ export class JupiterQuoteService {
     if (params.platformFeeBps > 0) query.set('platformFeeBps', params.platformFeeBps.toString());
     // Keep the route small enough to fit one transaction with Kamby's additions (the relayer as
     // a second signer, the USDC fee/setup transfer): found 2026-10-05, an unbounded BONK route
-    // came out at 1,648 bytes against Solana's 1,644 limit. Jupiter picks the best route within it.
-    query.set('maxAccounts', '40');
+    // came out at 1,648 bytes against Solana's 1,644 limit. 40 was too strict for Pump.fun
+    // bonding-curve coins (2026-10-06: "No routes found" on every buy), so 50 first, then — if
+    // Jupiter finds no route at all — no limit; a route too big to send fails the relayer's dry run.
     query.set('restrictIntermediateTokens', 'true');
+    query.set('maxAccounts', '50');
+    const bounded = await this.requestQuote(query);
+    if (bounded !== 'no-route') return bounded;
+    query.delete('maxAccounts');
+    const unbounded = await this.requestQuote(query);
+    return unbounded === 'no-route' ? null : unbounded;
+  }
 
+  /** One quote request; 'no-route' when Jupiter answered 400 (it found no route within the limits). */
+  private async requestQuote(query: URLSearchParams): Promise<JupiterQuoteResponse | null | 'no-route'> {
     const url = `${JUPITER_QUOTE_URL}?${query.toString()}`;
     try {
       const response = await this.fetchWithRetry(url, { headers: { 'x-api-key': this.apiKey! } });
@@ -253,9 +263,9 @@ export class JupiterQuoteService {
         if (response.status === 429) {
           this.logger.error({ status: response.status }, 'quote endpoint still rate-limited after retries');
         } else {
-          this.logger.warn({ status: response.status }, 'quote endpoint rejected the request');
+          this.logger.warn({ status: response.status, maxAccounts: query.get('maxAccounts') }, 'quote endpoint rejected the request');
         }
-        return null;
+        return response.status === 400 ? 'no-route' : null;
       }
       return (await response.json()) as JupiterQuoteResponse;
     } catch (error) {

@@ -134,7 +134,7 @@ describe('JupiterQuoteService', () => {
     const result = await service.getQuote(baseParams);
 
     expect(result).toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(1); // a 400 is never retried — it would just fail identically again
+    expect(fetchMock).toHaveBeenCalledTimes(2); // a 400 (no route within maxAccounts) is retried once without the limit, then given up
   });
 
   it('returns null when the quote succeeds but the swap-build call fails', async () => {
