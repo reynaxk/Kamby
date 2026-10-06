@@ -1,6 +1,6 @@
 import type { MarketSummary, TrendingToken } from '@kamby/domain';
 import { describe, expect, it } from 'vitest';
-import { pickDefaultMarket } from './default-market';
+import { pickDefaultMarket, pickStartCoin } from './default-market';
 
 const WETH = '0x4200000000000000000000000000000000000006';
 const CBBTC = '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf';
@@ -56,5 +56,24 @@ describe('pickDefaultMarket', () => {
 
   it('falls back to any selectable market rather than showing nothing', () => {
     expect(pickDefaultMarket([solana, discovered], [], () => 0)).toBe(discovered);
+  });
+});
+
+describe('pickStartCoin', () => {
+  const m = (addr: string, chainIdentifier: string, overrides: Partial<MarketSummary> = {}) =>
+    ({ chainIdentifier, tokenAddress: addr, symbol: addr, priceUsd: 0.01, liquidityUsd: 50_000, volume24hUsd: 20_000, isStale: false, ...overrides }) as MarketSummary;
+  const curve = (mint: string, sol: number, complete = false) => ({ mintAddress: mint, realSolReserves: String(BigInt(sol) * 1_000_000_000n), complete });
+
+  it('draws from Trending (any chain) and Bonding; a Solana pick opens its coin page', () => {
+    const trending = [m('0xbase', 'eip155:8453'), m('SolMint', 'solana')];
+    const bonding = [curve('CurveMint', 40)];
+    expect(pickStartCoin(trending, bonding, () => 0)).toEqual({ kind: 'evm', market: trending[0] });
+    expect(pickStartCoin(trending, bonding, () => 0.5)).toEqual({ kind: 'solana', mint: 'SolMint' });
+    expect(pickStartCoin(trending, bonding, () => 0.99)).toEqual({ kind: 'solana', mint: 'CurveMint' });
+  });
+
+  it('skips thin Trending coins and bonding coins under 10 SOL raised or already graduated', () => {
+    const pick = pickStartCoin([m('0xthin', 'eip155:8453', { liquidityUsd: 1_000 })], [curve('Tiny', 3), curve('Done', 90, true), curve('Real', 12)], () => 0);
+    expect(pick).toEqual({ kind: 'solana', mint: 'Real' });
   });
 });

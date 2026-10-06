@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   CHAIN_REGISTRY,
   DEFAULT_CHAIN_SLUG,
@@ -30,7 +31,8 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { fetchTokenTraders } from '@/lib/discovery-client';
 import { useMarketFeeds } from '@/lib/market-feeds';
 import { liveSourceFor } from '@/lib/use-live-price';
-import { pickDefaultMarket } from '@/lib/default-market';
+import { pickStartCoin } from '@/lib/default-market';
+import { solanaMarketHref } from '@/lib/solana-links';
 import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
 import { GridTerminalCell } from './GridTerminalCell';
@@ -149,6 +151,7 @@ export function DiscoverTerminal({
   const [tokenListOpen, setTokenListOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
   const { feeds } = useMarketFeeds(initialFeeds);
+  const router = useRouter();
   // Memoized on the two lists' identities — the stream only replaces a tab when its content
   // changed, so this recomputes on real changes, not on every selection re-render.
   const availableMarkets = useMemo(
@@ -265,8 +268,11 @@ export function DiscoverTerminal({
   // server-rendered first pass is spent and the new pick loads its own chart and panels.
   useEffect(() => {
     if (!shuffleOnMount) return;
-    const pick = pickDefaultMarket(feeds.trending.markets, []);
-    if (pick && (!initialMarket || marketKey(pick) !== marketKey(initialMarket))) setSelected(pick);
+    const pick = pickStartCoin(feeds.trending.markets, feeds.bonding.tokens);
+    if (!pick) return;
+    // Solana coins trade on their own page (with the same coin list on the left).
+    if (pick.kind === 'solana') router.replace(solanaMarketHref(pick.mint));
+    else if (!initialMarket || marketKey(pick.market) !== marketKey(initialMarket)) setSelected(pick.market);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSelect(market: MarketSummary) {
