@@ -64,11 +64,13 @@ export class SolanaChartService {
     const tf = timeframe as SolanaChartTimeframe;
     if (!(await this.isListed(mint))) throw new NotFoundException('Kamby does not list this Solana coin');
 
-    return this.cached(`solana-chart:candles:${mint}:${tf}`, OHLCV[tf].ttlSeconds, async () => {
+    return this.cached(`solana-chart:candles:v2:${mint}:${tf}`, OHLCV[tf].ttlSeconds, async () => {
       const pool = await this.mainPool(mint);
       if (!pool) return [];
       const { unit, aggregate } = OHLCV[tf];
-      const url = `${GECKOTERMINAL_API}/pools/${pool.address}/ohlcv/${unit}?aggregate=${aggregate}&limit=${CANDLE_LIMIT}&currency=usd&token=${pool.side}`;
+      // Ask for the coin by address, never "base"/"quote": GeckoTerminal and DexScreener can order
+      // a pool's tokens differently, and the wrong side priced ZCAT at 1,364 instead of 0.069 (2026-10-06).
+      const url = `${GECKOTERMINAL_API}/pools/${pool.address}/ohlcv/${unit}?aggregate=${aggregate}&limit=${CANDLE_LIMIT}&currency=usd&token=${mint}`;
       const body = await this.fetchJson<{ data?: { attributes?: { ohlcv_list?: unknown } } }>(url);
       return toCandles(body?.data?.attributes?.ohlcv_list);
     });

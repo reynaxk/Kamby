@@ -50,7 +50,7 @@ describe('SolanaChartService', () => {
     const candles = await new SolanaChartService(memoryRedis(), logger).history(BONK, '4H');
 
     expect(candles).toHaveLength(1);
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/pools/PoolBonkSol/ohlcv/hour?aggregate=4&limit=200&currency=usd&token=base'), expect.anything());
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining(`/pools/PoolBonkSol/ohlcv/hour?aggregate=4&limit=200&currency=usd&token=${BONK}`), expect.anything());
   });
 
   it('shares cached responses across viewers instead of calling GeckoTerminal each time', async () => {
