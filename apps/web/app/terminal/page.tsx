@@ -139,6 +139,7 @@ export default async function DiscoverPage({
             <DiscoverTerminal
               feeds={feeds}
               initialMarket={defaultMarket ?? null}
+              shuffleOnMount={!search}
               initialTimeframe="1D"
               initialCandles={heroCandles}
               initialActivity={heroActivity?.items}

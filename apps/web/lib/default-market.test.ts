@@ -17,7 +17,21 @@ const discovered = market('0x07b3000000000000000000000000000000009100');
 const solana = market('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', 'solana');
 
 describe('pickDefaultMarket', () => {
-  it('never picks a pool-discovered token, even when it tops trending', () => {
+  const hot = (addr: string, overrides: Partial<MarketSummary> = {}) =>
+    ({ ...market(addr), priceUsd: 0.01, liquidityUsd: 50_000, volume24hUsd: 20_000, isStale: false, ...overrides }) as MarketSummary;
+
+  it('opens on a random hot Trending coin — not only the hand-picked majors', () => {
+    const list = [hot('0xa1'), hot('0xb2'), hot('0xc3')];
+    expect(pickDefaultMarket(list, [], () => 0)?.tokenAddress).toBe('0xa1');
+    expect(pickDefaultMarket(list, [], () => 0.99)?.tokenAddress).toBe('0xc3');
+  });
+
+  it('skips coins without real depth, trading or a fresh price', () => {
+    const list = [hot('0xthin', { liquidityUsd: 5_000 }), hot('0xdead', { volume24hUsd: 100 }), hot('0xstale', { isStale: true }), hot('0xok')];
+    expect(pickDefaultMarket(list, [], () => 0)?.tokenAddress).toBe('0xok');
+  });
+
+  it('never picks a pool-discovered token without real depth, even when it tops trending', () => {
     const picks = [0, 0.5, 0.99].map((r) => pickDefaultMarket([], trending(discovered, market(WETH)), () => r));
     expect(picks.every((m) => m?.tokenAddress === WETH)).toBe(true);
   });

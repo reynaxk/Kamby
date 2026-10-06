@@ -30,6 +30,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { fetchTokenTraders } from '@/lib/discovery-client';
 import { useMarketFeeds } from '@/lib/market-feeds';
 import { liveSourceFor } from '@/lib/use-live-price';
+import { pickDefaultMarket } from '@/lib/default-market';
 import { fetchLatestActivity } from '@/lib/social-client';
 import { DiscoverTokenList } from './DiscoverTokenList';
 import { GridTerminalCell } from './GridTerminalCell';
@@ -126,6 +127,7 @@ function dedupeMarkets(lists: MarketSummary[][]): MarketSummary[] {
 export function DiscoverTerminal({
   feeds: initialFeeds,
   initialMarket,
+  shuffleOnMount = false,
   initialTimeframe,
   initialCandles,
   initialActivity,
@@ -134,6 +136,8 @@ export function DiscoverTerminal({
   /** Server-rendered first paint of the five feed tabs — kept live by useMarketFeeds. */
   feeds: MarketFeedSnapshot;
   initialMarket: MarketSummary | null;
+  /** Re-pick a random hot coin in the browser on first load, so the cached page never opens on the same one. */
+  shuffleOnMount?: boolean;
   initialTimeframe: Timeframe;
   /** `undefined` = the server didn't have it in time (app/page.tsx's budget) — fetched here. */
   initialCandles: Candle[] | undefined;
@@ -256,6 +260,14 @@ export function DiscoverTerminal({
       cancelled = true;
     };
   }, [selected]);
+
+  // A fresh random coin on every visit (2026-10-06) — after the fetch effects above, so their
+  // server-rendered first pass is spent and the new pick loads its own chart and panels.
+  useEffect(() => {
+    if (!shuffleOnMount) return;
+    const pick = pickDefaultMarket(feeds.trending.markets, []);
+    if (pick && (!initialMarket || marketKey(pick) !== marketKey(initialMarket))) setSelected(pick);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSelect(market: MarketSummary) {
     if (inFlight) return;
