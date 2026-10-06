@@ -45,6 +45,8 @@ export function withFreshPrice<T extends Pick<MarketSummary, 'priceUsd' | 'marke
 @Injectable()
 export class FeedPricesService {
   private readonly cache = new Map<string, { usd: number; at: number }>();
+  /** Logos DexScreener has for coins listed without one (they're often added after launch). */
+  private readonly logos = new Map<string, string>();
 
   constructor(private readonly logger: PinoLogger) {
     this.logger.setContext('FeedPricesService');
@@ -71,7 +73,10 @@ export class FeedPricesService {
       const chain = chainOf(m.chainIdentifier);
       const fresh = chain ? this.cache.get(this.key(chain, m.tokenAddress)) : undefined;
       // Only a price fetched this cycle or the last few seconds — never an old cached one.
-      return fresh && Date.now() - fresh.at <= FRESH_MS * 2 ? withFreshPrice(m, fresh.usd, atIso) : m;
+      const priced = fresh && Date.now() - fresh.at <= FRESH_MS * 2 ? withFreshPrice(m, fresh.usd, atIso) : m;
+      // A missing logo filled from the same DexScreener answer (2026-10-06: Base launches showed none).
+      const logo = !priced.logoUrl && chain ? this.logos.get(this.key(chain, m.tokenAddress)) : undefined;
+      return logo ? { ...priced, logoUrl: logo } : priced;
     });
   }
 
@@ -90,6 +95,11 @@ export class FeedPricesService {
         return;
       }
       const body = (await res.json()) as unknown;
+      for (const pair of Array.isArray(body) ? (body as { baseToken?: { address?: string }; info?: { imageUrl?: string } }[]) : []) {
+        const address = pair.baseToken?.address;
+        const image = pair.info?.imageUrl;
+        if (address && typeof image === 'string' && image.startsWith('https://')) this.logos.set(this.key(chain, address), image);
+      }
       const prices = pricesFromPairs(Array.isArray(body) ? (body as Parameters<typeof pricesFromPairs>[0]) : [], chain);
       const at = Date.now();
       for (const [key, usd] of prices) this.cache.set(`${chain}:${key}`, { usd, at });
