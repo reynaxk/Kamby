@@ -8,6 +8,7 @@ const FOUND_TTL_SECONDS = 24 * 60 * 60;
 /** Jupiter usually indexes a brand-new coin within minutes — retry a miss soon. */
 const MISSING_TTL_SECONDS = 5 * 60;
 const BATCH = 100;
+const METADATA_CONCURRENCY = 6;
 
 /**
  * Pictures for Pump.fun coins in Trenches / Bonding / Graduated (user feedback 2026-10-03: "I
@@ -45,6 +46,18 @@ export class PumpFunIconService {
     for (let i = 0; i < missing.length; i += BATCH) {
       const batch = missing.slice(i, i + BATCH);
       const found = await this.lookup(batch);
+      // Coins Jupiter doesn't know yet (2026-10-06: a quarter of Trenches had no icon): the image
+      // from the coin's own metadata file, which every Pump.fun launch publishes.
+      const uris = new Map(tokens.map((t) => [t.mintAddress, t.uri] as const));
+      const noIcon = batch.filter((m) => !found.has(m) && uris.get(m));
+      for (let j = 0; j < noIcon.length; j += METADATA_CONCURRENCY) {
+        await Promise.all(
+          noIcon.slice(j, j + METADATA_CONCURRENCY).map(async (mint) => {
+            const image = await this.imageFromMetadata(uris.get(mint)!);
+            if (image) found.set(mint, image);
+          }),
+        );
+      }
       const pipeline = this.redis.pipeline();
       for (const mint of batch) {
         const icon = found.get(mint);
@@ -54,6 +67,20 @@ export class PumpFunIconService {
       await pipeline.exec().catch(() => undefined);
     }
     return tokens.map((t) => ({ ...t, imageUrl: icons.get(t.mintAddress) ?? null }));
+  }
+
+  /** The `image` of a coin's metadata JSON (IPFS links moved to a fast gateway), or null. */
+  private async imageFromMetadata(uri: string): Promise<string | null> {
+    const viaGateway = (url: string) => url.replace(/^(?:ipfs:\/\/|https?:\/\/[^/]+\/ipfs\/)/, 'https://pump.mypinata.cloud/ipfs/');
+    try {
+      const res = await fetch(viaGateway(uri), { signal: AbortSignal.timeout(4000), headers: { accept: 'application/json' } });
+      if (!res.ok) return null;
+      const meta = (await res.json()) as { image?: unknown };
+      const image = typeof meta.image === 'string' ? viaGateway(meta.image.trim()) : null;
+      return image && image.startsWith('https://') ? image : null;
+    } catch {
+      return null;
+    }
   }
 
   private async lookup(mints: string[]): Promise<Map<string, string>> {

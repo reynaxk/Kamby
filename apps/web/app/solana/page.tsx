@@ -9,6 +9,7 @@ import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { CoinRail } from '@/components/discovery/CoinRail';
+import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
@@ -42,6 +43,8 @@ interface SolanaTradeTarget {
   /** Still on a launchpad bonding curve — tradable through Jupiter, with a stronger warning. */
   onBondingCurve?: boolean;
   priceChange24hPct: number | null;
+  marketCapUsd?: number | null;
+  priceUsd?: number | null;
 }
 
 const NATIVE_SOL: SolanaTradeTarget = { tokenAddress: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana', logoUrl: null, isNewListing: false, priceChange24hPct: null };
@@ -59,7 +62,7 @@ async function resolveMarket(mint: string | undefined): Promise<SolanaTradeTarge
   const found = markets.find((m) => m.chainIdentifier === 'solana' && m.tokenAddress === mint);
   if (found) {
     const logoUrl = found.logoUrl ?? (await jupiterIcon(found.tokenAddress));
-    return { tokenAddress: found.tokenAddress, symbol: found.symbol, name: found.name, logoUrl, isNewListing: false, priceChange24hPct: found.priceChange24hPct };
+    return { tokenAddress: found.tokenAddress, symbol: found.symbol, name: found.name, logoUrl, isNewListing: false, priceChange24hPct: found.priceChange24hPct, marketCapUsd: found.marketCapUsd, priceUsd: found.priceUsd };
   }
   const pumpFun = await fetchPumpFunToken(mint);
   if (pumpFun) {
@@ -155,6 +158,15 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               <div className="mt-3">
                 <NewListingBanner onBondingCurve={market.onBondingCurve} />
               </div>
+            )}
+            {!isSol && (
+              <LiveTabTitle
+                source={{ kind: 'solana', mint: market.tokenAddress }}
+                symbol={market.symbol}
+                priceUsd={market.priceUsd ?? lastClose}
+                marketCapUsd={market.marketCapUsd ?? null}
+                launchpadSupply={market.isNewListing}
+              />
             )}
             <TokenChartCard
               source={{ kind: 'solana', mint: market.tokenAddress }}

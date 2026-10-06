@@ -39,6 +39,7 @@ const {
 
 // The per-chain balance line reads wallets through wagmi — not under test here.
 vi.mock('./ChainUsdcLine', () => ({ ChainUsdcLine: () => null }));
+vi.mock('./PositionChip', () => ({ PositionChip: () => null, useEntryPrice: () => null }));
 vi.mock('wagmi', () => ({ useAccount: useAccountMock }));
 vi.mock('wagmi/actions', () => ({ call: callMock, sendTransaction: sendTransactionMock, writeContract: writeContractMock }));
 vi.mock('@/lib/wagmi-config', () => ({ wagmiConfig: {} }));

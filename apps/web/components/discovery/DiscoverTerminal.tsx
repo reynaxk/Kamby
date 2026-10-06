@@ -41,6 +41,8 @@ import { MyPositionsPanel } from './MyPositionsPanel';
 import { useChartOverlayFilter } from './useChartOverlayFilter';
 import { TokenTradersPanel } from './TokenTradersPanel';
 import { cashtag } from '@/lib/format';
+import { useEntryPrice } from '@/components/trading/PositionChip';
+import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
 type GridMode = 1 | 4 | 6;
@@ -160,6 +162,7 @@ export function DiscoverTerminal({
   );
 
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
+  const entry = useEntryPrice(selected?.tokenAddress);
   // The selected coin as the live feeds have it now — `selected` is the snapshot from the
   // click, so its price/volume/mcap never moved (user feedback 2026-10-03). Display only; the
   // fetch effects keep keying off `selected` so a feed refresh never refetches the chart.
@@ -291,9 +294,9 @@ export function DiscoverTerminal({
     if ((isTickTimeframe(timeframe) || noHistory) && (slug === 'base' || slug === 'bnb')) {
       const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
       const bucketSeconds = timeframe === 'live' ? 60 : 10;
-      return <LivePriceChart key={`${market.tokenAddress}:${bucketSeconds}`} source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={bucketSeconds} />;
+      return <LivePriceChart key={`${market.tokenAddress}:${bucketSeconds}`} source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={bucketSeconds} entryPrice={entry?.price} />;
     }
-    return <KambyChart candles={candles} trades={filteredTrades} chartStyle={chartStyle} />;
+    return <KambyChart candles={candles} trades={filteredTrades} chartStyle={chartStyle} entryPrice={entry?.price} />;
   };
   const canTrade =
     selected !== null &&
@@ -366,6 +369,14 @@ export function DiscoverTerminal({
           <div className="mb-3">
             <TokenMetricsBar market={selectedLive ?? selected} />
           </div>
+        )}
+        {selected && (
+          <LiveTabTitle
+            source={liveSourceFor(selected)}
+            symbol={selected.symbol}
+            priceUsd={(selectedLive ?? selected).priceUsd}
+            marketCapUsd={(selectedLive ?? selected).marketCapUsd}
+          />
         )}
 
         <Surface className="mb-3 flex h-[250px] flex-col gap-2 p-2">
@@ -502,6 +513,14 @@ export function DiscoverTerminal({
 
   return (
     <div>
+      {selected && (
+        <LiveTabTitle
+          source={liveSourceFor(selected)}
+          symbol={selected.symbol}
+          priceUsd={(selectedLive ?? selected).priceUsd}
+          marketCapUsd={(selectedLive ?? selected).marketCapUsd}
+        />
+      )}
       <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-[300px_minmax(0,1fr)_380px] xl:grid-cols-[340px_minmax(0,1fr)_420px]">
         <div className="h-[520px] lg:h-[calc(100vh-8rem)]">
           <DiscoverTokenList

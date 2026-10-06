@@ -30,6 +30,8 @@ import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
 import { ChainUsdcLine } from './ChainUsdcLine';
+import { PositionChip } from './PositionChip';
+import { notifyTradeConfirmed } from '@/lib/my-positions';
 
 export interface SolanaTradePanelProps {
   tokenMint: string;
@@ -247,6 +249,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         if (!tx) return;
         setTransaction(tx);
         if (tx.status === 'CONFIRMED') {
+          notifyTradeConfirmed();
           setStep('confirmed');
           if (activeToastIdRef.current) {
             toast.update(activeToastIdRef.current, {
@@ -429,7 +432,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (!wallet) {
     return (
-      <Panel title="Trade">
+      <Panel title="Trade" headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
         <p className="font-body text-sm text-ink-600">
           Sign in to trade — Kamby creates a wallet for you automatically, no extension or seed phrase needed. It
           never holds your funds or signs on your behalf.
@@ -456,7 +459,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (walletVerification.status !== 'verified') {
     return (
-      <Panel title="Trade">
+      <Panel title="Trade" headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
         {/* Verification runs by itself (see useWalletVerification) — a button only
             appears if it failed, e.g. an external wallet's signature was declined. */}
         {walletVerification.status === 'rejected' ? (
@@ -482,7 +485,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
     return (
-      <Panel title="Trade">
+      <Panel title="Trade" headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
         <SolanaTradeStatusView step={step} transaction={transaction} signature={pendingSignature} onDone={resetToForm} />
       </Panel>
     );
@@ -490,7 +493,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   if (step === 'record-failed') {
     return (
-      <Panel title="Trade">
+      <Panel title="Trade" headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
         <div className="space-y-3 text-center">
           <p className="font-body text-sm font-semibold text-down">Your trade was sent to the network, but we couldn&apos;t record it.</p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
@@ -561,7 +564,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   return (
     <>
-      <Panel title="Trade">
+      <Panel title="Trade" headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
         <div className="flex gap-1.5">
           {(['BUY', 'SELL'] as const).map((s) => {
             const isActive = side === s;

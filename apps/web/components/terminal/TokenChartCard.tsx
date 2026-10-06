@@ -10,6 +10,7 @@ import { CANDLE_REFRESH_MS, cachedCandles, candleWidthFor, isTickTimeframe, load
 import { KambyChart } from './KambyChart';
 import { ChartStyleToggle, useChartStyle } from './ChartStyleToggle';
 import { LivePriceChart } from './LivePriceChart';
+import { useEntryPrice } from '@/components/trading/PositionChip';
 
 const NO_TRADES: SocialActivity[] = [];
 /** Short widths refresh while open so the newest candle keeps moving. */
@@ -39,6 +40,7 @@ export function TokenChartCard({
 }) {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
   const [chartStyle, setChartStyle] = useChartStyle();
+  const entry = useEntryPrice(source.kind === 'solana' ? source.mint : source.address);
   const candleTimeframe: Timeframe = candleWidthFor(timeframe);
   const [candles, setCandles] = useState<Candle[] | null>(initialCandles);
   /** Which width `candles` actually are — the previous chart stays up until the new one lands. */
@@ -111,9 +113,9 @@ export function TokenChartCard({
         ) : candles === null ? (
           <Skeleton className="h-full w-full" />
         ) : (isTickTimeframe(timeframe) && candlesFor === '1m') || (!loading && candles.length < 2) ? (
-          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === 'live' ? 60 : 10} />
+          <LivePriceChart source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={timeframe === 'live' ? 60 : 10} entryPrice={entry?.price} />
         ) : (
-          <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} />
+          <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} entryPrice={entry?.price} />
         )}
       </div>
     </div>

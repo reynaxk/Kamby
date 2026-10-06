@@ -1,14 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { TokenPosition } from '@kamby/domain';
+import { useState } from 'react';
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
 import { formatCompactUsd, formatPercent, formatSignedCompactUsd, priceDirection, cashtag } from '@/lib/format';
-import { fetchMyPositions, hasStoredSession } from '@/lib/discovery-client';
+import { hasStoredSession } from '@/lib/discovery-client';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
-
-const POLL_INTERVAL_MS = 30_000;
+import { useMyPositions } from '@/lib/my-positions';
 
 /**
  * The signed-in user's own currently-open positions (GET /social/positions,
@@ -28,29 +26,9 @@ const POLL_INTERVAL_MS = 30_000;
  * what's actually, currently true.
  */
 export function MyPositionsPanel() {
-  const [positions, setPositions] = useState<TokenPosition[] | null>(null);
+  const positions = useMyPositions();
   const [expanded, setExpanded] = useState<string | null>(null);
   const { hidden } = useBalanceVisibility();
-
-  useEffect(() => {
-    if (!hasStoredSession()) return;
-    let cancelled = false;
-    const load = () => {
-      fetchMyPositions()
-        .then((result) => {
-          if (!cancelled) setPositions(result);
-        })
-        .catch(() => {
-          // A failed poll just leaves the last-known list on screen.
-        });
-    };
-    load();
-    const id = setInterval(load, POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
 
   if (!hasStoredSession() || positions === null || positions.length === 0) return null;
 

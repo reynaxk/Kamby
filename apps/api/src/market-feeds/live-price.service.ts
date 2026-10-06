@@ -10,7 +10,7 @@ import { isListedCoin } from './listed-coins';
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
 /** DexScreener's token endpoint takes up to 30 addresses per call. */
 const BATCH_SIZE = 30;
-const POLL_MS = 2_000;
+const POLL_MS = 1_500; // 2026-10-06: prices felt slow at 2s; DexScreener's 300/min allows it
 /** A coin stays watched this long after its last viewer asked for it. */
 const WATCH_TTL_MS = 20_000;
 

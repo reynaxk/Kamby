@@ -257,11 +257,14 @@ export function KambyChart({
   candles,
   trades = NO_TRADES,
   chartStyle = 'candles',
+  entryPrice,
 }: {
   candles: Candle[];
   trades?: SocialActivity[];
   /** 'line' draws closes as a line (the chart-style toggle). */
   chartStyle?: ChartStyle;
+  /** Your average entry price in this coin, drawn as a dashed line. */
+  entryPrice?: number | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -356,6 +359,11 @@ export function KambyChart({
       (series as ISeriesApi<'Area'>).setData(toSeriesData(candles).map((c) => ({ time: c.time, value: c.close })));
     } else {
       (series as ISeriesApi<'Candlestick'>).setData(toSeriesData(candles));
+    }
+
+    // Your entry price (2026-10-06): a dashed line at what you paid — above it you're in profit.
+    if (entryPrice && entryPrice > 0) {
+      series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'Your entry' });
     }
 
     // Volume along the bottom fifth, on its own hidden scale, colored by candle direction.
@@ -481,7 +489,7 @@ export function KambyChart({
       chart.remove();
       setCanvasReady(false);
     };
-  }, [candles, activeIndicators, chartStyle]);
+  }, [candles, activeIndicators, chartStyle, entryPrice]);
 
   useEffect(() => {
     markersRef.current?.setTrades(trades);

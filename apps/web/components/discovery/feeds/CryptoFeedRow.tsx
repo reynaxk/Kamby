@@ -3,6 +3,7 @@ import { cn } from '@kamby/ui';
 import { GlowValue } from '@/components/market/GlowValue';
 import { CRYPTO_TRADE_TARGETS } from '@/lib/crypto-markets';
 import { formatPercent, formatPrice } from '@/lib/format';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 /** A Crypto-tab row: a live Coinbase spot price, opening the market it trades as on Kamby. */
 export function CryptoFeedRow({ price, onOpen }: { price: CryptoPrice; onOpen: (price: CryptoPrice) => void }) {
@@ -15,9 +16,7 @@ export function CryptoFeedRow({ price, onOpen }: { price: CryptoPrice; onOpen: (
       aria-label={`${price.symbol} ${formatPrice(price.priceUsd)} — open ${target.label}`}
       className="flex w-full items-center gap-2.5 border-b border-line/60 px-2 py-2 text-left transition-colors hover:bg-surface-raised"
     >
-      <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-[0.76rem] font-bold text-ink-600">
-        {price.symbol.slice(0, 1)}
-      </span>
+      <TokenAvatar src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${price.symbol.toLowerCase()}.png`} seed={price.symbol} label={price.symbol} className="h-9 w-9 text-[0.85rem]" />
       <span className="min-w-0 flex-1">
         <span className="block font-display text-[0.88rem] font-semibold tracking-tight text-ink-900">{price.symbol}</span>
         <span className="block truncate font-mono text-[0.7rem] text-ink-400">{target.label}</span>

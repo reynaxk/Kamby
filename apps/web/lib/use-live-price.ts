@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { slugForIdentifier, CHAIN_REGISTRY, type MarketSummary } from '@kamby/domain';
 import { fetchLivePrice, type ChartSource } from './chart-data';
 
-const REFRESH_MS = 2_000;
+const REFRESH_MS = 1_500;
 
 /** A market's chart/live-price source, or null for chains without one. */
 export function liveSourceFor(market: Pick<MarketSummary, 'chainIdentifier' | 'tokenAddress'>): ChartSource | null {

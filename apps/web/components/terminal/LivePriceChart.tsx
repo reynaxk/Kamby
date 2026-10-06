@@ -86,12 +86,15 @@ export function LivePriceChart({
   seedCandles,
   chartStyle = 'line',
   bucketSeconds = 60,
+  entryPrice,
 }: {
   source: ChartSource;
   seedCandles: Candle[];
   chartStyle?: ChartStyle;
   /** Candle width in candle mode: 60 for Live, 10 for the 10s timeframe (built from ticks). */
   bucketSeconds?: number;
+  /** Your average entry price in this coin, drawn as a dashed line. */
+  entryPrice?: number | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -156,6 +159,9 @@ export function LivePriceChart({
         priceLineStyle: LineStyle.Dashed,
       });
       candleSeries.setData(seeded);
+      if (entryPrice && entryPrice > 0) {
+        candleSeries.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'Your entry' });
+      }
       // A handful of candles stretched to the full width read as giant blocks — keep a normal
       // candle width and grow in from the right instead.
       if (seeded.length >= 40) chart.timeScale().fitContent();
@@ -185,6 +191,9 @@ export function LivePriceChart({
       crosshairMarkerRadius: 4,
     });
     series.setData([...seed, ...slots]);
+    if (entryPrice && entryPrice > 0) {
+      series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-ink-600', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'Your entry' });
+    }
     chart.timeScale().fitContent();
     lastTimeRef.current = slots[slots.length - 1]?.time ?? seed[seed.length - 1]?.time ?? 0;
     hasPriceHistoryRef.current = seed.length > 0;
@@ -196,7 +205,7 @@ export function LivePriceChart({
       seriesRef.current = null;
     };
     // Rebuilt only for a different coin, style or new seed history, never per tick.
-  }, [sourceKey, seedCandles, chartStyle, bucketSeconds]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourceKey, seedCandles, chartStyle, bucketSeconds, entryPrice]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let points = 0;

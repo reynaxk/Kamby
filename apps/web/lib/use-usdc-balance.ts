@@ -7,6 +7,7 @@ import { erc20Abi, formatUnits } from 'viem';
 import { useReadContracts } from 'wagmi';
 import { solanaConnection } from './solana-config';
 import { USDC_BY_CHAIN_ID } from './usdc';
+import { TRADE_CONFIRMED_EVENT } from './my-positions';
 
 const REFRESH_MS = 30_000;
 /** Solana reads spend the paid Helius key (one call per open tab) — refreshed less often, plus
@@ -37,7 +38,7 @@ export function totalUsdc(parts: (number | null)[]): number | null {
 export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: string | undefined): UsdcBalances {
   const base = USDC_BY_CHAIN_ID[8453]!;
   const bnb = USDC_BY_CHAIN_ID[56]!;
-  const { data } = useReadContracts({
+  const { data, refetch } = useReadContracts({
     contracts: evmAddress
       ? [
           { chainId: 8453, address: base.address as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [evmAddress as `0x${string}`] },
@@ -52,6 +53,13 @@ export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: s
   };
   const baseUsdc = read(0, base.decimals);
   const bnbUsdc = read(1, bnb.decimals);
+
+  // EVM balances right after a trade too, not on the 30s poll.
+  useEffect(() => {
+    const afterTrade = () => [1_500, 4_000, 9_000].forEach((ms) => setTimeout(() => void refetch(), ms));
+    window.addEventListener(TRADE_CONFIRMED_EVENT, afterTrade);
+    return () => window.removeEventListener(TRADE_CONFIRMED_EVENT, afterTrade);
+  }, [refetch]);
 
   const [solanaUsdc, setSolanaUsdc] = useState<number | null>(null);
   useEffect(() => {
@@ -72,10 +80,15 @@ export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: s
     const timer = setInterval(() => void load(), SOLANA_REFRESH_MS);
     const onVisible = () => document.visibilityState === 'visible' && void load();
     document.addEventListener('visibilitychange', onVisible);
+    // Right after a trade: re-read at a few short delays (RPCs catch up within seconds) —
+    // 2026-10-06: the balance kept showing the old amount for a while after a sell.
+    const afterTrade = () => [1_500, 4_000, 9_000].forEach((ms) => setTimeout(() => !cancelled && void load(), ms));
+    window.addEventListener(TRADE_CONFIRMED_EVENT, afterTrade);
     return () => {
       cancelled = true;
       clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener(TRADE_CONFIRMED_EVENT, afterTrade);
     };
   }, [solanaAddress]);
 

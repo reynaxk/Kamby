@@ -23,6 +23,9 @@ import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { ChainUsdcLine } from './ChainUsdcLine';
+import { PositionChip } from './PositionChip';
+import { evmChartSource } from '@/lib/chart-data';
+import { notifyTradeConfirmed } from '@/lib/my-positions';
 
 export interface TradePanelProps {
   /** The real chain this specific token trades on — see lib/explorer.ts and
@@ -309,6 +312,7 @@ export function TradePanel({
           setTransaction(updated);
           if (updated.status !== 'PENDING') {
             setStep(updated.status === 'CONFIRMED' ? 'confirmed' : 'failed');
+            if (updated.status === 'CONFIRMED') notifyTradeConfirmed();
           }
           const feeStillPending = updated.feeStatus === 'PENDING';
           if (updated.status !== 'PENDING' && !feeStillPending && pollRef.current) {
@@ -759,7 +763,13 @@ export function TradePanel({
   // --- Form step ---------------------------------------------------------------------------
 
   return (
-    <Panel title="Trade" onClose={onClose} animKey="form" dense={dense}>
+    <Panel
+      title="Trade"
+      onClose={onClose}
+      animKey="form"
+      dense={dense}
+      headerRight={<PositionChip source={evmChartSource(tokenAddress, chainId)} />}
+    >
       <div className="flex rounded-lg bg-surface-raised p-1">
         {(['BUY', 'SELL'] as const).map((option) => (
           <button
@@ -846,6 +856,7 @@ function Panel({
   title,
   onClose,
   onBack,
+  headerRight,
   animKey,
   dense = false,
   children,
@@ -853,6 +864,7 @@ function Panel({
   title: string;
   onClose?: () => void;
   onBack?: () => void;
+  headerRight?: React.ReactNode;
   dense?: boolean;
   /** Distinguishes visually-distinct screens (form/review/post-trade/record-failed) so each
    *  one springs in once, while sub-state changes within the same screen (e.g. review ->
@@ -870,6 +882,7 @@ function Panel({
             </button>
           )}
           <h2 className="font-display text-base font-semibold text-ink-900">{title}</h2>
+          {headerRight}
         </div>
         {onClose && (
           <button type="button" onClick={onClose} aria-label="Close" className="text-ink-600 hover:text-ink-900">
