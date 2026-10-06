@@ -517,7 +517,8 @@ export function KambyChart({
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" />
       {!canvasReady && <CandlePreview candles={candles} trades={trades} />}
-      <div ref={pickerRef} className="absolute right-2 top-2 z-10">
+      {/* Top-left: at top-right it covered the price axis and the live price (2026-10-06). */}
+      <div ref={pickerRef} className="absolute left-2 top-2 z-10">
         <button
           type="button"
           onClick={() => setPickerOpen((open) => !open)}
@@ -528,7 +529,7 @@ export function KambyChart({
           Indicators{activeIndicators.size > 0 ? ` (${activeIndicators.size})` : ''}
         </button>
         {pickerOpen && (
-          <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-lg">
+          <div className="absolute left-0 z-20 mt-1 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-lg">
             {INDICATOR_ORDER.map((id) => (
               <label
                 key={id}
