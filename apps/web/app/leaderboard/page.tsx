@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { cn, Surface } from '@kamby/ui';
 import { CHAIN_REGISTRY, SUPPORTED_CHAIN_SLUGS, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
-import { EmptyState } from '@/components/market/EmptyState';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
@@ -13,6 +12,8 @@ export const metadata = { title: 'Leaderboard — Kamby' };
 
 const WINDOWS: readonly PnlWindow[] = ['24h', '7d', '30d'];
 const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d': '30D' };
+/** Fewer ranked traders than this shows the "be the first" state instead of a near-empty table. */
+const MIN_RANKED = 3;
 
 /** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
 // Only chains Kamby trades on — Arbitrum/Ethereum are in the registry but have no markets.
@@ -98,12 +99,19 @@ export default async function LeaderboardPage({
           ))}
         </nav>
 
-        {leaderboard.entries.length === 0 ? (
-          <div className="mt-8">
-            <EmptyState
-              title="No realized PnL yet."
-              detail="Once a buy placed through Kamby is matched to a sell, ranked traders show up here."
-            />
+        {leaderboard.entries.length < MIN_RANKED ? (
+          // Too few traders to rank (2026-10-06: one test wallet at -$0.37 looked empty and off at
+          // launch) — an invitation instead of a near-empty table.
+          <div className="mt-10 flex flex-col items-center rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">Season 1</p>
+            <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-white">Be the first on the board.</h2>
+            <p className="mt-2 max-w-sm font-body text-sm text-[#94A3B8]">Traders are ranked by real profit on trades made through Kamby — buy, sell, and your name goes up here.</p>
+            <Link
+              href="/terminal"
+              className="mt-8 rounded-xl bg-[#00FF87] px-8 py-3.5 font-display text-sm font-bold text-black shadow-[0_0_28px_rgba(0,255,135,0.45)] transition-shadow hover:shadow-[0_0_44px_rgba(0,255,135,0.75)]"
+            >
+              Go Trade
+            </Link>
           </div>
         ) : (
           <ol className="mt-8 flex flex-col gap-2">
