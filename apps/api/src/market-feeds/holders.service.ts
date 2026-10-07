@@ -139,12 +139,12 @@ export class HoldersService {
     if (!this.solanaPool) return null;
     try {
       const mintKey = new PublicKey(mint);
-      const [largest, supply] = await this.solanaPool.withFailover((c) => Promise.all([c.getTokenLargestAccounts(mintKey), c.getTokenSupply(mintKey)]));
+      const [largest, supply] = await this.solanaPool.withPublicFirst((c) => Promise.all([c.getTokenLargestAccounts(mintKey), c.getTokenSupply(mintKey)]));
       const accounts = largest.value.filter((a) => (a.uiAmount ?? 0) > 0).slice(0, MAX_HOLDERS);
       const total = supply.value.uiAmount ?? 0;
       if (accounts.length === 0 || total <= 0) return null;
       // Token accounts → their owner wallets (one call for all of them).
-      const parsed = await this.solanaPool.withFailover((c) => c.getMultipleParsedAccounts(accounts.map((a) => a.address)));
+      const parsed = await this.solanaPool.withPublicFirst((c) => c.getMultipleParsedAccounts(accounts.map((a) => a.address)));
       const holders = accounts.map((a, i): TokenHolder => {
         const data = parsed.value[i]?.data;
         const owner = data && 'parsed' in data ? (data.parsed as { info?: { owner?: string } }).info?.owner : undefined;

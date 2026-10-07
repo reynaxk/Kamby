@@ -45,6 +45,9 @@ export class PumpFunCurveRefresher {
     private readonly connection: Connection,
     private readonly redis: Redis,
     private readonly logger: Logger,
+    /** Free public RPC tried first (2026-10-07: keeps paid Helius credits for trading); the
+     *  paid `connection` is only used when it fails. */
+    private readonly publicConnection: Connection | null = null,
   ) {}
 
   /** The curves that matter right now — hot on Jupiter first, then the newest, then the most
@@ -74,7 +77,10 @@ export class PumpFunCurveRefresher {
       const batch = addresses.slice(i, i + BATCH);
       let infos;
       try {
-        infos = await this.connection.getMultipleAccountsInfo(batch.map((a) => new PublicKey(a)));
+        const keys = batch.map((a) => new PublicKey(a));
+        infos = this.publicConnection
+          ? await this.publicConnection.getMultipleAccountsInfo(keys).catch(() => this.connection.getMultipleAccountsInfo(keys))
+          : await this.connection.getMultipleAccountsInfo(keys);
       } catch (error) {
         this.logger.warn({ err: error }, 'Pump.fun curve refresh: RPC read failed — will retry next tick');
         continue;

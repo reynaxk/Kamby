@@ -36,6 +36,20 @@ export class SolanaConnectionPool {
   }
 
   /**
+   * Market-data reads (2026-10-07): the free fallback endpoint first, the paid primary only if
+   * it fails — so read-only lookups like the Holders tab never spend the credits trading needs.
+   * Same as withFailover when no fallback is configured.
+   */
+  async withPublicFirst<T>(operation: (connection: Connection) => Promise<T>): Promise<T> {
+    if (!this.fallbackConnection) return this.withFailover(operation);
+    try {
+      return await this.fallbackBreaker.execute(() => operation(this.fallbackConnection!));
+    } catch {
+      return this.primaryBreaker.execute(() => operation(this.primary));
+    }
+  }
+
+  /**
    * Runs `operation` against the primary connection, gated by its circuit breaker; on
    * failure (a thrown error, or the breaker already open from recent failures), falls back
    * to the secondary connection if one is configured. Never silently swallows a failure —

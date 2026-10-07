@@ -432,7 +432,12 @@ async function main(): Promise<void> {
 
     // Real bonding-curve progress, read on-chain in batches — see pumpfun-curve-refresher.ts.
     if (env.SOLANA_RPC_URL) {
-      const curveRefresher = new PumpFunCurveRefresher(new Connection(env.SOLANA_RPC_URL, 'confirmed'), redis, logger);
+      const curveRefresher = new PumpFunCurveRefresher(
+        new Connection(env.SOLANA_RPC_URL, 'confirmed'),
+        redis,
+        logger,
+        env.SOLANA_RPC_URL_FALLBACK ? new Connection(env.SOLANA_RPC_URL_FALLBACK, 'confirmed') : null,
+      );
       let curveRefreshRunning = false;
       const runCurveRefresh = async (): Promise<void> => {
         if (curveRefreshRunning) return;
