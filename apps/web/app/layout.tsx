@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { JetBrains_Mono, Manrope, Source_Serif_4 } from 'next/font/google';
+import { JetBrains_Mono, Manrope } from 'next/font/google';
 import './globals.css';
 // Importing this for its module-level side effect: it validates process.env at import
 // time (see lib/env.ts), and the root layout is the one module every request loads, so
@@ -10,11 +10,6 @@ import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
 
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
-const sourceSerif = Source_Serif_4({
-  subsets: ['latin'],
-  variable: '--font-source-serif',
-  display: 'swap',
-});
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
@@ -34,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${sourceSerif.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
       <body className="font-body antialiased">
         <Providers>
           {/* pb-8 reserves the TickerBar's own h-8 so its fixed position never overlaps the

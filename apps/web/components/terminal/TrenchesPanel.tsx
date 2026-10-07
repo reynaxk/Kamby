@@ -6,10 +6,11 @@ import { type MarketSummary, type PumpFunTokenSummary, slugForIdentifier } from 
 import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatRelativeTime, truncateAddress, cashtag } from '@/lib/format';
 import { fetchTrenches, isPumpFunCategory, type TrenchesCategory } from '@/lib/trenches-client';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 const TABS: { category: TrenchesCategory; label: string }[] = [
   { category: 'FRESH', label: 'Fresh' },
-  { category: 'NEAR_GRADUATED', label: 'Near Grad' },
+  { category: 'NEAR_GRADUATED', label: 'Near grad' },
   { category: 'JUST_GRADUATED', label: 'Graduated' },
   { category: 'TRENDING_HOLDERS', label: 'Trending' },
 ];
@@ -34,6 +35,8 @@ export function TrenchesPanel() {
   const [category, setCategory] = useState<TrenchesCategory>('FRESH');
   const [items, setItems] = useState<MarketSummary[] | PumpFunTokenSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  /** Which tab `items` belongs to — rows render only for their own tab, never mid-switch. */
+  const [itemsCategory, setItemsCategory] = useState<TrenchesCategory | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +45,7 @@ export function TrenchesPanel() {
       .then((result) => {
         if (cancelled) return;
         setItems(result);
+        setItemsCategory(category);
         setStatus('ready');
       })
       .catch(() => {
@@ -61,7 +65,7 @@ export function TrenchesPanel() {
             type="button"
             onClick={() => setCategory(tab.category)}
             className={cn(
-              'flex-1 border-b-2 px-2 py-2.5 font-display text-[0.65rem] font-bold uppercase tracking-wide transition-colors',
+              'min-w-0 flex-1 whitespace-nowrap border-b-2 px-1 py-2.5 font-display text-[0.62rem] font-bold uppercase tracking-wide transition-colors',
               category === tab.category
                 ? 'border-accent text-ink-900'
                 : 'border-transparent text-ink-400 hover:text-ink-600',
@@ -81,6 +85,7 @@ export function TrenchesPanel() {
           <p className="p-3 font-body text-xs text-ink-400">No tokens in this trench right now.</p>
         )}
         {status === 'ready' &&
+          itemsCategory === category &&
           (isPumpFunCategory(category)
             ? (items as PumpFunTokenSummary[]).map((token, index) => (
                 <PumpFunRow key={`${token.mintAddress}:${index}`} token={token} />
@@ -99,10 +104,11 @@ export function TrenchesPanel() {
 function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
   const solRaised = lamportsToSol(token.realSolReserves);
   return (
-    <div className="flex items-center gap-2.5 border-b border-line/60 px-3 py-2.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-xs font-bold text-ink-600">
-        {(token.symbol ?? token.mintAddress).slice(0, 1).toUpperCase()}
-      </span>
+    <Link
+      href={`/solana?mint=${token.mintAddress}`}
+      className="flex items-center gap-2.5 border-b border-line/60 px-3 py-2.5 transition-colors hover:bg-surface-raised"
+    >
+      <TokenAvatar src={null} seed={token.mintAddress} label={token.symbol ?? token.mintAddress} className="h-8 w-8 text-xs" />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-sm font-semibold text-ink-900">
           {token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress)}
@@ -129,7 +135,7 @@ function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
           </span>
         </span>
       )}
-    </div>
+    </Link>
   );
 }
 
@@ -138,9 +144,7 @@ function TrendingHolderRow({ market }: { market: MarketSummary }) {
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const content = (
     <>
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-raised font-display text-xs font-bold text-ink-600">
-        {(market.symbol ?? market.tokenAddress).slice(0, 1).toUpperCase()}
-      </span>
+      <TokenAvatar src={market.logoUrl ?? null} seed={market.tokenAddress} label={market.symbol ?? market.tokenAddress} className="h-8 w-8 text-xs" />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-sm font-semibold text-ink-900">
           {cashtag(market.symbol ?? truncateAddress(market.tokenAddress))}

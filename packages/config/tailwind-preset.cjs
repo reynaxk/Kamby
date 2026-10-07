@@ -31,7 +31,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-source-serif)', 'Georgia', 'serif'],
+        body: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
       },
       // Purposeful emphasis only — composed via className at the specific call sites that
