@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { slugForIdentifier, CHAIN_REGISTRY, type MarketSummary } from '@kamby/domain';
-import { fetchLivePrice, type ChartSource } from './chart-data';
+import { fetchLivePrice, livePriceStreamUrl, type ChartSource } from './chart-data';
 
 const REFRESH_MS = 1_500;
 
@@ -24,6 +24,7 @@ interface Subscription {
   errors: Set<() => void>;
   timer: ReturnType<typeof setTimeout> | null;
   last: number | null;
+  stream: EventSource | null;
 }
 const subscriptions = new Map<string, Subscription>();
 
@@ -46,27 +47,49 @@ export function subscribeLivePrice(source: ChartSource, onPrice: (price: number)
   const key = keyFor(source);
   let entry = subscriptions.get(key);
   if (!entry) {
-    const created: Subscription = { listeners: new Set(), errors: new Set(), timer: null, last: null };
+    const created: Subscription = { listeners: new Set(), errors: new Set(), timer: null, last: null, stream: null };
     subscriptions.set(key, created);
+    const deliver = (priceUsd: number) => {
+      created.last = priceUsd;
+      const ticks = tickHistory.get(key) ?? [];
+      ticks.push({ t: Math.floor(Date.now() / 1000), p: priceUsd });
+      if (ticks.length > TICK_HISTORY_MAX) ticks.splice(0, ticks.length - TICK_HISTORY_MAX);
+      tickHistory.set(key, ticks);
+      created.listeners.forEach((l) => l(priceUsd));
+    };
     const tick = async () => {
       if (document.visibilityState === 'visible') {
         try {
           const live = await fetchLivePrice(source);
-          if (live) {
-            created.last = live.priceUsd;
-            const ticks = tickHistory.get(key) ?? [];
-            ticks.push({ t: Math.floor(Date.now() / 1000), p: live.priceUsd });
-            if (ticks.length > TICK_HISTORY_MAX) ticks.splice(0, ticks.length - TICK_HISTORY_MAX);
-            tickHistory.set(key, ticks);
-            created.listeners.forEach((l) => l(live.priceUsd));
-          }
+          if (live) deliver(live.priceUsd);
         } catch {
           created.errors.forEach((e) => e());
         }
       }
       if (subscriptions.get(key) === created) created.timer = setTimeout(() => void tick(), REFRESH_MS);
     };
-    void tick();
+    // Pushed prices first (2026-10-07, up to 1.5s fresher); polling only if the stream can't
+    // open or is closed by the server (an API redeploy, an unlisted coin). The browser itself
+    // retries brief drops.
+    if (typeof EventSource !== 'undefined') {
+      const es = new EventSource(livePriceStreamUrl(source));
+      created.stream = es;
+      es.addEventListener('price', (event) => {
+        try {
+          const live = JSON.parse((event as MessageEvent<string>).data) as { priceUsd?: number };
+          if (typeof live.priceUsd === 'number' && live.priceUsd > 0) deliver(live.priceUsd);
+        } catch {
+          // A malformed frame is skipped.
+        }
+      });
+      es.onerror = () => {
+        if (es.readyState !== EventSource.CLOSED || subscriptions.get(key) !== created) return;
+        created.stream = null;
+        void tick();
+      };
+    } else {
+      void tick();
+    }
     entry = created;
   }
   const current = entry;
@@ -78,6 +101,7 @@ export function subscribeLivePrice(source: ChartSource, onPrice: (price: number)
     if (onError) current.errors.delete(onError);
     if (current.listeners.size === 0) {
       if (current.timer) clearTimeout(current.timer);
+      current.stream?.close();
       subscriptions.delete(key);
     }
   };

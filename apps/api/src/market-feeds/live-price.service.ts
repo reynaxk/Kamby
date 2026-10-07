@@ -1,4 +1,5 @@
-import { Inject, Injectable, NotFoundException, Optional, type OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Optional, type MessageEvent, type OnModuleDestroy } from '@nestjs/common';
+import { Observable, Subject } from 'rxjs';
 import { pickChartPair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain } from '@kamby/domain';
 import { prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
@@ -76,6 +77,8 @@ export class LivePriceService implements OnModuleDestroy {
   private readonly latest = new Map<string, LivePrice>();
   private timer: NodeJS.Timeout | null = null;
   private polling = false;
+  /** Every tick's prices, pushed to open streams (see stream()). */
+  private readonly ticks = new Subject<void>();
 
   /** Base/BNB coins' chart pools (Kamby's indexed market), cached — they rarely change. */
   private readonly evmPools = new Map<string, { pool: string | null; at: number }>();
@@ -102,6 +105,33 @@ export class LivePriceService implements OnModuleDestroy {
     // A coin's very first viewer gets a price straight away rather than an empty first tick.
     if (!this.latest.has(key)) await this.poll([{ chain, address }]);
     return this.latest.get(key) ?? null;
+  }
+
+  /**
+   * Pushed live price (2026-10-07): the same price as price(), sent to the browser right after
+   * each poll tick instead of the browser asking every 1.5s — up to 1.5s fresher and one open
+   * request per coin instead of 40 a minute. Errors (an unlisted coin) end the stream; the
+   * browser then falls back to polling price().
+   */
+  stream(chain: TokenInfoChain, address: string): Observable<MessageEvent> {
+    const key = this.key(chain, address);
+    return new Observable<MessageEvent>((subscriber) => {
+      const send = () => {
+        const latest = this.latest.get(key);
+        if (latest) subscriber.next({ type: 'price', data: latest });
+      };
+      this.price(chain, address).then(send, (error: unknown) => subscriber.error(error));
+      const sub = this.ticks.subscribe(send);
+      const keepAlive = setInterval(() => {
+        this.watched.set(key, { chain, address, until: Date.now() + WATCH_TTL_MS });
+        this.ensurePolling();
+        subscriber.next({ type: 'heartbeat', data: '' });
+      }, 10_000);
+      return () => {
+        sub.unsubscribe();
+        clearInterval(keepAlive);
+      };
+    });
   }
 
   private key(chain: TokenInfoChain, address: string): string {
@@ -134,6 +164,7 @@ export class LivePriceService implements OnModuleDestroy {
     } finally {
       this.polling = false;
     }
+    if (this.ticks.observed) this.ticks.next();
   }
 
   private async poll(coins: { chain: TokenInfoChain; address: string }[]): Promise<void> {

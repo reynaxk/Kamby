@@ -107,6 +107,12 @@ async function fetchSolanaCandles(mint: string, timeframe: Timeframe): Promise<C
   return res.json();
 }
 
+/** The pushed live-price stream's URL (LivePriceService#stream) — see subscribeLivePrice. */
+export function livePriceStreamUrl(source: ChartSource): string {
+  const { chain, address } = livePriceKey(source);
+  return `${API_BASE}/v1/market/live-price/${chain}/${encodeURIComponent(address)}/stream`;
+}
+
 /** The latest live price, or null when the API has none yet (an empty body). */
 export async function fetchLivePrice(source: ChartSource): Promise<LivePrice | null> {
   const { chain, address } = livePriceKey(source);

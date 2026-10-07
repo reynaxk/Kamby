@@ -1,4 +1,5 @@
-import { BadRequestException, Controller, Get, Param } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Sse, type MessageEvent } from '@nestjs/common';
+import type { Observable } from 'rxjs';
 import { Throttle } from '@nestjs/throttler';
 import { TOKEN_INFO_CHAINS, type TokenInfoChain } from '@kamby/domain';
 import { LivePriceService } from './live-price.service';
@@ -44,5 +45,13 @@ export class TokenInfoController {
   @Get('live-price/:chain/:address')
   livePrice(@Param('chain') chain: string, @Param('address') address: string) {
     return this.livePrices.price(parseCoin(chain, address), address);
+  }
+
+  /** The same live price, pushed after every poll tick. One long-lived request per open coin;
+   *  the throttle only bounds (re)connects, like the feeds stream. */
+  @Sse('live-price/:chain/:address/stream')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  livePriceStream(@Param('chain') chain: string, @Param('address') address: string): Observable<MessageEvent> {
+    return this.livePrices.stream(parseCoin(chain, address), address);
   }
 }
