@@ -8,7 +8,8 @@ import {
 } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { formatCompactUsd, formatPrice, cashtag } from '@/lib/format';
-import { liveSourceFor, useLivePrice } from '@/lib/use-live-price';
+import { liveSourceFor, useLivePrice, useTokenStats } from '@/lib/use-live-price';
+import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import { LowLiquidityBadge } from '@/components/market/LowLiquidityBadge';
 import { PriceChange } from '@/components/market/PriceChange';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
@@ -31,6 +32,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
   // Live price every 5s — the market snapshot alone froze at page/selection load.
   const source = liveSourceFor(market);
   const livePrice = useLivePrice(source);
+  const stats = useTokenStats(source);
   const display = market.symbol ?? market.name ?? '?';
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const chainName = chainSlug ? CHAIN_REGISTRY[chainSlug].name : market.chainIdentifier;
@@ -61,11 +63,11 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
       </div>
       <Metric label="Price" value={formatPrice(livePrice ?? market.priceUsd)} />
       <Metric label="Mkt Cap" value={formatCompactUsd(market.marketCapUsd)} />
-      <Metric label="24h Vol" value={formatCompactUsd(market.volume24hUsd)} />
+      <Metric label="24h Vol" value={formatCompactUsd(stats?.volumeUsd.h24 ?? market.volume24hUsd)} />
       <Metric label="Liquidity" value={formatCompactUsd(market.liquidityUsd)} />
       <div>
         <div className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">24h</div>
-        <PriceChange value={market.priceChange24hPct} className="text-sm font-semibold" />
+        <PriceChange value={stats?.priceChangePct.h24 ?? market.priceChange24hPct} className="text-sm font-semibold" />
       </div>
       {chainSlug && (
         <WatchButton
@@ -76,6 +78,9 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
         />
       )}
       <TokenStatsStrip source={source} className="w-full basis-full" />
+      {source && (
+        <LiveTabTitle source={source} symbol={market.symbol} priceUsd={market.priceUsd} marketCapUsd={market.marketCapUsd} />
+      )}
     </Surface>
   );
 }

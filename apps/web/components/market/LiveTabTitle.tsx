@@ -29,11 +29,14 @@ export function LiveTabTitle({
 }) {
   const live = useLivePrice(source);
   const original = useRef<string | null>(null);
+  const lastSet = useRef<string | null>(null);
 
+  // On leaving, put the page title back only if it's still ours: after a client navigation the
+  // next page has already set its own (2026-10-07: a BNB coin's tab kept "LOBBY on Solana").
   useEffect(() => {
     if (original.current === null) original.current = document.title;
     return () => {
-      if (original.current !== null) document.title = original.current;
+      if (original.current !== null && document.title === lastSet.current) document.title = original.current;
     };
   }, []);
 
@@ -48,6 +51,7 @@ export function LiveTabTitle({
           : marketCapUsd;
     const ticker = `$${symbol.replace(/^\$+/, '')}`;
     document.title = mcap !== null ? `${ticker} · ${formatCompactUsd(mcap)} MC — Kamby` : `${ticker} — Kamby`;
+    lastSet.current = document.title;
   }, [live, symbol, priceUsd, marketCapUsd, launchpadSupply]);
 
   return null;

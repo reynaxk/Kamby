@@ -19,11 +19,11 @@ export function TokenStatsStrip({ source, className }: { source: ChartSource | n
   const buyShare = total > 0 ? (buys / total) * 100 : 50;
 
   return (
-    <div className={cn('grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.6fr)]', className)}>
-      {(['m5', 'h1', 'h6', 'h24'] as const).map((window) => (
+    <div className={cn('grid grid-cols-3 gap-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1.6fr)]', className)}>
+      {(['m5', 'h1', 'h6'] as const).map((window) => (
         <Change key={window} label={WINDOW_LABEL[window]} value={stats.priceChangePct[window]} volume={stats.volumeUsd[window]} />
       ))}
-      <div className="col-span-2 rounded-xl border border-line bg-surface-raised/60 px-3 py-2 sm:col-span-4 lg:col-span-1">
+      <div className="col-span-3 rounded-xl border border-line bg-surface-raised/60 px-3 py-2 lg:col-span-1">
         <div className="flex items-center justify-between font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
           <span>24h trades</span>
           <span className="tabular-nums">{total.toLocaleString('en-US')}</span>
@@ -44,17 +44,24 @@ export function TokenStatsStrip({ source, className }: { source: ChartSource | n
   );
 }
 
-const WINDOW_LABEL = { m5: '5m', h1: '1h', h6: '6h', h24: '24h' } as const;
+const WINDOW_LABEL = { m5: '5m', h1: '1h', h6: '6h' } as const;
 
-function Change({ label, value, volume }: { label: string; value: number | null; volume: number }) {
+/** "$0", "$711", "$7.7K" — whole dollars below $1K (cents are noise on a volume). */
+function formatVolume(value: number): string {
+  return value < 1_000 ? `$${Math.round(value).toLocaleString('en-US')}` : formatCompactUsd(value);
+}
+
+function Change({ label, value: raw, volume }: { label: string; value: number | null; volume: number }) {
+  // No trades in the window means no move, not missing data.
+  const value = raw === null && volume === 0 ? 0 : raw;
   const tone = value === null || value === 0 ? 'text-ink-600' : value > 0 ? 'text-up' : 'text-down';
   return (
     <div className="rounded-xl border border-line bg-surface-raised/60 px-3 py-2">
       <div className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">{label}</div>
       <div className={cn('font-mono text-sm font-semibold tabular-nums', tone)}>
-        {value === null ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(Math.abs(value) >= 100 ? 0 : 2)}%`}
+        {value === null ? '—' : value === 0 ? '0%' : `${value > 0 ? '+' : ''}${value.toFixed(Math.abs(value) >= 100 ? 0 : 2)}%`}
       </div>
-      <div className="font-mono text-[0.6rem] tabular-nums text-ink-400">Vol {formatCompactUsd(volume)}</div>
+      <div className="font-mono text-[0.6rem] tabular-nums text-ink-400">Vol {formatVolume(volume)}</div>
     </div>
   );
 }
