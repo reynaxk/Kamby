@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { slugForIdentifier, CHAIN_REGISTRY, type MarketSummary } from '@kamby/domain';
+import { slugForIdentifier, CHAIN_REGISTRY, type MarketSummary, type TokenStats } from '@kamby/domain';
 import { fetchLivePrice, livePriceStreamUrl, type ChartSource } from './chart-data';
 
 const REFRESH_MS = 1_500;
@@ -25,6 +25,8 @@ interface Subscription {
   timer: ReturnType<typeof setTimeout> | null;
   last: number | null;
   stream: EventSource | null;
+  statsListeners: Set<(stats: TokenStats) => void>;
+  lastStats: TokenStats | null;
 }
 const subscriptions = new Map<string, Subscription>();
 
@@ -43,11 +45,16 @@ function keyFor(source: ChartSource): string {
 }
 
 /** Calls `onPrice` with each new live price (immediately with the last one, if known). Returns an unsubscribe. */
-export function subscribeLivePrice(source: ChartSource, onPrice: (price: number) => void, onError?: () => void): () => void {
+export function subscribeLivePrice(
+  source: ChartSource,
+  onPrice: (price: number) => void,
+  onError?: () => void,
+  onStats?: (stats: TokenStats) => void,
+): () => void {
   const key = keyFor(source);
   let entry = subscriptions.get(key);
   if (!entry) {
-    const created: Subscription = { listeners: new Set(), errors: new Set(), timer: null, last: null, stream: null };
+    const created: Subscription = { listeners: new Set(), errors: new Set(), timer: null, last: null, stream: null, statsListeners: new Set(), lastStats: null };
     subscriptions.set(key, created);
     const deliver = (priceUsd: number) => {
       created.last = priceUsd;
@@ -82,6 +89,15 @@ export function subscribeLivePrice(source: ChartSource, onPrice: (price: number)
           // A malformed frame is skipped.
         }
       });
+      es.addEventListener('stats', (event) => {
+        try {
+          const stats = JSON.parse((event as MessageEvent<string>).data) as TokenStats;
+          created.lastStats = stats;
+          created.statsListeners.forEach((l) => l(stats));
+        } catch {
+          // A malformed frame is skipped.
+        }
+      });
       es.onerror = () => {
         if (es.readyState !== EventSource.CLOSED || subscriptions.get(key) !== created) return;
         created.stream = null;
@@ -95,10 +111,13 @@ export function subscribeLivePrice(source: ChartSource, onPrice: (price: number)
   const current = entry;
   current.listeners.add(onPrice);
   if (onError) current.errors.add(onError);
+  if (onStats) current.statsListeners.add(onStats);
   if (current.last !== null) onPrice(current.last);
+  if (onStats && current.lastStats) onStats(current.lastStats);
   return () => {
     current.listeners.delete(onPrice);
     if (onError) current.errors.delete(onError);
+    if (onStats) current.statsListeners.delete(onStats);
     if (current.listeners.size === 0) {
       if (current.timer) clearTimeout(current.timer);
       current.stream?.close();
@@ -117,4 +136,17 @@ export function useLivePrice(source: ChartSource | null): number | null {
     return subscribeLivePrice(source, setPrice);
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   return price;
+}
+
+/** The coin's trading stats (volume, buys/sells, price changes, age) from the same shared live
+ *  stream as its price — no extra request. null until the first stats arrive. */
+export function useTokenStats(source: ChartSource | null): TokenStats | null {
+  const key = source ? keyFor(source) : null;
+  const [stats, setStats] = useState<TokenStats | null>(null);
+  useEffect(() => {
+    setStats(null);
+    if (!source) return;
+    return subscribeLivePrice(source, () => undefined, undefined, setStats);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  return stats;
 }

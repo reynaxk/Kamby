@@ -14,6 +14,7 @@ import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
 import { formatPercent } from '@/lib/format';
+import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -168,6 +169,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 launchpadSupply={market.isNewListing}
               />
             )}
+            {!isSol && <TokenStatsStrip source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" />}
             <TokenChartCard
               source={{ kind: 'solana', mint: market.tokenAddress }}
               initialTimeframe={timeframe}

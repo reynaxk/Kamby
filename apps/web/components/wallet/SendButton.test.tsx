@@ -21,14 +21,14 @@ describe('SendButton', () => {
     const user = userEvent.setup();
     render(<SendButton />);
 
-    await user.click(screen.getByRole('button', { name: 'Send' }));
+    await user.click(screen.getByRole('button', { name: 'Withdraw' }));
 
     expect(screen.getByTestId('send-modal')).toBeInTheDocument();
   });
 
-  it('shows visible "Send" text for the labeled variant (profile page), not just an icon', () => {
+  it('shows visible "Withdraw" text for the labeled variant (profile page), not just an icon', () => {
     render(<SendButton variant="labeled" />);
-    const button = screen.getByRole('button', { name: 'Send' });
-    expect(button).toHaveTextContent('Send');
+    const button = screen.getByRole('button', { name: 'Withdraw' });
+    expect(button).toHaveTextContent('Withdraw');
   });
 });

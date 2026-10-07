@@ -288,7 +288,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <TradeModal open={open} onClose={close}>
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-base font-bold text-ink-900">Send</h2>
+        <h2 className="font-display text-base font-bold text-ink-900">Withdraw</h2>
         <button type="button" onClick={close} className="font-body text-sm text-ink-400 hover:text-ink-900">
           Close
         </button>
@@ -464,7 +464,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
       {step === 'failed' && (
         <div className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-display text-sm font-semibold text-down">Send failed</p>
+          <p className="font-display text-sm font-semibold text-down">Withdrawal failed</p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           <div className="flex w-full gap-2">
             <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep('review')}>

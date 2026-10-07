@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException, Optional, type MessageEvent, type OnModuleDestroy } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
-import { pickChartPair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain } from '@kamby/domain';
+import { pickChartPair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain, type TokenStats } from '@kamby/domain';
 import { prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
 import type { Redis } from 'ioredis';
@@ -24,6 +24,54 @@ interface DexScreenerPair {
   quoteToken?: { address?: string };
   priceUsd?: string;
   liquidity?: { usd?: number };
+  volume?: { m5?: number; h1?: number; h6?: number; h24?: number };
+  txns?: { h1?: { buys?: number; sells?: number }; h24?: { buys?: number; sells?: number } };
+  priceChange?: { m5?: number; h1?: number; h6?: number; h24?: number };
+  fdv?: number;
+  pairCreatedAt?: number;
+}
+
+/** Pools below this liquidity are left out of a coin's volume and trade counts. */
+const STATS_MIN_POOL_LIQUIDITY_USD = 1_000;
+
+/** Exported for tests. Each requested token's TokenStats from the same DexScreener pairs the
+ *  live price reads — no extra request. `chartPools` maps token key → the pool its price used. */
+export function statsFromPairs(
+  pairs: DexScreenerPair[],
+  chain: TokenInfoChain,
+  chartPools: ReadonlyMap<string, string | undefined>,
+  atIso: string,
+): Map<string, TokenStats> {
+  const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  const pct = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const byToken = new Map<string, DexScreenerPair[]>();
+  for (const pair of pairs) {
+    const address = pair.baseToken?.address;
+    if (!address) continue;
+    const key = chain === 'solana' ? address : address.toLowerCase();
+    byToken.set(key, [...(byToken.get(key) ?? []), pair]);
+  }
+  const out = new Map<string, TokenStats>();
+  for (const [key, list] of byToken) {
+    const real = list.filter((p) => num(p.liquidity?.usd) >= STATS_MIN_POOL_LIQUIDITY_USD);
+    const pools = real.length > 0 ? real : list;
+    const chartPool = chartPools.get(key);
+    const main =
+      list.find((p) => chartPool !== undefined && p.pairAddress === chartPool) ??
+      [...pools].sort((a, b) => num(b.liquidity?.usd) - num(a.liquidity?.usd))[0]!;
+    const sum = (pick: (p: DexScreenerPair) => unknown) => pools.reduce((total, p) => total + num(pick(p)), 0);
+    const created = pools.map((p) => num(p.pairCreatedAt)).filter((t) => t > 0);
+    out.set(key, {
+      priceChangePct: { m5: pct(main.priceChange?.m5), h1: pct(main.priceChange?.h1), h6: pct(main.priceChange?.h6), h24: pct(main.priceChange?.h24) },
+      volumeUsd: { m5: sum((p) => p.volume?.m5), h1: sum((p) => p.volume?.h1), h6: sum((p) => p.volume?.h6), h24: sum((p) => p.volume?.h24) },
+      txns24h: { buys: sum((p) => p.txns?.h24?.buys), sells: sum((p) => p.txns?.h24?.sells) },
+      txns1h: { buys: sum((p) => p.txns?.h1?.buys), sells: sum((p) => p.txns?.h1?.sells) },
+      fdvUsd: num(main.fdv) > 0 ? num(main.fdv) : null,
+      pairCreatedAtMs: created.length > 0 ? Math.min(...created) : null,
+      atIso,
+    });
+  }
+  return out;
 }
 
 /** Exported for tests. The price of each requested token from DexScreener's pairs: only
@@ -75,6 +123,8 @@ export function curvePriceUsd(virtualSolReserves: string, virtualTokenReserves: 
 export class LivePriceService implements OnModuleDestroy {
   private readonly watched = new Map<string, { chain: TokenInfoChain; address: string; until: number }>();
   private readonly latest = new Map<string, LivePrice>();
+  /** Each watched coin's trading stats, from the same DexScreener read as its price. */
+  private readonly stats = new Map<string, TokenStats>();
   private timer: NodeJS.Timeout | null = null;
   private polling = false;
   /** Every tick's prices, pushed to open streams (see stream()). */
@@ -116,9 +166,16 @@ export class LivePriceService implements OnModuleDestroy {
   stream(chain: TokenInfoChain, address: string): Observable<MessageEvent> {
     const key = this.key(chain, address);
     return new Observable<MessageEvent>((subscriber) => {
+      let statsSentAt = 0;
       const send = () => {
         const latest = this.latest.get(key);
         if (latest) subscriber.next({ type: 'price', data: latest });
+        // Stats change slowly next to the price — at most every 5s keeps the stream light.
+        const stats = this.stats.get(key);
+        if (stats && Date.now() - statsSentAt >= 5_000) {
+          statsSentAt = Date.now();
+          subscriber.next({ type: 'stats', data: stats });
+        }
       };
       this.price(chain, address).then(send, (error: unknown) => subscriber.error(error));
       const sub = this.ticks.subscribe(send);
@@ -151,6 +208,7 @@ export class LivePriceService implements OnModuleDestroy {
       if (entry.until < now) {
         this.watched.delete(key);
         this.latest.delete(key);
+        this.stats.delete(key);
       }
     }
     if (this.watched.size === 0) {
@@ -193,6 +251,10 @@ export class LivePriceService implements OnModuleDestroy {
       const body = (await response.json()) as unknown;
       const prices = poolPricesFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain, await this.chartPools(chain, addresses));
       const atIso = new Date().toISOString();
+      const pools = new Map([...prices].map(([k, v]) => [k, v.poolAddress] as const));
+      for (const [k, s] of statsFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain, pools, atIso)) {
+        this.stats.set(this.key(chain, k), s);
+      }
       const missing: string[] = [];
       for (const address of addresses) {
         const price = prices.get(chain === 'solana' ? address : address.toLowerCase());

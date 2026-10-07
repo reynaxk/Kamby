@@ -26,28 +26,29 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Send"
-        title="Send"
+        aria-label="Withdraw"
+        title="Withdraw"
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
-            : 'flex items-center gap-2 rounded-xl border border-line bg-surface-raised px-4 py-2.5 font-body text-sm font-semibold text-ink-900 transition-colors hover:border-accent/60 hover:text-accent',
+            : 'flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-5 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-accent shadow-[0_0_18px_rgba(0,255,135,0.15)] transition-all hover:border-accent hover:bg-accent/20 hover:shadow-[0_0_26px_rgba(0,255,135,0.35)]',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        <SendIcon />
-        {variant === 'labeled' && 'Send'}
+        <WithdrawIcon />
+        {variant === 'labeled' && 'Withdraw'}
       </button>
       <SendModal open={open} onClose={() => setOpen(false)} />
     </>
   );
 }
 
-function SendIcon() {
+function WithdrawIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
     </svg>
   );
 }

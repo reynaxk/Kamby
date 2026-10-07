@@ -14,6 +14,7 @@ import { PriceChange } from '@/components/market/PriceChange';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { WatchButton } from '@/components/market/WatchButton';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 
 /**
  * Top metrics strip in the terminal, ported to production 2026-09-16 — see
@@ -28,7 +29,8 @@ import { TokenAvatar } from '@/components/market/TokenAvatar';
  */
 export function TokenMetricsBar({ market }: { market: MarketSummary }) {
   // Live price every 5s — the market snapshot alone froze at page/selection load.
-  const livePrice = useLivePrice(liveSourceFor(market));
+  const source = liveSourceFor(market);
+  const livePrice = useLivePrice(source);
   const display = market.symbol ?? market.name ?? '?';
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const chainName = chainSlug ? CHAIN_REGISTRY[chainSlug].name : market.chainIdentifier;
@@ -73,6 +75,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
           compact
         />
       )}
+      <TokenStatsStrip source={source} className="w-full basis-full" />
     </Surface>
   );
 }
