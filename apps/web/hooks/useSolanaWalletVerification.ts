@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSignMessage, useWallets } from '@privy-io/react-auth/solana';
 import bs58 from 'bs58';
-import { ensureSolanaWalletFunded } from '@/lib/solana-trading-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { listLinkedSolanaWallets, requestSolanaWalletChallenge, verifySolanaWalletChallenge } from '@/lib/solana-wallet-client';
 import { claimAutoAttempt, isVerified, onVerified, verifyOnce } from '@/lib/wallet-verification-registry';
@@ -51,14 +50,6 @@ export function useSolanaWalletVerification() {
       const linkedWallets = await listLinkedSolanaWallets();
       const linked = linkedWallets.some((w) => w.address === address);
       setStatus(linked ? 'verified' : 'unverified');
-      // Covers a wallet linked before this top-up call existed, or one where a previous
-      // attempt failed (e.g. the funding wallet running dry) — `verify()` below only ever
-      // fires on a *fresh* verification, so without this, an already-linked wallet has no
-      // path that ever retries funding it. The backend endpoint is idempotent (a live
-      // balance check, not a one-time flag), so calling it again here on every mount that
-      // finds an already-verified wallet is cheap and safe, same reasoning as `verify()`'s
-      // own call.
-      if (linked) void ensureSolanaWalletFunded(address).catch(() => undefined);
     } catch {
       setStatus('unverified');
     }
@@ -79,10 +70,6 @@ export function useSolanaWalletVerification() {
         const challenge = await requestSolanaWalletChallenge(address);
         const { signature } = await signMessage({ message: new TextEncoder().encode(challenge.message), wallet });
         await verifySolanaWalletChallenge(challenge.nonce, bs58.encode(signature));
-        // A failed top-up is never fatal to verification succeeding — see
-        // SolanaTopupService's own doc comment on why a funding shortfall doesn't block the
-        // user from proceeding (they'll just need to fund the wallet themselves if it fails).
-        void ensureSolanaWalletFunded(address).catch(() => undefined);
       });
       setStatus('verified');
     } catch (err) {

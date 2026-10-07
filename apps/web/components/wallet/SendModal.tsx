@@ -12,6 +12,7 @@ import { formatUnits, parseUnits } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
 import { fetchEvmChainConfigs } from '@/lib/market-client';
 import { solanaConnection } from '@/lib/solana-config';
+import { ensureSolanaWalletFunded } from '@/lib/solana-trading-client';
 import {
   assetsForChain,
   buildSolanaNativeTransferTx,
@@ -248,6 +249,11 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
         if (!solanaConnection || !solanaWallet) throw new Error('Solana wallet not connected.');
         const from = new PublicKey(solanaWallet.address);
         const toKey = new PublicKey(to);
+        // Kamby sends just the SOL this withdrawal needs (2026-10-07: no signup gift any more).
+        // Never blocks the send: a wallet that already has SOL simply goes ahead.
+        if (asset.kind !== 'native') {
+          await ensureSolanaWalletFunded(solanaWallet.address, { destination: to, mint: asset.address! }).catch(() => undefined);
+        }
         const tx =
           asset.kind === 'native'
             ? await buildSolanaNativeTransferTx(solanaConnection, from, toKey, amountRaw)

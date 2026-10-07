@@ -116,11 +116,17 @@ export async function getSolanaTradeHistory(params: { cursor?: string; limit?: n
   return res.json();
 }
 
-/** Triggers the one-time new-wallet SOL top-up — see SolanaTopupService's own doc comment
- *  on the backend for why this is safe to call more than once. Called right after a
- *  wallet is newly verified. */
-export async function ensureSolanaWalletFunded(address: string): Promise<{ toppedUp: boolean; signature: string | null }> {
-  const res = await authedFetch(`/solana/wallet/${encodeURIComponent(address)}/topup`, { method: 'POST' });
+/** Asks Kamby for the exact SOL this one withdrawal needs (SolanaTopupService#fundWithdrawal);
+ *  a no-op when the wallet already has enough. Called just before a Solana token send. */
+export async function ensureSolanaWalletFunded(
+  address: string,
+  withdrawal: { destination: string; mint?: string },
+): Promise<{ toppedUp: boolean; signature: string | null }> {
+  const res = await authedFetch(`/solana/wallet/${encodeURIComponent(address)}/topup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(withdrawal),
+  });
   await expectOk(res, 'fund the new wallet');
   return res.json();
 }

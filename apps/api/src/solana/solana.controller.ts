@@ -123,7 +123,19 @@ export class SolanaController {
    */
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('wallet/:address/topup')
-  ensureWalletFunded(@Param() params: SolanaAddressParamDto) {
-    return this.topup.ensureFunded(params.address);
+  ensureWalletFunded(
+    @Param() params: SolanaAddressParamDto,
+    @CurrentUser() user: SessionUser,
+    @Body() body: { destination?: unknown; mint?: unknown } = {},
+  ) {
+    const base58 = (v: unknown) => (typeof v === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v) ? v : undefined);
+    const destination = base58(body?.destination);
+    const mint = base58(body?.mint);
+    return this.topup.fundWithdrawal({
+      userId: user.id,
+      address: params.address,
+      ...(destination ? { destination } : {}),
+      ...(mint ? { mint } : {}),
+    });
   }
 }
