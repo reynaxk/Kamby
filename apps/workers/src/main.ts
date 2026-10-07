@@ -450,8 +450,12 @@ async function main(): Promise<void> {
       const curveRefreshTicker = setInterval(() => void runCurveRefresh(), 45_000);
       curveRefreshTicker.unref();
       // Live curve prices on top (see pumpfun-curve-stream.ts); the 45s refresh above is the fallback.
-      const wsEndpoint = env.SOLANA_RPC_URL.replace(/^http/, 'ws');
-      new PumpFunCurveStream(new Connection(env.SOLANA_RPC_URL, { commitment: 'confirmed', wsEndpoint }), curveRefresher, redis, logger).start();
+      // OFF unless PUMPFUN_CURVE_STREAM_RPC_URL is set. Never point it at Helius/QuickNode:
+      // on Helius it burned ~8M credits in under a day (2026-10-07).
+      const curveStreamRpc = process.env.PUMPFUN_CURVE_STREAM_RPC_URL;
+      if (curveStreamRpc) {
+        new PumpFunCurveStream(new Connection(curveStreamRpc, { commitment: 'confirmed', wsEndpoint: curveStreamRpc.replace(/^http/, 'ws') }), curveRefresher, redis, logger).start();
+      }
     }
   }
 
