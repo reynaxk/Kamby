@@ -27,6 +27,14 @@ const MAX_PUBLISHED_PER_FLUSH = 300;
 /** No message at all for this long = a dead socket, reconnect. Launches arrive every few seconds. */
 const SILENCE_TIMEOUT_MS = 60_000;
 const MAX_RECONNECT_DELAY_MS = 30_000;
+/** Live trade prices go to Redis this often (latest trade per mint wins) — see LIVE_CURVE_KEY. */
+const LIVE_WRITE_MS = 300;
+const LIVE_TTL_SECONDS = 120;
+/** Coins shown in Kamby's lists (Jupiter-hot set) are added to the trade subscriptions this often. */
+const HOT_SYNC_MS = 30_000;
+/** Same key the API's LivePriceService#liveCurvePrices reads. */
+export const LIVE_CURVE_KEY = (mint: string) => `pf-curve-live:${mint}`;
+export const PUMPFUN_HOT_MINTS_KEY_FOR_STREAM = 'pumpfun:hot-mints';
 
 interface CurveState {
   virtualSolReserves: string;
@@ -102,6 +110,10 @@ export class PumpPortalIngestionService {
   private silenceTimer: NodeJS.Timeout | null = null;
   private flushTimer: NodeJS.Timeout | null = null;
   private flushing = false;
+  private liveTimer: NodeJS.Timeout | null = null;
+  private hotTimer: NodeJS.Timeout | null = null;
+  /** Latest curve per mint since the last live write — every trade, free, no RPC credits. */
+  private readonly liveDirty = new Map<string, CurveState>();
   private readonly pending = new Map<string, PendingToken>();
   /** Mints with an active trade subscription, oldest first (Map keeps insertion order). */
   private readonly tracked = new Map<string, number>();
@@ -119,6 +131,28 @@ export class PumpPortalIngestionService {
     this.stopped = false;
     this.connect();
     this.flushTimer = setInterval(() => void this.flush(), FLUSH_INTERVAL_MS);
+    this.liveTimer = setInterval(() => void this.writeLive(), LIVE_WRITE_MS);
+    this.hotTimer = setInterval(() => void this.syncHotMints(), HOT_SYNC_MS);
+  }
+
+  /** Real-time prices (2026-10-07): each trade's curve goes to Redis within LIVE_WRITE_MS,
+   *  so the API prices bonding coins from the latest trade instead of DexScreener's poll. */
+  private async writeLive(): Promise<void> {
+    if (!this.redis || this.liveDirty.size === 0) return;
+    const at = Date.now();
+    const pipe = this.redis.pipeline();
+    for (const [mint, state] of this.liveDirty) {
+      pipe.set(LIVE_CURVE_KEY(mint), JSON.stringify({ virtualSolReserves: state.virtualSolReserves, virtualTokenReserves: state.virtualTokenReserves, complete: false, at }), 'EX', LIVE_TTL_SECONDS);
+    }
+    this.liveDirty.clear();
+    await pipe.exec().catch((error: unknown) => this.logger.warn({ err: error }, 'PumpPortal: live price write failed'));
+  }
+
+  /** Makes sure every bonding coin Kamby's lists show is trade-subscribed, kept like a climber. */
+  private async syncHotMints(): Promise<void> {
+    if (!this.redis) return;
+    const hot = await this.redis.smembers(PUMPFUN_HOT_MINTS_KEY_FOR_STREAM).catch(() => [] as string[]);
+    for (const mint of hot.slice(0, 500)) if (!this.tracked.has(mint)) this.track(mint, KEEP_TRACKING_PROGRESS_PCT);
   }
 
   async stop(): Promise<void> {
@@ -126,6 +160,8 @@ export class PumpPortalIngestionService {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.silenceTimer) clearTimeout(this.silenceTimer);
     if (this.flushTimer) clearInterval(this.flushTimer);
+    if (this.liveTimer) clearInterval(this.liveTimer);
+    if (this.hotTimer) clearInterval(this.hotTimer);
     this.socket?.close();
     this.socket = null;
     await this.flush();
@@ -208,6 +244,8 @@ export class PumpPortalIngestionService {
     if (!mint) return;
     if (message.txType === 'migrate') {
       this.upsertPending(mint).migrated = true;
+      this.liveDirty.delete(mint);
+      if (typeof this.redis?.del === 'function') void this.redis.del(LIVE_CURVE_KEY(mint)).catch(() => undefined);
       this.untrack(mint);
       return;
     }
@@ -229,6 +267,7 @@ export class PumpPortalIngestionService {
     }
     if ((message.txType === 'buy' || message.txType === 'sell') && state) {
       this.upsertPending(mint).state = state;
+      this.liveDirty.set(mint, state);
       if (this.tracked.has(mint)) this.progress.set(mint, pumpFunGraduationProgressPct(state.realSolReserves));
     }
   }
