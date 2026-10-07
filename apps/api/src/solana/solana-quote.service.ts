@@ -208,7 +208,8 @@ export class SolanaQuoteService {
     let unsignedTxBase64: string | null = null;
     let chosen: Awaited<ReturnType<JupiterQuoteService['getSwapInstructions']>> = null;
     let anyRoute = false;
-    for (const maxAccounts of [undefined, 32, 24]) {
+    // Pump.fun routes need ~41-50 accounts (40 found no route on 2026-10-06), so step down gently.
+    for (const maxAccounts of [undefined, 46, 42, 38, 32]) {
       const instructions = await this.jupiter.getSwapInstructions({
         inputMint,
         outputMint,
