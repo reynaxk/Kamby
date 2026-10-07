@@ -11,8 +11,9 @@ import { PinoLogger } from 'nestjs-pino';
 import { SOLANA_CONNECTION_POOL, type SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { getSolanaConfig, type Env } from '../config/env';
 
-/** A wallet must hold this much USDC (raw, 6 decimals) to get withdrawal gas: $5. */
-const WITHDRAW_GAS_MIN_USDC_RAW = 5_000_000n;
+/** A wallet must hold this much USDC (raw, 6 decimals) to get withdrawal gas: $1 — low, so a
+ *  small balance can still be fully withdrawn (the app's $10 minimum allows "full balance"). */
+const WITHDRAW_GAS_MIN_USDC_RAW = 1_000_000n;
 /** A SOL-holding wallet can't sit below the rent-exempt minimum (0-data account). */
 const WALLET_RENT_MIN_LAMPORTS = 890_880;
 /** The transfer's network fee, with headroom for a priority fee. */

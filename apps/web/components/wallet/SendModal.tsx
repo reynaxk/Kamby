@@ -13,6 +13,9 @@ import { useAccount, useBalance } from 'wagmi';
 import { fetchEvmChainConfigs } from '@/lib/market-client';
 import { solanaConnection } from '@/lib/solana-config';
 import { ensureSolanaWalletFunded } from '@/lib/solana-trading-client';
+
+/** Smallest USDC withdrawal in dollars, unless it empties the balance. */
+const MIN_USDC_WITHDRAWAL = 10n;
 import {
   assetsForChain,
   buildSolanaNativeTransferTx,
@@ -183,7 +186,9 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
   const balance = useAssetBalance(chain, asset, evmAddress, solanaWallet?.address);
   const solanaNativeBalance = useSolanaNativeBalance(chain.kind === 'solana' ? solanaWallet?.address : undefined);
   const solanaFeeInsufficient =
-    chain.kind === 'solana' && solanaNativeBalance !== null && solanaNativeBalance < SOLANA_MIN_FEE_LAMPORTS;
+    // Token sends get their SOL from Kamby right before sending (ensureSolanaWalletFunded,
+    // 2026-10-07), so only a native SOL send needs SOL already in the wallet.
+    chain.kind === 'solana' && asset.kind === 'native' && solanaNativeBalance !== null && solanaNativeBalance < SOLANA_MIN_FEE_LAMPORTS;
 
   const amountRaw = useMemo(() => {
     if (!amountDisplay || tokenDecimals === null) return null;
@@ -195,7 +200,12 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
   }, [amountDisplay, tokenDecimals]);
 
   const destinationValid = destination.trim().length > 0 && isValidDestination(chain.kind, destination);
-  const amountValid = amountRaw !== null && amountRaw > 0n && (balance === null || amountRaw <= balance);
+  // USDC withdrawals: at least $10, or the whole balance when it's less (owner rule 2026-10-07 —
+  // every withdrawal's gas is Kamby's cost, and small balances must never be stuck).
+  const isUsdc = asset.symbol.toUpperCase() === 'USDC';
+  const belowMinimum =
+    isUsdc && amountRaw !== null && tokenDecimals !== null && amountRaw < MIN_USDC_WITHDRAWAL * 10n ** BigInt(tokenDecimals) && amountRaw !== balance;
+  const amountValid = amountRaw !== null && amountRaw > 0n && (balance === null || amountRaw <= balance) && !belowMinimum;
   const canReview = destinationValid && amountValid && tokenDecimals !== null && !solanaFeeInsufficient;
 
   function reset() {
@@ -374,7 +384,11 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                 </div>
                 {amountDisplay && !amountValid && (
                   <p className="mt-1 font-body text-xs text-down">
-                    {amountRaw === null ? 'Enter a valid amount.' : 'Amount exceeds your balance.'}
+                    {amountRaw === null
+                      ? 'Enter a valid amount.'
+                      : belowMinimum
+                        ? `Minimum withdrawal is $${MIN_USDC_WITHDRAWAL.toString()} (or your full balance).`
+                        : 'Amount exceeds your balance.'}
                   </p>
                 )}
               </div>
