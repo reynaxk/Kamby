@@ -202,28 +202,48 @@ export class SolanaQuoteService {
       throw new UnprocessableEntityException(`First buy of this coin needs more than $${(Number(setupFeeRaw) / 1e6).toFixed(2)} (new coin setup)`);
     }
 
-    const instructions = await this.jupiter.getSwapInstructions({
-      inputMint,
-      outputMint,
-      amountRaw: swapAmountRaw.toString(),
-      slippageBps: params.slippageBps,
-      userPublicKey: params.walletAddress,
-      platformFeeBps: params.side === 'BUY' ? 0 : platformFeeBps,
-      feeAccount: this.treasuryUsdcAta,
-      payer: relayerPublicKey,
-    });
-    if (!instructions) {
-      throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');
+    // A route too big for one Solana transaction (1,232 bytes) once Kamby's fee transfer and the
+    // relayer signer are added throws on serialize — found 2026-10-07 as a 500 on a live buy.
+    // Retry with tighter route caps instead; only if even the smallest won't fit, say so.
+    let unsignedTxBase64: string | null = null;
+    let chosen: Awaited<ReturnType<JupiterQuoteService['getSwapInstructions']>> = null;
+    let anyRoute = false;
+    for (const maxAccounts of [undefined, 32, 24]) {
+      const instructions = await this.jupiter.getSwapInstructions({
+        inputMint,
+        outputMint,
+        amountRaw: swapAmountRaw.toString(),
+        slippageBps: params.slippageBps,
+        userPublicKey: params.walletAddress,
+        platformFeeBps: params.side === 'BUY' ? 0 : platformFeeBps,
+        feeAccount: this.treasuryUsdcAta,
+        payer: relayerPublicKey,
+        ...(maxAccounts !== undefined ? { maxAccounts } : {}),
+      });
+      if (!instructions) continue;
+      anyRoute = true;
+      const transaction = await buildSponsoredSwapTransaction(
+        relayerConnection,
+        new PublicKey(relayerPublicKey),
+        outputMint,
+        instructions,
+        setupFeeRaw + buyFeeRaw > 0n ? [setupFeeInstruction(params.walletAddress, this.treasuryUsdcAta, setupFeeRaw + buyFeeRaw)] : [],
+      );
+      try {
+        unsignedTxBase64 = Buffer.from(transaction.serialize()).toString('base64');
+        chosen = instructions;
+        break;
+      } catch (error) {
+        if (!(error instanceof RangeError)) throw error;
+        this.logger.warn({ maxAccounts: maxAccounts ?? 'default', outputMint }, 'Solana route too large for one transaction — retrying with a smaller route');
+      }
     }
-
-    const transaction = await buildSponsoredSwapTransaction(
-      relayerConnection,
-      new PublicKey(relayerPublicKey),
-      outputMint,
-      instructions,
-      setupFeeRaw + buyFeeRaw > 0n ? [setupFeeInstruction(params.walletAddress, this.treasuryUsdcAta, setupFeeRaw + buyFeeRaw)] : [],
-    );
-    const unsignedTxBase64 = Buffer.from(transaction.serialize()).toString('base64');
+    if (unsignedTxBase64 === null || chosen === null) {
+      throw new UnprocessableEntityException(
+        anyRoute ? 'This trade route is too complex right now — try a different amount or again in a moment' : 'No live quote is available for this trade right now — try again shortly',
+      );
+    }
+    const instructions = chosen;
 
     const expiresAt = new Date(Date.now() + TRADING_DEFAULTS.quoteTtlSeconds * 1000);
     const row = await prisma.solanaTradeQuote.create({

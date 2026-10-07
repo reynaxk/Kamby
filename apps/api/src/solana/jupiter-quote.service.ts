@@ -230,7 +230,7 @@ export class JupiterQuoteService {
   // userPublicKey/feeAccount for fetchSwapTransaction's own use) so getEstimatedOutputRaw
   // above never has to fake values for fields this method doesn't actually touch.
   private async fetchQuote(
-    params: Pick<JupiterQuoteParams, 'inputMint' | 'outputMint' | 'amountRaw' | 'slippageBps' | 'platformFeeBps'>,
+    params: Pick<JupiterQuoteParams, 'inputMint' | 'outputMint' | 'amountRaw' | 'slippageBps' | 'platformFeeBps'> & { maxAccounts?: number },
   ): Promise<JupiterQuoteResponse | null> {
     const query = new URLSearchParams({
       inputMint: params.inputMint,
@@ -245,6 +245,11 @@ export class JupiterQuoteService {
     // bonding-curve coins (2026-10-06: "No routes found" on every buy), so 50 first, then — if
     // Jupiter finds no route at all — no limit; a route too big to send fails the relayer's dry run.
     query.set('restrictIntermediateTokens', 'true');
+    if (params.maxAccounts !== undefined) {
+      query.set('maxAccounts', params.maxAccounts.toString());
+      const strict = await this.requestQuote(query);
+      return strict === 'no-route' ? null : strict;
+    }
     query.set('maxAccounts', '50');
     const bounded = await this.requestQuote(query);
     if (bounded !== 'no-route') return bounded;
@@ -370,6 +375,9 @@ export interface JupiterSwapInstructionsParams {
    *  response includes. Never the user's own wallet; see `getSwapInstructions`'s own doc
    *  comment for what this was confirmed to do against a real live call. */
   payer: string;
+  /** A strict route-size cap (no unbounded fallback) — used to retry when the default route
+   *  came out too big for one transaction. */
+  maxAccounts?: number;
 }
 
 /** One raw, unassembled instruction from Jupiter's `/swap-instructions` response —
