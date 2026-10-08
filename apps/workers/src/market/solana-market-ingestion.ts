@@ -2,6 +2,7 @@ import { prisma } from '@kamby/db';
 import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS } from '@kamby/domain';
 import type { Logger } from 'pino';
 import { SOLANA_SEED_MARKETS } from './solana-seed-markets';
+import { clampPct } from './clamp-pct';
 
 /** DexScreener's public API is a genuine source of truth for this pipeline, not just
  *  discovery — see SolanaTokenMarket's own doc comment in schema.prisma for why. */
@@ -97,7 +98,7 @@ export class SolanaMarketIngestionService {
         priceUsd: best.priceUsd,
         liquidityUsd: best.liquidity?.usd ?? null,
         volume24hUsd: best.volume?.h24 ?? null,
-        priceChange24hPct: best.priceChange?.h24 ?? null,
+        priceChange24hPct: clampPct(best.priceChange?.h24),
         marketCapUsd: best.marketCap ?? best.fdv ?? null,
         lastPriceUpdateAt: new Date(),
       },
@@ -112,7 +113,7 @@ export class SolanaMarketIngestionService {
         priceUsd: best.priceUsd,
         liquidityUsd: best.liquidity?.usd ?? null,
         volume24hUsd: best.volume?.h24 ?? null,
-        priceChange24hPct: best.priceChange?.h24 ?? null,
+        priceChange24hPct: clampPct(best.priceChange?.h24),
         marketCapUsd: best.marketCap ?? best.fdv ?? null,
         lastPriceUpdateAt: new Date(),
       },

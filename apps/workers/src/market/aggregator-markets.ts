@@ -3,6 +3,7 @@ import { prisma } from '@kamby/db';
 import { pickSanePair } from '@kamby/domain';
 import type { Logger } from 'pino';
 import { getAddress } from 'viem';
+import { clampPct } from './clamp-pct';
 
 /**
  * Base and BNB coins from every DEX — Aerodrome, Uniswap v4 (Clanker, Zora) and v2 (Virtuals),
@@ -174,7 +175,7 @@ export class AggregatorMarketService {
             priceUsd: price,
             liquidityUsd: best.liquidity?.usd ?? null,
             volume24hUsd: best.volume?.h24 ?? null,
-            priceChange24hPct: best.priceChange?.h24 ?? null,
+            priceChange24hPct: clampPct(best.priceChange?.h24),
             marketCapUsd: best.marketCap ?? best.fdv ?? null,
             lastPriceUpdateAt: new Date(),
           },

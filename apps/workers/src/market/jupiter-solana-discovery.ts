@@ -4,6 +4,7 @@ import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import { PUMPFUN_HOT_MINTS_KEY } from '../pumpfun/pumpfun-curve-refresher';
 import { SOLANA_SEED_MARKETS } from './solana-seed-markets';
+import { clampPct } from './clamp-pct';
 
 /** Jupiter's free Tokens API v2 (the keyless lite host; verified 2026-10-03). */
 const JUPITER_TOKENS = 'https://lite-api.jup.ag/tokens/v2';
@@ -108,7 +109,7 @@ export class JupiterSolanaDiscoveryService {
         priceUsd: t.usdPrice!,
         liquidityUsd: t.liquidity ?? null,
         volume24hUsd: (t.stats24h?.buyVolume ?? 0) + (t.stats24h?.sellVolume ?? 0),
-        priceChange24hPct: t.stats24h?.priceChange ?? null,
+        priceChange24hPct: clampPct(t.stats24h?.priceChange),
         marketCapUsd: t.mcap ?? null,
         lastPriceUpdateAt: now,
       };

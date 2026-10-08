@@ -16,6 +16,7 @@ import {
   type InsertedSwap,
 } from '../notifications/notification-fanout.service';
 import { createTrackedMarket, fetchTokenLogoUrl } from './create-tracked-market';
+import { clampPct } from './clamp-pct';
 
 /** Raw candle granularity — see the Candle model comment in schema.prisma. */
 const BUCKET_MINUTES = 5;
@@ -46,6 +47,30 @@ const MAX_LAG_BLOCKS = 20_000n;
 const LOG_CHUNK_BLOCKS = MAX_BLOCKS_PER_TICK;
 /** Space out RPC calls so the free endpoint doesn't rate-limit us mid-tick. */
 const RPC_CALL_DELAY_MS = 350;
+/**
+ * Markets processed side by side (2026-10-08). One at a time — several 350ms pauses each — a BNB
+ * tick took longer than the 30s interval once pool discovery had added hundreds of markets: the
+ * tick never finished, every later tick was skipped, and charts went 35+ minutes stale. Each
+ * market still paces its own calls; six run in parallel.
+ */
+const MARKET_CONCURRENCY = 6;
+
+/** Runs `fn` over `items` with at most `limit` in flight, in order of `items`. */
+async function forEachLimited<T>(items: readonly T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const item = items[next++]!;
+      await fn(item);
+    }
+  });
+  await Promise.all(workers);
+}
+
+/** Deepest pools first, so the coins people trade stay freshest if a tick runs long. */
+function byLiquidityDesc<T extends { liquidityUsd: Prisma.Decimal | null }>(markets: T[]): T[] {
+  return [...markets].sort((a, b) => Number(b.liquidityUsd ?? 0) - Number(a.liquidityUsd ?? 0));
+}
 /** Bounds refreshPricesAndLiquidity's quote-token-dependency resolution passes — see that
  *  method's own doc comment. A real dependency chain (base quoted in an intermediate token
  *  quoted in USDC) is at most 2-3 levels deep; this is deliberately generous headroom
@@ -299,17 +324,19 @@ export class MarketIngestionService {
 
     let updated = 0;
     let skipped = 0;
-    let remaining = markets;
+    let remaining = byLiquidityDesc(markets);
     for (let pass = 0; pass < MAX_RESOLUTION_PASSES && remaining.length > 0; pass++) {
       const stillUnresolved: typeof remaining = [];
-      for (const market of remaining) {
+      // USDC/WETH-quoted markets resolve in pass 0; a market quoted in a token resolved later in
+      // the same pass simply waits for the next pass — same outcome as the sequential version.
+      await forEachLimited(remaining, MARKET_CONCURRENCY, async (market) => {
         const quoteUsd = resolvedUsdPrices.get(market.quoteToken.contractAddress.toLowerCase());
         if (quoteUsd === undefined) {
           // Quote token not resolved yet — may resolve in a later pass once its own market
           // (elsewhere in `remaining`) has been processed. Not counted as skipped until the
           // final pass genuinely can't place it.
           stillUnresolved.push(market);
-          continue;
+          return;
         }
         let ok = false;
         try {
@@ -320,7 +347,7 @@ export class MarketIngestionService {
         if (ok) updated += 1;
         else skipped += 1;
         await sleep(RPC_CALL_DELAY_MS);
-      }
+      });
       if (stillUnresolved.length === remaining.length) break; // no progress this pass — stop early
       remaining = stillUnresolved;
     }
@@ -431,17 +458,17 @@ export class MarketIngestionService {
     }
 
     const fullTick = this.isFullTick();
-    for (const market of markets) {
-      if (!market.cursor) continue;
-      if (this.isShadowOfSeed(market)) continue;
-      if (!fullTick && this.isDormant(market)) continue;
+    await forEachLimited(byLiquidityDesc(markets), MARKET_CONCURRENCY, async (market) => {
+      if (!market.cursor) return;
+      if (this.isShadowOfSeed(market)) return;
+      if (!fullTick && this.isDormant(market)) return;
       const quoteUsd = quoteUsdPrices.get(market.quoteToken.contractAddress.toLowerCase());
       if (quoteUsd === undefined) {
         this.logger.warn(
           { pool: market.pairAddress },
           'Skipped swap ingestion: quote token has no resolved USD price',
         );
-        continue;
+        return;
       }
       // One market's failure (bad data, a DB error) is logged and its cursor left where it
       // was — never allowed to abort the tick for every market after it.
@@ -451,7 +478,7 @@ export class MarketIngestionService {
         this.logger.error({ err: error, pool: market.pairAddress }, 'Swap ingestion failed for one market — cursor left unadvanced, continuing with the rest');
       }
       await sleep(RPC_CALL_DELAY_MS);
-    }
+    });
   }
 
   private async ingestSwapsForMarket(
@@ -800,7 +827,7 @@ export class MarketIngestionService {
     if (referenceCandle && current.priceUsd !== null && haveFullDay) {
       const oldPrice = Number(referenceCandle.close);
       if (oldPrice > 0) {
-        priceChange24hPct = ((Number(current.priceUsd) - oldPrice) / oldPrice) * 100;
+        priceChange24hPct = clampPct(((Number(current.priceUsd) - oldPrice) / oldPrice) * 100);
       }
     }
 
