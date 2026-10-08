@@ -8,6 +8,7 @@ import { REDIS_CLIENT } from '../redis/redis.module';
 import { CryptoPriceService } from './crypto-price.service';
 import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
 import { isListedCoin } from './listed-coins';
+import { geckoPools, statsFromGeckoPools } from './graduated-pools';
 
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
 /** DexScreener's token endpoint takes up to 30 addresses per call. */
@@ -194,6 +195,8 @@ export class LivePriceService implements OnModuleDestroy {
   private readonly latest = new Map<string, LivePrice>();
   /** Each watched coin's trading stats, from the same DexScreener read as its price. */
   private readonly stats = new Map<string, TokenStats>();
+  /** Graduated coins' stats from their real pools (graduated-pools.ts), by mint. */
+  private readonly graduatedStats = new Map<string, TokenStats>();
   private timer: NodeJS.Timeout | null = null;
   private polling = false;
   /** Every tick's prices, pushed to open streams (see stream()). */
@@ -330,12 +333,20 @@ export class LivePriceService implements OnModuleDestroy {
             const fixed = current ? correctedLaunchPrice(current.priceUsd, jup.get(mint)) : undefined;
             if (current && fixed !== undefined) prices.set(mint, { priceUsd: fixed });
           }
+          // Their stats strip too: the curve's volume/FDV are the old pool's, not the coin's.
+          await Promise.all(
+            suspect.map(async (mint) => {
+              const pools = await geckoPools(mint);
+              const stats = pools ? statsFromGeckoPools(pools, mint, new Date().toISOString()) : null;
+              if (stats) this.graduatedStats.set(mint, stats);
+            }),
+          );
         }
       }
       const atIso = new Date().toISOString();
       const pools = new Map([...prices].map(([k, v]) => [k, v.poolAddress] as const));
       for (const [k, s] of statsFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain, pools, atIso)) {
-        this.stats.set(this.key(chain, k), s);
+        this.stats.set(this.key(chain, k), (chain === 'solana' ? this.graduatedStats.get(k) : undefined) ?? s);
       }
       const missing: string[] = [];
       for (const address of addresses) {

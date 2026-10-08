@@ -5,6 +5,8 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
+import { bestGeckoPool, geckoPools } from './graduated-pools';
+import { launchPoolOnly } from './live-price.service';
 
 const GECKOTERMINAL_API = 'https://api.geckoterminal.com/api/v2/networks/solana';
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
@@ -92,11 +94,22 @@ export class SolanaChartService {
    * deepest pool disagreed). GeckoTerminal's first pool only when DexScreener has none.
    */
   private async mainPool(mint: string): Promise<{ address: string; side: 'base' | 'quote' } | null> {
-    return this.cached(`solana-chart:pool:v2:${mint}`, POOL_TTL_SECONDS, async () => {
-      const dex = await this.fetchJson<{ pairAddress?: string; baseToken?: { address?: string }; quoteToken?: { address?: string }; priceUsd?: string; liquidity?: { usd?: number } }[]>(
+    return this.cached(`solana-chart:pool:v3:${mint}`, POOL_TTL_SECONDS, async () => {
+      const dex = await this.fetchJson<{ pairAddress?: string; dexId?: string; baseToken?: { address?: string }; quoteToken?: { address?: string }; priceUsd?: string; liquidity?: { usd?: number } }[]>(
         `https://api.dexscreener.com/tokens/v1/solana/${mint}`,
         true,
       );
+      // Graduated, but DexScreener still only lists the old launch curve: chart the real pool
+      // GeckoTerminal has (2026-10-08 — BORDR's chart drew a dead curve).
+      if (Array.isArray(dex) && launchPoolOnly(dex, [mint]).length > 0) {
+        const pools = await geckoPools(mint);
+        const real = pools ? bestGeckoPool(pools, mint) : null;
+        const address = real?.attributes?.address;
+        if (address) {
+          await this.redis.set(`chart-pool:solana:${mint}`, address, 'EX', POOL_TTL_SECONDS).catch(() => undefined);
+          return { address, side: 'base' as const };
+        }
+      }
       const candidates = (Array.isArray(dex) ? dex : [])
         .filter((p) => p.baseToken?.address === mint && p.pairAddress)
         .map((p) => ({ priceUsd: Number(p.priceUsd), liquidityUsd: p.liquidity?.usd ?? 0, quoteAddress: p.quoteToken?.address, pairAddress: p.pairAddress! }));
