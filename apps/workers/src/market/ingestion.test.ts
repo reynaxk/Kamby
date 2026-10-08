@@ -209,7 +209,7 @@ describe('MarketIngestionService.backfillTokenLogos — RPC-free logo backfill',
 
     await newService().backfillTokenLogos();
 
-    expect(mockPrisma.token.findMany).toHaveBeenCalledWith({ where: { chainId: 1, logoUrl: null } });
+    expect(mockPrisma.token.findMany).toHaveBeenCalledWith({ where: { chainId: 1, logoUrl: null }, select: { id: true, contractAddress: true } });
   });
 
   it('updates a token whose logo DexScreener actually has, never a fabricated URL', async () => {

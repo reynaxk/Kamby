@@ -54,6 +54,9 @@ const RPC_CALL_DELAY_MS = 350;
  * market still paces its own calls; six run in parallel.
  */
 const MARKET_CONCURRENCY = 6;
+/** Logo lookups per backfill run, and how long a token without one waits before it's re-checked. */
+const LOGO_BATCH = 40;
+const LOGO_RECHECK_MS = 6 * 60 * 60 * 1000;
 
 /** Runs `fn` over `items` with at most `limit` in flight, in order of `items`. */
 async function forEachLimited<T>(items: readonly T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
@@ -168,6 +171,9 @@ export class MarketIngestionService {
   /** Counts refreshPricesAndLiquidity() calls — one per worker tick (see main.ts). */
   private tickCount = 0;
   private logoBackfillCalls = 0;
+  private logoBackfillRunning = false;
+  /** When each logo-less token was last looked up (see backfillTokenLogos). */
+  private readonly logoCheckedAt = new Map<string, number>();
 
   /**
    * A discovered (non-seed) market whose last measured liquidity is below Discover's own
@@ -233,20 +239,34 @@ export class MarketIngestionService {
     // discovered tokens that alone added tens of seconds to every Base tick. A logo doesn't
     // need retrying every minute.
     if (this.logoBackfillCalls++ % DORMANT_REFRESH_EVERY_N_TICKS !== 0) return { checked: 0, updated: 0 };
-    const chainId = this.requireChainId();
-    const missing = await prisma.token.findMany({ where: { chainId, logoUrl: null } });
+    if (this.logoBackfillRunning) return { checked: 0, updated: 0 };
+    this.logoBackfillRunning = true;
+    try {
+      const chainId = this.requireChainId();
+      const now = Date.now();
+      // 2026-10-08: on BNB ~780 tracked tokens have no logo (four.meme coins have no public
+      // source), and checking all of them, 0.35s+ each, at the start of every tick held up price
+      // and swap ingestion for 10+ minutes — BNB charts went stale. Now: a capped batch per run,
+      // tokens checked in the last LOGO_RECHECK_MS skipped, and main.ts runs this off the tick path.
+      const missing = (await prisma.token.findMany({ where: { chainId, logoUrl: null }, select: { id: true, contractAddress: true } }))
+        .filter((t) => now - (this.logoCheckedAt.get(t.id) ?? 0) > LOGO_RECHECK_MS)
+        .slice(0, LOGO_BATCH);
 
-    let updated = 0;
-    for (const token of missing) {
-      const logoUrl = await fetchTokenLogoUrl(this.evmChainId(), token.contractAddress);
-      if (logoUrl) {
-        await prisma.token.update({ where: { id: token.id }, data: { logoUrl } });
-        updated += 1;
+      let updated = 0;
+      for (const token of missing) {
+        this.logoCheckedAt.set(token.id, Date.now());
+        const logoUrl = await fetchTokenLogoUrl(this.evmChainId(), token.contractAddress);
+        if (logoUrl) {
+          await prisma.token.update({ where: { id: token.id }, data: { logoUrl } });
+          updated += 1;
+        }
+        await sleep(RPC_CALL_DELAY_MS);
       }
-      await sleep(RPC_CALL_DELAY_MS);
+      if (missing.length > 0) this.logger.info({ checked: missing.length, updated }, 'Token logo backfill complete');
+      return { checked: missing.length, updated };
+    } finally {
+      this.logoBackfillRunning = false;
     }
-    if (missing.length > 0) this.logger.info({ checked: missing.length, updated }, 'Token logo backfill complete');
-    return { checked: missing.length, updated };
   }
 
   /**

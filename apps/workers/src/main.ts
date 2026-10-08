@@ -164,7 +164,8 @@ async function main(): Promise<void> {
         // lets a transient failure self-heal on a later tick instead of requiring a
         // manual restart.
         await ingestion.seed();
-        await ingestion.backfillTokenLogos();
+        // Logos are cosmetic and can take a while — never let them hold up prices and charts.
+        void ingestion.backfillTokenLogos().catch((error: unknown) => logger.warn({ err: error }, 'Token logo backfill failed'));
         await ingestion.refreshPricesAndLiquidity();
         await ingestion.ingestSwaps();
         logger.info({ durationMs: Date.now() - startedAt }, 'Market ingestion tick complete');
