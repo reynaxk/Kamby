@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { MarketSummary, TokenInfoChain } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
-import { pricesFromPairs } from './live-price.service';
+import { correctedLaunchPrice, jupiterPrices, launchPoolOnly, pricesFromPairs } from './live-price.service';
 
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
 const BATCH_SIZE = 30; // DexScreener's tokens endpoint takes up to 30 addresses per call
@@ -100,7 +100,20 @@ export class FeedPricesService {
         const image = pair.info?.imageUrl;
         if (address && typeof image === 'string' && image.startsWith('https://')) this.logos.set(this.key(chain, address), image);
       }
-      const prices = pricesFromPairs(Array.isArray(body) ? (body as Parameters<typeof pricesFromPairs>[0]) : [], chain);
+      const pairs = Array.isArray(body) ? (body as Parameters<typeof pricesFromPairs>[0]) : [];
+      const prices = pricesFromPairs(pairs, chain);
+      // Graduated coins DexScreener still prices off the old launch curve (see launchPoolOnly).
+      if (chain === 'solana') {
+        const suspect = launchPoolOnly(pairs, addresses);
+        if (suspect.length > 0) {
+          const jup = await jupiterPrices(suspect);
+          for (const mint of suspect) {
+            const current = prices.get(mint);
+            const fixed = current !== undefined ? correctedLaunchPrice(current, jup.get(mint)) : undefined;
+            if (fixed !== undefined) prices.set(mint, fixed);
+          }
+        }
+      }
       const at = Date.now();
       for (const [key, usd] of prices) this.cache.set(`${chain}:${key}`, { usd, at });
     } catch (error) {

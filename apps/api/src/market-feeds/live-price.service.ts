@@ -20,6 +20,7 @@ const WATCH_TTL_MS = 20_000;
 
 interface DexScreenerPair {
   pairAddress?: string;
+  dexId?: string;
   baseToken?: { address?: string };
   quoteToken?: { address?: string };
   priceUsd?: string;
@@ -72,6 +73,74 @@ export function statsFromPairs(
     });
   }
   return out;
+}
+
+/** Launchpad bonding-curve "pools" on DexScreener — a coin's first market, left behind when it
+ *  graduates to a real AMM pool. */
+const LAUNCH_POOL_DEX_IDS = new Set(['pumpfun', 'meteoradbc', 'launchlab', 'raydiumlaunchlab', 'moonit', 'boopfun', 'letsbonk', 'bonkfun']);
+
+/**
+ * Exported for tests. Solana coins whose DexScreener price may be stale: every pool DexScreener
+ * lists for them is a launch curve or holds no liquidity. Found 2026-10-08 checking Bitquery:
+ * graduated coins (BORDR, SENTS) still showed only their old curve on DexScreener, priced 6-7x
+ * below the real PumpSwap / Meteora pool (Jupiter and Bitquery agreed on the real price).
+ */
+export function launchPoolOnly(pairs: DexScreenerPair[], requested: readonly string[]): string[] {
+  const byToken = new Map<string, DexScreenerPair[]>();
+  for (const pair of pairs) {
+    const address = pair.baseToken?.address;
+    if (address) byToken.set(address, [...(byToken.get(address) ?? []), pair]);
+  }
+  return requested.filter((mint) => {
+    const list = byToken.get(mint);
+    if (!list || list.length === 0) return false;
+    return list.every((p) => LAUNCH_POOL_DEX_IDS.has(p.dexId ?? '') || !((p.liquidity?.usd ?? 0) > 0));
+  });
+}
+
+/** A price this far from Jupiter's is treated as a stale launch-curve price. */
+const STALE_LAUNCH_PRICE_RATIO = 1.25;
+const jupiterCache = new Map<string, { usd: number; at: number }>();
+const JUPITER_CACHE_MS = 5_000;
+
+/**
+ * Jupiter's price for the given Solana mints (all routes, so it follows a graduated coin to its
+ * real pool), cached 5s and shared by the live price and the lists. Only mints with a price.
+ */
+export async function jupiterPrices(mints: readonly string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  const now = Date.now();
+  const missing: string[] = [];
+  for (const mint of mints) {
+    const hit = jupiterCache.get(mint);
+    if (hit && now - hit.at < JUPITER_CACHE_MS) out.set(mint, hit.usd);
+    else missing.push(mint);
+  }
+  for (let i = 0; i < missing.length; i += 50) {
+    const ids = missing.slice(i, i + 50);
+    try {
+      const res = await fetch(`https://lite-api.jup.ag/price/v3?ids=${ids.join(',')}`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) continue;
+      const body = (await res.json()) as Record<string, { usdPrice?: number } | null>;
+      for (const id of ids) {
+        const usd = body[id]?.usdPrice;
+        if (typeof usd === 'number' && usd > 0) {
+          jupiterCache.set(id, { usd, at: Date.now() });
+          out.set(id, usd);
+        }
+      }
+    } catch {
+      // Jupiter unreachable — the DexScreener price stands.
+    }
+  }
+  return out;
+}
+
+/** Exported for tests. Jupiter's price when DexScreener's is a stale launch-curve read, else undefined. */
+export function correctedLaunchPrice(dexUsd: number, jupiterUsd: number | undefined): number | undefined {
+  if (jupiterUsd === undefined || !(jupiterUsd > 0) || !(dexUsd > 0)) return undefined;
+  const ratio = jupiterUsd > dexUsd ? jupiterUsd / dexUsd : dexUsd / jupiterUsd;
+  return ratio >= STALE_LAUNCH_PRICE_RATIO ? jupiterUsd : undefined;
 }
 
 /** Exported for tests. The price of each requested token from DexScreener's pairs: only
@@ -249,7 +318,20 @@ export class LivePriceService implements OnModuleDestroy {
         return;
       }
       const body = (await response.json()) as unknown;
-      const prices = poolPricesFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain, await this.chartPools(chain, addresses));
+      const pairs = Array.isArray(body) ? (body as DexScreenerPair[]) : [];
+      const prices = poolPricesFromPairs(pairs, chain, await this.chartPools(chain, addresses));
+      // A graduated coin DexScreener still prices off its old launch curve: Jupiter's price wins.
+      if (chain === 'solana') {
+        const suspect = launchPoolOnly(pairs, addresses);
+        if (suspect.length > 0) {
+          const jup = await jupiterPrices(suspect);
+          for (const mint of suspect) {
+            const current = prices.get(mint);
+            const fixed = current ? correctedLaunchPrice(current.priceUsd, jup.get(mint)) : undefined;
+            if (current && fixed !== undefined) prices.set(mint, { priceUsd: fixed });
+          }
+        }
+      }
       const atIso = new Date().toISOString();
       const pools = new Map([...prices].map(([k, v]) => [k, v.poolAddress] as const));
       for (const [k, s] of statsFromPairs(Array.isArray(body) ? (body as DexScreenerPair[]) : [], chain, pools, atIso)) {
