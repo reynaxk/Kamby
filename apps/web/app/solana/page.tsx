@@ -15,6 +15,7 @@ import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
 import { formatPercent } from '@/lib/format';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
+import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -144,6 +145,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               ) : (
                 <h1 className="font-display text-xl font-bold text-ink-900">
                   <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" chainIdentifier="solana" seed={market.tokenAddress} />
+                  <LaunchpadBadge chain="solana" address={market.tokenAddress} className="mt-1" />
                 </h1>
               )}
               {!isSol && (

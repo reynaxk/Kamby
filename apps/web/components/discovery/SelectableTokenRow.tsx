@@ -7,6 +7,7 @@ import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/for
 import { Sparkline } from '@/components/market/Sparkline';
 import { NewListingBadge } from './feeds/NewListingBadge';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
@@ -78,6 +79,7 @@ export function SelectableTokenRow({
         <span className="block truncate font-display text-[0.88rem] font-semibold tracking-tight text-ink-900">
           {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
           {isNew && <NewListingBadge className="ml-1 align-middle" />}
+          <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} className="ml-1 align-middle" />
         </span>
         <span className="terminal-token-row-meta block font-mono text-[0.7rem] tabular-nums text-ink-400">
           {chainLabel} · {formatCompactUsd(market.marketCapUsd)} MC

@@ -16,6 +16,7 @@ import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { WatchButton } from '@/components/market/WatchButton';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
+import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 
 /**
  * Top metrics strip in the terminal, ported to production 2026-09-16 — see
@@ -49,6 +50,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
               {cashtag(market.symbol ?? display)}
             </span>
             {isLowLiquidity && <LowLiquidityBadge />}
+            <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} />
           </div>
           <div className="flex items-center gap-1.5 truncate font-mono text-[0.6rem] text-ink-400">
             <span className="truncate">
