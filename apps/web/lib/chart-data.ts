@@ -81,6 +81,21 @@ export function loadCandles(source: ChartSource, timeframe: Timeframe, { force =
 /** Too few candles to draw a chart — a brand-new coin, or the API was rate-limited upstream. */
 const MIN_USEFUL_CANDLES = 2;
 
+const TIMEFRAME_SECONDS: Record<Timeframe, number> = { '1m': 60, '5m': 300, '1H': 3600, '4H': 14_400, '1D': 86_400, '1W': 604_800, '1M': 2_592_000 };
+
+/**
+ * The API's candles look stale: the last one is more than 3 candles (and 10 minutes) old.
+ * 2026-10-08: while GeckoTerminal briefly rate-limits the server, the API serves its last good
+ * chart, which can be an hour old (CRAWL's 5m chart stopped at 19:30 at 20:28) — and with
+ * plenty of candles the browser never tried GeckoTerminal itself.
+ */
+function looksStale(candles: readonly Candle[], timeframe: Timeframe): boolean {
+  const last = candles[candles.length - 1];
+  if (!last) return true;
+  const ageSeconds = (Date.now() - Date.parse(last.bucketStart)) / 1000;
+  return ageSeconds > Math.max(3 * TIMEFRAME_SECONDS[timeframe], 600);
+}
+
 /** The API first (cached, shared by every viewer); if it has nothing, GeckoTerminal from this browser. */
 async function fetchWithFallback(source: ChartSource, timeframe: Timeframe): Promise<Candle[]> {
   let fromApi: Candle[] = [];
@@ -90,12 +105,14 @@ async function fetchWithFallback(source: ChartSource, timeframe: Timeframe): Pro
   } catch (error) {
     apiError = error;
   }
-  if (fromApi.length >= MIN_USEFUL_CANDLES) return fromApi;
+  if (fromApi.length >= MIN_USEFUL_CANDLES && !looksStale(fromApi, timeframe)) return fromApi;
   const network = geckoNetworkFor(source);
   // The pool the live price reports is the coin's chart pool — the same market as Live/10s.
   const pool = network ? await fetchLivePrice(source).then((p) => p?.poolAddress).catch(() => undefined) : undefined;
   const fromGecko = network ? await fetchGeckoCandles(network, source.kind === 'solana' ? source.mint : source.address, timeframe, pool) : [];
-  if (fromGecko.length > fromApi.length) return fromGecko;
+  // Whichever is more current (a quiet coin's candles are old everywhere — then the API's stand).
+  const geckoNewer = fromGecko.length >= MIN_USEFUL_CANDLES && fromApi.length > 0 && Date.parse(fromGecko[fromGecko.length - 1]!.bucketStart) > Date.parse(fromApi[fromApi.length - 1]!.bucketStart);
+  if (geckoNewer || fromGecko.length > fromApi.length) return fromGecko;
   if (apiError && fromApi.length === 0) throw apiError;
   return fromApi;
 }
