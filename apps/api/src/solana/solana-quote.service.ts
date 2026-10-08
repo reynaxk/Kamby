@@ -10,6 +10,9 @@ import { resolveNewCoinSetupFee, setupFeeInstruction } from './new-coin-setup-fe
 import { GasRelayerService } from './gas-relayer.service';
 import { JupiterQuoteService } from './jupiter-quote.service';
 
+/** Solana's packet limit for a whole serialized transaction (signatures + message). */
+const SOLANA_MAX_TRANSACTION_BYTES = 1_232;
+
 export interface CreateSolanaQuoteParams {
   userId: string;
   walletAddress: string;
@@ -231,13 +234,20 @@ export class SolanaQuoteService {
         setupFeeRaw + buyFeeRaw > 0n ? [setupFeeInstruction(params.walletAddress, this.treasuryUsdcAta, setupFeeRaw + buyFeeRaw)] : [],
       );
       try {
-        unsignedTxBase64 = Buffer.from(transaction.serialize()).toString('base64');
-        chosen = instructions;
-        break;
+        // The whole transaction — signature slots included (2 x 64 bytes) — must fit Solana's
+        // 1,232-byte packet. serialize() only throws when the *message* alone overflows, so a
+        // message that fit could still make a 1,272-byte transaction (2026-10-07, ZKPAY: the
+        // relayer's simulation rejected it after the user had signed).
+        const bytes = transaction.serialize();
+        if (bytes.length <= SOLANA_MAX_TRANSACTION_BYTES) {
+          unsignedTxBase64 = Buffer.from(bytes).toString('base64');
+          chosen = instructions;
+          break;
+        }
       } catch (error) {
         if (!(error instanceof RangeError)) throw error;
-        this.logger.warn({ maxAccounts: maxAccounts ?? 'default', outputMint }, 'Solana route too large for one transaction — retrying with a smaller route');
       }
+      this.logger.warn({ maxAccounts: maxAccounts ?? 'default', outputMint }, 'Solana route too large for one transaction — retrying with a smaller route');
     }
     if (unsignedTxBase64 === null || chosen === null) {
       throw new UnprocessableEntityException(
