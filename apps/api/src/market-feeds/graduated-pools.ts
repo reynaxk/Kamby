@@ -96,3 +96,36 @@ export function statsFromGeckoPools(pools: GeckoPool[], mint: string, atIso: str
     atIso,
   };
 }
+
+const pairsCache = new Map<string, { pairs: unknown[]; at: number }>();
+
+/**
+ * Every pool DexScreener knows for one coin (2026-10-08). The batched `tokens/v1` endpoint the
+ * live price uses returns only part of a coin's pools — for a graduated coin, sometimes just the
+ * dead launch curve, while `token-pairs/v1` lists the real PumpSwap / Meteora pools. One call per
+ * coin, so only used where the batch looked incomplete (and by the chart, cached an hour there).
+ */
+export async function dexTokenPairs<T = unknown>(network: string, address: string): Promise<T[] | null> {
+  const key = `${network}:${address}`;
+  const hit = pairsCache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.pairs as T[];
+  try {
+    const res = await fetch(`https://api.dexscreener.com/token-pairs/v1/${network}/${address}`, {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return (hit?.pairs as T[] | undefined) ?? null;
+    const body = (await res.json()) as unknown;
+    const pairs = Array.isArray(body) ? body : [];
+    pairsCache.set(key, { pairs, at: Date.now() });
+    return pairs as T[];
+  } catch {
+    return (hit?.pairs as T[] | undefined) ?? null;
+  }
+}
+
+/** Test seam: forget cached pools between tests. */
+export function resetGraduatedPoolCaches(): void {
+  cache.clear();
+  pairsCache.clear();
+}

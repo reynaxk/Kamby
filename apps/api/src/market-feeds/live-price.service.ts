@@ -8,7 +8,7 @@ import { REDIS_CLIENT } from '../redis/redis.module';
 import { CryptoPriceService } from './crypto-price.service';
 import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
 import { isListedCoin } from './listed-coins';
-import { geckoPools, statsFromGeckoPools } from './graduated-pools';
+import { dexTokenPairs, geckoPools, statsFromGeckoPools } from './graduated-pools';
 
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
 /** DexScreener's token endpoint takes up to 30 addresses per call. */
@@ -327,20 +327,37 @@ export class LivePriceService implements OnModuleDestroy {
       if (chain === 'solana') {
         const suspect = launchPoolOnly(pairs, addresses);
         if (suspect.length > 0) {
-          const jup = await jupiterPrices(suspect);
-          for (const mint of suspect) {
-            const current = prices.get(mint);
-            const fixed = current ? correctedLaunchPrice(current.priceUsd, jup.get(mint)) : undefined;
-            if (current && fixed !== undefined) prices.set(mint, { priceUsd: fixed });
-          }
-          // Their stats strip too: the curve's volume/FDV are the old pool's, not the coin's.
+          // First: the coin's full pool list (the batch can omit its real pools).
+          const unresolved: string[] = [];
           await Promise.all(
             suspect.map(async (mint) => {
-              const pools = await geckoPools(mint);
-              const stats = pools ? statsFromGeckoPools(pools, mint, new Date().toISOString()) : null;
-              if (stats) this.graduatedStats.set(mint, stats);
+              const full = await dexTokenPairs<DexScreenerPair>('solana', mint);
+              if (!full || launchPoolOnly(full, [mint]).length > 0) {
+                unresolved.push(mint);
+                return;
+              }
+              const fullPrice = poolPricesFromPairs(full, chain).get(mint);
+              if (fullPrice) prices.set(mint, fullPrice);
+              const fullStats = statsFromPairs(full, chain, new Map([[mint, fullPrice?.poolAddress]]), new Date().toISOString()).get(mint);
+              if (fullStats) this.graduatedStats.set(mint, fullStats);
             }),
           );
+          // Then, for any still stuck: Jupiter's price and GeckoTerminal's pools.
+          if (unresolved.length > 0) {
+            const jup = await jupiterPrices(unresolved);
+            for (const mint of unresolved) {
+              const current = prices.get(mint);
+              const fixed = current ? correctedLaunchPrice(current.priceUsd, jup.get(mint)) : undefined;
+              if (current && fixed !== undefined) prices.set(mint, { priceUsd: fixed });
+            }
+            await Promise.all(
+              unresolved.map(async (mint) => {
+                const pools = await geckoPools(mint);
+                const stats = pools ? statsFromGeckoPools(pools, mint, new Date().toISOString()) : null;
+                if (stats) this.graduatedStats.set(mint, stats);
+              }),
+            );
+          }
         }
       }
       const atIso = new Date().toISOString();

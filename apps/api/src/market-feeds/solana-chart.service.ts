@@ -5,7 +5,7 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
-import { bestGeckoPool, geckoPools } from './graduated-pools';
+import { bestGeckoPool, dexTokenPairs, geckoPools } from './graduated-pools';
 import { launchPoolOnly } from './live-price.service';
 
 const GECKOTERMINAL_API = 'https://api.geckoterminal.com/api/v2/networks/solana';
@@ -94,10 +94,11 @@ export class SolanaChartService {
    * deepest pool disagreed). GeckoTerminal's first pool only when DexScreener has none.
    */
   private async mainPool(mint: string): Promise<{ address: string; side: 'base' | 'quote' } | null> {
-    return this.cached(`solana-chart:pool:v3:${mint}`, POOL_TTL_SECONDS, async () => {
-      const dex = await this.fetchJson<{ pairAddress?: string; dexId?: string; baseToken?: { address?: string }; quoteToken?: { address?: string }; priceUsd?: string; liquidity?: { usd?: number } }[]>(
-        `https://api.dexscreener.com/tokens/v1/solana/${mint}`,
-        true,
+    return this.cached(`solana-chart:pool:v4:${mint}`, POOL_TTL_SECONDS, async () => {
+      // token-pairs/v1 lists every pool; tokens/v1 can return only a graduated coin's dead curve.
+      const dex = await dexTokenPairs<{ pairAddress?: string; dexId?: string; baseToken?: { address?: string }; quoteToken?: { address?: string }; priceUsd?: string; liquidity?: { usd?: number } }>(
+        'solana',
+        mint,
       );
       // Graduated, but DexScreener still only lists the old launch curve: chart the real pool
       // GeckoTerminal has (2026-10-08 — BORDR's chart drew a dead curve).

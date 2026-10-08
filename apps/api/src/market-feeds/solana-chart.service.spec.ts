@@ -2,6 +2,7 @@ import { prisma } from '@kamby/db';
 import type { Redis } from 'ioredis';
 import type { PinoLogger } from 'nestjs-pino';
 import { SolanaChartService, toCandles } from './solana-chart.service';
+import { resetGraduatedPoolCaches } from './graduated-pools';
 
 jest.mock('@kamby/db', () => ({
   prisma: { solanaTokenMarket: { findFirst: jest.fn() }, pumpFunToken: { findFirst: jest.fn() } },
@@ -41,6 +42,7 @@ describe('SolanaChartService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetGraduatedPoolCaches();
     (mockedPrisma.solanaTokenMarket.findFirst as jest.Mock).mockResolvedValue({ id: 'bonk' });
     (mockedPrisma.pumpFunToken.findFirst as jest.Mock).mockResolvedValue(null);
     global.fetch = jest.fn(async (url: string) => ({ ok: true, json: async () => (String(url).includes('/ohlcv/') ? ohlcv : pools) })) as unknown as typeof fetch;
