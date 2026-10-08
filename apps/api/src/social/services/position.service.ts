@@ -42,9 +42,10 @@ export class PositionService {
   private async solanaPositions(userId: string): Promise<TokenPosition[]> {
     const lots = await prisma.tokenLot.findMany({
       where: { userId, chain: 'SOLANA', solanaMint: { not: null }, quantityRemainingRaw: { not: '0' } },
-      select: { solanaMint: true, quantityOriginalRaw: true, quantityRemainingRaw: true, costBasisUsd: true },
+      select: { solanaMint: true, quantityOriginalRaw: true, quantityRemainingRaw: true, costBasisUsd: true, solanaBuyTransactionId: true },
     });
     if (lots.length === 0) return [];
+    const feeByTx = await solanaBuyFees(lots.map((l) => l.solanaBuyTransactionId).filter((id): id is string => id !== null));
     const lotsByMint = new Map<string, typeof lots>();
     for (const lot of lots) lotsByMint.set(lot.solanaMint!, [...(lotsByMint.get(lot.solanaMint!) ?? []), lot]);
     const mints = [...lotsByMint.keys()].slice(0, MAX_SOLANA_POSITIONS);
@@ -64,12 +65,17 @@ export class PositionService {
       let remainingRaw = 0n;
       let originalRaw = 0n;
       let remainingCostBasisUsd = 0;
+      let remainingFeesUsd = 0;
       for (const lot of lotsByMint.get(mint)!) {
         const original = BigInt(lot.quantityOriginalRaw);
         originalRaw += original;
         const remaining = BigInt(lot.quantityRemainingRaw);
         remainingRaw += remaining;
-        if (original > 0n) remainingCostBasisUsd += Number(lot.costBasisUsd) * (Number(remaining) / Number(original));
+        if (original > 0n) {
+          const share = Number(remaining) / Number(original);
+          remainingCostBasisUsd += Number(lot.costBasisUsd) * share;
+          remainingFeesUsd += (lot.solanaBuyTransactionId ? (feeByTx.get(lot.solanaBuyTransactionId) ?? 0) : 0) * share;
+        }
       }
       if (isDust(remainingRaw, originalRaw)) return [];
       const quantity = Number(formatUnits(remainingRaw, decimals));
@@ -90,6 +96,7 @@ export class PositionService {
           currentValueUsd,
           unrealizedPnlUsd,
           unrealizedPnlPct: unrealizedPnlUsd !== null && remainingCostBasisUsd > 0 ? (unrealizedPnlUsd / remainingCostBasisUsd) * 100 : null,
+          feesUsd: Math.min(remainingFeesUsd, remainingCostBasisUsd),
         },
       ];
     });
@@ -98,9 +105,10 @@ export class PositionService {
   private async evmPositions(userId: string): Promise<TokenPosition[]> {
     const lots = await prisma.tokenLot.findMany({
       where: { userId, chain: 'EVM', evmTokenId: { not: null } },
-      select: { evmTokenId: true, quantityOriginalRaw: true, quantityRemainingRaw: true, costBasisUsd: true },
+      select: { evmTokenId: true, quantityOriginalRaw: true, quantityRemainingRaw: true, costBasisUsd: true, evmBuyTransactionId: true },
     });
     if (lots.length === 0) return [];
+    const feeBpsByTx = await evmBuyFeeBps(lots.map((l) => l.evmBuyTransactionId).filter((id): id is string => id !== null));
 
     const tokenIds = [...new Set(lots.map((lot) => lot.evmTokenId as string))];
     const [tokens, markets] = await Promise.all([
@@ -141,13 +149,18 @@ export class PositionService {
       let remainingRaw = 0n;
       let originalRaw = 0n;
       let remainingCostBasisUsd = 0;
+      let remainingFeesUsd = 0;
       for (const lot of tokenLots) {
         const original = BigInt(lot.quantityOriginalRaw);
         originalRaw += original;
         const remaining = BigInt(lot.quantityRemainingRaw);
         remainingRaw += remaining;
         if (original > 0n) {
-          remainingCostBasisUsd += Number(lot.costBasisUsd) * (Number(remaining) / Number(original));
+          const share = Number(remaining) / Number(original);
+          remainingCostBasisUsd += Number(lot.costBasisUsd) * share;
+          // EVM buys take the fee off the USDC entered, so it's that share of the lot's cost.
+          const bps = lot.evmBuyTransactionId ? (feeBpsByTx.get(lot.evmBuyTransactionId) ?? 0) : 0;
+          remainingFeesUsd += Number(lot.costBasisUsd) * (bps / 10_000) * share;
         }
       }
       if (isDust(remainingRaw, originalRaw)) continue; // closed — see isDust
@@ -172,6 +185,7 @@ export class PositionService {
         currentValueUsd,
         unrealizedPnlUsd,
         unrealizedPnlPct,
+        feesUsd: Math.min(remainingFeesUsd, remainingCostBasisUsd),
       });
     }
 
@@ -219,4 +233,35 @@ function startOfUtcDay(date: Date): Date {
 
 function utcDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
+}
+
+/** Kamby's USDC fee (trade fee + new-coin setup) on each Solana buy, in dollars: what the user
+ *  paid minus what was swapped (both USDC, 6 decimals); the platform fee alone for older quotes
+ *  that didn't record the total. */
+async function solanaBuyFees(transactionIds: string[]): Promise<Map<string, number>> {
+  if (transactionIds.length === 0) return new Map();
+  const rows = await prisma.solanaTradeTransaction.findMany({
+    where: { id: { in: transactionIds } },
+    select: { id: true, quote: { select: { inputAmount: true, platformFeeAmount: true, unsignedTx: true } } },
+  });
+  const fees = new Map<string, number>();
+  for (const row of rows) {
+    const totalPaidRaw = (row.quote.unsignedTx as { totalPaidRaw?: unknown } | null)?.totalPaidRaw;
+    const fee =
+      typeof totalPaidRaw === 'string' && /^\d+$/.test(totalPaidRaw) && /^\d+$/.test(row.quote.inputAmount)
+        ? Number(BigInt(totalPaidRaw) - BigInt(row.quote.inputAmount)) / 1e6
+        : Number(row.quote.platformFeeAmount || '0') / 1e6;
+    fees.set(row.id, Number.isFinite(fee) && fee > 0 ? fee : 0);
+  }
+  return fees;
+}
+
+/** Each EVM buy's fee rate in basis points. */
+async function evmBuyFeeBps(transactionIds: string[]): Promise<Map<string, number>> {
+  if (transactionIds.length === 0) return new Map();
+  const rows = await prisma.tradeTransaction.findMany({
+    where: { id: { in: transactionIds } },
+    select: { id: true, quote: { select: { platformFeeBps: true } } },
+  });
+  return new Map(rows.map((r) => [r.id, r.quote.platformFeeBps]));
 }

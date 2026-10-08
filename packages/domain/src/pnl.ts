@@ -213,6 +213,10 @@ export const TokenPositionSchema = z.object({
   currentValueUsd: z.number().nullable(),
   unrealizedPnlUsd: z.number().nullable(),
   unrealizedPnlPct: z.number().nullable(),
+  /** Kamby's fees (trade fee + any new-coin setup) inside `costBasisUsd`, for the lots still
+   *  held — so the app can show the market price you bought at, with the fee on its own line
+   *  (2026-10-08). costBasisUsd and PnL still include it. Absent on older responses. */
+  feesUsd: z.number().min(0).optional(),
 });
 export type TokenPosition = z.infer<typeof TokenPositionSchema>;
 

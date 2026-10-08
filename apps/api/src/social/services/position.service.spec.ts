@@ -9,6 +9,8 @@ jest.mock('@kamby/db', () => ({
     pumpFunToken: { findMany: jest.fn().mockResolvedValue([]) },
     tokenMarket: { findMany: jest.fn() },
     realizedPnlEvent: { findMany: jest.fn() },
+    solanaTradeTransaction: { findMany: jest.fn().mockResolvedValue([]) },
+    tradeTransaction: { findMany: jest.fn().mockResolvedValue([]) },
   },
 }));
 
@@ -74,6 +76,7 @@ describe('PositionService', () => {
         currentValueUsd: 150,
         unrealizedPnlUsd: 50,
         unrealizedPnlPct: 50,
+        feesUsd: 0,
       },
     ]);
   });
