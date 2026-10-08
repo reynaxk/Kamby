@@ -58,21 +58,32 @@ const MARKET_CONCURRENCY = 6;
 const LOGO_BATCH = 40;
 const LOGO_RECHECK_MS = 6 * 60 * 60 * 1000;
 
-/** Runs `fn` over `items` with at most `limit` in flight, in order of `items`. */
-async function forEachLimited<T>(items: readonly T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
+/** Runs `fn` over `items` with at most `limit` in flight, in order of `items`; no new item is
+ *  started after `deadline` (ms epoch). Returns how many were started. */
+async function forEachLimited<T>(items: readonly T[], limit: number, fn: (item: T) => Promise<void>, deadline = Infinity): Promise<number> {
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) {
+    while (next < items.length && Date.now() < deadline) {
       const item = items[next++]!;
       await fn(item);
     }
   });
   await Promise.all(workers);
+  return next;
 }
 
-/** Deepest pools first, so the coins people trade stay freshest if a tick runs long. */
-function byLiquidityDesc<T extends { liquidityUsd: Prisma.Decimal | null }>(markets: T[]): T[] {
-  return [...markets].sort((a, b) => Number(b.liquidityUsd ?? 0) - Number(a.liquidityUsd ?? 0));
+/**
+ * Time budget per stage of a tick (2026-10-08). A tick over a slow free RPC could run for many
+ * minutes (BNB charts sat 70+ min stale); now each stage stops starting new markets after its
+ * budget and the next tick continues, least-recently-processed markets first, so every market
+ * keeps moving and the tick always ends.
+ */
+const STAGE_BUDGET_MS = 40_000;
+
+/** Least recently processed first (never-processed first of all), deepest pools breaking ties —
+ *  with STAGE_BUDGET_MS, every market gets its turn and the busiest coins go first after a restart. */
+function fairOrder<T extends { id: string; liquidityUsd: Prisma.Decimal | null }>(markets: T[], lastDone: ReadonlyMap<string, number>): T[] {
+  return [...markets].sort((a, b) => (lastDone.get(a.id) ?? 0) - (lastDone.get(b.id) ?? 0) || Number(b.liquidityUsd ?? 0) - Number(a.liquidityUsd ?? 0));
 }
 /** Bounds refreshPricesAndLiquidity's quote-token-dependency resolution passes — see that
  *  method's own doc comment. A real dependency chain (base quoted in an intermediate token
@@ -172,6 +183,9 @@ export class MarketIngestionService {
   private tickCount = 0;
   private logoBackfillCalls = 0;
   private logoBackfillRunning = false;
+  /** When each market last had its price / swaps processed — see fairOrder. */
+  private readonly priceDoneAt = new Map<string, number>();
+  private readonly swapsDoneAt = new Map<string, number>();
   /** When each logo-less token was last looked up (see backfillTokenLogos). */
   private readonly logoCheckedAt = new Map<string, number>();
 
@@ -344,7 +358,11 @@ export class MarketIngestionService {
 
     let updated = 0;
     let skipped = 0;
-    let remaining = byLiquidityDesc(markets);
+    const startedAt = Date.now();
+    const deadline = startedAt + STAGE_BUDGET_MS;
+    // Every market's quote must resolve, so the deadline only trims who's processed this tick,
+    // never the quote markets (USDC/WETH/WBNB-quoted, processed in the first pass).
+    let remaining = fairOrder(markets, this.priceDoneAt);
     for (let pass = 0; pass < MAX_RESOLUTION_PASSES && remaining.length > 0; pass++) {
       const stillUnresolved: typeof remaining = [];
       // USDC/WETH-quoted markets resolve in pass 0; a market quoted in a token resolved later in
@@ -364,10 +382,11 @@ export class MarketIngestionService {
         } catch (error) {
           this.logger.error({ err: error, pool: market.pairAddress }, 'Price refresh failed for one market — continuing with the rest');
         }
+        this.priceDoneAt.set(market.id, Date.now());
         if (ok) updated += 1;
         else skipped += 1;
         await sleep(RPC_CALL_DELAY_MS);
-      });
+      }, pass === 0 ? deadline : deadline + STAGE_BUDGET_MS / 2);
       if (stillUnresolved.length === remaining.length) break; // no progress this pass — stop early
       remaining = stillUnresolved;
     }
@@ -378,7 +397,7 @@ export class MarketIngestionService {
         'Skipped price refresh: quote token has no resolved USD price after every resolution pass',
       );
     }
-    this.logger.info({ updated, skipped }, 'Price/liquidity refresh complete');
+    this.logger.info({ updated, skipped, markets: markets.length, durationMs: Date.now() - startedAt }, 'Price/liquidity refresh complete');
   }
 
   private async refreshOneMarket(
@@ -478,7 +497,9 @@ export class MarketIngestionService {
     }
 
     const fullTick = this.isFullTick();
-    await forEachLimited(byLiquidityDesc(markets), MARKET_CONCURRENCY, async (market) => {
+    const startedAt = Date.now();
+    let processed = 0;
+    const started = await forEachLimited(fairOrder(markets, this.swapsDoneAt), MARKET_CONCURRENCY, async (market) => {
       if (!market.cursor) return;
       if (this.isShadowOfSeed(market)) return;
       if (!fullTick && this.isDormant(market)) return;
@@ -497,8 +518,11 @@ export class MarketIngestionService {
       } catch (error) {
         this.logger.error({ err: error, pool: market.pairAddress }, 'Swap ingestion failed for one market — cursor left unadvanced, continuing with the rest');
       }
+      this.swapsDoneAt.set(market.id, Date.now());
+      processed += 1;
       await sleep(RPC_CALL_DELAY_MS);
-    });
+    }, startedAt + STAGE_BUDGET_MS);
+    this.logger.info({ processed, considered: started, markets: markets.length, durationMs: Date.now() - startedAt }, 'Swap ingestion complete');
   }
 
   private async ingestSwapsForMarket(
