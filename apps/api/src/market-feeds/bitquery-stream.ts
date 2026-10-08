@@ -44,7 +44,25 @@ export class BitqueryPriceStream {
     private readonly apiKey: string,
     private readonly logger: PinoLogger,
     private readonly onTick: (tick: BitqueryTick) => void,
+    /** Bytes received, for the data meter (plans cap GB of stream data per month). */
+    private readonly onBytes: (bytes: number) => void = () => undefined,
   ) {}
+
+  /** Stops streaming until resume() — the monthly data cap was reached. */
+  private paused = false;
+
+  pause(): void {
+    if (this.paused) return;
+    this.paused = true;
+    this.close();
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    this.subscribedKey = '';
+    this.apply();
+  }
 
   /** True while data has arrived recently — the caller trusts Bitquery's price only then. */
   isLive(): boolean {
@@ -67,7 +85,7 @@ export class BitqueryPriceStream {
   }
 
   private apply(): void {
-    if (this.stopped) return;
+    if (this.stopped || this.paused) return;
     if (this.tokens.length === 0) {
       this.close();
       return;
@@ -85,12 +103,16 @@ export class BitqueryPriceStream {
     const socket = new WebSocket(`${ENDPOINT}?token=${encodeURIComponent(this.apiKey)}`, ['graphql-ws']);
     this.socket = socket;
     socket.on('open', () => socket.send(JSON.stringify({ type: 'connection_init', payload: {} })));
-    socket.on('message', (raw) => this.handle(raw.toString()));
+    socket.on('message', (raw) => {
+      const text = raw.toString();
+      this.onBytes(Buffer.byteLength(text));
+      this.handle(text);
+    });
     socket.on('close', () => {
       if (this.socket !== socket) return;
       this.socket = null;
       this.acked = false;
-      if (!this.stopped && this.tokens.length > 0) this.scheduleReconnect();
+      if (!this.stopped && !this.paused && this.tokens.length > 0) this.scheduleReconnect();
     });
     socket.on('error', (error) => {
       this.logger.warn({ err: String(error).replace(this.apiKey, '[key]') }, 'Bitquery stream error');

@@ -18,6 +18,9 @@ const BATCH_SIZE = 30;
 const LIVE_CURVE_MAX_AGE_MS = 60_000;
 /** A Bitquery price this recent wins over the polled sources. */
 const BITQUERY_FRESH_MS = 10_000;
+/** The month's Bitquery stream data at which streaming pauses (see flushBitqueryMeter). */
+const BITQUERY_MONTHLY_CAP_GB = Number(process.env.BITQUERY_MONTHLY_CAP_GB) > 0 ? Number(process.env.BITQUERY_MONTHLY_CAP_GB) : 45;
+const BITQUERY_METER_MS = 30_000;
 const POLL_MS = 1_500; // 2026-10-06: prices felt slow at 2s; DexScreener's 300/min allows it
 /** A coin stays watched this long after its last viewer asked for it. */
 const WATCH_TTL_MS = 20_000;
@@ -224,12 +227,59 @@ export class LivePriceService implements OnModuleDestroy {
   ) {
     this.logger.setContext('LivePriceService');
     const key = process.env.BITQUERY_API_KEY?.trim();
-    this.bitquery = key ? new BitqueryPriceStream(key, this.logger, (tick) => this.onBitqueryTick(tick)) : null;
-    if (this.bitquery) this.logger.info('Bitquery live prices enabled');
+    this.bitquery = key ? new BitqueryPriceStream(key, this.logger, (tick) => this.onBitqueryTick(tick), (bytes) => (this.bitqueryBytes += bytes)) : null;
+    if (this.bitquery) {
+      this.logger.info({ monthlyCapGb: BITQUERY_MONTHLY_CAP_GB }, 'Bitquery live prices enabled');
+      this.meterTimer = setInterval(() => void this.flushBitqueryMeter(), BITQUERY_METER_MS);
+      this.meterTimer.unref?.();
+    }
+  }
+
+  private bitqueryBytes = 0;
+  private meterTimer: NodeJS.Timeout | null = null;
+  private meterLoggedAt = 0;
+
+  /**
+   * Bitquery data meter (2026-10-08): bytes received are added to a per-month Redis counter
+   * (shared by API replicas, survives restarts), logged every 10 minutes with a month-end
+   * projection, and once the month passes BITQUERY_MONTHLY_CAP_GB the stream pauses until the
+   * next month — prices fall back to DexScreener/Jupiter, so the plan's GB cap can never be
+   * exceeded by surprise. BITQUERY_MONTHLY_CAP_GB defaults to 45 (Scale includes 50).
+   */
+  private async flushBitqueryMeter(): Promise<void> {
+    if (!this.bitquery) return;
+    const now = new Date();
+    const month = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+    const add = this.bitqueryBytes;
+    this.bitqueryBytes = 0;
+    let total = add;
+    try {
+      if (this.redis) {
+        total = await this.redis.incrby(`bitquery:bytes:${month}`, add);
+        await this.redis.expire(`bitquery:bytes:${month}`, 40 * 24 * 3600);
+      }
+    } catch {
+      this.bitqueryBytes += add; // retried next flush
+      return;
+    }
+    const gb = total / 1e9;
+    if (gb >= BITQUERY_MONTHLY_CAP_GB) this.bitquery.pause();
+    else this.bitquery.resume();
+    if (Date.now() - this.meterLoggedAt >= 10 * 60_000) {
+      this.meterLoggedAt = Date.now();
+      const dayOfMonth = now.getUTCDate() - 1 + now.getUTCHours() / 24;
+      const daysInMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate();
+      const projected = dayOfMonth > 0.05 ? (gb / dayOfMonth) * daysInMonth : null;
+      this.logger.info(
+        { month, gb: Number(gb.toFixed(3)), projectedGb: projected === null ? null : Number(projected.toFixed(1)), capGb: BITQUERY_MONTHLY_CAP_GB, paused: gb >= BITQUERY_MONTHLY_CAP_GB },
+        'Bitquery data usage',
+      );
+    }
   }
 
   onModuleDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    if (this.meterTimer) clearInterval(this.meterTimer);
     this.bitquery?.stop();
   }
 
