@@ -9,12 +9,15 @@ import { CryptoPriceService } from './crypto-price.service';
 import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
 import { isListedCoin } from './listed-coins';
 import { dexTokenPairs, geckoPools, statsFromGeckoPools } from './graduated-pools';
+import { BitqueryPriceStream, type BitqueryTick } from './bitquery-stream';
 
 const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
 /** DexScreener's token endpoint takes up to 30 addresses per call. */
 const BATCH_SIZE = 30;
 /** A live curve read older than this is ignored (the stream is down or the coin went quiet). */
 const LIVE_CURVE_MAX_AGE_MS = 60_000;
+/** A Bitquery price this recent wins over the polled sources. */
+const BITQUERY_FRESH_MS = 10_000;
 const POLL_MS = 1_500; // 2026-10-06: prices felt slow at 2s; DexScreener's 300/min allows it
 /** A coin stays watched this long after its last viewer asked for it. */
 const WATCH_TTL_MS = 20_000;
@@ -205,16 +208,55 @@ export class LivePriceService implements OnModuleDestroy {
   /** Base/BNB coins' chart pools (Kamby's indexed market), cached — they rarely change. */
   private readonly evmPools = new Map<string, { pool: string | null; at: number }>();
 
+  /** Bitquery's live stream (bitquery-stream.ts), when BITQUERY_API_KEY is set. */
+  private readonly bitquery: BitqueryPriceStream | null;
+  /** When Bitquery last priced each coin — polled prices don't overwrite a fresher one. */
+  private readonly bitqueryAt = new Map<string, number>();
+  /** Each coin's main pool as the last poll chose it — the only pool Bitquery ticks are taken from. */
+  private readonly mainPool = new Map<string, string>();
+  /** One coin's price changed out of cycle (a Bitquery tick) — pushed to its open streams at once. */
+  private readonly keyTicks = new Subject<string>();
+
   constructor(
     private readonly logger: PinoLogger,
     private readonly cryptoPrices: CryptoPriceService,
     @Optional() @Inject(REDIS_CLIENT) private readonly redis?: Redis,
   ) {
     this.logger.setContext('LivePriceService');
+    const key = process.env.BITQUERY_API_KEY?.trim();
+    this.bitquery = key ? new BitqueryPriceStream(key, this.logger, (tick) => this.onBitqueryTick(tick)) : null;
+    if (this.bitquery) this.logger.info('Bitquery live prices enabled');
   }
 
   onModuleDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    this.bitquery?.stop();
+  }
+
+  /** A Bitquery 1s close for a watched coin: taken only from the coin's main pool (other pools
+   *  trade at slightly different prices and would make the price flicker), or — before the main
+   *  pool is known — when within 20% of the current price. */
+  private onBitqueryTick(tick: BitqueryTick): void {
+    const lower = tick.address.toLowerCase();
+    const entry = [...this.watched.values()].find((w) => (w.chain === 'solana' ? w.address === tick.address : w.address.toLowerCase() === lower));
+    if (!entry) return;
+    const key = this.key(entry.chain, entry.address);
+    const main = this.mainPool.get(key);
+    const current = this.latest.get(key);
+    if (main) {
+      if (main.toLowerCase() !== tick.pool.toLowerCase()) return;
+    } else if (current && Math.abs(tick.priceUsd / current.priceUsd - 1) > 0.2) {
+      return;
+    }
+    this.latest.set(key, { priceUsd: tick.priceUsd, atIso: new Date().toISOString(), poolAddress: tick.pool });
+    this.bitqueryAt.set(key, Date.now());
+    if (this.keyTicks.observed) this.keyTicks.next(key);
+  }
+
+  /** A polled price — skipped while Bitquery has priced this coin in the last few seconds. */
+  private setPolled(key: string, value: LivePrice): void {
+    if (this.bitquery?.isLive() && Date.now() - (this.bitqueryAt.get(key) ?? 0) < BITQUERY_FRESH_MS) return;
+    this.latest.set(key, value);
   }
 
   async price(chain: TokenInfoChain, address: string): Promise<LivePrice | null> {
@@ -251,6 +293,11 @@ export class LivePriceService implements OnModuleDestroy {
       };
       this.price(chain, address).then(send, (error: unknown) => subscriber.error(error));
       const sub = this.ticks.subscribe(send);
+      const fast = this.keyTicks.subscribe((k) => {
+        if (k !== key) return;
+        const latest = this.latest.get(key);
+        if (latest) subscriber.next({ type: 'price', data: latest });
+      });
       const keepAlive = setInterval(() => {
         this.watched.set(key, { chain, address, until: Date.now() + WATCH_TTL_MS });
         this.ensurePolling();
@@ -258,6 +305,7 @@ export class LivePriceService implements OnModuleDestroy {
       }, 10_000);
       return () => {
         sub.unsubscribe();
+        fast.unsubscribe();
         clearInterval(keepAlive);
       };
     });
@@ -281,8 +329,11 @@ export class LivePriceService implements OnModuleDestroy {
         this.watched.delete(key);
         this.latest.delete(key);
         this.stats.delete(key);
+        this.mainPool.delete(key);
+        this.bitqueryAt.delete(key);
       }
     }
+    this.bitquery?.setTokens([...this.watched.values()].map((w) => (w.chain === 'solana' ? w.address : w.address.toLowerCase())));
     if (this.watched.size === 0) {
       if (this.timer) clearInterval(this.timer);
       this.timer = null;
@@ -368,7 +419,8 @@ export class LivePriceService implements OnModuleDestroy {
       const missing: string[] = [];
       for (const address of addresses) {
         const price = prices.get(chain === 'solana' ? address : address.toLowerCase());
-        if (price !== undefined) this.latest.set(this.key(chain, address), { priceUsd: price.priceUsd, atIso, ...(price.poolAddress ? { poolAddress: price.poolAddress } : {}) });
+        if (price?.poolAddress) this.mainPool.set(this.key(chain, address), price.poolAddress);
+        if (price !== undefined) this.setPolled(this.key(chain, address), { priceUsd: price.priceUsd, atIso, ...(price.poolAddress ? { poolAddress: price.poolAddress } : {}) });
         else missing.push(address);
       }
       // A brand-new Pump.fun coin DexScreener hasn't listed yet (2026-10-05: Trenches coins had
@@ -404,7 +456,7 @@ export class LivePriceService implements OnModuleDestroy {
           const body = (await res.json()) as Record<string, { usdPrice?: number } | null>;
           for (const id of ids) {
             const usd = body[id]?.usdPrice;
-            if (typeof usd === 'number' && usd > 0) this.latest.set(this.key('solana', id), { ...this.latest.get(this.key('solana', id)), priceUsd: usd, atIso });
+            if (typeof usd === 'number' && usd > 0) this.setPolled(this.key('solana', id), { ...this.latest.get(this.key('solana', id)), priceUsd: usd, atIso });
           }
         }
         return;
@@ -423,7 +475,7 @@ export class LivePriceService implements OnModuleDestroy {
         const prices = body.data?.attributes?.token_prices ?? {};
         for (const id of ids) {
           const usd = Number(prices[id.toLowerCase()] ?? prices[id]);
-          if (usd > 0) this.latest.set(this.key(chain, id), { ...this.latest.get(this.key(chain, id)), priceUsd: usd, atIso });
+          if (usd > 0) this.setPolled(this.key(chain, id), { ...this.latest.get(this.key(chain, id)), priceUsd: usd, atIso });
         }
       }
     } catch (error) {
@@ -490,7 +542,7 @@ export class LivePriceService implements OnModuleDestroy {
         const live = JSON.parse(raw) as { virtualSolReserves?: string; virtualTokenReserves?: string; complete?: boolean; at?: number };
         if (live.complete || !live.at || Date.now() - live.at > LIVE_CURVE_MAX_AGE_MS) return;
         const price = curvePriceUsd(live.virtualSolReserves ?? '0', live.virtualTokenReserves ?? '0', solUsd);
-        if (price !== null) this.latest.set(this.key('solana', mints[i]!), { ...this.latest.get(this.key('solana', mints[i]!)), priceUsd: price, atIso });
+        if (price !== null) this.setPolled(this.key('solana', mints[i]!), { ...this.latest.get(this.key('solana', mints[i]!)), priceUsd: price, atIso });
       });
     } catch (error) {
       this.logger.warn({ err: error }, 'live curve prices unavailable');
@@ -507,7 +559,7 @@ export class LivePriceService implements OnModuleDestroy {
       });
       for (const curve of curves) {
         const price = curvePriceUsd(curve.virtualSolReserves, curve.virtualTokenReserves, solUsd);
-        if (price !== null) this.latest.set(this.key('solana', curve.mintAddress), { priceUsd: price, atIso });
+        if (price !== null) this.setPolled(this.key('solana', curve.mintAddress), { priceUsd: price, atIso });
       }
     } catch (error) {
       this.logger.warn({ err: error }, 'bonding-curve live prices unavailable');
