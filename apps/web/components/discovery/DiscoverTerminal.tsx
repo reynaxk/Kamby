@@ -152,6 +152,7 @@ export function DiscoverTerminal({
   const [gridMode, setGridMode] = useState<GridMode>(1);
   const [tokenListOpen, setTokenListOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
+  const [tradeSide, setTradeSide] = useState<'BUY' | 'SELL'>('BUY');
   const { feeds } = useMarketFeeds(initialFeeds);
   const router = useRouter();
   // Memoized on the two lists' identities — the stream only replaces a tab when its content
@@ -355,15 +356,34 @@ export function DiscoverTerminal({
             {selected ? cashtag(selected.symbol ?? 'Token') : 'Pick a token'}{' '}
             <span className="text-ink-400">▾</span>
           </button>
+        </div>
+
+        {/* Buy / Sell under the thumb (2026-10-09), just above the phone tab bar. */}
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-2 gap-2 border-t border-line bg-surface/95 p-3 backdrop-blur">
           <button
             type="button"
-            onClick={() => setTradeOpen(true)}
+            onClick={() => {
+              setTradeSide('BUY');
+              setTradeOpen(true);
+            }}
             disabled={!canTrade}
-            className="shrink-0 rounded-lg bg-accent px-4 py-2 font-display text-sm font-bold text-accent-ink disabled:opacity-40"
+            className="rounded-xl bg-up py-3 font-display text-sm font-bold text-black disabled:opacity-40"
           >
-            Trade
+            Buy
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTradeSide('SELL');
+              setTradeOpen(true);
+            }}
+            disabled={!canTrade}
+            className="rounded-xl bg-down py-3 font-display text-sm font-bold text-white disabled:opacity-40"
+          >
+            Sell
           </button>
         </div>
+        <div className="h-20" aria-hidden />
 
         {selected && (
           <div className="mb-3">
@@ -468,7 +488,8 @@ export function DiscoverTerminal({
         <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title="Trade">
           {canTrade && selected && chainId !== null ? (
             <TradePanelCard
-              key={selectedKey ?? undefined}
+              key={`${selectedKey ?? ''}:${tradeSide}`}
+              initialSide={tradeSide}
               dense
               chainId={chainId}
               tokenAddress={selected.tokenAddress}

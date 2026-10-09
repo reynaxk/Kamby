@@ -62,7 +62,7 @@ export function TickerBar() {
   if (pathname === '/') return null;
 
   return (
-    <div className="kamby-void fixed inset-x-0 bottom-0 z-40 h-8 overflow-hidden border-t border-line bg-surface">
+    <div className="kamby-void fixed inset-x-0 bottom-0 z-40 hidden h-8 overflow-hidden border-t border-line bg-surface md:block">
       <div className="flex h-full w-max animate-marquee items-center hover:[animation-play-state:paused]">
         {items.map((market, i) => {
           const direction = priceDirection(market.priceChange24hPct);

@@ -9,6 +9,7 @@ import { SiteFooter } from '@/components/legal/SiteFooter';
 import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
 import { InstallApp } from '@/components/pwa/InstallApp';
+import { MobileTabBar } from '@/components/layout/MobileTabBar';
 
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
 const jetbrainsMono = JetBrains_Mono({
@@ -38,13 +39,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
       <body className="font-body antialiased">
         <Providers>
-          {/* pb-8 reserves the TickerBar's own h-8 so its fixed position never overlaps the
-              last bit of scrolled content underneath it. */}
-          <div className="pb-8">
+          {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
+              the TickerBar (h-8) from md up — so neither covers the end of the page. */}
+          <div className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-8">
             {children}
             <SiteFooter />
           </div>
           <TickerBar />
+          <MobileTabBar />
         </Providers>
         <InstallApp />
       </body>
