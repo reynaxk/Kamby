@@ -13,6 +13,16 @@ const JUPITER_SWAP_URL = 'https://api.jup.ag/swap/v1/swap';
 /** Confirmed live 2026-09-17 with a real quote + a real POST (not assumed from docs) — see
  *  `getSwapInstructions`'s own doc comment for exactly what was verified. */
 const JUPITER_SWAP_INSTRUCTIONS_URL = 'https://api.jup.ag/swap/v1/swap-instructions';
+/**
+ * Landing (2026-10-09): sponsored swaps went out with no priority fee and Jupiter's default
+ * compute limit, the first transactions a busy validator drops. Jupiter now sizes the compute
+ * limit by simulation and sets a priority fee for current conditions, capped here — paid by
+ * Kamby's relayer, included in its getFeeForMessage cost check. Default cap 100,000 lamports
+ * (~1 cent); SOLANA_PRIORITY_FEE_MAX_LAMPORTS overrides, 0 turns it off.
+ */
+const PRIORITY_FEE_MAX_LAMPORTS = Number.isFinite(Number(process.env.SOLANA_PRIORITY_FEE_MAX_LAMPORTS))
+  ? Math.max(0, Math.floor(Number(process.env.SOLANA_PRIORITY_FEE_MAX_LAMPORTS ?? 100_000)))
+  : 100_000;
 
 /** Jupiter's free tier is 1 req/sec — a 429 is an expected, normal response under any real
  *  concurrent traffic (or even a single SELL quote's own extra fee-discovery call, see
@@ -181,6 +191,10 @@ export class JupiterQuoteService {
           payer: params.payer,
           feeAccount: params.platformFeeBps > 0 ? params.feeAccount : undefined,
           wrapAndUnwrapSol: true,
+          dynamicComputeUnitLimit: true,
+          ...(PRIORITY_FEE_MAX_LAMPORTS > 0
+            ? { prioritizationFeeLamports: { priorityLevelWithMaxLamports: { maxLamports: PRIORITY_FEE_MAX_LAMPORTS, priorityLevel: 'high' } } }
+            : {}),
         }),
       });
       if (!response.ok) {

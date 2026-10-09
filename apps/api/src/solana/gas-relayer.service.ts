@@ -268,6 +268,7 @@ export class GasRelayerService {
     transaction.sign([feePayerKeypair]);
     const signature = await connection.sendTransaction(transaction, { skipPreflight: false, maxRetries: 3 });
     this.logger.info({ userId: params.userId, walletAddress: params.walletAddress, quoteId: quote.id, signature }, 'gas relayer sponsored and broadcast a transaction');
+    rebroadcastUntilLanded(connection, transaction.serialize(), signature, this.logger);
 
     return this.persistSponsoredTransaction(params, quote, signature, feePayerKeypair.publicKey.toBase58());
   }
@@ -364,4 +365,35 @@ function assertUserAlreadySigned(
   if (isPlaceholder) {
     throw new ForbiddenException("This transaction has not actually been signed by the caller's wallet yet");
   }
+}
+
+/**
+ * Keeps re-sending a sponsored transaction every 2s until it confirms, fails, or ~30s pass
+ * (2026-10-09). One send — even with the RPC's own retries — is easily dropped when Solana is
+ * busy; re-sending the identical signed bytes is safe (same signature, so it can only land once)
+ * and is how trading terminals get transactions in on the first try. Never awaited by the
+ * request; every error is swallowed — the sweep still records the real outcome.
+ */
+export function rebroadcastUntilLanded(
+  connection: { sendRawTransaction: (raw: Uint8Array, opts?: { skipPreflight?: boolean; maxRetries?: number }) => Promise<string>; getSignatureStatus: (sig: string) => Promise<{ value: { err: unknown; confirmationStatus?: string } | null }> },
+  raw: Uint8Array,
+  signature: string,
+  logger: { warn: (obj: object, msg: string) => void },
+  attempts = 15,
+  intervalMs = 2_000,
+): void {
+  let left = attempts;
+  const tick = async (): Promise<void> => {
+    left -= 1;
+    try {
+      const status = (await connection.getSignatureStatus(signature)).value;
+      if (status && (status.err || status.confirmationStatus === 'confirmed' || status.confirmationStatus === 'finalized')) return;
+      await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 });
+    } catch (error) {
+      // "already processed" / blockhash expired / RPC hiccup — nothing to do but try again or stop.
+      if (left === 0) logger.warn({ err: error, signature }, 'sponsored transaction rebroadcast gave up');
+    }
+    if (left > 0) setTimeout(() => void tick(), intervalMs).unref?.();
+  };
+  setTimeout(() => void tick(), intervalMs).unref?.();
 }
