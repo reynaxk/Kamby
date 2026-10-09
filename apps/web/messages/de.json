@@ -71,5 +71,31 @@
     "sellNow": "Jetzt verkaufen",
     "instantBuy": "Sofortkauf",
     "instantSell": "Sofortverkauf"
+  },
+  "lists": {
+    "alerts": "Alarme",
+    "tokens": "Token",
+    "leaderboard": "Bestenliste",
+    "traders": "Feed",
+    "trending": "Trending",
+    "trenches": "Neu",
+    "bonding": "Bonding",
+    "graduated": "Graduiert",
+    "xxxrisk": "Hohes Risiko",
+    "crypto": "Krypto"
+  },
+  "share": {
+    "sharePnl": "PnL teilen",
+    "pnl": "PnL",
+    "entry": "Einstieg",
+    "now": "Jetzt",
+    "tradeWithMe": "Trade mit mir auf",
+    "share": "Teilen",
+    "save": "Bild speichern",
+    "shareText": "{ticker} {pct} auf Kamby 🚀 Trade mit mir: {link}"
+  },
+  "position": {
+    "youHold": "Du hältst",
+    "fee": "Gebühr"
   }
 }

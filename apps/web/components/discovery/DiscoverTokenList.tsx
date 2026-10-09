@@ -13,6 +13,7 @@ import { PumpFunFeedRow } from './feeds/PumpFunFeedRow';
 import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
 import { TradersSidebar } from './TradersSidebar';
+import { useTranslations } from 'next-intl';
 export type PrimaryTab = 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
 const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
@@ -38,6 +39,7 @@ export function TerminalPrimaryNav({
   activeTab: PrimaryTab;
   onChange: (tab: PrimaryTab) => void;
 }) {
+  const tLists = useTranslations('lists');
   return (
     <nav
       aria-label="Terminal navigation"
@@ -53,7 +55,7 @@ export function TerminalPrimaryNav({
             activeTab === tab.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-900',
           )}
         >
-          {tab.label}
+          {tLists(tab.id)}
         </button>
       ))}
     </nav>
@@ -95,6 +97,7 @@ export function DiscoverTokenList({
   onPrimaryTabChange?: (tab: PrimaryTab) => void;
   showPrimaryNav?: boolean;
 }) {
+  const tLists = useTranslations('lists');
   const router = useRouter();
   const [uncontrolledPrimaryTab, setUncontrolledPrimaryTab] = useState<PrimaryTab>('tokens');
   const [tokenTab, setTokenTab] = useState<MarketFeedTab>('trending');
@@ -196,7 +199,7 @@ export function DiscoverTokenList({
                   tokenTab === t.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-600',
                 )}
               >
-                {t.label}
+                {tLists(t.id)}
               </button>
             ))}
           </div>

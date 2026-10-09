@@ -71,5 +71,31 @@
     "sellNow": "지금 매도",
     "instantBuy": "즉시 매수",
     "instantSell": "즉시 매도"
+  },
+  "lists": {
+    "alerts": "알림",
+    "tokens": "토큰",
+    "leaderboard": "리더보드",
+    "traders": "피드",
+    "trending": "트렌딩",
+    "trenches": "신규",
+    "bonding": "본딩",
+    "graduated": "졸업",
+    "xxxrisk": "고위험",
+    "crypto": "크립토"
+  },
+  "share": {
+    "sharePnl": "수익 공유",
+    "pnl": "손익",
+    "entry": "진입가",
+    "now": "현재가",
+    "tradeWithMe": "같이 거래해요",
+    "share": "공유",
+    "save": "이미지 저장",
+    "shareText": "Kamby에서 {ticker} {pct} 🚀 같이 거래해요: {link}"
+  },
+  "position": {
+    "youHold": "보유",
+    "fee": "수수료"
   }
 }

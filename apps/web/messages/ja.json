@@ -71,5 +71,31 @@
     "sellNow": "今すぐ売る",
     "instantBuy": "即時購入",
     "instantSell": "即時売却"
+  },
+  "lists": {
+    "alerts": "アラート",
+    "tokens": "トークン",
+    "leaderboard": "ランキング",
+    "traders": "フィード",
+    "trending": "トレンド",
+    "trenches": "新着",
+    "bonding": "ボンディング",
+    "graduated": "卒業",
+    "xxxrisk": "高リスク",
+    "crypto": "暗号資産"
+  },
+  "share": {
+    "sharePnl": "損益をシェア",
+    "pnl": "損益",
+    "entry": "取得価格",
+    "now": "現在",
+    "tradeWithMe": "一緒にトレード",
+    "share": "シェア",
+    "save": "画像を保存",
+    "shareText": "Kamby で {ticker} {pct} 🚀 一緒にトレード：{link}"
+  },
+  "position": {
+    "youHold": "保有",
+    "fee": "手数料"
   }
 }

@@ -71,5 +71,31 @@
     "sellNow": "ขายเลย",
     "instantBuy": "ซื้อทันที",
     "instantSell": "ขายทันที"
+  },
+  "lists": {
+    "alerts": "แจ้งเตือน",
+    "tokens": "โทเค็น",
+    "leaderboard": "อันดับ",
+    "traders": "ฟีด",
+    "trending": "มาแรง",
+    "trenches": "ใหม่",
+    "bonding": "บอนดิ้ง",
+    "graduated": "จบการศึกษา",
+    "xxxrisk": "ความเสี่ยงสูง",
+    "crypto": "คริปโต"
+  },
+  "share": {
+    "sharePnl": "แชร์กำไร/ขาดทุน",
+    "pnl": "กำไร/ขาดทุน",
+    "entry": "ราคาเข้า",
+    "now": "ตอนนี้",
+    "tradeWithMe": "เทรดกับฉันที่",
+    "share": "แชร์",
+    "save": "บันทึกรูป",
+    "shareText": "{ticker} {pct} บน Kamby 🚀 เทรดกับฉัน: {link}"
+  },
+  "position": {
+    "youHold": "คุณถือ",
+    "fee": "ค่าธรรมเนียม"
   }
 }

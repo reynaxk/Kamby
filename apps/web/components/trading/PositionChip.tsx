@@ -6,6 +6,8 @@ import type { ChartSource } from '@/lib/chart-data';
 import { formatCompactUsd, formatPrice, formatSignedCompactUsd } from '@/lib/format';
 import { useMyPosition } from '@/lib/my-positions';
 import { useLivePrice } from '@/lib/use-live-price';
+import { PnlShareButton } from '@/components/share/PnlShareCard';
+import { useTranslations } from 'next-intl';
 
 /**
  * Your position in this coin, next to "Trade" (2026-10-06: "I struggled to sell because I couldn't
@@ -13,6 +15,7 @@ import { useLivePrice } from '@/lib/use-live-price';
  * when you hold none.
  */
 export function PositionChip({ source }: { source: ChartSource }) {
+  const tPos = useTranslations('position');
   const address = source.kind === 'solana' ? source.mint : source.address;
   const position = useMyPosition(address);
   const live = useLivePrice(position ? source : null);
@@ -34,13 +37,19 @@ export function PositionChip({ source }: { source: ChartSource }) {
       )}
       title={`You hold ${position.quantity.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${position.symbol ?? ''}${entry !== null ? ` · bought at ${formatPrice(entry)}` : ''}${fees > 0 ? ` · Kamby fee ${formatUsdCents(fees)}` : ''}`}
     >
-      <span className="text-ink-600">You hold</span>
+      <span className="text-ink-600">{tPos('youHold')}</span>
       <span className="font-semibold text-ink-900">{formatCompactUsd(value)}</span>
       <span className={up ? 'text-up' : 'text-down'}>
         {formatSignedCompactUsd(pnl)}
         {pct !== null && ` (${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)`}
       </span>
-      {fees > 0 && <span className="text-ink-400">fee {formatUsdCents(fees)}</span>}
+      {fees > 0 && <span className="text-ink-400">{tPos('fee')} {formatUsdCents(fees)}</span>}
+      {pnl !== null && (
+        <PnlShareButton
+          className="-my-1 -mr-1.5"
+          share={{ symbol: position.symbol, logoUrl: position.logoUrl, seed: address, pnlUsd: pnl, pnlPct: pct, entryPrice: entry, currentPrice: price }}
+        />
+      )}
     </div>
   );
 }

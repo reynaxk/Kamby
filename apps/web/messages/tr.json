@@ -71,5 +71,31 @@
     "sellNow": "Hemen sat",
     "instantBuy": "Anında al",
     "instantSell": "Anında sat"
+  },
+  "lists": {
+    "alerts": "Uyarılar",
+    "tokens": "Tokenler",
+    "leaderboard": "Liderlik",
+    "traders": "Akış",
+    "trending": "Trend",
+    "trenches": "Yeni",
+    "bonding": "Bonding",
+    "graduated": "Mezun",
+    "xxxrisk": "Yüksek risk",
+    "crypto": "Kripto"
+  },
+  "share": {
+    "sharePnl": "K/Z paylaş",
+    "pnl": "K/Z",
+    "entry": "Giriş",
+    "now": "Şimdi",
+    "tradeWithMe": "Benimle işlem yap",
+    "share": "Paylaş",
+    "save": "Görseli kaydet",
+    "shareText": "Kamby’de {ticker} {pct} 🚀 Benimle işlem yap: {link}"
+  },
+  "position": {
+    "youHold": "Sende",
+    "fee": "ücret"
   }
 }

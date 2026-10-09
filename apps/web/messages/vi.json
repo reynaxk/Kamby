@@ -71,5 +71,31 @@
     "sellNow": "Bán ngay",
     "instantBuy": "Mua tức thì",
     "instantSell": "Bán tức thì"
+  },
+  "lists": {
+    "alerts": "Cảnh báo",
+    "tokens": "Token",
+    "leaderboard": "Xếp hạng",
+    "traders": "Bảng tin",
+    "trending": "Xu hướng",
+    "trenches": "Mới",
+    "bonding": "Bonding",
+    "graduated": "Đã tốt nghiệp",
+    "xxxrisk": "Rủi ro cao",
+    "crypto": "Crypto"
+  },
+  "share": {
+    "sharePnl": "Chia sẻ lãi/lỗ",
+    "pnl": "Lãi/Lỗ",
+    "entry": "Giá vào",
+    "now": "Hiện tại",
+    "tradeWithMe": "Giao dịch cùng tôi tại",
+    "share": "Chia sẻ",
+    "save": "Lưu ảnh",
+    "shareText": "{ticker} {pct} trên Kamby 🚀 Giao dịch cùng tôi: {link}"
+  },
+  "position": {
+    "youHold": "Bạn giữ",
+    "fee": "phí"
   }
 }

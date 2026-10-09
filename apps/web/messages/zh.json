@@ -71,5 +71,31 @@
     "sellNow": "立即卖出",
     "instantBuy": "闪电买入",
     "instantSell": "闪电卖出"
+  },
+  "lists": {
+    "alerts": "提醒",
+    "tokens": "代币",
+    "leaderboard": "排行榜",
+    "traders": "动态",
+    "trending": "热门",
+    "trenches": "新币",
+    "bonding": "联合曲线",
+    "graduated": "已毕业",
+    "xxxrisk": "高风险",
+    "crypto": "主流币"
+  },
+  "share": {
+    "sharePnl": "分享盈亏",
+    "pnl": "盈亏",
+    "entry": "入场价",
+    "now": "现价",
+    "tradeWithMe": "和我一起交易：",
+    "share": "分享",
+    "save": "保存图片",
+    "shareText": "{ticker} 在 Kamby 上 {pct} 🚀 和我一起交易：{link}"
+  },
+  "position": {
+    "youHold": "持有",
+    "fee": "手续费"
   }
 }

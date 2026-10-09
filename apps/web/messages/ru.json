@@ -71,5 +71,31 @@
     "sellNow": "Продать сейчас",
     "instantBuy": "Мгновенная покупка",
     "instantSell": "Мгновенная продажа"
+  },
+  "lists": {
+    "alerts": "Оповещения",
+    "tokens": "Токены",
+    "leaderboard": "Лидеры",
+    "traders": "Лента",
+    "trending": "Тренды",
+    "trenches": "Новые",
+    "bonding": "Бондинг",
+    "graduated": "Выпущенные",
+    "xxxrisk": "Высокий риск",
+    "crypto": "Крипто"
+  },
+  "share": {
+    "sharePnl": "Поделиться PnL",
+    "pnl": "PnL",
+    "entry": "Вход",
+    "now": "Сейчас",
+    "tradeWithMe": "Торгуй со мной на",
+    "share": "Поделиться",
+    "save": "Сохранить",
+    "shareText": "{ticker} {pct} на Kamby 🚀 Торгуй со мной: {link}"
+  },
+  "position": {
+    "youHold": "У вас",
+    "fee": "комиссия"
   }
 }

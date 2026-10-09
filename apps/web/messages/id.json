@@ -71,5 +71,31 @@
     "sellNow": "Jual sekarang",
     "instantBuy": "Beli instan",
     "instantSell": "Jual instan"
+  },
+  "lists": {
+    "alerts": "Peringatan",
+    "tokens": "Token",
+    "leaderboard": "Peringkat",
+    "traders": "Feed",
+    "trending": "Trending",
+    "trenches": "Baru",
+    "bonding": "Bonding",
+    "graduated": "Lulus",
+    "xxxrisk": "Risiko tinggi",
+    "crypto": "Kripto"
+  },
+  "share": {
+    "sharePnl": "Bagikan PnL",
+    "pnl": "PnL",
+    "entry": "Masuk",
+    "now": "Sekarang",
+    "tradeWithMe": "Trading bareng aku di",
+    "share": "Bagikan",
+    "save": "Simpan gambar",
+    "shareText": "{ticker} {pct} di Kamby 🚀 Trading bareng aku: {link}"
+  },
+  "position": {
+    "youHold": "Kamu pegang",
+    "fee": "biaya"
   }
 }
