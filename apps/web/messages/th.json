@@ -73,7 +73,12 @@
     "buyNow": "ซื้อเลย",
     "sellNow": "ขายเลย",
     "instantBuy": "ซื้อทันที",
-    "instantSell": "ขายทันที"
+    "instantSell": "ขายทันที",
+    "toastConfirmed": "ยืนยันการเทรดแล้ว",
+    "toastFailed": "การเทรดล้มเหลว",
+    "toastSubmitted": "ส่งการเทรดแล้ว",
+    "toastWaitingNetwork": "กำลังรอเครือข่ายยืนยัน…",
+    "toastWaitingSignature": "กำลังรอการลงนามของคุณ"
   },
   "lists": {
     "alerts": "แจ้งเตือน",

@@ -73,7 +73,12 @@
     "buyNow": "Hemen al",
     "sellNow": "Hemen sat",
     "instantBuy": "Anında al",
-    "instantSell": "Anında sat"
+    "instantSell": "Anında sat",
+    "toastConfirmed": "İşlem onaylandı",
+    "toastFailed": "İşlem başarısız",
+    "toastSubmitted": "İşlem gönderildi",
+    "toastWaitingNetwork": "Ağ onayı bekleniyor…",
+    "toastWaitingSignature": "İmzan bekleniyor."
   },
   "lists": {
     "alerts": "Uyarılar",

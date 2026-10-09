@@ -73,7 +73,12 @@
     "buyNow": "今すぐ買う",
     "sellNow": "今すぐ売る",
     "instantBuy": "即時購入",
-    "instantSell": "即時売却"
+    "instantSell": "即時売却",
+    "toastConfirmed": "取引が確定しました",
+    "toastFailed": "取引に失敗しました",
+    "toastSubmitted": "取引を送信しました",
+    "toastWaitingNetwork": "ネットワークの確認を待っています…",
+    "toastWaitingSignature": "署名を待っています。"
   },
   "lists": {
     "alerts": "アラート",

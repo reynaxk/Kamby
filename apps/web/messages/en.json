@@ -73,7 +73,12 @@
     "buyNow": "Buy now",
     "sellNow": "Sell now",
     "instantBuy": "Instant buy",
-    "instantSell": "Instant sell"
+    "instantSell": "Instant sell",
+    "toastConfirmed": "Trade confirmed",
+    "toastFailed": "Trade failed",
+    "toastSubmitted": "Trade submitted",
+    "toastWaitingNetwork": "Waiting for network confirmation…",
+    "toastWaitingSignature": "Waiting for your signature."
   },
   "lists": {
     "alerts": "Alerts",

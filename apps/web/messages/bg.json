@@ -73,7 +73,12 @@
     "buyNow": "Купи сега",
     "sellNow": "Продай сега",
     "instantBuy": "Мигновена покупка",
-    "instantSell": "Мигновена продажба"
+    "instantSell": "Мигновена продажба",
+    "toastConfirmed": "Сделката е потвърдена",
+    "toastFailed": "Сделката е неуспешна",
+    "toastSubmitted": "Сделката е изпратена",
+    "toastWaitingNetwork": "Чакаме потвърждение от мрежата…",
+    "toastWaitingSignature": "Чакаме подписа ти."
   },
   "lists": {
     "alerts": "Известия",

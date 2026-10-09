@@ -257,7 +257,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           if (activeToastIdRef.current) {
             toast.update(activeToastIdRef.current, {
               variant: 'success',
-              title: 'Trade confirmed',
+              title: tTrade('toastConfirmed'),
               description: formatReceivedAmount(tx.side, tx.expectedOutputAmount, tokenSymbol, tokenDecimalsRef.current),
               solscanUrl: `https://solscan.io/tx/${tx.signature}`,
             });
@@ -268,7 +268,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           if (activeToastIdRef.current) {
             toast.update(activeToastIdRef.current, {
               variant: 'error',
-              title: 'Trade failed',
+              title: tTrade('toastFailed'),
               description: tx.failureReason ?? undefined,
               solscanUrl: `https://solscan.io/tx/${tx.signature}`,
             });
@@ -321,7 +321,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     if (!quote || !wallet) return;
     setFlowError(null);
     setStep('signing');
-    const toastId = toast.push({ variant: 'pending', title: 'Confirm in your wallet…', description: 'Waiting for your signature.' });
+    const toastId = toast.push({ variant: 'pending', title: tTrade('confirmInWalletDots'), description: tTrade('toastWaitingSignature') });
     activeToastIdRef.current = toastId;
     try {
       const transactionBytes = base64ToUint8Array(quote.unsignedTxBase64);
@@ -345,15 +345,15 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       // afterward fails — same reasoning as TradePanel's own pendingHash handling.
       setPendingSignature(signature);
       toast.update(toastId, {
-        title: 'Trade submitted',
-        description: 'Waiting for network confirmation…',
+        title: tTrade('toastSubmitted'),
+        description: tTrade('toastWaitingNetwork'),
         solscanUrl: `https://solscan.io/tx/${signature}`,
       });
       await recordSubmittedTransaction(signature, quote.id, wallet.address, toastId);
     } catch (err) {
       setStep('review');
       setFlowError(friendlyError(err));
-      toast.update(toastId, { variant: 'error', title: 'Trade failed', description: friendlyError(err) });
+      toast.update(toastId, { variant: 'error', title: tTrade('toastFailed'), description: friendlyError(err) });
     }
   }
 
@@ -371,8 +371,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       setStep('submitted');
       if (toastId) {
         toast.update(toastId, {
-          title: 'Trade submitted',
-          description: 'Waiting for network confirmation…',
+          title: tTrade('toastSubmitted'),
+          description: tTrade('toastWaitingNetwork'),
           solscanUrl: `https://solscan.io/tx/${tx.signature}`,
         });
       }
@@ -380,7 +380,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       setStep('review');
       setFlowError(friendlyError(err));
       if (toastId) {
-        toast.update(toastId, { variant: 'error', title: 'Trade failed', description: friendlyError(err) });
+        toast.update(toastId, { variant: 'error', title: tTrade('toastFailed'), description: friendlyError(err) });
       }
     }
   }

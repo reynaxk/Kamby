@@ -73,7 +73,12 @@
     "buyNow": "Jetzt kaufen",
     "sellNow": "Jetzt verkaufen",
     "instantBuy": "Sofortkauf",
-    "instantSell": "Sofortverkauf"
+    "instantSell": "Sofortverkauf",
+    "toastConfirmed": "Trade bestätigt",
+    "toastFailed": "Trade fehlgeschlagen",
+    "toastSubmitted": "Trade gesendet",
+    "toastWaitingNetwork": "Warte auf Netzwerkbestätigung…",
+    "toastWaitingSignature": "Warte auf deine Signatur."
   },
   "lists": {
     "alerts": "Alarme",

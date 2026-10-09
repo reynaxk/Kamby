@@ -73,7 +73,12 @@
     "buyNow": "Mua ngay",
     "sellNow": "Bán ngay",
     "instantBuy": "Mua tức thì",
-    "instantSell": "Bán tức thì"
+    "instantSell": "Bán tức thì",
+    "toastConfirmed": "Giao dịch đã xác nhận",
+    "toastFailed": "Giao dịch thất bại",
+    "toastSubmitted": "Đã gửi giao dịch",
+    "toastWaitingNetwork": "Đang chờ mạng xác nhận…",
+    "toastWaitingSignature": "Đang chờ chữ ký của bạn."
   },
   "lists": {
     "alerts": "Cảnh báo",

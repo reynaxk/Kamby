@@ -73,7 +73,12 @@
     "buyNow": "Beli sekarang",
     "sellNow": "Jual sekarang",
     "instantBuy": "Beli instan",
-    "instantSell": "Jual instan"
+    "instantSell": "Jual instan",
+    "toastConfirmed": "Transaksi terkonfirmasi",
+    "toastFailed": "Transaksi gagal",
+    "toastSubmitted": "Transaksi terkirim",
+    "toastWaitingNetwork": "Menunggu konfirmasi jaringan…",
+    "toastWaitingSignature": "Menunggu tanda tanganmu."
   },
   "lists": {
     "alerts": "Peringatan",

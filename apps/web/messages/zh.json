@@ -73,7 +73,12 @@
     "buyNow": "立即买入",
     "sellNow": "立即卖出",
     "instantBuy": "闪电买入",
-    "instantSell": "闪电卖出"
+    "instantSell": "闪电卖出",
+    "toastConfirmed": "交易已确认",
+    "toastFailed": "交易失败",
+    "toastSubmitted": "交易已提交",
+    "toastWaitingNetwork": "等待网络确认…",
+    "toastWaitingSignature": "等待你的签名。"
   },
   "lists": {
     "alerts": "提醒",

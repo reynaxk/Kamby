@@ -73,7 +73,12 @@
     "buyNow": "지금 매수",
     "sellNow": "지금 매도",
     "instantBuy": "즉시 매수",
-    "instantSell": "즉시 매도"
+    "instantSell": "즉시 매도",
+    "toastConfirmed": "거래 확인됨",
+    "toastFailed": "거래 실패",
+    "toastSubmitted": "거래 제출됨",
+    "toastWaitingNetwork": "네트워크 확인 대기 중…",
+    "toastWaitingSignature": "서명을 기다리는 중입니다."
   },
   "lists": {
     "alerts": "알림",

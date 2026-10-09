@@ -73,7 +73,12 @@
     "buyNow": "Купить сейчас",
     "sellNow": "Продать сейчас",
     "instantBuy": "Мгновенная покупка",
-    "instantSell": "Мгновенная продажа"
+    "instantSell": "Мгновенная продажа",
+    "toastConfirmed": "Сделка подтверждена",
+    "toastFailed": "Сделка не удалась",
+    "toastSubmitted": "Сделка отправлена",
+    "toastWaitingNetwork": "Ждём подтверждения сети…",
+    "toastWaitingSignature": "Ждём вашу подпись."
   },
   "lists": {
     "alerts": "Оповещения",
