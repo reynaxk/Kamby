@@ -167,5 +167,13 @@
     "copied": "Đã sao chép!",
     "copyAddress": "Sao chép địa chỉ",
     "sendOnly": "Chỉ gửi <b>USDC</b> trên mạng <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất."
+  },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "subtitle": "Xếp theo lợi nhuận thực đã chốt từ giao dịch trên Kamby — không tính toàn bộ hoạt động on-chain của ví.",
+    "season": "Mùa 1",
+    "beFirst": "Hãy là người đầu tiên trên bảng.",
+    "beFirstSub": "Trader được xếp theo lợi nhuận thực từ giao dịch trên Kamby — mua, bán và tên bạn sẽ lên đây.",
+    "goTrade": "Giao dịch ngay"
   }
 }

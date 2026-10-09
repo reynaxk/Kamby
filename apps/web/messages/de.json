@@ -167,5 +167,13 @@
     "copied": "Kopiert!",
     "copyAddress": "Adresse kopieren",
     "sendOnly": "Sende nur <b>USDC</b> auf <b>{network}</b> an diese Adresse. Andere Coins oder Netzwerke können verloren gehen."
+  },
+  "leaderboard": {
+    "title": "Bestenliste",
+    "subtitle": "Gewertet nach echtem, realisiertem Gewinn aus Trades über Kamby — nie nach der gesamten On-Chain-Aktivität einer Wallet.",
+    "season": "Saison 1",
+    "beFirst": "Sei der Erste in der Liste.",
+    "beFirstSub": "Trader werden nach echtem Gewinn aus Trades über Kamby gewertet — kaufen, verkaufen, und dein Name steht hier.",
+    "goTrade": "Jetzt handeln"
   }
 }

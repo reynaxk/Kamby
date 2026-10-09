@@ -167,5 +167,13 @@
     "copied": "Copié !",
     "copyAddress": "Copier l’adresse",
     "sendOnly": "Envoyez uniquement des <b>USDC</b> sur <b>{network}</b> à cette adresse. D’autres coins ou réseaux peuvent être perdus."
+  },
+  "leaderboard": {
+    "title": "Classement",
+    "subtitle": "Classé selon le profit réel et réalisé des trades passés sur Kamby — jamais selon toute l’activité on-chain d’un wallet.",
+    "season": "Saison 1",
+    "beFirst": "Soyez le premier du classement.",
+    "beFirstSub": "Les traders sont classés selon le profit réel de leurs trades sur Kamby — achetez, vendez, et votre nom apparaît ici.",
+    "goTrade": "Trader maintenant"
   }
 }

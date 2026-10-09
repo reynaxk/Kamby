@@ -167,5 +167,13 @@
     "copied": "已复制！",
     "copyAddress": "复制地址",
     "sendOnly": "请只向此地址发送 <b>{network}</b> 上的 <b>USDC</b>。其他币种或网络可能会丢失。"
+  },
+  "leaderboard": {
+    "title": "排行榜",
+    "subtitle": "按在 Kamby 上交易的真实已实现利润排名 — 不统计钱包的全部链上活动。",
+    "season": "第一赛季",
+    "beFirst": "成为榜上第一人。",
+    "beFirstSub": "交易员按在 Kamby 上交易的真实利润排名 — 买入、卖出，你的名字就会出现在这里。",
+    "goTrade": "去交易"
   }
 }

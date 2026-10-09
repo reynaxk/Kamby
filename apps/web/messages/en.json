@@ -167,5 +167,13 @@
     "copied": "Copied!",
     "copyAddress": "Copy address",
     "sendOnly": "Send only <b>USDC</b> on <b>{network}</b> to this address. Other coins or networks can be lost."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Ranked by real, realized profit on trades placed through Kamby — never a wallet’s full on-chain activity.",
+    "season": "Season 1",
+    "beFirst": "Be the first on the board.",
+    "beFirstSub": "Traders are ranked by real profit on trades made through Kamby — buy, sell, and your name goes up here.",
+    "goTrade": "Go Trade"
   }
 }

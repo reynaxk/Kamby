@@ -167,5 +167,13 @@
     "copied": "Kopyalandı!",
     "copyAddress": "Adresi kopyala",
     "sendOnly": "Bu adrese sadece <b>{network}</b> ağında <b>USDC</b> gönder. Diğer coinler ya da ağlar kaybolabilir."
+  },
+  "leaderboard": {
+    "title": "Liderlik tablosu",
+    "subtitle": "Kamby üzerinden yapılan işlemlerin gerçekleşmiş kârına göre sıralanır — cüzdanın tüm zincir üstü hareketine göre değil.",
+    "season": "1. Sezon",
+    "beFirst": "Tabloda ilk sen ol.",
+    "beFirstSub": "Trader’lar Kamby’deki işlemlerin gerçek kârına göre sıralanır — al, sat, adın buraya çıksın.",
+    "goTrade": "İşleme başla"
   }
 }

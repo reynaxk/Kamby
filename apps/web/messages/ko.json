@@ -167,5 +167,13 @@
     "copied": "복사됨!",
     "copyAddress": "주소 복사",
     "sendOnly": "이 주소로는 <b>{network}</b>의 <b>USDC</b>만 보내세요. 다른 코인이나 네트워크는 잃을 수 있습니다."
+  },
+  "leaderboard": {
+    "title": "리더보드",
+    "subtitle": "Kamby에서 한 거래의 실현 수익으로 순위를 매깁니다 — 지갑의 전체 온체인 활동이 아닙니다.",
+    "season": "시즌 1",
+    "beFirst": "첫 번째 주인공이 되세요.",
+    "beFirstSub": "트레이더는 Kamby에서 한 거래의 실제 수익으로 순위가 매겨집니다 — 사고팔면 이름이 여기에 올라갑니다.",
+    "goTrade": "거래하기"
   }
 }

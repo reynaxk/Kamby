@@ -167,5 +167,13 @@
     "copied": "Copiado!",
     "copyAddress": "Copiar endereço",
     "sendOnly": "Envie apenas <b>USDC</b> na <b>{network}</b> para este endereço. Outras moedas ou redes podem ser perdidas."
+  },
+  "leaderboard": {
+    "title": "Ranking",
+    "subtitle": "Ordenado pelo lucro real e realizado das operações feitas na Kamby — nunca por toda a atividade on-chain de uma carteira.",
+    "season": "Temporada 1",
+    "beFirst": "Seja o primeiro do ranking.",
+    "beFirstSub": "Traders são ordenados pelo lucro real das operações na Kamby — compre, venda e seu nome aparece aqui.",
+    "goTrade": "Negociar agora"
   }
 }
