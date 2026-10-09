@@ -39,8 +39,10 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
     let cancelled = false;
     setData(null);
     setStatus('loading');
-    const load = async () => {
-      if (document.visibilityState !== 'visible') return;
+    // The first load always runs (2026-10-10: a coin opened in a background tab skipped it and
+    // sat on "Loading holders…" until the next refresh); refreshes only while visible.
+    const load = async (refresh = false) => {
+      if (refresh && document.visibilityState !== 'visible') return;
       try {
         const res = await fetch(`${API_BASE}/v1/market/holders/${chain}/${encodeURIComponent(address)}`);
         if (!res.ok) throw new Error(String(res.status));
@@ -54,10 +56,13 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
       }
     };
     void load();
-    const timer = setInterval(() => void load(), REFRESH_MS);
+    const timer = setInterval(() => void load(true), REFRESH_MS);
+    const onVisible = () => document.visibilityState === 'visible' && void load(true);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       cancelled = true;
       clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [chain, address]);
 
