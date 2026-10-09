@@ -45,3 +45,27 @@ if (typeof window !== 'undefined' && !window.IntersectionObserver) {
   }
   window.IntersectionObserver = IntersectionObserverStub;
 }
+
+// next-intl (2026-10-09): components render English in tests, read from messages/en.json, so
+// existing assertions on English text keep working without wrapping every render in a provider.
+import { vi } from 'vitest';
+import en from './messages/en.json';
+vi.mock('next-intl', () => {
+  const lookup = (ns: string | undefined, key: string): string => {
+    const path = (ns ? `${ns}.${key}` : key).split('.');
+    let node: unknown = en;
+    for (const part of path) node = node && typeof node === 'object' ? (node as Record<string, unknown>)[part] : undefined;
+    return typeof node === 'string' ? node : key;
+  };
+  const fill = (text: string, values?: Record<string, unknown>) =>
+    text.replace(/\{(\w+)\}/g, (_m, name: string) => {
+      const v = values?.[name];
+      return typeof v === 'function' ? String((v as () => unknown)()) : v === undefined ? `{${name}}` : String(v);
+    });
+  const useTranslations = (ns?: string) => {
+    const t = (key: string, values?: Record<string, unknown>) => fill(lookup(ns, key), values);
+    t.rich = (key: string, values?: Record<string, unknown>) => fill(lookup(ns, key), values);
+    return t;
+  };
+  return { useTranslations, useLocale: () => 'en', NextIntlClientProvider: ({ children }: { children: unknown }) => children };
+});

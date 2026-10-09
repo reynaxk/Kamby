@@ -10,6 +10,8 @@ import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
 const jetbrainsMono = JetBrains_Mono({
@@ -34,10 +36,13 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: 'Kamby', statusBarStyle: 'black-translucent' },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
-    <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
+    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`}>
       <body className="font-body antialiased">
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <Providers>
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
               the TickerBar (h-8) from md up — so neither covers the end of the page. */}
@@ -49,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MobileTabBar />
         </Providers>
         <InstallApp />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

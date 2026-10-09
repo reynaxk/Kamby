@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "Giao dịch",
+    "watchlist": "Theo dõi",
+    "leaders": "Xếp hạng",
+    "profile": "Hồ sơ"
+  },
+  "install": {
+    "title": "Tải ứng dụng Kamby",
+    "android": "Toàn màn hình, mở bằng một chạm từ màn hình chính.",
+    "iosShare": "Chia sẻ",
+    "iosAdd": "Thêm vào MH chính",
+    "iosText": "Chạm {share}, rồi chọn {add}.",
+    "install": "Cài đặt",
+    "notNow": "Để sau"
+  },
+  "terminal": {
+    "pickToken": "Chọn token",
+    "buy": "Mua",
+    "sell": "Bán"
+  },
+  "language": {
+    "label": "Ngôn ngữ"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "Trade",
+    "watchlist": "Watchlist",
+    "leaders": "Leaders",
+    "profile": "Profile"
+  },
+  "install": {
+    "title": "Get the Kamby app",
+    "android": "Full screen, one tap from your home screen.",
+    "iosShare": "Share",
+    "iosAdd": "Add to Home Screen",
+    "iosText": "Tap {share}, then {add}.",
+    "install": "Install",
+    "notNow": "Not now"
+  },
+  "terminal": {
+    "pickToken": "Pick a token",
+    "buy": "Buy",
+    "sell": "Sell"
+  },
+  "language": {
+    "label": "Language"
+  }
+}

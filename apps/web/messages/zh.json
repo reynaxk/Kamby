@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "交易",
+    "watchlist": "自选",
+    "leaders": "排行",
+    "profile": "我的"
+  },
+  "install": {
+    "title": "获取 Kamby 应用",
+    "android": "全屏体验，主屏幕一键打开。",
+    "iosShare": "分享",
+    "iosAdd": "添加到主屏幕",
+    "iosText": "点击{share}，然后选择{add}。",
+    "install": "安装",
+    "notNow": "以后再说"
+  },
+  "terminal": {
+    "pickToken": "选择代币",
+    "buy": "买入",
+    "sell": "卖出"
+  },
+  "language": {
+    "label": "语言"
+  }
+}

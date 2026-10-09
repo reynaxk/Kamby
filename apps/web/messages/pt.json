@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "Negociar",
+    "watchlist": "Favoritos",
+    "leaders": "Líderes",
+    "profile": "Perfil"
+  },
+  "install": {
+    "title": "Baixe o app Kamby",
+    "android": "Tela cheia, a um toque da sua tela inicial.",
+    "iosShare": "Compartilhar",
+    "iosAdd": "Adicionar à Tela de Início",
+    "iosText": "Toque em {share} e depois em {add}.",
+    "install": "Instalar",
+    "notNow": "Agora não"
+  },
+  "terminal": {
+    "pickToken": "Escolha um token",
+    "buy": "Comprar",
+    "sell": "Vender"
+  },
+  "language": {
+    "label": "Idioma"
+  }
+}

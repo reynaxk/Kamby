@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 /** Chrome's install prompt event (not in the DOM typings). */
 interface BeforeInstallPromptEvent extends Event {
@@ -34,6 +35,7 @@ export function InstallApp() {
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [visible, setVisible] = useState(false);
+  const t = useTranslations('install');
 
   useEffect(() => {
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -90,25 +92,23 @@ export function InstallApp() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/brand/kamby-app-icon-512.png" alt="" className="h-11 w-11 shrink-0 rounded-xl" />
       <div className="min-w-0 flex-1">
-        <p className="font-display text-sm font-bold text-ink-900">Get the Kamby app</p>
+        <p className="font-display text-sm font-bold text-ink-900">{t('title')}</p>
         <p className="font-body text-xs text-ink-600">
-          {ios ? (
-            <>
-              Tap <span aria-label="Share" className="font-semibold text-ink-900">Share ⬆︎</span>, then{' '}
-              <span className="font-semibold text-ink-900">Add to Home Screen</span>.
-            </>
-          ) : (
-            'Full screen, one tap from your home screen.'
-          )}
+          {ios
+            ? t.rich('iosText', {
+                share: () => <span className="font-semibold text-ink-900">{t('iosShare')} ⬆︎</span>,
+                add: () => <span className="font-semibold text-ink-900">{t('iosAdd')}</span>,
+              })
+            : t('android')}
         </p>
       </div>
       {!ios && prompt && (
         <button type="button" onClick={() => void install()} className="shrink-0 rounded-xl bg-accent px-3.5 py-2 font-display text-xs font-bold text-black">
-          Install
+          {t('install')}
         </button>
       )}
       <button type="button" onClick={dismiss} aria-label="Not now" className="shrink-0 rounded-lg px-2 py-1 font-body text-xs text-ink-400 hover:text-ink-900">
-        Not now
+        {t('notNow')}
       </button>
     </div>
   );

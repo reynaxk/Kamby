@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "거래",
+    "watchlist": "관심목록",
+    "leaders": "리더",
+    "profile": "프로필"
+  },
+  "install": {
+    "title": "Kamby 앱 받기",
+    "android": "전체 화면, 홈 화면에서 한 번에 실행.",
+    "iosShare": "공유",
+    "iosAdd": "홈 화면에 추가",
+    "iosText": "{share}를 누른 다음 {add}를 선택하세요.",
+    "install": "설치",
+    "notNow": "나중에"
+  },
+  "terminal": {
+    "pickToken": "토큰 선택",
+    "buy": "매수",
+    "sell": "매도"
+  },
+  "language": {
+    "label": "언어"
+  }
+}

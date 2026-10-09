@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@kamby/ui';
+import { useTranslations } from 'next-intl';
 
 const TABS = [
-  { href: '/terminal', label: 'Trade', match: ['/terminal', '/market', '/solana'], icon: TradeIcon },
-  { href: '/watchlist', label: 'Watchlist', match: ['/watchlist'], icon: StarIcon },
-  { href: '/leaderboard', label: 'Leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },
-  { href: '/account', label: 'Profile', match: ['/account', '/trades', '/notifications', '/referrals'], icon: UserIcon },
+  { href: '/terminal', label: 'trade', match: ['/terminal', '/market', '/solana'], icon: TradeIcon },
+  { href: '/watchlist', label: 'watchlist', match: ['/watchlist'], icon: StarIcon },
+  { href: '/leaderboard', label: 'leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },
+  { href: '/account', label: 'profile', match: ['/account', '/trades', '/notifications', '/referrals'], icon: UserIcon },
 ] as const;
 
 /**
@@ -18,6 +19,7 @@ const TABS = [
  */
 export function MobileTabBar() {
   const pathname = usePathname() ?? '/';
+  const t = useTranslations('nav');
   if (pathname === '/') return null;
   return (
     <nav
@@ -39,7 +41,7 @@ export function MobileTabBar() {
                 )}
               >
                 <Icon />
-                {tab.label}
+                {t(tab.label)}
               </Link>
             </li>
           );

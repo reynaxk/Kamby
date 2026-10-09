@@ -5,6 +5,7 @@ import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
 import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
 import { ChainBalancesCard } from '@/components/wallet/ChainBalancesCard';
+import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 
 export const metadata = { title: 'Your profile — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
@@ -38,6 +39,7 @@ export default function AccountPage() {
             <SendButton variant="labeled" />
             <BlurBalancesToggle variant="labeled" />
           </div>
+          <LanguageSelect className="mt-4 max-w-xs" />
         </section>
         <div id="profile" className="mt-6 scroll-mt-20">
           <ProfileEditor />

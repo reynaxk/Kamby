@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "İşlem",
+    "watchlist": "İzleme",
+    "leaders": "Liderler",
+    "profile": "Profil"
+  },
+  "install": {
+    "title": "Kamby uygulamasını edinin",
+    "android": "Tam ekran, ana ekrandan tek dokunuş.",
+    "iosShare": "Paylaş",
+    "iosAdd": "Ana Ekrana Ekle",
+    "iosText": "{share} simgesine, ardından {add} seçeneğine dokunun.",
+    "install": "Yükle",
+    "notNow": "Şimdi değil"
+  },
+  "terminal": {
+    "pickToken": "Token seç",
+    "buy": "Al",
+    "sell": "Sat"
+  },
+  "language": {
+    "label": "Dil"
+  }
+}

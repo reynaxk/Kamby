@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "trade": "Trading",
+    "watchlist": "Pantauan",
+    "leaders": "Peringkat",
+    "profile": "Profil"
+  },
+  "install": {
+    "title": "Dapatkan aplikasi Kamby",
+    "android": "Layar penuh, sekali ketuk dari layar utama.",
+    "iosShare": "Bagikan",
+    "iosAdd": "Tambah ke Layar Utama",
+    "iosText": "Ketuk {share}, lalu {add}.",
+    "install": "Pasang",
+    "notNow": "Nanti saja"
+  },
+  "terminal": {
+    "pickToken": "Pilih token",
+    "buy": "Beli",
+    "sell": "Jual"
+  },
+  "language": {
+    "label": "Bahasa"
+  }
+}

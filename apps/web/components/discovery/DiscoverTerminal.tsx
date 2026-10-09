@@ -43,6 +43,7 @@ import { TokenTradersPanel } from './TokenTradersPanel';
 import { cashtag } from '@/lib/format';
 import { useEntryPrice } from '@/components/trading/PositionChip';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
+import { useTranslations } from 'next-intl';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
 type GridMode = 1 | 4 | 6;
@@ -153,6 +154,7 @@ export function DiscoverTerminal({
   const [tokenListOpen, setTokenListOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
   const [tradeSide, setTradeSide] = useState<'BUY' | 'SELL'>('BUY');
+  const tTerminal = useTranslations('terminal');
   const { feeds } = useMarketFeeds(initialFeeds);
   const router = useRouter();
   // Memoized on the two lists' identities — the stream only replaces a tab when its content
@@ -353,7 +355,7 @@ export function DiscoverTerminal({
             onClick={() => setTokenListOpen(true)}
             className="min-w-0 flex-1 truncate rounded-lg border border-line bg-surface px-3 py-2 text-left font-display text-sm font-semibold text-ink-900"
           >
-            {selected ? cashtag(selected.symbol ?? 'Token') : 'Pick a token'}{' '}
+            {selected ? cashtag(selected.symbol ?? 'Token') : tTerminal('pickToken')}{' '}
             <span className="text-ink-400">▾</span>
           </button>
         </div>
@@ -369,7 +371,7 @@ export function DiscoverTerminal({
             disabled={!canTrade}
             className="rounded-xl bg-up py-3 font-display text-sm font-bold text-black disabled:opacity-40"
           >
-            Buy
+            {tTerminal('buy')}
           </button>
           <button
             type="button"
@@ -380,7 +382,7 @@ export function DiscoverTerminal({
             disabled={!canTrade}
             className="rounded-xl bg-down py-3 font-display text-sm font-bold text-white disabled:opacity-40"
           >
-            Sell
+            {tTerminal('sell')}
           </button>
         </div>
         <div className="h-20" aria-hidden />
