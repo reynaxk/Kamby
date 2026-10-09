@@ -3,7 +3,9 @@
     "trade": "Trader",
     "watchlist": "Favoris",
     "leaders": "Classement",
-    "profile": "Profil"
+    "profile": "Profil",
+    "home": "Accueil",
+    "search": "Recherche"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "Langue"
+  },
+  "home": {
+    "welcome": "Bienvenue sur Kamby",
+    "welcomeSub": "Tradez des meme coins en USDC, sans frais de gas.",
+    "signIn": "Se connecter",
+    "deposit": "Déposer",
+    "openPnl": "PnL ouvert",
+    "noPositions": "Aucune position ouverte",
+    "topTraders": "Meilleurs traders de la semaine"
   }
 }

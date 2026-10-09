@@ -3,7 +3,9 @@
     "trade": "Торговля",
     "watchlist": "Избранное",
     "leaders": "Лидеры",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "home": "Главная",
+    "search": "Поиск"
   },
   "install": {
     "title": "Установите приложение Kamby",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "Язык"
+  },
+  "home": {
+    "welcome": "Добро пожаловать в Kamby",
+    "welcomeSub": "Торгуйте мемкоинами за USDC — без комиссии за газ.",
+    "signIn": "Войти",
+    "deposit": "Пополнить",
+    "openPnl": "открытый PnL",
+    "noPositions": "Нет открытых позиций",
+    "topTraders": "Лучшие трейдеры недели"
   }
 }

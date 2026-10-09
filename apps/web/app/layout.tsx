@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers>
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
               the TickerBar (h-8) from md up — so neither covers the end of the page. */}
-          <div className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-8">
+          <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8">
             {children}
             <SiteFooter />
           </div>

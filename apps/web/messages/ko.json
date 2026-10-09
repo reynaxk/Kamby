@@ -3,7 +3,9 @@
     "trade": "거래",
     "watchlist": "관심목록",
     "leaders": "리더",
-    "profile": "프로필"
+    "profile": "프로필",
+    "home": "홈",
+    "search": "검색"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "언어"
+  },
+  "home": {
+    "welcome": "Kamby에 오신 것을 환영합니다",
+    "welcomeSub": "USDC로 밈코인 거래 — 가스비 무료.",
+    "signIn": "로그인",
+    "deposit": "입금",
+    "openPnl": "미실현 손익",
+    "noPositions": "보유 포지션 없음",
+    "topTraders": "이번 주 탑 트레이더"
   }
 }

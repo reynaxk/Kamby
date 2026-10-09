@@ -3,7 +3,9 @@
     "trade": "Trade",
     "watchlist": "Watchlist",
     "leaders": "Leaders",
-    "profile": "Profile"
+    "profile": "Profile",
+    "home": "Home",
+    "search": "Search"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "Language"
+  },
+  "home": {
+    "welcome": "Welcome to Kamby",
+    "welcomeSub": "Trade meme coins with USDC — gas-free.",
+    "signIn": "Sign in",
+    "deposit": "Deposit",
+    "openPnl": "open PnL",
+    "noPositions": "No open positions",
+    "topTraders": "Top traders this week"
   }
 }

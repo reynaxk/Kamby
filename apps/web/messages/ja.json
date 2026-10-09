@@ -3,7 +3,9 @@
     "trade": "取引",
     "watchlist": "ウォッチ",
     "leaders": "ランキング",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "home": "ホーム",
+    "search": "検索"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "言語"
+  },
+  "home": {
+    "welcome": "Kamby へようこそ",
+    "welcomeSub": "USDC でミームコインを取引、ガス代無料。",
+    "signIn": "ログイン",
+    "deposit": "入金",
+    "openPnl": "含み損益",
+    "noPositions": "保有ポジションなし",
+    "topTraders": "今週のトップトレーダー"
   }
 }

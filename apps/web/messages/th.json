@@ -3,7 +3,9 @@
     "trade": "เทรด",
     "watchlist": "รายการโปรด",
     "leaders": "ผู้นำ",
-    "profile": "โปรไฟล์"
+    "profile": "โปรไฟล์",
+    "home": "หน้าแรก",
+    "search": "ค้นหา"
   },
   "install": {
     "title": "ติดตั้งแอป Kamby",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "ภาษา"
+  },
+  "home": {
+    "welcome": "ยินดีต้อนรับสู่ Kamby",
+    "welcomeSub": "เทรดมีมคอยน์ด้วย USDC ไม่มีค่าแก๊ส",
+    "signIn": "เข้าสู่ระบบ",
+    "deposit": "ฝากเงิน",
+    "openPnl": "กำไร/ขาดทุนที่เปิดอยู่",
+    "noPositions": "ยังไม่มีสถานะ",
+    "topTraders": "เทรดเดอร์ยอดเยี่ยมสัปดาห์นี้"
   }
 }

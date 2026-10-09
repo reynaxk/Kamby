@@ -361,7 +361,7 @@ export function DiscoverTerminal({
         </div>
 
         {/* Buy / Sell under the thumb (2026-10-09), just above the phone tab bar. */}
-        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-2 gap-2 border-t border-line bg-surface/95 p-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-2 gap-2 border-t border-line bg-surface/95 p-3 backdrop-blur">
           <button
             type="button"
             onClick={() => {

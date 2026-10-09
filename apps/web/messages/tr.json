@@ -3,7 +3,9 @@
     "trade": "İşlem",
     "watchlist": "İzleme",
     "leaders": "Liderler",
-    "profile": "Profil"
+    "profile": "Profil",
+    "home": "Ana sayfa",
+    "search": "Ara"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "Dil"
+  },
+  "home": {
+    "welcome": "Kamby’ye hoş geldin",
+    "welcomeSub": "USDC ile meme coin al-sat — gas ücreti yok.",
+    "signIn": "Giriş yap",
+    "deposit": "Yatır",
+    "openPnl": "açık K/Z",
+    "noPositions": "Açık pozisyon yok",
+    "topTraders": "Haftanın en iyi trader’ları"
   }
 }

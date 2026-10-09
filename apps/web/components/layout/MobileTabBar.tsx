@@ -2,19 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@kamby/ui';
 import { useTranslations } from 'next-intl';
+import { cn } from '@kamby/ui';
 
 const TABS = [
-  { href: '/terminal', label: 'trade', match: ['/terminal', '/market', '/solana'], icon: TradeIcon },
-  { href: '/watchlist', label: 'watchlist', match: ['/watchlist'], icon: StarIcon },
+  { href: '/home', label: 'home', match: ['/home'], icon: HomeIcon },
+  { href: '/search', label: 'search', match: ['/search'], icon: SearchIcon },
+  { href: '/terminal', label: 'trade', match: ['/terminal', '/market', '/solana'], icon: TradeIcon, center: true },
   { href: '/leaderboard', label: 'leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },
-  { href: '/account', label: 'profile', match: ['/account', '/trades', '/notifications', '/referrals'], icon: UserIcon },
+  { href: '/account', label: 'profile', match: ['/account', '/trades', '/notifications', '/referrals', '/watchlist'], icon: UserIcon },
 ] as const;
 
 /**
- * Phone navigation (2026-10-09, "make it easier to interact in the app"): four tabs under the
- * thumb, like a native trading app — Trade, Watchlist, Leaders, Profile. Phones only (the
+ * Phone navigation (2026-10-09 app redesign): a floating glass pill under the thumb — Home,
+ * Search, Trade (centre), Leaders, Profile — icons only, the active one lit. Phones only (the
  * price ticker keeps the desktop bottom edge); hidden on the landing page.
  */
 export function MobileTabBar() {
@@ -22,11 +23,8 @@ export function MobileTabBar() {
   const t = useTranslations('nav');
   if (pathname === '/') return null;
   return (
-    <nav
-      aria-label="Main"
-      className="kamby-void fixed inset-x-0 bottom-0 z-50 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
-    >
-      <ul className="grid h-16 grid-cols-4">
+    <nav aria-label="Main" className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 md:hidden">
+      <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface/80 px-2 shadow-[0_8px_32px_rgba(0,0,0,0.55)] backdrop-blur-xl">
         {TABS.map((tab) => {
           const active = tab.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
           const Icon = tab.icon;
@@ -34,14 +32,20 @@ export function MobileTabBar() {
             <li key={tab.href}>
               <Link
                 href={tab.href}
+                aria-label={t(tab.label)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-full flex-col items-center justify-center gap-1 font-display text-[0.65rem] font-semibold transition-colors',
-                  active ? 'text-accent' : 'text-ink-400 active:text-ink-900',
+                  'flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90',
+                  'center' in tab && tab.center
+                    ? active
+                      ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,255,135,0.5)]'
+                      : 'bg-accent/15 text-accent'
+                    : active
+                      ? 'bg-white/10 text-ink-900'
+                      : 'text-ink-400',
                 )}
               >
                 <Icon />
-                {t(tab.label)}
               </Link>
             </li>
           );
@@ -58,11 +62,14 @@ function svg(children: React.ReactNode) {
     </svg>
   );
 }
+function HomeIcon() {
+  return svg(<><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V20h14V9.5" /></>);
+}
+function SearchIcon() {
+  return svg(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
+}
 function TradeIcon() {
   return svg(<><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></>);
-}
-function StarIcon() {
-  return svg(<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />);
 }
 function TrophyIcon() {
   return svg(<><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></>);

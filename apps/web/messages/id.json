@@ -3,7 +3,9 @@
     "trade": "Trading",
     "watchlist": "Pantauan",
     "leaders": "Peringkat",
-    "profile": "Profil"
+    "profile": "Profil",
+    "home": "Beranda",
+    "search": "Cari"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "Bahasa"
+  },
+  "home": {
+    "welcome": "Selamat datang di Kamby",
+    "welcomeSub": "Trading meme coin dengan USDC — tanpa biaya gas.",
+    "signIn": "Masuk",
+    "deposit": "Setor",
+    "openPnl": "PnL terbuka",
+    "noPositions": "Belum ada posisi",
+    "topTraders": "Trader teratas minggu ini"
   }
 }

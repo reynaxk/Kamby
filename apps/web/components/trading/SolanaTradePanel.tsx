@@ -648,7 +648,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           lands on the review step rather than executing directly. `pb-[env(safe-area-inset-bottom)]`
           keeps it clear of a phone's home-bar gesture area. */}
       {/* Sits just above the phone tab bar (h-16 + safe area; 2026-10-09) — it used to sit above the ticker, now desktop-only. */}
-      <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface/95 p-3 backdrop-blur md:hidden">
+      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface/95 p-3 backdrop-blur md:hidden">
         {/* SOL presets only make sense when selling SOL itself — an SPL sell uses the main
             form's percentage presets instead (see SplAmountInput). */}
         {(side === 'BUY' || isNativeSol) && (

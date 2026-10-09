@@ -15,6 +15,7 @@ import { TradePanelCard } from './TradePanelCard';
 import { cashtag } from '@/lib/format';
 import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
 import { TokenChartCard } from './TokenChartCard';
+import { useTranslations } from 'next-intl';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -76,6 +77,8 @@ export function KambyTerminal({
   const isMobile = useIsMobile();
   const [trenchesOpen, setTrenchesOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
+  const [tradeSide, setTradeSide] = useState<'BUY' | 'SELL'>('BUY');
+  const tTerminal = useTranslations('terminal');
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
   const chartSource = useMemo<ChartSource>(
     () => ({ kind: 'evm', chain: chain === 'bnb' ? 'bnb' : 'base', address: market.tokenAddress, chainId }),
@@ -84,6 +87,8 @@ export function KambyTerminal({
 
   const tradePanel = canTrade ? (
     <TradePanelCard
+      key={isMobile ? tradeSide : 'desktop'}
+      initialSide={isMobile ? tradeSide : undefined}
       chainId={chainId}
       tokenAddress={market.tokenAddress}
       tokenSymbol={market.symbol}
@@ -113,14 +118,24 @@ export function KambyTerminal({
             <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
               {cashtag(market.symbol ?? 'Token')}
             </div>
-            <button
-              type="button"
-              onClick={() => setTradeOpen(true)}
-              disabled={!canTrade}
-              className="shrink-0 rounded-lg bg-accent px-4 py-2 font-display text-sm font-bold text-accent-ink disabled:opacity-40"
-            >
-              Trade
-            </button>
+          </div>
+
+          {/* Buy / Sell under the thumb (2026-10-09 app redesign), above the tab bar. */}
+          <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-2 gap-2 border-t border-line bg-surface/95 p-3 backdrop-blur">
+            {(['BUY', 'SELL'] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                disabled={!canTrade}
+                onClick={() => {
+                  setTradeSide(s);
+                  setTradeOpen(true);
+                }}
+                className={s === 'BUY' ? 'rounded-xl bg-up py-3 font-display text-sm font-bold text-black disabled:opacity-40' : 'rounded-xl bg-down py-3 font-display text-sm font-bold text-white disabled:opacity-40'}
+              >
+                {tTerminal(s === 'BUY' ? 'buy' : 'sell')}
+              </button>
+            ))}
           </div>
 
           <div className="mb-3">
@@ -132,7 +147,7 @@ export function KambyTerminal({
             initialTimeframe={timeframe}
             initialCandles={candles}
             trades={traders.recentLargeTrades}
-            className="mb-3 h-[260px]"
+            className="mb-3 h-[360px]"
           />
 
           <div className="mb-3 h-[300px]">
@@ -160,6 +175,7 @@ export function KambyTerminal({
           <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title="Trade">
             {tradePanel}
           </MobileDrawer>
+          <div className="h-20" aria-hidden />
         </div>
       </div>
     );

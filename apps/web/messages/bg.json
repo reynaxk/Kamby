@@ -3,7 +3,9 @@
     "trade": "Търговия",
     "watchlist": "Любими",
     "leaders": "Класация",
-    "profile": "Профил"
+    "profile": "Профил",
+    "home": "Начало",
+    "search": "Търсене"
   },
   "install": {
     "title": "Вземи приложението Kamby",
@@ -21,5 +23,14 @@
   },
   "language": {
     "label": "Език"
+  },
+  "home": {
+    "welcome": "Добре дошъл в Kamby",
+    "welcomeSub": "Търгувай мийм коини с USDC – без такси за газ.",
+    "signIn": "Вход",
+    "deposit": "Депозит",
+    "openPnl": "отворена печалба",
+    "noPositions": "Няма отворени позиции",
+    "topTraders": "Топ трейдъри тази седмица"
   }
 }

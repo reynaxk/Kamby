@@ -87,7 +87,7 @@ export function InstallApp() {
     <div
       role="dialog"
       aria-label="Install Kamby"
-      className="fixed inset-x-3 bottom-40 z-[60] flex items-center gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-2xl backdrop-blur"
+      className="fixed inset-x-3 bottom-44 z-[60] flex items-center gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-2xl backdrop-blur"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/brand/kamby-app-icon-512.png" alt="" className="h-11 w-11 shrink-0 rounded-xl" />
