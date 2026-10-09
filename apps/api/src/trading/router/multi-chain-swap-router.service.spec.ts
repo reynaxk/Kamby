@@ -98,3 +98,44 @@ describe('MultiChainSwapRouter', () => {
     expect(quote).toBeNull();
   });
 });
+
+describe('MultiChainSwapRouter best-of with Velora', () => {
+  const kyberQuote = (out: string, requiresApproval = false): SwapRouterQuote => ({ ...fakeQuote('kyberswap'), buyAmountRaw: out, requiresApproval });
+  function setup(kyberOut: string | null, veloraOut: string | null, veloraNeedsApproval = false) {
+    const kyberswap = { getQuote: jest.fn().mockResolvedValue(kyberOut === null ? null : kyberQuote(kyberOut)) };
+    const velora = {
+      supports: jest.fn().mockReturnValue(true),
+      price: jest.fn().mockResolvedValue(veloraOut === null ? null : { buyAmountRaw: veloraOut, priceImpactBps: null, priceRoute: {}, spender: '0xspender' }),
+      needsApproval: jest.fn().mockResolvedValue(veloraNeedsApproval),
+      build: jest.fn().mockImplementation(async (_r: unknown, p: { buyAmountRaw: string }) => ({ ...fakeQuote('velora'), buyAmountRaw: p.buyAmountRaw })),
+    };
+    const router = new MultiChainSwapRouter(kyberswap as never, { getQuote: jest.fn() } as never, fakeLogger(), velora as never);
+    return { router, velora };
+  }
+
+  it('keeps KyberSwap when Velora is better by less than 0.3%', async () => {
+    const { router, velora } = setup('1000000', '1002000');
+    expect((await router.getQuote(fakeRequest(8453)))?.provider).toBe('kyberswap');
+    expect(velora.build).not.toHaveBeenCalled();
+  });
+
+  it('takes Velora when it returns at least 0.3% more', async () => {
+    const { router } = setup('1000000', '1004000');
+    expect((await router.getQuote(fakeRequest(8453)))?.provider).toBe('velora');
+  });
+
+  it('needs 1% more when Velora would require a new approval', async () => {
+    expect((await setup('1000000', '1004000', true).router.getQuote(fakeRequest(8453)))?.provider).toBe('kyberswap');
+    expect((await setup('1000000', '1011000', true).router.getQuote(fakeRequest(8453)))?.provider).toBe('velora');
+  });
+
+  it('falls back to Velora when KyberSwap has no route', async () => {
+    expect((await setup(null, '1000').router.getQuote(fakeRequest(8453)))?.provider).toBe('velora');
+  });
+
+  it('never asks Velora when the aggregator itself takes a fee', async () => {
+    const { router, velora } = setup('1000000', '2000000');
+    expect((await router.getQuote({ ...fakeRequest(8453), feeBps: 100 }))?.provider).toBe('kyberswap');
+    expect(velora.price).not.toHaveBeenCalled();
+  });
+});

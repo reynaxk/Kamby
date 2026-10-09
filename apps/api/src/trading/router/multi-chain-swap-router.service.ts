@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import { KyberSwapRouter } from './kyberswap-router.service';
 import { OpenOceanRouter } from './openocean-router.service';
+import { VeloraRouter } from './velora-router.service';
 import type { SwapRouter, SwapRouterQuote, SwapRouterQuoteRequest } from './swap-router.interface';
 
 /** Which provider prices which chain — a real per-chain split, not a race (see
@@ -39,12 +40,17 @@ const CHAIN_ID_TO_PROVIDER: Record<number, 'kyberswap' | 'openocean'> = {
  * a single trade is always on exactly one chain, so there is never a "which provider's
  * price is better" decision to make here — only "which provider even covers this chain."
  */
+/** How much more Velora must return to replace KyberSwap — and when its router needs a new approval. */
+const BEST_OF_MARGIN_BPS = 30n;
+const BEST_OF_NEW_APPROVAL_MARGIN_BPS = 100n;
+
 @Injectable()
 export class MultiChainSwapRouter implements SwapRouter {
   constructor(
     private readonly kyberswap: KyberSwapRouter,
     private readonly openocean: OpenOceanRouter,
     private readonly logger: PinoLogger,
+    private readonly velora?: VeloraRouter,
   ) {
     this.logger.setContext('MultiChainSwapRouter');
   }
@@ -55,6 +61,27 @@ export class MultiChainSwapRouter implements SwapRouter {
       this.logger.warn({ chainId: request.chainId }, 'quote failure: no execution provider mapped for this chainId');
       return null;
     }
-    return provider === 'openocean' ? this.openocean.getQuote(request) : this.kyberswap.getQuote(request);
+    if (provider === 'openocean') return this.openocean.getQuote(request);
+    // Best of two (2026-10-09): Velora is asked alongside KyberSwap for trades with no aggregator
+    // fee. It wins only when it returns clearly more — 0.3%, or 1% if the user would need a new
+    // approval for its router (an extra signature and gas) — and always when KyberSwap has nothing.
+    const velora = this.velora && request.feeBps === 0 && this.velora.supports(request.chainId) ? this.velora : null;
+    if (!velora) return this.kyberswap.getQuote(request);
+    const [kyber, veloraPrice] = await Promise.all([this.kyberswap.getQuote(request), velora.price(request).catch(() => null)]);
+    if (!veloraPrice) return kyber;
+    if (!kyber) {
+      this.logger.info({ chainId: request.chainId }, 'KyberSwap had no quote — using Velora');
+      return velora.build(request, veloraPrice);
+    }
+    const kyberOut = BigInt(kyber.buyAmountRaw);
+    const veloraOut = BigInt(veloraPrice.buyAmountRaw);
+    if (veloraOut * 10_000n < kyberOut * (10_000n + BEST_OF_MARGIN_BPS)) return kyber;
+    const needsApproval = await velora.needsApproval(request, veloraPrice.spender);
+    if (needsApproval === null) return kyber;
+    if (needsApproval && !kyber.requiresApproval && veloraOut * 10_000n < kyberOut * (10_000n + BEST_OF_NEW_APPROVAL_MARGIN_BPS)) return kyber;
+    const built = await velora.build(request, veloraPrice);
+    if (!built) return kyber;
+    this.logger.info({ chainId: request.chainId, kyberOut: kyber.buyAmountRaw, veloraOut: built.buyAmountRaw }, 'Velora beat KyberSwap — using Velora');
+    return built;
   }
 }

@@ -4,6 +4,7 @@ import { IdentityModule } from '../identity/identity.module';
 import { KyberSwapRouter } from './router/kyberswap-router.service';
 import { MultiChainSwapRouter } from './router/multi-chain-swap-router.service';
 import { OpenOceanRouter } from './router/openocean-router.service';
+import { VeloraRouter } from './router/velora-router.service';
 import { SWAP_ROUTER } from './router/swap-router.token';
 import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
 import { EvmGasRelayerService } from './relayer/evm-gas-relayer.service';
@@ -36,6 +37,7 @@ import { TransactionService } from './transaction.service';
     TransactionService,
     KyberSwapRouter,
     OpenOceanRouter,
+    VeloraRouter,
     { provide: SWAP_ROUTER, useClass: MultiChainSwapRouter },
     EvmRelayerNonceManagerService,
     EvmRelayerWalletService,
