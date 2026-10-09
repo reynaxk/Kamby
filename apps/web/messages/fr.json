@@ -112,5 +112,22 @@
     "subtitle": "Votre pseudo et votre photo apparaissent dans le classement et sur votre profil de trader.",
     "wallet": "Wallet",
     "walletSub": "Déposez, retirez ou masquez vos soldes sur Kamby."
+  },
+  "landing": {
+    "leaderboard": "Classement",
+    "signIn": "Se connecter",
+    "chains": "réseaux : solana • base • bnb",
+    "tagline": "Trouvez. Tradez. Recommencez.",
+    "gasFree": "(et oui... sans frais de gas)",
+    "goTrade": "Trader maintenant",
+    "nextRunner": "Prochaine fusée dans",
+    "f1Title": "Gas 100 % pris en charge",
+    "f1Body": "Tradez sans jamais détenir d’ETH, de BNB ou de SOL — Kamby paie les frais réseau sur chaque chaîne.",
+    "f2Title": "Simulation en temps réel",
+    "f2Body": "Chaque swap est simulé avant l’envoi, et chaque coin est vérifié contre les honeypots avant d’être listé.",
+    "f3Title": "Exécution en un toucher",
+    "f3Body": "Pas d’écran de confirmation. Conçu pour le scalping rapide à haute fréquence.",
+    "loading": "Chargement…",
+    "openTerminal": "Ouvrir le terminal"
   }
 }

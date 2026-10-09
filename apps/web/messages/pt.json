@@ -112,5 +112,22 @@
     "subtitle": "Seu usuário e foto aparecem no ranking e no seu perfil de trader.",
     "wallet": "Carteira",
     "walletSub": "Deposite, saque ou oculte saldos na Kamby."
+  },
+  "landing": {
+    "leaderboard": "Ranking",
+    "signIn": "Entrar",
+    "chains": "redes: solana • base • bnb",
+    "tagline": "Encontre. Negocie. Repita.",
+    "gasFree": "(e sim... sem gas)",
+    "goTrade": "Negociar agora",
+    "nextRunner": "Próximo foguete em",
+    "f1Title": "Gas 100% patrocinado",
+    "f1Body": "Negocie sem ter ETH, BNB ou SOL — a Kamby paga as taxas de rede em todas as redes.",
+    "f2Title": "Simulação em tempo real",
+    "f2Body": "Cada swap é simulado antes de ser enviado e cada moeda passa por checagem de honeypot antes de ser listada.",
+    "f3Title": "Execução com um toque",
+    "f3Body": "Sem telas de revisão. Feito para scalping rápido e de alta frequência.",
+    "loading": "Carregando…",
+    "openTerminal": "Abrir terminal"
   }
 }

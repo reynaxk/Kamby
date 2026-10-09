@@ -112,5 +112,22 @@
     "subtitle": "你的用户名和头像会显示在排行榜和交易员主页上。",
     "wallet": "钱包",
     "walletSub": "充值、提现或在 Kamby 中隐藏余额。"
+  },
+  "landing": {
+    "leaderboard": "排行榜",
+    "signIn": "登录",
+    "chains": "链：solana • base • bnb",
+    "tagline": "发现。交易。重复。",
+    "gasFree": "（对，还免 Gas）",
+    "goTrade": "去交易",
+    "nextRunner": "下一个暴涨币",
+    "f1Title": "100% 免 Gas",
+    "f1Body": "无需持有 ETH、BNB 或 SOL 即可交易 — 每条链的网络费都由 Kamby 支付。",
+    "f2Title": "实时模拟",
+    "f2Body": "每笔兑换发送前都会先模拟，代币上线前都会做貔貅检测。",
+    "f3Title": "一键成交",
+    "f3Body": "无需确认页面，为高频快速剥头皮而生。",
+    "loading": "加载中…",
+    "openTerminal": "打开终端"
   }
 }

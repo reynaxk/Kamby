@@ -112,5 +112,22 @@
     "subtitle": "Nama pengguna dan fotomu tampil di peringkat dan profil trader.",
     "wallet": "Wallet",
     "walletSub": "Setor, tarik, atau sembunyikan saldo di Kamby."
+  },
+  "landing": {
+    "leaderboard": "Peringkat",
+    "signIn": "Masuk",
+    "chains": "jaringan: solana • base • bnb",
+    "tagline": "Temukan. Trading. Ulangi.",
+    "gasFree": "(dan ya... tanpa gas)",
+    "goTrade": "Mulai trading",
+    "nextRunner": "Roket berikutnya dalam",
+    "f1Title": "Gas 100% ditanggung",
+    "f1Body": "Trading tanpa memegang ETH, BNB atau SOL — Kamby membayar biaya jaringan di semua chain.",
+    "f2Title": "Simulasi real-time",
+    "f2Body": "Setiap swap disimulasikan sebelum dikirim, dan koin dicek honeypot sebelum terdaftar.",
+    "f3Title": "Eksekusi sekali ketuk",
+    "f3Body": "Tanpa layar konfirmasi. Dibuat untuk scalping cepat berfrekuensi tinggi.",
+    "loading": "Memuat…",
+    "openTerminal": "Buka terminal"
   }
 }

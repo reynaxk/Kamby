@@ -112,5 +112,22 @@
     "subtitle": "Tên và ảnh của bạn hiển thị trên bảng xếp hạng và hồ sơ trader.",
     "wallet": "Ví",
     "walletSub": "Nạp, rút hoặc ẩn số dư trên Kamby."
+  },
+  "landing": {
+    "leaderboard": "Xếp hạng",
+    "signIn": "Đăng nhập",
+    "chains": "mạng: solana • base • bnb",
+    "tagline": "Tìm. Giao dịch. Lặp lại.",
+    "gasFree": "(và đúng vậy... miễn phí gas)",
+    "goTrade": "Giao dịch ngay",
+    "nextRunner": "Cú bùng nổ tiếp theo sau",
+    "f1Title": "Tài trợ 100% phí gas",
+    "f1Body": "Giao dịch mà không cần ETH, BNB hay SOL — Kamby trả phí mạng trên mọi chuỗi.",
+    "f2Title": "Mô phỏng thời gian thực",
+    "f2Body": "Mỗi lệnh swap đều được mô phỏng trước khi gửi, coin được kiểm tra honeypot trước khi niêm yết.",
+    "f3Title": "Khớp lệnh một chạm",
+    "f3Body": "Không có màn hình xác nhận. Thiết kế cho lướt sóng nhanh, tần suất cao.",
+    "loading": "Đang tải…",
+    "openTerminal": "Mở terminal"
   }
 }

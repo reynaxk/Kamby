@@ -5,6 +5,7 @@ import { KambyLogo } from '@/components/layout/KambyLogo';
 import { FeatureCards, type LandingFeature } from '@/components/landing/FeatureCards';
 import { LandingCta } from '@/components/landing/LandingCta';
 import { RunnerCountdown } from '@/components/landing/RunnerCountdown';
+import { getTranslations } from 'next-intl/server';
 
 /** The wordmark and countdown face — loaded only on the landing page (self-hosted by next/font). */
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['700', '800', '900'], display: 'swap' });
@@ -43,7 +44,13 @@ const BEAMS = [
  * then /terminal. Static server render; the only client code is the sign-in buttons, the
  * feature entry animations and the countdown. The risk notice lives in the site footer.
  */
-export default function LandingPage() {
+export default async function LandingPage() {
+  const t = await getTranslations('landing');
+  const features: LandingFeature[] = [
+    { icon: '⚡', title: t('f1Title'), body: t('f1Body') },
+    { icon: '🛡️', title: t('f2Title'), body: t('f2Body') },
+    { icon: '🏎️', title: t('f3Title'), body: t('f3Body') },
+  ];
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#05070A] text-white">
       {/* Hero — the sunrise sits behind it */}
@@ -85,14 +92,14 @@ export default function LandingPage() {
           </div>
           <nav className="flex items-center gap-1">
             <Link href="/leaderboard" className="rounded-lg px-3 py-2 font-mono text-xs uppercase tracking-wider text-[#64748B] transition-colors hover:text-white">
-              Leaderboard
+              {t('leaderboard')}
             </Link>
-            <LandingCta label="Sign in" variant="ghost" className="px-4 py-2" />
+            <LandingCta label={t('signIn')} variant="ghost" className="px-4 py-2" />
           </nav>
         </header>
 
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center px-5 pb-[34vh] pt-[8vh] text-center">
-          <p className="font-mono text-[0.72rem] lowercase tracking-[0.2em] text-[#3D7A58]">chains: solana • base • bnb</p>
+          <p className="font-mono text-[0.72rem] lowercase tracking-[0.2em] text-[#3D7A58]">{t('chains')}</p>
 
           <h1 className={`${orbitron.className} relative mt-6 select-none font-black leading-none tracking-[0.06em]`}>
             {/* Metallic green back-lighting */}
@@ -114,28 +121,28 @@ export default function LandingPage() {
           </h1>
 
           <h2 className="mt-8 font-display text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Find. Trade. Repeat.{' '}
+            {t('tagline')}{' '}
             <span className="whitespace-nowrap align-middle font-mono text-xs font-medium tracking-normal sm:text-sm" style={{ color: NEON, textShadow: `0 0 12px ${NEON}88` }}>
-              (and yeah... it&apos;s gas-free)
+              {t('gasFree')}
             </span>
           </h2>
 
-          <LandingCta label="Go Trade" variant="neon" className="mt-12 px-10 py-4 text-base" />
+          <LandingCta label={t('goTrade')} variant="neon" className="mt-12 px-10 py-4 text-base" />
         </div>
       </section>
 
       <main>
         {/* Three features */}
         <section className="mx-auto max-w-5xl px-5 py-24">
-          <FeatureCards features={FEATURES} />
+          <FeatureCards features={features} />
         </section>
 
         {/* Bottom action box */}
         <section className="mx-auto max-w-3xl px-5 pb-32 pt-8">
           <div className="flex flex-col items-center rounded-[2rem] border border-white/5 bg-white/[0.015] px-6 py-16 text-center backdrop-blur-xl sm:py-20">
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">Next runner in</p>
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('nextRunner')}</p>
             <RunnerCountdown className={`${orbitron.className} mt-4 text-[clamp(3.6rem,14vw,7.5rem)] font-black leading-none text-white`} />
-            <LandingCta label="Go Trade" variant="neon" className="mt-12 px-10 py-4 text-base" />
+            <LandingCta label={t('goTrade')} variant="neon" className="mt-12 px-10 py-4 text-base" />
           </div>
         </section>
       </main>
@@ -143,8 +150,3 @@ export default function LandingPage() {
   );
 }
 
-const FEATURES: LandingFeature[] = [
-  { icon: '⚡', title: '100% Sponsored Gas', body: 'Trade without ever holding ETH, BNB or SOL — Kamby pays the network fees on every chain.' },
-  { icon: '🛡️', title: 'Real-Time Dry-Run', body: 'Every swap is simulated before it’s sent, and coins are honeypot-checked before they’re listed.' },
-  { icon: '🏎️', title: 'One-Tap Execution', body: 'No review screens. Engineered for fast, high-frequency scalping.' },
-];

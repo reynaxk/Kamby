@@ -4,6 +4,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { cn } from '@kamby/ui';
+import { useTranslations } from 'next-intl';
 
 /**
  * "Get started" on the landing page: opens Privy sign-in (email or Google — a wallet is created
@@ -11,6 +12,7 @@ import { cn } from '@kamby/ui';
  * are sent straight there.
  */
 export function LandingCta({ label = 'Get started', variant = 'primary', className }: { label?: string; variant?: 'primary' | 'ghost' | 'neon'; className?: string }) {
+  const tL = useTranslations('landing');
   const { ready, authenticated, login } = usePrivy();
   const router = useRouter();
   useEffect(() => {
@@ -32,7 +34,7 @@ export function LandingCta({ label = 'Get started', variant = 'primary', classNa
         className,
       )}
     >
-      {!ready ? 'Loading…' : authenticated ? 'Open terminal' : label}
+      {!ready ? tL('loading') : authenticated ? tL('openTerminal') : label}
     </button>
   );
 }

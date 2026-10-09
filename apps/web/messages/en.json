@@ -112,5 +112,22 @@
     "subtitle": "Your username and picture appear on the leaderboard and your trader profile.",
     "wallet": "Wallet",
     "walletSub": "Add funds, withdraw, or hide balances across Kamby."
+  },
+  "landing": {
+    "leaderboard": "Leaderboard",
+    "signIn": "Sign in",
+    "chains": "chains: solana • base • bnb",
+    "tagline": "Find. Trade. Repeat.",
+    "gasFree": "(and yeah... it's gas-free)",
+    "goTrade": "Go Trade",
+    "nextRunner": "Next runner in",
+    "f1Title": "100% Sponsored Gas",
+    "f1Body": "Trade without ever holding ETH, BNB or SOL — Kamby pays the network fees on every chain.",
+    "f2Title": "Real-Time Dry-Run",
+    "f2Body": "Every swap is simulated before it’s sent, and coins are honeypot-checked before they’re listed.",
+    "f3Title": "One-Tap Execution",
+    "f3Body": "No review screens. Engineered for fast, high-frequency scalping.",
+    "loading": "Loading…",
+    "openTerminal": "Open terminal"
   }
 }

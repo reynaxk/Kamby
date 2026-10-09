@@ -112,5 +112,22 @@
     "subtitle": "Kullanıcı adın ve fotoğrafın liderlik tablosunda ve trader profilinde görünür.",
     "wallet": "Cüzdan",
     "walletSub": "Para yatır, çek ya da Kamby genelinde bakiyeleri gizle."
+  },
+  "landing": {
+    "leaderboard": "Liderlik",
+    "signIn": "Giriş yap",
+    "chains": "ağlar: solana • base • bnb",
+    "tagline": "Bul. Al-sat. Tekrarla.",
+    "gasFree": "(ve evet... gas ücreti yok)",
+    "goTrade": "İşleme başla",
+    "nextRunner": "Sıradaki roket",
+    "f1Title": "%100 karşılanan gas",
+    "f1Body": "ETH, BNB ya da SOL tutmadan işlem yap — her ağda ağ ücretini Kamby öder.",
+    "f2Title": "Gerçek zamanlı ön simülasyon",
+    "f2Body": "Her swap gönderilmeden önce simüle edilir, coinler listelenmeden önce honeypot kontrolünden geçer.",
+    "f3Title": "Tek dokunuşla işlem",
+    "f3Body": "Onay ekranı yok. Hızlı, yüksek frekanslı scalping için tasarlandı.",
+    "loading": "Yükleniyor…",
+    "openTerminal": "Terminali aç"
   }
 }

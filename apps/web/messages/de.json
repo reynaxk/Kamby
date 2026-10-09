@@ -112,5 +112,22 @@
     "subtitle": "Dein Name und Bild erscheinen in der Bestenliste und auf deinem Trader-Profil.",
     "wallet": "Wallet",
     "walletSub": "Einzahlen, auszahlen oder Guthaben in Kamby verbergen."
+  },
+  "landing": {
+    "leaderboard": "Bestenliste",
+    "signIn": "Anmelden",
+    "chains": "chains: solana • base • bnb",
+    "tagline": "Finden. Handeln. Wiederholen.",
+    "gasFree": "(und ja... ohne Gasgebühren)",
+    "goTrade": "Jetzt handeln",
+    "nextRunner": "Nächster Runner in",
+    "f1Title": "100 % gesponsertes Gas",
+    "f1Body": "Handle, ohne je ETH, BNB oder SOL zu halten — Kamby zahlt die Netzwerkgebühren auf jeder Chain.",
+    "f2Title": "Echtzeit-Testlauf",
+    "f2Body": "Jeder Swap wird vor dem Senden simuliert, und Coins werden vor dem Listing auf Honeypots geprüft.",
+    "f3Title": "Ausführung mit einem Tipp",
+    "f3Body": "Keine Prüfbildschirme. Gebaut für schnelles Hochfrequenz-Scalping.",
+    "loading": "Lädt…",
+    "openTerminal": "Terminal öffnen"
   }
 }
