@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { JetBrains_Mono, Manrope } from 'next/font/google';
 import './globals.css';
 // Importing this for its module-level side effect: it validates process.env at import
@@ -8,6 +8,7 @@ import '@/lib/env';
 import { SiteFooter } from '@/components/legal/SiteFooter';
 import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
+import { InstallApp } from '@/components/pwa/InstallApp';
 
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
 const jetbrainsMono = JetBrains_Mono({
@@ -15,6 +16,9 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains-mono',
   display: 'swap',
 });
+
+/** Phone status bar and browser chrome in Kamby's background colour (installed app included). */
+export const viewport: Viewport = { themeColor: '#05070A' };
 
 export const metadata: Metadata = {
   // Required for the OG/Twitter image URLs Next.js builds from icon.png/opengraph-image.png
@@ -25,6 +29,8 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://kambesh.com'),
   title: 'Kamby',
   description: 'A social crypto discovery and trading platform.',
+  // Installable app (see app/manifest.ts): full-screen on iPhone home screens too.
+  appleWebApp: { capable: true, title: 'Kamby', statusBarStyle: 'black-translucent' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -40,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <TickerBar />
         </Providers>
+        <InstallApp />
       </body>
     </html>
   );
