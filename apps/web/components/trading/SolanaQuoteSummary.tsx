@@ -2,6 +2,7 @@ import type { SolanaTradeQuoteDto } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { GlowValue } from '@/components/market/GlowValue';
 import { formatTokenAmount } from '@/lib/solana-mint';
+import { useTranslations } from 'next-intl';
 
 const USDC_DECIMALS = 6;
 
@@ -51,6 +52,7 @@ export function SolanaQuoteSummary({
   tokenSymbol?: string | null;
   tokenDecimals?: number | null;
 }) {
+  const tTrade = useTranslations('trade');
   const tokenDisplay = (raw: string) => formatTokenAmount(raw, tokenDecimals, tokenSymbol);
   const isBuy = quote.side === 'BUY';
   const severity = impactSeverity(quote.priceImpactBps);
@@ -89,27 +91,27 @@ export function SolanaQuoteSummary({
   return (
     <dl className="space-y-2 rounded-xl border border-line bg-surface-raised p-3 font-body text-sm">
       <Row
-        label="You pay"
+        label={tTrade('youPay')}
         value={isBuy ? usdcDisplay(buyTotalRaw(quote)) : tokenDisplay(quote.inputAmountRaw)}
         numericValue={quote.inputAmountRaw}
       />
       <Row
-        label="You receive"
+        label={tTrade('youReceive')}
         value={isBuy ? tokenDisplay(quote.outputAmountRaw) : usdcDisplay(quote.outputAmountRaw)}
         numericValue={quote.outputAmountRaw}
       />
       <Row
-        label="Minimum received"
+        label={tTrade('minReceived')}
         value={isBuy ? tokenDisplay(quote.minOutputAmountRaw) : usdcDisplay(quote.minOutputAmountRaw)}
         numericValue={quote.minOutputAmountRaw}
       />
-      <Row label="Price impact" value={impactLabel} valueClassName={IMPACT_CLASS[severity]} />
-      <Row label="Kamby fee" value={feeDisplay} />
+      <Row label={tTrade('priceImpact')} value={impactLabel} valueClassName={IMPACT_CLASS[severity]} />
+      <Row label={tTrade('kambyFee')} value={feeDisplay} />
       {quote.setupFeeAmountRaw && (
         // Gasless first buy of a coin: the token account Kamby opens in the user's wallet.
-        <Row label="New coin setup (first buy only)" value={usdcDisplay(quote.setupFeeAmountRaw)} />
+        <Row label={tTrade('newCoinSetup')} value={usdcDisplay(quote.setupFeeAmountRaw)} />
       )}
-      <Row label="Provider" value="Jupiter" />
+      <Row label={tTrade('provider')} value="Jupiter" />
     </dl>
   );
 }

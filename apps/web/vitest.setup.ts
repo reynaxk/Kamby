@@ -64,7 +64,20 @@ vi.mock('next-intl', () => {
     });
   const useTranslations = (ns?: string) => {
     const t = (key: string, values?: Record<string, unknown>) => fill(lookup(ns, key), values);
-    t.rich = (key: string, values?: Record<string, unknown>) => fill(lookup(ns, key), values);
+    // Rich text: <tag>chunks</tag> becomes values.tag(chunks), like next-intl's own t.rich.
+    t.rich = (key: string, values?: Record<string, unknown>) => {
+      const text = fill(lookup(ns, key), values);
+      const parts: unknown[] = [];
+      let last = 0;
+      for (const m of text.matchAll(/<(\w+)>(.*?)<\/\1>/g)) {
+        parts.push(text.slice(last, m.index));
+        const fn = values?.[m[1]!];
+        parts.push(typeof fn === 'function' ? (fn as (c: string) => unknown)(m[2]!) : m[2]);
+        last = (m.index ?? 0) + m[0].length;
+      }
+      parts.push(text.slice(last));
+      return parts;
+    };
     return t;
   };
   return { useTranslations, useLocale: () => 'en', NextIntlClientProvider: ({ children }: { children: unknown }) => children };

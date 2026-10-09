@@ -7,6 +7,7 @@ import { cn } from '@kamby/ui';
 import { useDecimalText } from './useDecimalText';
 import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
+import { useTranslations } from 'next-intl';
 
 export const SOL_PRESETS = [0.01, 0.05, 0.1, 0.5] as const;
 
@@ -36,6 +37,7 @@ export function SolAmountInput({
   onChange: (value: string) => void;
   walletAddress: string | undefined;
 }) {
+  const tTrade = useTranslations('trade');
   const [text, setText] = useDecimalText(value, 9, onChange);
   const [solBalanceLamports, setSolBalanceLamports] = useState<bigint | null>(null);
 
@@ -71,11 +73,11 @@ export function SolAmountInput({
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">Amount (SOL)</span>
+        <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'SOL' })}</span>
         {solBalanceLamports !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
-            Balance:{' '}
+            {tTrade('balance')}{' '}
             <GlowValue
               value={solBalanceLamports.toString()}
               display={`${(Number(solBalanceLamports) / LAMPORTS_PER_SOL).toLocaleString('en-US', { maximumFractionDigits: 4 })} SOL`}

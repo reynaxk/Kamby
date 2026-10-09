@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@kamby/ui';
 import { isValidSlippageBps, TRADING_DEFAULTS } from '@kamby/domain';
+import { useTranslations } from 'next-intl';
 
 const PRESETS_BPS = [10, 50, 100]; // 0.1% / 0.5% / 1%
 
@@ -39,6 +40,7 @@ export function SlippageControl({
   /** The "Auto" option — `active` when the panel is using autoSlippageBps. */
   auto?: { active: boolean; onSelect: () => void };
 }) {
+  const tTrade = useTranslations('trade');
   const isPreset = PRESETS_BPS.includes(valueBps);
   const [customOpen, setCustomOpen] = useState(!isPreset && !auto?.active);
   const [customInput, setCustomInput] = useState(isPreset ? '' : (valueBps / 100).toString());
@@ -51,9 +53,9 @@ export function SlippageControl({
   return (
     <div className={className}>
       <div className="flex items-center justify-between">
-        <span className="font-body text-xs text-ink-600">Slippage tolerance</span>
+        <span className="font-body text-xs text-ink-600">{tTrade('slippage')}</span>
         <span className="font-mono text-xs text-ink-600">
-          {auto?.active ? `Auto · ${formatBpsAsPercent(valueBps)}` : formatBpsAsPercent(valueBps)}
+          {auto?.active ? `${tTrade('auto')} · ${formatBpsAsPercent(valueBps)}` : formatBpsAsPercent(valueBps)}
         </span>
       </div>
       <div className="mt-1.5 flex gap-1.5">
@@ -70,7 +72,7 @@ export function SlippageControl({
               auto.active ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
             )}
           >
-            Auto
+            {tTrade('auto')}
           </button>
         )}
         {PRESETS_BPS.map((preset) => (
@@ -98,7 +100,7 @@ export function SlippageControl({
             customOpen ? 'bg-accent text-accent-ink' : 'bg-surface-raised text-ink-600 hover:text-ink-900',
           )}
         >
-          Custom
+          {tTrade('custom')}
         </button>
       </div>
       {customOpen && (

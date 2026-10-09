@@ -26,6 +26,7 @@ import { ChainUsdcLine } from './ChainUsdcLine';
 import { PositionChip } from './PositionChip';
 import { evmChartSource } from '@/lib/chart-data';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
+import { useTranslations } from 'next-intl';
 
 export interface TradePanelProps {
   /** The real chain this specific token trades on — see lib/explorer.ts and
@@ -155,6 +156,7 @@ export function TradePanel({
   onStepChange,
   dense = false,
 }: TradePanelProps) {
+  const tTrade = useTranslations('trade');
   // Every trade pays with / sells into this chain's USDC, not the pool's pair token (WETH,
   // WBNB…) — the API quotes it the same way (QuoteService#createQuote).
   const usdc = USDC_BY_CHAIN_ID[chainId];
@@ -705,13 +707,13 @@ export function TradePanel({
   if (step === 'review' || step === 'approving' || step === 'signing') {
     if (!quote) return null;
     return (
-      <Panel title={step === 'review' ? 'Review trade' : 'Confirm in your wallet'} onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined} animKey="review">
+      <Panel title={step === 'review' ? tTrade('reviewTrade') : tTrade('confirmInWallet')} onClose={onClose} onBack={step === 'review' ? () => setStep('form') : undefined} animKey="review">
         <QuoteSummary quote={quote} />
         {quote.consentTypedData ? (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
             {quote.requiresApproval
-              ? 'This trade needs 1 quick wallet approval, then a free signature to confirm — Kamby pays the network fee.'
-              : 'Gasless — Kamby pays the network fee for this trade. Just one free signature, no gas needed.'}
+              ? tTrade('gaslessEvmApproval')
+              : tTrade('gaslessEvm')}
           </p>
         ) : (
           quote.feeUnsignedTx && (
@@ -724,7 +726,13 @@ export function TradePanel({
         )}
         {isExpired && (
           <div className="rounded-lg bg-down/10 px-3 py-2 font-body text-xs text-down">
-            This quote expired. <button type="button" className="underline" onClick={() => { setRefreshTick((n) => n + 1); setStep('form'); }}>Refresh it</button> before continuing.
+            {tTrade.rich('quoteExpired', {
+              refresh: (chunks) => (
+                <button type="button" className="underline" onClick={() => { setRefreshTick((n) => n + 1); setStep('form'); }}>
+                  {chunks}
+                </button>
+              ),
+            })}
           </div>
         )}
         {flowError && <p className="font-body text-xs text-down">{flowError}</p>}
@@ -736,12 +744,12 @@ export function TradePanel({
               onChange={(e) => setPriceImpactAcknowledged(e.target.checked)}
               className="mt-0.5"
             />
-            <span>I understand this trade has an extreme price impact and want to proceed anyway.</span>
+            <span>{tTrade('extremeImpact')}</span>
           </label>
         )}
         {quote.requiresApproval && !approved && (
           <Button type="button" onClick={() => void handleApprove()} disabled={step === 'approving' || isExpired}>
-            {step === 'approving' ? 'Approving…' : `1. Approve ${side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol}`}
+            {step === 'approving' ? tTrade('approving') : tTrade('approveStep1', { symbol: side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol })}
           </Button>
         )}
         <Button
@@ -754,7 +762,7 @@ export function TradePanel({
             (quote.priceImpactLevel === 'extreme' && !priceImpactAcknowledged)
           }
         >
-          {step === 'signing' ? 'Confirm in your wallet…' : quote.requiresApproval ? '2. Confirm & sign' : 'Confirm & sign'}
+          {step === 'signing' ? tTrade('confirmInWalletDots') : quote.requiresApproval ? tTrade('confirmSignStep2') : tTrade('confirmSign')}
         </Button>
       </Panel>
     );
@@ -799,7 +807,7 @@ export function TradePanel({
               />
             )}
             <span className={cn('relative', side === option && (option === 'BUY' ? 'text-black' : 'text-white'))}>
-              {option === 'BUY' ? 'Buy' : 'Sell'}
+              {option === 'BUY' ? tTrade('buy') : tTrade('sell')}
             </span>
           </button>
         ))}
@@ -838,7 +846,7 @@ export function TradePanel({
 
       {isConnected ? (
         <Button type="button" disabled={quoteStatus !== 'ready' || !quote} onClick={() => void handleOneTap()} className="w-full">
-          {quoteStatus === 'loading' ? 'Getting quote…' : `${side === 'BUY' ? 'Buy' : 'Sell'} ${tokenSymbol ?? ''}`.trim()}
+          {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
         </Button>
       ) : (
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —

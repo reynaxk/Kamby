@@ -3,6 +3,7 @@
 import { cn } from '@kamby/ui';
 import { formatUnits } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
+import { useTranslations } from 'next-intl';
 
 const PRESET_FRACTIONS = [0.25, 0.5, 1] as const;
 
@@ -28,6 +29,7 @@ export function AmountInput({
   inputTokenDecimals: number;
   className?: string;
 }) {
+  const tTrade = useTranslations('trade');
   const { address } = useAccount();
   const { data: balance } = useBalance({
     address,
@@ -44,10 +46,10 @@ export function AmountInput({
   return (
     <div className={className}>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span>Amount ({inputTokenSymbol ?? 'token'})</span>
+        <span>{tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}</span>
         {balance && (
           <span>
-            Balance:{' '}
+            {tTrade('balance')}{' '}
             {inputTokenSymbol === 'USDC'
               ? `$${Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })}
@@ -77,7 +79,7 @@ export function AmountInput({
               'hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
             )}
           >
-            {fraction === 1 ? 'Max' : `${fraction * 100}%`}
+            {fraction === 1 ? tTrade('max') : `${fraction * 100}%`}
           </button>
         ))}
       </div>

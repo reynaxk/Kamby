@@ -9,6 +9,7 @@ import { cn } from '@kamby/ui';
 import { useDecimalText } from './useDecimalText';
 import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
+import { useTranslations } from 'next-intl';
 
 export const USD_PRESETS = [10, 25, 50, 100] as const;
 const USDC_DECIMALS = 6;
@@ -36,6 +37,7 @@ export function UsdPresetAmountInput({
   onChange: (value: string) => void;
   walletAddress: string | undefined;
 }) {
+  const tTrade = useTranslations('trade');
   const [text, setText] = useDecimalText(value, USDC_DECIMALS, onChange);
   const [usdcBalanceRaw, setUsdcBalanceRaw] = useState<bigint | null>(null);
 
@@ -75,11 +77,11 @@ export function UsdPresetAmountInput({
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">Amount (USDC)</span>
+        <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'USDC' })}</span>
         {usdcBalanceRaw !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
-            Balance:{' '}
+            {tTrade('balance')}{' '}
             <GlowValue
               value={usdcBalanceRaw.toString()}
               display={`$${(Number(usdcBalanceRaw) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })}`}

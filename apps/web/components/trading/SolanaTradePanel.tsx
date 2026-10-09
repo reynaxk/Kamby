@@ -32,6 +32,7 @@ import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmou
 import { ChainUsdcLine } from './ChainUsdcLine';
 import { PositionChip } from './PositionChip';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
+import { useTranslations } from 'next-intl';
 
 export interface SolanaTradePanelProps {
   tokenMint: string;
@@ -104,6 +105,7 @@ function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string
  * coding), via the `up`/`down` tokens instead.
  */
 export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false }: SolanaTradePanelProps) {
+  const tTrade = useTranslations('trade');
   const { ready, authenticated, login } = usePrivy();
   const { wallets, ready: walletsReady } = useWallets();
   const wallet = wallets[0];
@@ -530,20 +532,22 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   if (step === 'review' || step === 'signing') {
     if (!quote) return null;
     return (
-      <Panel title={step === 'review' ? 'Review trade' : 'Confirm in your wallet'} onBack={step === 'review' ? () => setStep('form') : undefined}>
+      <Panel title={step === 'review' ? tTrade('reviewTrade') : tTrade('confirmInWallet')} onBack={step === 'review' ? () => setStep('form') : undefined}>
         <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} />
         {gasless && (
           <p className="rounded-lg bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
-            Gasless — Kamby pays the Solana network fee for this trade. One signature, no SOL needed.
+            {tTrade('gaslessSol')}
           </p>
         )}
         {isExpired && (
           <div className="rounded-lg bg-down/10 px-3 py-2 font-body text-xs text-down">
-            This quote expired.{' '}
-            <button type="button" className="underline" onClick={() => { setRefreshTick((n) => n + 1); setStep('form'); }}>
-              Refresh it
-            </button>{' '}
-            before continuing.
+            {tTrade.rich('quoteExpired', {
+              refresh: (chunks) => (
+                <button type="button" className="underline" onClick={() => { setRefreshTick((n) => n + 1); setStep('form'); }}>
+                  {chunks}
+                </button>
+              ),
+            })}
           </div>
         )}
         {flowError && <p className="font-body text-xs text-down">{flowError}</p>}
@@ -554,7 +558,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           disabled={isExpired || step === 'signing'}
           onClick={() => void handleConfirmAndSign()}
         >
-          {step === 'signing' ? 'Confirm in your wallet…' : `Confirm & ${side === 'BUY' ? 'buy' : 'sell'}`}
+          {step === 'signing' ? tTrade('confirmInWalletDots') : tTrade(side === 'BUY' ? 'confirmBuy' : 'confirmSell')}
         </Button>
       </Panel>
     );
@@ -640,7 +644,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           disabled={quoteStatus !== 'ready' || !quote}
           onClick={() => void handleOneTap()}
         >
-          {quoteStatus === 'loading' ? 'Getting quote…' : `${side === 'BUY' ? 'Buy' : 'Sell'} now`}
+          {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
         </Button>
       </Panel>
 
@@ -672,7 +676,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           disabled={quoteStatus !== 'ready' || !quote}
           onClick={() => void handleOneTap()}
         >
-          {quoteStatus === 'loading' ? 'Getting quote…' : `Instant ${side === 'BUY' ? 'buy' : 'sell'}`}
+          {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
         </Button>
       </div>
       {/* Keeps the dock from covering the bottom of the form on mobile. */}

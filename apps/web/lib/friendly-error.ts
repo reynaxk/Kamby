@@ -1,19 +1,20 @@
+import { errorText, translateApiMessage, type ErrorKey } from './error-messages';
+
 /**
  * What a user sees when something fails (2026-10-04 audit): never a raw library dump, stack
  * trace, HTTP status or JSON. Wallet libraries (viem, Privy, Solana web3) throw long technical
  * messages ("User rejected the request. Request Arguments: from: 0x… Version: viem@2…"); the
  * API's own messages are already written for people and pass through when they look like it.
+ * Shown in the page's language (lib/error-messages.ts) since 2026-10-09.
  */
-const RULES: { test: RegExp; message: string }[] = [
-  { test: /user (rejected|denied|cancel)|rejected the request|request rejected|cancelled by user|user closed/i, message: 'You cancelled this in your wallet — nothing was sent.' },
-  { test: /insufficient (funds|balance|lamports)|exceeds (the )?balance|not enough (funds|balance)/i, message: 'Not enough balance for this trade.' },
-  { test: /blockhash not found|block height exceeded|transaction expired|expired blockhash/i, message: 'The network took too long and this trade expired — nothing was charged. Please try again.' },
-  { test: /\b429\b|too many requests|rate.?limit/i, message: 'Too many requests right now — wait a few seconds and try again.' },
-  { test: /failed to fetch|networkerror|network request failed|load failed|timed? ?out|timeout|econn|socket hang up/i, message: 'Connection problem — check your internet and try again.' },
-  { test: /\((5\d\d)\)|internal server error|bad gateway|service unavailable/i, message: 'Something went wrong on our side — please try again in a moment.' },
+const RULES: { test: RegExp; key: ErrorKey }[] = [
+  { test: /user (rejected|denied|cancel)|rejected the request|request rejected|cancelled by user|user closed/i, key: 'cancelled' },
+  { test: /insufficient (funds|balance|lamports)|exceeds (the )?balance|not enough (funds|balance)/i, key: 'balance' },
+  { test: /blockhash not found|block height exceeded|transaction expired|expired blockhash/i, key: 'expired' },
+  { test: /\b429\b|too many requests|rate.?limit/i, key: 'rateLimit' },
+  { test: /failed to fetch|networkerror|network request failed|load failed|timed? ?out|timeout|econn|socket hang up/i, key: 'network' },
+  { test: /\((5\d\d)\)|internal server error|bad gateway|service unavailable/i, key: 'server' },
 ];
-
-const FALLBACK = 'Something went wrong — please try again.';
 
 /** Looks like a sentence meant for people: short, one line, no code-ish fragments. */
 function isHumanReadable(message: string): boolean {
@@ -25,12 +26,12 @@ function isHumanReadable(message: string): boolean {
   );
 }
 
-export function friendlyError(err: unknown, fallback = FALLBACK): string {
+export function friendlyError(err: unknown, fallback?: string): string {
   const short =
     err && typeof err === 'object' && 'shortMessage' in err && typeof (err as { shortMessage?: unknown }).shortMessage === 'string'
       ? (err as { shortMessage: string }).shortMessage
       : null;
   const message = short ?? (err instanceof Error ? err.message : typeof err === 'string' ? err : '');
-  for (const rule of RULES) if (rule.test.test(message)) return rule.message;
-  return isHumanReadable(message) ? message : fallback;
+  for (const rule of RULES) if (rule.test.test(message)) return errorText(rule.key);
+  return isHumanReadable(message) ? translateApiMessage(message) : (fallback ?? errorText('fallback'));
 }

@@ -8,6 +8,7 @@ import { cn } from '@kamby/ui';
 import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 import { formatTokenAmount } from '@/lib/solana-mint';
+import { useTranslations } from 'next-intl';
 
 const PERCENT_PRESETS = [25, 50, 100] as const;
 
@@ -34,6 +35,7 @@ export function SplAmountInput({
   symbol: string | null;
   decimals: number | null;
 }) {
+  const tTrade = useTranslations('trade');
   const [balanceRaw, setBalanceRaw] = useState<bigint | null>(null);
   const [text, setText] = useState('');
 
@@ -83,11 +85,11 @@ export function SplAmountInput({
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">Amount ({label})</span>
+        <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: label })}</span>
         {balanceRaw !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
-            Balance:{' '}
+            {tTrade('balance')}{' '}
             <GlowValue value={balanceRaw.toString()} display={formatTokenAmount(balanceRaw.toString(), decimals, symbol)} className="font-mono" />
           </span>
         )}
@@ -127,7 +129,7 @@ export function SplAmountInput({
               'hover:border-accent/60 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
             )}
           >
-            {percent === 100 ? 'Max' : `${percent}%`}
+            {percent === 100 ? tTrade('max') : `${percent}%`}
           </button>
         ))}
       </div>

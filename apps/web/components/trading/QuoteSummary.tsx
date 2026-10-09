@@ -1,5 +1,6 @@
 import type { TradeQuoteDto } from '@kamby/domain';
 import { cn } from '@kamby/ui';
+import { useTranslations } from 'next-intl';
 
 /**
  * Every figure here comes straight from the quote the API returned — see
@@ -7,6 +8,7 @@ import { cn } from '@kamby/ui';
  * what's shown here is exactly what the wallet will be asked to sign.
  */
 export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
+  const tTrade = useTranslations('trade');
   const impactColor =
     quote.priceImpactLevel === 'extreme' ? 'text-down' : quote.priceImpactLevel === 'high' ? 'text-down' : 'text-ink-900';
 
@@ -22,17 +24,17 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
 
   return (
     <dl className="space-y-2 rounded-xl bg-surface-raised p-3 font-body text-sm">
-      <Row label="You pay" value={`${quote.inputAmountFormatted} ${quote.side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol}`} />
-      <Row label="You receive" value={`${quote.expectedOutputAmountFormatted} ${quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol}`} />
-      <Row label="Minimum received" value={`${quote.minOutputAmountFormatted} ${quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol}`} />
+      <Row label={tTrade('youPay')} value={`${quote.inputAmountFormatted} ${quote.side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol}`} />
+      <Row label={tTrade('youReceive')} value={`${quote.expectedOutputAmountFormatted} ${quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol}`} />
+      <Row label={tTrade('minReceived')} value={`${quote.minOutputAmountFormatted} ${quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol}`} />
       <Row
-        label="Price impact"
+        label={tTrade('priceImpact')}
         value={quote.priceImpactBps === null ? '—' : `${(quote.priceImpactBps / 100).toFixed(2)}%`}
         valueClassName={impactColor}
       />
-      <Row label="Slippage tolerance" value={`${(quote.slippageBps / 100).toFixed(quote.slippageBps % 100 === 0 ? 0 : 1)}%`} />
-      <Row label="Kamby fee" value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
-      <Row label="Provider" value={quote.provider} />
+      <Row label={tTrade('slippage')} value={`${(quote.slippageBps / 100).toFixed(quote.slippageBps % 100 === 0 ? 0 : 1)}%`} />
+      <Row label={tTrade('kambyFee')} value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
+      <Row label={tTrade('provider')} value={quote.provider} />
       {quote.requiresApproval && <Row label="Token approval" value="Required before this trade" />}
 
       {quote.feeUnsignedTx && (
