@@ -150,7 +150,7 @@ export class HoldersService {
         const owner = data && 'parsed' in data ? (data.parsed as { info?: { owner?: string } }).info?.owner : undefined;
         return { address: owner ?? a.address.toBase58(), balance: a.uiAmount ?? 0, percent: ((a.uiAmount ?? 0) / total) * 100, isContract: false, tag: null };
       });
-      return { holderCount: null, holders, atIso: new Date().toISOString() };
+      return { holderCount: null, holders: mergeByOwner(holders), atIso: new Date().toISOString() };
     } catch (error) {
       this.logger.warn({ err: error }, 'Solana largest-accounts lookup failed');
       return null;
@@ -170,4 +170,15 @@ export class HoldersService {
       return null;
     }
   }
+}
+
+/** Exported for tests. One row per owner (2026-10-09): Solana's largest *token accounts* can
+ *  include several owned by the same wallet or pool, which showed as duplicate holders. */
+export function mergeByOwner(holders: TokenHolder[]): TokenHolder[] {
+  const byOwner = new Map<string, TokenHolder>();
+  for (const h of holders) {
+    const prev = byOwner.get(h.address);
+    byOwner.set(h.address, prev ? { ...prev, balance: prev.balance + h.balance, percent: prev.percent + h.percent } : h);
+  }
+  return [...byOwner.values()].sort((a, b) => b.balance - a.balance);
 }
