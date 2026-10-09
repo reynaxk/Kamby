@@ -51,7 +51,7 @@ export function TerminalPrimaryNav({
           type="button"
           onClick={() => onChange(tab.id)}
           className={cn(
-            'shrink-0 font-mono text-[0.62rem] font-medium uppercase tracking-tight transition-colors',
+            'shrink-0 font-display text-sm font-semibold transition-colors md:font-mono md:text-[0.62rem] md:font-medium md:uppercase md:tracking-tight',
             activeTab === tab.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-900',
           )}
         >
@@ -195,8 +195,9 @@ export function DiscoverTokenList({
                   setTokenTab(t.id);
                 }}
                 className={cn(
-                  'shrink-0 font-mono text-[0.58rem] uppercase tracking-tight transition-colors',
-                  tokenTab === t.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-600',
+                  // Phones: tappable chips (2026-10-09 app redesign); desktop keeps the compact tabs.
+                  'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
+                  tokenTab === t.id ? 'bg-white/10 text-ink-900 md:bg-transparent' : 'text-ink-400 hover:text-ink-600',
                 )}
               >
                 {tLists(t.id)}
