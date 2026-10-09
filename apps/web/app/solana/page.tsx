@@ -177,7 +177,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               initialTimeframe={timeframe}
               initialCandles={candles}
               timeframes={SOLANA_TIMEFRAMES}
-              className="mt-3 h-[260px] sm:h-[320px]"
+              className="mt-3 h-[360px] sm:h-[400px]"
             />
             <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
               <p className="border-b border-line px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide text-ink-900">Holders</p>
