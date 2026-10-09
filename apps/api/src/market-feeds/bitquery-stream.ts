@@ -5,6 +5,7 @@ import type { PinoLogger } from 'nestjs-pino';
 export interface BitqueryTick {
   /** Token address as Bitquery reports it (EVM lowercased by the caller's matching). */
   address: string;
+  /** '*' — the price aggregates every pool of the coin (Trading.Tokens). */
   pool: string;
   priceUsd: number;
   blockTimeMs: number;
@@ -22,8 +23,9 @@ const MAX_TOKENS = 200;
 /**
  * Bitquery's live price stream (2026-10-08, after a trial measured 0.5s median from block to
  * arrival vs DexScreener's polled ~1.5-3s). One websocket for the coins anyone is viewing right
- * now: `Trading.Pairs` 1-second candles, quoted in USD, every pool of each coin — the caller picks
- * the coin's chart pool. The socket is closed whenever nobody is watching anything (stream-minutes
+ * now: `Trading.Tokens` 1-second closes in USD, aggregated over every pool of each coin (2026-10-09:
+ * the per-pool `Trading.Pairs` stream barely moved on Solana, where a coin's trades are spread over
+ * PumpSwap, Meteora and Raydium pools; the owner compared both live and chose this). The socket is closed whenever nobody is watching anything (stream-minutes
  * are billed while it's open), and treated as down after SILENCE_MS without data so the polled
  * sources take over at once. Off unless BITQUERY_API_KEY is set.
  */
@@ -121,7 +123,7 @@ export class BitqueryPriceStream {
   }
 
   private handle(text: string): void {
-    let message: { type?: string; payload?: { data?: { Trading?: { Pairs?: unknown[] } } } & Record<string, unknown> };
+    let message: { type?: string; payload?: { data?: { Trading?: unknown } } & Record<string, unknown> };
     try {
       message = JSON.parse(text);
     } catch {
@@ -140,13 +142,12 @@ export class BitqueryPriceStream {
     if (message.type !== 'data') return;
     this.lastDataAt = Date.now();
     this.armSilence();
-    for (const row of message.payload?.data?.Trading?.Pairs ?? []) {
-      const r = row as { Token?: { Address?: string }; Market?: { Address?: string }; Price?: { Ohlc?: { Close?: number } }; Block?: { Time?: string } };
+    for (const row of (message.payload?.data?.Trading as { Tokens?: unknown[] } | undefined)?.Tokens ?? []) {
+      const r = row as { Token?: { Address?: string }; Price?: { Ohlc?: { Close?: number } }; Block?: { Time?: string } };
       const priceUsd = r.Price?.Ohlc?.Close;
       const address = r.Token?.Address;
-      const pool = r.Market?.Address;
-      if (!address || !pool || typeof priceUsd !== 'number' || !(priceUsd > 0)) continue;
-      this.onTick({ address, pool, priceUsd, blockTimeMs: Date.parse(r.Block?.Time ?? '') || Date.now() });
+      if (!address || typeof priceUsd !== 'number' || !(priceUsd > 0)) continue;
+      this.onTick({ address, pool: '*', priceUsd, blockTimeMs: Date.parse(r.Block?.Time ?? '') || Date.now() });
     }
   }
 
@@ -160,9 +161,8 @@ export class BitqueryPriceStream {
     this.subscribedKey = key;
     const query = `subscription {
   Trading {
-    Pairs(where: { Token: { Address: { in: ${JSON.stringify(this.tokens)} } }, Interval: { Time: { Duration: { eq: 1 } } }, Price: { IsQuotedInUsd: true } }) {
+    Tokens(where: { Token: { Address: { in: ${JSON.stringify(this.tokens)} } }, Interval: { Time: { Duration: { eq: 1 } } } }) {
       Token { Address }
-      Market { Address }
       Price { Ohlc { Close } }
       Block { Time }
     }

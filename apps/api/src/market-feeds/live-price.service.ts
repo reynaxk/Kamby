@@ -293,12 +293,14 @@ export class LivePriceService implements OnModuleDestroy {
     const key = this.key(entry.chain, entry.address);
     const main = this.mainPool.get(key);
     const current = this.latest.get(key);
-    if (main) {
+    if (tick.pool !== '*' && main) {
       if (main.toLowerCase() !== tick.pool.toLowerCase()) return;
     } else if (current && Math.abs(tick.priceUsd / current.priceUsd - 1) > 0.2) {
+      // An all-pools price far from the polled one is an outlier, not a 20% move in a second.
       return;
     }
-    this.latest.set(key, { priceUsd: tick.priceUsd, atIso: new Date().toISOString(), poolAddress: tick.pool });
+    // poolAddress stays the chart pool's, so the chart keeps reading one market.
+    this.latest.set(key, { priceUsd: tick.priceUsd, atIso: new Date().toISOString(), ...(main ? { poolAddress: main } : tick.pool !== '*' ? { poolAddress: tick.pool } : {}) });
     this.bitqueryAt.set(key, Date.now());
     if (this.keyTicks.observed) this.keyTicks.next(key);
   }
