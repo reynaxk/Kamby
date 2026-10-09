@@ -148,5 +148,24 @@
     "noHolders": "Chưa có dữ liệu holder cho coin này — quay lại sau ít phút.",
     "holdersTop": "{count} holder · top {top}",
     "holders": "Holder"
+  },
+  "fund": {
+    "network": "Mạng",
+    "buyUsdc": "Mua USDC",
+    "deposit": "Nạp tiền",
+    "loading": "Đang tải…",
+    "signInToDeposit": "Đăng nhập để nạp",
+    "depositUsdc": "Nạp USDC",
+    "depositUsdcDetail": "Từ ví khác hoặc sàn — trên Base, BNB Chain hoặc Solana.",
+    "buyWithCard": "Mua bằng Apple Pay, Google Pay hoặc thẻ",
+    "buyWithCardDetail": "Thanh toán bằng tiền của bạn; USDC vào thẳng ví Kamby.",
+    "settingUpSolana": "Đang thiết lập ví Solana…",
+    "opening": "Đang mở…",
+    "continue": "Tiếp tục",
+    "tryAgain": "Thử lại",
+    "close": "Đóng",
+    "copied": "Đã sao chép!",
+    "copyAddress": "Sao chép địa chỉ",
+    "sendOnly": "Chỉ gửi <b>USDC</b> trên mạng <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất."
   }
 }

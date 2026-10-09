@@ -12,6 +12,7 @@ import { fetchEvmChainConfigs } from '@/lib/market-client';
 import { assetsForChain, SEND_CHAINS, type SendChainOption, type SendChainSlug } from '@/lib/send';
 import { TradeModal } from '../trading/TradeModal';
 import { ConnectWalletButton } from './ConnectWalletButton';
+import { useTranslations } from 'next-intl';
 
 type Step = 'choose' | 'deposit' | 'buy' | 'error';
 
@@ -30,6 +31,7 @@ const SOLANA_FUND_CHAIN = 'solana:mainnet';
  * Funding); if they aren't, `addFunds` fails and the error step says so.
  */
 export function FundModal({ open, onClose, initialChain }: { open: boolean; onClose: () => void; initialChain?: SendChainSlug }) {
+  const tF = useTranslations('fund');
   const { ready, authenticated, login } = usePrivy();
   const { address: evmAddress, chainId: evmChainId } = useAccount();
   const { wallets: solanaWallets } = useSolanaWallets();
@@ -89,7 +91,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
 
   const networkPicker = (
     <div>
-      <div className="font-body text-xs text-ink-600">Network</div>
+      <div className="font-body text-xs text-ink-600">{tF('network')}</div>
       <div className="mt-1.5 flex gap-1.5">
         {SEND_CHAINS.map((c) => (
           <button
@@ -119,24 +121,24 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
   return (
     <TradeModal open={open} onClose={close}>
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-base font-bold text-ink-900">{step === 'buy' ? 'Buy USDC' : 'Deposit'}</h2>
+        <h2 className="font-display text-base font-bold text-ink-900">{step === 'buy' ? tF('buyUsdc') : tF('deposit')}</h2>
         <button type="button" onClick={close} className="font-body text-sm text-ink-400 hover:text-ink-900">
-          Close
+          {tF('close')}
         </button>
       </div>
 
       {!authenticated ? (
         <div className="mt-4">
           <Button type="button" className="w-full" disabled={!ready} onClick={() => login()}>
-            {!ready ? 'Loading…' : 'Sign in to deposit'}
+            {!ready ? tF('loading') : tF('signInToDeposit')}
           </Button>
         </div>
       ) : step === 'choose' ? (
         <div className="mt-4 flex flex-col gap-2">
-          <MethodButton title="Deposit USDC" detail="From another wallet or an exchange — on Base, BNB Chain or Solana." onClick={() => setStep('deposit')} />
+          <MethodButton title={tF('depositUsdc')} detail={tF('depositUsdcDetail')} onClick={() => setStep('deposit')} />
           <MethodButton
-            title="Buy with Apple Pay, Google Pay or card"
-            detail="Pay in your own currency; USDC lands straight in your Kamby wallet."
+            title={tF('buyWithCard')}
+            detail={tF('buyWithCardDetail')}
             onClick={() => setStep('buy')}
           />
         </div>
@@ -157,7 +159,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
             chain.kind === 'evm' ? (
               <ConnectWalletButton expectedChainId={chain.evmChainId} />
             ) : (
-              <p className="font-body text-sm text-ink-600">Setting up your Solana wallet…</p>
+              <p className="font-body text-sm text-ink-600">{tF('settingUpSolana')}</p>
             )
           ) : (
             <>
@@ -166,7 +168,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
                 flow; USDC arrives in your {chain.name} wallet.
               </p>
               <Button type="button" className="w-full" disabled={submitting || !usdc?.address} onClick={() => void startFunding()}>
-                {submitting ? 'Opening…' : 'Continue'}
+                {submitting ? tF('opening') : tF('continue')}
               </Button>
             </>
           )}
@@ -178,10 +180,10 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           <div className="flex w-full gap-2">
             <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep('buy')}>
-              Try again
+              {tF('tryAgain')}
             </Button>
             <Button type="button" className="flex-1" onClick={close}>
-              Close
+              {tF('close')}
             </Button>
           </div>
         </div>
@@ -201,6 +203,7 @@ function MethodButton({ title, detail, onClick }: { title: string; detail: strin
 
 /** This wallet's own address for the picked network: text, a QR code and a copy button. */
 function DepositAddress({ address, networkName }: { address: string; networkName: string }) {
+  const tF = useTranslations('fund');
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -231,11 +234,10 @@ function DepositAddress({ address, networkName }: { address: string; networkName
           });
         }}
       >
-        {copied ? 'Copied!' : 'Copy address'}
+        {copied ? tF('copied') : tF('copyAddress')}
       </Button>
       <p className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 font-body text-xs text-ink-900">
-        Send only <span className="font-semibold">USDC</span> on <span className="font-semibold">{networkName}</span> to this address.
-        Other coins or networks can be lost.
+        {tF.rich('sendOnly', { network: networkName, b: (chunks) => <span className="font-semibold">{chunks}</span> })}
       </p>
     </div>
   );

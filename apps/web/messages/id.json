@@ -148,5 +148,24 @@
     "noHolders": "Belum ada data holder untuk koin ini — cek lagi sebentar.",
     "holdersTop": "{count} holder · top {top}",
     "holders": "Holder"
+  },
+  "fund": {
+    "network": "Jaringan",
+    "buyUsdc": "Beli USDC",
+    "deposit": "Setor",
+    "loading": "Memuat…",
+    "signInToDeposit": "Masuk untuk setor",
+    "depositUsdc": "Setor USDC",
+    "depositUsdcDetail": "Dari wallet lain atau exchange — di Base, BNB Chain atau Solana.",
+    "buyWithCard": "Beli dengan Apple Pay, Google Pay atau kartu",
+    "buyWithCardDetail": "Bayar dengan mata uangmu; USDC langsung masuk ke wallet Kamby.",
+    "settingUpSolana": "Menyiapkan wallet Solana…",
+    "opening": "Membuka…",
+    "continue": "Lanjut",
+    "tryAgain": "Coba lagi",
+    "close": "Tutup",
+    "copied": "Tersalin!",
+    "copyAddress": "Salin alamat",
+    "sendOnly": "Kirim hanya <b>USDC</b> di jaringan <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang."
   }
 }

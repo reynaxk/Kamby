@@ -148,5 +148,24 @@
     "noHolders": "Noch keine Holder-Daten für diesen Coin — schau gleich wieder vorbei.",
     "holdersTop": "{count} Holder · Top {top}",
     "holders": "Holder"
+  },
+  "fund": {
+    "network": "Netzwerk",
+    "buyUsdc": "USDC kaufen",
+    "deposit": "Einzahlen",
+    "loading": "Lädt…",
+    "signInToDeposit": "Zum Einzahlen anmelden",
+    "depositUsdc": "USDC einzahlen",
+    "depositUsdcDetail": "Von einer anderen Wallet oder Börse — auf Base, BNB Chain oder Solana.",
+    "buyWithCard": "Mit Apple Pay, Google Pay oder Karte kaufen",
+    "buyWithCardDetail": "Zahle in deiner Währung; USDC landet direkt in deiner Kamby-Wallet.",
+    "settingUpSolana": "Deine Solana-Wallet wird eingerichtet…",
+    "opening": "Wird geöffnet…",
+    "continue": "Weiter",
+    "tryAgain": "Erneut versuchen",
+    "close": "Schließen",
+    "copied": "Kopiert!",
+    "copyAddress": "Adresse kopieren",
+    "sendOnly": "Sende nur <b>USDC</b> auf <b>{network}</b> an diese Adresse. Andere Coins oder Netzwerke können verloren gehen."
   }
 }

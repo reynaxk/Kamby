@@ -148,5 +148,24 @@
     "noHolders": "아직 이 코인의 홀더 데이터가 없습니다 — 잠시 후 다시 확인하세요.",
     "holdersTop": "홀더 {count}명 · 상위 {top}",
     "holders": "홀더"
+  },
+  "fund": {
+    "network": "네트워크",
+    "buyUsdc": "USDC 구매",
+    "deposit": "입금",
+    "loading": "로딩 중…",
+    "signInToDeposit": "로그인하고 입금",
+    "depositUsdc": "USDC 입금",
+    "depositUsdcDetail": "다른 지갑이나 거래소에서 — Base, BNB Chain 또는 Solana.",
+    "buyWithCard": "Apple Pay, Google Pay 또는 카드로 구매",
+    "buyWithCardDetail": "내 통화로 결제하면 USDC가 바로 Kamby 지갑에 들어옵니다.",
+    "settingUpSolana": "Solana 지갑 설정 중…",
+    "opening": "여는 중…",
+    "continue": "계속",
+    "tryAgain": "다시 시도",
+    "close": "닫기",
+    "copied": "복사됨!",
+    "copyAddress": "주소 복사",
+    "sendOnly": "이 주소로는 <b>{network}</b>의 <b>USDC</b>만 보내세요. 다른 코인이나 네트워크는 잃을 수 있습니다."
   }
 }

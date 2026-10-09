@@ -148,5 +148,24 @@
     "noHolders": "このコインのホルダーデータはまだありません。少し後でご確認ください。",
     "holdersTop": "ホルダー {count} · 上位 {top}",
     "holders": "ホルダー"
+  },
+  "fund": {
+    "network": "ネットワーク",
+    "buyUsdc": "USDC を購入",
+    "deposit": "入金",
+    "loading": "読み込み中…",
+    "signInToDeposit": "ログインして入金",
+    "depositUsdc": "USDC を入金",
+    "depositUsdcDetail": "他のウォレットや取引所から — Base、BNB Chain、Solana に対応。",
+    "buyWithCard": "Apple Pay・Google Pay・カードで購入",
+    "buyWithCardDetail": "自国通貨で支払うと USDC が Kamby ウォレットに直接届きます。",
+    "settingUpSolana": "Solana ウォレットを設定中…",
+    "opening": "開いています…",
+    "continue": "続ける",
+    "tryAgain": "もう一度試す",
+    "close": "閉じる",
+    "copied": "コピーしました！",
+    "copyAddress": "アドレスをコピー",
+    "sendOnly": "このアドレスには <b>{network}</b> の <b>USDC</b> だけを送ってください。他のコインやネットワークは失われる可能性があります。"
   }
 }

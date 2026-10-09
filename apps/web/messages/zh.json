@@ -148,5 +148,24 @@
     "noHolders": "暂无该币持有人数据，请稍后再看。",
     "holdersTop": "{count} 位持有人 · 前 {top}",
     "holders": "持有人"
+  },
+  "fund": {
+    "network": "网络",
+    "buyUsdc": "购买 USDC",
+    "deposit": "充值",
+    "loading": "加载中…",
+    "signInToDeposit": "登录后充值",
+    "depositUsdc": "充值 USDC",
+    "depositUsdcDetail": "从其他钱包或交易所转入 — 支持 Base、BNB Chain 或 Solana。",
+    "buyWithCard": "用 Apple Pay、Google Pay 或银行卡购买",
+    "buyWithCardDetail": "用你的本地货币支付，USDC 直接到账 Kamby 钱包。",
+    "settingUpSolana": "正在设置你的 Solana 钱包…",
+    "opening": "打开中…",
+    "continue": "继续",
+    "tryAgain": "重试",
+    "close": "关闭",
+    "copied": "已复制！",
+    "copyAddress": "复制地址",
+    "sendOnly": "请只向此地址发送 <b>{network}</b> 上的 <b>USDC</b>。其他币种或网络可能会丢失。"
   }
 }

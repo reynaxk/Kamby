@@ -148,5 +148,24 @@
     "noHolders": "Bu coin için henüz sahip verisi yok — birazdan tekrar bak.",
     "holdersTop": "{count} sahip · ilk {top}",
     "holders": "Sahipler"
+  },
+  "fund": {
+    "network": "Ağ",
+    "buyUsdc": "USDC satın al",
+    "deposit": "Yatır",
+    "loading": "Yükleniyor…",
+    "signInToDeposit": "Yatırmak için giriş yap",
+    "depositUsdc": "USDC yatır",
+    "depositUsdcDetail": "Başka bir cüzdandan ya da borsadan — Base, BNB Chain veya Solana’da.",
+    "buyWithCard": "Apple Pay, Google Pay ya da kartla al",
+    "buyWithCardDetail": "Kendi para biriminle öde; USDC doğrudan Kamby cüzdanına gelir.",
+    "settingUpSolana": "Solana cüzdanın hazırlanıyor…",
+    "opening": "Açılıyor…",
+    "continue": "Devam",
+    "tryAgain": "Tekrar dene",
+    "close": "Kapat",
+    "copied": "Kopyalandı!",
+    "copyAddress": "Adresi kopyala",
+    "sendOnly": "Bu adrese sadece <b>{network}</b> ağında <b>USDC</b> gönder. Diğer coinler ya da ağlar kaybolabilir."
   }
 }

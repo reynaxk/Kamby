@@ -148,5 +148,24 @@
     "noHolders": "Още няма данни за притежателите — провери след минута.",
     "holdersTop": "{count} притежатели · топ {top}",
     "holders": "Притежатели"
+  },
+  "fund": {
+    "network": "Мрежа",
+    "buyUsdc": "Купи USDC",
+    "deposit": "Депозит",
+    "loading": "Зарежда…",
+    "signInToDeposit": "Влез, за да депозираш",
+    "depositUsdc": "Депозирай USDC",
+    "depositUsdcDetail": "От друг портфейл или борса — в Base, BNB Chain или Solana.",
+    "buyWithCard": "Купи с Apple Pay, Google Pay или карта",
+    "buyWithCardDetail": "Плащаш в своята валута; USDC идват директно в портфейла ти в Kamby.",
+    "settingUpSolana": "Подготвяме Solana портфейла ти…",
+    "opening": "Отваряне…",
+    "continue": "Продължи",
+    "tryAgain": "Опитай пак",
+    "close": "Затвори",
+    "copied": "Копирано!",
+    "copyAddress": "Копирай адреса",
+    "sendOnly": "Изпращай на този адрес само <b>USDC</b> в мрежата <b>{network}</b>. Други монети или мрежи може да бъдат загубени."
   }
 }

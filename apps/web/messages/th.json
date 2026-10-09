@@ -148,5 +148,24 @@
     "noHolders": "ยังไม่มีข้อมูลผู้ถือเหรียญนี้ — ลองดูใหม่อีกสักครู่",
     "holdersTop": "ผู้ถือ {count} · อันดับ {top}",
     "holders": "ผู้ถือ"
+  },
+  "fund": {
+    "network": "เครือข่าย",
+    "buyUsdc": "ซื้อ USDC",
+    "deposit": "ฝากเงิน",
+    "loading": "กำลังโหลด…",
+    "signInToDeposit": "เข้าสู่ระบบเพื่อฝาก",
+    "depositUsdc": "ฝาก USDC",
+    "depositUsdcDetail": "จากวอลเล็ตอื่นหรือกระดานเทรด — บน Base, BNB Chain หรือ Solana",
+    "buyWithCard": "ซื้อด้วย Apple Pay, Google Pay หรือบัตร",
+    "buyWithCardDetail": "จ่ายด้วยสกุลเงินของคุณ USDC เข้าวอลเล็ต Kamby โดยตรง",
+    "settingUpSolana": "กำลังตั้งค่าวอลเล็ต Solana…",
+    "opening": "กำลังเปิด…",
+    "continue": "ต่อไป",
+    "tryAgain": "ลองอีกครั้ง",
+    "close": "ปิด",
+    "copied": "คัดลอกแล้ว!",
+    "copyAddress": "คัดลอกที่อยู่",
+    "sendOnly": "ส่งเฉพาะ <b>USDC</b> บนเครือข่าย <b>{network}</b> มาที่อยู่นี้ เหรียญหรือเครือข่ายอื่นอาจสูญหายได้"
   }
 }

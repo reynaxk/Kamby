@@ -148,5 +148,24 @@
     "noHolders": "Пока нет данных о держателях — загляните через минуту.",
     "holdersTop": "{count} держателей · топ {top}",
     "holders": "Держатели"
+  },
+  "fund": {
+    "network": "Сеть",
+    "buyUsdc": "Купить USDC",
+    "deposit": "Пополнить",
+    "loading": "Загрузка…",
+    "signInToDeposit": "Войдите, чтобы пополнить",
+    "depositUsdc": "Пополнить USDC",
+    "depositUsdcDetail": "С другого кошелька или биржи — в сетях Base, BNB Chain или Solana.",
+    "buyWithCard": "Купить через Apple Pay, Google Pay или картой",
+    "buyWithCardDetail": "Платите в своей валюте — USDC придут прямо в кошелёк Kamby.",
+    "settingUpSolana": "Настраиваем ваш Solana-кошелёк…",
+    "opening": "Открываем…",
+    "continue": "Продолжить",
+    "tryAgain": "Повторить",
+    "close": "Закрыть",
+    "copied": "Скопировано!",
+    "copyAddress": "Скопировать адрес",
+    "sendOnly": "Отправляйте на этот адрес только <b>USDC</b> в сети <b>{network}</b>. Другие монеты или сети могут быть потеряны."
   }
 }
