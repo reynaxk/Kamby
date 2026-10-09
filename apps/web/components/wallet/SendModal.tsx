@@ -137,6 +137,7 @@ function useSolanaNativeBalance(solanaAddress: string | undefined): bigint | nul
  */
 export function SendModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const tW = useTranslations('wallet');
+  const tAuth = useTranslations('auth');
   const { ready, authenticated, login } = usePrivy();
   const { address: evmAddress, chainId: evmChainId } = useAccount();
   const { wallets: solanaWallets } = useSolanaWallets();
@@ -345,7 +346,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
               <ConnectWalletButton expectedChainId={chain.evmChainId} />
             ) : (
               <Button type="button" className="w-full" disabled={!ready || authenticated} onClick={() => login()}>
-                {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
+                {!ready ? tAuth('loading') : authenticated ? tAuth('settingUp') : tAuth('signIn')}
               </Button>
             )
           ) : (

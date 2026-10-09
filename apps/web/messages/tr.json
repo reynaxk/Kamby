@@ -175,5 +175,12 @@
     "beFirst": "Tabloda ilk sen ol.",
     "beFirstSub": "Trader’lar Kamby’deki işlemlerin gerçek kârına göre sıralanır — al, sat, adın buraya çıksın.",
     "goTrade": "İşleme başla"
+  },
+  "auth": {
+    "loading": "Yükleniyor…",
+    "settingUp": "Cüzdanın hazırlanıyor…",
+    "signIn": "Giriş yap",
+    "signInToTrade": "İşlem yapmak için giriş yap — Kamby senin için otomatik cüzdan oluşturur, eklenti ya da seed phrase gerekmez. Paranı asla tutmaz, senin yerine imza atmaz.",
+    "searchPlaceholder": "Token ya da trader ara…"
   }
 }

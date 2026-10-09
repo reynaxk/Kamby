@@ -175,5 +175,12 @@
     "beFirst": "Soyez le premier du classement.",
     "beFirstSub": "Les traders sont classés selon le profit réel de leurs trades sur Kamby — achetez, vendez, et votre nom apparaît ici.",
     "goTrade": "Trader maintenant"
+  },
+  "auth": {
+    "loading": "Chargement…",
+    "settingUp": "Configuration de votre wallet…",
+    "signIn": "Se connecter",
+    "signInToTrade": "Connectez-vous pour trader — Kamby crée un wallet automatiquement, sans extension ni phrase de récupération. Kamby ne détient jamais vos fonds et ne signe jamais à votre place.",
+    "searchPlaceholder": "Rechercher des tokens ou des traders…"
   }
 }

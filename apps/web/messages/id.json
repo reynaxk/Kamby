@@ -175,5 +175,12 @@
     "beFirst": "Jadilah yang pertama di papan.",
     "beFirstSub": "Trader diurutkan berdasarkan profit nyata dari trading di Kamby — beli, jual, dan namamu muncul di sini.",
     "goTrade": "Mulai trading"
+  },
+  "auth": {
+    "loading": "Memuat…",
+    "settingUp": "Menyiapkan wallet…",
+    "signIn": "Masuk",
+    "signInToTrade": "Masuk untuk trading — Kamby otomatis membuat wallet untukmu, tanpa ekstensi atau seed phrase. Kamby tidak pernah menyimpan dana atau menandatangani atas namamu.",
+    "searchPlaceholder": "Cari token atau trader…"
   }
 }

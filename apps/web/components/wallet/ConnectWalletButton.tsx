@@ -9,6 +9,7 @@ import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { ProfileMenu } from '@/components/account/ProfileMenu';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS, WALLET_SETUP_SLOW_MS } from '@/lib/embedded-wallet-creation';
+import { useTranslations } from 'next-intl';
 
 /**
  * Phase 3 — see docs/TRADING.md#wallet-connectivity. Exposes exactly what the trading flow
@@ -95,6 +96,7 @@ export function ConnectWalletButton({
    *  forth, a stuck "Switching…" (found again 2026-10-03 once Trending mixed chains). */
   enforceChain?: boolean;
 } = {}) {
+  const tAuth = useTranslations('auth');
   const { ready, authenticated, login, logout } = usePrivy();
   const { address, isConnected, chainId } = useAccount();
   const expectedChainSlug = slugForChainId(expectedChainId);
@@ -155,7 +157,7 @@ export function ConnectWalletButton({
     return (
       <div className="flex flex-col items-end gap-1">
         <Button type="button" variant="primary" disabled={!ready || authenticated} onClick={() => login()}>
-          {!ready ? 'Loading…' : authenticated ? 'Setting up your wallet…' : 'Sign in'}
+          {!ready ? tAuth('loading') : authenticated ? tAuth('settingUp') : tAuth('signIn')}
         </Button>
         {walletSetupError ? (
           <button

@@ -175,5 +175,12 @@
     "beFirst": "Sei der Erste in der Liste.",
     "beFirstSub": "Trader werden nach echtem Gewinn aus Trades über Kamby gewertet — kaufen, verkaufen, und dein Name steht hier.",
     "goTrade": "Jetzt handeln"
+  },
+  "auth": {
+    "loading": "Lädt…",
+    "settingUp": "Deine Wallet wird eingerichtet…",
+    "signIn": "Anmelden",
+    "signInToTrade": "Melde dich zum Handeln an — Kamby erstellt automatisch eine Wallet für dich, ohne Erweiterung oder Seed-Phrase. Kamby verwahrt nie dein Geld und signiert nie für dich.",
+    "searchPlaceholder": "Token oder Trader suchen…"
   }
 }

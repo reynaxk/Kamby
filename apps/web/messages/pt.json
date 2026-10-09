@@ -175,5 +175,12 @@
     "beFirst": "Seja o primeiro do ranking.",
     "beFirstSub": "Traders são ordenados pelo lucro real das operações na Kamby — compre, venda e seu nome aparece aqui.",
     "goTrade": "Negociar agora"
+  },
+  "auth": {
+    "loading": "Carregando…",
+    "settingUp": "Configurando sua carteira…",
+    "signIn": "Entrar",
+    "signInToTrade": "Entre para negociar — a Kamby cria uma carteira para você automaticamente, sem extensão ou frase-semente. Ela nunca guarda seus fundos nem assina por você.",
+    "searchPlaceholder": "Buscar tokens ou traders…"
   }
 }

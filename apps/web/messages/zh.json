@@ -175,5 +175,12 @@
     "beFirst": "成为榜上第一人。",
     "beFirstSub": "交易员按在 Kamby 上交易的真实利润排名 — 买入、卖出，你的名字就会出现在这里。",
     "goTrade": "去交易"
+  },
+  "auth": {
+    "loading": "加载中…",
+    "settingUp": "正在设置你的钱包…",
+    "signIn": "登录",
+    "signInToTrade": "登录即可交易 — Kamby 会自动为你创建钱包，无需插件或助记词。Kamby 从不托管你的资金，也不会替你签名。",
+    "searchPlaceholder": "搜索代币或交易员…"
   }
 }

@@ -175,5 +175,12 @@
     "beFirst": "Be the first on the board.",
     "beFirstSub": "Traders are ranked by real profit on trades made through Kamby — buy, sell, and your name goes up here.",
     "goTrade": "Go Trade"
+  },
+  "auth": {
+    "loading": "Loading…",
+    "settingUp": "Setting up your wallet…",
+    "signIn": "Sign in",
+    "signInToTrade": "Sign in to trade — Kamby creates a wallet for you automatically, no extension or seed phrase needed. It never holds your funds or signs on your behalf.",
+    "searchPlaceholder": "Search for tokens or traders..."
   }
 }

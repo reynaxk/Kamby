@@ -8,6 +8,7 @@ import { fetchSearchResults } from '@/lib/market-client';
 import { formatPrice } from '@/lib/format';
 import { TokenIdentity } from './TokenIdentity';
 import { WatchButton } from './WatchButton';
+import { useTranslations } from 'next-intl';
 
 const DEBOUNCE_MS = 250;
 
@@ -23,6 +24,7 @@ const DEBOUNCE_MS = 250;
  * keystroke.
  */
 export function SearchBar({ defaultValue }: { defaultValue?: string }) {
+  const tAuth = useTranslations('auth');
   const router = useRouter();
   const [value, setValue] = useState(defaultValue ?? '');
   const [results, setResults] = useState<MarketSummary[]>([]);
@@ -106,7 +108,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
           id="market-search"
           name="search"
           type="text"
-          placeholder="Search for tokens or traders..."
+          placeholder={tAuth('searchPlaceholder')}
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
