@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "选择代币",
     "buy": "买入",
-    "sell": "卖出"
+    "sell": "卖出",
+    "browse": "浏览",
+    "trade": "交易",
+    "tokens": "代币"
   },
   "language": {
     "label": "语言"
@@ -129,5 +132,21 @@
     "f3Body": "无需确认页面，为高频快速剥头皮而生。",
     "loading": "加载中…",
     "openTerminal": "打开终端"
+  },
+  "coin": {
+    "price": "价格",
+    "mcap": "市值",
+    "vol24h": "24h 成交额",
+    "liquidity": "流动性",
+    "trades24h": "24h 交易",
+    "buys": "{n} 买入",
+    "sells": "{n} 卖出",
+    "fdv": "完全稀释估值",
+    "age": "上线",
+    "vol": "量",
+    "loadingHolders": "加载持有人…",
+    "noHolders": "暂无该币持有人数据，请稍后再看。",
+    "holdersTop": "{count} 位持有人 · 前 {top}",
+    "holders": "持有人"
   }
 }

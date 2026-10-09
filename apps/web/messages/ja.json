@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "トークンを選択",
     "buy": "買う",
-    "sell": "売る"
+    "sell": "売る",
+    "browse": "探す",
+    "trade": "取引",
+    "tokens": "トークン"
   },
   "language": {
     "label": "言語"
@@ -129,5 +132,21 @@
     "f3Body": "確認画面なし。高速・高頻度のスキャルピングのために設計。",
     "loading": "読み込み中…",
     "openTerminal": "ターミナルを開く"
+  },
+  "coin": {
+    "price": "価格",
+    "mcap": "時価総額",
+    "vol24h": "24h 出来高",
+    "liquidity": "流動性",
+    "trades24h": "24h 取引",
+    "buys": "買い {n}",
+    "sells": "売り {n}",
+    "fdv": "FDV",
+    "age": "経過",
+    "vol": "出来高",
+    "loadingHolders": "ホルダーを読み込み中…",
+    "noHolders": "このコインのホルダーデータはまだありません。少し後でご確認ください。",
+    "holdersTop": "ホルダー {count} · 上位 {top}",
+    "holders": "ホルダー"
   }
 }

@@ -113,7 +113,7 @@ export function KambyTerminal({
               onClick={() => setTrenchesOpen(true)}
               className="rounded-lg border border-line bg-surface px-3 py-2 font-display text-sm font-semibold text-ink-900"
             >
-              Browse
+              {tTerminal('browse')}
             </button>
             <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
               {cashtag(market.symbol ?? 'Token')}
@@ -166,13 +166,13 @@ export function KambyTerminal({
             <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
           </div>
 
-          <MobileDrawer open={trenchesOpen} onClose={() => setTrenchesOpen(false)} title="Browse">
+          <MobileDrawer open={trenchesOpen} onClose={() => setTrenchesOpen(false)} title={tTerminal('browse')}>
             <div className="h-[70vh]">
               <TerminalLeftRail />
             </div>
           </MobileDrawer>
 
-          <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title="Trade">
+          <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title={tTerminal('trade')}>
             {tradePanel}
           </MobileDrawer>
           <div className="h-20" aria-hidden />

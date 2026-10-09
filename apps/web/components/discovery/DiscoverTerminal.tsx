@@ -473,7 +473,7 @@ export function DiscoverTerminal({
           </div>
         )}
 
-        <MobileDrawer open={tokenListOpen} onClose={() => setTokenListOpen(false)} title="Tokens">
+        <MobileDrawer open={tokenListOpen} onClose={() => setTokenListOpen(false)} title={tTerminal('tokens')}>
           <div className="h-[70vh]">
             <DiscoverTokenList
               feeds={feeds}
@@ -487,7 +487,7 @@ export function DiscoverTerminal({
           </div>
         </MobileDrawer>
 
-        <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title="Trade">
+        <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title={tTerminal('trade')}>
           {canTrade && selected && chainId !== null ? (
             <TradePanelCard
               key={`${selectedKey ?? ''}:${tradeSide}`}

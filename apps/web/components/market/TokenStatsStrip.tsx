@@ -4,6 +4,7 @@ import { cn } from '@kamby/ui';
 import { formatCompactUsd } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
 import { useTokenStats } from '@/lib/use-live-price';
+import { useTranslations } from 'next-intl';
 
 /**
  * A coin's trading stats under its header (user request 2026-10-07: "more info on every coin,
@@ -12,6 +13,7 @@ import { useTokenStats } from '@/lib/use-live-price';
  * refreshes every few seconds. Renders nothing until the first stats arrive.
  */
 export function TokenStatsStrip({ source, className }: { source: ChartSource | null; className?: string }) {
+  const tC = useTranslations('coin');
   const stats = useTokenStats(source);
   if (!stats) return null;
   const { buys, sells } = stats.txns24h;
@@ -25,19 +27,19 @@ export function TokenStatsStrip({ source, className }: { source: ChartSource | n
       ))}
       <div className="col-span-3 rounded-xl border border-line bg-surface-raised/60 px-3 py-2 lg:col-span-1">
         <div className="flex items-center justify-between font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
-          <span>24h trades</span>
+          <span>{tC('trades24h')}</span>
           <span className="tabular-nums">{total.toLocaleString('en-US')}</span>
         </div>
         <div className="mt-1.5 flex h-1.5 overflow-hidden rounded-full bg-down/70" aria-hidden="true">
           <div className="h-full rounded-full bg-up" style={{ width: `${buyShare}%` }} />
         </div>
         <div className="mt-1 flex items-center justify-between font-mono text-[0.68rem] tabular-nums">
-          <span className="text-up">{buys.toLocaleString('en-US')} buys</span>
-          <span className="text-down">{sells.toLocaleString('en-US')} sells</span>
+          <span className="text-up">{tC('buys', { n: buys.toLocaleString('en-US') })}</span>
+          <span className="text-down">{tC('sells', { n: sells.toLocaleString('en-US') })}</span>
         </div>
         <div className="mt-1 flex items-center justify-between font-mono text-[0.6rem] text-ink-400">
-          <span>FDV {formatCompactUsd(stats.fdvUsd)}</span>
-          <span>Age {formatAge(stats.pairCreatedAtMs)}</span>
+          <span>{tC('fdv')} {formatCompactUsd(stats.fdvUsd)}</span>
+          <span>{tC('age')} {formatAge(stats.pairCreatedAtMs)}</span>
         </div>
       </div>
     </div>
@@ -52,6 +54,7 @@ function formatVolume(value: number): string {
 }
 
 function Change({ label, value: raw, volume }: { label: string; value: number | null; volume: number }) {
+  const tC = useTranslations('coin');
   // No trades in the window means no move, not missing data.
   const value = raw === null && volume === 0 ? 0 : raw;
   const tone = value === null || value === 0 ? 'text-ink-600' : value > 0 ? 'text-up' : 'text-down';
@@ -61,7 +64,7 @@ function Change({ label, value: raw, volume }: { label: string; value: number | 
       <div className={cn('font-mono text-sm font-semibold tabular-nums', tone)}>
         {value === null ? '—' : value === 0 ? '0%' : `${value > 0 ? '+' : ''}${value.toFixed(Math.abs(value) >= 100 ? 0 : 2)}%`}
       </div>
-      <div className="font-mono text-[0.6rem] tabular-nums text-ink-400">Vol {formatVolume(volume)}</div>
+      <div className="font-mono text-[0.6rem] tabular-nums text-ink-400">{tC('vol')} {formatVolume(volume)}</div>
     </div>
   );
 }

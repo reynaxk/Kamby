@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "Chọn token",
     "buy": "Mua",
-    "sell": "Bán"
+    "sell": "Bán",
+    "browse": "Duyệt",
+    "trade": "Giao dịch",
+    "tokens": "Token"
   },
   "language": {
     "label": "Ngôn ngữ"
@@ -129,5 +132,21 @@
     "f3Body": "Không có màn hình xác nhận. Thiết kế cho lướt sóng nhanh, tần suất cao.",
     "loading": "Đang tải…",
     "openTerminal": "Mở terminal"
+  },
+  "coin": {
+    "price": "Giá",
+    "mcap": "Vốn hóa",
+    "vol24h": "KL 24h",
+    "liquidity": "Thanh khoản",
+    "trades24h": "Giao dịch 24h",
+    "buys": "{n} lệnh mua",
+    "sells": "{n} lệnh bán",
+    "fdv": "FDV",
+    "age": "Tuổi",
+    "vol": "KL",
+    "loadingHolders": "Đang tải holder…",
+    "noHolders": "Chưa có dữ liệu holder cho coin này — quay lại sau ít phút.",
+    "holdersTop": "{count} holder · top {top}",
+    "holders": "Holder"
   }
 }

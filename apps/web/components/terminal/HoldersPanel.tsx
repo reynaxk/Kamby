@@ -7,6 +7,7 @@ import { livePriceKey, type ChartSource } from '@/lib/chart-data';
 import { formatCompactUsd, truncateAddress } from '@/lib/format';
 import { API_BASE } from '@/lib/session-client';
 import { useLivePrice } from '@/lib/use-live-price';
+import { useTranslations } from 'next-intl';
 
 const REFRESH_MS = 60_000; // the API caches holders for a minute
 
@@ -28,6 +29,7 @@ const EXPLORER: Record<'solana' | 'base' | 'bnb', (address: string) => string> =
  * / fish (≥$100K) label. Pools and other contracts are shown but never labelled.
  */
 export function HoldersPanel({ source }: { source: ChartSource }) {
+  const tC = useTranslations('coin');
   const { chain, address } = livePriceKey(source);
   const price = useLivePrice(source);
   const [data, setData] = useState<TokenHolders | null>(null);
@@ -59,16 +61,16 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
     };
   }, [chain, address]);
 
-  if (status === 'loading') return <p className="p-4 text-ink-400">Loading holders…</p>;
+  if (status === 'loading') return <p className="p-4 text-ink-400">{tC('loadingHolders')}</p>;
   if (status === 'error' || !data || data.holders.length === 0) {
-    return <p className="p-4 text-ink-400">No holder data for this coin yet — check back in a minute.</p>;
+    return <p className="p-4 text-ink-400">{tC('noHolders')}</p>;
   }
 
   return (
     <div className="flex flex-col">
       {data.holderCount !== null && (
         <p className="border-b border-line/60 px-3 py-1.5 font-mono text-[0.7rem] text-ink-400">
-          {data.holderCount.toLocaleString('en-US')} holders · top {data.holders.length}
+          {tC('holdersTop', { count: data.holderCount.toLocaleString('en-US'), top: data.holders.length })}
         </p>
       )}
       <table className="w-full font-mono text-[0.75rem]">

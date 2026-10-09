@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "Token seç",
     "buy": "Al",
-    "sell": "Sat"
+    "sell": "Sat",
+    "browse": "Göz at",
+    "trade": "İşlem",
+    "tokens": "Tokenler"
   },
   "language": {
     "label": "Dil"
@@ -129,5 +132,21 @@
     "f3Body": "Onay ekranı yok. Hızlı, yüksek frekanslı scalping için tasarlandı.",
     "loading": "Yükleniyor…",
     "openTerminal": "Terminali aç"
+  },
+  "coin": {
+    "price": "Fiyat",
+    "mcap": "Piyasa değeri",
+    "vol24h": "24s hacim",
+    "liquidity": "Likidite",
+    "trades24h": "24s işlem",
+    "buys": "{n} alım",
+    "sells": "{n} satım",
+    "fdv": "FDV",
+    "age": "Yaş",
+    "vol": "Hacim",
+    "loadingHolders": "Sahipler yükleniyor…",
+    "noHolders": "Bu coin için henüz sahip verisi yok — birazdan tekrar bak.",
+    "holdersTop": "{count} sahip · ilk {top}",
+    "holders": "Sahipler"
   }
 }

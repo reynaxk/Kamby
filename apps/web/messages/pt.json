@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "Escolha um token",
     "buy": "Comprar",
-    "sell": "Vender"
+    "sell": "Vender",
+    "browse": "Explorar",
+    "trade": "Negociar",
+    "tokens": "Tokens"
   },
   "language": {
     "label": "Idioma"
@@ -129,5 +132,21 @@
     "f3Body": "Sem telas de revisão. Feito para scalping rápido e de alta frequência.",
     "loading": "Carregando…",
     "openTerminal": "Abrir terminal"
+  },
+  "coin": {
+    "price": "Preço",
+    "mcap": "Valor de mercado",
+    "vol24h": "Vol 24h",
+    "liquidity": "Liquidez",
+    "trades24h": "Negócios 24h",
+    "buys": "{n} compras",
+    "sells": "{n} vendas",
+    "fdv": "FDV",
+    "age": "Idade",
+    "vol": "Vol",
+    "loadingHolders": "Carregando holders…",
+    "noHolders": "Ainda sem dados de holders desta moeda — volte em um minuto.",
+    "holdersTop": "{count} holders · top {top}",
+    "holders": "Holders"
   }
 }

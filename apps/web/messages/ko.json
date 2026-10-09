@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "토큰 선택",
     "buy": "매수",
-    "sell": "매도"
+    "sell": "매도",
+    "browse": "둘러보기",
+    "trade": "거래",
+    "tokens": "토큰"
   },
   "language": {
     "label": "언어"
@@ -129,5 +132,21 @@
     "f3Body": "확인 화면 없이. 빠른 고빈도 스캘핑을 위해 설계.",
     "loading": "로딩 중…",
     "openTerminal": "터미널 열기"
+  },
+  "coin": {
+    "price": "가격",
+    "mcap": "시가총액",
+    "vol24h": "24h 거래액",
+    "liquidity": "유동성",
+    "trades24h": "24h 거래",
+    "buys": "매수 {n}",
+    "sells": "매도 {n}",
+    "fdv": "FDV",
+    "age": "경과",
+    "vol": "거래량",
+    "loadingHolders": "홀더 불러오는 중…",
+    "noHolders": "아직 이 코인의 홀더 데이터가 없습니다 — 잠시 후 다시 확인하세요.",
+    "holdersTop": "홀더 {count}명 · 상위 {top}",
+    "holders": "홀더"
   }
 }

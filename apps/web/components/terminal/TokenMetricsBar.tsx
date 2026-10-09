@@ -17,6 +17,7 @@ import { WatchButton } from '@/components/market/WatchButton';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
+import { useTranslations } from 'next-intl';
 
 /**
  * Top metrics strip in the terminal, ported to production 2026-09-16 — see
@@ -30,6 +31,7 @@ import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
  * terminal, separated from the flat panels below it without adding density.
  */
 export function TokenMetricsBar({ market }: { market: MarketSummary }) {
+  const tC = useTranslations('coin');
   // Live price every 5s — the market snapshot alone froze at page/selection load.
   const source = liveSourceFor(market);
   const livePrice = useLivePrice(source);
@@ -63,10 +65,10 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
           </div>
         </div>
       </div>
-      <Metric label="Price" value={formatPrice(livePrice ?? market.priceUsd)} />
-      <Metric label="Mkt Cap" value={formatCompactUsd(market.marketCapUsd)} />
-      <Metric label="24h Vol" value={formatCompactUsd(stats?.volumeUsd.h24 ?? market.volume24hUsd)} />
-      <Metric label="Liquidity" value={formatCompactUsd(market.liquidityUsd)} />
+      <Metric label={tC('price')} value={formatPrice(livePrice ?? market.priceUsd)} />
+      <Metric label={tC('mcap')} value={formatCompactUsd(market.marketCapUsd)} />
+      <Metric label={tC('vol24h')} value={formatCompactUsd(stats?.volumeUsd.h24 ?? market.volume24hUsd)} />
+      <Metric label={tC('liquidity')} value={formatCompactUsd(market.liquidityUsd)} />
       <div>
         <div className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">24h</div>
         <PriceChange value={stats?.priceChangePct.h24 ?? market.priceChange24hPct} className="text-sm font-semibold" />

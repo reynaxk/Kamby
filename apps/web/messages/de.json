@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "Token wählen",
     "buy": "Kaufen",
-    "sell": "Verkaufen"
+    "sell": "Verkaufen",
+    "browse": "Durchsuchen",
+    "trade": "Handeln",
+    "tokens": "Token"
   },
   "language": {
     "label": "Sprache"
@@ -129,5 +132,21 @@
     "f3Body": "Keine Prüfbildschirme. Gebaut für schnelles Hochfrequenz-Scalping.",
     "loading": "Lädt…",
     "openTerminal": "Terminal öffnen"
+  },
+  "coin": {
+    "price": "Preis",
+    "mcap": "Marktkap.",
+    "vol24h": "24h-Vol",
+    "liquidity": "Liquidität",
+    "trades24h": "Trades 24h",
+    "buys": "{n} Käufe",
+    "sells": "{n} Verkäufe",
+    "fdv": "FDV",
+    "age": "Alter",
+    "vol": "Vol",
+    "loadingHolders": "Holder werden geladen…",
+    "noHolders": "Noch keine Holder-Daten für diesen Coin — schau gleich wieder vorbei.",
+    "holdersTop": "{count} Holder · Top {top}",
+    "holders": "Holder"
   }
 }

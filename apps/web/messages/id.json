@@ -19,7 +19,10 @@
   "terminal": {
     "pickToken": "Pilih token",
     "buy": "Beli",
-    "sell": "Jual"
+    "sell": "Jual",
+    "browse": "Jelajah",
+    "trade": "Trading",
+    "tokens": "Token"
   },
   "language": {
     "label": "Bahasa"
@@ -129,5 +132,21 @@
     "f3Body": "Tanpa layar konfirmasi. Dibuat untuk scalping cepat berfrekuensi tinggi.",
     "loading": "Memuat…",
     "openTerminal": "Buka terminal"
+  },
+  "coin": {
+    "price": "Harga",
+    "mcap": "Kapitalisasi",
+    "vol24h": "Vol 24j",
+    "liquidity": "Likuiditas",
+    "trades24h": "Transaksi 24j",
+    "buys": "{n} beli",
+    "sells": "{n} jual",
+    "fdv": "FDV",
+    "age": "Usia",
+    "vol": "Vol",
+    "loadingHolders": "Memuat holder…",
+    "noHolders": "Belum ada data holder untuk koin ini — cek lagi sebentar.",
+    "holdersTop": "{count} holder · top {top}",
+    "holders": "Holder"
   }
 }

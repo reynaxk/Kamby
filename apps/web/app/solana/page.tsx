@@ -16,6 +16,7 @@ import { fetchDiscoverMarkets, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaH
 import { formatPercent } from '@/lib/format';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
+import { getTranslations } from 'next-intl/server';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -106,6 +107,7 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 }
 
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
+  const tCoin = await getTranslations('coin');
   const market = await resolveMarket(searchParams.mint);
   const isSol = market === NATIVE_SOL;
   const requested: ChartTimeframe =
@@ -180,7 +182,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               className="mt-3 h-[360px] sm:h-[400px]"
             />
             <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-              <p className="border-b border-line px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide text-ink-900">Holders</p>
+              <p className="border-b border-line px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide text-ink-900">{tCoin('holders')}</p>
               <HoldersPanel source={{ kind: 'solana', mint: market.tokenAddress }} />
             </div>
           </section>
