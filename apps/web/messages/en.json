@@ -97,5 +97,20 @@
   "position": {
     "youHold": "You hold",
     "fee": "fee"
+  },
+  "wallet": {
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "showBalances": "Show balances",
+    "hideBalances": "Hide balances",
+    "invalidAmount": "Enter a valid amount.",
+    "minimumWithdrawal": "Minimum withdrawal is ${amount} (or your full balance).",
+    "exceedsBalance": "Amount exceeds your balance."
+  },
+  "account": {
+    "title": "Your profile",
+    "subtitle": "Your username and picture appear on the leaderboard and your trader profile.",
+    "wallet": "Wallet",
+    "walletSub": "Add funds, withdraw, or hide balances across Kamby."
   }
 }

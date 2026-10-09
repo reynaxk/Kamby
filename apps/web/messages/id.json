@@ -97,5 +97,20 @@
   "position": {
     "youHold": "Kamu pegang",
     "fee": "biaya"
+  },
+  "wallet": {
+    "deposit": "Setor",
+    "withdraw": "Tarik",
+    "showBalances": "Tampilkan saldo",
+    "hideBalances": "Sembunyikan saldo",
+    "invalidAmount": "Masukkan jumlah yang valid.",
+    "minimumWithdrawal": "Penarikan minimal ${amount} (atau seluruh saldo).",
+    "exceedsBalance": "Jumlah melebihi saldo."
+  },
+  "account": {
+    "title": "Profilmu",
+    "subtitle": "Nama pengguna dan fotomu tampil di peringkat dan profil trader.",
+    "wallet": "Wallet",
+    "walletSub": "Setor, tarik, atau sembunyikan saldo di Kamby."
   }
 }

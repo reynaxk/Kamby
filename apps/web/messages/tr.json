@@ -97,5 +97,20 @@
   "position": {
     "youHold": "Sende",
     "fee": "ücret"
+  },
+  "wallet": {
+    "deposit": "Yatır",
+    "withdraw": "Çek",
+    "showBalances": "Bakiyeleri göster",
+    "hideBalances": "Bakiyeleri gizle",
+    "invalidAmount": "Geçerli bir tutar gir.",
+    "minimumWithdrawal": "Minimum çekim ${amount} (ya da bakiyenin tamamı).",
+    "exceedsBalance": "Tutar bakiyeni aşıyor."
+  },
+  "account": {
+    "title": "Profilin",
+    "subtitle": "Kullanıcı adın ve fotoğrafın liderlik tablosunda ve trader profilinde görünür.",
+    "wallet": "Cüzdan",
+    "walletSub": "Para yatır, çek ya da Kamby genelinde bakiyeleri gizle."
   }
 }

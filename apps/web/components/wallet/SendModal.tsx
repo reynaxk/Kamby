@@ -34,6 +34,7 @@ import {
 import { friendlyError } from '@/lib/friendly-error';
 import { TradeModal } from '../trading/TradeModal';
 import { ConnectWalletButton } from './ConnectWalletButton';
+import { useTranslations } from 'next-intl';
 
 type Step = 'form' | 'review' | 'signing' | 'confirmed' | 'failed';
 
@@ -135,6 +136,7 @@ function useSolanaNativeBalance(solanaAddress: string | undefined): bigint | nul
  * unable to pay for its own transaction.
  */
 export function SendModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const tW = useTranslations('wallet');
   const { ready, authenticated, login } = usePrivy();
   const { address: evmAddress, chainId: evmChainId } = useAccount();
   const { wallets: solanaWallets } = useSolanaWallets();
@@ -288,7 +290,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <TradeModal open={open} onClose={close}>
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-base font-bold text-ink-900">Withdraw</h2>
+        <h2 className="font-display text-base font-bold text-ink-900">{tW('withdraw')}</h2>
         <button type="button" onClick={close} className="font-body text-sm text-ink-400 hover:text-ink-900">
           Close
         </button>
@@ -385,10 +387,10 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                 {amountDisplay && !amountValid && (
                   <p className="mt-1 font-body text-xs text-down">
                     {amountRaw === null
-                      ? 'Enter a valid amount.'
+                      ? tW('invalidAmount')
                       : belowMinimum
-                        ? `Minimum withdrawal is $${MIN_USDC_WITHDRAWAL.toString()} (or your full balance).`
-                        : 'Amount exceeds your balance.'}
+                        ? tW('minimumWithdrawal', { amount: MIN_USDC_WITHDRAWAL.toString() })
+                        : tW('exceedsBalance')}
                   </p>
                 )}
               </div>

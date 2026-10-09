@@ -2,11 +2,13 @@
 
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from './BalanceVisibilityContext';
+import { useTranslations } from 'next-intl';
 
 /** `labeled` is the /account wallet-section style, matching FundButton/SendButton there. */
 export function BlurBalancesToggle({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+  const tW = useTranslations('wallet');
   const { hidden, toggle } = useBalanceVisibility();
-  const label = hidden ? 'Show balances' : 'Hide balances';
+  const label = hidden ? tW('showBalances') : tW('hideBalances');
 
   return (
     <button

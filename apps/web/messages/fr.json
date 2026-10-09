@@ -97,5 +97,20 @@
   "position": {
     "youHold": "Vous détenez",
     "fee": "frais"
+  },
+  "wallet": {
+    "deposit": "Déposer",
+    "withdraw": "Retirer",
+    "showBalances": "Afficher les soldes",
+    "hideBalances": "Masquer les soldes",
+    "invalidAmount": "Saisissez un montant valide.",
+    "minimumWithdrawal": "Retrait minimum ${amount} (ou la totalité du solde).",
+    "exceedsBalance": "Le montant dépasse votre solde."
+  },
+  "account": {
+    "title": "Votre profil",
+    "subtitle": "Votre pseudo et votre photo apparaissent dans le classement et sur votre profil de trader.",
+    "wallet": "Wallet",
+    "walletSub": "Déposez, retirez ou masquez vos soldes sur Kamby."
   }
 }

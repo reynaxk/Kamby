@@ -97,5 +97,20 @@
   "position": {
     "youHold": "คุณถือ",
     "fee": "ค่าธรรมเนียม"
+  },
+  "wallet": {
+    "deposit": "ฝากเงิน",
+    "withdraw": "ถอนเงิน",
+    "showBalances": "แสดงยอดเงิน",
+    "hideBalances": "ซ่อนยอดเงิน",
+    "invalidAmount": "กรอกจำนวนที่ถูกต้อง",
+    "minimumWithdrawal": "ถอนขั้นต่ำ ${amount} (หรือยอดทั้งหมด)",
+    "exceedsBalance": "จำนวนเกินยอดคงเหลือ"
+  },
+  "account": {
+    "title": "โปรไฟล์ของคุณ",
+    "subtitle": "ชื่อผู้ใช้และรูปของคุณจะแสดงในอันดับและโปรไฟล์เทรดเดอร์",
+    "wallet": "วอลเล็ต",
+    "walletSub": "ฝาก ถอน หรือซ่อนยอดเงินใน Kamby"
   }
 }

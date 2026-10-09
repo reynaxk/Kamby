@@ -97,5 +97,20 @@
   "position": {
     "youHold": "Du hältst",
     "fee": "Gebühr"
+  },
+  "wallet": {
+    "deposit": "Einzahlen",
+    "withdraw": "Auszahlen",
+    "showBalances": "Guthaben zeigen",
+    "hideBalances": "Guthaben verbergen",
+    "invalidAmount": "Gib einen gültigen Betrag ein.",
+    "minimumWithdrawal": "Mindestauszahlung ${amount} (oder dein gesamtes Guthaben).",
+    "exceedsBalance": "Betrag übersteigt dein Guthaben."
+  },
+  "account": {
+    "title": "Dein Profil",
+    "subtitle": "Dein Name und Bild erscheinen in der Bestenliste und auf deinem Trader-Profil.",
+    "wallet": "Wallet",
+    "walletSub": "Einzahlen, auszahlen oder Guthaben in Kamby verbergen."
   }
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@kamby/ui';
 import { SendModal } from './SendModal';
+import { useTranslations } from 'next-intl';
 
 /**
  * Entry point for the Send modal — a separate component from ConnectWalletButton (not a
@@ -19,6 +20,7 @@ import { SendModal } from './SendModal';
  * compact header form next to BlurBalancesToggle/ConnectWalletButton.
  */
 export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+  const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
 
   return (
@@ -26,7 +28,7 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Withdraw"
+        aria-label={tW('withdraw')}
         title="Withdraw"
         className={cn(
           variant === 'icon'
@@ -36,7 +38,7 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         )}
       >
         <WithdrawIcon />
-        {variant === 'labeled' && 'Withdraw'}
+        {variant === 'labeled' && tW('withdraw')}
       </button>
       <SendModal open={open} onClose={() => setOpen(false)} />
     </>

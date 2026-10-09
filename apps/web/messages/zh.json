@@ -97,5 +97,20 @@
   "position": {
     "youHold": "持有",
     "fee": "手续费"
+  },
+  "wallet": {
+    "deposit": "充值",
+    "withdraw": "提现",
+    "showBalances": "显示余额",
+    "hideBalances": "隐藏余额",
+    "invalidAmount": "请输入有效金额。",
+    "minimumWithdrawal": "最低提现 ${amount}（或全部余额）。",
+    "exceedsBalance": "金额超过你的余额。"
+  },
+  "account": {
+    "title": "我的资料",
+    "subtitle": "你的用户名和头像会显示在排行榜和交易员主页上。",
+    "wallet": "钱包",
+    "walletSub": "充值、提现或在 Kamby 中隐藏余额。"
   }
 }

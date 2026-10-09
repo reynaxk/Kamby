@@ -97,5 +97,20 @@
   "position": {
     "youHold": "Bạn giữ",
     "fee": "phí"
+  },
+  "wallet": {
+    "deposit": "Nạp tiền",
+    "withdraw": "Rút tiền",
+    "showBalances": "Hiện số dư",
+    "hideBalances": "Ẩn số dư",
+    "invalidAmount": "Nhập số tiền hợp lệ.",
+    "minimumWithdrawal": "Rút tối thiểu ${amount} (hoặc toàn bộ số dư).",
+    "exceedsBalance": "Số tiền vượt quá số dư."
+  },
+  "account": {
+    "title": "Hồ sơ của bạn",
+    "subtitle": "Tên và ảnh của bạn hiển thị trên bảng xếp hạng và hồ sơ trader.",
+    "wallet": "Ví",
+    "walletSub": "Nạp, rút hoặc ẩn số dư trên Kamby."
   }
 }

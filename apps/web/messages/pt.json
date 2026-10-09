@@ -97,5 +97,20 @@
   "position": {
     "youHold": "Você tem",
     "fee": "taxa"
+  },
+  "wallet": {
+    "deposit": "Depositar",
+    "withdraw": "Sacar",
+    "showBalances": "Mostrar saldos",
+    "hideBalances": "Ocultar saldos",
+    "invalidAmount": "Digite um valor válido.",
+    "minimumWithdrawal": "O saque mínimo é ${amount} (ou o saldo total).",
+    "exceedsBalance": "O valor excede seu saldo."
+  },
+  "account": {
+    "title": "Seu perfil",
+    "subtitle": "Seu usuário e foto aparecem no ranking e no seu perfil de trader.",
+    "wallet": "Carteira",
+    "walletSub": "Deposite, saque ou oculte saldos na Kamby."
   }
 }

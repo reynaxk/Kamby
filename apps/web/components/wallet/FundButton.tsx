@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@kamby/ui';
 import { FundModal } from './FundModal';
+import { useTranslations } from 'next-intl';
 
 /**
  * Entry point for the Fund modal — same "one entry point, both placements" shape as
@@ -13,6 +14,7 @@ import { FundModal } from './FundModal';
  * itself would be a circular import.
  */
 export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+  const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +22,7 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Deposit"
+        aria-label={tW('deposit')}
         title="Deposit"
         className={cn(
           variant === 'icon'
@@ -33,7 +35,7 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         )}
       >
         <FundIcon />
-        {variant === 'labeled' && 'Deposit'}
+        {variant === 'labeled' && tW('deposit')}
       </button>
       <FundModal open={open} onClose={() => setOpen(false)} />
     </>

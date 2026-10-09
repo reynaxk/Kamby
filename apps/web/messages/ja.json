@@ -97,5 +97,20 @@
   "position": {
     "youHold": "保有",
     "fee": "手数料"
+  },
+  "wallet": {
+    "deposit": "入金",
+    "withdraw": "出金",
+    "showBalances": "残高を表示",
+    "hideBalances": "残高を隠す",
+    "invalidAmount": "有効な金額を入力してください。",
+    "minimumWithdrawal": "最低出金額は ${amount} です（または全額）。",
+    "exceedsBalance": "金額が残高を超えています。"
+  },
+  "account": {
+    "title": "プロフィール",
+    "subtitle": "ユーザー名と画像はランキングとトレーダープロフィールに表示されます。",
+    "wallet": "ウォレット",
+    "walletSub": "入金・出金、または Kamby 全体で残高を隠せます。"
   }
 }
