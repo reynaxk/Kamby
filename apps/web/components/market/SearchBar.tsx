@@ -5,6 +5,7 @@ import { solanaMarketHref } from '@/lib/solana-links';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { fetchSearchResults } from '@/lib/market-client';
+import { saveRecentSearch } from '@/lib/recent-searches';
 import { formatPrice } from '@/lib/format';
 import { TokenIdentity } from './TokenIdentity';
 import { WatchButton } from './WatchButton';
@@ -153,6 +154,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
                       type="button"
                       onClick={() => {
                         setIsOpen(false);
+                        saveRecentSearch(market);
                         router.push(`/market/${chainSlug}/${market.tokenAddress}`);
                       }}
                       className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
@@ -171,6 +173,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
                     type="button"
                     onClick={() => {
                       setIsOpen(false);
+                      saveRecentSearch(market);
                       router.push(solanaMarketHref(market.tokenAddress));
                     }}
                     className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"

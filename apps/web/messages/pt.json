@@ -531,6 +531,8 @@
     "riskNewListing": "Nova listagem, alto risco: encontrada automaticamente, não escolhida a dedo. Passou só nas checagens de liquidez, negociação real nos dois sentidos e imitações — não há detecção de rug-pull ou honeypot.",
     "riskBondingCurve": "Ainda na bonding curve da launchpad — muito cedo. Os preços mudam muito rápido e a maioria dessas moedas vai a zero.",
     "riskShort": "Nova listagem — alto risco",
-    "riskShortBonding": "Bonding curve — muito cedo"
+    "riskShortBonding": "Bonding curve — muito cedo",
+    "recents": "Recentes",
+    "clear": "Limpar"
   }
 }

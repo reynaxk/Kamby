@@ -46,6 +46,9 @@ function chainLabel(chain: LeaderboardChainFilter | null): string {
  * risked a real class-collision bug for no benefit. `.kamby-void` still supplies the base
  * True-Deep-Black ground and monospace-friendly ink tokens everything here sits on.
  */
+/** The top three get medals instead of a number (2026-10-10, like fomo). */
+const MEDALS = ['🥇', '🥈', '🥉'] as const;
+
 export default async function LeaderboardPage({
   searchParams,
 }: {
@@ -59,7 +62,7 @@ export default async function LeaderboardPage({
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
@@ -69,14 +72,14 @@ export default async function LeaderboardPage({
               {t('subtitle')}
             </p>
           </div>
-          <nav className="inline-flex rounded-lg border border-white/[0.06] bg-white/[0.03] p-1 backdrop-blur-xl">
+          <nav className="inline-flex rounded-lg border border-white/[0.06] bg-white/[0.03] p-1 backdrop-blur-xl max-md:border-0 max-md:bg-transparent max-md:p-0">
             {WINDOWS.map((w) => (
               <Link
                 key={w}
                 href={`/leaderboard?window=${w}${chain ? `&chain=${chain}` : ''}`}
                 className={cn(
                   'rounded-md px-3 py-1.5 font-mono text-xs font-medium transition-colors',
-                  w === window ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
+                  w === window ? 'bg-accent text-accent-ink max-md:bg-white/10 max-md:text-ink-900' : 'text-ink-400 hover:text-ink-900',
                 )}
               >
                 {WINDOW_LABEL[w]}
@@ -115,12 +118,12 @@ export default async function LeaderboardPage({
             </Link>
           </div>
         ) : (
-          <ol className="mt-8 flex flex-col gap-2">
+          <ol className="mt-8 flex flex-col gap-2 max-md:mt-4 max-md:gap-0">
             {leaderboard.entries.map((entry, index) => (
               <li key={entry.userId}>
-                <Surface variant="glass" className="flex items-center gap-4 p-4">
+                <Surface variant="glass" className="flex items-center gap-4 p-4 max-md:gap-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-0 max-md:py-3 max-md:shadow-none max-md:backdrop-blur-none">
                   <span className="w-7 shrink-0 text-center font-mono text-sm font-semibold tabular-nums text-ink-400">
-                    #{index + 1}
+                    {index < 3 ? <span className="text-xl" aria-label={`#${index + 1}`}>{MEDALS[index]}</span> : `#${index + 1}`}
                   </span>
                   <Link href={`/trader/${entry.walletAddress}`} className="min-w-0 flex-1">
                     <TraderIdentity

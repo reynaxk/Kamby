@@ -369,3 +369,24 @@ body:has(.kamby-void) {
     display: none;
   }
 }
+
+/* Each new phone screen eases in (app/template.tsx). */
+@keyframes kamby-page-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .kamby-page-in {
+    animation: kamby-page-in 0.18s ease-out backwards;
+  }
+  /* Rows and buttons give a little under the thumb, like a native list. */
+  a:active,
+  button:active:not(:disabled) {
+    transition: transform 0.08s ease-out;
+  }
+  .terminal-token-row:active,
+  li > a:active {
+    transform: scale(0.985);
+  }
+}

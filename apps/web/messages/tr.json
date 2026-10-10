@@ -531,6 +531,8 @@
     "riskNewListing": "Yeni listeleme, yüksek risk: otomatik bulundu, elle seçilmedi. Yalnızca likidite, gerçek iki yönlü işlem ve taklit kontrollerinden geçti — rug-pull veya honeypot tespiti yok.",
     "riskBondingCurve": "Hâlâ platformunun bonding curve aşamasında — son derece erken. Fiyatlar çok hızlı değişir ve bu coinlerin çoğu sıfıra gider.",
     "riskShort": "Yeni listeleme — yüksek risk",
-    "riskShortBonding": "Bonding curve — çok erken"
+    "riskShortBonding": "Bonding curve — çok erken",
+    "recents": "Son aramalar",
+    "clear": "Temizle"
   }
 }

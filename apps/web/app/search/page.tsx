@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { cn } from '@kamby/ui';
 import { SearchBar } from '@/components/market/SearchBar';
+import { RecentSearches } from '@/components/market/RecentSearches';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { fetchMarketFeeds } from '@/lib/market-api';
@@ -22,6 +23,7 @@ export default async function SearchPage() {
       <div className="px-4">
         <SearchBar />
       </div>
+      <RecentSearches />
       {trending.length > 0 && (
         <section className="mt-5">
           <h2 className="px-4 pb-1 font-display text-sm font-semibold text-ink-400">{tU('trending_3752')}</h2>

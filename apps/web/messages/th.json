@@ -531,6 +531,8 @@
     "riskNewListing": "ลิสต์ใหม่ ความเสี่ยงสูง: พบโดยอัตโนมัติ ไม่ได้คัดเลือกเอง ผ่านเพียงการตรวจสภาพคล่อง การเทรดสองทางจริง และเหรียญปลอม — ไม่มีการตรวจจับ rug-pull หรือ honeypot",
     "riskBondingCurve": "ยังอยู่บน bonding curve ของ launchpad — เร็วมาก ราคาเปลี่ยนเร็วมากและเหรียญแบบนี้ส่วนใหญ่ไปถึงศูนย์",
     "riskShort": "ลิสต์ใหม่ — ความเสี่ยงสูง",
-    "riskShortBonding": "Bonding curve — เร็วมาก"
+    "riskShortBonding": "Bonding curve — เร็วมาก",
+    "recents": "ล่าสุด",
+    "clear": "ล้าง"
   }
 }

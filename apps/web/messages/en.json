@@ -531,6 +531,8 @@
     "riskNewListing": "New listing, high risk: found automatically, not hand-picked. It passed liquidity, real two-sided trading and lookalike checks only — there is no rug-pull or honeypot detection.",
     "riskBondingCurve": "Still on its launchpad's bonding curve — extremely early. Prices move very fast and most of these coins go to zero.",
     "riskShort": "New listing — high risk",
-    "riskShortBonding": "Bonding curve — extremely early"
+    "riskShortBonding": "Bonding curve — extremely early",
+    "recents": "Recent",
+    "clear": "Clear"
   }
 }
