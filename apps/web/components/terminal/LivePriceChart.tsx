@@ -82,6 +82,9 @@ export function foldTick(last: LiveCandle | null, price: number, nowS: number, b
  * is watching). Polling pauses while the tab is hidden. Updated in place with
  * `series.update()`, never rebuilt per tick.
  */
+/** Fewer candles than this draw as the live line instead — see the build effect. */
+const MIN_CANDLES = 5;
+
 export function LivePriceChart({
   source,
   seedCandles,
@@ -139,10 +142,11 @@ export function LivePriceChart({
       return;
     }
     const nowS = Math.floor(Date.now() / 1000);
-    if (chartStyle === 'candles') {
-      // 1m candles seed from the API's; 10s ones from the live prices recorded while browsing.
-      const seeded =
-        bucketSeconds === 60
+    // 1m candles seed from the API's; 10s ones from the live prices recorded while browsing.
+    const seeded =
+      chartStyle !== 'candles'
+        ? []
+        : bucketSeconds === 60
           ? seedCandlesFor(seedCandles, nowS)
           : recentTicks(source).reduce<LiveCandle[]>((acc, tick) => {
               const next = foldTick(acc[acc.length - 1] ?? null, tick.p, tick.t, bucketSeconds);
@@ -150,6 +154,10 @@ export function LivePriceChart({
               else acc.push(next);
               return acc;
             }, []);
+    // A brand-new coin with only a candle or two drew one giant bar that looked broken
+    // (owner screenshot 2026-10-10) — it gets the live line until it has a few candles.
+    // (10s candles build from ticks seen while here, so they start empty on purpose.)
+    if (chartStyle === 'candles' && (bucketSeconds !== 60 || seeded.length >= MIN_CANDLES)) {
       const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: readRgba('--kamby-up', container, 1),
         downColor: readRgba('--kamby-down', container, 1),
