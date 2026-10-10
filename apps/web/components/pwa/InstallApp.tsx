@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 
 /** Chrome's install prompt event (not in the DOM typings). */
 interface BeforeInstallPromptEvent extends Event {
@@ -34,6 +35,7 @@ function recentlyDismissed(): boolean {
 export function InstallApp() {
   const tU = useTranslations('ui');
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const pathname = usePathname() ?? '';
   const [ios, setIos] = useState(false);
   const [visible, setVisible] = useState(false);
   const t = useTranslations('install');
@@ -66,7 +68,8 @@ export function InstallApp() {
     };
   }, []);
 
-  if (!visible) return null;
+  // Not over a coin screen's Buy/Sell bar.
+  if (!visible || pathname.startsWith('/solana') || pathname.startsWith('/market/')) return null;
 
   const dismiss = () => {
     setVisible(false);
