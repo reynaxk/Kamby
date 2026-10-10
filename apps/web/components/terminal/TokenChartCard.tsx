@@ -100,8 +100,8 @@ export function TokenChartCard({
   }
 
   const controls = (
-    <div className={cn('flex items-center justify-between gap-2', bare ? 'px-3' : 'px-0.5')}>
-        <div className="flex items-center gap-1.5">
+    <div className={cn('flex items-center justify-between gap-2', bare ? 'overflow-x-auto px-3' : 'px-0.5')}>
+        <div className="flex shrink-0 items-center gap-1.5">
           <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
           <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />
         </div>

@@ -92,6 +92,11 @@ export function pricePrecision(candles: Candle[]): { precision: number; minMove:
  *  every chart label fall back to 10px sans-serif) — read the variable's actual font family
  *  (next/font's generated name) first. */
 export function chartFontFamily(element: HTMLElement): string {
+  // Phones use the app's one sans font for numbers too (globals.css, 2026-10-10).
+  if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+    const sans = getComputedStyle(element).getPropertyValue('--font-manrope').trim();
+    if (sans) return `${sans}, ui-sans-serif, system-ui, sans-serif`;
+  }
   const family = getComputedStyle(element).getPropertyValue('--font-jetbrains-mono').trim();
   return family ? `${family}, ui-monospace, monospace` : 'ui-monospace, monospace';
 }
