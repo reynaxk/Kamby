@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Surface } from '@kamby/ui';
 import Link from 'next/link';
+import { AppBackBar } from '@/components/layout/AppBackBar';
 import { notFound } from 'next/navigation';
 import { ActivityFeed } from '@/components/social/ActivityFeed';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
@@ -61,13 +62,14 @@ export default async function TraderProfilePage({ params }: { params: { address:
 
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader />
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900">
+      <MarketHeader className="max-md:hidden" />
+      <AppBackBar fallback="/leaderboard" />
+      <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-0">
+        <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900 max-md:hidden">
           ← Back to Discover
         </Link>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4 max-md:mt-0">
           <div className="flex items-center gap-2">
             <TraderIdentity
               address={profile.address}
@@ -86,7 +88,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 max-md:mt-4 max-md:gap-x-4 max-md:gap-y-1">
           <Stat label={tU('totalTrades_c59a')} value={profile.stats.totalSwaps.toString()} />
           <Stat
             label={tU('buysSells_e13b')}
@@ -103,7 +105,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
         </p>
 
         {realizedPnl && (
-          <Surface className="mt-6 p-5">
+          <Surface className="mt-6 p-5 max-md:mt-8 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none">
             <h2 className="mb-1 font-display text-sm font-semibold text-ink-900">
               {tU('realizedPnl_4c8e')}
             </h2>
@@ -114,7 +116,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
               {PNL_WINDOWS.map((window) => {
                 const stats = realizedPnl[window];
                 return (
-                  <div key={window} className="rounded-lg border border-line bg-surface p-4">
+                  <div key={window} className="rounded-lg border border-line bg-surface p-4 max-md:rounded-none max-md:border-0 max-md:border-b max-md:border-white/5 max-md:bg-transparent max-md:px-0">
                     <div className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-400">
                       {window}
                     </div>
@@ -132,7 +134,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
         )}
 
         {profile.stats.totalSwaps > 0 && (
-          <Surface className="mt-6 p-5">
+          <Surface className="mt-6 p-5 max-md:mt-8 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none">
             <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">
               {tU('tradingBehavior_2f0a')}
             </h2>
@@ -180,13 +182,13 @@ export default async function TraderProfilePage({ params }: { params: { address:
         )}
 
         {tokens.length > 0 && (
-          <Surface className="mt-6 p-5">
+          <Surface className="mt-6 p-5 max-md:mt-8 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none">
             <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">{tU('tokensTraded_4a89')}</h2>
             <TraderTokensList tokens={tokens} />
           </Surface>
         )}
 
-        <Surface className="mt-6 p-5">
+        <Surface className="mt-6 p-5 max-md:mt-8 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none">
           <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">{tU('recentActivity_f7ce')}</h2>
           <ActivityFeed
             initialItems={activity.items}
@@ -203,9 +205,9 @@ export default async function TraderProfilePage({ params }: { params: { address:
 
 function Stat({ label, value, title }: { label: string; value: string; title?: string }) {
   return (
-    <div className="rounded-lg border border-line bg-surface p-4" title={title}>
-      <div className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-400">{label}</div>
-      <div className="mt-1 font-mono text-sm font-semibold tabular-nums text-ink-900">{value}</div>
+    <div className="rounded-lg border border-line bg-surface p-4 max-md:rounded-none max-md:border-0 max-md:border-b max-md:border-white/5 max-md:bg-transparent max-md:px-0 max-md:py-2.5" title={title}>
+      <div className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-400 max-md:text-xs max-md:normal-case max-md:tracking-normal">{label}</div>
+      <div className="mt-1 font-mono text-sm font-semibold tabular-nums text-ink-900 max-md:mt-0.5 max-md:text-lg">{value}</div>
     </div>
   );
 }
