@@ -90,7 +90,7 @@ export default async function TokenDetailPage({
     // highest-visibility pages this theme rolled out to on 2026-09-15 (Discover is the
     // other); the rest of the product still runs the original light/dark palette.
     <div className="kamby-void min-h-screen bg-bg">
-      <AutoRefresh intervalSeconds={20} />
+      <AutoRefresh intervalSeconds={60} />
       <MarketHeader expectedWalletChainId={chainId} className="max-lg:hidden" />
       {/* Phones get the coin's own app screen from KambyTerminal instead of this row. */}
       <div className="mx-auto max-w-[1600px] px-3 pt-3 max-lg:hidden">

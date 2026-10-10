@@ -11,6 +11,7 @@ import {
   LineSeries,
   LineStyle,
   type IChartApi,
+  type IPriceLine,
   type ISeriesApi,
   type UTCTimestamp,
 } from 'lightweight-charts';
@@ -276,6 +277,16 @@ export function KambyChart({
   const markersRef = useRef<ChartTraderMarkers | null>(null);
   const tradesRef = useRef(trades);
   tradesRef.current = trades;
+  // Refreshed candles update the live chart in place (2026-10-10, owner: the chart visibly
+  // "refreshing" every few seconds was annoying) — it's only rebuilt when its shape changes:
+  // another candle width, style, indicator or entry line.
+  const candlesRef = useRef(candles);
+  candlesRef.current = candles;
+  const liveRef = useRef<{ series: ISeriesApi<'Area'> | ISeriesApi<'Candlestick'>; volume: ISeriesApi<'Histogram'> | null; lastLine: IPriceLine | null; line: boolean } | null>(null);
+  const hasVolume = candles.some((c) => (c.volumeUsd ?? 0) > 0);
+  const spacing = candles.length >= 2 ? new Date(candles[1]!.bucketStart).getTime() - new Date(candles[0]!.bucketStart).getTime() : 0;
+  // Indicators are computed from the whole series, so with any on, new candles still rebuild.
+  const buildKey = `${candles.length >= 2}|${spacing}|${hasVolume}|${activeIndicators.size > 0 ? `${candles.length}:${candles.at(-1)?.close}:${candles.at(-1)?.bucketStart}` : ''}`;
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -289,6 +300,7 @@ export function KambyChart({
 
   useEffect(() => {
     const container = containerRef.current;
+    const candles = candlesRef.current;
     if (!container || candles.length < 2) return;
 
     const bg = readColor('--kamby-bg', container);
@@ -364,6 +376,9 @@ export function KambyChart({
       (series as ISeriesApi<'Candlestick'>).setData(toSeriesData(candles));
     }
 
+    let volumeSeries: ISeriesApi<'Histogram'> | null = null;
+    let lastPriceLine: IPriceLine | null = null;
+
     // Your entry price (2026-10-06): a dashed line at what you paid — above it you're in profit.
     if (entryPrice && entryPrice > 0) {
       series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: tU('yourEntry_eb36') });
@@ -379,6 +394,7 @@ export function KambyChart({
         priceLineVisible: false,
         lastValueVisible: false,
       });
+      volumeSeries = volume;
       volume.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
       volume.setData(
         candles.map((c) => ({
@@ -409,7 +425,7 @@ export function KambyChart({
     // realistic "glow" here, not a compromise.
     const lastClose = candles[candles.length - 1]?.close;
     if (lastClose !== undefined) {
-      series.createPriceLine({
+      lastPriceLine = series.createPriceLine({
         price: lastClose,
         color: accent,
         lineWidth: 1,
@@ -487,12 +503,37 @@ export function KambyChart({
     // `autoSize` keeps the canvas matched to its container; the chart is only rebuilt when the
     // candles or indicators change — never on a parent re-render, and not for new trades
     // (the effect below updates those markers in place).
+    liveRef.current = { series, volume: volumeSeries, lastLine: lastPriceLine, line: chartStyle === 'line' };
     return () => {
+      liveRef.current = null;
       markersRef.current = null;
       chart.remove();
       setCanvasReady(false);
     };
-  }, [candles, activeIndicators, chartStyle, entryPrice]);
+  }, [buildKey, activeIndicators, chartStyle, entryPrice]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // New candles for the same chart: swap the data, keep the view where the trader left it.
+  useEffect(() => {
+    const live = liveRef.current;
+    const container = containerRef.current;
+    if (!live || !container || candles.length < 2) return;
+    const data = toSeriesData(candles);
+    if (live.line) (live.series as ISeriesApi<'Area'>).setData(data.map((c) => ({ time: c.time, value: c.close })));
+    else (live.series as ISeriesApi<'Candlestick'>).setData(data);
+    if (live.volume) {
+      const upVolume = readRgba('--kamby-up', container, 0.35);
+      const downVolume = readRgba('--kamby-down', container, 0.35);
+      live.volume.setData(
+        candles.map((c) => ({
+          time: Math.floor(new Date(c.bucketStart).getTime() / 1000) as UTCTimestamp,
+          value: c.volumeUsd ?? 0,
+          color: c.close >= c.open ? upVolume : downVolume,
+        })),
+      );
+    }
+    const lastClose = candles[candles.length - 1]?.close;
+    if (live.lastLine && lastClose !== undefined) live.lastLine.applyOptions({ price: lastClose });
+  }, [candles]);
 
   useEffect(() => {
     markersRef.current?.setTrades(trades);

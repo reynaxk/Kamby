@@ -14,6 +14,7 @@ import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
 import { TradersSidebar } from './TradersSidebar';
 import { useTranslations } from 'next-intl';
+import { useSteadyOrder } from '@/lib/use-steady-order';
 export type PrimaryTab = 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
 const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
@@ -109,6 +110,9 @@ export function DiscoverTokenList({
   const primaryTab = activePrimaryTab ?? uncontrolledPrimaryTab;
   const setPrimaryTab = onPrimaryTabChange ?? setUncontrolledPrimaryTab;
 
+  const trendingRows = useSteadyOrder(uniqueMarkets(feeds.trending.markets), (m) => `${m.chainIdentifier}:${m.tokenAddress}`);
+  const bondingRows = useSteadyOrder(feeds.bonding.tokens, (t) => t.mintAddress);
+
   const marketRow = (market: FeedMarket) => {
     const key = `${market.chainIdentifier}:${market.tokenAddress}`;
     const isSolana = market.chainIdentifier === 'solana';
@@ -142,13 +146,13 @@ export function DiscoverTokenList({
     rows.length === 0 ? <p className="col-span-full p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
 
   const tabContent: Record<MarketFeedTab, ReactNode> = {
-    trending: list(uniqueMarkets(feeds.trending.markets).map(marketRow), tU('nothingTrendingYet_a318')),
+    trending: list(trendingRows.map(marketRow), tU('nothingTrendingYet_a318')),
     trenches: list(
       feeds.trenches.tokens.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
       tU('noNewPumpFunLaunches_09ad'),
     ),
     bonding: list(
-      feeds.bonding.tokens.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
+      bondingRows.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
       tU('nothingCloseToGraduatingRight_e349'),
     ),
     graduated: (

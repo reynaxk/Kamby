@@ -105,7 +105,8 @@ export function TokenChartCard({
           <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
           <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />
         </div>
-        {loading && candles !== null && (
+        {/* Only while switching widths — background refreshes stay silent (2026-10-10). */}
+        {loading && candles !== null && candlesFor !== candleTimeframe && (
           <span aria-live="polite" className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
             {tU('updating_805a')}
           </span>
