@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
+import { AppBell } from '@/components/notifications/AppBell';
 import { useAccount } from 'wagmi';
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
@@ -55,6 +56,12 @@ export function PortfolioHeader() {
     <ScrolledBar>
       <BigUsd value={total} className={cn('font-display text-base font-bold text-ink-900', hidden && 'select-none blur-sm')} />
     </ScrolledBar>
+    {/* Phones: the logo and the bell above the balance — the app's own top row. */}
+    <div className="-mb-2 flex items-center justify-between pt-1 md:hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
+      <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
+      <AppBell />
+    </div>
     <section className="flex items-start justify-between gap-3 px-1 py-4">
       <div className={cn('min-w-0', hidden && 'select-none blur-md')}>
         <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />

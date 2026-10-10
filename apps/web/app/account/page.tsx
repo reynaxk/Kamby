@@ -35,7 +35,7 @@ export default async function AccountPage() {
             </p>
           </div>
         </div>
-        <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl max-md:mt-0 border border-line bg-surface p-4">
+        <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl border border-line bg-surface p-4 max-md:mt-0 max-md:border-0 max-md:bg-transparent max-md:p-0">
           <h2 id="wallet-heading" className="font-display text-sm font-semibold text-ink-900">{t('wallet')}</h2>
           <p className="mt-1 font-body text-xs text-ink-600">{t('walletSub')}</p>
           <div className="mt-4">

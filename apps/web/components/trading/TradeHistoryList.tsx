@@ -72,20 +72,33 @@ export function TradeHistoryList() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 max-md:gap-0">
       {items.map((trade) => (
         <Link key={trade.id} href={`/trades/${trade.id}`}>
-          <Surface className="flex items-center justify-between gap-3 p-4 hover:border-accent">
-            <div className="flex items-center gap-3">
-              <span className={cn('font-mono text-xs font-semibold uppercase tracking-wide', trade.side === 'BUY' ? 'text-up' : 'text-down')}>
-                {trade.side === 'BUY' ? tU('bought_fe5a') : tU('sold_d85a')}
+          <Surface className="flex items-center justify-between gap-3 p-4 hover:border-accent max-md:rounded-none max-md:border-0 max-md:border-b max-md:border-white/5 max-md:bg-transparent max-md:px-0 max-md:py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              {/* Phones: a round buy/sell mark, like a bank app's transaction list. */}
+              <span
+                aria-hidden
+                className={cn(
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-base font-bold md:hidden',
+                  trade.side === 'BUY' ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
+                )}
+              >
+                {trade.side === 'BUY' ? '↑' : '↓'}
               </span>
-              <span className="font-display text-sm font-semibold text-ink-900">
-                {trade.expectedOutputAmountFormatted} {trade.token.symbol ?? ''}
-              </span>
+              <div className="min-w-0 md:flex md:items-center md:gap-3">
+                <span className={cn('font-mono text-xs font-semibold uppercase tracking-wide max-md:hidden', trade.side === 'BUY' ? 'text-up' : 'text-down')}>
+                  {trade.side === 'BUY' ? tU('bought_fe5a') : tU('sold_d85a')}
+                </span>
+                <span className="block truncate font-display text-sm font-semibold text-ink-900 max-md:text-base">
+                  {trade.expectedOutputAmountFormatted} {trade.token.symbol ?? ''}
+                </span>
+                <time className="block font-mono text-xs text-ink-400 md:hidden">{formatDateTime(trade.submittedAt)}</time>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <time className="font-mono text-xs text-ink-400">{formatDateTime(trade.submittedAt)}</time>
+            <div className="flex shrink-0 items-center gap-3">
+              <time className="font-mono text-xs text-ink-400 max-md:hidden">{formatDateTime(trade.submittedAt)}</time>
               <StatusPill status={trade.status} />
             </div>
           </Surface>
