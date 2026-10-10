@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
+import { usePrivy } from '@privy-io/react-auth';
 
 const TABS = [
   { href: '/home', label: 'home', match: ['/home'], icon: HomeIcon },
@@ -22,6 +23,7 @@ export function MobileTabBar() {
   const tU = useTranslations('ui');
   const pathname = usePathname() ?? '/';
   const t = useTranslations('nav');
+  const { ready, authenticated, login } = usePrivy();
   // The landing page has none; a coin's screen has its own Buy/Sell bar there instead (like fomo).
   if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/market/')) return null;
   return (
@@ -36,6 +38,13 @@ export function MobileTabBar() {
                 href={tab.href}
                 aria-label={t(tab.label)}
                 aria-current={active ? 'page' : undefined}
+                onClick={(e) => {
+                  // The terminal is for signed-in traders — signed out, Trade opens sign-in.
+                  if (tab.href === '/terminal' && ready && !authenticated) {
+                    e.preventDefault();
+                    login();
+                  }
+                }}
                 className={cn(
                   'flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90',
                   'center' in tab && tab.center

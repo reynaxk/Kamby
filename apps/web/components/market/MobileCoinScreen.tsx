@@ -9,7 +9,7 @@ import { badgeChainFor, ChainBadge } from './ChainBadge';
 import { LaunchpadBadge } from './LaunchpadBadge';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
-import { formatCompactUsd, formatPercent, formatPrice } from '@/lib/format';
+import { cashtag, formatCompactUsd, formatPercent, formatPrice } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
 
 export interface MobileCoinTab {
@@ -79,7 +79,7 @@ export function MobileCoinScreen({
   async function share() {
     const url = window.location.href;
     try {
-      if (navigator.share) await navigator.share({ title: `$${label} on Kamby`, url });
+      if (navigator.share) await navigator.share({ title: `${cashtag(label)} on Kamby`, url });
       else await navigator.clipboard.writeText(url);
     } catch {
       // Cancelled — nothing to do.
@@ -195,7 +195,7 @@ export function MobileCoinScreen({
         </button>
       </div>
 
-      <MobileDrawer open={side !== null} onClose={() => setSide(null)} title={`${side === 'SELL' ? tT('sell') : tT('buy')} $${label}`}>
+      <MobileDrawer open={side !== null} onClose={() => setSide(null)} title={`${side === 'SELL' ? tT('sell') : tT('buy')} ${cashtag(label)}`}>
         {side && renderTrade(side)}
       </MobileDrawer>
     </div>
