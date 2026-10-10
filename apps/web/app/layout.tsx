@@ -11,6 +11,7 @@ import { Providers } from './providers';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { LandingOnlyOnPhones } from '@/components/layout/LandingOnlyOnPhones';
+import { LaunchOnHome } from '@/components/pwa/LaunchOnHome';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -57,6 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <MobileTabBar />
         </Providers>
         <InstallApp />
+        <LaunchOnHome />
         </NextIntlClientProvider>
       </body>
     </html>

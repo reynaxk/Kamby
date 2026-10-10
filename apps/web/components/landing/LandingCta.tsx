@@ -18,14 +18,14 @@ export function LandingCta({ label: labelProp, variant = 'primary', className }:
   const { ready, authenticated, login } = usePrivy();
   const router = useRouter();
   useEffect(() => {
-    if (ready && authenticated) router.replace('/terminal');
+    if (ready && authenticated) router.replace(signedInHome());
   }, [ready, authenticated, router]);
 
   return (
     <button
       type="button"
       disabled={!ready}
-      onClick={() => (authenticated ? router.push('/terminal') : login())}
+      onClick={() => (authenticated ? router.push(signedInHome()) : login())}
       className={cn(
         'rounded-xl px-6 py-3 font-display text-sm font-bold transition-all disabled:opacity-60',
         variant === 'neon'
@@ -39,4 +39,13 @@ export function LandingCta({ label: labelProp, variant = 'primary', className }:
       {!ready ? tL('loading') : authenticated ? tL('openTerminal') : label}
     </button>
   );
+}
+
+/** Where a signed-in visitor goes from the landing page: the app's Home on a phone or in the
+ *  installed app (2026-10-10, owner: "don't land on some coin right after opening the app" —
+ *  an iPhone home-screen app opens on the page it was added from, here "/", and the phone
+ *  terminal opens on a coin), the terminal on a desktop browser. */
+function signedInHome(): string {
+  const phone = window.matchMedia('(max-width: 767px)').matches || window.matchMedia('(display-mode: standalone)').matches;
+  return phone ? '/home' : '/terminal';
 }
