@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
@@ -30,6 +30,8 @@ export function PortfolioHeader() {
 
   if (ready && !authenticated) {
     return (
+      <>
+      <ScrolledBar />
       <section className="flex items-center justify-between gap-3 px-1 py-4">
         <div>
           <p className="font-display text-2xl font-bold text-ink-900">{t('welcome')}</p>
@@ -39,6 +41,7 @@ export function PortfolioHeader() {
           {t('signIn')}
         </button>
       </section>
+      </>
     );
   }
 
@@ -48,6 +51,10 @@ export function PortfolioHeader() {
   const total = cash === null ? null : cash + held;
 
   return (
+    <>
+    <ScrolledBar>
+      <BigUsd value={total} className={cn('font-display text-base font-bold text-ink-900', hidden && 'select-none blur-sm')} />
+    </ScrolledBar>
     <section className="flex items-start justify-between gap-3 px-1 py-4">
       <div className={cn('min-w-0', hidden && 'select-none blur-md')}>
         <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />
@@ -64,5 +71,33 @@ export function PortfolioHeader() {
       </button>
       <FundModal open={fundOpen} onClose={() => setFundOpen(false)} />
     </section>
+    </>
+  );
+}
+
+/**
+ * Phones (2026-10-10, like fomo): once the big balance scrolls away, a slim bar at the top keeps
+ * the logo and a small balance in view, over the sticky list tabs.
+ */
+function ScrolledBar({ children }: { children?: React.ReactNode }) {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShown(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <div
+      aria-hidden={!shown}
+      className={cn(
+        'fixed inset-x-0 top-0 z-40 flex h-[calc(env(safe-area-inset-top)+3rem)] items-end justify-center bg-bg/95 pb-2.5 backdrop-blur-xl transition-opacity duration-200 md:hidden',
+        shown ? 'opacity-100' : 'pointer-events-none opacity-0',
+      )}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
+      <img src="/brand/kamby-mark.svg" alt="" className="absolute bottom-2.5 left-4 h-6 w-6" />
+      {children}
+    </div>
   );
 }

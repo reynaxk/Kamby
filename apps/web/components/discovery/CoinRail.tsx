@@ -12,15 +12,16 @@ import { DiscoverTokenList } from './DiscoverTokenList';
  * screen "scaling" — the list was gone). Same tabs and live feed as the terminal; picking a
  * coin opens its page with the list still here.
  */
-export function CoinRail({ initial, selectedKey }: { initial: MarketFeedSnapshot; selectedKey: string | null }) {
+export function CoinRail({ initial, selectedKey, pageScroll = false }: { initial: MarketFeedSnapshot; selectedKey: string | null; pageScroll?: boolean }) {
   const router = useRouter();
   const { feeds } = useMarketFeeds(initial);
   return (
-    <div className="kamby-terminal h-full overflow-hidden md:rounded-2xl md:border md:border-line md:bg-surface">
+    <div className={`kamby-terminal h-full overflow-hidden md:rounded-2xl md:border md:border-line md:bg-surface ${pageScroll ? 'max-md:h-auto max-md:overflow-visible' : ''}`}>
       <DiscoverTokenList
         feeds={feeds}
         selectedKey={selectedKey}
         selectionDisabled={false}
+        pageScroll={pageScroll}
         onSelect={(market) => {
           const href = market.chainIdentifier === 'solana' ? solanaMarketHref(market.tokenAddress) : marketHref(market.chainIdentifier, market.tokenAddress);
           if (href) router.push(href);

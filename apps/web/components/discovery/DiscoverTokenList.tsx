@@ -93,6 +93,7 @@ export function DiscoverTokenList({
   activePrimaryTab,
   onPrimaryTabChange,
   showPrimaryNav = true,
+  pageScroll = false,
 }: {
   feeds: MarketFeedSnapshot;
   selectedKey: string | null;
@@ -101,6 +102,9 @@ export function DiscoverTokenList({
   activePrimaryTab?: PrimaryTab;
   onPrimaryTabChange?: (tab: PrimaryTab) => void;
   showPrimaryNav?: boolean;
+  /** Phone Home (2026-10-10, like fomo): the whole page scrolls and the tabs stick under the
+   *  top bar, instead of the list scrolling inside its own box. */
+  pageScroll?: boolean;
 }) {
   const tU = useTranslations('ui');
   const tLists = useTranslations('lists');
@@ -112,6 +116,30 @@ export function DiscoverTokenList({
 
   const trendingRows = useSteadyOrder(uniqueMarkets(feeds.trending.markets), (m) => `${m.chainIdentifier}:${m.tokenAddress}`);
   const bondingRows = useSteadyOrder(feeds.bonding.tokens, (t) => t.mintAddress);
+
+  const tokenChips = (
+          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2">
+            {TOKEN_TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={tokenTab === t.id}
+                onClick={() => {
+                  setPrimaryTab('tokens');
+                  setTokenTab(t.id);
+                }}
+                className={cn(
+                  // Phones: tappable chips (2026-10-09 app redesign); desktop keeps the compact tabs.
+                  'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
+                  tokenTab === t.id ? 'bg-white/10 text-ink-900 md:bg-transparent' : 'text-ink-400 hover:text-ink-600',
+                )}
+              >
+                {tLists(t.id)}
+              </button>
+            ))}
+          </div>
+  );
 
   const marketRow = (market: FeedMarket) => {
     const key = `${market.chainIdentifier}:${market.tokenAddress}`;
@@ -187,33 +215,14 @@ export function DiscoverTokenList({
   };
 
   return (
-    <div className="flex h-full flex-col gap-1.5">
+    <div className={cn('flex h-full flex-col gap-1.5', pageScroll && 'max-md:h-auto')}>
+      <div className={cn(pageScroll && 'max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
       {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} />}
+      {primaryTab === 'tokens' && pageScroll && tokenChips}
+      </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-1.5">
-        {primaryTab === 'tokens' && (
-          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2">
-            {TOKEN_TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tokenTab === t.id}
-                onClick={() => {
-                  setPrimaryTab('tokens');
-                  setTokenTab(t.id);
-                }}
-                className={cn(
-                  // Phones: tappable chips (2026-10-09 app redesign); desktop keeps the compact tabs.
-                  'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
-                  tokenTab === t.id ? 'bg-white/10 text-ink-900 md:bg-transparent' : 'text-ink-400 hover:text-ink-600',
-                )}
-              >
-                {tLists(t.id)}
-              </button>
-            ))}
-          </div>
-        )}
+      <div className={cn('flex min-h-0 flex-1 flex-col gap-1.5', pageScroll && 'max-md:flex-none')}>
+        {primaryTab === 'tokens' && !pageScroll && tokenChips}
 
         {primaryTab === 'leaderboard' ? (
           <div className="min-h-0 flex-1">
@@ -231,7 +240,7 @@ export function DiscoverTokenList({
             />
           </div>
         ) : (
-          <div className="terminal-token-list min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface max-md:rounded-none max-md:border-0 max-md:bg-transparent">
+          <div className={cn('terminal-token-list min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface max-md:rounded-none max-md:border-0 max-md:bg-transparent', pageScroll && 'max-md:flex-none max-md:overflow-visible')}>
             {tabContent[tokenTab]}
           </div>
         )}

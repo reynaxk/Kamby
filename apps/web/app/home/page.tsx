@@ -26,8 +26,8 @@ export default async function HomePage() {
         <PortfolioHeader />
         <TopTradersStrip />
       </div>
-      <div className="mt-3 h-[calc(100dvh-13rem)] min-h-[420px]">
-        <CoinRail initial={feeds} selectedKey={null} />
+      <div className="mt-3 md:h-[calc(100dvh-13rem)] md:min-h-[420px]">
+        <CoinRail initial={feeds} selectedKey={null} pageScroll />
       </div>
     </main>
     </>
