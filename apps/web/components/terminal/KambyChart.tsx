@@ -30,6 +30,7 @@ import {
 } from '@/lib/indicators';
 import { ChartTraderMarkers } from './chartTraderMarkers';
 import { useTranslations } from 'next-intl';
+import { axisPrice } from '@/components/market/PriceText';
 
 export type ChartStyle = 'candles' | 'line';
 
@@ -352,7 +353,7 @@ export function KambyChart({
     // Prices can't go below zero — the axis's bottom margin (room for volume) used to show
     // negative labels on tiny coins. Blank them; everything else formats as before.
     const { precision, minMove } = pricePrecision(candles);
-    const priceFormat = { type: 'custom' as const, minMove, formatter: (price: number) => (price < 0 ? '' : price.toFixed(precision)) };
+    const priceFormat = { type: 'custom' as const, minMove, formatter: (price: number) => axisPrice(price, precision) };
     // Candles, or a line of closes (the chart-style toggle, 2026-10-03). The library's own
     // last-price line/label is off either way — the accent-styled one below replaces it.
     const series =

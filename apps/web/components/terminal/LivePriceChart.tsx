@@ -17,6 +17,7 @@ import type { ChartSource } from '@/lib/chart-data';
 import { recentTicks, subscribeLivePrice } from '@/lib/use-live-price';
 import { chartFontFamily, pricePrecision, readRgba, type ChartStyle } from './KambyChart';
 import { useTranslations } from 'next-intl';
+import { axisPrice } from '@/components/market/PriceText';
 
 const POLL_MS = 2_000;
 /** The last hour of 1m closes as the line's starting history. */
@@ -82,6 +83,11 @@ export function foldTick(last: LiveCandle | null, price: number, nowS: number, b
  * is watching). Polling pauses while the tab is hidden. Updated in place with
  * `series.update()`, never rebuilt per tick.
  */
+/** Axis labels in the app's short form for tiny prices (0.0₅343) — see axisPrice. */
+function axisFormat({ precision, minMove }: { precision: number; minMove: number }) {
+  return { type: 'custom' as const, minMove, formatter: (p: number) => axisPrice(p, precision) };
+}
+
 /** Fewer candles than this draw as the live line instead — see the build effect. */
 const MIN_CANDLES = 5;
 
@@ -164,7 +170,7 @@ export function LivePriceChart({
         wickUpColor: readRgba('--kamby-up', container, 1),
         wickDownColor: readRgba('--kamby-down', container, 1),
         borderVisible: false,
-        priceFormat: { type: 'price', ...pricePrecision(seedCandles.length > 0 ? seedCandles : []) },
+        priceFormat: axisFormat(pricePrecision(seedCandles.length > 0 ? seedCandles : [])),
         lastValueVisible: true,
         priceLineVisible: true,
         priceLineStyle: LineStyle.Dashed,
@@ -194,7 +200,7 @@ export function LivePriceChart({
       lineWidth: 2,
       topColor: readRgba('--kamby-accent', container, 0.28),
       bottomColor: readRgba('--kamby-accent', container, 0.02),
-      priceFormat: { type: 'price', ...pricePrecision(seedCandles.length > 0 ? seedCandles : []) },
+      priceFormat: axisFormat(pricePrecision(seedCandles.length > 0 ? seedCandles : [])),
       lastValueVisible: true,
       priceLineVisible: true,
       priceLineStyle: LineStyle.Dashed,
@@ -220,7 +226,7 @@ export function LivePriceChart({
 
   useEffect(() => {
     let points = 0;
-    const formatFor = (p: number) => ({ type: 'price' as const, ...pricePrecision([{ bucketStart: '', open: p, high: p, low: p, close: p, volumeUsd: 0 }]) });
+    const formatFor = (p: number) => axisFormat(pricePrecision([{ bucketStart: '', open: p, high: p, low: p, close: p, volumeUsd: 0 }]));
     const onPrice = (priceUsd: number) => {
       const nowS = Math.floor(Date.now() / 1000);
       // No seed history (e.g. candles briefly unavailable): size the axis decimals from the

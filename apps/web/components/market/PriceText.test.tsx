@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { leadingZeros, PriceText } from './PriceText';
+import { axisPrice, leadingZeros, PriceText } from './PriceText';
 
 describe('PriceText', () => {
   it('counts the zeros after "0."', () => {
@@ -14,5 +14,11 @@ describe('PriceText', () => {
     expect(render(<PriceText value={0.0000099999} />).container.textContent).toBe('$0.041');
     expect(render(<PriceText value={1.5} />).container.textContent).toBe('$1.50');
     expect(render(<PriceText value={null} />).container.textContent).toBe('—');
+  });
+
+  it('shortens tiny axis prices with subscript digits, keeps normal ones', () => {
+    expect(axisPrice(0.00000343, 10)).toBe('0.0₅343');
+    expect(axisPrice(0.0231, 4)).toBe('0.0231');
+    expect(axisPrice(-1, 2)).toBe('');
   });
 });

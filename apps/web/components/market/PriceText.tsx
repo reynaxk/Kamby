@@ -11,6 +11,19 @@ export function leadingZeros(value: number): number {
   return Math.floor(-Math.log10(abs));
 }
 
+const SUBSCRIPT = '₀₁₂₃₄₅₆₇₈₉';
+
+/** The same short form as plain text for a chart axis (canvas can't draw <sub>): 0.0₅343.
+ *  Prices with fewer than 4 zeros keep `precision` decimals. */
+export function axisPrice(price: number, precision: number): string {
+  if (price < 0) return '';
+  const zeros = leadingZeros(price);
+  if (price === 0 || zeros < 4) return price.toFixed(precision);
+  const digits = Math.round(price * 10 ** (zeros + 3)).toString().replace(/0+$/, '') || '0';
+  const sub = String(zeros).split('').map((d) => SUBSCRIPT[Number(d)]).join('');
+  return `0.0${sub}${digits}`;
+}
+
 /**
  * A price the way trading apps write it (2026-10-10): tiny meme-coin prices with the zero count
  * as a subscript — $0.0₅3410 instead of $0.00000341, which nobody can count at a glance —
