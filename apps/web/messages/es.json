@@ -509,6 +509,18 @@
     "tryAgainMoment": "Inténtalo de nuevo en un momento.",
     "tab_about": "Info",
     "tab_activity": "Actividad",
-    "holderShare": "Porcentaje"
+    "holderShare": "Porcentaje",
+    "ofSupply": "{pct} del suministro",
+    "profileWelcome": "Bienvenido a Kamby",
+    "profileWelcomeSub": "Inicia sesión para operar, ver tu saldo y subir en la clasificación.",
+    "menu_editProfile": "Editar perfil",
+    "menu_publicProfile": "Mi perfil público",
+    "menu_trades": "Mis operaciones",
+    "menu_watchlist": "Lista de seguimiento",
+    "menu_notifications": "Notificaciones",
+    "menu_referrals": "Invitar amigos",
+    "menu_hideBalances": "Ocultar saldos",
+    "menu_copyAddress": "Copiar dirección de la wallet",
+    "menu_signOut": "Cerrar sesión"
   }
 }

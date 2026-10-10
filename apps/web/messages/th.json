@@ -509,6 +509,18 @@
     "tryAgainMoment": "ลองใหม่อีกครั้งในอีกสักครู่",
     "tab_about": "ข้อมูล",
     "tab_activity": "กิจกรรม",
-    "holderShare": "สัดส่วน"
+    "holderShare": "สัดส่วน",
+    "ofSupply": "{pct} ของอุปทาน",
+    "profileWelcome": "ยินดีต้อนรับสู่ Kamby",
+    "profileWelcomeSub": "ลงชื่อเข้าใช้เพื่อเทรด ดูยอดเงิน และไต่อันดับ",
+    "menu_editProfile": "แก้ไขโปรไฟล์",
+    "menu_publicProfile": "โปรไฟล์สาธารณะของฉัน",
+    "menu_trades": "เทรดของฉัน",
+    "menu_watchlist": "รายการเฝ้าดู",
+    "menu_notifications": "การแจ้งเตือน",
+    "menu_referrals": "ชวนเพื่อน",
+    "menu_hideBalances": "ซ่อนยอดเงิน",
+    "menu_copyAddress": "คัดลอกที่อยู่วอลเล็ต",
+    "menu_signOut": "ออกจากระบบ"
   }
 }

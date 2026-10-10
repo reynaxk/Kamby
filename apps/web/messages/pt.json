@@ -509,6 +509,18 @@
     "tryAgainMoment": "Tente novamente em instantes.",
     "tab_about": "Sobre",
     "tab_activity": "Atividade",
-    "holderShare": "Fatia"
+    "holderShare": "Fatia",
+    "ofSupply": "{pct} do fornecimento",
+    "profileWelcome": "Bem-vindo à Kamby",
+    "profileWelcomeSub": "Entre para negociar, ver seu saldo e subir no ranking.",
+    "menu_editProfile": "Editar perfil",
+    "menu_publicProfile": "Meu perfil público",
+    "menu_trades": "Minhas operações",
+    "menu_watchlist": "Watchlist",
+    "menu_notifications": "Notificações",
+    "menu_referrals": "Convidar amigos",
+    "menu_hideBalances": "Ocultar saldos",
+    "menu_copyAddress": "Copiar endereço da carteira",
+    "menu_signOut": "Sair"
   }
 }

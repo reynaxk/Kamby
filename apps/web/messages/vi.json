@@ -509,6 +509,18 @@
     "tryAgainMoment": "Thử lại sau giây lát.",
     "tab_about": "Giới thiệu",
     "tab_activity": "Hoạt động",
-    "holderShare": "Tỷ lệ"
+    "holderShare": "Tỷ lệ",
+    "ofSupply": "{pct} nguồn cung",
+    "profileWelcome": "Chào mừng đến Kamby",
+    "profileWelcomeSub": "Đăng nhập để giao dịch, xem số dư và leo bảng xếp hạng.",
+    "menu_editProfile": "Sửa hồ sơ",
+    "menu_publicProfile": "Hồ sơ công khai",
+    "menu_trades": "Giao dịch của tôi",
+    "menu_watchlist": "Danh sách theo dõi",
+    "menu_notifications": "Thông báo",
+    "menu_referrals": "Mời bạn bè",
+    "menu_hideBalances": "Ẩn số dư",
+    "menu_copyAddress": "Sao chép địa chỉ ví",
+    "menu_signOut": "Đăng xuất"
   }
 }

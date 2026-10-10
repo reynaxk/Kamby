@@ -509,6 +509,18 @@
     "tryAgainMoment": "잠시 후 다시 시도하세요.",
     "tab_about": "정보",
     "tab_activity": "활동",
-    "holderShare": "비중"
+    "holderShare": "비중",
+    "ofSupply": "공급량의 {pct}",
+    "profileWelcome": "Kamby에 오신 것을 환영합니다",
+    "profileWelcomeSub": "로그인하고 거래하고, 잔액을 확인하고, 리더보드에 올라가세요.",
+    "menu_editProfile": "프로필 편집",
+    "menu_publicProfile": "내 공개 프로필",
+    "menu_trades": "내 거래",
+    "menu_watchlist": "관심 목록",
+    "menu_notifications": "알림",
+    "menu_referrals": "친구 초대",
+    "menu_hideBalances": "잔액 숨기기",
+    "menu_copyAddress": "지갑 주소 복사",
+    "menu_signOut": "로그아웃"
   }
 }

@@ -509,6 +509,18 @@
     "tryAgainMoment": "请稍后再试。",
     "tab_about": "简介",
     "tab_activity": "动态",
-    "holderShare": "占比"
+    "holderShare": "占比",
+    "ofSupply": "占供应量 {pct}",
+    "profileWelcome": "欢迎来到 Kamby",
+    "profileWelcomeSub": "登录即可交易、查看余额并冲击排行榜。",
+    "menu_editProfile": "编辑资料",
+    "menu_publicProfile": "我的公开主页",
+    "menu_trades": "我的交易",
+    "menu_watchlist": "自选",
+    "menu_notifications": "通知",
+    "menu_referrals": "邀请好友",
+    "menu_hideBalances": "隐藏余额",
+    "menu_copyAddress": "复制钱包地址",
+    "menu_signOut": "退出登录"
   }
 }

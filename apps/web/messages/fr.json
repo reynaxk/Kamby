@@ -509,6 +509,18 @@
     "tryAgainMoment": "Réessaie dans un instant.",
     "tab_about": "Infos",
     "tab_activity": "Activité",
-    "holderShare": "Part"
+    "holderShare": "Part",
+    "ofSupply": "{pct} de l'offre",
+    "profileWelcome": "Bienvenue sur Kamby",
+    "profileWelcomeSub": "Connecte-toi pour trader, voir ton solde et grimper au classement.",
+    "menu_editProfile": "Modifier le profil",
+    "menu_publicProfile": "Mon profil public",
+    "menu_trades": "Mes trades",
+    "menu_watchlist": "Watchlist",
+    "menu_notifications": "Notifications",
+    "menu_referrals": "Inviter des amis",
+    "menu_hideBalances": "Masquer les soldes",
+    "menu_copyAddress": "Copier l'adresse du wallet",
+    "menu_signOut": "Se déconnecter"
   }
 }

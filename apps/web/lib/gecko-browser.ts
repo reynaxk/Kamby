@@ -73,3 +73,40 @@ export async function fetchGeckoCandles(network: GeckoNetwork, token: string, ti
   );
   return toCandles(body?.data?.attributes?.ohlcv_list);
 }
+
+export interface GeckoTrade {
+  txHash: string;
+  side: 'BUY' | 'SELL';
+  amountUsd: number;
+  trader: string;
+  atMs: number;
+}
+
+/** Exported for tests. GeckoTerminal's pool trades → this coin's buys/sells, newest first. The
+ *  side comes from which way the coin moved (to the trader = buy), so it's right whichever
+ *  side of the pool the coin is. */
+export function toTrades(rows: unknown, token: string): GeckoTrade[] {
+  if (!Array.isArray(rows)) return [];
+  const want = token.toLowerCase();
+  const out: GeckoTrade[] = [];
+  for (const row of rows as { attributes?: Record<string, unknown> }[]) {
+    const a = row?.attributes;
+    if (!a) continue;
+    const to = String(a.to_token_address ?? '').toLowerCase();
+    const from = String(a.from_token_address ?? '').toLowerCase();
+    const side = to === want ? 'BUY' : from === want ? 'SELL' : null;
+    const amountUsd = Number(a.volume_in_usd);
+    const atMs = Date.parse(String(a.block_timestamp ?? ''));
+    if (!side || !Number.isFinite(amountUsd) || !Number.isFinite(atMs) || typeof a.tx_hash !== 'string') continue;
+    out.push({ txHash: a.tx_hash, side, amountUsd, trader: String(a.tx_from_address ?? ''), atMs });
+  }
+  return out.sort((x, y) => y.atMs - x.atMs);
+}
+
+/** The coin's latest trades on its chart pool (or its top pool), from the viewer's browser. */
+export async function fetchGeckoTrades(network: GeckoNetwork, token: string, pool?: string): Promise<GeckoTrade[] | null> {
+  pool = pool ?? (await topPool(network, token)) ?? undefined;
+  if (!pool) return null;
+  const body = await getJson<{ data?: unknown }>(`${API}/${network}/pools/${pool}/trades`);
+  return body ? toTrades(body.data, token) : null;
+}

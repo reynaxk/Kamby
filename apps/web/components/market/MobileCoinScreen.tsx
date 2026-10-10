@@ -64,6 +64,8 @@ export function MobileCoinScreen({
   const live = useLivePrice(source);
   const stats = useTokenStats(source);
   const [tab, setTab] = useState(tabs[0]?.id ?? '');
+  // A tab mounts the first time it's opened, then stays (no refetch when switching back).
+  const [opened, setOpened] = useState<Set<string>>(() => new Set([tabs[0]?.id ?? '']));
   const [side, setSide] = useState<'BUY' | 'SELL' | null>(null);
 
   const price = live ?? initialPrice;
@@ -152,7 +154,10 @@ export function MobileCoinScreen({
                 type="button"
                 role="tab"
                 aria-selected={tab === t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => {
+                  setTab(t.id);
+                  setOpened((prev) => (prev.has(t.id) ? prev : new Set(prev).add(t.id)));
+                }}
                 className={cn(
                   'relative flex-1 py-3 font-display text-sm font-semibold transition-colors',
                   tab === t.id ? 'text-ink-900' : 'text-ink-400',
@@ -165,7 +170,7 @@ export function MobileCoinScreen({
           </div>
           {tabs.map((t) => (
             <div key={t.id} role="tabpanel" hidden={tab !== t.id} className="kamby-app-panel">
-              {t.content}
+              {opened.has(t.id) && t.content}
             </div>
           ))}
         </>

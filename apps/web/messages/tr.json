@@ -509,6 +509,18 @@
     "tryAgainMoment": "Birazdan tekrar dene.",
     "tab_about": "Hakkında",
     "tab_activity": "Aktivite",
-    "holderShare": "Pay"
+    "holderShare": "Pay",
+    "ofSupply": "Arzın {pct} kadarı",
+    "profileWelcome": "Kamby'ye hoş geldin",
+    "profileWelcomeSub": "İşlem yapmak, bakiyeni görmek ve sıralamada yükselmek için giriş yap.",
+    "menu_editProfile": "Profili düzenle",
+    "menu_publicProfile": "Herkese açık profilim",
+    "menu_trades": "İşlemlerim",
+    "menu_watchlist": "İzleme listesi",
+    "menu_notifications": "Bildirimler",
+    "menu_referrals": "Arkadaşlarını davet et",
+    "menu_hideBalances": "Bakiyeleri gizle",
+    "menu_copyAddress": "Cüzdan adresini kopyala",
+    "menu_signOut": "Çıkış yap"
   }
 }

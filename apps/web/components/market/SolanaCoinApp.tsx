@@ -7,6 +7,7 @@ import { NewListingBanner } from './NewListingBanner';
 import { TokenStatsStrip } from './TokenStatsStrip';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
+import { LiveTradesPanel } from '@/components/terminal/LiveTradesPanel';
 import { TokenLinks } from '@/components/terminal/TokenLinks';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
@@ -42,6 +43,7 @@ export function SolanaCoinApp({
 }) {
   const tC = useTranslations('coin');
   const tL = useTranslations('labels');
+  const tU = useTranslations('ui');
   const source: ChartSource = { kind: 'solana', mint };
   return (
     <MobileCoinScreen
@@ -58,6 +60,7 @@ export function SolanaCoinApp({
       chart={<TokenChartCard bare source={source} initialTimeframe={timeframe} initialCandles={candles} timeframes={timeframes} className="h-full" />}
       tabs={[
         { id: 'holders', label: tC('holders'), content: <HoldersPanel source={source} /> },
+        { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={source} /> },
         {
           id: 'about',
           label: tL('tab_about'),

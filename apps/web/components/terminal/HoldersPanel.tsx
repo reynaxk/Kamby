@@ -8,6 +8,7 @@ import { formatCompactUsd, truncateAddress } from '@/lib/format';
 import { API_BASE } from '@/lib/session-client';
 import { useLivePrice } from '@/lib/use-live-price';
 import { useTranslations } from 'next-intl';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 const REFRESH_MS = 60_000; // the API caches holders for a minute
 
@@ -76,11 +77,38 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
   return (
     <div className="flex flex-col">
       {data.holderCount !== null && (
-        <p className="border-b border-line/60 px-3 py-1.5 font-mono text-[0.7rem] text-ink-400">
+        <p className="border-b border-line/60 px-3 py-1.5 font-mono text-[0.7rem] text-ink-400 max-md:border-0 max-md:px-4 max-md:pt-3">
           {tC('holdersTop', { count: data.holderCount.toLocaleString('en-US'), top: data.holders.length })}
         </p>
       )}
-      <table className="w-full font-mono text-[0.75rem]">
+      {/* Phones: an app list like fomo's holders tab, not a table (2026-10-10). */}
+      <ul className="md:hidden">
+        {data.holders.map((h) => {
+          const valueUsd = price !== null ? h.balance * price : null;
+          const tier = !h.isContract && valueUsd !== null ? holderTier(valueUsd) : null;
+          const pct = `${h.percent < 0.01 ? '<0.01' : h.percent.toFixed(2)}%`;
+          return (
+            <li key={h.address}>
+              <a href={EXPLORER[chain](h.address)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3 active:bg-white/5">
+                <TokenAvatar src={null} seed={h.address} label={h.tag ?? h.address.slice(-2)} className="h-10 w-10 shrink-0 text-xs" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 truncate font-display text-[0.95rem] font-semibold text-ink-900">
+                    {h.tag ?? truncateAddress(h.address)}
+                    {tier && <span aria-label={tL(`tier_${tier}`)}>{TIER_STYLE[tier].icon}</span>}
+                  </span>
+                  <span className="block font-body text-xs text-ink-400">{tL('ofSupply', { pct })}</span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block font-body text-[0.95rem] font-semibold tabular-nums text-ink-900">{valueUsd !== null ? formatCompactUsd(valueUsd) : '—'}</span>
+                  {tier && <span className={cn('mt-0.5 inline-block rounded-full px-1.5 py-0.5 font-body text-[0.62rem] font-semibold', TIER_STYLE[tier].className)}>{tL(`tier_${tier}`)}</span>}
+                  {!tier && h.isContract && <span className="block font-body text-[0.65rem] text-ink-400">{h.tag ? '' : 'contract'}</span>}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <table className="w-full font-mono text-[0.75rem] max-md:hidden">
         <thead>
           <tr className="text-left text-ink-400">
             <th className="px-3 py-1.5 font-medium">#</th>

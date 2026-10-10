@@ -509,6 +509,18 @@
     "tryAgainMoment": "しばらくしてからもう一度お試しください。",
     "tab_about": "概要",
     "tab_activity": "アクティビティ",
-    "holderShare": "割合"
+    "holderShare": "割合",
+    "ofSupply": "供給量の {pct}",
+    "profileWelcome": "Kambyへようこそ",
+    "profileWelcomeSub": "サインインして取引し、残高を確認し、ランキングを駆け上がりましょう。",
+    "menu_editProfile": "プロフィールを編集",
+    "menu_publicProfile": "公開プロフィール",
+    "menu_trades": "自分の取引",
+    "menu_watchlist": "ウォッチリスト",
+    "menu_notifications": "通知",
+    "menu_referrals": "友だちを招待",
+    "menu_hideBalances": "残高を隠す",
+    "menu_copyAddress": "ウォレットアドレスをコピー",
+    "menu_signOut": "サインアウト"
   }
 }

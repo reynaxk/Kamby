@@ -7,6 +7,8 @@ import { SendButton } from '@/components/wallet/SendButton';
 import { ChainBalancesCard } from '@/components/wallet/ChainBalancesCard';
 import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 import { getTranslations } from 'next-intl/server';
+import { AppProfileMenu } from '@/components/account/AppProfileMenu';
+import { PhoneSignedInOnly } from '@/components/account/PhoneSignedInOnly';
 
 export const metadata = { title: 'Your profile — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
@@ -21,8 +23,11 @@ export default async function AccountPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <div className="flex items-start justify-between gap-4">
+      {/* Phones: the Profile tab as an app screen (sign in, lists, settings, sign out). */}
+      <AppProfileMenu />
+      <PhoneSignedInOnly>
+      <main className="mx-auto max-w-2xl px-6 py-10 max-md:px-4 max-md:py-4">
+        <div className="flex items-start justify-between gap-4 max-md:hidden">
           <div>
             <h1 className="font-display text-xl font-bold text-ink-900">{t('title')}</h1>
             <p className="mt-1 font-body text-sm text-ink-600">
@@ -30,18 +35,20 @@ export default async function AccountPage() {
             </p>
           </div>
         </div>
-        <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl border border-line bg-surface p-4">
+        <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl max-md:mt-0 border border-line bg-surface p-4">
           <h2 id="wallet-heading" className="font-display text-sm font-semibold text-ink-900">{t('wallet')}</h2>
           <p className="mt-1 font-body text-xs text-ink-600">{t('walletSub')}</p>
           <div className="mt-4">
             <ChainBalancesCard />
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2 max-md:grid max-md:grid-cols-2">
             <FundButton variant="labeled" />
             <SendButton variant="labeled" />
-            <BlurBalancesToggle variant="labeled" />
+            <span className="max-md:hidden">
+              <BlurBalancesToggle variant="labeled" />
+            </span>
           </div>
-          <LanguageSelect className="mt-4 max-w-xs" />
+          <LanguageSelect className="mt-4 max-w-xs max-md:hidden" />
         </section>
         <div id="profile" className="mt-6 scroll-mt-20">
           <ProfileEditor />
@@ -50,6 +57,7 @@ export default async function AccountPage() {
           <PnlHistoryChart />
         </div>
       </main>
+      </PhoneSignedInOnly>
     </div>
   );
 }

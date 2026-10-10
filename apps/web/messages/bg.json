@@ -509,6 +509,18 @@
     "tryAgainMoment": "Опитай отново след малко.",
     "tab_about": "Инфо",
     "tab_activity": "Активност",
-    "holderShare": "Дял"
+    "holderShare": "Дял",
+    "ofSupply": "{pct} от наличността",
+    "profileWelcome": "Добре дошъл в Kamby",
+    "profileWelcomeSub": "Влез, за да търгуваш, да виждаш баланса си и да се изкачиш в класацията.",
+    "menu_editProfile": "Редактирай профила",
+    "menu_publicProfile": "Моят публичен профил",
+    "menu_trades": "Моите сделки",
+    "menu_watchlist": "Списък за наблюдение",
+    "menu_notifications": "Известия",
+    "menu_referrals": "Покани приятели",
+    "menu_hideBalances": "Скрий балансите",
+    "menu_copyAddress": "Копирай адреса на портфейла",
+    "menu_signOut": "Изход"
   }
 }

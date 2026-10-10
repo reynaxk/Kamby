@@ -321,6 +321,12 @@ body:has(.kamby-void) {
 }
 
 /* Landing page motion (2026-10-05) — gentle, and off for anyone who asks for less motion. */
+/* A new row in a live list (trades feed) easing in at the top. */
+@keyframes kamby-slide-in {
+  from { opacity: 0; transform: translateY(-6px); background-color: rgba(255, 255, 255, 0.06); }
+  to { opacity: 1; transform: none; background-color: transparent; }
+}
+
 @keyframes kamby-float {
   0%, 100% { transform: translate(-50%, 0); }
   50% { transform: translate(-46%, 26px); }

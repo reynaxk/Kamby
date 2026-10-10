@@ -509,6 +509,18 @@
     "tryAgainMoment": "Попробуйте чуть позже.",
     "tab_about": "Инфо",
     "tab_activity": "Активность",
-    "holderShare": "Доля"
+    "holderShare": "Доля",
+    "ofSupply": "{pct} предложения",
+    "profileWelcome": "Добро пожаловать в Kamby",
+    "profileWelcomeSub": "Войдите, чтобы торговать, видеть баланс и подниматься в рейтинге.",
+    "menu_editProfile": "Редактировать профиль",
+    "menu_publicProfile": "Мой публичный профиль",
+    "menu_trades": "Мои сделки",
+    "menu_watchlist": "Список наблюдения",
+    "menu_notifications": "Уведомления",
+    "menu_referrals": "Пригласить друзей",
+    "menu_hideBalances": "Скрыть балансы",
+    "menu_copyAddress": "Скопировать адрес кошелька",
+    "menu_signOut": "Выйти"
   }
 }

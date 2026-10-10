@@ -509,6 +509,18 @@
     "tryAgainMoment": "Coba lagi sebentar lagi.",
     "tab_about": "Info",
     "tab_activity": "Aktivitas",
-    "holderShare": "Porsi"
+    "holderShare": "Porsi",
+    "ofSupply": "{pct} dari suplai",
+    "profileWelcome": "Selamat datang di Kamby",
+    "profileWelcomeSub": "Masuk untuk trading, lihat saldo, dan naik di papan peringkat.",
+    "menu_editProfile": "Edit profil",
+    "menu_publicProfile": "Profil publikku",
+    "menu_trades": "Trade saya",
+    "menu_watchlist": "Watchlist",
+    "menu_notifications": "Notifikasi",
+    "menu_referrals": "Undang teman",
+    "menu_hideBalances": "Sembunyikan saldo",
+    "menu_copyAddress": "Salin alamat wallet",
+    "menu_signOut": "Keluar"
   }
 }

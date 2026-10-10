@@ -509,6 +509,18 @@
     "tryAgainMoment": "Try again in a moment.",
     "tab_about": "About",
     "tab_activity": "Activity",
-    "holderShare": "Share"
+    "holderShare": "Share",
+    "ofSupply": "{pct} of supply",
+    "profileWelcome": "Welcome to Kamby",
+    "profileWelcomeSub": "Sign in to trade, see your balance and climb the leaderboard.",
+    "menu_editProfile": "Edit profile",
+    "menu_publicProfile": "My public profile",
+    "menu_trades": "My trades",
+    "menu_watchlist": "Watchlist",
+    "menu_notifications": "Notifications",
+    "menu_referrals": "Invite friends",
+    "menu_hideBalances": "Hide balances",
+    "menu_copyAddress": "Copy wallet address",
+    "menu_signOut": "Sign out"
   }
 }
