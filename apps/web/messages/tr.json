@@ -521,6 +521,11 @@
     "menu_referrals": "Arkadaşlarını davet et",
     "menu_hideBalances": "Bakiyeleri gizle",
     "menu_copyAddress": "Cüzdan adresini kopyala",
-    "menu_signOut": "Çıkış yap"
+    "menu_signOut": "Çıkış yap",
+    "firstSeen": "İlk işlem {date}",
+    "lastActive": "son aktif {date}",
+    "behaviorNote": "Yalnızca bu cüzdanın onaylı işlemlerinden hesaplanır — yatırım tavsiyesi değildir.",
+    "volume24h": "24s hacim",
+    "trades24h": "24s işlem"
   }
 }

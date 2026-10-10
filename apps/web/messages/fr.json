@@ -521,6 +521,11 @@
     "menu_referrals": "Inviter des amis",
     "menu_hideBalances": "Masquer les soldes",
     "menu_copyAddress": "Copier l'adresse du wallet",
-    "menu_signOut": "Se déconnecter"
+    "menu_signOut": "Se déconnecter",
+    "firstSeen": "Trade depuis le {date}",
+    "lastActive": "dernière activité {date}",
+    "behaviorNote": "Calculé uniquement à partir des trades confirmés de ce wallet — pas un conseil en investissement.",
+    "volume24h": "Volume 24h",
+    "trades24h": "Trades 24h"
   }
 }

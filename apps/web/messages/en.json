@@ -521,6 +521,11 @@
     "menu_referrals": "Invite friends",
     "menu_hideBalances": "Hide balances",
     "menu_copyAddress": "Copy wallet address",
-    "menu_signOut": "Sign out"
+    "menu_signOut": "Sign out",
+    "firstSeen": "First seen trading {date}",
+    "lastActive": "last active {date}",
+    "behaviorNote": "Derived only from this wallet's own confirmed, indexed trades — not investment advice.",
+    "volume24h": "24h volume",
+    "trades24h": "24h trades"
   }
 }

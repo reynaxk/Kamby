@@ -521,6 +521,11 @@
     "menu_referrals": "Mời bạn bè",
     "menu_hideBalances": "Ẩn số dư",
     "menu_copyAddress": "Sao chép địa chỉ ví",
-    "menu_signOut": "Đăng xuất"
+    "menu_signOut": "Đăng xuất",
+    "firstSeen": "Giao dịch từ {date}",
+    "lastActive": "hoạt động lần cuối {date}",
+    "behaviorNote": "Chỉ tính từ các giao dịch đã xác nhận của ví này — không phải lời khuyên đầu tư.",
+    "volume24h": "Khối lượng 24h",
+    "trades24h": "Giao dịch 24h"
   }
 }

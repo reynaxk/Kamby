@@ -521,6 +521,11 @@
     "menu_referrals": "Undang teman",
     "menu_hideBalances": "Sembunyikan saldo",
     "menu_copyAddress": "Salin alamat wallet",
-    "menu_signOut": "Keluar"
+    "menu_signOut": "Keluar",
+    "firstSeen": "Trading sejak {date}",
+    "lastActive": "terakhir aktif {date}",
+    "behaviorNote": "Dihitung hanya dari trade terkonfirmasi wallet ini — bukan saran investasi.",
+    "volume24h": "Volume 24j",
+    "trades24h": "Trade 24j"
   }
 }

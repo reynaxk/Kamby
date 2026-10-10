@@ -521,6 +521,11 @@
     "menu_referrals": "Freunde einladen",
     "menu_hideBalances": "Guthaben verbergen",
     "menu_copyAddress": "Wallet-Adresse kopieren",
-    "menu_signOut": "Abmelden"
+    "menu_signOut": "Abmelden",
+    "firstSeen": "Handelt seit {date}",
+    "lastActive": "zuletzt aktiv {date}",
+    "behaviorNote": "Nur aus den bestätigten Trades dieser Wallet berechnet — keine Anlageberatung.",
+    "volume24h": "24h-Volumen",
+    "trades24h": "24h-Trades"
   }
 }

@@ -521,6 +521,11 @@
     "menu_referrals": "Invitar amigos",
     "menu_hideBalances": "Ocultar saldos",
     "menu_copyAddress": "Copiar dirección de la wallet",
-    "menu_signOut": "Cerrar sesión"
+    "menu_signOut": "Cerrar sesión",
+    "firstSeen": "Opera desde {date}",
+    "lastActive": "última actividad {date}",
+    "behaviorNote": "Calculado solo con las operaciones confirmadas de esta wallet — no es asesoramiento de inversión.",
+    "volume24h": "Volumen 24h",
+    "trades24h": "Operaciones 24h"
   }
 }

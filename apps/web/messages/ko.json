@@ -521,6 +521,11 @@
     "menu_referrals": "친구 초대",
     "menu_hideBalances": "잔액 숨기기",
     "menu_copyAddress": "지갑 주소 복사",
-    "menu_signOut": "로그아웃"
+    "menu_signOut": "로그아웃",
+    "firstSeen": "첫 거래 {date}",
+    "lastActive": "최근 활동 {date}",
+    "behaviorNote": "이 지갑의 확인된 거래만으로 계산 — 투자 조언이 아닙니다.",
+    "volume24h": "24시간 거래량",
+    "trades24h": "24시간 거래 수"
   }
 }

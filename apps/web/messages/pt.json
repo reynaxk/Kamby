@@ -521,6 +521,11 @@
     "menu_referrals": "Convidar amigos",
     "menu_hideBalances": "Ocultar saldos",
     "menu_copyAddress": "Copiar endereço da carteira",
-    "menu_signOut": "Sair"
+    "menu_signOut": "Sair",
+    "firstSeen": "Negocia desde {date}",
+    "lastActive": "última atividade {date}",
+    "behaviorNote": "Calculado só com as operações confirmadas desta carteira — não é recomendação de investimento.",
+    "volume24h": "Volume 24h",
+    "trades24h": "Operações 24h"
   }
 }

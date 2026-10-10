@@ -521,6 +521,11 @@
     "menu_referrals": "ชวนเพื่อน",
     "menu_hideBalances": "ซ่อนยอดเงิน",
     "menu_copyAddress": "คัดลอกที่อยู่วอลเล็ต",
-    "menu_signOut": "ออกจากระบบ"
+    "menu_signOut": "ออกจากระบบ",
+    "firstSeen": "เทรดครั้งแรก {date}",
+    "lastActive": "ใช้งานล่าสุด {date}",
+    "behaviorNote": "คำนวณจากเทรดที่ยืนยันแล้วของวอลเล็ตนี้เท่านั้น — ไม่ใช่คำแนะนำการลงทุน",
+    "volume24h": "ปริมาณ 24 ชม.",
+    "trades24h": "เทรด 24 ชม."
   }
 }

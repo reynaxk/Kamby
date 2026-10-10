@@ -45,6 +45,7 @@ const PNL_WINDOWS = ['24h', '7d', '30d'] as const;
 
 export default async function TraderProfilePage({ params }: { params: { address: string } }) {
   const tU = await getTranslations('ui');
+  const tL = await getTranslations('labels');
   const profile = await fetchTraderProfile(params.address);
   if (!profile) notFound();
 
@@ -89,18 +90,18 @@ export default async function TraderProfilePage({ params }: { params: { address:
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 max-md:mt-4 max-md:gap-x-4 max-md:gap-y-1">
-          <Stat label={tU('totalTrades_c59a')} value={profile.stats.totalSwaps.toString()} />
+          <Stat label={tU('totalTrades_c59a')} value={profile.stats.totalSwaps.toLocaleString('en-US')} />
           <Stat
             label={tU('buysSells_e13b')}
-            value={`${profile.stats.buyCount} / ${profile.stats.sellCount}`}
+            value={`${profile.stats.buyCount.toLocaleString('en-US')} / ${profile.stats.sellCount.toLocaleString('en-US')}`}
           />
           <Stat label={tU('volume_bd7a')} value={formatCompactUsd(profile.stats.volumeUsd)} />
-          <Stat label={tU('followers_24c7')} value={profile.followerCount.toString()} />
+          <Stat label={tU('followers_24c7')} value={profile.followerCount.toLocaleString('en-US')} />
         </div>
         <p className="mt-3 font-body text-xs text-ink-400">
-          First seen trading {formatDateTime(profile.stats.firstSeenAt)}
+          {tL('firstSeen', { date: formatDateTime(profile.stats.firstSeenAt) })}
           {profile.stats.lastActiveAt && (
-            <> · last active {formatDateTime(profile.stats.lastActiveAt)}</>
+            <> · {tL('lastActive', { date: formatDateTime(profile.stats.lastActiveAt) })}</>
           )}
         </p>
 
@@ -139,8 +140,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
               {tU('tradingBehavior_2f0a')}
             </h2>
             <p className="mb-4 font-body text-xs text-ink-400">
-              Derived only from this wallet&apos;s own confirmed, indexed trades — not investment
-              advice.
+              {tL('behaviorNote')}
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label={tU('uniqueTokens_976c')} value={profile.stats.uniqueTokensTraded.toString()} />
@@ -158,8 +158,8 @@ export default async function TraderProfilePage({ params }: { params: { address:
                 }
                 title={tU('shareOfThisWalletS_01eb')}
               />
-              <Stat label="24h volume" value={formatCompactUsd(profile.stats.volume24hUsd)} />
-              <Stat label="24h trades" value={profile.stats.tradeCount24h.toString()} />
+              <Stat label={tL('volume24h')} value={formatCompactUsd(profile.stats.volume24hUsd)} />
+              <Stat label={tL('trades24h')} value={profile.stats.tradeCount24h.toLocaleString('en-US')} />
               <Stat
                 label={tU('concentration_c9e7')}
                 value={

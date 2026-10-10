@@ -521,6 +521,11 @@
     "menu_referrals": "友だちを招待",
     "menu_hideBalances": "残高を隠す",
     "menu_copyAddress": "ウォレットアドレスをコピー",
-    "menu_signOut": "サインアウト"
+    "menu_signOut": "サインアウト",
+    "firstSeen": "初取引 {date}",
+    "lastActive": "最終アクティブ {date}",
+    "behaviorNote": "このウォレットの確認済み取引のみから算出 — 投資助言ではありません。",
+    "volume24h": "24時間取引量",
+    "trades24h": "24時間取引数"
   }
 }

@@ -521,6 +521,11 @@
     "menu_referrals": "Покани приятели",
     "menu_hideBalances": "Скрий балансите",
     "menu_copyAddress": "Копирай адреса на портфейла",
-    "menu_signOut": "Изход"
+    "menu_signOut": "Изход",
+    "firstSeen": "Търгува от {date}",
+    "lastActive": "последно активен {date}",
+    "behaviorNote": "Изчислено само от потвърдените сделки на този портфейл — не е инвестиционен съвет.",
+    "volume24h": "Обем 24ч",
+    "trades24h": "Сделки 24ч"
   }
 }
