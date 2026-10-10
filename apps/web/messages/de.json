@@ -90,7 +90,8 @@
     "bonding": "Bonding",
     "graduated": "Graduiert",
     "xxxrisk": "Hohes Risiko",
-    "crypto": "Krypto"
+    "crypto": "Krypto",
+    "watchlist": "Watchlist"
   },
   "share": {
     "sharePnl": "PnL teilen",
@@ -533,6 +534,8 @@
     "riskShort": "Neues Listing — hohes Risiko",
     "riskShortBonding": "Bonding Curve — extrem früh",
     "recents": "Zuletzt",
-    "clear": "Löschen"
+    "clear": "Löschen",
+    "watchlistSignedOut": "Melde dich an und tippe auf den Stern eines Coins, um ihn hier zu beobachten.",
+    "watchlistEmpty": "Noch nichts hier — tippe auf den Stern eines Coins, um ihn zu beobachten."
   }
 }

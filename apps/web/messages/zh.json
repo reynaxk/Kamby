@@ -90,7 +90,8 @@
     "bonding": "联合曲线",
     "graduated": "已毕业",
     "xxxrisk": "高风险",
-    "crypto": "主流币"
+    "crypto": "主流币",
+    "watchlist": "自选"
   },
   "share": {
     "sharePnl": "分享盈亏",
@@ -533,6 +534,8 @@
     "riskShort": "新上线 — 高风险",
     "riskShortBonding": "联合曲线 — 极早期",
     "recents": "最近",
-    "clear": "清除"
+    "clear": "清除",
+    "watchlistSignedOut": "登录后点击币种上的星标即可在此关注。",
+    "watchlistEmpty": "这里还没有内容 — 点击币种上的星标即可关注。"
   }
 }

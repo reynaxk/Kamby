@@ -90,7 +90,8 @@
     "bonding": "Bonding",
     "graduated": "Lulus",
     "xxxrisk": "Risiko tinggi",
-    "crypto": "Kripto"
+    "crypto": "Kripto",
+    "watchlist": "Watchlist"
   },
   "share": {
     "sharePnl": "Bagikan PnL",
@@ -533,6 +534,8 @@
     "riskShort": "Listing baru — risiko tinggi",
     "riskShortBonding": "Bonding curve — sangat awal",
     "recents": "Terbaru",
-    "clear": "Hapus"
+    "clear": "Hapus",
+    "watchlistSignedOut": "Masuk dan ketuk bintang di koin untuk memantaunya di sini.",
+    "watchlistEmpty": "Belum ada apa-apa — ketuk bintang di koin untuk memantaunya."
   }
 }

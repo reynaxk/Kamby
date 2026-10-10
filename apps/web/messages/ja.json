@@ -90,7 +90,8 @@
     "bonding": "ボンディング",
     "graduated": "卒業",
     "xxxrisk": "高リスク",
-    "crypto": "暗号資産"
+    "crypto": "暗号資産",
+    "watchlist": "ウォッチ"
   },
   "share": {
     "sharePnl": "損益をシェア",
@@ -533,6 +534,8 @@
     "riskShort": "新規上場 — 高リスク",
     "riskShortBonding": "ボンディングカーブ — 非常に初期",
     "recents": "最近",
-    "clear": "クリア"
+    "clear": "クリア",
+    "watchlistSignedOut": "サインインしてコインの星をタップするとここに表示されます。",
+    "watchlistEmpty": "まだ何もありません — コインの星をタップして追加しましょう。"
   }
 }

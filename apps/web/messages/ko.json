@@ -90,7 +90,8 @@
     "bonding": "본딩",
     "graduated": "졸업",
     "xxxrisk": "고위험",
-    "crypto": "크립토"
+    "crypto": "크립토",
+    "watchlist": "관심"
   },
   "share": {
     "sharePnl": "수익 공유",
@@ -533,6 +534,8 @@
     "riskShort": "신규 상장 — 고위험",
     "riskShortBonding": "본딩 커브 — 매우 초기",
     "recents": "최근",
-    "clear": "지우기"
+    "clear": "지우기",
+    "watchlistSignedOut": "로그인하고 코인의 별을 눌러 여기에 추가하세요.",
+    "watchlistEmpty": "아직 없습니다 — 코인의 별을 눌러 추가하세요."
   }
 }

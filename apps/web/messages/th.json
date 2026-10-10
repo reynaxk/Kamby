@@ -90,7 +90,8 @@
     "bonding": "บอนดิ้ง",
     "graduated": "จบการศึกษา",
     "xxxrisk": "ความเสี่ยงสูง",
-    "crypto": "คริปโต"
+    "crypto": "คริปโต",
+    "watchlist": "เฝ้าดู"
   },
   "share": {
     "sharePnl": "แชร์กำไร/ขาดทุน",
@@ -533,6 +534,8 @@
     "riskShort": "ลิสต์ใหม่ — ความเสี่ยงสูง",
     "riskShortBonding": "Bonding curve — เร็วมาก",
     "recents": "ล่าสุด",
-    "clear": "ล้าง"
+    "clear": "ล้าง",
+    "watchlistSignedOut": "ลงชื่อเข้าใช้แล้วแตะดาวบนเหรียญเพื่อเฝ้าดูที่นี่",
+    "watchlistEmpty": "ยังไม่มีอะไร — แตะดาวบนเหรียญเพื่อเฝ้าดู"
   }
 }

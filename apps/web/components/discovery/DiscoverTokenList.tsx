@@ -15,9 +15,11 @@ import { SelectableTokenRow } from './SelectableTokenRow';
 import { TradersSidebar } from './TradersSidebar';
 import { useTranslations } from 'next-intl';
 import { useSteadyOrder } from '@/lib/use-steady-order';
-export type PrimaryTab = 'alerts' | 'tokens' | 'leaderboard' | 'traders';
+import { WatchlistTokens } from './WatchlistTokens';
+export type PrimaryTab = 'watchlist' | 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
 const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
+  { id: 'watchlist', label: 'Watchlist' },
   { id: 'alerts', label: 'Alerts' },
   { id: 'tokens', label: 'Tokens' },
   { id: 'leaderboard', label: 'Leaderboard' },
@@ -57,6 +59,8 @@ export function TerminalPrimaryNav({
             activeTab === tab.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-900',
             // Alerts aren't built yet — not worth a tab on the phone app.
             tab.id === 'alerts' && 'max-md:hidden',
+            // Watchlist is the phone Home's first tab (like fomo); the desktop has its own page.
+            tab.id === 'watchlist' && 'md:hidden',
           )}
         >
           {tLists(tab.id)}
@@ -231,6 +235,10 @@ export function DiscoverTokenList({
         ) : primaryTab === 'traders' ? (
           <div className="min-h-0 flex-1">
             <TradersSidebar />
+          </div>
+        ) : primaryTab === 'watchlist' ? (
+          <div className="min-h-0 flex-1">
+            <WatchlistTokens />
           </div>
         ) : primaryTab === 'alerts' ? (
           <div className="min-h-0 flex-1 rounded-2xl border border-line bg-surface">

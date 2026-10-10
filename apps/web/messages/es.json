@@ -90,7 +90,8 @@
     "bonding": "Bonding",
     "graduated": "Graduados",
     "xxxrisk": "Alto riesgo",
-    "crypto": "Cripto"
+    "crypto": "Cripto",
+    "watchlist": "Seguidas"
   },
   "share": {
     "sharePnl": "Compartir PnL",
@@ -533,6 +534,8 @@
     "riskShort": "Nuevo listado — alto riesgo",
     "riskShortBonding": "Bonding curve — muy temprano",
     "recents": "Recientes",
-    "clear": "Borrar"
+    "clear": "Borrar",
+    "watchlistSignedOut": "Inicia sesión y toca la estrella de una moneda para seguirla aquí.",
+    "watchlistEmpty": "Aún no hay nada — toca la estrella de una moneda para seguirla."
   }
 }

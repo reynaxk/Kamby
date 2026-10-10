@@ -90,7 +90,8 @@
     "bonding": "Bonding",
     "graduated": "Mezun",
     "xxxrisk": "Yüksek risk",
-    "crypto": "Kripto"
+    "crypto": "Kripto",
+    "watchlist": "İzleme"
   },
   "share": {
     "sharePnl": "K/Z paylaş",
@@ -533,6 +534,8 @@
     "riskShort": "Yeni listeleme — yüksek risk",
     "riskShortBonding": "Bonding curve — çok erken",
     "recents": "Son aramalar",
-    "clear": "Temizle"
+    "clear": "Temizle",
+    "watchlistSignedOut": "Giriş yap ve burada izlemek için bir coindeki yıldıza dokun.",
+    "watchlistEmpty": "Henüz bir şey yok — izlemek için bir coindeki yıldıza dokun."
   }
 }

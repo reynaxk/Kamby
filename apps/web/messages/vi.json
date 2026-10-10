@@ -90,7 +90,8 @@
     "bonding": "Bonding",
     "graduated": "Đã tốt nghiệp",
     "xxxrisk": "Rủi ro cao",
-    "crypto": "Crypto"
+    "crypto": "Crypto",
+    "watchlist": "Theo dõi"
   },
   "share": {
     "sharePnl": "Chia sẻ lãi/lỗ",
@@ -533,6 +534,8 @@
     "riskShort": "Niêm yết mới — rủi ro cao",
     "riskShortBonding": "Bonding curve — cực kỳ sớm",
     "recents": "Gần đây",
-    "clear": "Xóa"
+    "clear": "Xóa",
+    "watchlistSignedOut": "Đăng nhập và chạm ngôi sao trên coin để theo dõi tại đây.",
+    "watchlistEmpty": "Chưa có gì — chạm ngôi sao trên coin để theo dõi."
   }
 }
