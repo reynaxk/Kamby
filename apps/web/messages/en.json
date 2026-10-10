@@ -508,6 +508,7 @@
     "prefsSignIn": "Sign in with a wallet to choose which notifications you get.",
     "tryAgainMoment": "Try again in a moment.",
     "tab_about": "About",
-    "tab_activity": "Activity"
+    "tab_activity": "Activity",
+    "holderShare": "Share"
   }
 }

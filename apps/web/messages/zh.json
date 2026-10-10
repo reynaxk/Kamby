@@ -508,6 +508,7 @@
     "prefsSignIn": "用钱包登录以选择你接收的通知。",
     "tryAgainMoment": "请稍后再试。",
     "tab_about": "简介",
-    "tab_activity": "动态"
+    "tab_activity": "动态",
+    "holderShare": "占比"
   }
 }

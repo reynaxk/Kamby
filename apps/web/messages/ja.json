@@ -508,6 +508,7 @@
     "prefsSignIn": "ウォレットでサインインして受け取る通知を選びましょう。",
     "tryAgainMoment": "しばらくしてからもう一度お試しください。",
     "tab_about": "概要",
-    "tab_activity": "アクティビティ"
+    "tab_activity": "アクティビティ",
+    "holderShare": "割合"
   }
 }

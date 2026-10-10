@@ -85,7 +85,7 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
           <tr className="text-left text-ink-400">
             <th className="px-3 py-1.5 font-medium">#</th>
             <th className="px-3 py-1.5 font-medium">{tU('holder_d6a0')}</th>
-            <th className="px-3 py-1.5 text-right font-medium">{tU('share_5a95')}</th>
+            <th className="px-3 py-1.5 text-right font-medium">{tL('holderShare')}</th>
             <th className="px-3 py-1.5 text-right font-medium">{tU('value_6892')}</th>
           </tr>
         </thead>

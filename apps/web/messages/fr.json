@@ -508,6 +508,7 @@
     "prefsSignIn": "Connecte-toi avec un wallet pour choisir tes notifications.",
     "tryAgainMoment": "Réessaie dans un instant.",
     "tab_about": "Infos",
-    "tab_activity": "Activité"
+    "tab_activity": "Activité",
+    "holderShare": "Part"
   }
 }

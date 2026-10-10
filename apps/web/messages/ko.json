@@ -508,6 +508,7 @@
     "prefsSignIn": "받을 알림을 선택하려면 지갑으로 로그인하세요.",
     "tryAgainMoment": "잠시 후 다시 시도하세요.",
     "tab_about": "정보",
-    "tab_activity": "활동"
+    "tab_activity": "활동",
+    "holderShare": "비중"
   }
 }
