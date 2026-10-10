@@ -4,13 +4,41 @@
 <style>
   html,body{margin:0;height:100%;background:#05070A;color:#e5e7eb;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
   main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
-  img{width:72px;height:72px;border-radius:18px;margin-bottom:20px}
+  img{width:72px;height:72px;border-radius:18px;margin-bottom:20px;box-shadow:0 0 32px rgba(0,255,135,.35)}
   h1{font-size:22px;margin:0 0 8px}p{color:#94A3B8;margin:0 0 24px;max-width:320px}
-  button{background:#00FF87;color:#000;border:0;border-radius:12px;padding:12px 28px;font-weight:700;font-size:15px}
+  button{background:#00FF87;color:#000;border:0;border-radius:14px;padding:14px 32px;font-weight:700;font-size:15px}
 </style></head>
 <body><main>
   <img src="/brand/kamby-app-icon-512.png" alt="">
-  <h1>You're offline</h1>
-  <p>Kamby needs a connection for live prices and trading. Check your internet and try again.</p>
-  <button onclick="location.reload()">Try again</button>
-</main></body></html>
+  <h1 id="t">You're offline</h1>
+  <p id="d">Kamby needs a connection for live prices and trading. Check your internet and try again.</p>
+  <button id="b" onclick="location.reload()">Try again</button>
+</main>
+<script>
+  // The app's own language (NEXT_LOCALE cookie), else the phone's (2026-10-10).
+  var L = {
+    bg: ['Няма интернет', 'Kamby има нужда от връзка за цените на живо и търговията. Провери интернета и опитай отново.', 'Опитай пак'],
+    zh: ['你已离线', 'Kamby 需要网络来显示实时价格和交易。请检查网络后重试。', '重试'],
+    ko: ['오프라인 상태입니다', 'Kamby는 실시간 가격과 거래를 위해 인터넷이 필요합니다. 연결을 확인하고 다시 시도하세요.', '다시 시도'],
+    ja: ['オフラインです', 'Kamby はリアルタイム価格と取引のために接続が必要です。インターネットを確認してもう一度お試しください。', '再試行'],
+    tr: ['Çevrimdışısın', 'Kamby canlı fiyatlar ve işlem için bağlantıya ihtiyaç duyar. İnternetini kontrol et ve tekrar dene.', 'Tekrar dene'],
+    ru: ['Нет подключения', 'Kamby нужен интернет для живых цен и торговли. Проверьте подключение и попробуйте снова.', 'Повторить'],
+    es: ['Sin conexión', 'Kamby necesita conexión para los precios en vivo y el trading. Revisa tu internet e inténtalo de nuevo.', 'Reintentar'],
+    pt: ['Você está offline', 'A Kamby precisa de conexão para preços ao vivo e negociação. Verifique sua internet e tente de novo.', 'Tentar de novo'],
+    vi: ['Bạn đang ngoại tuyến', 'Kamby cần kết nối để có giá trực tiếp và giao dịch. Kiểm tra internet và thử lại.', 'Thử lại'],
+    id: ['Kamu sedang offline', 'Kamby butuh koneksi untuk harga live dan trading. Cek internetmu lalu coba lagi.', 'Coba lagi'],
+    th: ['คุณออฟไลน์อยู่', 'Kamby ต้องใช้อินเทอร์เน็ตสำหรับราคาสดและการเทรด ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง', 'ลองอีกครั้ง'],
+    de: ['Du bist offline', 'Kamby braucht eine Verbindung für Live-Preise und Trading. Prüfe dein Internet und versuch es erneut.', 'Erneut versuchen'],
+    fr: ['Tu es hors ligne', 'Kamby a besoin d’une connexion pour les prix en direct et le trading. Vérifie ta connexion et réessaie.', 'Réessayer']
+  };
+  var m = document.cookie.match(/(?:^|; )NEXT_LOCALE=([a-z]{2})/);
+  var lang = (m && m[1]) || (navigator.language || 'en').slice(0, 2);
+  var s = L[lang];
+  if (s) {
+    document.documentElement.lang = lang;
+    document.getElementById('t').textContent = s[0];
+    document.getElementById('d').textContent = s[1];
+    document.getElementById('b').textContent = s[2];
+  }
+</script>
+</body></html>

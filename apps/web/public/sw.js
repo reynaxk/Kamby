@@ -3,7 +3,7 @@
  * matters is ever served from a cache — prices, balances, quotes and pages always come from the
  * network. The only cached file is the offline page, shown when a page can't load at all.
  */
-const CACHE = 'kamby-offline-v2';
+const CACHE = 'kamby-offline-v3';
 // Cloudflare serves /offline.html at /offline (a redirected response can't answer a navigation).
 const OFFLINE_URL = '/offline';
 
