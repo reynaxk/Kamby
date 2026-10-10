@@ -22,7 +22,8 @@ export function MobileTabBar() {
   const tU = useTranslations('ui');
   const pathname = usePathname() ?? '/';
   const t = useTranslations('nav');
-  if (pathname === '/') return null;
+  // The landing page has none; a coin's screen has its own Buy/Sell bar there instead (like fomo).
+  if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/market/')) return null;
   return (
     <nav aria-label={tU('main_a02c')} className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 md:hidden">
       <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface/80 px-2 shadow-[0_8px_32px_rgba(0,0,0,0.55)] backdrop-blur-xl">

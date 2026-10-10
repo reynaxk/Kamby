@@ -57,7 +57,7 @@ export function SelectableTokenRow({
           : undefined
       }
       className={cn(
-        'terminal-token-row relative flex w-full items-center gap-2.5 border-b border-line/60 px-2.5 py-2.5 text-left transition-all',
+        'terminal-token-row relative flex w-full items-center gap-2.5 border-b border-line/60 px-2.5 py-2.5 text-left transition-all max-md:gap-3 max-md:border-0 max-md:px-4 max-md:py-3 max-md:active:bg-white/5',
         selected ? 'bg-surface-raised' : 'hover:bg-surface-raised',
         disabled && !selected && 'cursor-not-allowed opacity-50',
       )}
@@ -73,32 +73,32 @@ export function SelectableTokenRow({
         src={market.logoUrl}
         seed={market.tokenAddress}
         label={market.symbol ?? market.tokenAddress}
-        className={cn('terminal-token-avatar h-9 w-9 text-[0.85rem]', selected && 'ring-2 ring-accent/60')}
+        className={cn('terminal-token-avatar h-9 w-9 text-[0.85rem] max-md:h-11 max-md:w-11', selected && 'ring-2 ring-accent/60')}
       />
       {badgeChainFor(market.chainIdentifier) && <ChainBadge chain={badgeChainFor(market.chainIdentifier)!} />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-display text-[0.88rem] font-semibold tracking-tight text-ink-900">
+        <span className="block truncate font-display text-[0.88rem] font-semibold tracking-tight text-ink-900 max-md:text-base">
           {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
           {isNew && <NewListingBadge className="ml-1 align-middle" />}
           <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} className="ml-1 align-middle" />
         </span>
         <span className="terminal-token-row-meta block font-mono text-[0.7rem] tabular-nums text-ink-400">
-          {chainLabel} · {formatCompactUsd(market.marketCapUsd)} MC
+          <span className="max-md:hidden">{chainLabel} · </span>{formatCompactUsd(market.marketCapUsd)} MC
         </span>
       </span>
       {market.recentCloses && market.recentCloses.length >= 2 && (
-        <span className="terminal-token-sparkline">
+        <span className="terminal-token-sparkline max-md:hidden">
           <Sparkline closes={market.recentCloses} width={40} height={20} />
         </span>
       )}
       <span className="flex shrink-0 flex-col items-end gap-0.5">
-        <span className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900">
+        <span className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900 max-md:text-base">
           {formatPrice(market.priceUsd)}
         </span>
         <span
           className={cn(
-            'rounded-full px-1 py-0.5 font-mono text-[0.7rem] font-semibold tabular-nums',
+            'rounded-full px-1 py-0.5 font-mono text-[0.7rem] font-semibold tabular-nums max-md:bg-transparent max-md:px-0 max-md:py-0 max-md:text-xs',
             isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
           )}
         >

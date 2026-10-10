@@ -345,3 +345,21 @@ body:has(.kamby-void) {
 @media (prefers-reduced-motion: reduce) {
   .kamby-float-a, .kamby-float-b, .kamby-badge-pulse, .kamby-wordmark-pulse, .kamby-beam { animation: none; }
 }
+
+/* Phones are app screens (2026-10-10, owner: "it's like a web copy"): one clean sans font for
+   numbers too (tabular so prices don't jiggle), and no visible scrollbars — native apps have
+   neither a "code" font nor scrollbar tracks. Desktop keeps the terminal's mono look. */
+@media (max-width: 767px) {
+  .font-mono {
+    font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+  * {
+    scrollbar-width: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}

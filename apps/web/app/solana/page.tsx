@@ -17,6 +17,8 @@ import { formatPercent } from '@/lib/format';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 import { getTranslations } from 'next-intl/server';
+import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
+import { SolanaCoinApp } from '@/components/market/SolanaCoinApp';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -127,6 +129,25 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
   return (
     <ToastProvider>
       <div className="kamby-void min-h-screen bg-bg">
+        <PhoneSwitch
+          phone={
+            <SolanaCoinApp
+              mint={market.tokenAddress}
+              symbol={market.symbol}
+              name={market.name}
+              logoUrl={market.logoUrl}
+              initialPrice={market.priceUsd ?? lastClose}
+              change24hPct={market.priceChange24hPct}
+              marketCapUsd={market.marketCapUsd ?? null}
+              isNewListing={market.isNewListing}
+              onBondingCurve={Boolean(market.onBondingCurve)}
+              timeframe={timeframe}
+              timeframes={SOLANA_TIMEFRAMES}
+              candles={candles}
+            />
+          }
+          desktop={
+        <>
         <MarketHeader />
         {/* Coin list on the left (xl and up, like the terminal), chart, then trade panel —
             stacked on phones. */}
@@ -198,6 +219,9 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             <TokenLinks chain="solana" address={market.tokenAddress} cardTitle={`About $${market.symbol}`} />
           </aside>
         </main>
+        </>
+          }
+        />
       </div>
     </ToastProvider>
   );

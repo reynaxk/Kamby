@@ -91,8 +91,9 @@ export default async function TokenDetailPage({
     // other); the rest of the product still runs the original light/dark palette.
     <div className="kamby-void min-h-screen bg-bg">
       <AutoRefresh intervalSeconds={20} />
-      <MarketHeader expectedWalletChainId={chainId} />
-      <div className="mx-auto max-w-[1600px] px-3 pt-3">
+      <MarketHeader expectedWalletChainId={chainId} className="max-lg:hidden" />
+      {/* Phones get the coin's own app screen from KambyTerminal instead of this row. */}
+      <div className="mx-auto max-w-[1600px] px-3 pt-3 max-lg:hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900">
@@ -133,9 +134,10 @@ export default async function TokenDetailPage({
         activity={activity.items}
         traders={traders}
         timeframe={timeframe}
+        banner={!isCuratedMarket(market.chainIdentifier, market.tokenAddress) ? <NewListingBanner /> : undefined}
       />
 
-      <main className="mx-auto max-w-[1600px] px-3 pb-10">
+      <main className="mx-auto max-w-[1600px] px-3 pb-10 max-lg:hidden">
         <Surface className="p-5">
           <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">{tU('marketData_1fb7')}</h2>
           <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">

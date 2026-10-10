@@ -40,6 +40,8 @@ export interface SolanaTradePanelProps {
   initialSide?: TradeSide;
   /** A brand-new or bonding-curve coin — Auto slippage allows more room (see autoSlippageBps). */
   volatile?: boolean;
+  /** The phone quick-buy bar at the bottom of the screen — off inside the phone trade sheet. */
+  dock?: boolean;
 }
 
 type Step = 'form' | 'review' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
@@ -104,7 +106,7 @@ function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string
  * where both sides used the same highlight color would defeat the point of the color
  * coding), via the `up`/`down` tokens instead.
  */
-export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false }: SolanaTradePanelProps) {
+export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false, dock = true }: SolanaTradePanelProps) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const tAuth = useTranslations('auth');
@@ -653,6 +655,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           lands on the review step rather than executing directly. `pb-[env(safe-area-inset-bottom)]`
           keeps it clear of a phone's home-bar gesture area. */}
       {/* Sits just above the phone tab bar (h-16 + safe area; 2026-10-09) — it used to sit above the ticker, now desktop-only. */}
+      {dock && (
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-t border-line bg-surface/95 p-3 backdrop-blur md:hidden">
         {/* SOL presets only make sense when selling SOL itself — an SPL sell uses the main
             form's percentage presets instead (see SplAmountInput). */}
@@ -680,8 +683,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
         </Button>
       </div>
+      )}
       {/* Keeps the dock from covering the bottom of the form on mobile. */}
-      <div className="h-24 md:hidden" aria-hidden />
+      {dock && <div className="h-24 md:hidden" aria-hidden />}
     </>
   );
 }

@@ -122,6 +122,7 @@ export function LivePriceChart({
           background: { type: ColorType.Solid, color: readRgba('--kamby-bg', container, 1) },
           textColor: readRgba('--kamby-ink-600', container, 1),
           fontFamily: chartFontFamily(container),
+          attributionLogo: false,
           fontSize: 11,
         },
         grid: { vertLines: { visible: false }, horzLines: { color: readRgba('--kamby-line', container, 0.45) } },

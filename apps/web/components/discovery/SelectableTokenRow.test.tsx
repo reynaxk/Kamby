@@ -74,20 +74,20 @@ describe('SelectableTokenRow', () => {
   });
 
   it('shows real compact market cap and percent change text', () => {
-    render(
+    const { container } = render(
       <SelectableTokenRow
         market={fakeMarket({ marketCapUsd: 1_500_000, priceChange24hPct: 5 })}
         selected={false}
         onSelect={vi.fn()}
       />,
     );
-    expect(screen.getByText('Base · $1.50M MC')).toBeInTheDocument();
+    expect(container.querySelector('.terminal-token-row-meta')).toHaveTextContent('Base · $1.50M MC');
     expect(screen.getByText('$1.00')).toBeInTheDocument();
     expect(screen.getByText('+5.00%')).toBeInTheDocument();
   });
 
   it('makes an unavailable Solana row understandable instead of presenting it as an EVM token', () => {
-    render(
+    const { container } = render(
       <SelectableTokenRow
         market={fakeMarket({ chainIdentifier: 'solana', symbol: 'BONK' })}
         selected={false}
@@ -96,7 +96,7 @@ describe('SelectableTokenRow', () => {
       />,
     );
 
-    expect(screen.getByText('Solana · $1.50M MC')).toBeInTheDocument();
+    expect(container.querySelector('.terminal-token-row-meta')).toHaveTextContent('Solana · $1.50M MC');
     expect(screen.getByRole('button')).toHaveAccessibleName('BONK on Solana is not selectable yet');
     expect(screen.getByRole('button')).toHaveAttribute(
       'title',

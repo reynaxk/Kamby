@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "Atividade de tokens acompanhados",
     "pref_watchedTokenActivity_detail": "Grandes operações em um token da sua watchlist",
     "prefsSignIn": "Entre com uma carteira para escolher quais notificações receber.",
-    "tryAgainMoment": "Tente novamente em instantes."
+    "tryAgainMoment": "Tente novamente em instantes.",
+    "tab_about": "Sobre",
+    "tab_activity": "Atividade"
   }
 }

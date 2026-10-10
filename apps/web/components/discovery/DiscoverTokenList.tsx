@@ -44,7 +44,7 @@ export function TerminalPrimaryNav({
   return (
     <nav
       aria-label={tU('terminalNavigation_312e')}
-      className="flex items-center gap-4 overflow-x-auto border-b border-line px-1 pb-2"
+      className="flex items-center gap-4 overflow-x-auto border-b border-line px-1 pb-2 max-md:gap-0 max-md:border-white/10 max-md:px-0 max-md:pb-0"
     >
       {PRIMARY_TABS.map((tab) => (
         <button
@@ -52,11 +52,14 @@ export function TerminalPrimaryNav({
           type="button"
           onClick={() => onChange(tab.id)}
           className={cn(
-            'shrink-0 font-display text-sm font-semibold transition-colors md:font-mono md:text-[0.62rem] md:font-medium md:uppercase md:tracking-tight',
+            'relative shrink-0 font-display text-sm font-semibold transition-colors max-md:flex-1 max-md:py-3 md:font-mono md:text-[0.62rem] md:font-medium md:uppercase md:tracking-tight',
             activeTab === tab.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-900',
+            // Alerts aren't built yet — not worth a tab on the phone app.
+            tab.id === 'alerts' && 'max-md:hidden',
           )}
         >
           {tLists(tab.id)}
+          {activeTab === tab.id && <span aria-hidden className="absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent md:hidden" />}
         </button>
       ))}
     </nav>
@@ -185,7 +188,7 @@ export function DiscoverTokenList({
 
       <div className="flex min-h-0 flex-1 flex-col gap-1.5">
         {primaryTab === 'tokens' && (
-          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5">
+          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2">
             {TOKEN_TABS.map((t) => (
               <button
                 key={t.id}
@@ -224,7 +227,7 @@ export function DiscoverTokenList({
             />
           </div>
         ) : (
-          <div className="terminal-token-list min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface">
+          <div className="terminal-token-list min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface max-md:rounded-none max-md:border-0 max-md:bg-transparent">
             {tabContent[tokenTab]}
           </div>
         )}

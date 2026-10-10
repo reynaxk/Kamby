@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "Aktivität beobachteter Tokens",
     "pref_watchedTokenActivity_detail": "Große Trades in einem Token auf deiner Watchlist",
     "prefsSignIn": "Melde dich mit einer Wallet an, um deine Benachrichtigungen zu wählen.",
-    "tryAgainMoment": "Versuch es gleich noch einmal."
+    "tryAgainMoment": "Versuch es gleich noch einmal.",
+    "tab_about": "Info",
+    "tab_activity": "Aktivität"
   }
 }

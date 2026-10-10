@@ -16,7 +16,7 @@ export function CoinRail({ initial, selectedKey }: { initial: MarketFeedSnapshot
   const router = useRouter();
   const { feeds } = useMarketFeeds(initial);
   return (
-    <div className="kamby-terminal h-full overflow-hidden rounded-2xl border border-line bg-surface">
+    <div className="kamby-terminal h-full overflow-hidden md:rounded-2xl md:border md:border-line md:bg-surface">
       <DiscoverTokenList
         feeds={feeds}
         selectedKey={selectedKey}

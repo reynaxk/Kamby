@@ -19,10 +19,12 @@ export default async function HomePage() {
     <div className="hidden md:block">
       <MarketHeader />
     </div>
-    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg px-4 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
-      <PortfolioHeader />
-      <TopTradersStrip />
-      <div className="mt-3 h-[calc(100dvh-14rem)] min-h-[420px]">
+    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-4">
+      <div className="px-4 md:px-0">
+        <PortfolioHeader />
+        <TopTradersStrip />
+      </div>
+      <div className="mt-3 h-[calc(100dvh-13rem)] min-h-[420px]">
         <CoinRail initial={feeds} selectedKey={null} />
       </div>
     </main>

@@ -10,6 +10,7 @@ import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
+import { LandingOnlyOnPhones } from '@/components/layout/LandingOnlyOnPhones';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -48,7 +49,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               the TickerBar (h-8) from md up — so neither covers the end of the page. */}
           <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8">
             {children}
-            <SiteFooter />
+            <LandingOnlyOnPhones>
+              <SiteFooter />
+            </LandingOnlyOnPhones>
           </div>
           <TickerBar />
           <MobileTabBar />

@@ -1,21 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Candle, MarketSummary, SocialActivity, TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { MarketInfoPanel } from './MarketInfoPanel';
 import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
-import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DataHub } from './DataHub';
 import { TerminalLeftRail } from './TerminalLeftRail';
 import { TokenMetricsBar } from './TokenMetricsBar';
 import { TradePanelCard } from './TradePanelCard';
-import { cashtag } from '@/lib/format';
 import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
 import { TokenChartCard } from './TokenChartCard';
 import { useTranslations } from 'next-intl';
+import { MobileCoinScreen } from '@/components/market/MobileCoinScreen';
+import { WatchButton } from '@/components/market/WatchButton';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -65,6 +65,7 @@ export function KambyTerminal({
   activity,
   traders,
   timeframe,
+  banner,
 }: {
   chainId: number;
   chain: string;
@@ -73,13 +74,12 @@ export function KambyTerminal({
   activity: SocialActivity[];
   traders: TokenTraderConnection;
   timeframe: ChartTimeframe;
+  /** The new-listing warning, shown under the price on the phone screen. */
+  banner?: React.ReactNode;
 }) {
   const tU = useTranslations('ui');
   const isMobile = useIsMobile();
-  const [trenchesOpen, setTrenchesOpen] = useState(false);
-  const [tradeOpen, setTradeOpen] = useState(false);
-  const [tradeSide, setTradeSide] = useState<'BUY' | 'SELL'>('BUY');
-  const tTerminal = useTranslations('terminal');
+  const tL = useTranslations('labels');
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
   const chartSource = useMemo<ChartSource>(
     () => ({ kind: 'evm', chain: chain === 'bnb' ? 'bnb' : 'base', address: market.tokenAddress, chainId }),
@@ -88,8 +88,6 @@ export function KambyTerminal({
 
   const tradePanel = canTrade ? (
     <TradePanelCard
-      key={isMobile ? tradeSide : 'desktop'}
-      initialSide={isMobile ? tradeSide : undefined}
       chainId={chainId}
       tokenAddress={market.tokenAddress}
       tokenSymbol={market.symbol}
@@ -106,79 +104,49 @@ export function KambyTerminal({
 
   if (isMobile) {
     return (
-      <div className="min-h-screen">
-        <div className="mx-auto max-w-[1600px] p-3">
-          <div className="sticky top-0 z-30 mb-3 flex items-center gap-2 border-b border-line bg-bg/95 px-1 py-2 backdrop-blur-sm">
-            <button
-              type="button"
-              onClick={() => setTrenchesOpen(true)}
-              className="rounded-lg border border-line bg-surface px-3 py-2 font-display text-sm font-semibold text-ink-900"
-            >
-              {tTerminal('browse')}
-            </button>
-            <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
-              {cashtag(market.symbol ?? tU('token_459a'))}
-            </div>
-          </div>
-
-          {/* Buy / Sell under the thumb (2026-10-09 app redesign), above the tab bar. */}
-          <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-2 gap-2 border-t border-line bg-surface/95 p-3 backdrop-blur">
-            {(['BUY', 'SELL'] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                disabled={!canTrade}
-                onClick={() => {
-                  setTradeSide(s);
-                  setTradeOpen(true);
-                }}
-                className={s === 'BUY' ? 'rounded-xl bg-up py-3 font-display text-sm font-bold text-black disabled:opacity-40' : 'rounded-xl bg-down py-3 font-display text-sm font-bold text-white disabled:opacity-40'}
-              >
-                {tTerminal(s === 'BUY' ? 'buy' : 'sell')}
-              </button>
-            ))}
-          </div>
-
-          <div className="mb-3">
-            <TokenMetricsBar market={market} />
-          </div>
-
-          <TokenChartCard
-            source={chartSource}
-            initialTimeframe={timeframe}
-            initialCandles={candles}
-            trades={traders.recentLargeTrades}
-            className="mb-3 h-[360px]"
+      <MobileCoinScreen
+        symbol={market.symbol}
+        name={market.name}
+        logoUrl={market.logoUrl}
+        chainIdentifier={market.chainIdentifier}
+        address={market.tokenAddress}
+        source={chartSource}
+        initialPrice={market.priceUsd}
+        initialChange24hPct={market.priceChange24hPct}
+        initialMarketCapUsd={market.marketCapUsd}
+        watch={<WatchButton address={market.tokenAddress} chainId={chainId} initialWatching={null} compact />}
+        banner={banner}
+        chart={<TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" />}
+        tabs={[
+          { id: 'activity', label: tL('tab_activity'), content: <div className="h-[60vh] px-2 pt-2"><DataHub activity={activity} source={chartSource} /></div> },
+          { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></div> },
+          {
+            id: 'about',
+            label: tL('tab_about'),
+            content: (
+              <div className="flex flex-col gap-3 px-4 pt-3">
+                <MyPositionsPanel />
+                <TokenMetricsBar market={market} />
+                <MarketInfoPanel market={market} />
+              </div>
+            ),
+          },
+        ]}
+        canTrade={canTrade}
+        renderTrade={(side) => (
+          <TradePanelCard
+            key={side}
+            initialSide={side}
+            chainId={chainId}
+            tokenAddress={market.tokenAddress}
+            tokenSymbol={market.symbol}
+            tokenDecimals={market.decimals as number}
+            quoteTokenAddress={market.quoteAddress}
+            quoteTokenSymbol={market.quoteSymbol}
+            quoteTokenDecimals={market.quoteDecimals as number}
           />
-
-          <div className="mb-3 h-[300px]">
-            <DataHub activity={activity} source={chartSource} />
-          </div>
-
-          <div className="mb-3">
-            <MyPositionsPanel />
-          </div>
-
-          <div className="mb-3">
-            <MarketInfoPanel market={market} />
-          </div>
-
-          <div className="rounded-2xl border border-line bg-surface p-4">
-            <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
-          </div>
-
-          <MobileDrawer open={trenchesOpen} onClose={() => setTrenchesOpen(false)} title={tTerminal('browse')}>
-            <div className="h-[70vh]">
-              <TerminalLeftRail />
-            </div>
-          </MobileDrawer>
-
-          <MobileDrawer open={tradeOpen} onClose={() => setTradeOpen(false)} title={tTerminal('trade')}>
-            {tradePanel}
-          </MobileDrawer>
-          <div className="h-20" aria-hidden />
-        </div>
-      </div>
+        )}
+      />
     );
   }
 

@@ -308,6 +308,7 @@ export function KambyChart({
           background: { type: ColorType.Solid, color: bg },
           textColor: ink,
           fontFamily: chartFontFamily(container),
+          attributionLogo: false,
           fontSize: 11,
         },
         // Horizontal guides only, faint — full-strength grid lines both ways made the

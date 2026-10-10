@@ -31,6 +31,7 @@ export function TokenChartCard({
   trades = NO_TRADES,
   timeframes = DEFAULT_CHART_TIMEFRAMES,
   className,
+  bare = false,
 }: {
   source: ChartSource;
   initialTimeframe: ChartTimeframe;
@@ -38,6 +39,8 @@ export function TokenChartCard({
   trades?: SocialActivity[];
   timeframes?: readonly ChartTimeframe[];
   className?: string;
+  /** Phone app screen: no card around it, edge to edge, timeframes under the chart. */
+  bare?: boolean;
 }) {
   const tU = useTranslations('ui');
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
@@ -96,9 +99,8 @@ export function TokenChartCard({
     }
   }
 
-  return (
-    <div className={cn('flex flex-col gap-1.5 rounded-2xl border border-line bg-surface p-2', className)}>
-      <div className="flex items-center justify-between gap-2 px-0.5">
+  const controls = (
+    <div className={cn('flex items-center justify-between gap-2', bare ? 'px-3' : 'px-0.5')}>
         <div className="flex items-center gap-1.5">
           <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
           <ChartStyleToggle value={chartStyle} onChange={setChartStyle} />
@@ -109,6 +111,10 @@ export function TokenChartCard({
           </span>
         )}
       </div>
+  );
+  return (
+    <div className={cn('flex flex-col gap-1.5', !bare && 'rounded-2xl border border-line bg-surface p-2', className)}>
+      {!bare && controls}
       <div className="min-h-0 flex-1">
         {failed && !candles?.length ? (
           <EmptyState title={tU('couldnTLoadThisChart_3d0a')} detail="Try again in a moment." />
@@ -120,6 +126,7 @@ export function TokenChartCard({
           <KambyChart candles={candles} trades={trades} chartStyle={chartStyle} entryPrice={entry?.price} />
         )}
       </div>
+      {bare && controls}
     </div>
   );
 }

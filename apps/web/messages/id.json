@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "Aktivitas token yang dipantau",
     "pref_watchedTokenActivity_detail": "Trade besar di token pada watchlist-mu",
     "prefsSignIn": "Masuk dengan wallet untuk memilih notifikasi yang kamu terima.",
-    "tryAgainMoment": "Coba lagi sebentar lagi."
+    "tryAgainMoment": "Coba lagi sebentar lagi.",
+    "tab_about": "Info",
+    "tab_activity": "Aktivitas"
   }
 }

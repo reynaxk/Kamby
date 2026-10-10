@@ -23,6 +23,7 @@ export function MarketHeader({
   searchValue,
   expectedWalletChainId,
   wide = false,
+  className,
 }: {
   searchValue?: string;
   /** Real bug fixed 2026-09-17: this header renders its own `ConnectWalletButton` instance,
@@ -37,10 +38,15 @@ export function MarketHeader({
   /** Use the wider terminal shell on dense discovery surfaces without changing the
    * narrower content rhythm used by the rest of the app. */
   wide?: boolean;
+  /** Extra classes on the header itself — e.g. hiding it under a page's own phone screen. */
+  className?: string;
 }) {
   const shellClass = wide ? 'max-w-[1920px] px-2 sm:px-3' : 'max-w-6xl px-6';
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur">
+    <>
+    {/* Phones have no site header (app screens, 2026-10-10) — just room for the status bar. */}
+    {!className && <div aria-hidden className="h-[max(env(safe-area-inset-top),0.75rem)] md:hidden" />}
+    <header className={`sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur max-md:hidden ${className ?? ''}`}>
       <div
         className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 ${wide ? 'py-2.5' : 'py-3 sm:py-4'} ${shellClass}`}
       >
@@ -61,5 +67,6 @@ export function MarketHeader({
         </div>
       </div>
     </header>
+    </>
   );
 }

@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "Активность отслеживаемых токенов",
     "pref_watchedTokenActivity_detail": "Крупные сделки в токене из вашего списка",
     "prefsSignIn": "Войдите с кошельком, чтобы выбрать, какие уведомления получать.",
-    "tryAgainMoment": "Попробуйте чуть позже."
+    "tryAgainMoment": "Попробуйте чуть позже.",
+    "tab_about": "Инфо",
+    "tab_activity": "Активность"
   }
 }

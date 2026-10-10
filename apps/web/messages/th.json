@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "กิจกรรมโทเคนที่เฝ้าดู",
     "pref_watchedTokenActivity_detail": "เทรดขนาดใหญ่ในโทเคนจากรายการเฝ้าดู",
     "prefsSignIn": "ลงชื่อเข้าใช้ด้วยวอลเล็ตเพื่อเลือกการแจ้งเตือนที่คุณต้องการ",
-    "tryAgainMoment": "ลองใหม่อีกครั้งในอีกสักครู่"
+    "tryAgainMoment": "ลองใหม่อีกครั้งในอีกสักครู่",
+    "tab_about": "ข้อมูล",
+    "tab_activity": "กิจกรรม"
   }
 }

@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "Hoạt động token đang theo dõi",
     "pref_watchedTokenActivity_detail": "Giao dịch lớn ở token trong danh sách theo dõi",
     "prefsSignIn": "Đăng nhập bằng ví để chọn thông báo bạn muốn nhận.",
-    "tryAgainMoment": "Thử lại sau giây lát."
+    "tryAgainMoment": "Thử lại sau giây lát.",
+    "tab_about": "Giới thiệu",
+    "tab_activity": "Hoạt động"
   }
 }

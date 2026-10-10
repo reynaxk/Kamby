@@ -506,6 +506,8 @@
     "pref_watchedTokenActivity": "自选代币动态",
     "pref_watchedTokenActivity_detail": "自选列表中代币的大额交易",
     "prefsSignIn": "用钱包登录以选择你接收的通知。",
-    "tryAgainMoment": "请稍后再试。"
+    "tryAgainMoment": "请稍后再试。",
+    "tab_about": "简介",
+    "tab_activity": "动态"
   }
 }

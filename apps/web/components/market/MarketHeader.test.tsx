@@ -59,12 +59,12 @@ describe('MarketHeader', () => {
 
   it('uses the wide terminal shell only when requested', () => {
     const { container, unmount } = render(<MarketHeader wide />);
-    expect(container.firstElementChild?.firstElementChild).toHaveClass('max-w-[1920px]');
+    expect(container.querySelector('header')?.firstElementChild).toHaveClass('max-w-[1920px]');
     expect(screen.getByRole('search').parentElement).toHaveClass('sm:max-w-xl');
     unmount();
 
     const regular = render(<MarketHeader />);
-    expect(regular.container.firstElementChild?.firstElementChild).toHaveClass('max-w-6xl');
+    expect(regular.container.querySelector('header')?.firstElementChild).toHaveClass('max-w-6xl');
   });
 
   it('passes expectedWalletChainId through to its own ConnectWalletButton instance — real bug fix 2026-09-17: on a BNB market page this header rendered a SEPARATE ConnectWalletButton that still defaulted to expecting Base, fighting the trade panel\'s own instance in an infinite auto-switch loop that left the wallet stuck on "Switching…" and the trade form unusable', () => {
