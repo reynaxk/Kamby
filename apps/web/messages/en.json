@@ -539,6 +539,8 @@
     "watchlistEmpty": "Nothing here yet — tap the star on a coin to watch it.",
     "gasFreeUsdc": "Gas-free · all in USDC",
     "yourCoins": "Your coins",
-    "buyShare": "Buys"
+    "buyShare": "Buys",
+    "holderPool": "Pool / curve",
+    "holderContract": "contract"
   }
 }

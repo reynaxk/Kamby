@@ -539,6 +539,8 @@
     "watchlistEmpty": "ยังไม่มีอะไร — แตะดาวบนเหรียญเพื่อเฝ้าดู",
     "gasFreeUsdc": "ไม่ต้องใช้แก๊ส · ทั้งหมดเป็น USDC",
     "yourCoins": "เหรียญของคุณ",
-    "buyShare": "สัดส่วนซื้อ"
+    "buyShare": "สัดส่วนซื้อ",
+    "holderPool": "พูล / เคิร์ฟ",
+    "holderContract": "สัญญา"
   }
 }

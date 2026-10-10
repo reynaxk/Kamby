@@ -539,6 +539,8 @@
     "watchlistEmpty": "まだ何もありません — コインの星をタップして追加しましょう。",
     "gasFreeUsdc": "ガス不要 · すべて USDC",
     "yourCoins": "保有コイン",
-    "buyShare": "買い比率"
+    "buyShare": "買い比率",
+    "holderPool": "プール / カーブ",
+    "holderContract": "コントラクト"
   }
 }

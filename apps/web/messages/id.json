@@ -539,6 +539,8 @@
     "watchlistEmpty": "Belum ada apa-apa — ketuk bintang di koin untuk memantaunya.",
     "gasFreeUsdc": "Tanpa gas · semua dalam USDC",
     "yourCoins": "Koinmu",
-    "buyShare": "Beli"
+    "buyShare": "Beli",
+    "holderPool": "Pool / kurva",
+    "holderContract": "kontrak"
   }
 }

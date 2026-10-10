@@ -539,6 +539,8 @@
     "watchlistEmpty": "Aún no hay nada — toca la estrella de una moneda para seguirla.",
     "gasFreeUsdc": "Sin gas · todo en USDC",
     "yourCoins": "Tus monedas",
-    "buyShare": "Compras"
+    "buyShare": "Compras",
+    "holderPool": "Pool / curva",
+    "holderContract": "contrato"
   }
 }

@@ -539,6 +539,8 @@
     "watchlistEmpty": "Henüz bir şey yok — izlemek için bir coindeki yıldıza dokun.",
     "gasFreeUsdc": "Gassız · her şey USDC ile",
     "yourCoins": "Coinlerin",
-    "buyShare": "Alım"
+    "buyShare": "Alım",
+    "holderPool": "Havuz / eğri",
+    "holderContract": "kontrat"
   }
 }

@@ -539,6 +539,8 @@
     "watchlistEmpty": "아직 없습니다 — 코인의 별을 눌러 추가하세요.",
     "gasFreeUsdc": "가스비 없음 · 모두 USDC로",
     "yourCoins": "내 코인",
-    "buyShare": "매수 비중"
+    "buyShare": "매수 비중",
+    "holderPool": "풀 / 커브",
+    "holderContract": "컨트랙트"
   }
 }

@@ -539,6 +539,8 @@
     "watchlistEmpty": "Rien ici pour l'instant — touche l'étoile d'un coin pour le suivre.",
     "gasFreeUsdc": "Sans gas · tout en USDC",
     "yourCoins": "Tes coins",
-    "buyShare": "Achats"
+    "buyShare": "Achats",
+    "holderPool": "Pool / courbe",
+    "holderContract": "contrat"
   }
 }

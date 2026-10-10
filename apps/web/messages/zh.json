@@ -539,6 +539,8 @@
     "watchlistEmpty": "这里还没有内容 — 点击币种上的星标即可关注。",
     "gasFreeUsdc": "免 Gas · 全部以 USDC 结算",
     "yourCoins": "你的币",
-    "buyShare": "买入占比"
+    "buyShare": "买入占比",
+    "holderPool": "池 / 曲线",
+    "holderContract": "合约"
   }
 }

@@ -539,6 +539,8 @@
     "watchlistEmpty": "Пока пусто — нажмите звезду на монете, чтобы следить за ней.",
     "gasFreeUsdc": "Без газа · всё в USDC",
     "yourCoins": "Ваши монеты",
-    "buyShare": "Покупки"
+    "buyShare": "Покупки",
+    "holderPool": "Пул / кривая",
+    "holderContract": "контракт"
   }
 }

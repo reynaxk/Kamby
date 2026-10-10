@@ -539,6 +539,8 @@
     "watchlistEmpty": "Chưa có gì — chạm ngôi sao trên coin để theo dõi.",
     "gasFreeUsdc": "Không gas · tất cả bằng USDC",
     "yourCoins": "Coin của bạn",
-    "buyShare": "Tỷ lệ mua"
+    "buyShare": "Tỷ lệ mua",
+    "holderPool": "Pool / đường cong",
+    "holderContract": "hợp đồng"
   }
 }

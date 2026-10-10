@@ -34,6 +34,8 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
   const tC = useTranslations('coin');
   const tL = useTranslations('labels');
   const { chain, address } = livePriceKey(source);
+  // The API's known tags, in the viewer's language; anything else as sent.
+  const tagLabel = (tag: string) => (tag === 'Pool / curve' ? tL('holderPool') : tag);
   const price = useLivePrice(source);
   const [data, setData] = useState<TokenHolders | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -94,7 +96,7 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
                 <TokenAvatar src={null} seed={h.address} label={h.tag ?? h.address.slice(-2)} className="h-10 w-10 shrink-0 text-xs" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 truncate font-display text-[0.95rem] font-semibold text-ink-900">
-                    {h.tag ?? truncateAddress(h.address)}
+                    {h.tag ? tagLabel(h.tag) : truncateAddress(h.address)}
                     {tier && <span aria-label={tL(`tier_${tier}`)}>{TIER_STYLE[tier].icon}</span>}
                   </span>
                   <span className="block font-body text-xs text-ink-400">{tL('ofSupply', { pct })}</span>
@@ -102,7 +104,7 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
                 <span className="shrink-0 text-right">
                   <span className="block font-body text-[0.95rem] font-semibold tabular-nums text-ink-900">{valueUsd !== null ? formatCompactUsd(valueUsd) : '—'}</span>
                   {tier && <span className={cn('mt-0.5 inline-block rounded-full px-1.5 py-0.5 font-body text-[0.62rem] font-semibold', TIER_STYLE[tier].className)}>{tL(`tier_${tier}`)}</span>}
-                  {!tier && h.isContract && <span className="block font-body text-[0.65rem] text-ink-400">{h.tag ? '' : 'contract'}</span>}
+                  {!tier && h.isContract && <span className="block font-body text-[0.65rem] text-ink-400">{h.tag ? '' : tL('holderContract')}</span>}
                 </span>
               </a>
             </li>
@@ -135,7 +137,7 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
                         {TIER_STYLE[tier].icon} {tL(`tier_${tier}`)}
                       </span>
                     )}
-                    {(h.isContract || h.tag) && <span className="text-[0.62rem] text-ink-400">{h.tag ?? 'contract'}</span>}
+                    {(h.isContract || h.tag) && <span className="text-[0.62rem] text-ink-400">{h.tag ? tagLabel(h.tag) : tL('holderContract')}</span>}
                   </span>
                 </td>
                 <td className="px-3 py-1.5 text-right tabular-nums text-ink-600">{h.percent < 0.01 ? '<0.01' : h.percent.toFixed(2)}%</td>
