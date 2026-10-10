@@ -27,6 +27,7 @@ export function SplAmountInput({
   mint,
   symbol,
   decimals,
+  hero = false,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -34,6 +35,8 @@ export function SplAmountInput({
   mint: string;
   symbol: string | null;
   decimals: number | null;
+  /** Phone trade sheet (2026-10-10): the amount big and centred. */
+  hero?: boolean;
 }) {
   const tTrade = useTranslations('trade');
   const [balanceRaw, setBalanceRaw] = useState<bigint | null>(null);
@@ -84,8 +87,8 @@ export function SplAmountInput({
 
   return (
     <div>
-      <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: label })}</span>
+      <div className={cn('flex items-center font-body text-xs text-ink-600', hero ? 'justify-center' : 'justify-between')}>
+        {!hero && <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: label })}</span>}
         {balanceRaw !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
@@ -115,8 +118,13 @@ export function SplAmountInput({
             // More fractional digits than the mint supports — leave the last valid amount.
           }
         }}
-        className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-3 font-mono text-2xl font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
+        aria-label={tTrade('amountOf', { symbol: label })}
+        className={cn(
+          'mt-1 w-full rounded-xl border border-line bg-bg px-3 py-3 font-mono text-2xl font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50',
+          hero && 'border-0 bg-transparent py-4 text-center font-display text-5xl font-bold placeholder:text-ink-400 focus:ring-0',
+        )}
       />
+      {hero && <p className="-mt-1 text-center font-body text-sm text-ink-400">{label}</p>}
       <div className="mt-1.5 flex gap-1.5">
         {PERCENT_PRESETS.map((percent) => (
           <button
@@ -126,6 +134,7 @@ export function SplAmountInput({
             onClick={() => applyPercent(percent)}
             className={cn(
               'flex-1 rounded-full border border-line bg-surface-raised px-2 py-1.5 font-mono text-xs font-semibold text-ink-600',
+              hero && 'py-2.5 text-sm',
               'hover:border-accent/60 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
             )}
           >

@@ -637,6 +637,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
               mint={tokenMint}
               symbol={tokenSymbol}
               decimals={tokenDecimals}
+              hero={sheet}
             />
           )
         )}

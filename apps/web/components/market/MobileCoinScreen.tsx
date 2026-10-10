@@ -176,6 +176,7 @@ export function MobileCoinScreen({
             />
           )}
           {stats.pairCreatedAtMs !== null && <StatPill label={tC('age')} value={formatAge(stats.pairCreatedAtMs)} />}
+          <CopyAddressPill address={address} />
         </div>
       )}
 
@@ -252,5 +253,28 @@ function StatPill({ label, value }: { label: string; value: string }) {
       <span className="text-ink-400">{label}</span>
       <span className="font-semibold tabular-nums text-ink-900">{value}</span>
     </span>
+  );
+}
+
+/** The contract address, one tap to copy — what traders paste everywhere. */
+function CopyAddressPill({ address }: { address: string }) {
+  const tU = useTranslations('ui');
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard?.writeText(address).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+      className="flex shrink-0 items-baseline gap-1.5 rounded-full bg-surface-raised px-3 py-1.5 font-body text-xs active:bg-white/10"
+    >
+      <span className="text-ink-400">CA</span>
+      <span className={cn('font-semibold tabular-nums', copied ? 'text-accent' : 'text-ink-900')}>
+        {copied ? tU('copied_6d6d') : `${address.slice(0, 4)}…${address.slice(-4)}`}
+      </span>
+    </button>
   );
 }
