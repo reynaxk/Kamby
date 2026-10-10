@@ -5,6 +5,7 @@ import { SearchBar } from '@/components/market/SearchBar';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { fetchMarketFeeds } from '@/lib/market-api';
+import { soft } from '@/lib/soft';
 import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatCompactUsd, formatPercent, formatPrice } from '@/lib/format';
 
@@ -14,7 +15,7 @@ export const metadata = { title: 'Search — Kamby' };
  *  you typed felt like a website): Kamby's coin search, then what's trending right now. */
 export default async function SearchPage() {
   const tU = await getTranslations('ui');
-  const feeds = await fetchMarketFeeds();
+  const feeds = await soft(fetchMarketFeeds(), null);
   const trending = (feeds?.trending.markets ?? []).slice(0, 15);
   return (
     <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+1rem)]">

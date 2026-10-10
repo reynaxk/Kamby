@@ -4,6 +4,7 @@ import { MarketHeader } from '@/components/market/MarketHeader';
 import { PortfolioHeader } from '@/components/home/PortfolioHeader';
 import { TopTradersStrip } from '@/components/home/TopTradersStrip';
 import { fetchMarketFeeds } from '@/lib/market-api';
+import { soft } from '@/lib/soft';
 
 export const metadata = { title: 'Kamby' };
 
@@ -13,7 +14,8 @@ export const metadata = { title: 'Kamby' };
  * it. The installed app (PWA) opens here; the desktop terminal stays at /terminal.
  */
 export default async function HomePage() {
-  const feeds = (await fetchMarketFeeds()) ?? emptyMarketFeeds();
+  // Capped — the lists stream in live anyway (lib/soft.ts).
+  const feeds = (await soft(fetchMarketFeeds(), null)) ?? emptyMarketFeeds();
   return (
     <>
     <div className="kamby-void hidden md:block">

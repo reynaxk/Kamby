@@ -48,6 +48,19 @@ export async function fetchTraderTokens(address: string, limit = 20): Promise<Tr
  *  pass it (a real, previously-silent bug — every call defaulted to Base's copy of whatever
  *  address it was given, per apps/api's own `query.chainId ?? DEFAULT_CHAIN_ID` fallback).
  *  New callers should always pass it explicitly. */
+/** No traders yet — also the page's fallback when the call is slow (lib/soft.ts). */
+export const EMPTY_TRADERS: TokenTraderConnection = {
+  uniqueTraders24h: null,
+  recentTraders: [],
+  activeTraders: [],
+  recentLargeTrades: [],
+  watcherCount: 0,
+  buyCount24h: 0,
+  sellCount24h: 0,
+  buyerCount24h: 0,
+  sellerCount24h: 0,
+};
+
 export async function fetchTokenTraders(
   address: string,
   chainId?: number,
@@ -59,17 +72,5 @@ export async function fetchTokenTraders(
     `/market/tokens/${encodeURIComponent(address)}/traders?${query.toString()}`,
     20,
   );
-  return (
-    result ?? {
-      uniqueTraders24h: null,
-      recentTraders: [],
-      activeTraders: [],
-      recentLargeTrades: [],
-      watcherCount: 0,
-      buyCount24h: 0,
-      sellCount24h: 0,
-      buyerCount24h: 0,
-      sellerCount24h: 0,
-    }
-  );
+  return result ?? EMPTY_TRADERS;
 }

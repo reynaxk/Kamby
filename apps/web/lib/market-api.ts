@@ -21,6 +21,8 @@ class MarketApiError extends Error {
 export async function apiGet<T>(path: string, revalidateSeconds: number): Promise<T | null> {
   const res = await fetch(`${env.API_BASE_URL}/v1${path}`, {
     next: { revalidate: revalidateSeconds },
+    // Never let one slow API call hold a page open (2026-10-10: an 80s cold coin page).
+    signal: AbortSignal.timeout(12_000),
     headers: env.API_SSR_TOKEN ? { 'x-kamby-ssr': env.API_SSR_TOKEN } : undefined,
   });
   if (res.status === 404) return null;

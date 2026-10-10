@@ -18,6 +18,7 @@ import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 import { getTranslations } from 'next-intl/server';
 import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
+import { soft } from '@/lib/soft';
 import { SolanaCoinApp } from '@/components/market/SolanaCoinApp';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
@@ -116,15 +117,15 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
   const requested: ChartTimeframe =
     searchParams.timeframe === 'live' || searchParams.timeframe === '10s' ? searchParams.timeframe : isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
   let timeframe = requested;
-  let candles = await fetchSolanaHistory(market.tokenAddress, isChartTimeframe(timeframe) ? timeframe : '1m');
+  let candles = await soft(fetchSolanaHistory(market.tokenAddress, isChartTimeframe(timeframe) ? timeframe : '1m'), []);
   // A brand-new coin has no candle history yet — open on 10s, built live from the price feed,
   // instead of an empty chart (2026-10-05). Only when the visitor didn't pick a width.
   if (candles.length < 2 && !searchParams.timeframe) {
     timeframe = '10s';
-    candles = await fetchSolanaHistory(market.tokenAddress, '1m');
+    candles = await soft(fetchSolanaHistory(market.tokenAddress, '1m'), []);
   }
   const lastClose = candles.at(-1)?.close ?? null;
-  const feeds = await fetchMarketFeeds();
+  const feeds = await soft(fetchMarketFeeds(), null);
 
   return (
     <ToastProvider>

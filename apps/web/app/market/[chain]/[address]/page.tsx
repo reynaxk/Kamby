@@ -14,7 +14,8 @@ import { KambyTerminal } from '@/components/terminal/KambyTerminal';
 import { formatDateTime, formatPrice, truncateAddress } from '@/lib/format';
 import { fetchToken, fetchTokenHistory } from '@/lib/market-api';
 import { fetchGlobalActivity } from '@/lib/social-api';
-import { fetchTokenTraders } from '@/lib/discovery-api';
+import { EMPTY_TRADERS, fetchTokenTraders } from '@/lib/discovery-api';
+import { soft } from '@/lib/soft';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { getTranslations } from 'next-intl/server';
 
@@ -79,10 +80,11 @@ export default async function TokenDetailPage({
   if (!market) notFound();
 
   // In parallel — one after another, the page waited for the sum of all three.
+  // Each capped (lib/soft.ts) — late ones fall back and load in the browser instead.
   const [candles, activity, traders] = await Promise.all([
-    fetchTokenHistory(params.address, timeframe === 'live' ? '1m' : timeframe, chainId),
-    fetchGlobalActivity({ tokenAddress: params.address, chainId, limit: 10 }),
-    fetchTokenTraders(params.address, chainId, 8),
+    soft(fetchTokenHistory(params.address, timeframe === 'live' ? '1m' : timeframe, chainId), []),
+    soft(fetchGlobalActivity({ tokenAddress: params.address, chainId, limit: 10 }), { items: [], nextCursor: null }),
+    soft(fetchTokenTraders(params.address, chainId, 8), EMPTY_TRADERS),
   ]);
 
   return (
