@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/market/Skeleton';
+import { CoinScreenSkeleton } from '@/components/market/CoinScreenSkeleton';
 
 /** `/market/[chain]/[address]` is always `kamby-void`-themed (see that page's own doc
  *  comment) — this fallback previously wasn't, so every cold load of a token page flashed
@@ -7,7 +8,11 @@ import { Skeleton } from '@/components/market/Skeleton';
  *  one route, never shared with a non-Void sibling. */
 export default function TokenLoading() {
   return (
-    <div className="kamby-void min-h-screen bg-bg">
+    <>
+    <div className="lg:hidden">
+      <CoinScreenSkeleton />
+    </div>
+    <div className="kamby-void min-h-screen bg-bg max-lg:hidden">
       <div className="mx-auto max-w-4xl px-6 py-10">
         <Skeleton className="h-4 w-32" />
         <div className="mt-4 flex items-center gap-4">
@@ -24,5 +29,6 @@ export default function TokenLoading() {
         <Skeleton className="mt-6 h-64 w-full rounded-2xl" />
       </div>
     </div>
+    </>
   );
 }
