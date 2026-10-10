@@ -16,7 +16,7 @@ export default async function HomePage() {
   const feeds = (await fetchMarketFeeds()) ?? emptyMarketFeeds();
   return (
     <>
-    <div className="hidden md:block">
+    <div className="kamby-void hidden md:block">
       <MarketHeader />
     </div>
     <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-4">
