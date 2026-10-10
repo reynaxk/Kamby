@@ -538,6 +538,7 @@
     "watchlistSignedOut": "サインインしてコインの星をタップするとここに表示されます。",
     "watchlistEmpty": "まだ何もありません — コインの星をタップして追加しましょう。",
     "gasFreeUsdc": "ガス不要 · すべて USDC",
-    "yourCoins": "保有コイン"
+    "yourCoins": "保有コイン",
+    "buyShare": "買い比率"
   }
 }

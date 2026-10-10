@@ -538,6 +538,7 @@
     "watchlistSignedOut": "Masuk dan ketuk bintang di koin untuk memantaunya di sini.",
     "watchlistEmpty": "Belum ada apa-apa — ketuk bintang di koin untuk memantaunya.",
     "gasFreeUsdc": "Tanpa gas · semua dalam USDC",
-    "yourCoins": "Koinmu"
+    "yourCoins": "Koinmu",
+    "buyShare": "Beli"
   }
 }

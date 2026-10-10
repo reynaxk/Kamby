@@ -538,6 +538,7 @@
     "watchlistSignedOut": "Entre e toque na estrela de uma moeda para acompanhá-la aqui.",
     "watchlistEmpty": "Nada aqui ainda — toque na estrela de uma moeda para acompanhá-la.",
     "gasFreeUsdc": "Sem gas · tudo em USDC",
-    "yourCoins": "Suas moedas"
+    "yourCoins": "Suas moedas",
+    "buyShare": "Compras"
   }
 }

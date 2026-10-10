@@ -29,7 +29,7 @@ const EXPLORER: Record<'solana' | 'base' | 'bnb', (address: string) => string> =
  * placeholder), each with its USD value at the live price and a whale (≥$1M) / shark (≥$500K)
  * / fish (≥$100K) label. Pools and other contracts are shown but never labelled.
  */
-export function HoldersPanel({ source }: { source: ChartSource }) {
+export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount?: (count: number) => void }) {
   const tU = useTranslations('ui');
   const tC = useTranslations('coin');
   const tL = useTranslations('labels');
@@ -53,6 +53,7 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
         if (!cancelled) {
           setData(body);
           setStatus('ready');
+          if (body.holderCount !== null) onCount?.(body.holderCount);
         }
       } catch {
         if (!cancelled) setStatus((s) => (s === 'ready' ? s : 'error'));

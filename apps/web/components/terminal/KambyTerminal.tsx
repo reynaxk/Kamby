@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { formatCompactCount } from '@/lib/format';
 import type { Candle, MarketSummary, SocialActivity, TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
@@ -83,6 +84,7 @@ export function KambyTerminal({
   const isMobile = useIsMobile();
   const tL = useTranslations('labels');
   const tC = useTranslations('coin');
+  const [holderCount, setHolderCount] = useState<number | null>(null);
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
   const chartSource = useMemo<ChartSource>(
     () => ({ kind: 'evm', chain: chain === 'bnb' ? 'bnb' : 'base', address: market.tokenAddress, chainId }),
@@ -121,7 +123,7 @@ export function KambyTerminal({
         banner={banner}
         chart={<TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" />}
         tabs={[
-          { id: 'holders', label: tC('holders'), content: <HoldersPanel source={chartSource} /> },
+          { id: 'holders', label: holderCount !== null ? `${tC('holders')} ${formatCompactCount(holderCount)}` : tC('holders'), content: <HoldersPanel source={chartSource} onCount={setHolderCount} /> },
           { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={chartSource} /> },
           { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></div> },
           {

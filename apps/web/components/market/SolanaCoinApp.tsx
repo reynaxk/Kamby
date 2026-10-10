@@ -1,7 +1,9 @@
 'use client';
 
 import type { Candle } from '@kamby/domain';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { formatCompactCount } from '@/lib/format';
 import { MobileCoinScreen } from './MobileCoinScreen';
 import { NewListingBanner } from './NewListingBanner';
 import { TokenStatsStrip } from './TokenStatsStrip';
@@ -45,6 +47,7 @@ export function SolanaCoinApp({
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const source: ChartSource = { kind: 'solana', mint };
+  const [holderCount, setHolderCount] = useState<number | null>(null);
   return (
     <MobileCoinScreen
       symbol={symbol}
@@ -59,7 +62,7 @@ export function SolanaCoinApp({
       banner={isNewListing ? <NewListingBanner onBondingCurve={onBondingCurve} compact /> : undefined}
       chart={<TokenChartCard bare source={source} initialTimeframe={timeframe} initialCandles={candles} timeframes={timeframes} className="h-full" />}
       tabs={[
-        { id: 'holders', label: tC('holders'), content: <HoldersPanel source={source} /> },
+        { id: 'holders', label: holderCount !== null ? `${tC('holders')} ${formatCompactCount(holderCount)}` : tC('holders'), content: <HoldersPanel source={source} onCount={setHolderCount} /> },
         { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={source} /> },
         {
           id: 'about',

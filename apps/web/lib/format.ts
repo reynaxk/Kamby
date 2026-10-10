@@ -26,6 +26,13 @@ export function formatCompactUsd(value: number | null): string {
   return `${sign}$${abs.toFixed(2)}`;
 }
 
+/** A count the short way — 1.02M, 15.0K, 840. */
+export function formatCompactCount(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (value >= 10_000) return `${(value / 1_000).toFixed(1)}K`;
+  return value.toLocaleString('en-US');
+}
+
 /** "+12.34%" / "-5.67%" — the sign is always shown so a glance can tell direction. */
 export function formatPercent(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return EM_DASH;

@@ -538,6 +538,7 @@
     "watchlistSignedOut": "Connecte-toi et touche l'étoile d'un coin pour le suivre ici.",
     "watchlistEmpty": "Rien ici pour l'instant — touche l'étoile d'un coin pour le suivre.",
     "gasFreeUsdc": "Sans gas · tout en USDC",
-    "yourCoins": "Tes coins"
+    "yourCoins": "Tes coins",
+    "buyShare": "Achats"
   }
 }

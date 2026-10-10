@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
@@ -9,6 +9,7 @@ import { badgeChainFor, ChainBadge } from './ChainBadge';
 import { LaunchpadBadge } from './LaunchpadBadge';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { PriceText } from './PriceText';
+import { formatAge } from './TokenStatsStrip';
 import { PositionChip } from '@/components/trading/PositionChip';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
 import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
@@ -63,12 +64,22 @@ export function MobileCoinScreen({
   const router = useRouter();
   const tT = useTranslations('terminal');
   const tU = useTranslations('ui');
+  const tC = useTranslations('coin');
+  const tL = useTranslations('labels');
   const live = useLivePrice(source);
   const stats = useTokenStats(source);
   const [tab, setTab] = useState(tabs[0]?.id ?? '');
   // A tab mounts the first time it's opened, then stays (no refetch when switching back).
   const [opened, setOpened] = useState<Set<string>>(() => new Set([tabs[0]?.id ?? '']));
   const [side, setSide] = useState<'BUY' | 'SELL' | null>(null);
+  // Once the big price scrolls away it rides along in the top bar instead (2026-10-10).
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 70);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const price = live ?? initialPrice;
   const change = stats?.priceChangePct.h24 ?? initialChange24hPct;
@@ -110,7 +121,13 @@ export function MobileCoinScreen({
             {label}
             <LaunchpadBadge chain={chainIdentifier} address={address} />
           </span>
-          <span className="block truncate font-body text-xs text-ink-400">{name ?? ''}</span>
+          {scrolled ? (
+            <span className={cn('block font-body text-xs font-semibold tabular-nums', up ? 'text-up' : 'text-down')}>
+              <PriceText value={price} flash /> {change !== null && formatPercent(change)}
+            </span>
+          ) : (
+            <span className="block truncate font-body text-xs text-ink-400">{name ?? ''}</span>
+          )}
         </span>
         {watch}
         <button
@@ -144,6 +161,21 @@ export function MobileCoinScreen({
           </div>
         )}
       </div>
+
+      {/* The coin at a glance — 24h volume, trades and age, from the same live stream. */}
+      {stats && (
+        <div className="flex gap-2 overflow-x-auto px-4 pt-3">
+          <StatPill label={tC('vol24h')} value={formatCompactUsd(stats.volumeUsd.h24)} />
+          <StatPill label={tC('trades24h')} value={(stats.txns24h.buys + stats.txns24h.sells).toLocaleString('en-US')} />
+          {stats.txns24h.buys + stats.txns24h.sells > 0 && (
+            <StatPill
+              label={tL('buyShare')}
+              value={`${Math.round((stats.txns24h.buys / (stats.txns24h.buys + stats.txns24h.sells)) * 100)}%`}
+            />
+          )}
+          {stats.pairCreatedAtMs !== null && <StatPill label={tC('age')} value={formatAge(stats.pairCreatedAtMs)} />}
+        </div>
+      )}
 
       {/* What you hold of it, right under the price — trading apps lead with your position. */}
       <div className="px-4 pt-2 empty:hidden">
@@ -208,5 +240,14 @@ export function MobileCoinScreen({
         {side && renderTrade(side)}
       </MobileDrawer>
     </div>
+  );
+}
+
+function StatPill({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="flex shrink-0 items-baseline gap-1.5 rounded-full bg-surface-raised px-3 py-1.5 font-body text-xs">
+      <span className="text-ink-400">{label}</span>
+      <span className="font-semibold tabular-nums text-ink-900">{value}</span>
+    </span>
   );
 }
