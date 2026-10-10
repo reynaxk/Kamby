@@ -18,6 +18,8 @@ import type { ChartSource } from '@/lib/chart-data';
 export interface MobileCoinTab {
   id: string;
   label: string;
+  /** A small grey count after the label (e.g. holders). */
+  badge?: string;
   content: ReactNode;
 }
 
@@ -200,11 +202,12 @@ export function MobileCoinScreen({
                   setOpened((prev) => (prev.has(t.id) ? prev : new Set(prev).add(t.id)));
                 }}
                 className={cn(
-                  'relative flex-1 py-3 font-display text-sm font-semibold transition-colors',
+                  'relative flex-1 whitespace-nowrap py-3 font-display text-sm font-semibold transition-colors',
                   tab === t.id ? 'text-ink-900' : 'text-ink-400',
                 )}
               >
                 {t.label}
+                {t.badge && <span className="ml-1 font-body text-[0.7rem] font-medium text-ink-400">{t.badge}</span>}
                 {tab === t.id && <span aria-hidden className="absolute inset-x-6 -bottom-px h-0.5 rounded-full bg-accent" />}
               </button>
             ))}

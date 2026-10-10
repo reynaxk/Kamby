@@ -62,7 +62,7 @@ export function SolanaCoinApp({
       banner={isNewListing ? <NewListingBanner onBondingCurve={onBondingCurve} compact /> : undefined}
       chart={<TokenChartCard bare source={source} initialTimeframe={timeframe} initialCandles={candles} timeframes={timeframes} className="h-full" />}
       tabs={[
-        { id: 'holders', label: holderCount !== null ? `${tC('holders')} ${formatCompactCount(holderCount)}` : tC('holders'), content: <HoldersPanel source={source} onCount={setHolderCount} /> },
+        { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <HoldersPanel source={source} onCount={setHolderCount} /> },
         { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={source} /> },
         {
           id: 'about',

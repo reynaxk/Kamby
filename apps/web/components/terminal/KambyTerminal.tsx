@@ -123,7 +123,7 @@ export function KambyTerminal({
         banner={banner}
         chart={<TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" />}
         tabs={[
-          { id: 'holders', label: holderCount !== null ? `${tC('holders')} ${formatCompactCount(holderCount)}` : tC('holders'), content: <HoldersPanel source={chartSource} onCount={setHolderCount} /> },
+          { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <HoldersPanel source={chartSource} onCount={setHolderCount} /> },
           { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={chartSource} /> },
           { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></div> },
           {
