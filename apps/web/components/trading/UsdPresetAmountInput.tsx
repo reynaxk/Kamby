@@ -32,10 +32,13 @@ export function UsdPresetAmountInput({
   value,
   onChange,
   walletAddress,
+  hero = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   walletAddress: string | undefined;
+  /** Phone trade sheet (2026-10-10): the amount big and centred. */
+  hero?: boolean;
 }) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -77,8 +80,8 @@ export function UsdPresetAmountInput({
 
   return (
     <div>
-      <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'USDC' })}</span>
+      <div className={cn('flex items-center font-body text-xs text-ink-600', hero ? 'justify-center' : 'justify-between')}>
+        {!hero && <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'USDC' })}</span>}
         {usdcBalanceRaw !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
@@ -91,6 +94,21 @@ export function UsdPresetAmountInput({
           </span>
         )}
       </div>
+      {hero ? (
+        <div className="flex items-baseline justify-center py-4">
+          <span className={cn('font-display text-5xl font-bold', text ? 'text-ink-900' : 'text-ink-400')}>$</span>
+          <input
+            type="text"
+            inputMode="decimal"
+            placeholder="0"
+            aria-label={tTrade('amountOf', { symbol: 'USDC' })}
+            value={text}
+            size={Math.max(1, text.length)}
+            onChange={(event) => setText(event.target.value)}
+            className="min-w-[1ch] max-w-full bg-transparent text-center font-display text-5xl font-bold tabular-nums text-ink-900 placeholder:text-ink-400 focus:outline-none"
+          />
+        </div>
+      ) : (
       <input
         type="text"
         inputMode="decimal"
@@ -99,6 +117,7 @@ export function UsdPresetAmountInput({
         onChange={(event) => setText(event.target.value)}
         className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-3 font-mono text-2xl font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-accent"
       />
+      )}
       <div className="mt-1.5 flex gap-1.5">
         {USD_PRESETS.map((dollars) => {
           const isActive = value === usdToRawUsdc(dollars);
@@ -109,6 +128,7 @@ export function UsdPresetAmountInput({
               onClick={() => applyUsd(dollars)}
               className={cn(
                 'flex-1 rounded-full border px-2 py-1.5 font-mono text-xs font-semibold transition-colors',
+                hero && 'py-2.5 text-sm',
                 isActive
                   ? 'border-accent bg-accent/15 text-accent'
                   : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
@@ -124,6 +144,7 @@ export function UsdPresetAmountInput({
           onClick={applyMax}
           className={cn(
             'flex-1 rounded-full border border-line bg-surface-raised px-2 py-1.5 font-mono text-xs font-semibold text-ink-600',
+            hero && 'py-2.5 text-sm',
             'hover:border-accent/60 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
           )}
         >

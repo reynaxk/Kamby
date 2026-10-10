@@ -33,6 +33,9 @@ export function TradePanelCard({ dense = false, ...props }: TradePanelProps & { 
     props.onStepChange?.(next);
   }
 
+  // The phone sheet is its own surface already — no card inside it.
+  if (props.sheet) return <TradePanel {...props} onStepChange={handleStepChange} />;
+
   return (
     <Surface
       className={cn(

@@ -527,6 +527,10 @@
     "behaviorNote": "Calculé uniquement à partir des trades confirmés de ce wallet — pas un conseil en investissement.",
     "volume24h": "Volume 24h",
     "trades24h": "Trades 24h",
-    "indicators": "Indicateurs"
+    "indicators": "Indicateurs",
+    "riskNewListing": "Nouveau listing, risque élevé : trouvé automatiquement, pas choisi à la main. Il n'a passé que les contrôles de liquidité, de trading réel dans les deux sens et d'imitations — aucune détection de rug-pull ou de honeypot.",
+    "riskBondingCurve": "Encore sur la bonding curve de son launchpad — extrêmement tôt. Les prix bougent très vite et la plupart de ces coins finissent à zéro.",
+    "riskShort": "Nouveau listing — risque élevé",
+    "riskShortBonding": "Bonding curve — extrêmement tôt"
   }
 }

@@ -42,6 +42,9 @@ export interface SolanaTradePanelProps {
   volatile?: boolean;
   /** The phone quick-buy bar at the bottom of the screen — off inside the phone trade sheet. */
   dock?: boolean;
+  /** Phone trade sheet (2026-10-10): no title, side toggle or wallet row — a big amount,
+   *  slippage folded to one line, a big action button. Same trade logic. */
+  sheet?: boolean;
 }
 
 type Step = 'form' | 'review' | 'signing' | 'submitted' | 'pending' | 'confirmed' | 'failed' | 'record-failed';
@@ -106,7 +109,7 @@ function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string
  * where both sides used the same highlight color would defeat the point of the color
  * coding), via the `up`/`down` tokens instead.
  */
-export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false, dock = true }: SolanaTradePanelProps) {
+export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false, dock: dockProp, sheet = false }: SolanaTradePanelProps) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const tAuth = useTranslations('auth');
@@ -153,6 +156,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   tokenDecimalsRef.current = tokenDecimals;
 
   const [side, setSide] = useState<TradeSide>(initialSide);
+  const dock = dockProp ?? !sheet;
   const [amount, setAmount] = useState('');
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
@@ -571,8 +575,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   return (
     <>
-      <Panel title={tTrade('title')} headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
-        <div className="flex gap-1.5">
+      <Panel title={tTrade('title')} hideHeader={sheet} headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
+        {sheet && (
+          <div className="flex justify-center">
+            <PositionChip source={{ kind: 'solana', mint: tokenMint }} />
+          </div>
+        )}
+        <div className={cn('flex gap-1.5', sheet && 'hidden')}>
           {(['BUY', 'SELL'] as const).map((s) => {
             const isActive = side === s;
             const Icon = s === 'BUY' ? TrendingUp : TrendingDown;
@@ -602,7 +611,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
             );
           })}
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-line bg-surface-raised px-3 py-2 font-body text-xs text-ink-600">
+        <div className={cn('flex items-center justify-between rounded-lg border border-line bg-surface-raised px-3 py-2 font-body text-xs text-ink-600', sheet && 'hidden')}>
           <span className="truncate">
             Your Solana wallet{' '}
             <span className="font-mono text-ink-900">
@@ -613,7 +622,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         </div>
         {side === 'BUY' ? (
           <>
-            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} />
             <ChainUsdcLine chain="solana" amountUsd={(Number(amount) || 0) / 1e6} />
           </>
         ) : (
@@ -637,13 +646,14 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
             setManualSlippageBps(bps);
           }}
           auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
+          collapsible={sheet}
         />
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
         {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
-          className="w-full text-base font-bold uppercase tracking-wide"
+          className={cn('w-full text-base font-bold uppercase tracking-wide', sheet && 'h-14 rounded-2xl normal-case tracking-normal')}
           disabled={quoteStatus !== 'ready' || !quote}
           onClick={() => void handleOneTap()}
         >
@@ -694,9 +704,11 @@ function Panel({
   title,
   onBack,
   headerRight,
+  hideHeader = false,
   children,
 }: {
   title: string;
+  hideHeader?: boolean;
   onBack?: () => void;
   headerRight?: React.ReactNode;
   children: React.ReactNode;
@@ -704,7 +716,7 @@ function Panel({
   const tU = useTranslations('ui');
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className={cn('flex items-center justify-between', hideHeader && 'hidden')}>
         <div className="flex items-center gap-2">
           {onBack && (
             <button type="button" onClick={onBack} aria-label={tU('back_0557')} className="text-ink-600 hover:text-ink-900">

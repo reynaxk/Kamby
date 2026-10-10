@@ -527,6 +527,10 @@
     "behaviorNote": "Dihitung hanya dari trade terkonfirmasi wallet ini — bukan saran investasi.",
     "volume24h": "Volume 24j",
     "trades24h": "Trade 24j",
-    "indicators": "Indikator"
+    "indicators": "Indikator",
+    "riskNewListing": "Listing baru, risiko tinggi: ditemukan otomatis, bukan dipilih manual. Hanya lolos cek likuiditas, trading dua arah nyata, dan tiruan — tidak ada deteksi rug-pull atau honeypot.",
+    "riskBondingCurve": "Masih di bonding curve launchpad-nya — sangat awal. Harga bergerak sangat cepat dan kebanyakan koin seperti ini jadi nol.",
+    "riskShort": "Listing baru — risiko tinggi",
+    "riskShortBonding": "Bonding curve — sangat awal"
   }
 }

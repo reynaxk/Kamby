@@ -33,12 +33,15 @@ export function SlippageControl({
   onChange,
   className,
   auto,
+  collapsible = false,
 }: {
   valueBps: number;
   onChange: (bps: number) => void;
   className?: string;
   /** The "Auto" option — `active` when the panel is using autoSlippageBps. */
   auto?: { active: boolean; onSelect: () => void };
+  /** Phone trade sheet (2026-10-10): just its one-line summary until tapped. */
+  collapsible?: boolean;
 }) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -50,15 +53,25 @@ export function SlippageControl({
   // input box kept showing the rejected text, with nothing telling the user the two had
   // diverged. Now tracked explicitly so that mismatch is always visible rather than silent.
   const [customError, setCustomError] = useState<string | null>(null);
+  const [open, setOpen] = useState(!collapsible);
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between">
+      <button
+        type="button"
+        disabled={!collapsible}
+        aria-expanded={collapsible ? open : undefined}
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between disabled:cursor-default"
+      >
         <span className="font-body text-xs text-ink-600">{tTrade('slippage')}</span>
         <span className="font-mono text-xs text-ink-600">
           {auto?.active ? `${tTrade('auto')} · ${formatBpsAsPercent(valueBps)}` : formatBpsAsPercent(valueBps)}
+          {collapsible && <span aria-hidden className={cn('ml-1 inline-block transition-transform', open && 'rotate-180')}>▾</span>}
         </span>
-      </div>
+      </button>
+      {(open || customError) && (
+      <>
       <div className="mt-1.5 flex gap-1.5">
         {auto && (
           <button
@@ -138,6 +151,8 @@ export function SlippageControl({
           />
           <span className="font-body text-xs text-ink-600">%</span>
         </div>
+      )}
+      </>
       )}
       {customError && <p className="mt-1 font-body text-xs text-down">{customError}</p>}
       {/* A UI-only heuristic (not a server-enforced threshold) — the API's actual bound is

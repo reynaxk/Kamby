@@ -56,7 +56,7 @@ export function SolanaCoinApp({
       initialPrice={initialPrice}
       initialChange24hPct={change24hPct}
       initialMarketCapUsd={marketCapUsd}
-      banner={isNewListing ? <NewListingBanner onBondingCurve={onBondingCurve} /> : undefined}
+      banner={isNewListing ? <NewListingBanner onBondingCurve={onBondingCurve} compact /> : undefined}
       chart={<TokenChartCard bare source={source} initialTimeframe={timeframe} initialCandles={candles} timeframes={timeframes} className="h-full" />}
       tabs={[
         { id: 'holders', label: tC('holders'), content: <HoldersPanel source={source} /> },
@@ -74,7 +74,7 @@ export function SolanaCoinApp({
         },
       ]}
       canTrade
-      renderTrade={(side) => <SolanaTradePanel tokenMint={mint} tokenSymbol={symbol} initialSide={side} volatile={isNewListing || onBondingCurve} dock={false} />}
+      renderTrade={(side) => <SolanaTradePanel tokenMint={mint} tokenSymbol={symbol} initialSide={side} volatile={isNewListing || onBondingCurve} sheet />}
     />
   );
 }

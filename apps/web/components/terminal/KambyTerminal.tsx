@@ -140,6 +140,7 @@ export function KambyTerminal({
         renderTrade={(side) => (
           <TradePanelCard
             key={side}
+            sheet
             initialSide={side}
             chainId={chainId}
             tokenAddress={market.tokenAddress}

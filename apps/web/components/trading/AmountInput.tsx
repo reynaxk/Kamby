@@ -21,6 +21,7 @@ export function AmountInput({
   inputTokenSymbol,
   inputTokenDecimals,
   className,
+  hero = false,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -28,6 +29,8 @@ export function AmountInput({
   inputTokenSymbol: string | null;
   inputTokenDecimals: number;
   className?: string;
+  /** Phone trade sheet (2026-10-10): the amount big and centred, like an app's keypad screen. */
+  hero?: boolean;
 }) {
   const tTrade = useTranslations('trade');
   const { address } = useAccount();
@@ -45,8 +48,8 @@ export function AmountInput({
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span>{tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}</span>
+      <div className={cn('flex items-center font-body text-xs text-ink-600', hero ? 'justify-center' : 'justify-between')}>
+        {!hero && <span>{tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}</span>}
         {balance && (
           <span>
             {tTrade('balance')}{' '}
@@ -56,6 +59,26 @@ export function AmountInput({
           </span>
         )}
       </div>
+      {hero && (
+        <div className="flex items-baseline justify-center py-4 font-display font-bold text-ink-900">
+          {inputTokenSymbol === 'USDC' && <span className={cn('text-5xl', !value && 'text-ink-400')}>$</span>}
+          <input
+            type="text"
+            inputMode="decimal"
+            placeholder="0"
+            aria-label={tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}
+            value={value}
+            size={Math.max(1, value.length)}
+            onChange={(event) => {
+              const raw = event.target.value;
+              if (raw === '' || /^\d*\.?\d*$/.test(raw)) onChange(raw);
+            }}
+            className="min-w-[1ch] max-w-full bg-transparent text-center text-5xl tabular-nums placeholder:text-ink-400 focus:outline-none"
+          />
+          {inputTokenSymbol !== 'USDC' && <span className="ml-2 text-xl text-ink-400">{inputTokenSymbol}</span>}
+        </div>
+      )}
+      {!hero && (
       <input
         type="text"
         inputMode="decimal"
@@ -67,6 +90,7 @@ export function AmountInput({
         }}
         className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-lg text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
       />
+      )}
       <div className="mt-1.5 flex gap-1.5">
         {PRESET_FRACTIONS.map((fraction) => (
           <button
@@ -76,6 +100,7 @@ export function AmountInput({
             onClick={() => applyFraction(fraction)}
             className={cn(
               'flex-1 rounded-lg bg-surface-raised px-2 py-1.5 font-body text-xs font-medium text-ink-600',
+              hero && 'rounded-full py-2.5 text-sm font-semibold text-ink-900',
               'hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
             )}
           >

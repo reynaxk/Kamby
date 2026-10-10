@@ -136,7 +136,7 @@ export default async function TokenDetailPage({
         activity={activity.items}
         traders={traders}
         timeframe={timeframe}
-        banner={!isCuratedMarket(market.chainIdentifier, market.tokenAddress) ? <NewListingBanner /> : undefined}
+        banner={!isCuratedMarket(market.chainIdentifier, market.tokenAddress) ? <NewListingBanner compact /> : undefined}
       />
 
       <main className="mx-auto max-w-[1600px] px-3 pb-10 max-lg:hidden">

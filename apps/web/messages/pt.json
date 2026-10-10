@@ -527,6 +527,10 @@
     "behaviorNote": "Calculado só com as operações confirmadas desta carteira — não é recomendação de investimento.",
     "volume24h": "Volume 24h",
     "trades24h": "Operações 24h",
-    "indicators": "Indicadores"
+    "indicators": "Indicadores",
+    "riskNewListing": "Nova listagem, alto risco: encontrada automaticamente, não escolhida a dedo. Passou só nas checagens de liquidez, negociação real nos dois sentidos e imitações — não há detecção de rug-pull ou honeypot.",
+    "riskBondingCurve": "Ainda na bonding curve da launchpad — muito cedo. Os preços mudam muito rápido e a maioria dessas moedas vai a zero.",
+    "riskShort": "Nova listagem — alto risco",
+    "riskShortBonding": "Bonding curve — muito cedo"
   }
 }

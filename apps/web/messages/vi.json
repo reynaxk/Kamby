@@ -527,6 +527,10 @@
     "behaviorNote": "Chỉ tính từ các giao dịch đã xác nhận của ví này — không phải lời khuyên đầu tư.",
     "volume24h": "Khối lượng 24h",
     "trades24h": "Giao dịch 24h",
-    "indicators": "Chỉ báo"
+    "indicators": "Chỉ báo",
+    "riskNewListing": "Niêm yết mới, rủi ro cao: được tìm tự động, không chọn thủ công. Chỉ qua kiểm tra thanh khoản, giao dịch hai chiều thật và mạo danh — không có phát hiện rug-pull hay honeypot.",
+    "riskBondingCurve": "Vẫn trên bonding curve của launchpad — cực kỳ sớm. Giá biến động rất nhanh và đa số coin này về 0.",
+    "riskShort": "Niêm yết mới — rủi ro cao",
+    "riskShortBonding": "Bonding curve — cực kỳ sớm"
   }
 }

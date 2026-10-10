@@ -50,6 +50,10 @@ export interface TradePanelProps {
   onStepChange?: (step: TradePanelStep) => void;
   /** Compact terminal presentation; trade semantics and validation remain unchanged. */
   dense?: boolean;
+  /** Phone trade sheet (2026-10-10, owner screenshot): the side was already picked by the
+   *  Buy/Sell button, so no title or side toggle — a big amount, round presets, slippage
+   *  folded to one line, a big action button. Same trade logic. */
+  sheet?: boolean;
 }
 
 export type TradePanelStep =
@@ -155,6 +159,7 @@ export function TradePanel({
   onClose,
   onStepChange,
   dense = false,
+  sheet = false,
 }: TradePanelProps) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -777,9 +782,15 @@ export function TradePanel({
       onClose={onClose}
       animKey="form"
       dense={dense}
+      hideHeader={sheet}
       headerRight={<PositionChip source={evmChartSource(tokenAddress, chainId)} />}
     >
-      <div className="flex rounded-lg bg-surface-raised p-1">
+      {sheet && (
+        <div className="flex justify-center">
+          <PositionChip source={evmChartSource(tokenAddress, chainId)} />
+        </div>
+      )}
+      <div className={cn('flex rounded-lg bg-surface-raised p-1', sheet && 'hidden')}>
         {(['BUY', 'SELL'] as const).map((option) => (
           <button
             key={option}
@@ -821,6 +832,7 @@ export function TradePanel({
         inputTokenSymbol={inputTokenSymbol}
         inputTokenDecimals={inputTokenDecimals}
         className={dense ? 'trade-amount-compact' : undefined}
+        hero={sheet}
       />
       {side === 'BUY' && <ChainUsdcLine chain={chainId === 56 ? 'bnb' : 'base'} amountUsd={Number.parseFloat(amount) || 0} />}
 
@@ -832,6 +844,7 @@ export function TradePanel({
         }}
         auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
         className={dense ? 'trade-slippage-compact' : undefined}
+        collapsible={sheet}
       />
 
       {/* Rendered only once a real quote has confirmed sponsorship is actually available —
@@ -846,7 +859,13 @@ export function TradePanel({
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
       {isConnected ? (
-        <Button type="button" disabled={quoteStatus !== 'ready' || !quote} onClick={() => void handleOneTap()} className="w-full">
+        <Button
+          type="button"
+          variant={sheet ? (side === 'BUY' ? 'buy' : 'sell') : undefined}
+          disabled={quoteStatus !== 'ready' || !quote}
+          onClick={() => void handleOneTap()}
+          className={cn('w-full', sheet && 'h-14 rounded-2xl text-base font-bold')}
+        >
           {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
         </Button>
       ) : (
@@ -868,9 +887,11 @@ function Panel({
   headerRight,
   animKey,
   dense = false,
+  hideHeader = false,
   children,
 }: {
   title: string;
+  hideHeader?: boolean;
   onClose?: () => void;
   onBack?: () => void;
   headerRight?: React.ReactNode;
@@ -884,7 +905,7 @@ function Panel({
   const tU = useTranslations('ui');
   return (
     <div className={cn('space-y-2.5', dense && 'trade-form-compact')}>
-      <div className="flex items-center justify-between">
+      <div className={cn('flex items-center justify-between', hideHeader && 'hidden')}>
         <div className="flex items-center gap-2">
           {onBack && (
             <button type="button" onClick={onBack} aria-label={tU('back_0557')} className="text-ink-600 hover:text-ink-900">
