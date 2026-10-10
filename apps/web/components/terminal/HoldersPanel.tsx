@@ -31,6 +31,7 @@ const EXPLORER: Record<'solana' | 'base' | 'bnb', (address: string) => string> =
 export function HoldersPanel({ source }: { source: ChartSource }) {
   const tU = useTranslations('ui');
   const tC = useTranslations('coin');
+  const tL = useTranslations('labels');
   const { chain, address } = livePriceKey(source);
   const price = useLivePrice(source);
   const [data, setData] = useState<TokenHolders | null>(null);
@@ -102,7 +103,7 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
                     </a>
                     {tier && (
                       <span className={cn('rounded-full px-1.5 py-0.5 text-[0.62rem] font-semibold', TIER_STYLE[tier].className)}>
-                        {TIER_STYLE[tier].icon} {TIER_STYLE[tier].label}
+                        {TIER_STYLE[tier].icon} {tL(`tier_${tier}`)}
                       </span>
                     )}
                     {(h.isContract || h.tag) && <span className="text-[0.62rem] text-ink-400">{h.tag ?? 'contract'}</span>}

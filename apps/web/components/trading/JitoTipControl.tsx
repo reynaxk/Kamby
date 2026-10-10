@@ -20,6 +20,7 @@ export const JITO_TIP_PRESETS = [
  */
 export function JitoTipControl({ valueLamports, onChange }: { valueLamports: number; onChange: (lamports: number) => void }) {
   const tU = useTranslations('ui');
+  const tL = useTranslations('labels');
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
@@ -41,7 +42,7 @@ export function JitoTipControl({ valueLamports, onChange }: { valueLamports: num
                   : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
               )}
             >
-              {preset.label}
+              {tL(`jito_${preset.label}`)}
             </button>
           );
         })}

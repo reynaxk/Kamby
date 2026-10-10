@@ -34,6 +34,7 @@ function lamportsToSol(raw: string): number {
  */
 export function TrenchesPanel() {
   const tU = useTranslations('ui');
+  const tL = useTranslations('labels');
   const [category, setCategory] = useState<TrenchesCategory>('FRESH');
   const [items, setItems] = useState<MarketSummary[] | PumpFunTokenSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -73,7 +74,7 @@ export function TrenchesPanel() {
                 : 'border-transparent text-ink-400 hover:text-ink-600',
             )}
           >
-            {tab.label}
+            {tL(`trench_${tab.category}`)}
           </button>
         ))}
       </div>

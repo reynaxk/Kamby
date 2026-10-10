@@ -38,6 +38,7 @@ const FIELDS: { key: keyof NotificationPreferences; label: string; detail: strin
  *  never an assumed value, so this can never drift from what the API will really enforce. */
 export function NotificationPreferencesPanel() {
   const tU = useTranslations('ui');
+  const tL = useTranslations('labels');
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [saving, setSaving] = useState<keyof NotificationPreferences | null>(null);
   const [error, setError] = useState(false);
@@ -68,12 +69,12 @@ export function NotificationPreferencesPanel() {
     return (
       <EmptyState
         title={tU('verifyAWalletToManage_80aa')}
-        detail="Sign in with a wallet to choose which notifications you get."
+        detail={tL('prefsSignIn')}
       />
     );
   }
   if (error) {
-    return <EmptyState title={tU('couldnTLoadYourPreferences_c37e')} detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourPreferences_c37e')} detail={tL('tryAgainMoment')} />;
   }
   if (!prefs) {
     return (
@@ -87,7 +88,10 @@ export function NotificationPreferencesPanel() {
 
   return (
     <Surface className="flex flex-col divide-y divide-line p-2">
-      {FIELDS.map(({ key, label, detail }) => (
+      {FIELDS.map(({ key }) => {
+        const label = tL(`pref_${key}`);
+        const detail = tL(`pref_${key}_detail`);
+        return (
         <div key={key} className="flex items-center justify-between gap-4 px-3 py-3">
           <div className="min-w-0">
             <p className="font-body text-sm font-medium text-ink-900">{label}</p>
@@ -108,7 +112,8 @@ export function NotificationPreferencesPanel() {
             />
           </button>
         </div>
-      ))}
+        );
+      })}
     </Surface>
   );
 }

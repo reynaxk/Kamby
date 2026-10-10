@@ -31,6 +31,7 @@ const MIN_SIZE_OPTIONS = [0, 1_000, 5_000] as const;
  */
 export function DataHub({ activity, source = null }: { activity: SocialActivity[]; source?: ChartSource | null }) {
   const tU = useTranslations('ui');
+  const tL = useTranslations('labels');
   const [tab, setTab] = useState<Tab>('transactions');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('ALL');
   const [minSizeUsd, setMinSizeUsd] = useState<number>(0);
@@ -61,7 +62,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
                 : 'text-ink-400 hover:text-ink-600',
             )}
           >
-            {t.label}
+            {tL(`hub_${t.id.replace('-', '_')}`)}
           </button>
         ))}
       </div>

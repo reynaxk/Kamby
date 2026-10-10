@@ -1,12 +1,6 @@
 import type { TradeStatus } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-
-const LABEL: Record<TradeStatus, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  FAILED: 'Failed',
-  EXPIRED: 'Expired',
-};
+import { useTranslations } from 'next-intl';
 
 const CLASS: Record<TradeStatus, string> = {
   PENDING: 'bg-ink-400/10 text-ink-600',
@@ -18,9 +12,10 @@ const CLASS: Record<TradeStatus, string> = {
 /** Reflects exactly what the API's own status enum says — see
  *  docs/TRADING.md#transaction-lifecycle. Never a client-guessed state. */
 export function StatusPill({ status }: { status: TradeStatus }) {
+  const tL = useTranslations('labels');
   return (
     <span className={cn('rounded-full px-2 py-0.5 font-mono text-[0.65rem] font-semibold uppercase tracking-wide', CLASS[status])}>
-      {LABEL[status]}
+      {tL(`status_${status}`)}
     </span>
   );
 }
