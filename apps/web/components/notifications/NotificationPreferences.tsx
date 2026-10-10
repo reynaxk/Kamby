@@ -10,6 +10,7 @@ import {
   updateNotificationPreferences,
 } from '@/lib/notifications-client';
 import { hasStoredSession } from '@/lib/session-client';
+import { useTranslations } from 'next-intl';
 
 const FIELDS: { key: keyof NotificationPreferences; label: string; detail: string }[] = [
   { key: 'follows', label: 'New followers', detail: 'When someone starts following you' },
@@ -36,6 +37,7 @@ const FIELDS: { key: keyof NotificationPreferences; label: string; detail: strin
  *  saved immediately (no separate "Save" step) and reflects the server's actual response,
  *  never an assumed value, so this can never drift from what the API will really enforce. */
 export function NotificationPreferencesPanel() {
+  const tU = useTranslations('ui');
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [saving, setSaving] = useState<keyof NotificationPreferences | null>(null);
   const [error, setError] = useState(false);
@@ -65,13 +67,13 @@ export function NotificationPreferencesPanel() {
   if (!hasStoredSession()) {
     return (
       <EmptyState
-        title="Verify a wallet to manage preferences."
+        title={tU('verifyAWalletToManage_80aa')}
         detail="Sign in with a wallet to choose which notifications you get."
       />
     );
   }
   if (error) {
-    return <EmptyState title="Couldn't load your preferences." detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourPreferences_c37e')} detail="Try again in a moment." />;
   }
   if (!prefs) {
     return (

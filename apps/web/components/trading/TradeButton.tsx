@@ -5,6 +5,7 @@ import { Button, type ButtonProps } from '@kamby/ui';
 import type { TradeSide } from '@kamby/domain';
 import { TradeModal } from './TradeModal';
 import { TradePanel } from './TradePanel';
+import { useTranslations } from 'next-intl';
 
 export interface TradeButtonProps {
   /** See TradePanel.tsx's own `chainId` doc comment — required for the same reason:
@@ -40,12 +41,13 @@ export function TradeButton({
   variant = 'primary',
   className,
 }: TradeButtonProps) {
+  const tU = useTranslations('ui');
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button type="button" variant={variant} className={className} onClick={() => setOpen(true)}>
-        {label ?? (side === 'SELL' ? 'Sell' : side === 'BUY' ? 'Buy' : 'Trade')}
+        {label ?? (side === 'SELL' ? tU('sell_3068') : side === 'BUY' ? tU('buy_831a') : tU('trade_5f39'))}
       </Button>
       <TradeModal open={open} onClose={() => setOpen(false)}>
         <TradePanel

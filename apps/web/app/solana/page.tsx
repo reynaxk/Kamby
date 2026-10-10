@@ -107,6 +107,7 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 }
 
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
+  const tU = await getTranslations('ui');
   const tCoin = await getTranslations('coin');
   const market = await resolveMarket(searchParams.mint);
   const isSol = market === NATIVE_SOL;
@@ -143,7 +144,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
           <section className="min-w-0">
             <div className="flex flex-wrap items-end justify-between gap-2">
               {isSol ? (
-                <h1 className="font-display text-xl font-bold text-ink-900">Trade on Solana</h1>
+                <h1 className="font-display text-xl font-bold text-ink-900">{tU('tradeOnSolana_e8eb')}</h1>
               ) : (
                 <h1 className="font-display text-xl font-bold text-ink-900">
                   <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" chainIdentifier="solana" seed={market.tokenAddress} />

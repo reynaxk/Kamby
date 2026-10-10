@@ -6,8 +6,10 @@ import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { PriceChange } from './PriceChange';
 import { StaleBadge } from './StaleBadge';
 import { TokenIdentity } from './TokenIdentity';
+import { useTranslations } from 'next-intl';
 
 export function TokenCard({ market }: { market: MarketSummary }) {
+  const tU = useTranslations('ui');
   // Chain-aware URL — see marketHref (EVM market page, or the Solana trade page).
   const content = (
     <>
@@ -30,11 +32,11 @@ export function TokenCard({ market }: { market: MarketSummary }) {
 
         <div className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-3 font-mono text-xs tabular-nums text-ink-600">
           <div>
-            <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">Volume</div>
+            <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">{tU('volume_bd7a')}</div>
             {formatCompactUsd(market.volume24hUsd)}
           </div>
           <div className="text-right">
-            <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">Liquidity</div>
+            <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">{tU('liquidity_ced4')}</div>
             {formatCompactUsd(market.liquidityUsd)}
           </div>
         </div>
@@ -45,7 +47,7 @@ export function TokenCard({ market }: { market: MarketSummary }) {
   const href = marketHref(market.chainIdentifier, market.tokenAddress);
   if (!href) {
     return (
-      <div title="This market is visible for discovery but is not tradeable here yet">
+      <div title={tU('thisMarketIsVisibleFor_626f')}>
         {content}
       </div>
     );

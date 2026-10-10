@@ -21,6 +21,7 @@ import { formatPrice } from '@/lib/format';
 import { CANDLE_REFRESH_MS, evmChartSource, loadCandles } from '@/lib/chart-data';
 import { CellTokenSelector } from './CellTokenSelector';
 import { InlineTimeframeTabs } from './InlineTimeframeTabs';
+import { useTranslations } from 'next-intl';
 
 type FetchStatus = 'loading' | 'ready' | 'error';
 
@@ -52,6 +53,7 @@ export function GridTerminalCell({
   /** 6-up cells get a shorter chart/panel budget than 4-up — same component, tighter frame. */
   compact?: boolean;
 }) {
+  const tU = useTranslations('ui');
   const [selected, setSelected] = useState<MarketSummary | null>(initialMarket);
   const [timeframe, setTimeframe] = useState<Timeframe>('1D');
   const [tradeStep, setTradeStep] = useState<TradePanelStep>('form');
@@ -125,11 +127,11 @@ export function GridTerminalCell({
 
       <div className={`${chartHeight} rounded-lg border border-line bg-bg`}>
         {!selected ? (
-          <EmptyState title="Pick a token" />
+          <EmptyState title={tU('pickAToken_cd9b')} />
         ) : candlesStatus === 'loading' ? (
           <Skeleton className="h-full w-full" />
         ) : candlesStatus === 'error' ? (
-          <EmptyState title="Couldn't load chart" />
+          <EmptyState title={tU('couldnTLoadChart_2ea2')} />
         ) : (
           <KambyChart candles={candles} />
         )}
@@ -150,7 +152,7 @@ export function GridTerminalCell({
           />
         ) : (
           <p className="p-2 font-body text-xs text-ink-400">
-            {selected ? "Trading isn't available for this token yet." : 'Pick a token to trade.'}
+            {selected ? "Trading isn't available for this token yet." : tU('pickATokenToTrade_0a27')}
           </p>
         )}
       </div>

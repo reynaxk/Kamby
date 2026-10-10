@@ -6,6 +6,7 @@ import { cn } from '@kamby/ui';
 import { fetchLatestSolanaActivity, subscribeToSolanaActivityStream } from '@/lib/solana-social-client';
 import type { RealtimeStatus } from '@/lib/social-client';
 import { formatCompactUsd, truncateAddress } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 const WSOL_MINT = 'So11111111111111111111111111111111111111112';
 
@@ -24,6 +25,7 @@ const WSOL_MINT = 'So11111111111111111111111111111111111111112';
  * so the wallet address renders as plain text until Solana has its own profile system.
  */
 export function SocialFeed() {
+  const tU = useTranslations('ui');
   const [items, setItems] = useState<SolanaSocialActivity[]>([]);
   const [status, setStatus] = useState<RealtimeStatus>('connecting');
   const [pendingCount, setPendingCount] = useState(0);
@@ -77,13 +79,13 @@ export function SocialFeed() {
           className="flex items-center justify-center gap-1.5 border-b border-line bg-accent/10 py-1.5 font-mono text-xs font-semibold text-accent hover:bg-accent/20"
         >
           <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-          {pendingCount} new {pendingCount === 1 ? 'trade' : 'trades'}
+          {pendingCount === 1 ? tU('newTradeOne') : tU('newTradesMany', { count: pendingCount })}
         </button>
       )}
 
       <div className="flex-1 overflow-y-auto">
-        {loadError && items.length === 0 && <p className="p-3 font-body text-xs text-ink-400">Couldn&apos;t load live activity.</p>}
-        {!loadError && items.length === 0 && <p className="p-3 font-body text-xs text-ink-400">No recent activity yet.</p>}
+        {loadError && items.length === 0 && <p className="p-3 font-body text-xs text-ink-400">{tU('couldnTLoadLiveActivity_7a32')}</p>}
+        {!loadError && items.length === 0 && <p className="p-3 font-body text-xs text-ink-400">{tU('noRecentActivityYet_aef8')}</p>}
         {items.map((activity) => (
           <SocialFeedRow key={activity.id} activity={activity} />
         ))}

@@ -12,6 +12,7 @@ import {
 } from '@/lib/notifications-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { NotificationList } from './NotificationList';
+import { useTranslations } from 'next-intl';
 
 /**
  * The header notification entry point — badge + a compact dropdown, with a link to the
@@ -21,6 +22,7 @@ import { NotificationList } from './NotificationList';
  * just renders inert with no badge until the viewer takes an explicit action.
  */
 export function NotificationBell() {
+  const tU = useTranslations('ui');
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [status, setStatus] = useState<RealtimeStatus>('connecting');
@@ -93,7 +95,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={toggle}
-        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : tU('notifications_a274')}
         aria-expanded={isOpen}
         className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-600 transition-colors hover:bg-surface-raised hover:text-ink-900"
       >
@@ -110,12 +112,12 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <Surface aria-label="Notifications" className="absolute right-0 top-11 z-20 max-h-[70vh] w-80 overflow-y-auto p-2 shadow-lg">
+        <Surface aria-label={tU('notifications_a274')} className="absolute right-0 top-11 z-20 max-h-[70vh] w-80 overflow-y-auto p-2 shadow-lg">
           <div className="flex items-center justify-between px-2 py-1.5">
-            <span className="font-display text-sm font-semibold text-ink-900">Notifications</span>
+            <span className="font-display text-sm font-semibold text-ink-900">{tU('notifications_a274')}</span>
             {unreadCount > 0 && (
               <button type="button" onClick={() => void markAll()} className="font-mono text-xs text-accent hover:opacity-80">
-                Mark all read
+                {tU('markAllRead_2aa0')}
               </button>
             )}
           </div>
@@ -125,7 +127,7 @@ export function NotificationBell() {
             onClick={() => setIsOpen(false)}
             className="mt-1 block rounded-lg px-2 py-2 text-center font-mono text-xs text-ink-400 hover:text-ink-900"
           >
-            View all
+            {tU('viewAll_0b4d')}
           </Link>
         </Surface>
       )}

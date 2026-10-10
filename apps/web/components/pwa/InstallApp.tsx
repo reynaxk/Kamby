@@ -32,6 +32,7 @@ function recentlyDismissed(): boolean {
  * on desktop, and for two weeks after "Not now".
  */
 export function InstallApp() {
+  const tU = useTranslations('ui');
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -86,7 +87,7 @@ export function InstallApp() {
   return (
     <div
       role="dialog"
-      aria-label="Install Kamby"
+      aria-label={tU('installKamby_e7f9')}
       className="fixed inset-x-3 bottom-44 z-[60] flex items-center gap-3 rounded-2xl border border-line bg-surface/95 p-3 shadow-2xl backdrop-blur"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -107,7 +108,7 @@ export function InstallApp() {
           {t('install')}
         </button>
       )}
-      <button type="button" onClick={dismiss} aria-label="Not now" className="shrink-0 rounded-lg px-2 py-1 font-body text-xs text-ink-400 hover:text-ink-900">
+      <button type="button" onClick={dismiss} aria-label={tU('notNow_3049')} className="shrink-0 rounded-lg px-2 py-1 font-body text-xs text-ink-400 hover:text-ink-900">
         {t('notNow')}
       </button>
     </div>

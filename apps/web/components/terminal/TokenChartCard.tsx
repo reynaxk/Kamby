@@ -11,6 +11,7 @@ import { KambyChart } from './KambyChart';
 import { ChartStyleToggle, useChartStyle } from './ChartStyleToggle';
 import { LivePriceChart } from './LivePriceChart';
 import { useEntryPrice } from '@/components/trading/PositionChip';
+import { useTranslations } from 'next-intl';
 
 const NO_TRADES: SocialActivity[] = [];
 /** Short widths refresh while open so the newest candle keeps moving. */
@@ -38,6 +39,7 @@ export function TokenChartCard({
   timeframes?: readonly ChartTimeframe[];
   className?: string;
 }) {
+  const tU = useTranslations('ui');
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(initialTimeframe);
   const [chartStyle, setChartStyle] = useChartStyle();
   const entry = useEntryPrice(source.kind === 'solana' ? source.mint : source.address);
@@ -103,13 +105,13 @@ export function TokenChartCard({
         </div>
         {loading && candles !== null && (
           <span aria-live="polite" className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
-            Updating…
+            {tU('updating_805a')}
           </span>
         )}
       </div>
       <div className="min-h-0 flex-1">
         {failed && !candles?.length ? (
-          <EmptyState title="Couldn't load this chart" detail="Try again in a moment." />
+          <EmptyState title={tU('couldnTLoadThisChart_3d0a')} detail="Try again in a moment." />
         ) : candles === null ? (
           <Skeleton className="h-full w-full" />
         ) : (isTickTimeframe(timeframe) && candlesFor === '1m') || (!loading && candles.length < 2) ? (

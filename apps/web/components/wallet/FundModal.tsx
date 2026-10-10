@@ -31,6 +31,7 @@ const SOLANA_FUND_CHAIN = 'solana:mainnet';
  * Funding); if they aren't, `addFunds` fails and the error step says so.
  */
 export function FundModal({ open, onClose, initialChain }: { open: boolean; onClose: () => void; initialChain?: SendChainSlug }) {
+  const tU = useTranslations('ui');
   const tF = useTranslations('fund');
   const { ready, authenticated, login } = usePrivy();
   const { address: evmAddress, chainId: evmChainId } = useAccount();
@@ -176,7 +177,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : (
         <div className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-display text-sm font-semibold text-down">Couldn&rsquo;t start the purchase</p>
+          <p className="font-display text-sm font-semibold text-down">{tU('couldnTStartThePurchase_84dd')}</p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           <div className="flex w-full gap-2">
             <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep('buy')}>

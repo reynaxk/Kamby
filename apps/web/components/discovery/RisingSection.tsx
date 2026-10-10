@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { TokenCard } from '@/components/market/TokenCard';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { formatRelativeTime } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 /**
  * "Rising" — a measurable increase in activity, never a vibe. Tokens are ones that
@@ -13,15 +14,16 @@ import { formatRelativeTime } from '@/lib/format';
  * historical pace (see isRisingTrader). See docs/TRADER_INTELLIGENCE.md#rising.
  */
 export function RisingSection({ tokens, traders }: { tokens: RisingToken[]; traders: RisingTrader[] }) {
+  const tU = useTranslations('ui');
   if (tokens.length === 0 && traders.length === 0) {
-    return <EmptyState title="Nothing is rising right now." detail="Check back once more tokens or traders pick up pace." />;
+    return <EmptyState title={tU('nothingIsRisingRightNow_e55c')} detail="Check back once more tokens or traders pick up pace." />;
   }
 
   return (
     <div className="flex flex-col gap-6">
       {tokens.length > 0 && (
         <div>
-          <h3 className="mb-3 font-mono text-xs uppercase tracking-wide text-ink-400">Tokens</h3>
+          <h3 className="mb-3 font-mono text-xs uppercase tracking-wide text-ink-400">{tU('tokens_f686')}</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tokens.map((item) => (
               <div key={item.market.tokenAddress} className="flex flex-col gap-2">
@@ -37,7 +39,7 @@ export function RisingSection({ tokens, traders }: { tokens: RisingToken[]; trad
 
       {traders.length > 0 && (
         <div>
-          <h3 className="mb-3 font-mono text-xs uppercase tracking-wide text-ink-400">Traders</h3>
+          <h3 className="mb-3 font-mono text-xs uppercase tracking-wide text-ink-400">{tU('traders_d5d8')}</h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {traders.map((trader) => (
               <Link key={trader.address} href={`/trader/${trader.address}`} className="block">

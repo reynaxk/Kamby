@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AtSign, ChevronDown, Copy, LogOut, Pencil, User, Wallet } from 'lucide-react';
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
+import { useTranslations } from 'next-intl';
 
 /** Fired by ProfileEditor after a username/avatar change so the header updates in place. */
 export const PROFILE_UPDATED_EVENT = 'kamby:profile-updated';
@@ -17,6 +18,7 @@ export const PROFILE_UPDATED_EVENT = 'kamby:profile-updated';
  * the wallet tools (Fund / Send / hide balances live on /account now) and sign-out.
  */
 export function ProfileMenu({ address, onSignOut }: { address: string; onSignOut: () => void }) {
+  const tU = useTranslations('ui');
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [profile, setProfile] = useState<MyProfile | null>(null);
@@ -50,7 +52,7 @@ export function ProfileMenu({ address, onSignOut }: { address: string; onSignOut
     };
   }, [open]);
 
-  const displayName = profile?.username ? `@${profile.username}` : 'Your account';
+  const displayName = profile?.username ? `@${profile.username}` : tU('yourAccount_f2fc');
   const itemClass = 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left font-body text-sm text-ink-900 hover:bg-surface-raised';
 
   return (
@@ -60,7 +62,7 @@ export function ProfileMenu({ address, onSignOut }: { address: string; onSignOut
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Open your profile menu"
+        aria-label={tU('openYourProfileMenu_2945')}
         className="flex items-center gap-1 rounded-full p-0.5 pr-1.5 transition-colors hover:bg-surface-raised focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
       >
         <Avatar url={profile?.avatarUrl ?? null} />

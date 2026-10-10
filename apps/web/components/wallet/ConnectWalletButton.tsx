@@ -96,6 +96,7 @@ export function ConnectWalletButton({
    *  forth, a stuck "Switching…" (found again 2026-10-03 once Trending mixed chains). */
   enforceChain?: boolean;
 } = {}) {
+  const tU = useTranslations('ui');
   const tAuth = useTranslations('auth');
   const { ready, authenticated, login, logout } = usePrivy();
   const { address, isConnected, chainId } = useAccount();
@@ -118,7 +119,7 @@ export function ConnectWalletButton({
     const timer = setTimeout(
       () => {
         createEmbeddedWalletOnce('ethereum', () => createWallet()).catch((error: unknown) => {
-          if (!cancelled) setWalletSetupError(friendlyError(error, 'Could not set up your wallet — please try again.'));
+          if (!cancelled) setWalletSetupError(friendlyError(error, tU('couldNotSetUpYour_74f9')));
         });
       },
       retryTick > 0 ? 0 : WALLET_CREATION_FALLBACK_DELAY_MS,
@@ -174,7 +175,7 @@ export function ConnectWalletButton({
           setupSlow && (
             // The wallet may already exist but not be connected here yet — a reload picks it up.
             <button type="button" onClick={() => window.location.reload()} className="font-body text-xs text-ink-600 underline-offset-2 hover:underline">
-              Taking longer than usual — tap to reload
+              {tU('takingLongerThanUsualTap_04aa')}
             </button>
           )
         )}
@@ -195,7 +196,7 @@ export function ConnectWalletButton({
           }}
           disabled={isSwitching}
         >
-          {isSwitching ? 'Switching…' : `Wrong network — Switch to ${expectedChainName}`}
+          {isSwitching ? tU('switching_8f2a') : `Wrong network — Switch to ${expectedChainName}`}
         </Button>
         {switchChainError && (
           <p className="font-body text-xs text-down">{switchChainError.message}</p>

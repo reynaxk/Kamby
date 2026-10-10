@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function CopyAddressButton({ address }: { address: string }) {
+  const tU = useTranslations('ui');
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -23,7 +25,7 @@ export function CopyAddressButton({ address }: { address: string }) {
       className="inline-flex items-center gap-1 font-mono text-xs text-ink-400 transition-colors hover:text-accent"
       title={address}
     >
-      {copied ? 'Copied' : 'Copy'}
+      {copied ? tU('copied_a588') : tU('copy_5fb6')}
     </button>
   );
 }

@@ -40,6 +40,7 @@ export function SlippageControl({
   /** The "Auto" option — `active` when the panel is using autoSlippageBps. */
   auto?: { active: boolean; onSelect: () => void };
 }) {
+  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const isPreset = PRESETS_BPS.includes(valueBps);
   const [customOpen, setCustomOpen] = useState(!isPreset && !auto?.active);
@@ -142,7 +143,7 @@ export function SlippageControl({
       {/* A UI-only heuristic (not a server-enforced threshold) — the API's actual bound is
           TRADING_DEFAULTS.maxSlippageBps, enforced regardless of this warning. */}
       {valueBps >= 300 && (
-        <p className="mt-1 font-body text-xs text-down">A high slippage tolerance can expose this trade to sandwich attacks.</p>
+        <p className="mt-1 font-body text-xs text-down">{tU('aHighSlippageToleranceCan_8bad')}</p>
       )}
     </div>
   );

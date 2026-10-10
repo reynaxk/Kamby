@@ -14,6 +14,7 @@ import { formatCompactUsd, formatDateTime, truncateAddress } from '@/lib/format'
 import { fetchTraderActivity, fetchTraderProfile } from '@/lib/social-api';
 import { fetchTraderTokens } from '@/lib/discovery-api';
 import { settledOr } from '@/lib/settled-fetch';
+import { getTranslations } from 'next-intl/server';
 
 export const revalidate = 15;
 
@@ -42,6 +43,7 @@ export async function generateMetadata({
 const PNL_WINDOWS = ['24h', '7d', '30d'] as const;
 
 export default async function TraderProfilePage({ params }: { params: { address: string } }) {
+  const tU = await getTranslations('ui');
   const profile = await fetchTraderProfile(params.address);
   if (!profile) notFound();
 
@@ -85,13 +87,13 @@ export default async function TraderProfilePage({ params }: { params: { address:
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="Total trades" value={profile.stats.totalSwaps.toString()} />
+          <Stat label={tU('totalTrades_c59a')} value={profile.stats.totalSwaps.toString()} />
           <Stat
-            label="Buys / Sells"
+            label={tU('buysSells_e13b')}
             value={`${profile.stats.buyCount} / ${profile.stats.sellCount}`}
           />
-          <Stat label="Volume" value={formatCompactUsd(profile.stats.volumeUsd)} />
-          <Stat label="Followers" value={profile.followerCount.toString()} />
+          <Stat label={tU('volume_bd7a')} value={formatCompactUsd(profile.stats.volumeUsd)} />
+          <Stat label={tU('followers_24c7')} value={profile.followerCount.toString()} />
         </div>
         <p className="mt-3 font-body text-xs text-ink-400">
           First seen trading {formatDateTime(profile.stats.firstSeenAt)}
@@ -103,11 +105,10 @@ export default async function TraderProfilePage({ params }: { params: { address:
         {realizedPnl && (
           <Surface className="mt-6 p-5">
             <h2 className="mb-1 font-display text-sm font-semibold text-ink-900">
-              Realized PnL
+              {tU('realizedPnl_4c8e')}
             </h2>
             <p className="mb-4 font-body text-xs text-ink-400">
-              Only trades placed through Kamby itself, matched buy-to-sell — never this
-              wallet&apos;s full on-chain activity.
+              {tU('onlyTradesPlacedThroughKamby_3831')}
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {PNL_WINDOWS.map((window) => {
@@ -133,41 +134,41 @@ export default async function TraderProfilePage({ params }: { params: { address:
         {profile.stats.totalSwaps > 0 && (
           <Surface className="mt-6 p-5">
             <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">
-              Trading behavior
+              {tU('tradingBehavior_2f0a')}
             </h2>
             <p className="mb-4 font-body text-xs text-ink-400">
               Derived only from this wallet&apos;s own confirmed, indexed trades — not investment
               advice.
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Stat label="Unique tokens" value={profile.stats.uniqueTokensTraded.toString()} />
+              <Stat label={tU('uniqueTokens_976c')} value={profile.stats.uniqueTokensTraded.toString()} />
               <Stat
-                label="Avg trade size"
+                label={tU('avgTradeSize_97d4')}
                 value={formatCompactUsd(profile.stats.avgTradeSizeUsd)}
               />
-              <Stat label="Largest trade" value={formatCompactUsd(profile.stats.largestTradeUsd)} />
+              <Stat label={tU('largestTrade_7a79')} value={formatCompactUsd(profile.stats.largestTradeUsd)} />
               <Stat
-                label="Buy ratio"
+                label={tU('buyRatio_a251')}
                 value={
                   profile.stats.buyRatio !== null
                     ? `${(profile.stats.buyRatio * 100).toFixed(0)}%`
                     : '—'
                 }
-                title="Share of this wallet's trades that were buys — 100% is buy-only, 0% is sell-only."
+                title={tU('shareOfThisWalletS_01eb')}
               />
               <Stat label="24h volume" value={formatCompactUsd(profile.stats.volume24hUsd)} />
               <Stat label="24h trades" value={profile.stats.tradeCount24h.toString()} />
               <Stat
-                label="Concentration"
+                label={tU('concentration_c9e7')}
                 value={
                   profile.stats.concentrationIndex !== null
                     ? `${(profile.stats.concentrationIndex * 100).toFixed(0)}%`
                     : '—'
                 }
-                title="How concentrated this wallet's volume is in a single token — higher means less diversified across tokens."
+                title={tU('howConcentratedThisWalletS_6f8c')}
               />
               <Stat
-                label="Trades / day"
+                label={tU('tradesDay_6e02')}
                 value={
                   profile.stats.activityFrequencyPerDay !== null
                     ? profile.stats.activityFrequencyPerDay.toFixed(2)
@@ -180,13 +181,13 @@ export default async function TraderProfilePage({ params }: { params: { address:
 
         {tokens.length > 0 && (
           <Surface className="mt-6 p-5">
-            <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">Tokens traded</h2>
+            <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">{tU('tokensTraded_4a89')}</h2>
             <TraderTokensList tokens={tokens} />
           </Surface>
         )}
 
         <Surface className="mt-6 p-5">
-          <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">Recent activity</h2>
+          <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">{tU('recentActivity_f7ce')}</h2>
           <ActivityFeed
             initialItems={activity.items}
             initialCursor={activity.nextCursor}

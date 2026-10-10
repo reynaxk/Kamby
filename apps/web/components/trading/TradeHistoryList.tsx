@@ -10,6 +10,7 @@ import { formatDateTime } from '@/lib/format';
 import { hasStoredSession } from '@/lib/session-client';
 import { getTradeHistory } from '@/lib/trading-client';
 import { StatusPill } from './StatusPill';
+import { useTranslations } from 'next-intl';
 
 type State = 'no-session' | 'loading' | 'loaded' | 'error';
 
@@ -19,6 +20,7 @@ type State = 'no-session' | 'loading' | 'loaded' | 'error';
  * scoping (no ?userId= override exists on either side).
  */
 export function TradeHistoryList() {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<State>('loading');
   const [items, setItems] = useState<TradeTransactionDto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function TradeHistoryList() {
   }
 
   if (state === 'no-session') {
-    return <EmptyState title="No trades yet." detail="Connect a wallet and make your first trade to see it here." />;
+    return <EmptyState title={tU('noTradesYet_ceb3')} detail="Connect a wallet and make your first trade to see it here." />;
   }
   if (state === 'loading') {
     return (
@@ -63,10 +65,10 @@ export function TradeHistoryList() {
     );
   }
   if (state === 'error') {
-    return <EmptyState title="Couldn't load your trade history." detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourTrade_88d8')} detail="Try again in a moment." />;
   }
   if (items.length === 0) {
-    return <EmptyState title="No trades yet." detail="Your BUY/SELL trades will show up here once you make one." />;
+    return <EmptyState title={tU('noTradesYet_ceb3')} detail="Your BUY/SELL trades will show up here once you make one." />;
   }
 
   return (
@@ -76,7 +78,7 @@ export function TradeHistoryList() {
           <Surface className="flex items-center justify-between gap-3 p-4 hover:border-accent">
             <div className="flex items-center gap-3">
               <span className={cn('font-mono text-xs font-semibold uppercase tracking-wide', trade.side === 'BUY' ? 'text-up' : 'text-down')}>
-                {trade.side === 'BUY' ? 'Bought' : 'Sold'}
+                {trade.side === 'BUY' ? tU('bought_fe5a') : tU('sold_d85a')}
               </span>
               <span className="font-display text-sm font-semibold text-ink-900">
                 {trade.expectedOutputAmountFormatted} {trade.token.symbol ?? ''}
@@ -96,7 +98,7 @@ export function TradeHistoryList() {
           disabled={loadingMore}
           className="rounded-lg border border-line py-2 font-body text-sm text-ink-600 hover:text-ink-900 disabled:opacity-50"
         >
-          {loadingMore ? 'Loading…' : 'Load more'}
+          {loadingMore ? tU('loading_5f02') : tU('loadMore_f6b5')}
         </button>
       )}
     </div>

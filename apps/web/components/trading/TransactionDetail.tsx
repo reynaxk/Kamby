@@ -9,12 +9,14 @@ import { explorerName, explorerTxUrl } from '@/lib/explorer';
 import { formatDateTime, truncateAddress } from '@/lib/format';
 import { getTransaction } from '@/lib/trading-client';
 import { StatusPill } from './StatusPill';
+import { useTranslations } from 'next-intl';
 
 type State = 'loading' | 'loaded' | 'not-found' | 'error';
 
 /** Fee/price/status/explorer-link for one trade — see docs/TRADING.md#transaction-lifecycle.
  *  Polls while PENDING so a page left open catches the real confirmation without a reload. */
 export function TransactionDetail({ id }: { id: string }) {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<State>('loading');
   const [transaction, setTransaction] = useState<TradeTransactionDto | null>(null);
 
@@ -52,8 +54,8 @@ export function TransactionDetail({ id }: { id: string }) {
   }, [id]);
 
   if (state === 'loading') return <Skeleton className="h-48 w-full rounded-2xl" />;
-  if (state === 'not-found') return <EmptyState title="Trade not found." detail="This isn't one of your recorded trades." />;
-  if (state === 'error' || !transaction) return <EmptyState title="Couldn't load this trade." detail="Try again in a moment." />;
+  if (state === 'not-found') return <EmptyState title={tU('tradeNotFound_5788')} detail="This isn't one of your recorded trades." />;
+  if (state === 'error' || !transaction) return <EmptyState title={tU('couldnTLoadThisTrade_5f09')} detail="Try again in a moment." />;
 
   const outputSymbol = transaction.side === 'BUY' ? transaction.token.symbol : transaction.quoteToken.symbol;
   const inputSymbol = transaction.side === 'BUY' ? transaction.quoteToken.symbol : transaction.token.symbol;
@@ -62,19 +64,19 @@ export function TransactionDetail({ id }: { id: string }) {
     <Surface className="p-5">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-lg font-bold text-ink-900">
-          {transaction.side === 'BUY' ? 'Bought' : 'Sold'} {transaction.token.symbol ?? truncateAddress(transaction.token.address)}
+          {transaction.side === 'BUY' ? tU('bought_fe5a') : tU('sold_d85a')} {transaction.token.symbol ?? truncateAddress(transaction.token.address)}
         </h1>
         <StatusPill status={transaction.status} />
       </div>
 
       <dl className="mt-4 space-y-2 font-body text-sm">
-        <Row label="You paid" value={`${transaction.inputAmountFormatted} ${inputSymbol ?? ''}`} />
-        <Row label="You received" value={`${transaction.expectedOutputAmountFormatted} ${outputSymbol ?? ''}`} />
-        <Row label="Kamby fee" value={`${transaction.platformFeeAmountFormatted} ${outputSymbol ?? ''}`} />
-        <Row label="Submitted" value={formatDateTime(transaction.submittedAt)} />
-        {transaction.confirmedAt && <Row label="Confirmed" value={formatDateTime(transaction.confirmedAt)} />}
-        {transaction.failureReason && <Row label="Reason" value={transaction.failureReason} />}
-        <Row label="Chain" value={`eip155:${transaction.chainId}`} />
+        <Row label={tU('youPaid_45df')} value={`${transaction.inputAmountFormatted} ${inputSymbol ?? ''}`} />
+        <Row label={tU('youReceived_4d6c')} value={`${transaction.expectedOutputAmountFormatted} ${outputSymbol ?? ''}`} />
+        <Row label={tU('kambyFee_2f8e')} value={`${transaction.platformFeeAmountFormatted} ${outputSymbol ?? ''}`} />
+        <Row label={tU('submitted_5c83')} value={formatDateTime(transaction.submittedAt)} />
+        {transaction.confirmedAt && <Row label={tU('confirmed_205b')} value={formatDateTime(transaction.confirmedAt)} />}
+        {transaction.failureReason && <Row label={tU('reason_fffc')} value={transaction.failureReason} />}
+        <Row label={tU('chain_5320')} value={`eip155:${transaction.chainId}`} />
       </dl>
 
       {explorerTxUrl(transaction.chainId, transaction.txHash) && (

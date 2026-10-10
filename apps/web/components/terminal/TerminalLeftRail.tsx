@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { cn } from '@kamby/ui';
 import { TradersSidebar } from '@/components/discovery/TradersSidebar';
 import { TrenchesPanel } from './TrenchesPanel';
+import { useTranslations } from 'next-intl';
 
 type Tab = 'trenches' | 'traders';
 
@@ -25,6 +26,7 @@ type Tab = 'trenches' | 'traders';
  * Solana-only), nothing removed (Trenches browsing is still one tap away, not lost).
  */
 export function TerminalLeftRail() {
+  const tU = useTranslations('ui');
   const [tab, setTab] = useState<Tab>('trenches');
 
   return (
@@ -40,7 +42,7 @@ export function TerminalLeftRail() {
               tab === t ? 'bg-accent/10 text-accent shadow-glow-accent' : 'text-ink-400 hover:text-ink-600',
             )}
           >
-            {t === 'trenches' ? 'Trenches' : 'Traders'}
+            {t === 'trenches' ? tU('trenches_a6e3') : tU('traders_d5d8')}
           </button>
         ))}
       </div>

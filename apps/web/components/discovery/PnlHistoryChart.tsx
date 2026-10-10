@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { formatSignedCompactUsd, priceDirection } from '@/lib/format';
 import { fetchMyPnlHistory, hasStoredSession } from '@/lib/discovery-client';
+import { useTranslations } from 'next-intl';
 
 const WIDTH = 480;
 const HEIGHT = 120;
@@ -25,6 +26,7 @@ type State = 'no-session' | 'loading' | 'loaded' | 'error';
  * seeing at a glance.
  */
 export function PnlHistoryChart({ days = 30 }: { days?: number }) {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<State>('loading');
   const [history, setHistory] = useState<PnlHistory | null>(null);
   const { hidden } = useBalanceVisibility();
@@ -43,13 +45,13 @@ export function PnlHistoryChart({ days = 30 }: { days?: number }) {
   }, [days]);
 
   if (state === 'no-session') {
-    return <EmptyState title="No PnL history yet." detail="Connect a wallet and trade to start tracking this." />;
+    return <EmptyState title={tU('noPnlHistoryYet_e14d')} detail="Connect a wallet and trade to start tracking this." />;
   }
   if (state === 'loading') {
     return <Skeleton className="h-32 w-full rounded-2xl" />;
   }
   if (state === 'error' || !history) {
-    return <EmptyState title="Couldn't load your PnL history." detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourPnl_f314')} detail="Try again in a moment." />;
   }
 
   const points = history.points;

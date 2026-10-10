@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, Clock, TriangleAlert, X } from 'lucide-react';
 import { cn } from '@kamby/ui';
+import { useTranslations } from 'next-intl';
 
 export type TerminalToastVariant = 'pending' | 'success' | 'error';
 
@@ -101,6 +102,7 @@ const VARIANT_STYLES: Record<TerminalToastVariant, { icon: typeof CheckCircle2; 
 };
 
 function ToastCard({ toast, onDismiss }: { toast: TerminalToast; onDismiss: () => void }) {
+  const tU = useTranslations('ui');
   const { icon: Icon, accent } = VARIANT_STYLES[toast.variant];
   return (
     <div className="pointer-events-auto flex items-start gap-2.5 rounded-xl border border-line bg-surface p-3 shadow-lg shadow-black/40">
@@ -115,11 +117,11 @@ function ToastCard({ toast, onDismiss }: { toast: TerminalToast; onDismiss: () =
             rel="noreferrer"
             className="mt-1 inline-block font-mono text-xs text-accent underline"
           >
-            View on Solscan
+            {tU('viewOnSolscan_444d')}
           </a>
         )}
       </div>
-      <button type="button" onClick={onDismiss} aria-label="Dismiss" className="text-ink-400 hover:text-ink-900">
+      <button type="button" onClick={onDismiss} aria-label={tU('dismiss_c8a5')} className="text-ink-400 hover:text-ink-900">
         <X className="h-3.5 w-3.5" />
       </button>
     </div>

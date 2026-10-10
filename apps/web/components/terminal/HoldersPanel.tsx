@@ -29,6 +29,7 @@ const EXPLORER: Record<'solana' | 'base' | 'bnb', (address: string) => string> =
  * / fish (≥$100K) label. Pools and other contracts are shown but never labelled.
  */
 export function HoldersPanel({ source }: { source: ChartSource }) {
+  const tU = useTranslations('ui');
   const tC = useTranslations('coin');
   const { chain, address } = livePriceKey(source);
   const price = useLivePrice(source);
@@ -82,9 +83,9 @@ export function HoldersPanel({ source }: { source: ChartSource }) {
         <thead>
           <tr className="text-left text-ink-400">
             <th className="px-3 py-1.5 font-medium">#</th>
-            <th className="px-3 py-1.5 font-medium">Holder</th>
-            <th className="px-3 py-1.5 text-right font-medium">Share</th>
-            <th className="px-3 py-1.5 text-right font-medium">Value</th>
+            <th className="px-3 py-1.5 font-medium">{tU('holder_d6a0')}</th>
+            <th className="px-3 py-1.5 text-right font-medium">{tU('share_5a95')}</th>
+            <th className="px-3 py-1.5 text-right font-medium">{tU('value_6892')}</th>
           </tr>
         </thead>
         <tbody>

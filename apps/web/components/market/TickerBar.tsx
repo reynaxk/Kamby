@@ -8,6 +8,7 @@ import { cn } from '@kamby/ui';
 import { formatPercent, formatPrice, priceDirection, cashtag } from '@/lib/format';
 import { subscribeToMarketFeeds } from '@/lib/market-feeds';
 import { solanaMarketHref } from '@/lib/solana-links';
+import { useTranslations } from 'next-intl';
 
 const TICKER_SIZE = 20;
 
@@ -39,6 +40,7 @@ export function topByVolume(markets: MarketSummary[], size = TICKER_SIZE): Marke
  * (`hover:[animation-play-state:paused]`) so a symbol can actually be read/clicked.
  */
 export function TickerBar() {
+  const tU = useTranslations('ui');
   const pathname = usePathname();
   const [markets, setMarkets] = useState<MarketSummary[]>([]);
 
@@ -100,7 +102,7 @@ export function TickerBar() {
           ) : (
             <span
               key={`${market.chainIdentifier}:${market.tokenAddress}:${i}`}
-              title="This market is visible for discovery but is not tradeable here yet"
+              title={tU('thisMarketIsVisibleFor_626f')}
               className={`${className} cursor-not-allowed opacity-70`}
             >
               {ticker}

@@ -7,6 +7,7 @@ import { formatCompactUsd, formatPercent, formatSignedCompactUsd, priceDirection
 import { hasStoredSession } from '@/lib/discovery-client';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { useMyPositions } from '@/lib/my-positions';
+import { useTranslations } from 'next-intl';
 
 /**
  * The signed-in user's own currently-open positions (GET /social/positions,
@@ -26,6 +27,7 @@ import { useMyPositions } from '@/lib/my-positions';
  * what's actually, currently true.
  */
 export function MyPositionsPanel() {
+  const tU = useTranslations('ui');
   const positions = useMyPositions();
   const [expanded, setExpanded] = useState<string | null>(null);
   const { hidden } = useBalanceVisibility();
@@ -34,7 +36,7 @@ export function MyPositionsPanel() {
 
   return (
     <div className="rounded-2xl border border-line bg-surface p-4">
-      <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">Your positions</h3>
+      <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">{tU('yourPositions_f7c0')}</h3>
       <div className="flex flex-col gap-2">
         {positions.map((position) => {
           const direction = priceDirection(position.unrealizedPnlUsd);
@@ -51,7 +53,7 @@ export function MyPositionsPanel() {
                   <TokenAvatar src={position.logoUrl} seed={position.tokenAddress} label={position.symbol ?? position.name} className="h-7 w-7 text-xs" />
                   <div className="min-w-0">
                   <div className="truncate font-display text-sm font-semibold text-ink-900">
-                    {position.symbol ? cashtag(position.symbol) : 'Unknown'}
+                    {position.symbol ? cashtag(position.symbol) : tU('unknown_8818')}
                   </div>
                   <div className={cn('font-mono text-[0.65rem] text-ink-400', hidden && 'blur-sm select-none')}>
                     {formatCompactUsd(position.costBasisUsd)} cost basis

@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { fetchTheses, setMyThesis } from '@/lib/discovery-client';
 import { formatRelativeTime } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 /** Token → trader connection — see docs/TRADER_INTELLIGENCE.md#token-to-trader. Reuses the
  *  same TraderIdentity avatar/name rendering as everywhere else a trader appears.
@@ -27,13 +28,14 @@ export function TokenTradersPanel({
   tokenAddress: string;
   chainId: number;
 }) {
+  const tU = useTranslations('ui');
   const totalBuySell = connection.buyCount24h + connection.sellCount24h;
   const buyPct = totalBuySell > 0 ? (connection.buyCount24h / totalBuySell) * 100 : 0;
 
   if (connection.recentTraders.length === 0) {
     return (
       <EmptyState
-        title="No Kamby traders on this coin yet."
+        title={tU('noKambyTradersOnThis_86b2')}
         detail="Recent traders on this token will show up here."
       />
     );
@@ -78,7 +80,7 @@ export function TokenTradersPanel({
 
       <div>
         <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">
-          Recently active
+          {tU('recentlyActive_8307')}
         </h3>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {connection.recentTraders.map((trader) => (
@@ -104,7 +106,7 @@ export function TokenTradersPanel({
       {connection.activeTraders.length > 0 && (
         <div>
           <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">
-            Most active today
+            {tU('mostActiveToday_bafa')}
           </h3>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {connection.activeTraders.map((trader) => (
@@ -134,6 +136,7 @@ export function TokenTradersPanel({
 }
 
 function ThesisSection({ tokenAddress, chainId }: { tokenAddress: string; chainId: number }) {
+  const tU = useTranslations('ui');
   const [theses, setTheses] = useState<TokenThesis[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [draft, setDraft] = useState('');
@@ -175,13 +178,13 @@ function ThesisSection({ tokenAddress, chainId }: { tokenAddress: string; chainI
 
   return (
     <div>
-      <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">Thesis</h3>
+      <h3 className="mb-2 font-mono text-xs uppercase tracking-wide text-ink-400">{tU('thesis_8521')}</h3>
 
       <form onSubmit={handleSubmit} className="mb-3 flex flex-col gap-1.5">
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value.slice(0, THESIS_MAX_LENGTH))}
-          placeholder="Why are you holding this? (or would you)"
+          placeholder={tU('whyAreYouHoldingThis_04a2')}
           rows={2}
           className="w-full resize-none rounded-lg border border-line bg-surface-raised p-2 font-body text-xs text-ink-900 placeholder:text-ink-400 focus:border-accent focus:outline-none"
         />
@@ -194,15 +197,15 @@ function ThesisSection({ tokenAddress, chainId }: { tokenAddress: string; chainI
             disabled={!draft.trim() || submitting}
             className="rounded-md bg-accent px-2.5 py-1 font-display text-[0.65rem] font-bold uppercase tracking-wide text-accent-ink disabled:opacity-40"
           >
-            {submitting ? 'Posting…' : 'Post thesis'}
+            {submitting ? tU('posting_b0eb') : tU('postThesis_4f71')}
           </button>
         </div>
       </form>
 
-      {status === 'loading' && <p className="font-body text-xs text-ink-400">Loading…</p>}
-      {status === 'error' && <p className="font-body text-xs text-down">Couldn&apos;t load theses.</p>}
+      {status === 'loading' && <p className="font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
+      {status === 'error' && <p className="font-body text-xs text-down">{tU('couldnTLoadTheses_8b6a')}</p>}
       {status === 'ready' && theses.length === 0 && (
-        <p className="font-body text-xs text-ink-400">No one&apos;s posted a thesis on this token yet.</p>
+        <p className="font-body text-xs text-ink-400">{tU('noOneSPostedA_e10a')}</p>
       )}
       {status === 'ready' && theses.length > 0 && (
         <div className="flex flex-col gap-2">

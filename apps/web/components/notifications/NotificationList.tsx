@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/market/Skeleton';
 import { fetchNotifications, markNotificationRead } from '@/lib/notifications-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { NotificationItem } from './NotificationItem';
+import { useTranslations } from 'next-intl';
 
 type State = 'no-session' | 'loading' | 'loaded' | 'error';
 
@@ -25,6 +26,7 @@ export function NotificationList({
   /** Bump this to force a fresh fetch from the top (e.g. when a bell dropdown opens). */
   refreshKey?: number;
 }) {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<State>('loading');
   const [items, setItems] = useState<NotificationDto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -69,7 +71,7 @@ export function NotificationList({
   }
 
   if (state === 'no-session') {
-    return <EmptyState title="No notifications yet." detail="Follow traders and engage with trades to start seeing activity here." />;
+    return <EmptyState title={tU('noNotificationsYet_b796')} detail="Follow traders and engage with trades to start seeing activity here." />;
   }
   if (state === 'loading') {
     return (
@@ -81,10 +83,10 @@ export function NotificationList({
     );
   }
   if (state === 'error') {
-    return <EmptyState title="Couldn't load your notifications." detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourNotifications_cbfa')} detail="Try again in a moment." />;
   }
   if (items.length === 0) {
-    return <EmptyState title="No notifications yet." detail="Follows, likes, and trade alerts will show up here." />;
+    return <EmptyState title={tU('noNotificationsYet_b796')} detail="Follows, likes, and trade alerts will show up here." />;
   }
 
   return (
@@ -99,7 +101,7 @@ export function NotificationList({
           disabled={loadingMore}
           className="mt-2 rounded-lg border border-line py-2 font-body text-sm text-ink-600 hover:text-ink-900 disabled:opacity-50"
         >
-          {loadingMore ? 'Loading…' : 'Load more'}
+          {loadingMore ? tU('loading_5f02') : tU('loadMore_f6b5')}
         </button>
       )}
     </div>

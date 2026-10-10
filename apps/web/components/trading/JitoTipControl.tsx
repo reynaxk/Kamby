@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@kamby/ui';
+import { useTranslations } from 'next-intl';
 
 export const JITO_TIP_PRESETS = [
   { label: 'Off', lamports: 0 },
@@ -18,10 +19,11 @@ export const JITO_TIP_PRESETS = [
  * hidden, the exact lamports amount is always shown.
  */
 export function JitoTipControl({ valueLamports, onChange }: { valueLamports: number; onChange: (lamports: number) => void }) {
+  const tU = useTranslations('ui');
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">Priority (Jito tip)</span>
+        <span className="uppercase tracking-wide">{tU('priorityJitoTip_c04c')}</span>
         {valueLamports > 0 && <span className="font-mono text-ink-900">{(valueLamports / 1_000_000_000).toFixed(3)} SOL</span>}
       </div>
       <div className="mt-1.5 flex gap-1.5">

@@ -1,6 +1,7 @@
 import type { MarketSummary } from '@kamby/domain';
 import { ChevronDown } from 'lucide-react';
 import { cashtag } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 /**
  * The "independent token selector" for one Multi-Chart Grid cell — a plain native <select>,
@@ -24,6 +25,7 @@ export function CellTokenSelector({
   onSelect: (market: MarketSummary) => void;
   disabled?: boolean;
 }) {
+  const tU = useTranslations('ui');
   const selectedKey = selected ? `${selected.chainIdentifier}:${selected.tokenAddress}` : '';
 
   return (
@@ -39,7 +41,7 @@ export function CellTokenSelector({
         }}
         className="w-full appearance-none rounded-lg border border-line bg-surface-raised py-1.5 pl-2.5 pr-7 font-display text-sm font-semibold text-ink-900 outline-none transition-colors focus-visible:border-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {!selected && <option value="">Pick a token…</option>}
+        {!selected && <option value="">{tU('pickAToken_521b')}</option>}
         {availableMarkets.map((market) => {
           const key = `${market.chainIdentifier}:${market.tokenAddress}`;
           return (

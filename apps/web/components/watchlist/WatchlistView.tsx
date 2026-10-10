@@ -11,6 +11,7 @@ import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { WatchButton } from '@/components/market/WatchButton';
 import { formatCompactUsd, formatPrice, formatRelativeTime } from '@/lib/format';
 import { fetchWatchlist, hasStoredSession } from '@/lib/watchlist-client';
+import { useTranslations } from 'next-intl';
 
 type State = 'no-session' | 'loading' | 'loaded' | 'error';
 
@@ -21,6 +22,7 @@ type State = 'no-session' | 'loading' | 'loaded' | 'error';
  * session-gated shape as TradeHistoryList.
  */
 export function WatchlistView() {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<State>('loading');
   const [items, setItems] = useState<WatchedToken[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export function WatchlistView() {
   if (state === 'no-session') {
     return (
       <EmptyState
-        title="No watchlist yet."
+        title={tU('noWatchlistYet_c5d8')}
         detail="Sign in and watch a token to start tracking it here."
       />
     );
@@ -76,12 +78,12 @@ export function WatchlistView() {
     );
   }
   if (state === 'error') {
-    return <EmptyState title="Couldn't load your watchlist." detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourWatchlist_1f12')} detail="Try again in a moment." />;
   }
   if (items.length === 0) {
     return (
       <EmptyState
-        title="Nothing on your watchlist yet."
+        title={tU('nothingOnYourWatchlistYet_7b40')}
         detail="Watch a token from its page to track its price and activity here."
       />
     );
@@ -117,7 +119,7 @@ export function WatchlistView() {
               </Link>
             ) : (
               <div
-                title="This market is visible for discovery but is not tradeable here yet"
+                title={tU('thisMarketIsVisibleFor_626f')}
                 className="flex min-w-0 flex-1 cursor-not-allowed items-center gap-4 opacity-70"
               >
                 {details}
@@ -145,7 +147,7 @@ export function WatchlistView() {
           disabled={loadingMore}
           className="rounded-lg border border-line py-2 font-body text-sm text-ink-600 hover:text-ink-900 disabled:opacity-50"
         >
-          {loadingMore ? 'Loading…' : 'Load more'}
+          {loadingMore ? tU('loading_5f02') : tU('loadMore_f6b5')}
         </button>
       )}
     </div>

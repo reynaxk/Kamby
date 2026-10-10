@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 /**
  * A generic bottom-sheet drawer for mobile — the terminal's answer to "make the trading
@@ -27,6 +28,7 @@ export function MobileDrawer({
   title: string;
   children: React.ReactNode;
 }) {
+  const tU = useTranslations('ui');
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -68,7 +70,7 @@ export function MobileDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={tU('close_d3d2')}
                 className="rounded-full p-1 text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900"
               >
                 <X className="h-4 w-4" aria-hidden />

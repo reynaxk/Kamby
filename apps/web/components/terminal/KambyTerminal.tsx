@@ -74,6 +74,7 @@ export function KambyTerminal({
   traders: TokenTraderConnection;
   timeframe: ChartTimeframe;
 }) {
+  const tU = useTranslations('ui');
   const isMobile = useIsMobile();
   const [trenchesOpen, setTrenchesOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
@@ -99,7 +100,7 @@ export function KambyTerminal({
     />
   ) : (
     <Surface className="p-4">
-      <p className="font-body text-sm text-ink-600">Trading isn&apos;t available for this token yet.</p>
+      <p className="font-body text-sm text-ink-600">{tU('tradingIsnTAvailableFor_74f9')}</p>
     </Surface>
   );
 
@@ -116,7 +117,7 @@ export function KambyTerminal({
               {tTerminal('browse')}
             </button>
             <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-semibold text-ink-900">
-              {cashtag(market.symbol ?? 'Token')}
+              {cashtag(market.symbol ?? tU('token_459a'))}
             </div>
           </div>
 

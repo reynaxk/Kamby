@@ -7,6 +7,7 @@ import { fetchLatestFollowingActivity, hasStoredSession } from '@/lib/social-cli
 import { ActivityFeed } from './ActivityFeed';
 import { EmptyState } from '../market/EmptyState';
 import { Skeleton } from '../market/Skeleton';
+import { useTranslations } from 'next-intl';
 
 type FollowingState = 'idle' | 'no-session' | 'loading' | 'loaded' | 'error';
 
@@ -25,6 +26,7 @@ export function ActivityFeedTabs({
   globalItems: SocialActivity[];
   globalCursor: string | null;
 }) {
+  const tU = useTranslations('ui');
   const [tab, setTab] = useState<'global' | 'following'>('global');
   const [followingState, setFollowingState] = useState<FollowingState>('idle');
   const [followingItems, setFollowingItems] = useState<SocialActivity[]>([]);
@@ -50,10 +52,10 @@ export function ActivityFeedTabs({
     <div>
       <div className="mb-4 flex gap-2" role="tablist">
         <TabButton active={tab === 'global'} onClick={() => setTab('global')}>
-          For you
+          {tU('forYou_004f')}
         </TabButton>
         <TabButton active={tab === 'following'} onClick={() => setTab('following')}>
-          Following
+          {tU('following_6f79')}
         </TabButton>
       </div>
 
@@ -69,7 +71,7 @@ export function ActivityFeedTabs({
 
       {tab === 'following' && followingState === 'no-session' && (
         <EmptyState
-          title="You're not following anyone yet."
+          title={tU('youReNotFollowingAnyone_4845')}
           detail="Discover traders in Top Traders or the activity feed, and follow them to build your feed."
         />
       )}
@@ -81,7 +83,7 @@ export function ActivityFeedTabs({
         </div>
       )}
       {tab === 'following' && followingState === 'error' && (
-        <EmptyState title="Couldn't load your feed." detail="Try again in a moment." />
+        <EmptyState title={tU('couldnTLoadYourFeed_9583')} detail="Try again in a moment." />
       )}
       {tab === 'following' && followingState === 'loaded' && (
         <ActivityFeed

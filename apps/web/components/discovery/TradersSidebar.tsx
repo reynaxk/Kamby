@@ -6,6 +6,7 @@ import type { TopTrader } from '@kamby/domain';
 import { formatCompactUsd } from '@/lib/format';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { fetchTopTraders } from '@/lib/social-client';
+import { useTranslations } from 'next-intl';
 
 /**
  * A general trader directory for the terminal's left rail — volume-ranked (GET
@@ -14,6 +15,7 @@ import { fetchTopTraders } from '@/lib/social-client';
  * contained, own-rounded-2xl-border pattern as LeaderboardSidebar/TrenchesPanel.
  */
 export function TradersSidebar() {
+  const tU = useTranslations('ui');
   const [traders, setTraders] = useState<TopTrader[] | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -37,14 +39,14 @@ export function TradersSidebar() {
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="border-b border-line px-3 py-2.5">
         <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide text-ink-400">
-          Most active by volume
+          {tU('mostActiveByVolume_8178')}
         </span>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">Loading…</p>}
-        {status === 'error' && <p className="p-3 font-body text-xs text-down">Couldn&apos;t load traders.</p>}
+        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
+        {status === 'error' && <p className="p-3 font-body text-xs text-down">{tU('couldnTLoadTraders_67dd')}</p>}
         {status === 'ready' && traders?.length === 0 && (
-          <p className="p-3 font-body text-xs text-ink-400">No trader has cleared the activity floor yet.</p>
+          <p className="p-3 font-body text-xs text-ink-400">{tU('noTraderHasClearedThe_f752')}</p>
         )}
         {status === 'ready' &&
           traders?.map((trader) => (

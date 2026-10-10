@@ -3,10 +3,12 @@ import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { formatCompactUsd } from '@/lib/format';
 import { TraderIdentity } from './TraderIdentity';
+import { useTranslations } from 'next-intl';
 
 /** "Most Active" by real, measured 24h volume — never "smart money" or "profitable" (see
  *  the TopTrader comment in packages/domain/src/wallet.ts for why). */
 export function TopTraders({ traders }: { traders: TopTrader[] }) {
+  const tU = useTranslations('ui');
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {traders.map((trader) => (
@@ -19,7 +21,7 @@ export function TopTraders({ traders }: { traders: TopTrader[] }) {
                 {formatCompactUsd(trader.volumeUsd)}
               </div>
               <div className="text-right">
-                <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">Trades</div>
+                <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">{tU('trades_18da')}</div>
                 {trader.tradeCount}
               </div>
             </div>

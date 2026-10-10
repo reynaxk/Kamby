@@ -5,8 +5,10 @@ import { markAllNotificationsRead } from '@/lib/notifications-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { NotificationList } from './NotificationList';
 import { NotificationPreferencesPanel } from './NotificationPreferences';
+import { useTranslations } from 'next-intl';
 
 export function NotificationsPageClient() {
+  const tU = useTranslations('ui');
   const [refreshKey, setRefreshKey] = useState(0);
   const [marking, setMarking] = useState(false);
 
@@ -26,7 +28,7 @@ export function NotificationsPageClient() {
     <div className="flex flex-col gap-8">
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-ink-400">All notifications</h2>
+          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-ink-400">{tU('allNotifications_8e8a')}</h2>
           {hasStoredSession() && (
             <button
               type="button"
@@ -34,7 +36,7 @@ export function NotificationsPageClient() {
               disabled={marking}
               className="font-mono text-xs text-accent hover:opacity-80 disabled:opacity-50"
             >
-              Mark all read
+              {tU('markAllRead_2aa0')}
             </button>
           )}
         </div>
@@ -42,7 +44,7 @@ export function NotificationsPageClient() {
       </section>
 
       <section>
-        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink-400">Preferences</h2>
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink-400">{tU('preferences_d083')}</h2>
         <NotificationPreferencesPanel />
       </section>
     </div>

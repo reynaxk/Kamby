@@ -8,6 +8,7 @@ import { Sparkline } from '@/components/market/Sparkline';
 import { NewListingBadge } from './feeds/NewListingBadge';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
+import { useTranslations } from 'next-intl';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
@@ -28,6 +29,7 @@ export function SelectableTokenRow({
   /** A discovered, not hand-picked listing — shows the "New" high-risk pill. */
   isNew?: boolean;
 }) {
+  const tU = useTranslations('ui');
   const isUp = (market.priceChange24hPct ?? 0) >= 0;
   // A dead logo link (common for brand-new coins) falls back to the coin's initial.
   const chainSlug = slugForIdentifier(market.chainIdentifier);
@@ -35,7 +37,7 @@ export function SelectableTokenRow({
     ? CHAIN_REGISTRY[chainSlug].name
     : market.chainIdentifier.toLowerCase() === 'solana'
       ? 'Solana'
-      : 'Other chain';
+      : tU('otherChain_c46e');
   const unavailable = !chainSlug && disabled;
 
   return (
@@ -46,7 +48,7 @@ export function SelectableTokenRow({
       aria-pressed={selected}
       aria-label={
         unavailable
-          ? `${market.symbol ?? 'Token'} on ${chainLabel} is not selectable yet`
+          ? `${market.symbol ?? tU('token_459a')} on ${chainLabel} is not selectable yet`
           : undefined
       }
       title={

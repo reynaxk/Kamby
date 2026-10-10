@@ -105,6 +105,7 @@ function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string
  * coding), via the `up`/`down` tokens instead.
  */
 export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', volatile = false }: SolanaTradePanelProps) {
+  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const tAuth = useTranslations('auth');
   const { ready, authenticated, login } = usePrivy();
@@ -129,7 +130,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       () => {
         creatingWalletRef.current = true;
         createEmbeddedWalletOnce('solana', () => createWallet())
-          .catch((error: unknown) => setWalletSetupError(friendlyError(error, 'Could not set up your Solana wallet — please try again.')))
+          .catch((error: unknown) => setWalletSetupError(friendlyError(error, tU('couldNotSetUpYour_b4c1'))))
           .finally(() => {
             creatingWalletRef.current = false;
           });
@@ -470,13 +471,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
               Couldn&apos;t finish setting up your wallet for trading. It only takes a free signature — no gas, no transaction.
             </p>
             <Button type="button" onClick={() => void walletVerification.verify()}>
-              Try again
+              {tU('tryAgain_f915')}
             </Button>
             {walletVerification.error && <p className="font-body text-xs text-down">{walletVerification.error}</p>}
           </>
         ) : (
           <p className="font-body text-sm text-ink-600" role="status">
-            Setting up your wallet for trading…
+            {tU('settingUpYourWalletFor_6897')}
           </p>
         )}
       </Panel>
@@ -497,15 +498,15 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     return (
       <Panel title={tTrade('title')} headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
         <div className="space-y-3 text-center">
-          <p className="font-body text-sm font-semibold text-down">Your trade was sent to the network, but we couldn&apos;t record it.</p>
+          <p className="font-body text-sm font-semibold text-down">{tU('yourTradeWasSentTo_1ba6')}</p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           {pendingSignature && (
             <a href={`https://solscan.io/tx/${pendingSignature}`} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
-              View on Solscan
+              {tU('viewOnSolscan_444d')}
             </a>
           )}
           <Button type="button" onClick={handleRetryRecording} className="w-full">
-            Retry
+            {tU('retry_6327')}
           </Button>
         </div>
       </Panel>
@@ -696,12 +697,13 @@ function Panel({
   headerRight?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const tU = useTranslations('ui');
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onBack && (
-            <button type="button" onClick={onBack} aria-label="Back" className="text-ink-600 hover:text-ink-900">
+            <button type="button" onClick={onBack} aria-label={tU('back_0557')} className="text-ink-600 hover:text-ink-900">
               <ArrowLeft className="h-4 w-4" />
             </button>
           )}
@@ -725,11 +727,12 @@ function SolanaTradeStatusView({
   signature: string | null;
   onDone: () => void;
 }) {
+  const tU = useTranslations('ui');
   const sig = transaction?.signature ?? signature;
   const explorerUrl = sig ? `https://solscan.io/tx/${sig}` : null;
 
   const label =
-    step === 'confirmed' ? 'Trade confirmed' : step === 'failed' ? 'Trade failed' : 'Waiting for confirmation…';
+    step === 'confirmed' ? tU('tradeConfirmed_132b') : step === 'failed' ? tU('tradeFailed_cc5c') : tU('waitingForConfirmation_a19c');
   const color = step === 'confirmed' ? 'text-up' : step === 'failed' ? 'text-down' : 'text-ink-600';
   const Icon = step === 'confirmed' ? CheckCircle2 : step === 'failed' ? XCircle : null;
 
@@ -743,12 +746,12 @@ function SolanaTradeStatusView({
       {step !== 'confirmed' && step !== 'failed' && <SlowConfirmationNote />}
       {explorerUrl && (
         <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
-          View on Solscan
+          {tU('viewOnSolscan_444d')}
         </a>
       )}
       {(step === 'confirmed' || step === 'failed') && (
         <Button type="button" onClick={onDone} className="w-full">
-          Done
+          {tU('done_f929')}
         </Button>
       )}
     </div>

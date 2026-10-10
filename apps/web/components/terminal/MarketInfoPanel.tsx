@@ -3,6 +3,7 @@ import { Surface } from '@kamby/ui';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { formatCompactUsd, formatPercent, formatPrice, truncateAddress } from '@/lib/format';
 import { TokenLinks } from './TokenLinks';
+import { useTranslations } from 'next-intl';
 
 /**
  * Compact market context for the terminal's right rail. This fills the same orientation
@@ -11,16 +12,17 @@ import { TokenLinks } from './TokenLinks';
  * own description, website and socials (TokenLinks), labeled as project-provided.
  */
 export function MarketInfoPanel({ market }: { market: MarketSummary }) {
+  const tU = useTranslations('ui');
   const slug = slugForIdentifier(market.chainIdentifier);
   const chainName = slug ? CHAIN_REGISTRY[slug].name : market.chainIdentifier;
-  const display = market.symbol ?? market.name ?? 'Token';
+  const display = market.symbol ?? market.name ?? tU('token_459a');
 
   return (
     <Surface className="p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate font-display text-sm font-bold text-ink-900">About ${display}</h3>
-          <p className="mt-0.5 font-body text-xs text-ink-400">Liquidity-pool overview</p>
+          <p className="mt-0.5 font-body text-xs text-ink-400">{tU('liquidityPoolOverview_05fd')}</p>
         </div>
         <span className="shrink-0 rounded-full border border-line bg-surface-raised px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
           {chainName}
@@ -28,16 +30,16 @@ export function MarketInfoPanel({ market }: { market: MarketSummary }) {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <Fact label="Price" value={formatPrice(market.priceUsd)} />
-        <Fact label="Market cap" value={formatCompactUsd(market.marketCapUsd)} />
-        <Fact label="Liquidity" value={formatCompactUsd(market.liquidityUsd)} />
+        <Fact label={tU('price_3601')} value={formatPrice(market.priceUsd)} />
+        <Fact label={tU('marketCap_af63')} value={formatCompactUsd(market.marketCapUsd)} />
+        <Fact label={tU('liquidity_ced4')} value={formatCompactUsd(market.liquidityUsd)} />
         <Fact label="24h volume" value={formatCompactUsd(market.volume24hUsd)} />
       </div>
 
       <div className="mt-2.5 space-y-1.5 border-t border-line pt-2.5">
         <PulseBar label="24h move" value={formatPercent(market.priceChange24hPct)} pct={market.priceChange24hPct} />
         <PulseBar
-          label="Volume / liquidity"
+          label={tU('volumeLiquidity_9ebd')}
           value={formatActivityRatio(market.volume24hUsd, market.liquidityUsd)}
           pct={activityRatio(market.volume24hUsd, market.liquidityUsd)}
         />
@@ -45,15 +47,15 @@ export function MarketInfoPanel({ market }: { market: MarketSummary }) {
 
       <div className="mt-2.5 space-y-1.5 border-t border-line pt-2.5 font-mono text-[0.65rem]">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-ink-400">Venue</span>
+          <span className="text-ink-400">{tU('venue_be99')}</span>
           <span className="truncate text-right text-ink-900">{market.dex ?? '—'}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-ink-400">Quote</span>
+          <span className="text-ink-400">{tU('quote_c48e')}</span>
           <span className="text-right text-ink-900">{market.quoteSymbol ?? '—'}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-ink-400">Contract</span>
+          <span className="text-ink-400">{tU('contract_f494')}</span>
           <span className="flex min-w-0 items-center gap-1.5 text-ink-900">
             <span className="truncate" title={market.tokenAddress}>
               {truncateAddress(market.tokenAddress)}

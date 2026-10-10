@@ -24,6 +24,7 @@ const DEBOUNCE_MS = 250;
  * keystroke.
  */
 export function SearchBar({ defaultValue }: { defaultValue?: string }) {
+  const tU = useTranslations('ui');
   const tAuth = useTranslations('auth');
   const router = useRouter();
   const [value, setValue] = useState(defaultValue ?? '');
@@ -83,7 +84,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
       onSubmit={() => setIsOpen(false)}
     >
       <label htmlFor="market-search" className="sr-only">
-        Search tokens by symbol, name, or contract address
+        {tU('searchTokensBySymbolName_383c')}
       </label>
       <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 transition-colors focus-within:border-accent">
         <svg
@@ -122,7 +123,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
 
       {showDropdown && (
         <div
-          aria-label="Search results"
+          aria-label={tU('searchResults_eb6b')}
           className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-lg"
         >
           {results.map((market) => {
@@ -178,7 +179,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
                   </button>
                 ) : (
                   <div
-                    title="This market is visible for discovery but is not tradeable here yet"
+                    title={tU('thisMarketIsVisibleFor_626f')}
                     className="flex min-w-0 flex-1 cursor-not-allowed items-center justify-between gap-2 text-left opacity-70"
                   >
                     {result}

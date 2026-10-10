@@ -11,6 +11,7 @@ import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { formatCompactUsd, formatPrice } from '@/lib/format';
 import { fetchPersonalizedDiscovery, hasStoredSession } from '@/lib/discovery-client';
 import { ReasonTag } from './ReasonTag';
+import { useTranslations } from 'next-intl';
 
 /**
  * Tokens picked for this specific viewer — see docs/TRADER_INTELLIGENCE.md#personalization.
@@ -20,6 +21,7 @@ import { ReasonTag } from './ReasonTag';
  * not a degraded state).
  */
 export function PersonalizedDiscovery() {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<'no-session' | 'loading' | 'loaded' | 'error'>('loading');
   const [items, setItems] = useState<PersonalizedToken[]>([]);
 
@@ -51,7 +53,7 @@ export function PersonalizedDiscovery() {
   if (items.length === 0) {
     return (
       <EmptyState
-        title="Nothing personalized yet."
+        title={tU('nothingPersonalizedYet_d1b0')}
         detail="Follow a trader or make a trade to start seeing picks tailored to you."
       />
     );
@@ -70,6 +72,7 @@ export function PersonalizedDiscovery() {
 }
 
 function PersonalizedItem({ item }: { item: PersonalizedToken }) {
+  const tU = useTranslations('ui');
   const chainSlug = slugForIdentifier(item.market.chainIdentifier);
   const content = (
     <Surface className="flex h-full flex-col gap-3 p-5 transition-colors hover:border-accent/50 hover:bg-surface-raised">
@@ -97,7 +100,7 @@ function PersonalizedItem({ item }: { item: PersonalizedToken }) {
 
   if (!chainSlug) {
     return (
-      <div title="This market is visible for discovery but is not tradeable here yet">
+      <div title={tU('thisMarketIsVisibleFor_626f')}>
         {content}
       </div>
     );

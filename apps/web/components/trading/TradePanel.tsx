@@ -156,6 +156,7 @@ export function TradePanel({
   onStepChange,
   dense = false,
 }: TradePanelProps) {
+  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   // Every trade pays with / sells into this chain's USDC, not the pool's pair token (WETH,
   // WBNB…) — the API quotes it the same way (QuoteService#createQuote).
@@ -263,7 +264,7 @@ export function TradePanel({
         .catch((err: unknown) => {
           setQuote(null);
           setQuoteStatus('error');
-          setQuoteError(friendlyError(err, 'Could not get a quote — please try again.'));
+          setQuoteError(friendlyError(err, tU('couldNotGetAQuote_25f2')));
         });
     }, silent ? 0 : 500);
     return () => clearTimeout(timeout);
@@ -623,7 +624,7 @@ export function TradePanel({
 
   if (isConnected && !onCorrectChain) {
     return (
-      <Panel title="Trade" onClose={onClose} animKey="wrong-chain">
+      <Panel title={tU('trade_5f39')} onClose={onClose} animKey="wrong-chain">
         <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade — it needs to be on {chainName}.</p>
         <ConnectWalletButton expectedChainId={chainId} />
       </Panel>
@@ -632,7 +633,7 @@ export function TradePanel({
 
   if (isConnected && onCorrectChain && walletVerification.status !== 'verified') {
     return (
-      <Panel title="Trade" onClose={onClose} animKey="verify">
+      <Panel title={tU('trade_5f39')} onClose={onClose} animKey="verify">
         {/* Verification runs by itself (see useWalletVerification) — a button only
             appears if it failed, e.g. an external wallet's signature was declined. */}
         {walletVerification.status === 'rejected' ? (
@@ -641,13 +642,13 @@ export function TradePanel({
               Couldn&apos;t finish setting up your wallet for trading. It only takes a free signature — no gas, no transaction.
             </p>
             <Button type="button" onClick={() => void walletVerification.verify()}>
-              Try again
+              {tU('tryAgain_f915')}
             </Button>
             {walletVerification.error && <p className="font-body text-xs text-down">{walletVerification.error}</p>}
           </>
         ) : (
           <p className="font-body text-sm text-ink-600" role="status">
-            Setting up your wallet for trading…
+            {tU('settingUpYourWalletFor_6897')}
           </p>
         )}
       </Panel>
@@ -658,7 +659,7 @@ export function TradePanel({
 
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
     return (
-      <Panel title="Trade" onClose={onClose} animKey={step}>
+      <Panel title={tU('trade_5f39')} onClose={onClose} animKey={step}>
         <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} />
         {quote?.feeUnsignedTx && transaction && (
           <FeeTransferSection
@@ -683,7 +684,7 @@ export function TradePanel({
   if (step === 'record-failed') {
     const explorerUrl = pendingHash ? explorerTxUrl(chainId, pendingHash) : null;
     return (
-      <Panel title="Trade" onClose={onClose} animKey="record-failed">
+      <Panel title={tU('trade_5f39')} onClose={onClose} animKey="record-failed">
         <div className="space-y-3 text-center">
           <p className="font-body text-sm font-semibold text-down">
             Your trade was sent to the network, but we couldn&apos;t record it.
@@ -695,7 +696,7 @@ export function TradePanel({
             </a>
           )}
           <Button type="button" onClick={handleRetryRecording} className="w-full">
-            Retry
+            {tU('retry_6327')}
           </Button>
         </div>
       </Panel>
@@ -772,7 +773,7 @@ export function TradePanel({
 
   return (
     <Panel
-      title="Trade"
+      title={tU('trade_5f39')}
       onClose={onClose}
       animKey="form"
       dense={dense}
@@ -838,7 +839,7 @@ export function TradePanel({
           this control invisible on a deployment where the relayer isn't configured yet
           (every production deployment today), rather than showing a toggle that would
           silently do nothing when switched on. */}
-      {quote?.sponsorshipAvailable && <GaslessToggle value={gasless} onChange={setGasless} label="Gasless (no gas needed)" />}
+      {quote?.sponsorshipAvailable && <GaslessToggle value={gasless} onChange={setGasless} label={tU('gaslessNoGasNeeded_7181')} />}
 
       {quoteStatus === 'error' && <p className="font-body text-xs text-down">{quoteError}</p>}
 
@@ -880,12 +881,13 @@ function Panel({
   animKey: string;
   children: React.ReactNode;
 }) {
+  const tU = useTranslations('ui');
   return (
     <div className={cn('space-y-2.5', dense && 'trade-form-compact')}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onBack && (
-            <button type="button" onClick={onBack} aria-label="Back" className="text-ink-600 hover:text-ink-900">
+            <button type="button" onClick={onBack} aria-label={tU('back_0557')} className="text-ink-600 hover:text-ink-900">
               <ArrowLeft className="h-4 w-4" />
             </button>
           )}
@@ -893,7 +895,7 @@ function Panel({
           {headerRight}
         </div>
         {onClose && (
-          <button type="button" onClick={onClose} aria-label="Close" className="text-ink-600 hover:text-ink-900">
+          <button type="button" onClick={onClose} aria-label={tU('close_d3d2')} className="text-ink-600 hover:text-ink-900">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -922,24 +924,25 @@ function TradeStatusView({
   chainId: number;
   onDone: () => void;
 }) {
+  const tU = useTranslations('ui');
   const explorerUrl = transaction ? explorerTxUrl(chainId, transaction.txHash) : null;
 
   return (
     <div className="space-y-3 text-center">
-      {step === 'submitted' && <p className="font-body text-sm text-ink-600">Transaction submitted — waiting for it to be picked up…</p>}
-      {step === 'pending' && <p className="font-body text-sm text-ink-600">Waiting for confirmation on-chain…</p>}
+      {step === 'submitted' && <p className="font-body text-sm text-ink-600">{tU('transactionSubmittedWaitingForIt_eba2')}</p>}
+      {step === 'pending' && <p className="font-body text-sm text-ink-600">{tU('waitingForConfirmationOnChain_cb34')}</p>}
       {(step === 'submitted' || step === 'pending') && <SlowConfirmationNote />}
       {step === 'confirmed' && (
         <div className="flex items-center justify-center gap-2">
           <CheckCircle2 className="h-5 w-5 text-up" />
-          <p className="font-body text-sm font-semibold text-up">Trade confirmed</p>
+          <p className="font-body text-sm font-semibold text-up">{tU('tradeConfirmed_132b')}</p>
         </div>
       )}
       {step === 'failed' && (
         <div className="flex items-center justify-center gap-2">
           <XCircle className="h-5 w-5 text-down" />
           <p className="font-body text-sm font-semibold text-down">
-            {transaction?.status === 'EXPIRED' ? 'No confirmation was received in time.' : 'This trade failed on-chain.'}
+            {transaction?.status === 'EXPIRED' ? tU('noConfirmationWasReceivedIn_a9fe') : tU('thisTradeFailedOnChain_b637')}
           </p>
         </div>
       )}
@@ -951,7 +954,7 @@ function TradeStatusView({
       )}
       {(step === 'confirmed' || step === 'failed') && (
         <Button type="button" variant="secondary" onClick={onDone} className="w-full">
-          Done
+          {tU('done_f929')}
         </Button>
       )}
     </div>
@@ -982,11 +985,12 @@ function FeeTransferSection({
   onSign: () => void;
   onRetryRecording: () => void;
 }) {
+  const tU = useTranslations('ui');
   if (feeSignState === 'record-failed') {
     const explorerUrl = feePendingHash ? explorerTxUrl(chainId, feePendingHash) : null;
     return (
       <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
-        <p className="font-body text-xs font-semibold text-down">The platform fee was sent, but we couldn&apos;t record it.</p>
+        <p className="font-body text-xs font-semibold text-down">{tU('thePlatformFeeWasSent_fc56')}</p>
         {feeSignError && <p className="font-body text-xs text-ink-600">{feeSignError}</p>}
         {explorerUrl && (
           <a href={explorerUrl} target="_blank" rel="noreferrer" className="block font-body text-xs text-accent underline">
@@ -994,7 +998,7 @@ function FeeTransferSection({
           </a>
         )}
         <Button type="button" variant="secondary" onClick={onRetryRecording} className="w-full">
-          Retry
+          {tU('retry_6327')}
         </Button>
       </div>
     );
@@ -1008,16 +1012,16 @@ function FeeTransferSection({
     if (transaction.sponsoredByRelayer) {
       return (
         <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
-          <p className="font-body text-xs text-ink-600">Kamby is sending the platform fee — no action needed.</p>
+          <p className="font-body text-xs text-ink-600">{tU('kambyIsSendingThePlatform_fc34')}</p>
         </div>
       );
     }
     return (
       <div className="space-y-2 rounded-lg bg-surface-raised p-3 text-center">
-        <p className="font-body text-xs text-ink-600">Kamby&apos;s fee hasn&apos;t been sent yet — a separate signature.</p>
+        <p className="font-body text-xs text-ink-600">{tU('kambySFeeHasnT_051b')}</p>
         {feeSignError && <p className="font-body text-xs text-down">{feeSignError}</p>}
         <Button type="button" variant="secondary" onClick={onSign} disabled={feeSignState === 'signing'} className="w-full">
-          {feeSignState === 'signing' ? 'Confirm in your wallet…' : 'Send platform fee'}
+          {feeSignState === 'signing' ? tU('confirmInYourWallet_5503') : tU('sendPlatformFee_a1cd')}
         </Button>
       </div>
     );
@@ -1026,16 +1030,16 @@ function FeeTransferSection({
   const explorerUrl = explorerTxUrl(chainId, transaction.feeTxHash);
   return (
     <div className="space-y-1 rounded-lg bg-surface-raised p-3 text-center">
-      {transaction.feeStatus === 'PENDING' && <p className="font-body text-xs text-ink-600">Platform fee sent — waiting for confirmation…</p>}
+      {transaction.feeStatus === 'PENDING' && <p className="font-body text-xs text-ink-600">{tU('platformFeeSentWaitingFor_c4db')}</p>}
       {transaction.feeStatus === 'CONFIRMED' && (
         <div className="flex items-center justify-center gap-1.5">
           <CheckCircle2 className="h-3.5 w-3.5 text-up" />
-          <p className="font-body text-xs font-semibold text-up">Platform fee confirmed</p>
+          <p className="font-body text-xs font-semibold text-up">{tU('platformFeeConfirmed_0578')}</p>
         </div>
       )}
       {(transaction.feeStatus === 'FAILED' || transaction.feeStatus === 'EXPIRED') && (
         <p className="font-body text-xs font-semibold text-down">
-          {transaction.feeStatus === 'EXPIRED' ? 'The fee transfer never confirmed in time.' : 'The fee transfer failed on-chain.'}
+          {transaction.feeStatus === 'EXPIRED' ? tU('theFeeTransferNeverConfirmed_a321') : tU('theFeeTransferFailedOn_1c17')}
         </p>
       )}
       {transaction.feeFailureReason && <p className="font-body text-xs text-ink-600">{transaction.feeFailureReason}</p>}

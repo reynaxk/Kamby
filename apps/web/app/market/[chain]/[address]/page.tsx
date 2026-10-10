@@ -16,6 +16,7 @@ import { fetchToken, fetchTokenHistory } from '@/lib/market-api';
 import { fetchGlobalActivity } from '@/lib/social-api';
 import { fetchTokenTraders } from '@/lib/discovery-api';
 import type { ChartTimeframe } from '@/lib/chart-data';
+import { getTranslations } from 'next-intl/server';
 
 export const revalidate = 15;
 
@@ -68,6 +69,7 @@ export default async function TokenDetailPage({
   params: { chain: string; address: string };
   searchParams: { timeframe?: string };
 }) {
+  const tU = await getTranslations('ui');
   if (!isChainSlug(params.chain)) notFound();
   const chainId = CHAIN_REGISTRY[params.chain].numericId;
   const timeframe: ChartTimeframe =
@@ -111,7 +113,7 @@ export default async function TokenDetailPage({
           <div className="flex items-center gap-2">
             <WatchButton address={market.tokenAddress} chainId={chainId} initialWatching={null} />
             <ShareButton
-              title={`${market.symbol ?? market.name ?? 'Token'} on Kamby`}
+              title={`${market.symbol ?? market.name ?? tU('token_459a')} on Kamby`}
               path={`/market/${params.chain}/${market.tokenAddress}`}
             />
           </div>
@@ -135,24 +137,24 @@ export default async function TokenDetailPage({
 
       <main className="mx-auto max-w-[1600px] px-3 pb-10">
         <Surface className="p-5">
-          <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">Market data</h2>
+          <h2 className="mb-4 font-display text-sm font-semibold text-ink-900">{tU('marketData_1fb7')}</h2>
           <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <DataRow
-              label="Contract"
+              label={tU('contract_f494')}
               value={market.tokenAddress}
               mono
               title={market.tokenAddress}
               truncate
             />
-            <DataRow label="Decimals" value={market.decimals?.toString() ?? '—'} mono />
-            <DataRow label="Quote token" value={market.quoteSymbol ?? '—'} />
+            <DataRow label={tU('decimals_2b41')} value={market.decimals?.toString() ?? '—'} mono />
+            <DataRow label={tU('quoteToken_863c')} value={market.quoteSymbol ?? '—'} />
             <DataRow label="DEX" value={market.dex ?? '—'} />
             <DataRow
-              label="Fee tier"
+              label={tU('feeTier_5078')}
               value={market.feeTier !== null ? `${market.feeTier / 10_000}%` : '—'}
             />
             <DataRow
-              label="Last updated"
+              label={tU('lastUpdated_ffbb')}
               value={market.lastPriceUpdateAt ? formatDateTime(market.lastPriceUpdateAt) : 'never'}
             />
           </dl>

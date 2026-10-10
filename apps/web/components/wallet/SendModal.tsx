@@ -136,6 +136,7 @@ function useSolanaNativeBalance(solanaAddress: string | undefined): bigint | nul
  * unable to pay for its own transaction.
  */
 export function SendModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const tAuth = useTranslations('auth');
   const { ready, authenticated, login } = usePrivy();
@@ -259,7 +260,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             ? await sendEvmNative(to as `0x${string}`, amountRaw, chain.evmChainId!)
             : await sendEvmToken(asset.address as `0x${string}`, to as `0x${string}`, amountRaw, chain.evmChainId!);
       } else {
-        if (!solanaConnection || !solanaWallet) throw new Error('Solana wallet not connected.');
+        if (!solanaConnection || !solanaWallet) throw new Error(tU('solanaWalletNotConnected_9663'));
         const from = new PublicKey(solanaWallet.address);
         const toKey = new PublicKey(to);
         // Kamby sends just the SOL this withdrawal needs (2026-10-07: no signup gift any more).
@@ -293,14 +294,14 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base font-bold text-ink-900">{tW('withdraw')}</h2>
         <button type="button" onClick={close} className="font-body text-sm text-ink-400 hover:text-ink-900">
-          Close
+          {tU('close_d3d2')}
         </button>
       </div>
 
       {step === 'form' && (
         <div className="mt-4 flex flex-col gap-4">
           <div>
-            <div className="font-body text-xs text-ink-600">Network</div>
+            <div className="font-body text-xs text-ink-600">{tU('network_eec8')}</div>
             <div className="mt-1.5 flex gap-1.5">
               {SEND_CHAINS.map((c) => (
                 <button
@@ -321,7 +322,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
           </div>
 
           <div>
-            <div className="font-body text-xs text-ink-600">Asset</div>
+            <div className="font-body text-xs text-ink-600">{tU('asset_26e9')}</div>
             <div className="mt-1.5 flex gap-1.5">
               {assets.map((a) => (
                 <button
@@ -353,8 +354,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             <>
               {solanaFeeInsufficient && (
                 <p className="rounded-lg border border-down/40 bg-down/10 px-3 py-2 font-body text-xs text-down">
-                  This wallet has no SOL to pay the network fee — every Solana transaction costs a small amount of
-                  SOL, even one that only moves USDC. Add a little SOL (~0.002) before sending.
+                  {tU('thisWalletHasNoSol_9431')}
                 </p>
               )}
               <div>
@@ -382,7 +382,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                     onClick={() => void applyMax()}
                     className="shrink-0 rounded-lg bg-surface-raised px-3 py-2.5 font-body text-xs font-medium text-ink-600 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    Max
+                    {tU('max_6a06')}
                   </button>
                 </div>
                 {amountDisplay && !amountValid && (
@@ -402,7 +402,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                 </div>
                 <input
                   type="text"
-                  placeholder={chain.kind === 'evm' ? '0x…' : 'Solana address'}
+                  placeholder={chain.kind === 'evm' ? '0x…' : tU('solanaAddress_0f9c')}
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-sm text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
@@ -413,7 +413,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
               </div>
 
               <Button type="button" className="w-full" disabled={!canReview} onClick={() => setStep('review')}>
-                Review
+                {tU('review_457d')}
               </Button>
             </>
           )}
@@ -423,9 +423,9 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
       {step === 'review' && tokenDecimals !== null && amountRaw !== null && (
         <div className="mt-4 flex flex-col gap-4">
           <div className="rounded-xl border border-line bg-surface-raised p-3 font-body text-sm text-ink-900">
-            <Row label="Network" value={chain.name} />
-            <Row label="Asset" value={asset.symbol} />
-            <Row label="Amount" value={`${formatUnits(amountRaw, tokenDecimals)} ${asset.symbol}`} />
+            <Row label={tU('network_eec8')} value={chain.name} />
+            <Row label={tU('asset_26e9')} value={asset.symbol} />
+            <Row label={tU('amount_b2f4')} value={`${formatUnits(amountRaw, tokenDecimals)} ${asset.symbol}`} />
             <Row label="To" value={destination.trim()} mono />
           </div>
           <p className="font-body text-xs text-down">
@@ -433,7 +433,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
           </p>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep('form')}>
-              Back
+              {tU('back_0557')}
             </Button>
             <Button type="button" className="flex-1" onClick={() => void confirmSend()}>
               Confirm &amp; Send
@@ -444,13 +444,13 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
       {step === 'signing' && (
         <div className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-body text-sm text-ink-600">Confirm this in your wallet…</p>
+          <p className="font-body text-sm text-ink-600">{tU('confirmThisInYourWallet_26e1')}</p>
         </div>
       )}
 
       {step === 'confirmed' && txResult && (
         <div className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-display text-sm font-semibold text-up">Sent</p>
+          <p className="font-display text-sm font-semibold text-up">{tU('sent_7f8c')}</p>
           <a
             href={chain.txExplorerUrl(txResult)}
             target="_blank"
@@ -460,21 +460,21 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             View on {chain.explorerName} →
           </a>
           <Button type="button" className="w-full" onClick={close}>
-            Done
+            {tU('done_f929')}
           </Button>
         </div>
       )}
 
       {step === 'failed' && (
         <div className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-display text-sm font-semibold text-down">Withdrawal failed</p>
+          <p className="font-display text-sm font-semibold text-down">{tU('withdrawalFailed_5e6f')}</p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           <div className="flex w-full gap-2">
             <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep('review')}>
-              Try again
+              {tU('tryAgain_f915')}
             </Button>
             <Button type="button" className="flex-1" onClick={close}>
-              Close
+              {tU('close_d3d2')}
             </Button>
           </div>
         </div>

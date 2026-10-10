@@ -4,6 +4,7 @@ import { Surface } from '@kamby/ui';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { fetchWhatsMissed, hasStoredSession, markDiscoverySeen } from '@/lib/discovery-client';
+import { useTranslations } from 'next-intl';
 
 /**
  * The return-loop surface — "here's what happened since you were last here," plus the
@@ -17,6 +18,7 @@ import { fetchWhatsMissed, hasStoredSession, markDiscoverySeen } from '@/lib/dis
  * this visit — marking seen only affects what the *next* visit will show.
  */
 export function WhatsMissedSection() {
+  const tU = useTranslations('ui');
   const [state, setState] = useState<'hidden' | 'loading' | 'shown'>('hidden');
   const [summary, setSummary] = useState<{ count: number; streak: number } | null>(null);
 
@@ -62,13 +64,13 @@ export function WhatsMissedSection() {
         {summary.streak > 1 && (
           <span
             className="font-mono text-xs text-ink-400"
-            title="Consecutive days you've checked in"
+            title={tU('consecutiveDaysYouVeChecked_0565')}
           >
             🔥 {summary.streak}-day streak
           </span>
         )}
         <Link href="/notifications" className="font-mono text-xs text-accent hover:opacity-80">
-          View all
+          {tU('viewAll_0b4d')}
         </Link>
       </div>
     </Surface>

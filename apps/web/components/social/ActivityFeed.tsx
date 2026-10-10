@@ -14,6 +14,7 @@ import {
 import { ActivityCard } from './ActivityCard';
 import { EmptyState } from '../market/EmptyState';
 import { Skeleton } from '../market/Skeleton';
+import { useTranslations } from 'next-intl';
 
 /** A plain, serializable description of which feed to drive — a Server Component page
  *  can't hand a Client Component a function prop, so the fetch itself is chosen here from
@@ -51,7 +52,7 @@ export function ActivityFeed({
   initialCursor,
   scope,
   live = true,
-  emptyTitle = 'No recent activity yet.',
+  emptyTitle: emptyTitleProp,
   emptyDetail,
 }: {
   initialItems: SocialActivity[];
@@ -61,6 +62,8 @@ export function ActivityFeed({
   emptyTitle?: string;
   emptyDetail?: string;
 }) {
+  const tU = useTranslations('ui');
+  const emptyTitle = emptyTitleProp ?? tU('noRecentActivityYet_aef8');
   const [items, setItems] = useState(initialItems);
   const [cursor, setCursor] = useState(initialCursor);
   const [pendingCount, setPendingCount] = useState(0);
@@ -124,7 +127,7 @@ export function ActivityFeed({
             className="flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-xs font-semibold text-accent transition-colors hover:bg-accent/20"
           >
             <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-            {pendingCount} new {pendingCount === 1 ? 'trade' : 'trades'}
+            {pendingCount === 1 ? tU('newTradeOne') : tU('newTradesMany', { count: pendingCount })}
           </button>
         )}
       </div>
@@ -142,7 +145,7 @@ export function ActivityFeed({
       {cursor && (
         <div className="mt-4 flex justify-center">
           <Button type="button" variant="secondary" onClick={() => void loadMore()} disabled={isLoadingMore}>
-            {isLoadingMore ? 'Loading…' : 'Load more'}
+            {isLoadingMore ? tU('loading_5f02') : tU('loadMore_f6b5')}
           </Button>
         </div>
       )}
@@ -151,11 +154,12 @@ export function ActivityFeed({
 }
 
 function RealtimeIndicator({ status }: { status: RealtimeStatus }) {
+  const tU = useTranslations('ui');
   if (status === 'live') {
     return (
       <span className="flex items-center gap-1.5 font-mono text-xs text-ink-400">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-up" />
-        Live
+        {tU('live_955a')}
       </span>
     );
   }
@@ -163,14 +167,14 @@ function RealtimeIndicator({ status }: { status: RealtimeStatus }) {
     return (
       <span className="flex items-center gap-1.5 font-mono text-xs text-ink-400">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-down" />
-        Live updates paused — reconnecting…
+        {tU('liveUpdatesPausedReconnecting_ce29')}
       </span>
     );
   }
   return (
     <span className="flex items-center gap-1.5 font-mono text-xs text-ink-400">
       <Skeleton className="h-1.5 w-1.5 rounded-full" />
-      Connecting…
+      {tU('connecting_182e')}
     </span>
   );
 }

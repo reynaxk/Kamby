@@ -3,6 +3,7 @@
 import { Button } from '@kamby/ui';
 import { useEffect, useState, useTransition } from 'react';
 import { checkFollowStatus, followTrader, unfollowTrader } from '@/lib/social-client';
+import { useTranslations } from 'next-intl';
 
 /**
  * `initialFollowing` from a server-rendered page is always `null` in practice — the
@@ -21,6 +22,7 @@ export function FollowButton({
   initialFollowing: boolean | null;
   className?: string;
 }) {
+  const tU = useTranslations('ui');
   const [following, setFollowing] = useState(initialFollowing === true);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState(false);
@@ -60,9 +62,9 @@ export function FollowButton({
         aria-pressed={following}
         className="min-w-[6.5rem]"
       >
-        {following ? 'Following' : 'Follow'}
+        {following ? tU('following_6f79') : tU('follow_3903')}
       </Button>
-      {error && <p className="mt-1 font-body text-xs text-down">Couldn&apos;t save that — try again.</p>}
+      {error && <p className="mt-1 font-body text-xs text-down">{tU('couldnTSaveThatTry_6857')}</p>}
     </div>
   );
 }

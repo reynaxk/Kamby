@@ -16,6 +16,7 @@ import type { Candle } from '@kamby/domain';
 import type { ChartSource } from '@/lib/chart-data';
 import { recentTicks, subscribeLivePrice } from '@/lib/use-live-price';
 import { chartFontFamily, pricePrecision, readRgba, type ChartStyle } from './KambyChart';
+import { useTranslations } from 'next-intl';
 
 const POLL_MS = 2_000;
 /** The last hour of 1m closes as the line's starting history. */
@@ -96,6 +97,7 @@ export function LivePriceChart({
   /** Your average entry price in this coin, drawn as a dashed line. */
   entryPrice?: number | null;
 }) {
+  const tU = useTranslations('ui');
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
@@ -160,7 +162,7 @@ export function LivePriceChart({
       });
       candleSeries.setData(seeded);
       if (entryPrice && entryPrice > 0) {
-        candleSeries.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'Your entry' });
+        candleSeries.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: tU('yourEntry_eb36') });
       }
       // A handful of candles stretched to the full width read as giant blocks — keep a normal
       // candle width and grow in from the right instead.
@@ -192,7 +194,7 @@ export function LivePriceChart({
     });
     series.setData([...seed, ...slots]);
     if (entryPrice && entryPrice > 0) {
-      series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-ink-600', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'Your entry' });
+      series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-ink-600', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: tU('yourEntry_eb36') });
     }
     chart.timeScale().fitContent();
     lastTimeRef.current = slots[slots.length - 1]?.time ?? seed[seed.length - 1]?.time ?? 0;

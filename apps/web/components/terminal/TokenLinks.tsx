@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Globe, MessageCircle, Send } from 'lucide-react';
 import type { TokenInfo, TokenInfoChain } from '@kamby/domain';
 import { clientEnv } from '@/lib/env';
+import { useTranslations } from 'next-intl';
 
 /** One fetch per coin per page load, shared by every card showing it. */
 const cache = new Map<string, Promise<TokenInfo | null>>();
@@ -56,6 +57,7 @@ export function TokenLinks({
   /** Set on pages without an About card: renders its own card, only once there's content. */
   cardTitle?: string;
 }) {
+  const tU = useTranslations('ui');
   const [info, setInfo] = useState<TokenInfo | null>(null);
 
   useEffect(() => {
@@ -96,7 +98,7 @@ export function TokenLinks({
           ))}
         </div>
       )}
-      <p className="mt-1.5 font-body text-[0.6rem] text-ink-400">Links are provided by the project, not verified by Kamby.</p>
+      <p className="mt-1.5 font-body text-[0.6rem] text-ink-400">{tU('linksAreProvidedByThe_b114')}</p>
     </>
   );
   if (cardTitle) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@kamby/ui';
 import type { ChartStyle } from './KambyChart';
+import { useTranslations } from 'next-intl';
 
 const STORAGE_KEY = 'kamby:chart-style';
 
@@ -30,6 +31,7 @@ export function useChartStyle(): [ChartStyle, (style: ChartStyle) => void] {
 
 /** Candles ⇄ line switch next to the timeframe tabs (user request 2026-10-03). */
 export function ChartStyleToggle({ value, onChange }: { value: ChartStyle; onChange: (style: ChartStyle) => void }) {
+  const tU = useTranslations('ui');
   const option = (style: ChartStyle, label: string, icon: React.ReactNode) => (
     <button
       type="button"
@@ -49,7 +51,7 @@ export function ChartStyleToggle({ value, onChange }: { value: ChartStyle; onCha
     <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
       {option(
         'candles',
-        'Candles',
+        tU('candles_d44b'),
         <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
           <rect x="2" y="5" width="3" height="6" rx="0.5" />
           <rect x="3.25" y="2.5" width="0.5" height="11" />
@@ -61,7 +63,7 @@ export function ChartStyleToggle({ value, onChange }: { value: ChartStyle; onCha
       )}
       {option(
         'line',
-        'Line',
+        tU('line_4803'),
         <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M1.5 12 5.5 7.5 8.5 9.5 14.5 3" />
         </svg>,

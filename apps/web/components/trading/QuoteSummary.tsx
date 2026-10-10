@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
  * what's shown here is exactly what the wallet will be asked to sign.
  */
 export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
+  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const impactColor =
     quote.priceImpactLevel === 'extreme' ? 'text-down' : quote.priceImpactLevel === 'high' ? 'text-down' : 'text-ink-900';
@@ -35,7 +36,7 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
       <Row label={tTrade('slippage')} value={`${(quote.slippageBps / 100).toFixed(quote.slippageBps % 100 === 0 ? 0 : 1)}%`} />
       <Row label={tTrade('kambyFee')} value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
       <Row label={tTrade('provider')} value={quote.provider} />
-      {quote.requiresApproval && <Row label="Token approval" value="Required before this trade" />}
+      {quote.requiresApproval && <Row label={tU('tokenApproval_b41e')} value="Required before this trade" />}
 
       {quote.feeUnsignedTx && (
         <p className="!mt-3 rounded-lg bg-surface px-2.5 py-2 text-xs text-ink-600">

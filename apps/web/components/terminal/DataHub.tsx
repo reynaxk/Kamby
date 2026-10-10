@@ -6,6 +6,7 @@ import { cn } from '@kamby/ui';
 import { formatRelativeTime, truncateAddress } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
 import { HoldersPanel } from './HoldersPanel';
+import { useTranslations } from 'next-intl';
 
 type Tab = 'transactions' | 'holders' | 'caller-alpha';
 const TABS: { id: Tab; label: string }[] = [
@@ -29,6 +30,7 @@ const MIN_SIZE_OPTIONS = [0, 1_000, 5_000] as const;
  * next to real ones is worse than admitting the gap.
  */
 export function DataHub({ activity, source = null }: { activity: SocialActivity[]; source?: ChartSource | null }) {
+  const tU = useTranslations('ui');
   const [tab, setTab] = useState<Tab>('transactions');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('ALL');
   const [minSizeUsd, setMinSizeUsd] = useState<number>(0);
@@ -78,7 +80,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
                     : 'text-ink-400 hover:text-ink-900',
                 )}
               >
-                {a === 'ALL' ? 'All' : a}
+                {a === 'ALL' ? tU('all_b1c9') : a}
               </button>
             ))}
           </div>
@@ -89,7 +91,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
           >
             {MIN_SIZE_OPTIONS.map((v) => (
               <option key={v} value={v}>
-                {v === 0 ? 'Any size' : `>$${v.toLocaleString('en-US')}`}
+                {v === 0 ? tU('anySize_ad8e') : `>$${v.toLocaleString('en-US')}`}
               </option>
             ))}
           </select>
@@ -97,7 +99,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
             type="text"
             value={traderQuery}
             onChange={(e) => setTraderQuery(e.target.value)}
-            placeholder="Filter by trader address…"
+            placeholder={tU('filterByTraderAddress_0b07')}
             className="min-w-0 flex-1 rounded border border-line bg-surface-raised px-1.5 py-0.5 text-ink-900 placeholder:text-ink-400 focus:border-accent focus:outline-none"
           />
         </div>
@@ -105,9 +107,9 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
       <div className="flex-1 overflow-y-auto font-mono text-xs">
         {tab === 'transactions' &&
           (activity.length === 0 ? (
-            <p className="p-4 text-ink-400">No trades on Kamby for this coin yet — be the first.</p>
+            <p className="p-4 text-ink-400">{tU('noTradesOnKambyFor_cf58')}</p>
           ) : filteredActivity.length === 0 ? (
-            <p className="p-4 text-ink-400">No activity matches these filters.</p>
+            <p className="p-4 text-ink-400">{tU('noActivityMatchesTheseFilters_5a6d')}</p>
           ) : (
             <table className="w-full">
               <tbody>
@@ -120,7 +122,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
                       {formatRelativeTime(row.timestamp)}
                     </td>
                     <td className="whitespace-nowrap px-2.5 py-1 tracking-tight text-ink-600">
-                      {row.trader.address ? truncateAddress(row.trader.address) : 'Unknown'}
+                      {row.trader.address ? truncateAddress(row.trader.address) : tU('unknown_8818')}
                     </td>
                     <td
                       className={cn(
@@ -141,7 +143,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
               </tbody>
             </table>
           ))}
-        {tab === 'holders' && (source ? <HoldersPanel source={source} /> : <p className="p-4 text-ink-400">Pick a coin to see its holders.</p>)}
+        {tab === 'holders' && (source ? <HoldersPanel source={source} /> : <p className="p-4 text-ink-400">{tU('pickACoinToSee_a97d')}</p>)}
         {tab === 'caller-alpha' && (
           <p className="p-4 text-ink-400">
             Trade theses <span className="text-ink-400">— soon</span>. Post a thesis from the

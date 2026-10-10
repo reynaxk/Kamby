@@ -9,6 +9,7 @@ import {
   fetchSavedSearches,
   hasStoredSession,
 } from '@/lib/discovery-client';
+import { useTranslations } from 'next-intl';
 
 /**
  * Lightweight bookmarks of a search query — see docs/PHASE6_RETENTION_SOCIAL.md#saved-searches.
@@ -17,6 +18,7 @@ import {
  * PersonalizedSection makes.
  */
 export function SavedSearches({ currentSearch }: { currentSearch?: string }) {
+  const tU = useTranslations('ui');
   const [hasSession, setHasSession] = useState(false);
   const [searches, setSearches] = useState<SavedSearchDto[]>([]);
   const [saving, setSaving] = useState(false);
@@ -71,7 +73,7 @@ export function SavedSearches({ currentSearch }: { currentSearch?: string }) {
           disabled={saving}
           className="rounded-full border border-line px-3 py-1 font-mono text-xs text-ink-600 hover:text-ink-900 disabled:opacity-50"
         >
-          {saving ? 'Saving…' : `☆ Save "${currentSearch}"`}
+          {saving ? tU('saving_eedf') : `☆ Save "${currentSearch}"`}
         </button>
       )}
       {searches.map((search) => (

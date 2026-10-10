@@ -7,6 +7,7 @@ import { cn } from '@kamby/ui';
 import { formatCompactUsd, formatPercent, formatRelativeTime, truncateAddress, cashtag } from '@/lib/format';
 import { fetchTrenches, isPumpFunCategory, type TrenchesCategory } from '@/lib/trenches-client';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { useTranslations } from 'next-intl';
 
 const TABS: { category: TrenchesCategory; label: string }[] = [
   { category: 'FRESH', label: 'Fresh' },
@@ -32,6 +33,7 @@ function lamportsToSol(raw: string): number {
  * an inert row. TRENDING_HOLDERS rows link to the real, existing /market/[address] page.
  */
 export function TrenchesPanel() {
+  const tU = useTranslations('ui');
   const [category, setCategory] = useState<TrenchesCategory>('FRESH');
   const [items, setItems] = useState<MarketSummary[] | PumpFunTokenSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -77,12 +79,12 @@ export function TrenchesPanel() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">Loading…</p>}
+        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
         {status === 'error' && (
-          <p className="p-3 font-body text-xs text-down">Couldn&apos;t load this trench.</p>
+          <p className="p-3 font-body text-xs text-down">{tU('couldnTLoadThisTrench_9819')}</p>
         )}
         {status === 'ready' && items.length === 0 && (
-          <p className="p-3 font-body text-xs text-ink-400">No tokens in this trench right now.</p>
+          <p className="p-3 font-body text-xs text-ink-400">{tU('noTokensInThisTrench_59a6')}</p>
         )}
         {status === 'ready' &&
           itemsCategory === category &&
@@ -140,6 +142,7 @@ function PumpFunRow({ token }: { token: PumpFunTokenSummary }) {
 }
 
 function TrendingHolderRow({ market }: { market: MarketSummary }) {
+  const tU = useTranslations('ui');
   const isUp = (market.priceChange24hPct ?? 0) >= 0;
   const chainSlug = slugForIdentifier(market.chainIdentifier);
   const content = (
@@ -171,7 +174,7 @@ function TrendingHolderRow({ market }: { market: MarketSummary }) {
     </Link>
   ) : (
     <div
-      title="This market is visible for discovery but is not tradeable here yet"
+      title={tU('thisMarketIsVisibleFor_626f')}
       className={`${className} cursor-not-allowed opacity-70`}
     >
       {content}

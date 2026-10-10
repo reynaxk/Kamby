@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { fetchMyProfile } from '@/lib/profile-client';
 import { hasStoredSession } from '@/lib/session-client';
+import { useTranslations } from 'next-intl';
 
 const DISMISSED_KEY = 'kamby:onboarding-dismissed';
 
@@ -19,6 +20,7 @@ const DISMISSED_KEY = 'kamby:onboarding-dismissed';
  * re-offerable" per the design decision, not "dismiss once and never ask again."
  */
 export function OnboardingPrompt() {
+  const tU = useTranslations('ui');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -59,9 +61,9 @@ export function OnboardingPrompt() {
   return (
     <div className="fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-2xl border border-line bg-surface-raised p-4 shadow-lg sm:inset-x-auto sm:right-4 sm:max-w-sm">
       <div className="min-w-0 flex-1">
-        <p className="font-display text-sm font-semibold text-ink-900">Set up your profile</p>
+        <p className="font-display text-sm font-semibold text-ink-900">{tU('setUpYourProfile_f045')}</p>
         <p className="mt-0.5 font-body text-xs text-ink-600">
-          Pick a username and picture so other traders recognize you.
+          {tU('pickAUsernameAndPicture_6bc9')}
         </p>
       </div>
       <div className="flex shrink-0 flex-col gap-1.5">
@@ -70,14 +72,14 @@ export function OnboardingPrompt() {
           onClick={dismiss}
           className="rounded-lg bg-accent px-3 py-1.5 text-center font-body text-xs font-semibold text-accent-ink"
         >
-          Set up
+          {tU('setUp_b191')}
         </Link>
         <button
           type="button"
           onClick={dismiss}
           className="rounded-lg px-3 py-1.5 font-body text-xs text-ink-400 hover:text-ink-900"
         >
-          Skip
+          {tU('skip_72ef')}
         </button>
       </div>
     </div>

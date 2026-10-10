@@ -52,6 +52,7 @@ export function SolanaQuoteSummary({
   tokenSymbol?: string | null;
   tokenDecimals?: number | null;
 }) {
+  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const tokenDisplay = (raw: string) => formatTokenAmount(raw, tokenDecimals, tokenSymbol);
   const isBuy = quote.side === 'BUY';
@@ -81,7 +82,7 @@ export function SolanaQuoteSummary({
         {quote.setupFeeAmountRaw && (
           <>
             <span className="text-ink-400">•</span>
-            <span title="First buy of this coin: opens its token account in your wallet">+{usdcDisplay(quote.setupFeeAmountRaw)} new coin setup</span>
+            <span title={tU('firstBuyOfThisCoin_c80e')}>+{usdcDisplay(quote.setupFeeAmountRaw)} new coin setup</span>
           </>
         )}
       </div>

@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
  * itself would be a circular import.
  */
 export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+  const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
 
@@ -23,7 +24,7 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         type="button"
         onClick={() => setOpen(true)}
         aria-label={tW('deposit')}
-        title="Deposit"
+        title={tU('deposit_92f8')}
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'

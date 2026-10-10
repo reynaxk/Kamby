@@ -3,6 +3,7 @@
 import { cn } from '@kamby/ui';
 import { useEffect, useState, useTransition, type MouseEvent } from 'react';
 import { checkWatchStatus, unwatchToken, watchToken } from '@/lib/watchlist-client';
+import { useTranslations } from 'next-intl';
 
 /**
  * ☆ Watch / ★ Watching — see docs/PHASE6_RETENTION_SOCIAL.md#watchlists. Same
@@ -38,6 +39,7 @@ export function WatchButton({
    *  the mutation fail and need to reinsert it. */
   onChange?: (watching: boolean) => void;
 }) {
+  const tU = useTranslations('ui');
   const [watching, setWatching] = useState(initialWatching === true);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState(false);
@@ -78,7 +80,7 @@ export function WatchButton({
         disabled={isPending}
         aria-pressed={watching}
         aria-label={watching ? `Stop watching ${address}` : `Watch ${address}`}
-        title={watching ? 'Watching' : 'Watch'}
+        title={watching ? tU('watching_3627') : tU('watch_f206')}
         className={cn(
           'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg leading-none transition-colors',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
@@ -109,10 +111,10 @@ export function WatchButton({
         )}
       >
         <span aria-hidden>{watching ? '★' : '☆'}</span>
-        {watching ? 'Watching' : 'Watch'}
+        {watching ? tU('watching_3627') : tU('watch_f206')}
       </button>
       {error && (
-        <p className="mt-1 font-body text-xs text-down">Couldn&apos;t save that — try again.</p>
+        <p className="mt-1 font-body text-xs text-down">{tU('couldnTSaveThatTry_6857')}</p>
       )}
     </div>
   );

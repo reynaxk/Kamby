@@ -1,4 +1,5 @@
 import { priceDirection } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 const PAD = 2;
 
@@ -6,6 +7,7 @@ const PAD = 2;
  *  `width`/`height` default to the original standalone size; `SelectableTokenRow` passes a
  *  compact variant to fit its narrow terminal-sidebar row. */
 export function Sparkline({ closes, width = 96, height = 32 }: { closes: number[]; width?: number; height?: number }) {
+  const tU = useTranslations('ui');
   if (closes.length < 2) {
     return (
       <div
@@ -32,7 +34,7 @@ export function Sparkline({ closes, width = 96, height = 32 }: { closes: number[
   const strokeClass = direction === 'up' ? 'stroke-up' : direction === 'down' ? 'stroke-down' : 'stroke-ink-400';
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="shrink-0 overflow-visible" role="img" aria-label="Price trend">
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="shrink-0 overflow-visible" role="img" aria-label={tU('priceTrend_dc32')}>
       <polyline points={points.join(' ')} fill="none" className={strokeClass} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

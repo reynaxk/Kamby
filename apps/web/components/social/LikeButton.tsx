@@ -3,6 +3,7 @@
 import { cn } from '@kamby/ui';
 import { useState, useTransition } from 'react';
 import { likeActivity, unlikeActivity } from '@/lib/social-client';
+import { useTranslations } from 'next-intl';
 
 export function LikeButton({
   activityId,
@@ -13,6 +14,7 @@ export function LikeButton({
   initialLikes: number;
   initialLikedByMe: boolean | null;
 }) {
+  const tU = useTranslations('ui');
   const [liked, setLiked] = useState(initialLikedByMe === true);
   const [likes, setLikes] = useState(initialLikes);
   const [isPending, startTransition] = useTransition();
@@ -37,7 +39,7 @@ export function LikeButton({
       onClick={toggle}
       disabled={isPending}
       aria-pressed={liked}
-      aria-label={liked ? 'Unlike' : 'Like'}
+      aria-label={liked ? tU('unlike_2e54') : tU('like_98b8')}
       className={cn(
         'inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-xs tabular-nums transition-colors',
         liked ? 'text-accent' : 'text-ink-400 hover:text-ink-900',

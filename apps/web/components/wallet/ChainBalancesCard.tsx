@@ -8,6 +8,7 @@ import { useBalanceVisibility } from '@/components/account/BalanceVisibilityCont
 import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
 import { FundModal } from './FundModal';
+import { useTranslations } from 'next-intl';
 
 const CHAINS: { chain: BadgeChain; name: string; color: string }[] = [
   { chain: 'solana', name: 'Solana', color: '#9945FF' },
@@ -24,6 +25,7 @@ const usd = (n: number | null) => (n === null ? '—' : `$${n.toLocaleString('en
  * it's empty.
  */
 export function ChainBalancesCard() {
+  const tU = useTranslations('ui');
   const { address } = useAccount();
   const { wallets } = useSolanaWallets();
   const balances = useUsdcBalances(address, wallets[0]?.address);
@@ -33,7 +35,7 @@ export function ChainBalancesCard() {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md">
-      <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-ink-400">Your USDC</p>
+      <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-ink-400">{tU('yourUsdc_8d00')}</p>
       <p className={cn('mt-1 font-display text-3xl font-extrabold tabular-nums text-ink-900', hidden && 'select-none blur-sm')}>{usd(balances.total)}</p>
 
       {/* Where it sits */}
@@ -67,13 +69,13 @@ export function ChainBalancesCard() {
                     : 'border-white/15 text-ink-600 hover:border-[#00FF87]/40 hover:text-[#00FF87]',
                 )}
               >
-                Deposit
+                {tU('deposit_92f8')}
               </button>
             </li>
           );
         })}
       </ul>
-      <p className="mt-3 font-body text-xs leading-relaxed text-ink-400">Each chain has its own USDC — coins on that chain trade with it.</p>
+      <p className="mt-3 font-body text-xs leading-relaxed text-ink-400">{tU('eachChainHasItsOwn_a0c7')}</p>
 
       <FundModal open={depositChain !== null} onClose={() => setDepositChain(null)} initialChain={depositChain ?? undefined} />
     </div>

@@ -1,5 +1,6 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { NotificationsPageClient } from '@/components/notifications/NotificationsPageClient';
+import { useTranslations } from 'next-intl';
 
 export const metadata = { title: 'Notifications — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
@@ -13,12 +14,13 @@ export const dynamic = 'force-dynamic';
  * visual overhaul.
  */
 export default function NotificationsPage() {
+  const tU = useTranslations('ui');
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-2xl px-6 py-10">
-        <h1 className="font-display text-xl font-bold text-ink-900">Notifications</h1>
-        <p className="mt-1 font-body text-sm text-ink-600">Follows, likes, and trade alerts from people and tokens you care about.</p>
+        <h1 className="font-display text-xl font-bold text-ink-900">{tU('notifications_a274')}</h1>
+        <p className="mt-1 font-body text-sm text-ink-600">{tU('followsLikesAndTradeAlerts_0760')}</p>
         <div className="mt-6">
           <NotificationsPageClient />
         </div>

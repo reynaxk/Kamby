@@ -28,6 +28,7 @@ import {
   type TimedValue,
 } from '@/lib/indicators';
 import { ChartTraderMarkers } from './chartTraderMarkers';
+import { useTranslations } from 'next-intl';
 
 export type ChartStyle = 'candles' | 'line';
 
@@ -266,6 +267,7 @@ export function KambyChart({
   /** Your average entry price in this coin, drawn as a dashed line. */
   entryPrice?: number | null;
 }) {
+  const tU = useTranslations('ui');
   const containerRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const [activeIndicators, setActiveIndicators] = useState<Set<IndicatorId>>(new Set());
@@ -363,7 +365,7 @@ export function KambyChart({
 
     // Your entry price (2026-10-06): a dashed line at what you paid — above it you're in profit.
     if (entryPrice && entryPrice > 0) {
-      series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: 'Your entry' });
+      series.createPriceLine({ price: entryPrice, color: readRgba('--kamby-accent', container, 0.9), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: tU('yourEntry_eb36') });
     }
 
     // Volume along the bottom fifth, on its own hidden scale, colored by candle direction.
@@ -498,7 +500,7 @@ export function KambyChart({
   if (candles.length < 2) {
     return (
       <EmptyState
-        title="Brand-new coin — no candles at this width yet"
+        title={tU('brandNewCoinNoCandles_eeab')}
         detail="Switch to Live or 10s to watch it move in real time."
       />
     );

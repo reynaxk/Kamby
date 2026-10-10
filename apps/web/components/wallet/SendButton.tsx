@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
  * compact header form next to BlurBalancesToggle/ConnectWalletButton.
  */
 export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+  const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
 
@@ -29,7 +30,7 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         type="button"
         onClick={() => setOpen(true)}
         aria-label={tW('withdraw')}
-        title="Withdraw"
+        title={tU('withdraw_9d5d')}
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'

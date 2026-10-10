@@ -19,11 +19,12 @@ const TABS = [
  * price ticker keeps the desktop bottom edge); hidden on the landing page.
  */
 export function MobileTabBar() {
+  const tU = useTranslations('ui');
   const pathname = usePathname() ?? '/';
   const t = useTranslations('nav');
   if (pathname === '/') return null;
   return (
-    <nav aria-label="Main" className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 md:hidden">
+    <nav aria-label={tU('main_a02c')} className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 md:hidden">
       <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface/80 px-2 shadow-[0_8px_32px_rgba(0,0,0,0.55)] backdrop-blur-xl">
         {TABS.map((tab) => {
           const active = tab.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));

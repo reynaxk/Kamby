@@ -2,6 +2,7 @@
 
 import { Surface } from '@kamby/ui';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 /**
  * Copy link + the native Web Share API where the browser has one — see
@@ -25,6 +26,7 @@ export function ShareButton({
   compact?: boolean;
   className?: string;
 }) {
+  const tU = useTranslations('ui');
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   // Starts false (server-rendered default, where `navigator` doesn't exist) and resolves
@@ -86,8 +88,8 @@ export function ShareButton({
         onClick={() => void onClick()}
         aria-haspopup={canNativeShare ? undefined : 'true'}
         aria-expanded={canNativeShare ? undefined : isOpen}
-        aria-label="Share"
-        title="Share"
+        aria-label={tU('share_5a95')}
+        title={tU('share_5a95')}
         className={
           compact
             ? 'inline-flex h-7 w-7 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent'
@@ -99,7 +101,7 @@ export function ShareButton({
 
       {isOpen && !canNativeShare && (
         <Surface
-          aria-label="Share options"
+          aria-label={tU('shareOptions_14f2')}
           className={`absolute right-0 z-20 w-48 p-1.5 shadow-lg ${compact ? 'top-9' : 'top-11'}`}
         >
           <button
@@ -107,7 +109,7 @@ export function ShareButton({
             onClick={() => void copyLink()}
             className="block w-full rounded-lg px-3 py-2 text-left font-body text-sm text-ink-900 hover:bg-surface-raised"
           >
-            {copied ? 'Copied!' : 'Copy link'}
+            {copied ? tU('copied_6d6d') : tU('copyLink_b758')}
           </button>
         </Surface>
       )}

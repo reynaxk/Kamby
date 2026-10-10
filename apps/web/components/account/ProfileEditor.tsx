@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/market/Skeleton';
 import { fetchMyProfile, updateUsername, uploadAvatar, type MyProfile } from '@/lib/profile-client';
 import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
 import { hasStoredSession } from '@/lib/session-client';
+import { useTranslations } from 'next-intl';
 
 type State = 'no-session' | 'loading' | 'loaded' | 'error';
 
@@ -25,6 +26,7 @@ const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
  * also what the onboarding prompt (see OnboardingPrompt.tsx) opens into.
  */
 export function ProfileEditor() {
+  const tU = useTranslations('ui');
   const { address } = useAccount();
   const [state, setState] = useState<State>('loading');
   const [profile, setProfile] = useState<MyProfile | null>(null);
@@ -72,7 +74,7 @@ export function ProfileEditor() {
       window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
       setUsernameSaved(true);
     } catch (err) {
-      setUsernameError(err instanceof Error ? err.message : 'Could not save that username.');
+      setUsernameError(err instanceof Error ? err.message : tU('couldNotSaveThatUsername_3770'));
     } finally {
       setSavingUsername(false);
     }
@@ -94,26 +96,26 @@ export function ProfileEditor() {
       setProfile(updated);
       window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
     } catch (err) {
-      setAvatarError(err instanceof Error ? err.message : 'Could not upload that image.');
+      setAvatarError(err instanceof Error ? err.message : tU('couldNotUploadThatImage_656f'));
     } finally {
       setUploadingAvatar(false);
     }
   }
 
   if (state === 'no-session') {
-    return <EmptyState title="Sign in to edit your profile." detail="Connect a wallet to start a session." />;
+    return <EmptyState title={tU('signInToEditYour_33e1')} detail="Connect a wallet to start a session." />;
   }
   if (state === 'loading') {
     return <Skeleton className="h-64 w-full rounded-2xl" />;
   }
   if (state === 'error' || !profile) {
-    return <EmptyState title="Couldn't load your profile." detail="Try again in a moment." />;
+    return <EmptyState title={tU('couldnTLoadYourProfile_82ca')} detail="Try again in a moment." />;
   }
 
   return (
     <div className="flex flex-col gap-8">
       <section>
-        <h2 className="font-display text-sm font-semibold text-ink-900">Profile picture</h2>
+        <h2 className="font-display text-sm font-semibold text-ink-900">{tU('profilePicture_6381')}</h2>
         <div className="mt-3 flex items-center gap-4">
           {profile.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -148,16 +150,16 @@ export function ProfileEditor() {
               disabled={uploadingAvatar}
               className="rounded-lg border border-line px-4 py-2 font-body text-sm text-ink-600 hover:text-ink-900 disabled:opacity-50"
             >
-              {uploadingAvatar ? 'Uploading…' : profile.avatarUrl ? 'Change picture' : 'Upload a picture'}
+              {uploadingAvatar ? tU('uploading_adeb') : profile.avatarUrl ? tU('changePicture_4a95') : tU('uploadAPicture_87f4')}
             </button>
-            <p className="mt-1 font-body text-xs text-ink-400">PNG, JPEG, or WebP — up to 2MB.</p>
+            <p className="mt-1 font-body text-xs text-ink-400">{tU('pngJpegOrWebpUp_d4ac')}</p>
             {avatarError && <p className="mt-1 font-body text-xs text-down">{avatarError}</p>}
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="font-display text-sm font-semibold text-ink-900">Username</h2>
+        <h2 className="font-display text-sm font-semibold text-ink-900">{tU('username_f603')}</h2>
         <p className="mt-1 font-body text-xs text-ink-400">
           3-{USERNAME_MAX_LENGTH} characters — lowercase letters, numbers, and underscores only.
         </p>
@@ -180,12 +182,12 @@ export function ProfileEditor() {
             disabled={savingUsername || !usernameFormatValid || usernameInput.length === 0}
             className="rounded-lg bg-accent px-4 py-2 font-body text-sm font-semibold text-accent-ink disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {savingUsername ? 'Saving…' : 'Save'}
+            {savingUsername ? tU('saving_eedf') : tU('save_c9cc')}
           </button>
         </div>
         {usernameError && <p className="mt-1 font-body text-xs text-down">{usernameError}</p>}
         {usernameSaved && !usernameError && (
-          <p className="mt-1 font-body text-xs text-up">Username saved.</p>
+          <p className="mt-1 font-body text-xs text-up">{tU('usernameSaved_9dd8')}</p>
         )}
       </section>
 

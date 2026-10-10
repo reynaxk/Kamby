@@ -7,6 +7,7 @@ import { cn } from '@kamby/ui';
 import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { fetchLeaderboard } from '@/lib/social-client';
+import { useTranslations } from 'next-intl';
 
 const WINDOWS: readonly PnlWindow[] = ['24h', '7d', '30d'];
 const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d': '30D' };
@@ -30,6 +31,7 @@ function chainLabel(chain: LeaderboardChainFilter | null): string {
  * second time by the tab bar around them).
  */
 export function LeaderboardSidebar() {
+  const tU = useTranslations('ui');
   const [window, setWindow] = useState<PnlWindow>('24h');
   const [chain, setChain] = useState<LeaderboardChainFilter | null>(null);
   const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null);
@@ -87,10 +89,10 @@ export function LeaderboardSidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">Loading…</p>}
-        {status === 'error' && <p className="p-3 font-body text-xs text-down">Couldn&apos;t load the leaderboard.</p>}
+        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
+        {status === 'error' && <p className="p-3 font-body text-xs text-down">{tU('couldnTLoadTheLeaderboard_2afe')}</p>}
         {status === 'ready' && leaderboard?.entries.length === 0 && (
-          <p className="p-3 font-body text-xs text-ink-400">No realized PnL yet in this window.</p>
+          <p className="p-3 font-body text-xs text-ink-400">{tU('noRealizedPnlYetIn_607b')}</p>
         )}
         {status === 'ready' &&
           leaderboard?.entries.map((entry, index) => (

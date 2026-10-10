@@ -25,6 +25,7 @@ import { fetchTokenTraders } from '@/lib/discovery-api';
 import { pickDefaultMarket } from '@/lib/default-market';
 import { settledOr, settledWithin } from '@/lib/settled-fetch';
 import { SignedInOnly } from '@/components/landing/SignedInOnly';
+import { getTranslations } from 'next-intl/server';
 
 // The terminal fetches anything not ready by then itself — waiting longer only delays first
 // paint (2026-10-05: the page took ~2s before sending a byte).
@@ -49,6 +50,7 @@ export default async function DiscoverPage({
 }: {
   searchParams: { search?: string };
 }) {
+  const tU = await getTranslations('ui');
   const search = searchParams.search?.trim() || undefined;
 
   // Each section below is independent — a backend blip on one (e.g. Large trades) must
@@ -162,7 +164,7 @@ export default async function DiscoverPage({
             {search && traderResults.length > 0 && (
               <section className="mb-12">
                 <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                  Traders
+                  {tU('traders_d5d8')}
                 </h2>
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {traderResults.map((trader) => (
@@ -187,8 +189,7 @@ export default async function DiscoverPage({
                 What&apos;s moving
               </h2>
               <p className="mt-1 max-w-xl font-body text-sm text-ink-600">
-                Ranked by the Discovery Score — a transparent mix of volume, momentum, and
-                liquidity. See how it&apos;s computed in the token detail page.
+                {tU('rankedByTheDiscoveryScore_8f1d')}
               </p>
               <div className="mt-5">
                 <MarketTable markets={ranked.slice(0, 20)} />
@@ -198,14 +199,14 @@ export default async function DiscoverPage({
             {!search && (
               <section className="mb-12">
                 <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                  Trending
+                  {tU('trending_3752')}
                 </h2>
                 <p className="mt-1 font-body text-sm text-ink-600">
-                  Ranked by real trading activity — unique traders and trade count, not just volume.
+                  {tU('rankedByRealTradingActivity_dfe3')}
                 </p>
                 <div className="mt-5">
                   {trending.length === 0 ? (
-                    <EmptyState title="Nothing has cleared the trending thresholds yet" />
+                    <EmptyState title={tU('nothingHasClearedTheTrending_e4d9')} />
                   ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {trending.slice(0, 6).map((item) => (
@@ -220,14 +221,14 @@ export default async function DiscoverPage({
             {!search && (
               <section className="mb-12">
                 <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                  Top traders
+                  {tU('topTraders_a5ee')}
                 </h2>
                 <p className="mt-1 font-body text-sm text-ink-600">
-                  Most active by real 24h volume — not a profit claim.
+                  {tU('mostActiveByReal24h_6831')}
                 </p>
                 <div className="mt-5">
                   {topTraders.length === 0 ? (
-                    <EmptyState title="No trader has cleared the activity floor yet" />
+                    <EmptyState title={tU('noTraderHasClearedThe_2a3e')} />
                   ) : (
                     <TopTraders traders={topTraders} />
                   )}
@@ -238,15 +239,15 @@ export default async function DiscoverPage({
             {!search && (
               <section className="mb-12">
                 <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                  Active traders
+                  {tU('activeTraders_0dcb')}
                 </h2>
                 <p className="mt-1 font-body text-sm text-ink-600">
-                  Most 24h trades — a different ranking than Top Traders above, which is by volume.
-                  Still not a profit claim.
+                  {tU('most24hTradesADifferent_c21d')}
+                  {tU('stillNotAProfitClaim_d2cc')}
                 </p>
                 <div className="mt-5">
                   {activeTraders.length === 0 ? (
-                    <EmptyState title="No trader has cleared the activity floor yet" />
+                    <EmptyState title={tU('noTraderHasClearedThe_2a3e')} />
                   ) : (
                     <TopTraders traders={activeTraders} />
                   )}
@@ -257,15 +258,14 @@ export default async function DiscoverPage({
             {!search && (
               <section className="mb-12">
                 <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                  Large trades
+                  {tU('largeTrades_b938')}
                 </h2>
                 <p className="mt-1 font-body text-sm text-ink-600">
-                  Recent confirmed trades at or above the large-trade threshold, across every
-                  tracked market.
+                  {tU('recentConfirmedTradesAtOr_dbb3')}
                 </p>
                 <div className="mt-5">
                   {largeTrades.length === 0 ? (
-                    <EmptyState title="No large trades yet" />
+                    <EmptyState title={tU('noLargeTradesYet_9bb6')} />
                   ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {largeTrades.map((item) => (
@@ -280,10 +280,10 @@ export default async function DiscoverPage({
             {!search && (
               <section className="mb-12">
                 <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                  Rising
+                  {tU('rising_4475')}
                 </h2>
                 <p className="mt-1 font-body text-sm text-ink-600">
-                  Tokens that just started trending, and traders moving well above their usual pace.
+                  {tU('tokensThatJustStartedTrending_5d43')}
                 </p>
                 <div className="mt-5">
                   <RisingSection tokens={rising.tokens} traders={rising.traders} />
@@ -293,14 +293,14 @@ export default async function DiscoverPage({
 
             <section className="mb-12">
               <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">
-                Biggest movers
+                {tU('biggestMovers_fb33')}
               </h2>
               <p className="mt-1 font-body text-sm text-ink-600">
-                Biggest 24h movers among tracked markets.
+                {tU('biggest24hMoversAmongTracked_e764')}
               </p>
               <div className="mt-5">
                 {movers.length === 0 ? (
-                  <EmptyState title="No movement data yet" />
+                  <EmptyState title={tU('noMovementDataYet_00a0')} />
                 ) : (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {movers.slice(0, 3).map((market) => (
@@ -312,13 +312,13 @@ export default async function DiscoverPage({
             </section>
 
             <section>
-              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">Volume</h2>
+              <h2 className="font-display text-lg font-bold tracking-tight text-ink-900">{tU('volume_bd7a')}</h2>
               <p className="mt-1 font-body text-sm text-ink-600">
-                Highest 24h trading volume among tracked markets.
+                {tU('highest24hTradingVolumeAmong_3c26')}
               </p>
               <div className="mt-5">
                 {byVolume.length === 0 ? (
-                  <EmptyState title="No volume data yet" />
+                  <EmptyState title={tU('noVolumeDataYet_1e43')} />
                 ) : (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {byVolume.slice(0, 3).map((market) => (

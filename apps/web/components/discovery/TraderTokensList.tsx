@@ -3,11 +3,13 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/market/EmptyState';
 import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { formatCompactUsd, formatRelativeTime } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 /** Trader → token connection — see docs/TRADER_INTELLIGENCE.md#trader-to-token. */
 export function TraderTokensList({ tokens }: { tokens: TraderTokenStat[] }) {
+  const tU = useTranslations('ui');
   if (tokens.length === 0) {
-    return <EmptyState title="No tokens traded yet." />;
+    return <EmptyState title={tU('noTokensTradedYet_7205')} />;
   }
 
   return (
@@ -26,11 +28,11 @@ export function TraderTokensList({ tokens }: { tokens: TraderTokenStat[] }) {
           <TokenIdentity symbol={entry.token.symbol} name={entry.token.name} logoUrl={entry.token.logoUrl} size="sm" />
           <div className="flex shrink-0 items-center gap-4 font-mono text-xs tabular-nums text-ink-600">
             <div className="text-right">
-              <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">Trades</div>
+              <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">{tU('trades_18da')}</div>
               {entry.tradeCount}
             </div>
             <div className="text-right">
-              <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">Volume</div>
+              <div className="text-[0.65rem] uppercase tracking-wide text-ink-400">{tU('volume_bd7a')}</div>
               {formatCompactUsd(entry.volumeUsd)}
             </div>
             <div className="text-right text-ink-400" suppressHydrationWarning>

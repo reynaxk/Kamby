@@ -5,6 +5,7 @@ import type { PumpFunTokenSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { fetchTrenches } from '@/lib/trenches-client';
 import { cashtag } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 const POLL_INTERVAL_MS = 12_000;
 const MIN_RADIUS = 26;
@@ -48,6 +49,7 @@ interface Bubble {
  * pattern SocialFeed/TransactionDetail already use for Solana activity.
  */
 export function FreshCoinsBubbles() {
+  const tU = useTranslations('ui');
   const [tokens, setTokens] = useState<PumpFunTokenSummary[] | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -83,11 +85,11 @@ export function FreshCoinsBubbles() {
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-up" />
         </span>
         <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-600">
-          Fresh on Pump.fun
+          {tU('freshOnPumpFun_6ee9')}
         </span>
       </div>
       <div className="relative h-[300px] w-full">
-        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">Loading…</p>}
+        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
         {tokens && tokens.length > 0 && <BubbleField tokens={tokens} />}
       </div>
     </div>

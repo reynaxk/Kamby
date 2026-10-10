@@ -6,12 +6,14 @@ import { EmptyState } from './EmptyState';
 import { PriceChange } from './PriceChange';
 import { StaleBadge } from './StaleBadge';
 import { TokenIdentity } from './TokenIdentity';
+import { useTranslations } from 'next-intl';
 
 export function MarketTable({ markets }: { markets: MarketSummary[] }) {
+  const tU = useTranslations('ui');
   if (markets.length === 0) {
     return (
       <EmptyState
-        title="No market data available yet"
+        title={tU('noMarketDataAvailableYet_9a9f')}
         detail="The ingestion worker hasn't published a priced snapshot for any tracked market. Check back shortly."
       />
     );
@@ -22,11 +24,11 @@ export function MarketTable({ markets }: { markets: MarketSummary[] }) {
       <table className="w-full min-w-[640px] border-collapse">
         <thead>
           <tr className="border-b border-line text-left font-mono text-[0.7rem] uppercase tracking-wide text-ink-400">
-            <th className="px-4 py-3 font-medium">Token</th>
-            <th className="px-4 py-3 text-right font-medium">Price</th>
+            <th className="px-4 py-3 font-medium">{tU('token_459a')}</th>
+            <th className="px-4 py-3 text-right font-medium">{tU('price_3601')}</th>
             <th className="px-4 py-3 text-right font-medium">24H</th>
-            <th className="px-4 py-3 text-right font-medium">Volume</th>
-            <th className="px-4 py-3 text-right font-medium">Liquidity</th>
+            <th className="px-4 py-3 text-right font-medium">{tU('volume_bd7a')}</th>
+            <th className="px-4 py-3 text-right font-medium">{tU('liquidity_ced4')}</th>
           </tr>
         </thead>
         <tbody>
@@ -62,7 +64,7 @@ export function MarketTable({ markets }: { markets: MarketSummary[] }) {
                   ) : (
                     <div
                       className="flex items-center gap-3 px-4 py-3 opacity-70"
-                      title="This market is visible for discovery but is not tradeable here yet"
+                      title={tU('thisMarketIsVisibleFor_626f')}
                     >
                       <TokenIdentity
                         symbol={market.symbol}

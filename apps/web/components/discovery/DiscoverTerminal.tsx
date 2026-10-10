@@ -149,6 +149,7 @@ export function DiscoverTerminal({
   initialActivity: SocialActivity[] | undefined;
   initialTraders: TokenTraderConnection | undefined;
 }) {
+  const tU = useTranslations('ui');
   const isMobile = useIsMobile();
   const [gridMode, setGridMode] = useState<GridMode>(1);
   const [tokenListOpen, setTokenListOpen] = useState(false);
@@ -315,7 +316,7 @@ export function DiscoverTerminal({
   // rather than just filling space for its own sake.
   const layoutToggle = (
     <div className="mb-3 hidden items-center justify-between gap-2 lg:flex">
-      <h1 className="font-display text-lg font-bold tracking-tight text-ink-900">Discover</h1>
+      <h1 className="font-display text-lg font-bold tracking-tight text-ink-900">{tU('discover_abfc')}</h1>
       <div className="flex items-center gap-2">
         <LayoutGrid className="h-3.5 w-3.5 text-ink-400" aria-hidden />
         <div className="inline-flex rounded-lg border border-line bg-surface p-1">
@@ -355,7 +356,7 @@ export function DiscoverTerminal({
             onClick={() => setTokenListOpen(true)}
             className="min-w-0 flex-1 truncate rounded-lg border border-line bg-surface px-3 py-2 text-left font-display text-sm font-semibold text-ink-900"
           >
-            {selected ? cashtag(selected.symbol ?? 'Token') : tTerminal('pickToken')}{' '}
+            {selected ? cashtag(selected.symbol ?? tU('token_459a')) : tTerminal('pickToken')}{' '}
             <span className="text-ink-400">▾</span>
           </button>
         </div>
@@ -411,12 +412,12 @@ export function DiscoverTerminal({
           </div>
           <div className="min-h-0 flex-1">
             {!selected ? (
-              <EmptyState title="Pick a token to see its chart" />
+              <EmptyState title={tU('pickATokenToSee_8baf')} />
             ) : candlesStatus === 'loading' ? (
               <Skeleton className="h-full w-full" />
             ) : candlesStatus === 'error' ? (
               <EmptyState
-                title="Couldn't load this chart"
+                title={tU('couldnTLoadThisChart_3d0a')}
                 detail="Try selecting the token again in a moment."
               />
             ) : (
@@ -428,14 +429,14 @@ export function DiscoverTerminal({
         <div className="mb-3 h-[300px]">
           {!selected ? (
             <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
-              <EmptyState title="Pick a token to see its activity" />
+              <EmptyState title={tU('pickATokenToSee_0c88')} />
             </div>
           ) : activityStatus === 'loading' ? (
             <Skeleton className="h-full w-full rounded-2xl" />
           ) : activityStatus === 'error' ? (
             <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
               <EmptyState
-                title="Couldn't load activity"
+                title={tU('couldnTLoadActivity_bd85')}
                 detail="Try selecting the token again in a moment."
               />
             </div>
@@ -460,7 +461,7 @@ export function DiscoverTerminal({
               <Skeleton className="h-40 w-full" />
             ) : tradersStatus === 'error' ? (
               <EmptyState
-                title="Couldn't load traders"
+                title={tU('couldnTLoadTraders_1f56')}
                 detail="Try selecting the token again in a moment."
               />
             ) : (
@@ -504,7 +505,7 @@ export function DiscoverTerminal({
             />
           ) : (
             <p className="font-body text-sm text-ink-600">
-              {selected ? "Trading isn't available for this token yet." : 'Pick a token to trade.'}
+              {selected ? "Trading isn't available for this token yet." : tU('pickATokenToTrade_0a27')}
             </p>
           )}
         </MobileDrawer>
@@ -560,7 +561,7 @@ export function DiscoverTerminal({
           ) : (
             <Surface variant="glass" className="p-4">
               <p className="font-body text-sm text-ink-600">
-                Pick a token from the list to see it here.
+                {tU('pickATokenFromThe_424e')}
               </p>
             </Surface>
           )}
@@ -575,12 +576,12 @@ export function DiscoverTerminal({
             </div>
             <div className="min-h-0 flex-1">
               {!selected ? (
-                <EmptyState title="Pick a token to see its chart" />
+                <EmptyState title={tU('pickATokenToSee_8baf')} />
               ) : candlesStatus === 'loading' ? (
                 <Skeleton className="h-full w-full" />
               ) : candlesStatus === 'error' ? (
                 <EmptyState
-                  title="Couldn't load this chart"
+                  title={tU('couldnTLoadThisChart_3d0a')}
                   detail="Try selecting the token again in a moment."
                 />
               ) : (
@@ -592,14 +593,14 @@ export function DiscoverTerminal({
           <div className="h-[300px]">
             {!selected ? (
               <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
-                <EmptyState title="Pick a token to see its activity" />
+                <EmptyState title={tU('pickATokenToSee_0c88')} />
               </div>
             ) : activityStatus === 'loading' ? (
               <Skeleton className="h-full w-full rounded-2xl" />
             ) : activityStatus === 'error' ? (
               <div className="flex h-full items-center rounded-2xl border border-line bg-surface">
                 <EmptyState
-                  title="Couldn't load activity"
+                  title={tU('couldnTLoadActivity_bd85')}
                   detail="Try selecting the token again in a moment."
                 />
               </div>
@@ -628,7 +629,7 @@ export function DiscoverTerminal({
               <p className="font-body text-sm text-ink-600">
                 {selected
                   ? "Trading isn't available for this token yet."
-                  : 'Pick a token to trade.'}
+                  : tU('pickATokenToTrade_0a27')}
               </p>
             </Surface>
           )}
@@ -639,14 +640,14 @@ export function DiscoverTerminal({
 
           {!selected ? (
             <div className="flex items-center rounded-2xl border border-line bg-surface">
-              <EmptyState title="No token selected" />
+              <EmptyState title={tU('noTokenSelected_bf37')} />
             </div>
           ) : tradersStatus === 'loading' ? (
             <Skeleton className="h-40 w-full rounded-2xl" />
           ) : tradersStatus === 'error' ? (
             <div className="flex items-center rounded-2xl border border-line bg-surface">
               <EmptyState
-                title="Couldn't load traders"
+                title={tU('couldnTLoadTraders_1f56')}
                 detail="Try selecting the token again in a moment."
               />
             </div>

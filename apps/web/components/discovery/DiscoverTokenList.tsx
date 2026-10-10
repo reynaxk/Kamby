@@ -39,10 +39,11 @@ export function TerminalPrimaryNav({
   activeTab: PrimaryTab;
   onChange: (tab: PrimaryTab) => void;
 }) {
+  const tU = useTranslations('ui');
   const tLists = useTranslations('lists');
   return (
     <nav
-      aria-label="Terminal navigation"
+      aria-label={tU('terminalNavigation_312e')}
       className="flex items-center gap-4 overflow-x-auto border-b border-line px-1 pb-2"
     >
       {PRIMARY_TABS.map((tab) => (
@@ -97,6 +98,7 @@ export function DiscoverTokenList({
   onPrimaryTabChange?: (tab: PrimaryTab) => void;
   showPrimaryNav?: boolean;
 }) {
+  const tU = useTranslations('ui');
   const tLists = useTranslations('lists');
   const router = useRouter();
   const [uncontrolledPrimaryTab, setUncontrolledPrimaryTab] = useState<PrimaryTab>('tokens');
@@ -137,25 +139,25 @@ export function DiscoverTokenList({
     rows.length === 0 ? <p className="col-span-full p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
 
   const tabContent: Record<MarketFeedTab, ReactNode> = {
-    trending: list(uniqueMarkets(feeds.trending.markets).map(marketRow), 'Nothing trending yet.'),
+    trending: list(uniqueMarkets(feeds.trending.markets).map(marketRow), tU('nothingTrendingYet_a318')),
     trenches: list(
       feeds.trenches.tokens.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
-      'No new Pump.fun launches right now.',
+      tU('noNewPumpFunLaunches_09ad'),
     ),
     bonding: list(
       feeds.bonding.tokens.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
-      'Nothing close to graduating right now.',
+      tU('nothingCloseToGraduatingRight_e349'),
     ),
     graduated: (
       <>
         {feeds.graduated.markets.length > 0 && <SectionLabel>New pools · Base &amp; BNB</SectionLabel>}
         {uniqueMarkets(feeds.graduated.markets).map(marketRow)}
-        {feeds.graduated.pumpfun.length > 0 && <SectionLabel>Graduated from Pump.fun</SectionLabel>}
+        {feeds.graduated.pumpfun.length > 0 && <SectionLabel>{tU('graduatedFromPumpFun_9d58')}</SectionLabel>}
         {feeds.graduated.pumpfun.map((token) => (
           <PumpFunFeedRow key={token.mintAddress} token={token} />
         ))}
         {feeds.graduated.markets.length === 0 && feeds.graduated.pumpfun.length === 0 && (
-          <p className="col-span-full p-3 font-body text-xs text-ink-400">Nothing has graduated recently.</p>
+          <p className="col-span-full p-3 font-body text-xs text-ink-400">{tU('nothingHasGraduatedRecently_4271')}</p>
         )}
       </>
     ),
@@ -165,7 +167,7 @@ export function DiscoverTokenList({
           Extreme risk: coins under 10 minutes old with tiny liquidity, below Kamby&rsquo;s normal safety checks. Most go to zero.
         </p>
         {(feeds.xxxrisk?.tokens ?? []).length === 0 ? (
-          <p className="col-span-full p-3 font-body text-xs text-ink-400">Nothing in range right now — new launches show up within seconds.</p>
+          <p className="col-span-full p-3 font-body text-xs text-ink-400">{tU('nothingInRangeRightNow_ba3c')}</p>
         ) : (
           (feeds.xxxrisk?.tokens ?? []).map((token) => <XxxRiskFeedRow key={token.mintAddress} token={token} />)
         )}
@@ -173,7 +175,7 @@ export function DiscoverTokenList({
     ),
     crypto: list(
       feeds.crypto.prices.map((price) => <CryptoFeedRow key={price.symbol} price={price} onOpen={openCrypto} />),
-      'Connecting to live prices…',
+      tU('connectingToLivePrices_45f2'),
     ),
   };
 
@@ -183,7 +185,7 @@ export function DiscoverTokenList({
 
       <div className="flex min-h-0 flex-1 flex-col gap-1.5">
         {primaryTab === 'tokens' && (
-          <div role="tablist" aria-label="Market feeds" className="flex gap-2 overflow-x-auto px-1 pb-0.5">
+          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5">
             {TOKEN_TABS.map((t) => (
               <button
                 key={t.id}
@@ -217,7 +219,7 @@ export function DiscoverTokenList({
         ) : primaryTab === 'alerts' ? (
           <div className="min-h-0 flex-1 rounded-2xl border border-line bg-surface">
             <EmptyState
-              title="Alerts aren't built yet"
+              title={tU('alertsArenTBuiltYet_6666')}
               detail="Price/volume alerts are planned but don't exist yet — nothing to show here honestly."
             />
           </div>

@@ -31,6 +31,7 @@ import { useTranslations } from 'next-intl';
  * terminal, separated from the flat panels below it without adding density.
  */
 export function TokenMetricsBar({ market }: { market: MarketSummary }) {
+  const tU = useTranslations('ui');
   const tC = useTranslations('coin');
   // Live price every 5s — the market snapshot alone froze at page/selection load.
   const source = liveSourceFor(market);
@@ -56,7 +57,7 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
           </div>
           <div className="flex items-center gap-1.5 truncate font-mono text-[0.6rem] text-ink-400">
             <span className="truncate">
-              {market.name ?? 'Indexed market'} · {chainName}
+              {market.name ?? tU('indexedMarket_808e')} · {chainName}
             </span>
             <span className="shrink-0">
               {market.tokenAddress.slice(0, 6)}…{market.tokenAddress.slice(-4)}

@@ -37,6 +37,7 @@ export function SolAmountInput({
   onChange: (value: string) => void;
   walletAddress: string | undefined;
 }) {
+  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
   const [text, setText] = useDecimalText(value, 9, onChange);
   const [solBalanceLamports, setSolBalanceLamports] = useState<bigint | null>(null);
@@ -122,7 +123,7 @@ export function SolAmountInput({
             'hover:border-accent/60 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
           )}
         >
-          Max
+          {tU('max_6a06')}
         </button>
       </div>
     </div>

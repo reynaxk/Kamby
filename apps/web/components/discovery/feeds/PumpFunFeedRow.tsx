@@ -7,6 +7,7 @@ import { cn } from '@kamby/ui';
 import { cashtag, formatRelativeTime, truncateAddress } from '@/lib/format';
 import { solanaMarketHref } from '@/lib/solana-links';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { useTranslations } from 'next-intl';
 
 function lamportsToSol(raw: string): number {
   return Number(raw) / 1_000_000_000;
@@ -20,6 +21,7 @@ function lamportsToSol(raw: string): number {
  * pushes new curve state.
  */
 export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: PumpFunTokenSummary; emphasizeProgress?: boolean }) {
+  const tU = useTranslations('ui');
   const content = (
     <>
       <span className="relative shrink-0">
@@ -37,7 +39,7 @@ export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: Pu
         </span>
       </span>
       {token.complete ? (
-        <span className="shrink-0 rounded-full bg-up/15 px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold uppercase text-up">Trade</span>
+        <span className="shrink-0 rounded-full bg-up/15 px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold uppercase text-up">{tU('trade_5f39')}</span>
       ) : (
         <span className="shrink-0 text-right" aria-label={`${token.graduationProgressPct.toFixed(0)}% of the way to graduating`}>
           <span className={cn('block overflow-hidden rounded-full bg-surface-raised', emphasizeProgress ? 'h-2 w-20' : 'h-1.5 w-14')}>

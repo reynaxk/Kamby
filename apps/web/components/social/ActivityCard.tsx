@@ -7,6 +7,7 @@ import { formatCompactUsd, formatPrice, formatRelativeTime, truncateAddress } fr
 import { LikeButton } from './LikeButton';
 import { ShareButton } from './ShareButton';
 import { TraderIdentity } from './TraderIdentity';
+import { useTranslations } from 'next-intl';
 
 /**
  * The one reusable activity card — the feed, a trader's activity tab, and a token's
@@ -14,6 +15,7 @@ import { TraderIdentity } from './TraderIdentity';
  * docs/SOCIAL.md#activity-model.
  */
 export function ActivityCard({ activity }: { activity: SocialActivity }) {
+  const tU = useTranslations('ui');
   const isBuy = activity.action === 'BUY';
   const traderHref = activity.trader.address ? `/trader/${activity.trader.address}` : null;
   // Chain-aware as of 2026-09-16 (BNB Chain going live) — activity.chainId already carries
@@ -44,7 +46,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
             >
               ?
             </div>
-            <span className="font-body text-sm text-ink-400">Unknown trader</span>
+            <span className="font-body text-sm text-ink-400">{tU('unknownTrader_1198')}</span>
           </div>
         )}
         <time
@@ -64,7 +66,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
             isBuy ? 'text-up' : 'text-down',
           )}
         >
-          {isBuy ? 'Bought' : 'Sold'}
+          {isBuy ? tU('bought_fe5a') : tU('sold_d85a')}
         </span>
         <span className="font-display text-lg font-bold tabular-nums text-ink-900">
           {formatCompactUsd(activity.amountUsd)}
@@ -78,7 +80,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           </Link>
         ) : (
           <span
-            title="This market is visible for discovery but is not tradeable here yet"
+            title={tU('thisMarketIsVisibleFor_626f')}
             className="truncate font-display text-sm font-semibold text-ink-400"
           >
             {activity.token.symbol ?? truncateAddress(activity.token.address)}
@@ -105,7 +107,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           {activity.token.decimals !== null && activity.token.quoteDecimals !== null && (
             <TradeButton
               chainId={activity.chainId}
-              label="Trade"
+              label={tU('trade_5f39')}
               variant="ghost"
               tokenAddress={activity.token.address}
               tokenSymbol={activity.token.symbol}
@@ -123,7 +125,7 @@ export function ActivityCard({ activity }: { activity: SocialActivity }) {
           {marketHref && (
             <ShareButton
               compact
-              title={`${isBuy ? 'Bought' : 'Sold'} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Kamby`}
+              title={`${isBuy ? tU('bought_fe5a') : tU('sold_d85a')} ${formatCompactUsd(activity.amountUsd)} of ${activity.token.symbol ?? truncateAddress(activity.token.address)} on Kamby`}
               path={marketHref}
             />
           )}

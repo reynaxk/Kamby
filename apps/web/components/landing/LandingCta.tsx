@@ -11,8 +11,10 @@ import { useTranslations } from 'next-intl';
  * automatically) and goes to the terminal once signed in. Returning, already-signed-in users
  * are sent straight there.
  */
-export function LandingCta({ label = 'Get started', variant = 'primary', className }: { label?: string; variant?: 'primary' | 'ghost' | 'neon'; className?: string }) {
+export function LandingCta({ label: labelProp, variant = 'primary', className }: { label?: string; variant?: 'primary' | 'ghost' | 'neon'; className?: string }) {
+  const tU = useTranslations('ui');
   const tL = useTranslations('landing');
+  const label = labelProp ?? tU('getStarted_be11');
   const { ready, authenticated, login } = usePrivy();
   const router = useRouter();
   useEffect(() => {
