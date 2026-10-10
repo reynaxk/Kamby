@@ -26,6 +26,7 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
+import { GasFreeNote, TradeSuccess } from './TradeSuccess';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
@@ -650,6 +651,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         />
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
         {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
+        {sheet && <GasFreeNote />}
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
@@ -754,10 +756,14 @@ function SolanaTradeStatusView({
 
   return (
     <div className="space-y-3 text-center">
-      <div className="flex items-center justify-center gap-2">
-        {Icon && <Icon className={cn('h-5 w-5', color)} />}
-        <p className={cn('font-body text-sm font-semibold', color)}>{label}</p>
-      </div>
+      {step === 'confirmed' ? (
+        <TradeSuccess title={label} />
+      ) : (
+        <div className="flex items-center justify-center gap-2">
+          {Icon && <Icon className={cn('h-5 w-5', color)} />}
+          <p className={cn('font-body text-sm font-semibold', color)}>{label}</p>
+        </div>
+      )}
       {transaction?.failureReason && <p className="font-body text-xs text-ink-600">{transaction.failureReason}</p>}
       {step !== 'confirmed' && step !== 'failed' && <SlowConfirmationNote />}
       {explorerUrl && (

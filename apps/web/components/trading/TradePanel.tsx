@@ -18,6 +18,7 @@ import { getQuote, getTransaction, relaySwap, submitFeeTransaction, submitTransa
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
+import { GasFreeNote, TradeSuccess } from './TradeSuccess';
 import { GaslessToggle } from './GaslessToggle';
 import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
@@ -858,6 +859,7 @@ export function TradePanel({
 
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
+      {sheet && <GasFreeNote />}
       {isConnected ? (
         <Button
           type="button"
@@ -953,12 +955,7 @@ function TradeStatusView({
       {step === 'submitted' && <p className="font-body text-sm text-ink-600">{tU('transactionSubmittedWaitingForIt_eba2')}</p>}
       {step === 'pending' && <p className="font-body text-sm text-ink-600">{tU('waitingForConfirmationOnChain_cb34')}</p>}
       {(step === 'submitted' || step === 'pending') && <SlowConfirmationNote />}
-      {step === 'confirmed' && (
-        <div className="flex items-center justify-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-up" />
-          <p className="font-body text-sm font-semibold text-up">{tU('tradeConfirmed_132b')}</p>
-        </div>
-      )}
+      {step === 'confirmed' && <TradeSuccess title={tU('tradeConfirmed_132b')} />}
       {step === 'failed' && (
         <div className="flex items-center justify-center gap-2">
           <XCircle className="h-5 w-5 text-down" />

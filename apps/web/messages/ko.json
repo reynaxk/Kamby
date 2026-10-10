@@ -536,6 +536,7 @@
     "recents": "최근",
     "clear": "지우기",
     "watchlistSignedOut": "로그인하고 코인의 별을 눌러 여기에 추가하세요.",
-    "watchlistEmpty": "아직 없습니다 — 코인의 별을 눌러 추가하세요."
+    "watchlistEmpty": "아직 없습니다 — 코인의 별을 눌러 추가하세요.",
+    "gasFreeUsdc": "가스비 없음 · 모두 USDC로"
   }
 }

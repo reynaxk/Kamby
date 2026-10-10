@@ -46,8 +46,13 @@ function chainLabel(chain: LeaderboardChainFilter | null): string {
  * risked a real class-collision bug for no benefit. `.kamby-void` still supplies the base
  * True-Deep-Black ground and monospace-friendly ink tokens everything here sits on.
  */
-/** The top three get medals instead of a number (2026-10-10, like fomo). */
-const MEDALS = ['🥇', '🥈', '🥉'] as const;
+/** The top three are Kamby's own sea ranks instead of numbers (owner idea 2026-10-10) — the
+ *  same whale/shark/fish the holders list uses. */
+const TOP_RANKS = [
+  { tier: 'whale', icon: '🐋', ring: 'bg-accent/15 ring-accent/60 shadow-[0_0_18px_rgba(0,255,135,0.35)]', text: 'text-accent' },
+  { tier: 'shark', icon: '🦈', ring: 'bg-warn/15 ring-warn/50', text: 'text-warn' },
+  { tier: 'fish', icon: '🐟', ring: 'bg-up/10 ring-up/40', text: 'text-up' },
+] as const;
 
 export default async function LeaderboardPage({
   searchParams,
@@ -58,6 +63,7 @@ export default async function LeaderboardPage({
   const chain: LeaderboardChainFilter | null = isChainFilter(searchParams.chain) ? searchParams.chain : null;
   const leaderboard = await fetchLeaderboard(window, 25, chain);
   const t = await getTranslations('leaderboard');
+  const tL = await getTranslations('labels');
 
   return (
     <div className="kamby-void min-h-screen bg-bg">
@@ -122,9 +128,14 @@ export default async function LeaderboardPage({
             {leaderboard.entries.map((entry, index) => (
               <li key={entry.userId}>
                 <Surface variant="glass" className="flex items-center gap-4 p-4 max-md:gap-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-0 max-md:py-3 max-md:shadow-none max-md:backdrop-blur-none">
-                  <span className="w-7 shrink-0 text-center font-mono text-sm font-semibold tabular-nums text-ink-400">
-                    {index < 3 ? <span className="text-xl" aria-label={`#${index + 1}`}>{MEDALS[index]}</span> : `#${index + 1}`}
-                  </span>
+                  {index < 3 ? (
+                    <span className="flex w-11 shrink-0 flex-col items-center gap-0.5" aria-label={`#${index + 1}`}>
+                      <span className={cn('flex h-9 w-9 items-center justify-center rounded-full text-lg ring-1', TOP_RANKS[index]!.ring)}>{TOP_RANKS[index]!.icon}</span>
+                      <span className={cn('font-display text-[0.6rem] font-bold uppercase tracking-wide', TOP_RANKS[index]!.text)}>{tL(`tier_${TOP_RANKS[index]!.tier}`)}</span>
+                    </span>
+                  ) : (
+                    <span className="w-11 shrink-0 text-center font-mono text-sm font-semibold tabular-nums text-ink-400">#{index + 1}</span>
+                  )}
                   <Link href={`/trader/${entry.walletAddress}`} className="min-w-0 flex-1">
                     <TraderIdentity
                       address={entry.walletAddress}

@@ -536,6 +536,7 @@
     "recents": "最近",
     "clear": "クリア",
     "watchlistSignedOut": "サインインしてコインの星をタップするとここに表示されます。",
-    "watchlistEmpty": "まだ何もありません — コインの星をタップして追加しましょう。"
+    "watchlistEmpty": "まだ何もありません — コインの星をタップして追加しましょう。",
+    "gasFreeUsdc": "ガス不要 · すべて USDC"
   }
 }
