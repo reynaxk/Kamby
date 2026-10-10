@@ -526,6 +526,7 @@
     "lastActive": "son aktif {date}",
     "behaviorNote": "Yalnızca bu cüzdanın onaylı işlemlerinden hesaplanır — yatırım tavsiyesi değildir.",
     "volume24h": "24s hacim",
-    "trades24h": "24s işlem"
+    "trades24h": "24s işlem",
+    "indicators": "Göstergeler"
   }
 }

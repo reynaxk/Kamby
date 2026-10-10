@@ -526,6 +526,7 @@
     "lastActive": "最終アクティブ {date}",
     "behaviorNote": "このウォレットの確認済み取引のみから算出 — 投資助言ではありません。",
     "volume24h": "24時間取引量",
-    "trades24h": "24時間取引数"
+    "trades24h": "24時間取引数",
+    "indicators": "インジケーター"
   }
 }

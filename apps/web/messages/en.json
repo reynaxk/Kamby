@@ -526,6 +526,7 @@
     "lastActive": "last active {date}",
     "behaviorNote": "Derived only from this wallet's own confirmed, indexed trades — not investment advice.",
     "volume24h": "24h volume",
-    "trades24h": "24h trades"
+    "trades24h": "24h trades",
+    "indicators": "Indicators"
   }
 }

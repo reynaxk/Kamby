@@ -526,6 +526,7 @@
     "lastActive": "última atividade {date}",
     "behaviorNote": "Calculado só com as operações confirmadas desta carteira — não é recomendação de investimento.",
     "volume24h": "Volume 24h",
-    "trades24h": "Operações 24h"
+    "trades24h": "Operações 24h",
+    "indicators": "Indicadores"
   }
 }

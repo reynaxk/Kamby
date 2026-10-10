@@ -526,6 +526,7 @@
     "lastActive": "última actividad {date}",
     "behaviorNote": "Calculado solo con las operaciones confirmadas de esta wallet — no es asesoramiento de inversión.",
     "volume24h": "Volumen 24h",
-    "trades24h": "Operaciones 24h"
+    "trades24h": "Operaciones 24h",
+    "indicators": "Indicadores"
   }
 }

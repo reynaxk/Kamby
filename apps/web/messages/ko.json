@@ -526,6 +526,7 @@
     "lastActive": "최근 활동 {date}",
     "behaviorNote": "이 지갑의 확인된 거래만으로 계산 — 투자 조언이 아닙니다.",
     "volume24h": "24시간 거래량",
-    "trades24h": "24시간 거래 수"
+    "trades24h": "24시간 거래 수",
+    "indicators": "지표"
   }
 }

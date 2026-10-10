@@ -526,6 +526,7 @@
     "lastActive": "dernière activité {date}",
     "behaviorNote": "Calculé uniquement à partir des trades confirmés de ce wallet — pas un conseil en investissement.",
     "volume24h": "Volume 24h",
-    "trades24h": "Trades 24h"
+    "trades24h": "Trades 24h",
+    "indicators": "Indicateurs"
   }
 }

@@ -274,6 +274,7 @@ export function KambyChart({
   entryPrice?: number | null;
 }) {
   const tU = useTranslations('ui');
+  const tL = useTranslations('labels');
   const containerRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const [activeIndicators, setActiveIndicators] = useState<Set<IndicatorId>>(new Set());
@@ -575,7 +576,7 @@ export function KambyChart({
           aria-expanded={pickerOpen}
           className="rounded-md border border-line bg-surface/90 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-400 backdrop-blur hover:text-ink-900"
         >
-          Indicators{activeIndicators.size > 0 ? ` (${activeIndicators.size})` : ''}
+          {tL('indicators')}{activeIndicators.size > 0 ? ` (${activeIndicators.size})` : ''}
         </button>
         {pickerOpen && (
           <div className="absolute left-0 z-20 mt-1 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-lg">

@@ -526,6 +526,7 @@
     "lastActive": "terakhir aktif {date}",
     "behaviorNote": "Dihitung hanya dari trade terkonfirmasi wallet ini — bukan saran investasi.",
     "volume24h": "Volume 24j",
-    "trades24h": "Trade 24j"
+    "trades24h": "Trade 24j",
+    "indicators": "Indikator"
   }
 }
