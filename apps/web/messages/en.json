@@ -537,6 +537,7 @@
     "clear": "Clear",
     "watchlistSignedOut": "Sign in and tap the star on a coin to watch it here.",
     "watchlistEmpty": "Nothing here yet — tap the star on a coin to watch it.",
-    "gasFreeUsdc": "Gas-free · all in USDC"
+    "gasFreeUsdc": "Gas-free · all in USDC",
+    "yourCoins": "Your coins"
   }
 }

@@ -202,6 +202,9 @@ export const TokenPositionSchema = z.object({
   tokenAddress: z.string(),
   /** 'solana' for a Solana mint; absent (EVM) on older responses. Added 2026-10-05. */
   chain: z.enum(['evm', 'solana']).optional(),
+  /** The exact chain ('eip155:8453', 'eip155:56', 'solana') so the app can open the coin's
+   *  page from a holdings list (2026-10-10). Absent on older responses. */
+  chainIdentifier: z.string().optional(),
   symbol: z.string().nullable(),
   name: z.string().nullable(),
   logoUrl: z.string().nullable(),

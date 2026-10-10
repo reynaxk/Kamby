@@ -537,6 +537,7 @@
     "clear": "Xóa",
     "watchlistSignedOut": "Đăng nhập và chạm ngôi sao trên coin để theo dõi tại đây.",
     "watchlistEmpty": "Chưa có gì — chạm ngôi sao trên coin để theo dõi.",
-    "gasFreeUsdc": "Không gas · tất cả bằng USDC"
+    "gasFreeUsdc": "Không gas · tất cả bằng USDC",
+    "yourCoins": "Coin của bạn"
   }
 }

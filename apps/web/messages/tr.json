@@ -537,6 +537,7 @@
     "clear": "Temizle",
     "watchlistSignedOut": "Giriş yap ve burada izlemek için bir coindeki yıldıza dokun.",
     "watchlistEmpty": "Henüz bir şey yok — izlemek için bir coindeki yıldıza dokun.",
-    "gasFreeUsdc": "Gassız · her şey USDC ile"
+    "gasFreeUsdc": "Gassız · her şey USDC ile",
+    "yourCoins": "Coinlerin"
   }
 }

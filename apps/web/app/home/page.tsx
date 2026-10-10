@@ -3,6 +3,7 @@ import { CoinRail } from '@/components/discovery/CoinRail';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PortfolioHeader } from '@/components/home/PortfolioHeader';
 import { TopTradersStrip } from '@/components/home/TopTradersStrip';
+import { HomeHoldings } from '@/components/home/HomeHoldings';
 import { fetchMarketFeeds } from '@/lib/market-api';
 import { soft } from '@/lib/soft';
 
@@ -26,6 +27,7 @@ export default async function HomePage() {
         <PortfolioHeader />
         <TopTradersStrip />
       </div>
+      <HomeHoldings />
       <div className="mt-3 md:h-[calc(100dvh-13rem)] md:min-h-[420px]">
         <CoinRail initial={feeds} selectedKey={null} pageScroll />
       </div>

@@ -8,8 +8,10 @@ import { TokenAvatar } from './TokenAvatar';
 import { badgeChainFor, ChainBadge } from './ChainBadge';
 import { LaunchpadBadge } from './LaunchpadBadge';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
+import { PriceText } from './PriceText';
+import { PositionChip } from '@/components/trading/PositionChip';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
-import { cashtag, formatCompactUsd, formatPercent, formatPrice } from '@/lib/format';
+import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
 
 export interface MobileCoinTab {
@@ -126,7 +128,9 @@ export function MobileCoinScreen({
 
       <div className="flex items-start justify-between gap-3 px-4 pt-1">
         <div className="min-w-0">
-          <p className="truncate font-display text-[2rem] font-bold leading-none tracking-tight text-ink-900 tabular-nums">{formatPrice(price)}</p>
+          <p className="truncate font-display text-[2rem] font-bold leading-none tracking-tight text-ink-900 tabular-nums">
+            <PriceText value={price} flash />
+          </p>
           {change !== null && (
             <p className={cn('mt-1.5 font-body text-sm font-semibold tabular-nums', up ? 'text-up' : 'text-down')}>
               {up ? '▲' : '▼'} {formatPercent(change).replace(/^[+-]/, '')} <span className="font-medium text-ink-400">24h</span>
@@ -139,6 +143,11 @@ export function MobileCoinScreen({
             <p className="font-body text-xs text-ink-400">{tU('marketCap_af63')}</p>
           </div>
         )}
+      </div>
+
+      {/* What you hold of it, right under the price — trading apps lead with your position. */}
+      <div className="px-4 pt-2 empty:hidden">
+        <PositionChip source={source} />
       </div>
 
       {banner && <div className="px-4 pt-3">{banner}</div>}

@@ -537,6 +537,7 @@
     "clear": "Löschen",
     "watchlistSignedOut": "Melde dich an und tippe auf den Stern eines Coins, um ihn hier zu beobachten.",
     "watchlistEmpty": "Noch nichts hier — tippe auf den Stern eines Coins, um ihn zu beobachten.",
-    "gasFreeUsdc": "Gasfrei · alles in USDC"
+    "gasFreeUsdc": "Gasfrei · alles in USDC",
+    "yourCoins": "Deine Coins"
   }
 }

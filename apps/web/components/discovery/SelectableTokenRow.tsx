@@ -3,10 +3,11 @@
 import { CHAIN_REGISTRY, slugForIdentifier, type MarketSummary } from '@kamby/domain';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { cn } from '@kamby/ui';
-import { formatCompactUsd, formatPercent, formatPrice, cashtag } from '@/lib/format';
+import { formatCompactUsd, formatPercent, cashtag } from '@/lib/format';
 import { Sparkline } from '@/components/market/Sparkline';
 import { NewListingBadge } from './feeds/NewListingBadge';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { PriceText } from '@/components/market/PriceText';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 import { useTranslations } from 'next-intl';
 
@@ -94,7 +95,7 @@ export function SelectableTokenRow({
       )}
       <span className="flex shrink-0 flex-col items-end gap-0.5">
         <span className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900 max-md:text-base">
-          {formatPrice(market.priceUsd)}
+          <PriceText value={market.priceUsd} flash />
         </span>
         <span
           className={cn(

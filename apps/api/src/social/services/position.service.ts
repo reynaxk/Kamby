@@ -87,6 +87,7 @@ export class PositionService {
         {
           tokenAddress: mint,
           chain: 'solana',
+          chainIdentifier: 'solana',
           symbol: meta?.symbol ?? pump?.symbol ?? null,
           name: meta?.name ?? pump?.name ?? null,
           logoUrl: meta?.logoUrl ?? null,
@@ -114,7 +115,7 @@ export class PositionService {
     const [tokens, markets] = await Promise.all([
       prisma.token.findMany({
         where: { id: { in: tokenIds } },
-        select: { id: true, contractAddress: true, symbol: true, name: true, decimals: true, logoUrl: true },
+        select: { id: true, contractAddress: true, symbol: true, name: true, decimals: true, logoUrl: true, chain: { select: { identifier: true } } },
       }),
       // Highest-liquidity market per token — same deepest-pool convention MarketService
       // already uses when a token trades through more than one pool.
@@ -176,6 +177,7 @@ export class PositionService {
       positions.push({
         tokenAddress: token.contractAddress,
         chain: 'evm',
+        chainIdentifier: token.chain?.identifier,
         symbol: token.symbol,
         name: token.name,
         logoUrl: token.logoUrl,

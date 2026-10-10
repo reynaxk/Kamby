@@ -537,6 +537,7 @@
     "clear": "Borrar",
     "watchlistSignedOut": "Inicia sesión y toca la estrella de una moneda para seguirla aquí.",
     "watchlistEmpty": "Aún no hay nada — toca la estrella de una moneda para seguirla.",
-    "gasFreeUsdc": "Sin gas · todo en USDC"
+    "gasFreeUsdc": "Sin gas · todo en USDC",
+    "yourCoins": "Tus monedas"
   }
 }

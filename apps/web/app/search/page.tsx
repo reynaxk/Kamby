@@ -4,11 +4,12 @@ import { cn } from '@kamby/ui';
 import { SearchBar } from '@/components/market/SearchBar';
 import { RecentSearches } from '@/components/market/RecentSearches';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { PriceText } from '@/components/market/PriceText';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { fetchMarketFeeds } from '@/lib/market-api';
 import { soft } from '@/lib/soft';
 import { marketHref } from '@/lib/solana-links';
-import { cashtag, formatCompactUsd, formatPercent, formatPrice } from '@/lib/format';
+import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
 
 export const metadata = { title: 'Search — Kamby' };
 
@@ -45,7 +46,7 @@ export default async function SearchPage() {
                       <span className="block font-body text-xs tabular-nums text-ink-400">{formatCompactUsd(m.marketCapUsd)} MC</span>
                     </span>
                     <span className="shrink-0 text-right">
-                      <span className="block font-body text-base font-semibold tabular-nums text-ink-900">{formatPrice(m.priceUsd)}</span>
+                      <span className="block font-body text-base font-semibold tabular-nums text-ink-900"><PriceText value={m.priceUsd} /></span>
                       <span className={cn('block font-body text-xs font-semibold tabular-nums', up ? 'text-up' : 'text-down')}>{formatPercent(m.priceChange24hPct)}</span>
                     </span>
                   </Link>
