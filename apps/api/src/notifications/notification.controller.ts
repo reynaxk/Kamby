@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Sse, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Param, Patch, Post, Query, Sse, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { MessageEvent } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { NotificationPing } from '@kamby/domain';
@@ -9,6 +9,7 @@ import type { SessionUser } from '../identity/identity.service';
 import { RealtimeService } from '../realtime/realtime.service';
 import { NotificationsQueryDto } from './dto/notifications-query.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { PushEndpointDto, SavePushSubscriptionDto } from './dto/push-subscription.dto';
 import { NotificationService } from './notification.service';
 
 /**
@@ -70,6 +71,48 @@ export class NotificationController {
   @Patch('preferences')
   updatePreferences(@Body() body: UpdatePreferencesDto, @CurrentUser() user: SessionUser) {
     return this.notifications.updatePreferences(user.id, body);
+  }
+
+  // --- Web Push (2026-10-11) --------------------------------------------------------------
+
+  /** The VAPID public key the browser needs to subscribe — public by design. */
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Get('push/public-key')
+  pushPublicKey() {
+    return { publicKey: process.env.VAPID_PUBLIC_KEY ?? null };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('push/subscriptions')
+  async savePushSubscription(@Body() body: SavePushSubscriptionDto, @CurrentUser() user: SessionUser, @Headers('user-agent') userAgent?: string) {
+    await this.notifications.savePushSubscription(user.id, {
+      endpoint: body.endpoint,
+      p256dh: body.keys.p256dh,
+      auth: body.keys.auth,
+      locale: body.locale ?? 'en',
+      userAgent: userAgent ? userAgent.slice(0, 300) : null,
+    });
+    return { ok: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('push/subscriptions/remove')
+  async deletePushSubscription(@Body() body: PushEndpointDto, @CurrentUser() user: SessionUser) {
+    await this.notifications.deletePushSubscription(user.id, body.endpoint);
+    return { ok: true };
+  }
+
+  /** Whether this exact phone/browser is already set up for this account. */
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('push/subscriptions/status')
+  async pushSubscriptionStatus(@Body() body: PushEndpointDto, @CurrentUser() user: SessionUser) {
+    return { subscribed: await this.notifications.hasPushSubscription(user.id, body.endpoint) };
   }
 
   // No @HttpCode override — a stream ticket is a newly created (single-use) resource, same

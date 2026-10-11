@@ -374,6 +374,7 @@ model User {
   notifications           Notification[]           @relation("NotificationRecipient")
   notificationActorFor    Notification[]           @relation("NotificationActorUser")
   notificationPreference  NotificationPreference?
+  pushSubscriptions       PushSubscription[]
   tokenWatches            TokenWatch[]
   savedSearches           SavedSearch[]
   tokenLots               TokenLot[]
@@ -919,6 +920,11 @@ enum NotificationType {
   /// sets are deliberately disjoint. Never fired for every swap — same threshold + cooldown
   /// discipline as WHALE_TRADE.
   WATCHED_TOKEN_ACTIVITY
+  /// 2026-10-11 — the recipient's own trade landed / failed on-chain (EVM or Solana).
+  TRADE_CONFIRMED
+  TRADE_FAILED
+  /// 2026-10-11 — a big price move on a coin the recipient holds or watches.
+  PRICE_MOVE
 }
 
 /// One notification for `user` (the recipient — always resolved from the authenticated
@@ -951,6 +957,14 @@ model Notification {
   swapId             String? @map("swap_id")
   tokenMarketId      String? @map("token_market_id")
 
+  /// Structured context for types with no related row to read it from (2026-10-11): the
+  /// trade id/chain/symbol/amount for TRADE_*, the coin and % move for PRICE_MOVE. Still
+  /// facts, never a pre-written sentence — the app and push copy render text from it.
+  payload   Json?
+  /// When the push dispatcher (apps/workers) handled this row — sent to the recipient's
+  /// phones, or skipped (no subscription / type switched off). Null = not yet.
+  pushedAt  DateTime? @map("pushed_at")
+
   readAt    DateTime? @map("read_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
@@ -969,6 +983,8 @@ model Notification {
   /// Related-entity lookups (e.g. "did this swap/token already notify anyone").
   @@index([swapId])
   @@index([tokenMarketId])
+  /// The push dispatcher's claim query (`WHERE pushed_at IS NULL AND created_at > …`).
+  @@index([pushedAt, createdAt])
   @@map("notifications")
 }
 
@@ -989,11 +1005,38 @@ model NotificationPreference {
   /// Phase 6 — gates WATCHED_TOKEN_ACTIVITY, same opt-out-by-default convention as every
   /// other preference here.
   watchedTokenActivity Boolean  @default(true) @map("watched_token_activity")
+  /// 2026-10-11 — TRADE_CONFIRMED / TRADE_FAILED.
+  tradeUpdates         Boolean  @default(true) @map("trade_updates")
+  /// 2026-10-11 — PRICE_MOVE.
+  priceMoves           Boolean  @default(true) @map("price_moves")
+  /// 2026-10-11 — phone (Web Push) delivery at all; the per-type switches above still apply.
+  pushEnabled          Boolean  @default(true) @map("push_enabled")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
+}
+
+/// One phone/browser that asked for Web Push notifications (2026-10-11). `endpoint` is the
+/// push service URL the browser gave us (unique per device+app); `p256dh`/`auth` are its
+/// public encryption keys — not secrets of ours. `locale` picks the push text's language.
+/// Removed when the push service says it's gone (404/410) or the user turns push off.
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  locale    String   @default("en")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 /// Whether each token market is *currently* trending per `computeTrendingScore` (see

@@ -11,6 +11,7 @@ import {
 } from '@/lib/notifications-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { useTranslations } from 'next-intl';
+import { PushToggle } from './PushToggle';
 
 const FIELDS: { key: keyof NotificationPreferences; label: string; detail: string }[] = [
   { key: 'follows', label: 'New followers', detail: 'When someone starts following you' },
@@ -31,6 +32,8 @@ const FIELDS: { key: keyof NotificationPreferences; label: string; detail: strin
     label: 'Watched token activity',
     detail: 'Large trades in a token on your watchlist',
   },
+  { key: 'tradeUpdates', label: 'Your trades', detail: 'When your buy or sell goes through — or fails' },
+  { key: 'priceMoves', label: 'Big price moves', detail: 'When a coin you hold or watch moves 15%+ in an hour' },
 ];
 
 /** Server-authoritative toggles — see docs/NOTIFICATIONS.md#preferences. Every change is
@@ -88,6 +91,9 @@ export function NotificationPreferencesPanel() {
 
   return (
     <Surface className="flex flex-col divide-y divide-line p-2">
+      <div className="pb-2">
+        <PushToggle />
+      </div>
       {FIELDS.map(({ key }) => {
         const label = tL(`pref_${key}`);
         const detail = tL(`pref_${key}_detail`);

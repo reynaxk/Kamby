@@ -1,50 +1,40 @@
 import type { NotificationDto } from '@kamby/domain';
 import { formatCompactUsd, truncateAddress } from '@/lib/format';
 
+/** next-intl's translator for the `notif` namespace (any `(key, values) => string`). */
+type Translate = (key: string, values?: Record<string, string>) => string;
+
 /**
  * Renders human copy from a notification's structured fields — never trusts a
  * server-composed sentence, since the API deliberately never sends one (see
- * docs/NOTIFICATIONS.md#data-model and NotificationDto in @kamby/domain). Pure and
- * unit-testable on its own, same reasoning as lib/format.ts.
+ * docs/NOTIFICATIONS.md#data-model and NotificationDto in @kamby/domain). In the reader's
+ * language since 2026-10-11 (messages/*.json → `notif`).
  */
-export function notificationCopy(n: NotificationDto): string {
-  const actor =
-    n.actor?.displayName ?? (n.actor?.address ? truncateAddress(n.actor.address) : 'Someone');
-  const token =
-    n.token?.symbol ?? (n.token?.address ? truncateAddress(n.token.address) : 'a token');
-  const action = n.side === 'SELL' ? 'sold' : 'bought';
+export function notificationCopy(n: NotificationDto, t: Translate): string {
+  const actor = n.actor?.displayName ?? (n.actor?.address ? truncateAddress(n.actor.address) : t('someone'));
+  const symbol = n.token?.symbol ? `$${n.token.symbol.replace(/^\$+/, '')}` : null;
+  const token = symbol ?? (n.token?.address ? truncateAddress(n.token.address) : t('aToken'));
+  const amount = formatCompactUsd(n.amountUsd);
+  const side = n.side === 'SELL' ? 'SELL' : 'BUY';
+  const values = { actor, token, amount, pct: n.pct !== null && n.pct !== undefined ? `${Math.abs(n.pct)}%` : '' };
 
   switch (n.type) {
     case 'FOLLOW':
-      return `${actor} started following you`;
     case 'LIKE':
-      return `${actor} liked your trade`;
-    case 'FOLLOWED_TRADER_TRADE':
-      return `${actor} ${action} ${formatCompactUsd(n.amountUsd)} of ${token}`;
-    case 'WHALE_TRADE':
-      return `Whale trade — ${actor} ${action} ${formatCompactUsd(n.amountUsd)} of ${token}`;
     case 'TRENDING_TOKEN':
-      return `${token} is trending`;
+    case 'TRADE_FAILED':
+      return t(n.type, values);
+    case 'FOLLOWED_TRADER_TRADE':
+    case 'WHALE_TRADE':
     case 'WATCHED_TOKEN_ACTIVITY':
-      return `Big move on ${token}, which you're watching — ${actor} ${action} ${formatCompactUsd(n.amountUsd)}`;
+    case 'TRADE_CONFIRMED':
+      return t(`${n.type}_${side}`, values);
+    case 'PRICE_MOVE':
+      return t((n.pct ?? 0) >= 0 ? 'PRICE_MOVE_UP' : 'PRICE_MOVE_DOWN', values);
   }
 }
 
-/** A short, uppercase kind label — the same visual role as ActivityCard's "Bought"/"Sold"
- *  eyebrow, giving each notification type a quick-scan identity in a mixed-type list. */
-export function notificationKindLabel(type: NotificationDto['type']): string {
-  switch (type) {
-    case 'FOLLOW':
-      return 'Follow';
-    case 'LIKE':
-      return 'Like';
-    case 'FOLLOWED_TRADER_TRADE':
-      return 'Trade';
-    case 'WHALE_TRADE':
-      return 'Whale';
-    case 'TRENDING_TOKEN':
-      return 'Trending';
-    case 'WATCHED_TOKEN_ACTIVITY':
-      return 'Watchlist';
-  }
+/** A short kind label — the same visual role as ActivityCard's "Bought"/"Sold" eyebrow. */
+export function notificationKindLabel(type: NotificationDto['type'], t: Translate): string {
+  return t(`kind_${type}`);
 }

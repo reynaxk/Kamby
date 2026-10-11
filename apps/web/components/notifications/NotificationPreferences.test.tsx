@@ -21,6 +21,9 @@ function fakePrefs(overrides: Partial<NotificationPreferences> = {}): Notificati
     whaleTrades: false,
     trendingTokens: true,
     watchedTokenActivity: false,
+    tradeUpdates: true,
+    priceMoves: true,
+    pushEnabled: true,
     ...overrides,
   };
 }
@@ -46,7 +49,7 @@ describe('NotificationPreferencesPanel', () => {
     expect(await screen.findByText("Couldn't load your preferences.")).toBeInTheDocument();
   });
 
-  it('renders all six real toggles with their real server-reported checked state', async () => {
+  it('renders all eight real toggles with their real server-reported checked state', async () => {
     hasStoredSession.mockReturnValue(true);
     fetchNotificationPreferences.mockResolvedValue(fakePrefs({ follows: true, likes: false }));
     render(<NotificationPreferencesPanel />);
@@ -54,7 +57,7 @@ describe('NotificationPreferencesPanel', () => {
     const follows = await screen.findByRole('switch', { name: 'New followers' });
     expect(follows).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('switch', { name: 'Likes' })).toHaveAttribute('aria-checked', 'false');
-    expect(screen.getAllByRole('switch')).toHaveLength(6);
+    expect(screen.getAllByRole('switch')).toHaveLength(8);
   });
 
   it('flips the real toggle optimistically before the request resolves', async () => {

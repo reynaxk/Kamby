@@ -166,6 +166,16 @@ export const EnvSchema = z.object({
    */
   PNL_LEDGER_SWEEP_ENABLED: z.coerce.boolean().default(false),
   PNL_LEDGER_SWEEP_INTERVAL_SECONDS: z.coerce.number().int().positive().default(60),
+  /**
+   * Trade-outcome and price-move notifications plus phone (Web Push) delivery — see
+   * notifications/notification-extras.service.ts. Enable on exactly ONE deployment (the main
+   * `workers`), like PNL_LEDGER_SWEEP_ENABLED. To turn off, delete the variable (z.coerce
+   * reads "false" as true). Push sends only when all three VAPID values are set.
+   */
+  NOTIFICATION_EXTRAS_ENABLED: z.coerce.boolean().default(false),
+  VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+  VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+  VAPID_SUBJECT: z.string().min(1).default('mailto:support@kambesh.com'),
 }).superRefine((env, ctx) => {
   if (!env.SOLANA_ENABLED) return;
   if (env.SOLANA_RPC_URL === undefined) {

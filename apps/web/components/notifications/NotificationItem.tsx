@@ -2,6 +2,7 @@ import type { NotificationDto } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import Link from 'next/link';
 import { formatRelativeTime } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 import { notificationCopy, notificationKindLabel } from './notificationCopy';
 
 const KIND_COLOR: Record<NotificationDto['type'], string> = {
@@ -11,6 +12,9 @@ const KIND_COLOR: Record<NotificationDto['type'], string> = {
   WHALE_TRADE: 'text-up',
   TRENDING_TOKEN: 'text-accent',
   WATCHED_TOKEN_ACTIVITY: 'text-up',
+  TRADE_CONFIRMED: 'text-up',
+  TRADE_FAILED: 'text-down',
+  PRICE_MOVE: 'text-accent',
 };
 
 /**
@@ -26,6 +30,7 @@ export function NotificationItem({
   notification: NotificationDto;
   onOpen: (n: NotificationDto) => void;
 }) {
+  const t = useTranslations('notif');
   const isUnread = notification.readAt === null;
   const content = (
     <div
@@ -43,7 +48,7 @@ export function NotificationItem({
               KIND_COLOR[notification.type],
             )}
           >
-            {notificationKindLabel(notification.type)}
+            {notificationKindLabel(notification.type, t)}
           </span>
           <time
             dateTime={notification.createdAt}
@@ -55,7 +60,7 @@ export function NotificationItem({
           </time>
         </div>
         <p className="mt-0.5 truncate font-body text-sm text-ink-900">
-          {notificationCopy(notification)}
+          {notificationCopy(notification, t)}
         </p>
       </div>
       {isUnread && (
@@ -80,7 +85,10 @@ export function NotificationItem({
 }
 
 function Avatar({ notification }: { notification: NotificationDto }) {
-  if (notification.actor?.avatarUrl) {
+  const t = useTranslations('notif');
+  // A coin notification with no person behind it (trade, price move, trending) shows the coin.
+  const picture = notification.actor?.avatarUrl ?? (notification.actor ? null : notification.token?.logoUrl);
+  if (picture) {
     return (
       // next/image needs every remote domain pre-configured — not workable for an arbitrary,
       // user-supplied avatar URL. Previously had an eslint-disable-next-line one line too
@@ -88,7 +96,7 @@ function Avatar({ notification }: { notification: NotificationDto }) {
       // it was written to suppress kept firing anyway.
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={notification.actor.avatarUrl}
+        src={picture}
         alt=""
         className="h-8 w-8 shrink-0 rounded-full object-cover"
       />
@@ -102,7 +110,7 @@ function Avatar({ notification }: { notification: NotificationDto }) {
       aria-hidden
       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent"
     >
-      {initials ?? notificationKindLabel(notification.type).slice(0, 1)}
+      {initials ?? notificationKindLabel(notification.type, t).slice(0, 1)}
     </div>
   );
 }

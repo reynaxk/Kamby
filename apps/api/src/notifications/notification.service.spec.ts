@@ -206,6 +206,9 @@ describe('NotificationService', () => {
         whaleTrades: true,
         trendingTokens: true,
         watchedTokenActivity: true,
+        tradeUpdates: true,
+        priceMoves: true,
+        pushEnabled: true,
       });
     });
 
@@ -219,6 +222,9 @@ describe('NotificationService', () => {
         whaleTrades: false,
         trendingTokens: true,
         watchedTokenActivity: true,
+        tradeUpdates: true,
+        priceMoves: true,
+        pushEnabled: true,
       });
 
       await service.updatePreferences(RECIPIENT_USER_ID, { whaleTrades: false });
@@ -233,6 +239,9 @@ describe('NotificationService', () => {
           whaleTrades: false,
           trendingTokens: true,
           watchedTokenActivity: true,
+          tradeUpdates: true,
+          priceMoves: true,
+          pushEnabled: true,
         },
         update: {
           follows: true,
@@ -241,6 +250,9 @@ describe('NotificationService', () => {
           whaleTrades: false,
           trendingTokens: true,
           watchedTokenActivity: true,
+          tradeUpdates: true,
+          priceMoves: true,
+          pushEnabled: true,
         },
       });
     });

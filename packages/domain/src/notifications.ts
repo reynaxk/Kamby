@@ -14,6 +14,11 @@ export const NotificationTypeSchema = z.enum([
   'WHALE_TRADE',
   'TRENDING_TOKEN',
   'WATCHED_TOKEN_ACTIVITY',
+  /** 2026-10-11 — your own trade landed / failed on-chain (EVM or Solana). */
+  'TRADE_CONFIRMED',
+  'TRADE_FAILED',
+  /** 2026-10-11 — a big price move on a coin you hold or watch. */
+  'PRICE_MOVE',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -38,7 +43,14 @@ export const NOTIFICATION_DEFAULTS = {
     whaleTrades: true,
     trendingTokens: true,
     watchedTokenActivity: true,
+    tradeUpdates: true,
+    priceMoves: true,
+    pushEnabled: true,
   },
+  /** PRICE_MOVE fires when a held/watched coin moves at least this much within the window
+   *  — at most once per coin, direction and window bucket (see priceMoveDedupeKey). */
+  priceMovePct: 15,
+  priceMoveWindowMinutes: 60,
 } as const;
 
 export const NotificationPreferencesSchema = z.object({
@@ -48,6 +60,10 @@ export const NotificationPreferencesSchema = z.object({
   whaleTrades: z.boolean(),
   trendingTokens: z.boolean(),
   watchedTokenActivity: z.boolean(),
+  tradeUpdates: z.boolean(),
+  priceMoves: z.boolean(),
+  /** Phone (Web Push) delivery at all — the per-type switches still apply on top. */
+  pushEnabled: z.boolean(),
 });
 export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;
 
@@ -63,7 +79,30 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   WHALE_TRADE: 'whaleTrades',
   TRENDING_TOKEN: 'trendingTokens',
   WATCHED_TOKEN_ACTIVITY: 'watchedTokenActivity',
+  TRADE_CONFIRMED: 'tradeUpdates',
+  TRADE_FAILED: 'tradeUpdates',
+  PRICE_MOVE: 'priceMoves',
 };
+
+/**
+ * Structured context stored on a notification that has no related row to read it from
+ * (2026-10-11): TRADE_* (the recipient's own trade) and PRICE_MOVE. Facts only — the app and
+ * the push dispatcher both render the words from these fields, in the reader's language.
+ */
+export const NotificationPayloadSchema = z.object({
+  chainIdentifier: z.string().optional(),
+  tokenAddress: z.string().optional(),
+  symbol: z.string().nullable().optional(),
+  logoUrl: z.string().nullable().optional(),
+  side: z.enum(['BUY', 'SELL']).optional(),
+  amountUsd: z.number().nullable().optional(),
+  /** EVM trades only — /trades/[id] shows it; Solana trades link to the coin instead. */
+  tradeId: z.string().optional(),
+  /** PRICE_MOVE: the % move and the window it happened in. */
+  pct: z.number().optional(),
+  windowMinutes: z.number().optional(),
+});
+export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
 
 /**
  * The idempotency key within one (userId, type) pair — see docs/NOTIFICATIONS.md#idempotency.
@@ -98,6 +137,23 @@ export function watchedTokenActivityDedupeKey(swapId: string): string {
 export function trendingTokenDedupeKey(tokenMarketId: string, transitionAtIso: string): string {
   return `token:${tokenMarketId}:since:${transitionAtIso}`;
 }
+/** One per trade and outcome — a retried status poll never notifies twice. */
+export function tradeOutcomeDedupeKey(chain: 'evm' | 'solana', tradeId: string): string {
+  return `trade:${chain}:${tradeId}`;
+}
+/** At most one PRICE_MOVE per coin, direction and window bucket (e.g. one "up" per hour). */
+export function priceMoveDedupeKey(tokenKey: string, direction: 'up' | 'down', bucketStartIso: string): string {
+  return `move:${tokenKey}:${direction}:${bucketStartIso}`;
+}
+
+/** A coin's page in the app, by its exact chain — '/market/<address>' alone always meant
+ *  Base, so BNB coins opened the wrong page (2026-10-11). */
+export function tokenDeepLink(chainIdentifier: string | null | undefined, tokenAddress: string): string {
+  if (chainIdentifier === 'solana') return `/solana?mint=${encodeURIComponent(tokenAddress)}`;
+  if (chainIdentifier === 'eip155:56') return `/market/bnb/${tokenAddress}`;
+  if (chainIdentifier === 'eip155:8453') return `/market/base/${tokenAddress}`;
+  return `/market/${tokenAddress}`;
+}
 
 /**
  * Deterministic destination for an actionable notification — see
@@ -107,17 +163,22 @@ export function trendingTokenDedupeKey(tokenMarketId: string, transitionAtIso: s
  */
 export function notificationDeepLink(
   type: NotificationType,
-  ctx: { actorWalletAddress: string | null; tokenAddress: string | null },
+  ctx: { actorWalletAddress: string | null; tokenAddress: string | null; chainIdentifier?: string | null; tradeId?: string | null },
 ): string | null {
   switch (type) {
     case 'FOLLOW':
       return ctx.actorWalletAddress ? `/trader/${ctx.actorWalletAddress}` : null;
+    case 'TRADE_CONFIRMED':
+    case 'TRADE_FAILED':
+      if (ctx.tradeId) return `/trades/${ctx.tradeId}`;
+      return ctx.tokenAddress ? tokenDeepLink(ctx.chainIdentifier, ctx.tokenAddress) : '/trades';
     case 'LIKE':
     case 'FOLLOWED_TRADER_TRADE':
     case 'WHALE_TRADE':
     case 'TRENDING_TOKEN':
     case 'WATCHED_TOKEN_ACTIVITY':
-      return ctx.tokenAddress ? `/market/${ctx.tokenAddress}` : null;
+    case 'PRICE_MOVE':
+      return ctx.tokenAddress ? tokenDeepLink(ctx.chainIdentifier, ctx.tokenAddress) : null;
   }
 }
 
@@ -153,6 +214,8 @@ export const NotificationDtoSchema = z.object({
   /** Trade value in USD — set for FOLLOWED_TRADER_TRADE/WHALE_TRADE, null otherwise. */
   amountUsd: z.number().nullable(),
   side: z.enum(['BUY', 'SELL']).nullable(),
+  /** PRICE_MOVE: the % move (signed) — absent/null for every other type. */
+  pct: z.number().nullable().optional(),
   deepLink: z.string().nullable(),
 });
 export type NotificationDto = z.infer<typeof NotificationDtoSchema>;

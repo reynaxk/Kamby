@@ -3,6 +3,7 @@ import { EvmChainDataProvider, PUBLIC_EVM_RPC_URLS, startRpcUsageReporter } from
 import { prisma } from '@kamby/db';
 import { Connection } from '@solana/web3.js';
 import { Redis } from 'ioredis';
+import { NotificationExtrasService } from './notifications/notification-extras.service';
 import { EnvSchema } from './config/env';
 import { createLogger } from './lib/logger';
 import { MarketIngestionService } from './market/ingestion';
@@ -499,11 +500,46 @@ async function main(): Promise<void> {
     pnlSweepTicker.unref();
   }
 
+  // Trade outcomes, price moves and phone delivery — see notification-extras.service.ts.
+  let extrasTickers: NodeJS.Timeout[] = [];
+  if (env.NOTIFICATION_EXTRAS_ENABLED) {
+    const vapid =
+      env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY
+        ? { publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY, subject: env.VAPID_SUBJECT }
+        : null;
+    const extras = new NotificationExtrasService(redis, logger, vapid);
+    logger.info({ push: vapid !== null }, 'Notification extras enabled');
+    const every = (name: string, ms: number, run: () => Promise<unknown>) => {
+      let running = false;
+      const tick = async () => {
+        if (running) return;
+        running = true;
+        try {
+          const result = await run();
+          if (result && typeof result === 'object' ? Object.values(result).some((v) => v) : result) logger.info({ result }, `${name} tick`);
+        } catch (error) {
+          logger.error({ err: error }, `${name} tick failed — will retry`);
+        } finally {
+          running = false;
+        }
+      };
+      void tick();
+      const timer = setInterval(() => void tick(), ms);
+      timer.unref();
+      extrasTickers.push(timer);
+    };
+    every('Trade outcome notifications', 15_000, () => extras.notifyTradeOutcomes());
+    every('Price move notifications', 5 * 60_000, () => extras.notifyPriceMoves());
+    every('Push dispatch', 5_000, () => extras.dispatchPush());
+  }
+
   logger.info('Worker ready');
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'Worker shutting down');
     clearInterval(heartbeat);
+    for (const t of extrasTickers) clearInterval(t);
+    extrasTickers = [];
     if (marketTicker) clearInterval(marketTicker);
     if (poolDiscoveryTicker) clearInterval(poolDiscoveryTicker);
     if (tradeSweepTicker) clearInterval(tradeSweepTicker);

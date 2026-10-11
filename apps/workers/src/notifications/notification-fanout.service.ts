@@ -410,6 +410,9 @@ export class NotificationFanoutService {
           whaleTrades: row.whaleTrades,
           trendingTokens: row.trendingTokens,
           watchedTokenActivity: row.watchedTokenActivity,
+          tradeUpdates: row.tradeUpdates,
+          priceMoves: row.priceMoves,
+          pushEnabled: row.pushEnabled,
         },
       ]),
     );

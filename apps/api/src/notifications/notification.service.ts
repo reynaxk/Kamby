@@ -7,8 +7,10 @@ import {
   followDedupeKey,
   likeDedupeKey,
   NOTIFICATION_DEFAULTS,
+  NOTIFICATION_PREFERENCE_FIELD,
   NOTIFICATION_REALTIME_CHANNEL,
   type NotificationPage,
+  type NotificationPayload,
   type NotificationPing,
   type NotificationPreferences,
   type NotificationType,
@@ -112,10 +114,12 @@ export class NotificationService {
     actorWalletAddress?: string;
     swapId?: string;
     tokenMarketId?: string;
+    payload?: NotificationPayload;
   }): Promise<void> {
     let created;
     try {
-      created = await prisma.notification.create({ data: input });
+      const { payload, ...rest } = input;
+      created = await prisma.notification.create({ data: { ...rest, ...(payload ? { payload: payload as Prisma.InputJsonValue } : {}) } });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         this.logger.debug(
@@ -215,16 +219,7 @@ export class NotificationService {
 
   async getPreferences(userId: string): Promise<NotificationPreferences> {
     const row = await prisma.notificationPreference.findUnique({ where: { userId } });
-    return row
-      ? {
-          follows: row.follows,
-          likes: row.likes,
-          followedTraderTrades: row.followedTraderTrades,
-          whaleTrades: row.whaleTrades,
-          trendingTokens: row.trendingTokens,
-          watchedTokenActivity: row.watchedTokenActivity,
-        }
-      : NOTIFICATION_DEFAULTS.preferenceDefaults;
+    return row ? toPreferences(row) : NOTIFICATION_DEFAULTS.preferenceDefaults;
   }
 
   async updatePreferences(
@@ -238,14 +233,7 @@ export class NotificationService {
       create: { userId, ...next },
       update: { ...next },
     });
-    return {
-      follows: row.follows,
-      likes: row.likes,
-      followedTraderTrades: row.followedTraderTrades,
-      whaleTrades: row.whaleTrades,
-      trendingTokens: row.trendingTokens,
-      watchedTokenActivity: row.watchedTokenActivity,
-    };
+    return toPreferences(row);
   }
 
   /** Whether `type` should currently notify `userId` — every creation path checks this
@@ -254,24 +242,32 @@ export class NotificationService {
    *  database fresh, never a client-asserted value. */
   private async isEnabled(userId: string, type: NotificationType): Promise<boolean> {
     const prefs = await this.getPreferences(userId);
-    switch (type) {
-      case 'FOLLOW':
-        return prefs.follows;
-      case 'LIKE':
-        return prefs.likes;
-      case 'FOLLOWED_TRADER_TRADE':
-        return prefs.followedTraderTrades;
-      case 'WHALE_TRADE':
-        return prefs.whaleTrades;
-      case 'TRENDING_TOKEN':
-        return prefs.trendingTokens;
-      case 'WATCHED_TOKEN_ACTIVITY':
-        return prefs.watchedTokenActivity;
-      default: {
-        const exhaustive: never = type;
-        throw new Error(`Unhandled notification type: ${String(exhaustive)}`);
-      }
-    }
+    return prefs[NOTIFICATION_PREFERENCE_FIELD[type]];
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // Web Push subscriptions (2026-10-11) — one row per phone/browser that allowed
+  // notifications. The worker's push dispatcher sends to them; nothing here sends.
+  // ---------------------------------------------------------------------------------------
+
+  async savePushSubscription(
+    userId: string,
+    sub: { endpoint: string; p256dh: string; auth: string; locale: string; userAgent: string | null },
+  ): Promise<void> {
+    // An endpoint belongs to one device; if another account signs in there, it moves over.
+    await prisma.pushSubscription.upsert({
+      where: { endpoint: sub.endpoint },
+      create: { userId, ...sub },
+      update: { userId, p256dh: sub.p256dh, auth: sub.auth, locale: sub.locale, userAgent: sub.userAgent },
+    });
+  }
+
+  async deletePushSubscription(userId: string, endpoint: string): Promise<void> {
+    await prisma.pushSubscription.deleteMany({ where: { userId, endpoint } });
+  }
+
+  async hasPushSubscription(userId: string, endpoint: string): Promise<boolean> {
+    return (await prisma.pushSubscription.count({ where: { userId, endpoint } })) > 0;
   }
 
   // ---------------------------------------------------------------------------------------
@@ -296,4 +292,28 @@ export class NotificationService {
   async consumeStreamTicket(ticket: string): Promise<string | null> {
     return this.redis.getdel(`${STREAM_TICKET_PREFIX}${ticket}`);
   }
+}
+
+function toPreferences(row: {
+  follows: boolean;
+  likes: boolean;
+  followedTraderTrades: boolean;
+  whaleTrades: boolean;
+  trendingTokens: boolean;
+  watchedTokenActivity: boolean;
+  tradeUpdates: boolean;
+  priceMoves: boolean;
+  pushEnabled: boolean;
+}): NotificationPreferences {
+  return {
+    follows: row.follows,
+    likes: row.likes,
+    followedTraderTrades: row.followedTraderTrades,
+    whaleTrades: row.whaleTrades,
+    trendingTokens: row.trendingTokens,
+    watchedTokenActivity: row.watchedTokenActivity,
+    tradeUpdates: row.tradeUpdates,
+    priceMoves: row.priceMoves,
+    pushEnabled: row.pushEnabled,
+  };
 }

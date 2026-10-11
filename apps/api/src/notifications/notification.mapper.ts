@@ -1,5 +1,5 @@
 import type { Prisma } from '@kamby/db';
-import { notificationDeepLink, type NotificationDto } from '@kamby/domain';
+import { NotificationPayloadSchema, notificationDeepLink, type NotificationDto } from '@kamby/domain';
 
 /**
  * Every field this mapper needs, resolved in a single query via nested `include` (never a
@@ -14,8 +14,8 @@ export const NOTIFICATION_INCLUDE = {
     },
   },
   actorWallet: { include: { user: true } },
-  swap: { include: { tokenMarket: { include: { token: true } } } },
-  tokenMarket: { include: { token: true } },
+  swap: { include: { tokenMarket: { include: { token: { include: { chain: { select: { identifier: true } } } } } } } },
+  tokenMarket: { include: { token: { include: { chain: { select: { identifier: true } } } } } },
 } satisfies Prisma.NotificationInclude;
 
 export type NotificationRow = Prisma.NotificationGetPayload<{ include: typeof NOTIFICATION_INCLUDE }>;
@@ -49,9 +49,15 @@ export function toNotificationDto(row: NotificationRow): NotificationDto {
   // FOLLOWED_TRADER_TRADE/WHALE_TRADE carry their token via the referenced swap's own
   // market; TRENDING_TOKEN references the market directly with no swap at all.
   const tokenMarket = row.swap?.tokenMarket ?? row.tokenMarket ?? null;
+  // TRADE_* / PRICE_MOVE (2026-10-11) carry their facts in `payload` instead.
+  const parsed = row.payload ? NotificationPayloadSchema.safeParse(row.payload) : null;
+  const payload = parsed?.success ? parsed.data : null;
   const token = tokenMarket
     ? { address: tokenMarket.token.contractAddress, symbol: tokenMarket.token.symbol, logoUrl: tokenMarket.token.logoUrl }
-    : null;
+    : payload?.tokenAddress
+      ? { address: payload.tokenAddress, symbol: payload.symbol ?? null, logoUrl: payload.logoUrl ?? null }
+      : null;
+  const chainIdentifier = tokenMarket?.token.chain?.identifier ?? payload?.chainIdentifier ?? null;
 
   return {
     id: row.id,
@@ -60,11 +66,14 @@ export function toNotificationDto(row: NotificationRow): NotificationDto {
     readAt: row.readAt ? row.readAt.toISOString() : null,
     actor,
     token,
-    amountUsd: row.swap ? Number(row.swap.volumeUsd) : null,
-    side: row.swap ? (row.swap.side === 'buy' ? 'BUY' : 'SELL') : null,
+    amountUsd: row.swap ? Number(row.swap.volumeUsd) : (payload?.amountUsd ?? null),
+    side: row.swap ? (row.swap.side === 'buy' ? 'BUY' : 'SELL') : (payload?.side ?? null),
+    pct: payload?.pct ?? null,
     deepLink: notificationDeepLink(row.type, {
       actorWalletAddress: actor?.address ?? null,
       tokenAddress: token?.address ?? null,
+      chainIdentifier,
+      tradeId: payload?.tradeId ?? null,
     }),
   };
 }

@@ -26,4 +26,16 @@ export class UpdatePreferencesDto {
   @IsOptional()
   @IsBoolean()
   watchedTokenActivity?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  tradeUpdates?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  priceMoves?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  pushEnabled?: boolean;
 }
