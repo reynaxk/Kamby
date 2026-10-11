@@ -3,15 +3,13 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 
 /**
  * A confirmed trade, Kamby style (2026-10-10, owner: "make it in our type"): the neon check
- * pops in on a pulsing ring, with Kamby's promise under it — no gas, just USDC. A short buzz
- * on phones that support it.
+ * pops in on a pulsing ring. A short buzz on phones that support it. (The "gas-free" line
+ * under it was removed 2026-10-11 — owner: showing it off looked cheap.)
  */
 export function TradeSuccess({ title }: { title: string }) {
-  const t = useTranslations('labels');
   useEffect(() => {
     try {
       navigator.vibrate?.(30);
@@ -33,13 +31,7 @@ export function TradeSuccess({ title }: { title: string }) {
         </motion.span>
       </div>
       <p className="font-display text-lg font-bold text-ink-900">{title}</p>
-      <p className="rounded-full bg-accent/10 px-3 py-1 font-body text-xs font-semibold text-accent">⚡ {t('gasFreeUsdc')}</p>
     </div>
   );
 }
 
-/** Kamby's promise, right above the trade button in the phone sheet. */
-export function GasFreeNote() {
-  const t = useTranslations('labels');
-  return <p className="text-center font-body text-xs font-semibold text-accent">⚡ {t('gasFreeUsdc')}</p>;
-}

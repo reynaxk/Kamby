@@ -18,7 +18,7 @@ import { getQuote, getTransaction, relaySwap, submitFeeTransaction, submitTransa
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
-import { GasFreeNote, TradeSuccess } from './TradeSuccess';
+import { TradeSuccess } from './TradeSuccess';
 import { GaslessToggle } from './GaslessToggle';
 import { autoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
@@ -863,7 +863,6 @@ export function TradePanel({
 
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
-      {sheet && <GasFreeNote />}
       {isConnected ? (
         <Button
           type="button"

@@ -26,7 +26,7 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
-import { GasFreeNote, TradeSuccess } from './TradeSuccess';
+import { TradeSuccess } from './TradeSuccess';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
@@ -665,7 +665,6 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         />
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
         {quoteStatus === 'error' && quoteError && !belowMinimum && <p className="font-body text-xs text-down">{quoteError}</p>}
-        {sheet && <GasFreeNote />}
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
