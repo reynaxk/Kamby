@@ -46,6 +46,8 @@ const RECENT_TRADER_SWAP_SCAN = 500;
 /** Cached entries outlive their freshness window by this factor, served stale while a
  *  background refresh runs — see MarketService#cached. */
 const STALE_RETENTION_MULTIPLIER = 30;
+const ROWS_SNAPSHOT_FRESH_MS = 10_000;
+const ROWS_SNAPSHOT_STALE_MS = 60_000;
 interface CacheEntry<T> {
   v: T;
   /** When the value was computed (epoch ms). */
@@ -83,6 +85,9 @@ export class MarketService {
   private readonly logger = new Logger(MarketService.name);
   /** Per-process in-flight dedupe: a burst of identical cache misses runs one query, not N. */
   private readonly inFlight = new Map<string, Promise<unknown>>();
+  /** Every listed market's raw rows, shared by all discover/search calls for a few seconds —
+   *  see #allMarketRows. */
+  private rowsSnapshot: { at: number; rows: Promise<[MarketRow[], SolanaTokenMarket[]]> } | null = null;
 
   constructor(
     private readonly watchlist: WatchlistService,
@@ -207,11 +212,28 @@ export class MarketService {
     );
   }
 
+  /**
+   * All listed markets' rows, read once per process every few seconds and shared by every
+   * discover/search call. A coin page searches by its exact address — each new address was a
+   * cache miss that re-read all ~4,000 EVM markets (~6 MB, 0.7s alone, 5-7s when a few coin
+   * pages opened at once — 2026-10-11). Served stale for up to a minute while one refresh runs.
+   */
+  private allMarketRows(): Promise<[MarketRow[], SolanaTokenMarket[]]> {
+    const age = this.rowsSnapshot ? Date.now() - this.rowsSnapshot.at : Infinity;
+    if (age < ROWS_SNAPSHOT_FRESH_MS) return this.rowsSnapshot!.rows;
+    const fresh = Promise.all([prisma.tokenMarket.findMany({ include: MARKET_INCLUDE }), prisma.solanaTokenMarket.findMany()]);
+    const previous = this.rowsSnapshot;
+    this.rowsSnapshot = { at: Date.now(), rows: fresh };
+    fresh.catch(() => {
+      // Never keep a failed read: the next call tries again (or keeps the last good one).
+      if (this.rowsSnapshot?.rows === fresh) this.rowsSnapshot = previous ? { at: 0, rows: previous.rows } : null;
+    });
+    // A recent good snapshot answers right away while the refresh runs.
+    return previous && age < ROWS_SNAPSHOT_STALE_MS ? previous.rows : fresh;
+  }
+
   private async computeDiscover(query: DiscoverQueryDto): Promise<MarketSummary[]> {
-    const [evmRows, solanaRows] = await Promise.all([
-      prisma.tokenMarket.findMany({ include: MARKET_INCLUDE }),
-      prisma.solanaTokenMarket.findMany(),
-    ]);
+    const [evmRows, solanaRows] = await this.allMarketRows();
 
     const evmFiltered = primaryRowsOnly(query.search ? evmRows.filter((row) => matchesSearch(row, query.search!)) : evmRows);
     const solanaFiltered = query.search ? solanaRows.filter((row) => matchesSolanaSearch(row, query.search!)) : solanaRows;

@@ -52,7 +52,7 @@ export class PulseService {
     this.logger.setContext('PulseService');
   }
 
-  async list(before: string | undefined, limit = PULSE_LIMITS.pageSize): Promise<PulsePage> {
+  async list(before: string | undefined, limit: number = PULSE_LIMITS.pageSize): Promise<PulsePage> {
     const take = Math.min(Math.max(limit, 1), PULSE_LIMITS.pageSize);
     const beforeDate = before ? new Date(before) : null;
     const rows = await prisma.pulseMessage.findMany({

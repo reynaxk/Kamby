@@ -598,12 +598,15 @@ describe('MarketService — Redis cache (2026-09-29 launch-load fix)', () => {
     expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
   });
 
-  it('keys by sort/limit/search, so different queries never share an entry', async () => {
-    const service = new MarketService(new WatchlistService(), fakeConfigService(), fakeRedis() as never);
+  it('keys by sort/limit/search, so different queries never share an entry — but share one read of the rows', async () => {
+    const redis = fakeRedis();
+    const service = new MarketService(new WatchlistService(), fakeConfigService(), redis as never);
     await service.discover({ sort: 'score', limit: 20 });
     await service.discover({ sort: 'volume', limit: 20 });
     await service.discover({ sort: 'score', limit: 20, search: 'weth' });
-    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(3);
+    expect(redis.set).toHaveBeenCalledTimes(3);
+    // 2026-10-11: every coin page's address search re-read all ~4,000 markets (5-7s under load).
+    expect(mockedPrisma.tokenMarket.findMany).toHaveBeenCalledTimes(1);
   });
 
   it('falls through to Postgres when Redis is down, still returning a real result', async () => {
