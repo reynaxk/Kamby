@@ -18,9 +18,14 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#05070A',
     theme_color: '#05070A',
     categories: ['finance'],
+    // Android (2026-10-11, owner's dad's phone showed "K in a box" before the app's own splash):
+    // its launch screen draws the `any` icon on background_color, so that one is the bare mark
+    // (with a soft glow) — the same picture as AppSplash, so the two read as one animation. The
+    // home-screen icon comes from the full-bleed `maskable` ones, which Android crops itself.
     icons: [
-      { src: '/brand/kamby-app-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/brand/kamby-app-icon-1024.png', sizes: '1024x1024', type: 'image/png', purpose: 'any' },
+      { src: '/brand/kamby-splash-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/brand/kamby-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: '/brand/kamby-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   };
 }

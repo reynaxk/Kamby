@@ -16,7 +16,8 @@ const CHAINS: { chain: BadgeChain; name: string; color: string }[] = [
   { chain: 'bnb', name: 'BNB Chain', color: '#F3BA2F' },
 ];
 
-const usd = (n: number | null) => (n === null ? '—' : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+// $0.00 until a balance is known — never a dash (owner 2026-10-11).
+const usd = (n: number | null) => `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /**
  * The user's USDC, chain by chain (2026-10-05: a Solana-funded user tried a Base coin and got
