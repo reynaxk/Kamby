@@ -370,10 +370,12 @@ body:has(.kamby-void) {
   }
 }
 
-/* Each new phone screen eases in (app/template.tsx). */
+/* Each new phone screen eases in (app/template.tsx). Never from invisible: on a busy phone the
+   animation can't play until the page's scripts finish, and an opacity-0 start kept a fully
+   rendered Home blank for seconds (2026-10-11: first paint 9.8s vs 0.8s without it). */
 @keyframes kamby-page-in {
   from {
-    opacity: 0;
+    transform: translateY(6px);
   }
 }
 @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
@@ -406,10 +408,11 @@ body:has(.kamby-void) {
 }
 
 /* Phone screens build up instead of popping in (2026-10-11): sections rise in, the first coin
-   rows cascade, the tab bar slides up once at launch. Opacity/transform only while playing
-   (`backwards`), so nothing fixed is ever positioned against an animated parent afterwards. */
+   rows cascade, the tab bar slides up once at launch. Transform only while playing
+   (`backwards`), so nothing fixed is ever positioned against an animated parent afterwards —
+   and never from opacity 0 (see kamby-page-in: content must show even before it can play). */
 @keyframes kamby-rise {
-  from { opacity: 0; transform: translateY(10px); }
+  from { transform: translateY(10px); }
 }
 @keyframes kamby-tabbar-in {
   from { opacity: 0; transform: translateY(24px); }
@@ -431,7 +434,7 @@ body:has(.kamby-void) {
   .kamby-cascade > :nth-child(6) { animation-delay: 0.38s; }
   .kamby-cascade > :nth-child(7) { animation-delay: 0.42s; }
   .kamby-cascade > :nth-child(8) { animation-delay: 0.46s; }
-  .kamby-cascade > :nth-child(n + 9) { animation-delay: 0.5s; }
+  .kamby-cascade > :nth-child(n + 9) { animation: none; } /* below the fold — no work */
   .kamby-tabbar-in {
     animation: kamby-tabbar-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s backwards;
   }
