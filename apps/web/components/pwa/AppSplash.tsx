@@ -3,6 +3,18 @@
 import { useEffect, useState } from 'react';
 
 const SEEN_KEY = 'kamby:splashed';
+const MIN_MS = 900;
+const MAX_MS = 2500;
+/** Fired once by the first screen when its real data is on screen — see markAppReady. */
+export const APP_READY_EVENT = 'kamby:app-ready';
+
+/** Tells the launch splash the screen behind it is ready to be seen. Safe to call often. */
+export function markAppReady(): void {
+  const w = window as { __kambyReady?: boolean };
+  if (w.__kambyReady) return;
+  w.__kambyReady = true;
+  window.dispatchEvent(new Event(APP_READY_EVENT));
+}
 
 /**
  * The installed app's launch animation (2026-10-11, owner: "it looks way more professional"):
@@ -24,11 +36,31 @@ export function AppSplash() {
     } catch {
       // ignore
     }
-    const leave = setTimeout(() => setPhase('leave'), 750);
-    const gone = setTimeout(() => setPhase('gone'), 1200);
+    // Stays until Home says it's ready (sign-in known, balance loaded) so nobody sees empty
+    // fields fill in — at least MIN_MS so the animation always plays out, at most MAX_MS so a
+    // slow connection falls back to Home's own skeleton instead of a stuck splash.
+    const startedAt = Date.now();
+    let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+    let goneTimer: ReturnType<typeof setTimeout> | undefined;
+    let done = false;
+    const leave = () => {
+      if (done) return;
+      done = true;
+      leaveTimer = setTimeout(() => {
+        setPhase('leave');
+        goneTimer = setTimeout(() => setPhase('gone'), 450);
+      }, Math.max(0, MIN_MS - (Date.now() - startedAt)));
+    };
+    const onReady = () => leave();
+    window.addEventListener(APP_READY_EVENT, onReady);
+    // Home may have finished before this listener existed.
+    if ((window as { __kambyReady?: boolean }).__kambyReady) leave();
+    const cap = setTimeout(leave, MAX_MS);
     return () => {
-      clearTimeout(leave);
-      clearTimeout(gone);
+      window.removeEventListener(APP_READY_EVENT, onReady);
+      clearTimeout(cap);
+      if (leaveTimer) clearTimeout(leaveTimer);
+      if (goneTimer) clearTimeout(goneTimer);
     };
   }, []);
 

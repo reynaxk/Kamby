@@ -5,6 +5,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
 import { AppBell } from '@/components/notifications/AppBell';
+import { markAppReady } from '@/components/pwa/AppSplash';
 import { useAccount } from 'wagmi';
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
@@ -28,6 +29,12 @@ export function PortfolioHeader() {
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
   const [fundOpen, setFundOpen] = useState(false);
+
+  // The launch splash waits for this: signed out, or the balance is in (2026-10-11).
+  const cashReady = totalUsdc([balances.base, balances.bnb, balances.solana]) !== null;
+  useEffect(() => {
+    if (ready && (!authenticated || cashReady)) markAppReady();
+  }, [ready, authenticated, cashReady]);
 
   if (ready && !authenticated) {
     return (
