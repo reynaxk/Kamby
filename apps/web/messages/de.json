@@ -84,7 +84,7 @@
     "alerts": "Alarme",
     "tokens": "Token",
     "leaderboard": "Bestenliste",
-    "traders": "Feed",
+    "traders": "Pulse",
     "trending": "Trending",
     "trenches": "Neu",
     "bonding": "Bonding",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} ist in der letzten Stunde um {pct} gefallen",
     "someone": "Jemand",
     "aToken": "ein Token"
+  },
+  "pulse": {
+    "live": "Live — Trader aus aller Welt",
+    "connecting": "Verbinde…",
+    "empty": "Noch keine Nachrichten — sag gm 👋",
+    "trader": "Trader",
+    "toChat": "zum Chatten",
+    "setUsername": "Wähle einen Nutzernamen zum Chatten",
+    "placeholder": "Schreib was… Coins mit $SYMBOL",
+    "send": "Senden",
+    "noLinks": "Links sind in Pulse nicht erlaubt — nenne Coins mit $SYMBOL.",
+    "slowDown": "Langsamer — eine Nachricht alle paar Sekunden.",
+    "needUsername": "Wähle in deinem Profil einen Nutzernamen zum Chatten.",
+    "sendFailed": "Senden fehlgeschlagen — versuch es erneut.",
+    "charsLeft": "Noch {n} Zeichen",
+    "rules": "Sei nett. Keine Links. Keine Anlageberatung."
   }
 }

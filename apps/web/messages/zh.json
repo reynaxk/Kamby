@@ -84,7 +84,7 @@
     "alerts": "提醒",
     "tokens": "代币",
     "leaderboard": "排行榜",
-    "traders": "动态",
+    "traders": "Pulse",
     "trending": "热门",
     "trenches": "新币",
     "bonding": "联合曲线",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} 过去一小时下跌 {pct}",
     "someone": "某人",
     "aToken": "某代币"
+  },
+  "pulse": {
+    "live": "实时 — 全球交易者",
+    "connecting": "连接中…",
+    "empty": "还没有消息 — 说声 gm 👋",
+    "trader": "交易者",
+    "toChat": "即可聊天",
+    "setUsername": "设置用户名即可聊天",
+    "placeholder": "说点什么… 用 $SYMBOL 提及币种",
+    "send": "发送",
+    "noLinks": "Pulse 中不允许链接 — 请用 $SYMBOL 提及币种。",
+    "slowDown": "慢一点 — 每隔几秒发一条。",
+    "needUsername": "请在个人资料中设置用户名后再聊天。",
+    "sendFailed": "发送失败 — 请重试。",
+    "charsLeft": "还剩 {n} 个字符",
+    "rules": "友善交流。禁止链接。非投资建议。"
   }
 }

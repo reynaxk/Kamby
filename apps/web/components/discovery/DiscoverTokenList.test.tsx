@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 // LeaderboardSidebar/TradersSidebar/SelectableTokenRow have their own coverage — mocked here
 // so this file only exercises DiscoverTokenList's tab routing and per-tab data mapping.
 vi.mock('./LeaderboardSidebar', () => ({ LeaderboardSidebar: () => <div>LeaderboardSidebar</div> }));
-vi.mock('./TradersSidebar', () => ({ TradersSidebar: () => <div>TradersSidebar</div> }));
+vi.mock('@/components/pulse/PulseChat', () => ({ PulseChat: () => <div>PulseChat</div> }));
 vi.mock('./SelectableTokenRow', () => ({
   SelectableTokenRow: ({
     market,
@@ -199,13 +199,13 @@ describe('DiscoverTokenList', () => {
     expect(screen.getByText(/AAA.*\(selected\).*\(disabled\)/)).toBeInTheDocument();
   });
 
-  it('renders the Leaderboard and Feed sidebars and an honest "not built" Alerts tab', async () => {
+  it('renders the Leaderboard sidebar, the Pulse chat and an honest "not built" Alerts tab', async () => {
     render(<DiscoverTokenList {...defaultProps} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Leaderboard' }));
     expect(screen.getByText('LeaderboardSidebar')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Feed' }));
-    expect(screen.getByText('TradersSidebar')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Pulse' }));
+    expect(screen.getByText('PulseChat')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Alerts' }));
     expect(screen.getByText("Alerts aren't built yet")).toBeInTheDocument();
   });

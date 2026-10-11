@@ -84,7 +84,7 @@
     "alerts": "알림",
     "tokens": "토큰",
     "leaderboard": "리더보드",
-    "traders": "피드",
+    "traders": "Pulse",
     "trending": "트렌딩",
     "trenches": "신규",
     "bonding": "본딩",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} 지난 1시간 {pct} 하락",
     "someone": "누군가",
     "aToken": "토큰"
+  },
+  "pulse": {
+    "live": "실시간 — 전 세계 트레이더",
+    "connecting": "연결 중…",
+    "empty": "아직 메시지가 없습니다 — gm 👋",
+    "trader": "트레이더",
+    "toChat": "후 채팅",
+    "setUsername": "채팅하려면 사용자 이름을 설정하세요",
+    "placeholder": "메시지 입력… 코인은 $SYMBOL로",
+    "send": "보내기",
+    "noLinks": "Pulse에서는 링크를 쓸 수 없습니다 — 코인은 $SYMBOL로 언급하세요.",
+    "slowDown": "조금 천천히 — 몇 초에 한 번씩.",
+    "needUsername": "채팅하려면 프로필에서 사용자 이름을 설정하세요.",
+    "sendFailed": "보내지 못했습니다 — 다시 시도하세요.",
+    "charsLeft": "{n}자 남음",
+    "rules": "매너 있게. 링크 금지. 투자 조언 아님."
   }
 }

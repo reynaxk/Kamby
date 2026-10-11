@@ -84,7 +84,7 @@
     "alerts": "Uyarılar",
     "tokens": "Tokenler",
     "leaderboard": "Liderlik",
-    "traders": "Akış",
+    "traders": "Pulse",
     "trending": "Trend",
     "trenches": "Yeni",
     "bonding": "Bonding",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} son bir saatte {pct} düştü",
     "someone": "Biri",
     "aToken": "bir token"
+  },
+  "pulse": {
+    "live": "Canlı — dünyanın dört bir yanından trader’lar",
+    "connecting": "Bağlanılıyor…",
+    "empty": "Henüz mesaj yok — gm de 👋",
+    "trader": "Trader",
+    "toChat": "sohbet için",
+    "setUsername": "Sohbet için bir kullanıcı adı seç",
+    "placeholder": "Bir şey yaz… coinleri $SYMBOL ile an",
+    "send": "Gönder",
+    "noLinks": "Pulse'ta link yasak — coinleri $SYMBOL ile an.",
+    "slowDown": "Biraz yavaş — birkaç saniyede bir mesaj.",
+    "needUsername": "Sohbet için profilinden bir kullanıcı adı seç.",
+    "sendFailed": "Gönderilemedi — tekrar dene.",
+    "charsLeft": "{n} karakter kaldı",
+    "rules": "Kibar ol. Link yok. Yatırım tavsiyesi değildir."
   }
 }

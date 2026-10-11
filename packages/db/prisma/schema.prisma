@@ -375,6 +375,7 @@ model User {
   notificationActorFor    Notification[]           @relation("NotificationActorUser")
   notificationPreference  NotificationPreference?
   pushSubscriptions       PushSubscription[]
+  pulseMessages           PulseMessage[]
   tokenWatches            TokenWatch[]
   savedSearches           SavedSearch[]
   tokenLots               TokenLot[]
@@ -1037,6 +1038,25 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+/// Pulse, the worldwide chat (2026-10-11). Plain text only — links are refused app- and
+/// API-side (see containsLink in @kamby/domain). `hiddenAt` lets a moderator take a message
+/// down without losing the record.
+model PulseMessage {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  body      String    @db.VarChar(280)
+  hiddenAt  DateTime? @map("hidden_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// The chat itself: newest first.
+  @@index([createdAt])
+  /// A user's last message (cooldown / duplicate check).
+  @@index([userId, createdAt])
+  @@map("pulse_messages")
 }
 
 /// Whether each token market is *currently* trending per `computeTrendingScore` (see

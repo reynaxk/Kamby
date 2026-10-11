@@ -84,7 +84,7 @@
     "alerts": "Alertas",
     "tokens": "Tokens",
     "leaderboard": "Ranking",
-    "traders": "Feed",
+    "traders": "Pulse",
     "trending": "Tendencia",
     "trenches": "Nuevos",
     "bonding": "Bonding",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} baja {pct} en la última hora",
     "someone": "Alguien",
     "aToken": "un token"
+  },
+  "pulse": {
+    "live": "En vivo — traders de todo el mundo",
+    "connecting": "Conectando…",
+    "empty": "Aún no hay mensajes — di gm 👋",
+    "trader": "Trader",
+    "toChat": "para chatear",
+    "setUsername": "Elige un nombre de usuario para chatear",
+    "placeholder": "Di algo… menciona monedas con $SYMBOL",
+    "send": "Enviar",
+    "noLinks": "No se permiten enlaces en Pulse — menciona monedas con $SYMBOL.",
+    "slowDown": "Más despacio — un mensaje cada pocos segundos.",
+    "needUsername": "Elige un nombre de usuario en tu perfil para chatear.",
+    "sendFailed": "No se pudo enviar — inténtalo de nuevo.",
+    "charsLeft": "Quedan {n} caracteres",
+    "rules": "Sé amable. Sin enlaces. No es asesoramiento financiero."
   }
 }

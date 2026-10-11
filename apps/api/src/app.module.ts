@@ -15,6 +15,7 @@ import { SocialModule } from './social/social.module';
 import { MarketModule } from './market/market.module';
 import { TradingModule } from './trading/trading.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PulseModule } from './pulse/pulse.module';
 import { DiscoveryModule } from './discovery/discovery.module';
 import { TokensModule } from './tokens/tokens.module';
 import { ReferralsModule } from './referrals/referrals.module';
@@ -76,6 +77,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     MarketModule,
     TradingModule,
     NotificationsModule,
+    PulseModule,
     DiscoveryModule,
     TokensModule,
     ReferralsModule,

@@ -84,7 +84,7 @@
     "alerts": "アラート",
     "tokens": "トークン",
     "leaderboard": "ランキング",
-    "traders": "フィード",
+    "traders": "Pulse",
     "trending": "トレンド",
     "trenches": "新着",
     "bonding": "ボンディング",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} が直近1時間で {pct} 下落",
     "someone": "誰か",
     "aToken": "トークン"
+  },
+  "pulse": {
+    "live": "ライブ — 世界中のトレーダー",
+    "connecting": "接続中…",
+    "empty": "まだメッセージはありません — gm 👋",
+    "trader": "トレーダー",
+    "toChat": "してチャット",
+    "setUsername": "チャットするにはユーザー名を設定",
+    "placeholder": "メッセージ… コインは $SYMBOL で",
+    "send": "送信",
+    "noLinks": "Pulse ではリンクは使えません — コインは $SYMBOL で書いてください。",
+    "slowDown": "少しゆっくり — 数秒に1回まで。",
+    "needUsername": "チャットするにはプロフィールでユーザー名を設定してください。",
+    "sendFailed": "送信できませんでした — もう一度お試しください。",
+    "charsLeft": "残り {n} 文字",
+    "rules": "思いやりを。リンク禁止。投資助言ではありません。"
   }
 }

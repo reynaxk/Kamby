@@ -12,7 +12,7 @@ import { CryptoFeedRow } from './feeds/CryptoFeedRow';
 import { PumpFunFeedRow } from './feeds/PumpFunFeedRow';
 import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
-import { TradersSidebar } from './TradersSidebar';
+import { PulseChat } from '@/components/pulse/PulseChat';
 import { useTranslations } from 'next-intl';
 import { useSteadyOrder } from '@/lib/use-steady-order';
 import { WatchlistTokens } from './WatchlistTokens';
@@ -23,7 +23,7 @@ const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
   { id: 'alerts', label: 'Alerts' },
   { id: 'tokens', label: 'Tokens' },
   { id: 'leaderboard', label: 'Leaderboard' },
-  { id: 'traders', label: 'Feed' },
+  { id: 'traders', label: 'Pulse' },
 ];
 
 const TOKEN_TABS: { id: MarketFeedTab; label: string }[] = [
@@ -233,8 +233,10 @@ export function DiscoverTokenList({
             <LeaderboardSidebar />
           </div>
         ) : primaryTab === 'traders' ? (
+          // Pulse, the worldwide chat (2026-10-11) — replaced the old Feed list (owner: "not
+          // useful"). On the phone Home it fills the screen under the sticky tabs.
           <div className="min-h-0 flex-1">
-            <TradersSidebar />
+            <PulseChat className={pageScroll ? 'h-[calc(100dvh-11.5rem)] md:h-full' : 'h-full'} />
           </div>
         ) : primaryTab === 'watchlist' ? (
           <div className="min-h-0 flex-1">

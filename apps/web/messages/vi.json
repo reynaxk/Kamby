@@ -84,7 +84,7 @@
     "alerts": "Cảnh báo",
     "tokens": "Token",
     "leaderboard": "Xếp hạng",
-    "traders": "Bảng tin",
+    "traders": "Pulse",
     "trending": "Xu hướng",
     "trenches": "Mới",
     "bonding": "Bonding",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} giảm {pct} trong 1 giờ qua",
     "someone": "Ai đó",
     "aToken": "một token"
+  },
+  "pulse": {
+    "live": "Trực tiếp — trader toàn thế giới",
+    "connecting": "Đang kết nối…",
+    "empty": "Chưa có tin nhắn — chào gm 👋",
+    "trader": "Trader",
+    "toChat": "để trò chuyện",
+    "setUsername": "Đặt tên người dùng để trò chuyện",
+    "placeholder": "Nói gì đó… nhắc coin bằng $SYMBOL",
+    "send": "Gửi",
+    "noLinks": "Không được gửi link trong Pulse — nhắc coin bằng $SYMBOL.",
+    "slowDown": "Chậm lại chút — vài giây một tin.",
+    "needUsername": "Đặt tên người dùng trong hồ sơ để trò chuyện.",
+    "sendFailed": "Không gửi được — thử lại.",
+    "charsLeft": "Còn {n} ký tự",
+    "rules": "Lịch sự. Không link. Không phải lời khuyên tài chính."
   }
 }

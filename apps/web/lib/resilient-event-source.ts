@@ -12,7 +12,7 @@ const BACKOFF_MS = [1_000, 2_000, 5_000, 10_000, 30_000];
  * backoff, restarts one silent for 60s (servers heartbeat every 25s), and reconnects at once
  * when the browser comes back online. `events` maps event names to handlers; returns close().
  */
-export function openResilientEventSource(url: string, events: Record<string, () => void>, onStatus: (status: RealtimeStatus) => void): () => void {
+export function openResilientEventSource(url: string, events: Record<string, (data: string) => void>, onStatus: (status: RealtimeStatus) => void): () => void {
   let source: EventSource | null = null;
   let closed = false;
   let retries = 0;
@@ -26,9 +26,11 @@ export function openResilientEventSource(url: string, events: Record<string, () 
     source = es;
     lastEventAt = Date.now();
     for (const [name, handler] of Object.entries(events)) {
-      es.addEventListener(name, () => {
+      // The event's data is passed along for streams that carry it (Pulse chat); bare
+      // "something changed" pings just ignore it.
+      es.addEventListener(name, (event) => {
         lastEventAt = Date.now();
-        handler();
+        handler((event as MessageEvent<string>).data);
       });
     }
     es.addEventListener('heartbeat', () => {

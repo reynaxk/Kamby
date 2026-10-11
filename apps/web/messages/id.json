@@ -84,7 +84,7 @@
     "alerts": "Peringatan",
     "tokens": "Token",
     "leaderboard": "Peringkat",
-    "traders": "Feed",
+    "traders": "Pulse",
     "trending": "Trending",
     "trenches": "Baru",
     "bonding": "Bonding",
@@ -582,5 +582,21 @@
     "PRICE_MOVE_DOWN": "{token} turun {pct} dalam satu jam terakhir",
     "someone": "Seseorang",
     "aToken": "sebuah token"
+  },
+  "pulse": {
+    "live": "Live — trader dari seluruh dunia",
+    "connecting": "Menghubungkan…",
+    "empty": "Belum ada pesan — sapa gm 👋",
+    "trader": "Trader",
+    "toChat": "untuk chat",
+    "setUsername": "Atur username untuk chat",
+    "placeholder": "Tulis sesuatu… sebut koin dengan $SYMBOL",
+    "send": "Kirim",
+    "noLinks": "Link tidak boleh di Pulse — sebut koin dengan $SYMBOL.",
+    "slowDown": "Pelan-pelan — satu pesan tiap beberapa detik.",
+    "needUsername": "Atur username di profil untuk chat.",
+    "sendFailed": "Gagal mengirim — coba lagi.",
+    "charsLeft": "Sisa {n} karakter",
+    "rules": "Bersikap baik. Tanpa link. Bukan saran keuangan."
   }
 }

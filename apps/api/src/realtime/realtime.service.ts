@@ -3,6 +3,8 @@ import {
   ACTIVITY_REALTIME_CHANNEL,
   NOTIFICATION_REALTIME_CHANNEL,
   PUMPFUN_REALTIME_CHANNEL,
+  PULSE_REALTIME_CHANNEL,
+  type PulseMessage,
   SOLANA_ACTIVITY_REALTIME_CHANNEL,
   type NotificationPing,
   type PumpFunLiveBatch,
@@ -44,6 +46,7 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly notificationSubject = new Subject<NotificationPing>();
   private readonly solanaActivitySubject = new Subject<SolanaActivityPing>();
   private readonly pumpFunSubject = new Subject<PumpFunLiveBatch>();
+  private readonly pulseSubject = new Subject<PulseMessage>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -66,13 +69,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.solanaActivitySubject.next(JSON.parse(message) as SolanaActivityPing);
         } else if (channel === PUMPFUN_REALTIME_CHANNEL) {
           this.pumpFunSubject.next(JSON.parse(message) as PumpFunLiveBatch);
+        } else if (channel === PULSE_REALTIME_CHANNEL) {
+          this.pulseSubject.next(JSON.parse(message) as PulseMessage);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -101,5 +106,10 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
    *  ingestion every flush — see PumpPortalIngestionService. */
   get pumpFunEvents$() {
     return this.pumpFunSubject.asObservable();
+  }
+
+  /** Pulse chat messages as they're posted — full messages (they're small and public). */
+  get pulseEvents$() {
+    return this.pulseSubject.asObservable();
   }
 }
