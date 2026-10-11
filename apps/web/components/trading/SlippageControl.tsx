@@ -18,6 +18,14 @@ export function autoSlippageBps(priceImpactBps: number | null | undefined, volat
   return Math.min(cap, Math.max(floor, Math.round((2 * priceImpactBps + 50) / 10) * 10));
 }
 
+/** Exported for tests. How Auto moves after a new quote: only up, and only by a real step
+ *  (≥0.5%). Every new quote carries a slightly different price impact, so following it both
+ *  ways re-quoted forever — a quote a second until the API rate-limited the buy (2026-10-11,
+ *  "buys are too slow"). Up-only with a step settles after one re-quote at most. */
+export function nextAutoSlippageBps(currentBps: number, suggestedBps: number): number {
+  return suggestedBps >= currentBps + 50 ? suggestedBps : currentBps;
+}
+
 function formatBpsAsPercent(bps: number): string {
   return `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 1)}%`;
 }

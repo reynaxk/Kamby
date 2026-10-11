@@ -20,7 +20,7 @@ import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
 import { TradeSuccess } from './TradeSuccess';
 import { GaslessToggle } from './GaslessToggle';
-import { autoSlippageBps, SlippageControl } from './SlippageControl';
+import { autoSlippageBps, nextAutoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { ChainUsdcLine } from './ChainUsdcLine';
@@ -194,9 +194,9 @@ export function TradePanel({
   const silentRefreshRef = useRef(false);
 
   const [quote, setQuote] = useState<TradeQuoteDto | null>(null);
-  // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
+  // Auto widens for a quote with real price impact (up only — see nextAutoSlippageBps).
   useEffect(() => {
-    if (autoSlippage && quote) setAutoBps(autoSlippageBps(quote.priceImpactBps));
+    if (autoSlippage && quote) setAutoBps((bps) => nextAutoSlippageBps(bps, autoSlippageBps(quote.priceImpactBps)));
   }, [autoSlippage, quote]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);

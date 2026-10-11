@@ -19,7 +19,7 @@ import {
   submitSolanaTransaction,
   submitSponsoredSolanaTransaction,
 } from '@/lib/solana-trading-client';
-import { autoSlippageBps, SlippageControl } from './SlippageControl';
+import { autoSlippageBps, nextAutoSlippageBps, SlippageControl } from './SlippageControl';
 import { clientEnv } from '@/lib/env';
 import { SolAmountInput, SOL_PRESETS, solToRawLamports } from './SolAmountInput';
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
@@ -177,9 +177,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const silentRefreshRef = useRef(false);
 
   const [quote, setQuote] = useState<SolanaTradeQuoteDto | null>(null);
-  // Auto follows the latest quote's price impact (a changed value re-quotes once; it settles).
+  // Auto widens for a quote with real price impact (up only — see nextAutoSlippageBps).
   useEffect(() => {
-    if (autoSlippage && quote) setAutoBps(autoSlippageBps(quote.priceImpactBps, volatile));
+    if (autoSlippage && quote) setAutoBps((bps) => nextAutoSlippageBps(bps, autoSlippageBps(quote.priceImpactBps, volatile)));
   }, [autoSlippage, quote, volatile]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);
