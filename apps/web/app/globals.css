@@ -390,3 +390,49 @@ body:has(.kamby-void) {
     transform: scale(0.985);
   }
 }
+
+/* Launch splash (components/pwa/AppSplash.tsx) — hidden before paint unless it's a fresh launch
+   of the installed app. One neon breath on the Kamby mark, then it grows and fades. */
+.no-splash #kamby-splash {
+  display: none;
+}
+@keyframes kamby-splash-breath {
+  0% { opacity: 0; transform: scale(0.82); filter: drop-shadow(0 0 0 rgba(0, 255, 135, 0)); }
+  55% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 26px rgba(0, 255, 135, 0.75)); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 14px rgba(0, 255, 135, 0.45)); }
+}
+.kamby-splash-mark img {
+  animation: kamby-splash-breath 0.7s ease-out both;
+}
+
+/* Phone screens build up instead of popping in (2026-10-11): sections rise in, the first coin
+   rows cascade, the tab bar slides up once at launch. Opacity/transform only while playing
+   (`backwards`), so nothing fixed is ever positioned against an animated parent afterwards. */
+@keyframes kamby-rise {
+  from { opacity: 0; transform: translateY(10px); }
+}
+@keyframes kamby-tabbar-in {
+  from { opacity: 0; transform: translateY(24px); }
+}
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .kamby-rise {
+    animation: kamby-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .kamby-rise-2 { animation-delay: 0.08s; }
+  .kamby-rise-3 { animation-delay: 0.16s; }
+  .kamby-cascade > * {
+    animation: kamby-rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+  .kamby-cascade > :nth-child(1) { animation-delay: 0.18s; }
+  .kamby-cascade > :nth-child(2) { animation-delay: 0.22s; }
+  .kamby-cascade > :nth-child(3) { animation-delay: 0.26s; }
+  .kamby-cascade > :nth-child(4) { animation-delay: 0.3s; }
+  .kamby-cascade > :nth-child(5) { animation-delay: 0.34s; }
+  .kamby-cascade > :nth-child(6) { animation-delay: 0.38s; }
+  .kamby-cascade > :nth-child(7) { animation-delay: 0.42s; }
+  .kamby-cascade > :nth-child(8) { animation-delay: 0.46s; }
+  .kamby-cascade > :nth-child(n + 9) { animation-delay: 0.5s; }
+  .kamby-tabbar-in {
+    animation: kamby-tabbar-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s backwards;
+  }
+}

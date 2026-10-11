@@ -220,7 +220,7 @@ export function DiscoverTokenList({
 
   return (
     <div className={cn('flex h-full flex-col gap-1.5', pageScroll && 'max-md:h-auto')}>
-      <div className={cn(pageScroll && 'max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
+      <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
       {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} />}
       {primaryTab === 'tokens' && pageScroll && tokenChips}
       </div>
@@ -248,7 +248,7 @@ export function DiscoverTokenList({
             />
           </div>
         ) : (
-          <div className={cn('terminal-token-list min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface max-md:rounded-none max-md:border-0 max-md:bg-transparent', pageScroll && 'max-md:flex-none max-md:overflow-visible')}>
+          <div className={cn('terminal-token-list min-h-0 flex-1 overflow-y-auto rounded-2xl border border-line bg-surface max-md:rounded-none max-md:border-0 max-md:bg-transparent', pageScroll && 'kamby-cascade max-md:flex-none max-md:overflow-visible')}>
             {tabContent[tokenTab]}
           </div>
         )}

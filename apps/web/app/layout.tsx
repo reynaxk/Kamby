@@ -12,6 +12,7 @@ import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { LandingOnlyOnPhones } from '@/components/layout/LandingOnlyOnPhones';
 import { LaunchOnHome } from '@/components/pwa/LaunchOnHome';
+import { AppSplash, SPLASH_GATE_SCRIPT } from '@/components/pwa/AppSplash';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -42,8 +43,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`}>
+    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Decides before first paint whether the launch splash shows — see AppSplash. */}
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_GATE_SCRIPT }} />
+      </head>
       <body className="font-body antialiased">
+        <AppSplash />
         <NextIntlClientProvider locale={locale} messages={messages}>
         <Providers>
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
