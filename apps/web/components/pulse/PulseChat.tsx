@@ -193,7 +193,8 @@ export function PulseChat({ className }: { className?: string }) {
         )}
       </div>
 
-      <div className="border-t border-white/5 px-3 pb-2 pt-2">
+      {/* On phones the floating tab bar sits over the bottom edge — keep the composer above it. */}
+      <div className="border-t border-white/5 px-3 pb-2 pt-2 max-md:pb-[calc(env(safe-area-inset-bottom)+5rem)]">
         {!ready ? null : !authenticated ? (
           <button type="button" onClick={() => login()} className="h-11 w-full rounded-2xl bg-accent font-display text-sm font-bold text-black">
             {tAuth('signIn')} — {t('toChat')}
