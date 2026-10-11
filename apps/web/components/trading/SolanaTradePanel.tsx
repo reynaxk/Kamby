@@ -157,8 +157,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   tokenDecimalsRef.current = tokenDecimals;
 
   const [side, setSide] = useState<TradeSide>(initialSide);
+  // The wallet's Solana USDC (raw), from the amount input — a buy above it can't go through
+  // (2026-10-11: a $1.77 buy from a $0.81 balance failed three times with a vague error).
+  const [usdcBalanceRaw, setUsdcBalanceRaw] = useState<bigint | null>(null);
+  const tL = useTranslations('labels');
   const dock = dockProp ?? !sheet;
   const [amount, setAmount] = useState('');
+  const overBalance = side === 'BUY' && usdcBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > usdcBalanceRaw;
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
   const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));
@@ -623,8 +628,13 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         </div>
         {side === 'BUY' ? (
           <>
-            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} />
+            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} onBalance={setUsdcBalanceRaw} />
             <ChainUsdcLine chain="solana" amountUsd={(Number(amount) || 0) / 1e6} />
+            {overBalance && usdcBalanceRaw !== null && (
+              <p className="text-center font-body text-xs font-semibold text-down">
+                {tL('notEnoughUsdcDetail', { balance: `$${(Number(usdcBalanceRaw) / 1e6).toFixed(2)}` })}
+              </p>
+            )}
           </>
         ) : (
           isNativeSol ? (
@@ -657,10 +667,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className={cn('w-full text-base font-bold uppercase tracking-wide', sheet && 'h-14 rounded-2xl normal-case tracking-normal')}
-          disabled={quoteStatus !== 'ready' || !quote}
+          disabled={quoteStatus !== 'ready' || !quote || overBalance}
           onClick={() => void handleOneTap()}
         >
-          {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
+          {overBalance ? tL('notEnoughUsdc') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
         </Button>
       </Panel>
 
@@ -690,10 +700,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className="mt-1.5 w-full text-sm font-bold uppercase tracking-wide"
-          disabled={quoteStatus !== 'ready' || !quote}
+          disabled={quoteStatus !== 'ready' || !quote || overBalance}
           onClick={() => void handleOneTap()}
         >
-          {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
+          {overBalance ? tL('notEnoughUsdc') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
         </Button>
       </div>
       )}

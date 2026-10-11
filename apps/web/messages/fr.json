@@ -551,7 +551,9 @@
     "push_needsInstall": "Sur iPhone : Partager → Sur l'écran d'accueil, ouvre Kamby depuis là puis active ceci",
     "push_denied": "Les notifications sont bloquées — autorise-les pour Kamby dans les réglages du téléphone",
     "push_unsupported": "Ce navigateur ne peut pas afficher de notifications",
-    "push_error": "Impossible d'activer les notifications — réessaie"
+    "push_error": "Impossible d'activer les notifications — réessaie",
+    "notEnoughUsdc": "Pas assez d’USDC",
+    "notEnoughUsdcDetail": "Tu as {balance} USDC sur Solana — dépose plus ou baisse le montant"
   },
   "notif": {
     "kind_FOLLOW": "Abonné",

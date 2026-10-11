@@ -33,12 +33,15 @@ export function UsdPresetAmountInput({
   onChange,
   walletAddress,
   hero = false,
+  onBalance,
 }: {
   value: string;
   onChange: (value: string) => void;
   walletAddress: string | undefined;
   /** Phone trade sheet (2026-10-10): the amount big and centred. */
   hero?: boolean;
+  /** The wallet's Solana USDC balance (raw) once known — lets the panel stop a buy it can't pay for. */
+  onBalance?: (raw: bigint | null) => void;
 }) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -68,6 +71,10 @@ export function UsdPresetAmountInput({
       cancelled = true;
     };
   }, [walletAddress]);
+
+  useEffect(() => {
+    onBalance?.(usdcBalanceRaw);
+  }, [usdcBalanceRaw]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const applyUsd = (dollars: number) => {
     onChange(usdToRawUsdc(dollars));

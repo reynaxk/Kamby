@@ -551,7 +551,9 @@
     "push_needsInstall": "Di iPhone: Bagikan → Tambah ke Layar Utama, buka Kamby dari sana lalu nyalakan ini",
     "push_denied": "Notifikasi diblokir — izinkan untuk Kamby di pengaturan ponsel",
     "push_unsupported": "Browser ini tidak bisa menampilkan notifikasi",
-    "push_error": "Gagal menyalakan notifikasi — coba lagi"
+    "push_error": "Gagal menyalakan notifikasi — coba lagi",
+    "notEnoughUsdc": "USDC tidak cukup",
+    "notEnoughUsdcDetail": "Kamu punya {balance} USDC di Solana — deposit lagi atau kurangi jumlahnya"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

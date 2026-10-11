@@ -438,6 +438,16 @@ describe('GasRelayerService', () => {
     );
   });
 
+  it('says the balance is too low when Jupiter reports insufficient funds (6024)', async () => {
+    mockSimulateTransaction.mockResolvedValue({ value: { err: { InstructionError: [3, { Custom: 6024 }] } } });
+    const tx = buildTransaction({ signedByUser: true });
+
+    await expect(
+      service().submitSponsoredTransaction({ userId: 'user-1', walletAddress: USER_WALLET, quoteId: QUOTE_ID, partiallySignedTxBase64: toBase64(tx) }),
+    ).rejects.toThrow(/Not enough balance on Solana/);
+    expect(mockSendTransaction).not.toHaveBeenCalled();
+  });
+
   it('rejects on a failed simulation', async () => {
     mockSimulateTransaction.mockResolvedValue({ value: { err: 'InsufficientFundsForRent' } });
     const tx = buildTransaction({ signedByUser: true });

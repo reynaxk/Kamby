@@ -377,82 +377,21 @@ describe('NotificationFanoutService', () => {
       expect(mockPrisma.tokenTrendingState.findUnique).not.toHaveBeenCalled();
     });
 
-    it('notifies every preference-enabled user on a false -> true trending transition', async () => {
+    it('still tracks a false -> true trending transition but notifies no one (trending notifications are off since 2026-10-11)', async () => {
       mockPrisma.tokenMarket.findUnique.mockResolvedValue({
         id: 'tm-1',
         ...TRENDING_MARKET_HEALTHY,
       });
       mockPrisma.tokenTrendingState.findUnique.mockResolvedValue(null); // never tracked before -> wasTrending false
       mockPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }, { id: 'user-2' }]);
-      mockPrisma.notification.createMany.mockResolvedValue({ count: 2 });
-      mockPrisma.notification.findMany.mockResolvedValue([
-        { id: 'n1', userId: 'user-1', type: 'TRENDING_TOKEN', createdAt: new Date() },
-        { id: 'n2', userId: 'user-2', type: 'TRENDING_TOKEN', createdAt: new Date() },
-      ]);
 
       await service.checkTrendingTransition('tm-1');
 
       expect(mockPrisma.tokenTrendingState.upsert).toHaveBeenCalledWith(
         expect.objectContaining({ update: expect.objectContaining({ isTrending: true }) }),
       );
-      expect(mockPrisma.notification.createMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: [
-            expect.objectContaining({
-              userId: 'user-1',
-              type: 'TRENDING_TOKEN',
-              tokenMarketId: 'tm-1',
-            }),
-            expect.objectContaining({
-              userId: 'user-2',
-              type: 'TRENDING_TOKEN',
-              tokenMarketId: 'tm-1',
-            }),
-          ],
-        }),
-      );
-      // Both recipients share the same dedupeKey — one shared "entered trending" event —
-      // and it's shaped exactly like trendingTokenDedupeKey('tm-1', <transition time>).
-      const data = mockPrisma.notification.createMany.mock.calls[0]![0].data;
-      expect(data[0].dedupeKey).toBe(data[1].dedupeKey);
-      expect(data[0].dedupeKey.startsWith('token:tm-1:since:')).toBe(true);
-    });
-
-    it('batches a very large audience into bounded rounds rather than one unbounded write/re-fetch/publish', async () => {
-      mockPrisma.tokenMarket.findUnique.mockResolvedValue({ id: 'tm-1', ...TRENDING_MARKET_HEALTHY });
-      mockPrisma.tokenTrendingState.findUnique.mockResolvedValue(null);
-      // Comfortably more than one batch (FANOUT_BATCH_SIZE is 500) — the actual point of
-      // this test is that no single query ever has to carry all 1,200 at once.
-      const users = Array.from({ length: 1200 }, (_, i) => ({ id: `user-${i}` }));
-      mockPrisma.user.findMany.mockResolvedValue(users);
-      // Echoes back a response sized to whatever batch was actually sent, rather than
-      // hardcoding a fixed batch count/size — this test should keep working even if
-      // FANOUT_BATCH_SIZE itself changes later.
-      mockPrisma.notification.createMany.mockImplementation(({ data }: { data: { userId: string }[] }) =>
-        Promise.resolve({ count: data.length }),
-      );
-      mockPrisma.notification.findMany.mockImplementation(({ where }: { where: { OR: { userId: string }[] } }) =>
-        Promise.resolve(
-          where.OR.map((c, i) => ({ id: `n-${c.userId}-${i}`, userId: c.userId, type: 'TRENDING_TOKEN', createdAt: new Date() })),
-        ),
-      );
-
-      await service.checkTrendingTransition('tm-1');
-
-      const createManyCalls = mockPrisma.notification.createMany.mock.calls;
-      const findManyCalls = mockPrisma.notification.findMany.mock.calls;
-      expect(createManyCalls.length).toBeGreaterThan(1); // never one unbounded call for 1,200 recipients
-      for (const call of createManyCalls) {
-        expect((call[0] as { data: unknown[] }).data.length).toBeLessThanOrEqual(500);
-      }
-      for (const call of findManyCalls) {
-        expect((call[0] as { where: { OR: unknown[] } }).where.OR.length).toBeLessThanOrEqual(500);
-      }
-      // Every recipient still gets created and published exactly once — batching changes
-      // how the work is chunked, never how much of it happens.
-      const totalCreated = createManyCalls.reduce((sum, call) => sum + (call[0] as { data: unknown[] }).data.length, 0);
-      expect(totalCreated).toBe(1200);
-      expect(fakeRedis.publish).toHaveBeenCalledTimes(1200);
+      expect(mockPrisma.notification.createMany).not.toHaveBeenCalled();
+      expect(fakeRedis.publish).not.toHaveBeenCalled();
     });
 
     it('does not renotify while a token stays trending across ticks', async () => {

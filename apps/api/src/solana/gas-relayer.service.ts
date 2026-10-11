@@ -223,9 +223,19 @@ export class GasRelayerService {
     if (simulation.value.err) {
       this.logger.warn({ err: simulation.value.err }, 'gas relayer transaction failed simulation');
       // Jupiter 6001 = SlippageToleranceExceeded: the price moved past the user's slippage.
-      const slippage = JSON.stringify(simulation.value.err).includes('"Custom":6001');
+      const errText = JSON.stringify(simulation.value.err);
+      const slippage = errText.includes('"Custom":6001');
+      // Jupiter 6024 = InsufficientFunds: the wallet has less USDC (or tokens) than the trade
+      // plus its fee (2026-10-11: a $1.77 buy from a $0.81 Solana balance showed the generic
+      // message three times). Exact code only — e.g. InsufficientFundsForRent is a different
+      // problem and keeps the generic message.
+      const insufficient = errText.includes('"Custom":6024');
       throw new UnprocessableEntityException(
-        slippage ? 'Price moved more than your slippage allows — try again, or raise slippage.' : 'This trade would fail right now — nothing was sent. Please try again.',
+        slippage
+          ? 'Price moved more than your slippage allows — try again, or raise slippage.'
+          : insufficient
+            ? 'Not enough balance on Solana for this trade and its fee — add USDC on Solana or lower the amount.'
+            : 'This trade would fail right now — nothing was sent. Please try again.',
       );
     }
 

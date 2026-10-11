@@ -551,7 +551,9 @@
     "push_needsInstall": "Trên iPhone: Chia sẻ → Thêm vào Màn hình chính, mở Kamby từ đó rồi bật",
     "push_denied": "Thông báo đang bị chặn — hãy cho phép Kamby trong cài đặt điện thoại",
     "push_unsupported": "Trình duyệt này không hiển thị được thông báo",
-    "push_error": "Không bật được thông báo — thử lại"
+    "push_error": "Không bật được thông báo — thử lại",
+    "notEnoughUsdc": "Không đủ USDC",
+    "notEnoughUsdcDetail": "Bạn có {balance} USDC trên Solana — nạp thêm hoặc giảm số tiền"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

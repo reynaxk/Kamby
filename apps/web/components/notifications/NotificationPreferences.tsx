@@ -26,7 +26,7 @@ const FIELDS: { key: keyof NotificationPreferences; label: string; detail: strin
     label: 'Whale trades',
     detail: `Large trades in tokens you've traded before`,
   },
-  { key: 'trendingTokens', label: 'Trending tokens', detail: 'When a token newly starts trending' },
+  // trendingTokens: no longer sent (owner 2026-10-11) — so no switch for it either.
   {
     key: 'watchedTokenActivity',
     label: 'Watched token activity',
@@ -114,7 +114,7 @@ export function NotificationPreferencesPanel() {
           >
             <span
               aria-hidden
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs[key] ? 'translate-x-[1.375rem]' : 'translate-x-0.5'}`}
+              className={`absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs[key] ? 'translate-x-[1.375rem]' : 'translate-x-0.5'}`}
             />
           </button>
         </div>

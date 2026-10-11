@@ -551,7 +551,9 @@
     "push_needsInstall": "Auf dem iPhone: Teilen → Zum Home-Bildschirm, Kamby von dort öffnen und das hier einschalten",
     "push_denied": "Benachrichtigungen sind blockiert — erlaube sie für Kamby in den Handy-Einstellungen",
     "push_unsupported": "Dieser Browser kann keine Benachrichtigungen zeigen",
-    "push_error": "Benachrichtigungen konnten nicht eingeschaltet werden — versuch es erneut"
+    "push_error": "Benachrichtigungen konnten nicht eingeschaltet werden — versuch es erneut",
+    "notEnoughUsdc": "Nicht genug USDC",
+    "notEnoughUsdcDetail": "Du hast {balance} USDC auf Solana — zahl mehr ein oder senke den Betrag"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

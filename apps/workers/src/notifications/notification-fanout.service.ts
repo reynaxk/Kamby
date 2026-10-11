@@ -24,6 +24,9 @@ export interface InsertedSwap {
   amountUsd: number;
 }
 
+/** Off since 2026-10-11 (owner) — see checkTrendingTransition. */
+const TRENDING_NOTIFICATIONS_ENABLED = false;
+
 /**
  * Creates FOLLOWED_TRADER_TRADE, WHALE_TRADE, and TRENDING_TOKEN notifications from
  * confirmed, indexed activity — see docs/NOTIFICATIONS.md. Deliberately triggered from
@@ -347,6 +350,9 @@ export class NotificationFanoutService {
     });
 
     if (!isTrendingNow) return; // exiting trending never notifies, only entering does
+    // Owner 2026-10-11: no more "X is trending" notifications — they went to every user for
+    // every coin (36k+ rows) and nobody wanted them. The trending state above is still tracked.
+    if (!TRENDING_NOTIFICATIONS_ENABLED) return;
 
     // Every user with trendingTokens enabled — unlike whale trades, trending is a discovery
     // feature meant to reach people not already engaged with this token, so there is no

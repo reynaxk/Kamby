@@ -551,7 +551,9 @@
     "push_needsInstall": "iPhone: 공유 → 홈 화면에 추가 후 거기서 Kamby를 열고 켜세요",
     "push_denied": "알림이 차단됨 — 휴대폰 설정에서 Kamby 알림을 허용하세요",
     "push_unsupported": "이 브라우저는 알림을 표시할 수 없습니다",
-    "push_error": "알림을 켜지 못했습니다 — 다시 시도하세요"
+    "push_error": "알림을 켜지 못했습니다 — 다시 시도하세요",
+    "notEnoughUsdc": "USDC 부족",
+    "notEnoughUsdcDetail": "Solana에 {balance} USDC가 있습니다 — 입금하거나 금액을 줄이세요"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

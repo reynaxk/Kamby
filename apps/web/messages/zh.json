@@ -551,7 +551,9 @@
     "push_needsInstall": "iPhone：点「分享」→「添加到主屏幕」，从那里打开 Kamby 再开启",
     "push_denied": "通知已被阻止 — 请在手机设置中允许 Kamby 发送通知",
     "push_unsupported": "此浏览器无法显示通知",
-    "push_error": "无法开启通知 — 请重试"
+    "push_error": "无法开启通知 — 请重试",
+    "notEnoughUsdc": "USDC 不足",
+    "notEnoughUsdcDetail": "你在 Solana 上有 {balance} USDC — 请充值或降低金额"
   },
   "notif": {
     "kind_FOLLOW": "关注",

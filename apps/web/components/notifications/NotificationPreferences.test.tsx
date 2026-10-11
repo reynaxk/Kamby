@@ -49,7 +49,7 @@ describe('NotificationPreferencesPanel', () => {
     expect(await screen.findByText("Couldn't load your preferences.")).toBeInTheDocument();
   });
 
-  it('renders all eight real toggles with their real server-reported checked state', async () => {
+  it('renders all seven real toggles with their real server-reported checked state', async () => {
     hasStoredSession.mockReturnValue(true);
     fetchNotificationPreferences.mockResolvedValue(fakePrefs({ follows: true, likes: false }));
     render(<NotificationPreferencesPanel />);
@@ -57,7 +57,7 @@ describe('NotificationPreferencesPanel', () => {
     const follows = await screen.findByRole('switch', { name: 'New followers' });
     expect(follows).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('switch', { name: 'Likes' })).toHaveAttribute('aria-checked', 'false');
-    expect(screen.getAllByRole('switch')).toHaveLength(8);
+    expect(screen.getAllByRole('switch')).toHaveLength(7);
   });
 
   it('flips the real toggle optimistically before the request resolves', async () => {

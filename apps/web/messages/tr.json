@@ -551,7 +551,9 @@
     "push_needsInstall": "iPhone'da: Paylaş → Ana Ekrana Ekle, Kamby'yi oradan aç ve bunu aç",
     "push_denied": "Bildirimler engelli — telefon ayarlarından Kamby için izin ver",
     "push_unsupported": "Bu tarayıcı bildirim gösteremiyor",
-    "push_error": "Bildirimler açılamadı — tekrar dene"
+    "push_error": "Bildirimler açılamadı — tekrar dene",
+    "notEnoughUsdc": "Yetersiz USDC",
+    "notEnoughUsdcDetail": "Solana'da {balance} USDC var — yatır ya da tutarı düşür"
   },
   "notif": {
     "kind_FOLLOW": "Takip",
