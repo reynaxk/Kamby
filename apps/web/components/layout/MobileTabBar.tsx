@@ -28,7 +28,7 @@ export function MobileTabBar() {
   if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/market/')) return null;
   return (
     <nav aria-label={tU('main_a02c')} className="kamby-tabbar-in fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 md:hidden">
-      <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface/95 px-2 shadow-[0_8px_32px_rgba(0,0,0,0.55)]">
+      <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface px-2 shadow-[0_8px_32px_rgba(0,0,0,0.55)]">
         {TABS.map((tab) => {
           const active = tab.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
           const Icon = tab.icon;
