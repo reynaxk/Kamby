@@ -164,6 +164,7 @@ export function TradePanel({
 }: TradePanelProps) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
+  const tL = useTranslations('labels');
   // Every trade pays with / sells into this chain's USDC, not the pool's pair token (WETH,
   // WBNB…) — the API quotes it the same way (QuoteService#createQuote).
   const usdc = USDC_BY_CHAIN_ID[chainId];
@@ -776,6 +777,9 @@ export function TradePanel({
   }
 
   // --- Form step ---------------------------------------------------------------------------
+  // The $2 minimum reads on the trade button itself, big, instead of a small red line
+  // (owner 2026-10-11). Every language's message for it contains the amount.
+  const belowMinimum = quoteStatus === 'error' && quoteError !== null && quoteError.includes('$2.00');
 
   return (
     <Panel
@@ -855,7 +859,7 @@ export function TradePanel({
           silently do nothing when switched on. */}
       {quote?.sponsorshipAvailable && <GaslessToggle value={gasless} onChange={setGasless} label={tU('gaslessNoGasNeeded_7181')} />}
 
-      {quoteStatus === 'error' && <p className="font-body text-xs text-down">{quoteError}</p>}
+      {quoteStatus === 'error' && !belowMinimum && <p className="font-body text-xs text-down">{quoteError}</p>}
 
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
@@ -868,7 +872,7 @@ export function TradePanel({
           onClick={() => void handleOneTap()}
           className={cn('w-full', sheet && 'h-14 rounded-2xl text-base font-bold')}
         >
-          {quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
+          {belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
         </Button>
       ) : (
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —

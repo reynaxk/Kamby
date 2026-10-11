@@ -553,7 +553,8 @@
     "push_unsupported": "此浏览器无法显示通知",
     "push_error": "无法开启通知 — 请重试",
     "notEnoughUsdc": "USDC 不足",
-    "notEnoughUsdcDetail": "你在 Solana 上有 {balance} USDC — 请充值或降低金额"
+    "notEnoughUsdcDetail": "你在 Solana 上有 {balance} USDC — 请充值或降低金额",
+    "minTradeButton": "最低交易 $2"
   },
   "notif": {
     "kind_FOLLOW": "关注",

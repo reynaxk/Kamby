@@ -553,7 +553,8 @@
     "push_unsupported": "Este navegador no puede mostrar notificaciones",
     "push_error": "No se pudieron activar las notificaciones — inténtalo de nuevo",
     "notEnoughUsdc": "USDC insuficiente",
-    "notEnoughUsdcDetail": "Tienes {balance} USDC en Solana — deposita más o baja el monto"
+    "notEnoughUsdcDetail": "Tienes {balance} USDC en Solana — deposita más o baja el monto",
+    "minTradeButton": "El mínimo es $2"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",

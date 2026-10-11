@@ -553,7 +553,8 @@
     "push_unsupported": "เบราว์เซอร์นี้แสดงการแจ้งเตือนไม่ได้",
     "push_error": "เปิดการแจ้งเตือนไม่สำเร็จ — ลองอีกครั้ง",
     "notEnoughUsdc": "USDC ไม่พอ",
-    "notEnoughUsdcDetail": "คุณมี {balance} USDC บน Solana — ฝากเพิ่มหรือลดจำนวน"
+    "notEnoughUsdcDetail": "คุณมี {balance} USDC บน Solana — ฝากเพิ่มหรือลดจำนวน",
+    "minTradeButton": "ขั้นต่ำ $2"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

@@ -11,6 +11,8 @@ export interface PushFacts {
   amount: string;
   pct: string;
   side: 'BUY' | 'SELL' | null;
+  /** 📈 / 📉 for a price move, '' otherwise. */
+  arrow?: string;
 }
 
 type Copy = Record<NotificationType, { title: string; body: string }> & { bought: string; sold: string };
@@ -26,7 +28,7 @@ const EN: Copy = {
   WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Big trade on a coin you watch: {amount} {side}' },
   TRADE_CONFIRMED: { title: '✅ Trade confirmed', body: 'You {side} {amount} of {token}' },
   TRADE_FAILED: { title: '❌ Trade failed', body: "Your {token} trade didn't go through — your USDC is safe" },
-  PRICE_MOVE: { title: '{token} {pct}', body: '{token} moved {pct} in the last hour' },
+  PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} moved {pct} in the last hour' },
 };
 
 const COPY: Record<string, Partial<Copy>> = {
@@ -41,7 +43,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Голяма сделка на монета, която следиш: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Сделката е потвърдена', body: 'Ти {side} {token} за {amount}' },
     TRADE_FAILED: { title: '❌ Сделката не мина', body: 'Сделката с {token} не мина — твоите USDC са на сигурно' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} се промени с {pct} за последния час' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} се промени с {pct} за последния час' },
   },
   zh: {
     bought: '买入', sold: '卖出',
@@ -53,7 +55,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: '你关注的币有大额交易：{amount}' },
     TRADE_CONFIRMED: { title: '✅ 交易已确认', body: '你{side}了 {amount} 的 {token}' },
     TRADE_FAILED: { title: '❌ 交易失败', body: '你的 {token} 交易未成功 — USDC 安全无损' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} 过去一小时变动 {pct}' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} 过去一小时变动 {pct}' },
   },
   ko: {
     bought: '매수', sold: '매도',
@@ -65,7 +67,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: '관심 코인에 대규모 거래: {amount}' },
     TRADE_CONFIRMED: { title: '✅ 거래 확인', body: '{token} {amount} {side} 완료' },
     TRADE_FAILED: { title: '❌ 거래 실패', body: '{token} 거래가 실패했습니다 — USDC는 안전합니다' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token}이(가) 지난 1시간 동안 {pct} 변동' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token}이(가) 지난 1시간 동안 {pct} 변동' },
   },
   ja: {
     bought: '購入', sold: '売却',
@@ -77,7 +79,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'ウォッチ中のコインで大口取引：{amount}' },
     TRADE_CONFIRMED: { title: '✅ 取引完了', body: '{token} を {amount} {side}しました' },
     TRADE_FAILED: { title: '❌ 取引失敗', body: '{token} の取引は失敗しました — USDC は無事です' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} が直近1時間で {pct} 変動' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} が直近1時間で {pct} 変動' },
   },
   tr: {
     bought: 'aldı', sold: 'sattı',
@@ -89,7 +91,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'İzlediğin coinde büyük işlem: {amount}' },
     TRADE_CONFIRMED: { title: '✅ İşlem onaylandı', body: '{amount} değerinde {token} işlemin tamam' },
     TRADE_FAILED: { title: '❌ İşlem başarısız', body: '{token} işlemin gerçekleşmedi — USDC güvende' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} son bir saatte {pct} hareket etti' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} son bir saatte {pct} hareket etti' },
   },
   ru: {
     bought: 'купил', sold: 'продал',
@@ -101,7 +103,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Крупная сделка по монете из избранного: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Сделка подтверждена', body: 'Вы {side} {token} на {amount}' },
     TRADE_FAILED: { title: '❌ Сделка не прошла', body: 'Сделка с {token} не прошла — ваши USDC в безопасности' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} изменился на {pct} за последний час' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} изменился на {pct} за последний час' },
   },
   es: {
     bought: 'compró', sold: 'vendió',
@@ -113,7 +115,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Gran operación en una moneda que sigues: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Operación confirmada', body: 'Operación de {amount} en {token} confirmada' },
     TRADE_FAILED: { title: '❌ Operación fallida', body: 'Tu operación de {token} no se completó — tus USDC están a salvo' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} se movió {pct} en la última hora' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} se movió {pct} en la última hora' },
   },
   pt: {
     bought: 'comprou', sold: 'vendeu',
@@ -125,7 +127,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Grande operação em uma moeda que você acompanha: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Operação confirmada', body: 'Operação de {amount} em {token} confirmada' },
     TRADE_FAILED: { title: '❌ Operação falhou', body: 'Sua operação de {token} não passou — seus USDC estão seguros' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} variou {pct} na última hora' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} variou {pct} na última hora' },
   },
   vi: {
     bought: 'mua', sold: 'bán',
@@ -137,7 +139,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Giao dịch lớn ở coin bạn theo dõi: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Giao dịch đã xác nhận', body: 'Bạn đã {side} {amount} {token}' },
     TRADE_FAILED: { title: '❌ Giao dịch thất bại', body: 'Giao dịch {token} không thành công — USDC của bạn vẫn an toàn' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} biến động {pct} trong 1 giờ qua' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} biến động {pct} trong 1 giờ qua' },
   },
   id: {
     bought: 'membeli', sold: 'menjual',
@@ -149,7 +151,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Trade besar di koin yang kamu pantau: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Trade terkonfirmasi', body: 'Trade {token} senilai {amount} berhasil' },
     TRADE_FAILED: { title: '❌ Trade gagal', body: 'Trade {token}-mu tidak berhasil — USDC-mu aman' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} bergerak {pct} dalam satu jam terakhir' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} bergerak {pct} dalam satu jam terakhir' },
   },
   th: {
     bought: 'ซื้อ', sold: 'ขาย',
@@ -161,7 +163,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'เทรดใหญ่ในเหรียญที่คุณเฝ้าดู: {amount}' },
     TRADE_CONFIRMED: { title: '✅ ยืนยันเทรดแล้ว', body: 'เทรด {token} มูลค่า {amount} สำเร็จ' },
     TRADE_FAILED: { title: '❌ เทรดล้มเหลว', body: 'เทรด {token} ของคุณไม่สำเร็จ — USDC ของคุณปลอดภัย' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} เปลี่ยนแปลง {pct} ในชั่วโมงที่ผ่านมา' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} เปลี่ยนแปลง {pct} ในชั่วโมงที่ผ่านมา' },
   },
   de: {
     bought: 'kaufte', sold: 'verkaufte',
@@ -173,7 +175,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Großer Trade bei einem beobachteten Coin: {amount}' },
     TRADE_CONFIRMED: { title: '✅ Trade bestätigt', body: 'Dein {token}-Trade über {amount} ist durch' },
     TRADE_FAILED: { title: '❌ Trade fehlgeschlagen', body: 'Dein {token}-Trade ging nicht durch — dein USDC ist sicher' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} hat sich in der letzten Stunde um {pct} bewegt' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} hat sich in der letzten Stunde um {pct} bewegt' },
   },
   fr: {
     bought: 'a acheté', sold: 'a vendu',
@@ -185,7 +187,7 @@ const COPY: Record<string, Partial<Copy>> = {
     WATCHED_TOKEN_ACTIVITY: { title: '👀 {token}', body: 'Gros trade sur un coin que tu suis : {amount}' },
     TRADE_CONFIRMED: { title: '✅ Trade confirmé', body: 'Ton trade {token} de {amount} est passé' },
     TRADE_FAILED: { title: '❌ Trade échoué', body: 'Ton trade {token} n’est pas passé — tes USDC sont en sécurité' },
-    PRICE_MOVE: { title: '{token} {pct}', body: '{token} a bougé de {pct} sur la dernière heure' },
+    PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} a bougé de {pct} sur la dernière heure' },
   },
 };
 
@@ -199,6 +201,8 @@ export function pushCopy(locale: string, type: NotificationType, facts: PushFact
       .replaceAll('{token}', facts.token)
       .replaceAll('{amount}', facts.amount)
       .replaceAll('{pct}', facts.pct)
-      .replaceAll('{side}', side);
+      .replaceAll('{side}', side)
+      .replaceAll('{arrow}', facts.arrow ?? '')
+      .trim();
   return { title: fill(entry.title), body: fill(entry.body) };
 }

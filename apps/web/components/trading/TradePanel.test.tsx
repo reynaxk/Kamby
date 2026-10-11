@@ -165,10 +165,10 @@ describe('TradePanel', () => {
     callMock.mockResolvedValue({});
   });
 
-  it('shows "Minimum trade size is $2.00" for a buy under $2 and never asks for a quote', async () => {
+  it('says "Minimum trade is $2" on the trade button for a buy under $2 and never asks for a quote', async () => {
     render(<TradePanel {...defaultProps} />);
     await userEvent.type(screen.getByLabelText('Amount'), '1.5');
-    expect(await screen.findByText('Minimum trade size is $2.00')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Minimum trade is $2' })).toBeDisabled();
     await new Promise((r) => setTimeout(r, 600));
     expect(getQuoteMock).not.toHaveBeenCalled();
   });

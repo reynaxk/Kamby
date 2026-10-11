@@ -553,7 +553,8 @@
     "push_unsupported": "Этот браузер не умеет показывать уведомления",
     "push_error": "Не удалось включить уведомления — попробуйте ещё раз",
     "notEnoughUsdc": "Недостаточно USDC",
-    "notEnoughUsdcDetail": "У вас {balance} USDC в Solana — пополните или уменьшите сумму"
+    "notEnoughUsdcDetail": "У вас {balance} USDC в Solana — пополните или уменьшите сумму",
+    "minTradeButton": "Минимальная сделка $2"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

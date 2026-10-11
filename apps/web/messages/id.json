@@ -553,7 +553,8 @@
     "push_unsupported": "Browser ini tidak bisa menampilkan notifikasi",
     "push_error": "Gagal menyalakan notifikasi — coba lagi",
     "notEnoughUsdc": "USDC tidak cukup",
-    "notEnoughUsdcDetail": "Kamu punya {balance} USDC di Solana — deposit lagi atau kurangi jumlahnya"
+    "notEnoughUsdcDetail": "Kamu punya {balance} USDC di Solana — deposit lagi atau kurangi jumlahnya",
+    "minTradeButton": "Minimal trade $2"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

@@ -579,6 +579,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
 
   // --- Form step -----------------------------------------------------------------------------
 
+  // The $2 minimum reads on the trade button itself, big, instead of a small red line
+  // (owner 2026-10-11). Every language's message for it contains the amount.
+  const belowMinimum = quoteStatus === 'error' && quoteError !== null && quoteError.includes('$2.00');
   return (
     <>
       <Panel title={tTrade('title')} hideHeader={sheet} headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
@@ -661,7 +664,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           collapsible={sheet}
         />
         {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
-        {quoteStatus === 'error' && quoteError && <p className="font-body text-xs text-down">{quoteError}</p>}
+        {quoteStatus === 'error' && quoteError && !belowMinimum && <p className="font-body text-xs text-down">{quoteError}</p>}
         {sheet && <GasFreeNote />}
         <Button
           type="button"
@@ -670,7 +673,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           disabled={quoteStatus !== 'ready' || !quote || overBalance}
           onClick={() => void handleOneTap()}
         >
-          {overBalance ? tL('notEnoughUsdc') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
+          {overBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
         </Button>
       </Panel>
 
@@ -703,7 +706,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           disabled={quoteStatus !== 'ready' || !quote || overBalance}
           onClick={() => void handleOneTap()}
         >
-          {overBalance ? tL('notEnoughUsdc') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
+          {overBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
         </Button>
       </div>
       )}

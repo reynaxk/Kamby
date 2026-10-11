@@ -24,6 +24,7 @@ const PUSH_WINDOW_MINUTES = 10;
 /** Trades whose outcome landed this recently become notifications (dedupe covers re-reads). */
 const TRADE_LOOKBACK_MINUTES = 30;
 const PRICE_SAMPLES_KEY = (tokenKey: string) => `kamby:pricemove:${tokenKey}`;
+const PRICE_MOVE_COOLDOWN_SECONDS = 3 * 3600;
 
 export interface VapidConfig {
   publicKey: string;
@@ -164,6 +165,11 @@ export class NotificationExtrasService {
       if (!past) continue;
       const pct = ((info.price - past.p) / past.p) * 100;
       if (Math.abs(pct) < NOTIFICATION_DEFAULTS.priceMovePct) continue;
+      // One move alert per coin per 3 hours, whichever way (owner 2026-10-11: three alerts for
+      // the same meme coin within an hour was too many).
+      const coolKey = `kamby:pricemove:cool:${tokenKey}`;
+      const cooling = await this.redis.set(coolKey, '1', 'EX', PRICE_MOVE_COOLDOWN_SECONDS, 'NX').catch(() => 'OK');
+      if (cooling !== 'OK') continue;
       const direction = pct > 0 ? 'up' : 'down';
       for (const userId of audience.get(tokenKey) ?? []) {
         items.push({
@@ -348,6 +354,7 @@ export class NotificationExtrasService {
           amount: amountUsd !== null ? usd(amountUsd) : '',
           pct: payload?.pct !== undefined ? `${payload.pct > 0 ? '+' : ''}${payload.pct}%` : '',
           side,
+          arrow: payload?.pct !== undefined ? (payload.pct > 0 ? '📈' : '📉') : '',
         });
         jobs.push(
           webpush

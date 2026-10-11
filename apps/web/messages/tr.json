@@ -553,7 +553,8 @@
     "push_unsupported": "Bu tarayıcı bildirim gösteremiyor",
     "push_error": "Bildirimler açılamadı — tekrar dene",
     "notEnoughUsdc": "Yetersiz USDC",
-    "notEnoughUsdcDetail": "Solana'da {balance} USDC var — yatır ya da tutarı düşür"
+    "notEnoughUsdcDetail": "Solana'da {balance} USDC var — yatır ya da tutarı düşür",
+    "minTradeButton": "Minimum işlem $2"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

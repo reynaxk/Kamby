@@ -553,7 +553,8 @@
     "push_unsupported": "このブラウザは通知を表示できません",
     "push_error": "通知をオンにできませんでした — もう一度お試しください",
     "notEnoughUsdc": "USDC が不足しています",
-    "notEnoughUsdcDetail": "Solana に {balance} USDC あります — 入金するか金額を下げてください"
+    "notEnoughUsdcDetail": "Solana に {balance} USDC あります — 入金するか金額を下げてください",
+    "minTradeButton": "最低取引額は $2"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

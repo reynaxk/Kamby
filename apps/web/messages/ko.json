@@ -553,7 +553,8 @@
     "push_unsupported": "이 브라우저는 알림을 표시할 수 없습니다",
     "push_error": "알림을 켜지 못했습니다 — 다시 시도하세요",
     "notEnoughUsdc": "USDC 부족",
-    "notEnoughUsdcDetail": "Solana에 {balance} USDC가 있습니다 — 입금하거나 금액을 줄이세요"
+    "notEnoughUsdcDetail": "Solana에 {balance} USDC가 있습니다 — 입금하거나 금액을 줄이세요",
+    "minTradeButton": "최소 거래 $2"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",
