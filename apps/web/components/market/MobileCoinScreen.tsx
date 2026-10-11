@@ -103,7 +103,7 @@ export function MobileCoinScreen({
 
   return (
     <div className="min-h-screen bg-bg pb-[calc(6rem+env(safe-area-inset-bottom))]">
-      <header className="sticky top-0 z-40 flex items-center gap-2 bg-bg/90 px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 flex items-center gap-2 bg-bg/95 px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
         <button
           type="button"
           aria-label={tU('back_0557')}

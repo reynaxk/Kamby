@@ -12,7 +12,7 @@ export function AppBackBar({ title, fallback = '/home' }: { title?: string; fall
   const router = useRouter();
   const tU = useTranslations('ui');
   return (
-    <div className="sticky top-0 z-40 flex items-center gap-1 bg-bg/90 px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] backdrop-blur-xl md:hidden">
+    <div className="sticky top-0 z-40 flex items-center gap-1 bg-bg/95 px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:hidden">
       <button
         type="button"
         aria-label={tU('back_0557')}

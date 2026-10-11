@@ -105,7 +105,7 @@ function ScrolledBar({ children }: { children?: React.ReactNode }) {
     <div
       aria-hidden={!shown}
       className={cn(
-        'fixed inset-x-0 top-0 z-40 flex h-[calc(env(safe-area-inset-top)+3rem)] items-end justify-center bg-bg/95 pb-2.5 backdrop-blur-xl transition-opacity duration-200 md:hidden',
+        'fixed inset-x-0 top-0 z-40 flex h-[calc(env(safe-area-inset-top)+3rem)] items-end justify-center bg-bg/95 pb-2.5 transition-opacity duration-200 md:hidden',
         shown ? 'opacity-100' : 'pointer-events-none opacity-0',
       )}
     >
