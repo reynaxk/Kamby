@@ -10,9 +10,14 @@ export function NewListingBadge({ className }: { className?: string }) {
   return (
     <span
       title={NEW_LISTING_RISK_TEXT}
-      className={cn('inline-block rounded-sm bg-warn/15 px-1 font-mono text-[0.5rem] font-bold uppercase tracking-wide text-warn', className)}
+      className={cn(
+        'inline-block rounded-sm bg-warn/15 px-1 font-mono text-[0.5rem] font-bold uppercase tracking-wide text-warn',
+        // Phones (2026-10-12, minimal): a quiet amber dot instead of a box on every row.
+        'max-md:h-1.5 max-md:w-1.5 max-md:rounded-full max-md:bg-warn max-md:p-0 max-md:shadow-[0_0_6px_rgb(var(--kamby-warn)/0.8)]',
+        className,
+      )}
     >
-      {tU('new_03c2')}
+      <span className="max-md:sr-only">{tU('new_03c2')}</span>
     </span>
   );
 }

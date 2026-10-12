@@ -1,5 +1,7 @@
 'use client';
 
+import { SlidersHorizontal } from 'lucide-react';
+
 import { useEffect, useRef, useState } from 'react';
 import {
   AreaSeries,
@@ -575,9 +577,13 @@ export function KambyChart({
           onClick={() => setPickerOpen((open) => !open)}
           aria-haspopup="true"
           aria-expanded={pickerOpen}
-          className="rounded-md border border-line bg-surface/90 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-400 backdrop-blur hover:text-ink-900"
+          className="relative rounded-md border border-line bg-surface/90 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-400 hover:text-ink-900 max-md:flex max-md:h-8 max-md:w-8 max-md:items-center max-md:justify-center max-md:rounded-full max-md:border-white/10 max-md:p-0"
         >
-          {tL('indicators')}{activeIndicators.size > 0 ? ` (${activeIndicators.size})` : ''}
+          <SlidersHorizontal className="h-4 w-4 md:hidden" aria-hidden />
+          <span className="max-md:sr-only">
+            {tL('indicators')}{activeIndicators.size > 0 ? ` (${activeIndicators.size})` : ''}
+          </span>
+          {activeIndicators.size > 0 && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent md:hidden" aria-hidden />}
         </button>
         {pickerOpen && (
           <div className="absolute left-0 z-20 mt-1 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-lg">

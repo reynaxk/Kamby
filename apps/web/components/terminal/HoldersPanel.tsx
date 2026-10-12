@@ -103,7 +103,6 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="block font-body text-[0.95rem] font-semibold tabular-nums text-ink-900">{valueUsd !== null ? formatCompactUsd(valueUsd) : '—'}</span>
-                  {tier && <span className={cn('mt-0.5 inline-block rounded-full px-1.5 py-0.5 font-body text-[0.62rem] font-semibold', TIER_STYLE[tier].className)}>{tL(`tier_${tier}`)}</span>}
                   {!tier && h.isContract && <span className="block font-body text-[0.65rem] text-ink-400">{h.tag ? '' : tL('holderContract')}</span>}
                 </span>
               </a>

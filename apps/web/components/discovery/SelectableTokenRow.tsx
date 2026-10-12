@@ -81,8 +81,8 @@ export function SelectableTokenRow({
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-[0.88rem] font-semibold tracking-tight text-ink-900 max-md:text-base">
           {cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
-          {isNew && <NewListingBadge className="ml-1 align-middle" />}
-          <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} className="ml-1 align-middle" />
+          {isNew && <NewListingBadge className="ml-1 align-middle max-md:ml-1.5" />}
+          <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} className="ml-1 align-middle max-md:hidden" />
         </span>
         <span className="terminal-token-row-meta block font-mono text-[0.7rem] tabular-nums text-ink-400">
           <span className="max-md:hidden">{chainLabel} · </span>{formatCompactUsd(market.marketCapUsd)} MC
