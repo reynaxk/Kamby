@@ -104,6 +104,7 @@ function SelectableTokenRowView({
             isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
           )}
         >
+          {market.priceChange24hPct !== null && <span className="mr-0.5 text-[0.6rem] md:hidden" aria-hidden>{isUp ? '▲' : '▼'}</span>}
           {formatPercent(market.priceChange24hPct)}
         </span>
       </span>

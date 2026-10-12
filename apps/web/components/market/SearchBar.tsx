@@ -87,7 +87,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
       <label htmlFor="market-search" className="sr-only">
         {tU('searchTokensBySymbolName_383c')}
       </label>
-      <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 transition-colors focus-within:border-accent">
+      <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 transition-colors focus-within:border-accent max-md:rounded-2xl max-md:py-3">
         <svg
           aria-hidden
           width="15"

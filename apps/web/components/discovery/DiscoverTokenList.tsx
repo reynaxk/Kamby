@@ -64,7 +64,7 @@ export function TerminalPrimaryNav({
           )}
         >
           {tLists(tab.id)}
-          {activeTab === tab.id && <span aria-hidden className="absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent shadow-[0_0_12px_rgb(var(--kamby-accent)/0.9)] md:hidden" />}
+          {activeTab === tab.id && <span aria-hidden className="absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent md:hidden" />}
         </button>
       ))}
     </nav>
@@ -137,7 +137,7 @@ export function DiscoverTokenList({
                 className={cn(
                   // Phones: tappable chips (2026-10-09 app redesign); desktop keeps the compact tabs.
                   'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
-                  tokenTab === t.id ? 'bg-white/10 text-ink-900 md:bg-transparent' : 'text-ink-400 hover:text-ink-600',
+                  tokenTab === t.id ? 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/30 md:bg-transparent md:text-ink-900 md:ring-0' : 'text-ink-400 hover:text-ink-600',
                 )}
               >
                 {tLists(t.id)}

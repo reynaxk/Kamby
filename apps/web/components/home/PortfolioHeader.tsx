@@ -71,7 +71,7 @@ export function PortfolioHeader() {
     </div>
     <section className="kamby-rise kamby-rise-2 flex items-start justify-between gap-3 px-1 py-4">
       <div className={cn('min-w-0', hidden && 'select-none blur-md')}>
-        <BigUsd value={total} className="kamby-balance-glow block font-display text-4xl font-bold tracking-tight text-ink-900" />
+        <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />
         <p className={cn('mt-1 font-mono text-xs', openPnl >= 0 ? 'text-up' : 'text-down')}>
           {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : t('noPositions')}
         </p>
@@ -79,7 +79,7 @@ export function PortfolioHeader() {
       <button
         type="button"
         onClick={() => setFundOpen(true)}
-        className="shrink-0 rounded-2xl bg-accent px-6 py-3 font-display text-sm font-bold text-black shadow-[0_0_24px_rgba(0,255,135,0.35)]"
+        className="shrink-0 rounded-2xl bg-accent px-6 py-3 font-display text-sm font-bold text-black"
       >
         {t('deposit')}
       </button>

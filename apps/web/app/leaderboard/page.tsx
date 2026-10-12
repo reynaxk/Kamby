@@ -49,7 +49,7 @@ function chainLabel(chain: LeaderboardChainFilter | null, all: string): string {
 /** The top three are Kamby's own sea ranks instead of numbers (owner idea 2026-10-10) — the
  *  same whale/shark/fish the holders list uses. */
 const TOP_RANKS = [
-  { tier: 'whale', icon: '🐋', ring: 'bg-accent/15 ring-accent/60 shadow-[0_0_18px_rgba(0,255,135,0.35)]', text: 'text-accent' },
+  { tier: 'whale', icon: '🐋', ring: 'bg-accent/15 ring-accent/60', text: 'text-accent' },
   { tier: 'shark', icon: '🦈', ring: 'bg-warn/15 ring-warn/50', text: 'text-warn' },
   { tier: 'fish', icon: '🐟', ring: 'bg-up/10 ring-up/40', text: 'text-up' },
 ] as const;
@@ -66,7 +66,7 @@ export default async function LeaderboardPage({
   const tL = await getTranslations('labels');
 
   return (
-    <div className="kamby-void kamby-aura min-h-screen bg-bg">
+    <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -118,7 +118,7 @@ export default async function LeaderboardPage({
             <p className="mt-2 max-w-sm font-body text-sm text-ink-400">{t('beFirstSub')}</p>
             <Link
               href="/terminal"
-              className="mt-8 rounded-2xl bg-accent px-8 py-3.5 font-display text-sm font-bold text-accent-ink shadow-[0_0_28px_rgb(var(--kamby-accent)/0.35)] transition-shadow active:scale-[0.98]"
+              className="mt-8 rounded-2xl bg-accent px-8 py-3.5 font-display text-sm font-bold text-accent-ink active:scale-[0.98]"
             >
               {t('goTrade')}
             </Link>

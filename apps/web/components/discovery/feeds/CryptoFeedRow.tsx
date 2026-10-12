@@ -26,6 +26,7 @@ export function CryptoFeedRow({ price, onOpen }: { price: CryptoPrice; onOpen: (
       <span className="flex shrink-0 flex-col items-end gap-0.5">
         <GlowValue value={String(price.priceUsd)} display={formatPrice(price.priceUsd)} className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900 max-md:text-base" />
         <span className={cn('rounded-full px-1 py-0.5 font-mono text-[0.7rem] font-semibold tabular-nums max-md:bg-transparent max-md:px-0 max-md:py-0 max-md:text-xs', isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>
+          {price.change24hPct !== null && <span className="mr-0.5 text-[0.6rem] md:hidden" aria-hidden>{isUp ? '▲' : '▼'}</span>}
           {formatPercent(price.change24hPct)}
         </span>
       </span>

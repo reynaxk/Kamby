@@ -370,6 +370,12 @@ body:has(.kamby-void) {
   *::-webkit-scrollbar {
     display: none;
   }
+  /* No glows on the phone app (owner 2026-10-12: "don't do any glows") — flat neon only. */
+  .shadow-glow-accent,
+  .shadow-glow-up,
+  .shadow-glow-down {
+    box-shadow: none;
+  }
   /* Long coin lists: off-screen rows skip layout and paint until scrolled near (smoother
      scrolling on older phones, 2026-10-12). The size hint keeps the scrollbar honest. */
   .terminal-token-row {
@@ -444,14 +450,3 @@ body:has(.kamby-void) {
   }
 }
 
-/* A soft neon aura at the top of the main phone screens — static gradients, no blur, no motion. */
-.kamby-aura {
-  background-image:
-    radial-gradient(90% 340px at 12% -80px, rgb(var(--kamby-accent) / 0.14), transparent 70%),
-    radial-gradient(70% 300px at 100% -60px, rgb(139 92 246 / 0.13), transparent 70%);
-  background-repeat: no-repeat;
-}
-/* The big balance glows a little, like the K. */
-.kamby-balance-glow {
-  text-shadow: 0 0 32px rgb(var(--kamby-accent) / 0.28);
-}

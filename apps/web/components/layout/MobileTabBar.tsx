@@ -37,7 +37,7 @@ export function MobileTabBar() {
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90',
-                  active ? 'bg-accent/10 text-accent [filter:drop-shadow(0_0_6px_rgb(var(--kamby-accent)/0.6))]' : 'text-ink-400',
+                  active ? 'bg-accent/10 text-accent' : 'text-ink-400',
                 )}
               >
                 <Icon />

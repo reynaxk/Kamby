@@ -226,7 +226,7 @@ export function MobileCoinScreen({
           type="button"
           disabled={!canTrade}
           onClick={() => setSide('BUY')}
-          className="h-14 flex-[2] rounded-2xl bg-up font-display text-base font-bold text-black shadow-[0_8px_24px_rgba(34,197,94,0.35)] transition-transform active:scale-[0.98] disabled:opacity-40"
+          className="h-14 flex-[2] rounded-2xl bg-accent font-display text-base font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-40"
         >
           {tT('buy')}
         </button>
@@ -234,7 +234,7 @@ export function MobileCoinScreen({
           type="button"
           disabled={!canTrade}
           onClick={() => setSide('SELL')}
-          className="h-14 flex-1 rounded-2xl border border-white/10 bg-surface-raised font-display text-base font-bold text-ink-900 transition-transform active:scale-[0.98] disabled:opacity-40"
+          className="h-14 flex-1 rounded-2xl border border-down/40 bg-down/10 font-display text-base font-bold text-down transition-transform active:scale-[0.98] disabled:opacity-40"
         >
           {tT('sell')}
         </button>
