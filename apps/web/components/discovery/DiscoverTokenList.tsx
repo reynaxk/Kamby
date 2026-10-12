@@ -163,7 +163,8 @@ export function DiscoverTokenList({
   };
 
   const openCrypto = (price: CryptoPrice) => {
-    const target = CRYPTO_TRADE_TARGETS[price.symbol];
+    const target = CRYPTO_TRADE_TARGETS[price.symbol] as (typeof CRYPTO_TRADE_TARGETS)[keyof typeof CRYPTO_TRADE_TARGETS] | undefined;
+    if (!target) return;
     if (target.chainIdentifier === 'solana') {
       router.push(target.href);
       return;

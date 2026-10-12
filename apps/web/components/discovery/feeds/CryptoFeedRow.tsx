@@ -7,7 +7,9 @@ import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 /** A Crypto-tab row: a live Coinbase spot price, opening the market it trades as on Kamby. */
 export function CryptoFeedRow({ price, onOpen }: { price: CryptoPrice; onOpen: (price: CryptoPrice) => void }) {
-  const target = CRYPTO_TRADE_TARGETS[price.symbol];
+  const target = CRYPTO_TRADE_TARGETS[price.symbol] as (typeof CRYPTO_TRADE_TARGETS)[keyof typeof CRYPTO_TRADE_TARGETS] | undefined;
+  // A major the API streams before this app version knows where it trades — skip it, never crash.
+  if (!target) return null;
   const isUp = (price.change24hPct ?? 0) >= 0;
   return (
     <button
