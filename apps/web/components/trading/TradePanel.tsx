@@ -55,6 +55,9 @@ export interface TradePanelProps {
    *  Buy/Sell button, so no title or side toggle — a big amount, round presets, slippage
    *  folded to one line, a big action button. Same trade logic. */
   sheet?: boolean;
+  /** A discovered (not hand-picked) coin — Auto slippage starts at 5% instead of 1%, like on
+   *  Solana (2026-10-12: a new BNB coin's buy reverted on-chain at 1%). */
+  volatile?: boolean;
 }
 
 export type TradePanelStep =
@@ -161,6 +164,7 @@ export function TradePanel({
   onStepChange,
   dense = false,
   sheet = false,
+  volatile = false,
 }: TradePanelProps) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -182,7 +186,7 @@ export function TradePanel({
   const [amount, setAmount] = useState('');
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
-  const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null));
+  const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));
   const [manualSlippageBps, setManualSlippageBps] = useState<number>(TRADING_DEFAULTS.defaultSlippageBps);
   const slippageBps = autoSlippage ? autoBps : manualSlippageBps;
   // Opt-in gas sponsorship — see docs/GAS_RELAYER_PLAN.md's EVM section. Whether a given
@@ -196,8 +200,8 @@ export function TradePanel({
   const [quote, setQuote] = useState<TradeQuoteDto | null>(null);
   // Auto widens for a quote with real price impact (up only — see nextAutoSlippageBps).
   useEffect(() => {
-    if (autoSlippage && quote) setAutoBps((bps) => nextAutoSlippageBps(bps, autoSlippageBps(quote.priceImpactBps)));
-  }, [autoSlippage, quote]);
+    if (autoSlippage && quote) setAutoBps((bps) => nextAutoSlippageBps(bps, autoSlippageBps(quote.priceImpactBps, volatile)));
+  }, [autoSlippage, quote, volatile]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -228,6 +232,8 @@ export function TradePanel({
   // Same reasoning as `pendingHash` above: set only once the fee transfer has actually
   // broadcast, so a recording failure retries the record, never re-signs or re-broadcasts.
   const [feePendingHash, setFeePendingHash] = useState<string | null>(null);
+  /** The automatic fee request fires at most once per trade, right after the swap confirms. */
+  const feeRequestedRef = useRef(false);
 
   const inputTokenAddress = side === 'BUY' ? quoteTokenAddress : tokenAddress;
   const inputTokenSymbol = side === 'BUY' ? quoteTokenSymbol : tokenSymbol;
@@ -323,6 +329,12 @@ export function TradePanel({
           if (updated.status !== 'PENDING') {
             setStep(updated.status === 'CONFIRMED' ? 'confirmed' : 'failed');
             if (updated.status === 'CONFIRMED') notifyTradeConfirmed();
+          }
+          // The fee is asked for only once the swap has really landed (2026-10-12: a BNB buy
+          // reverted on-chain and its $0.14 fee still went through). A failed swap: no fee.
+          if (updated.status === 'CONFIRMED' && quote?.feeUnsignedTx && !updated.feeTxHash && !feeRequestedRef.current) {
+            feeRequestedRef.current = true;
+            void handleSignFeeTransfer(updated);
           }
           const feeStillPending = updated.feeStatus === 'PENDING';
           if (updated.status !== 'PENDING' && !feeStillPending && pollRef.current) {
@@ -507,7 +519,8 @@ export function TradePanel({
    *  submission is idempotent on (quoteId, txHash) — see
    *  docs/TRADING.md#transaction-submission.
    *
-   *  Real 1-click, added alongside approve→swap's own auto-chain: once the swap is
+   *  Since 2026-10-12 the fee is requested only once the swap CONFIRMS (see
+   *  pollTransactionStatus) — never for a swap that reverts. Before that: once the swap was
    *  successfully recorded, immediately request the guaranteed-USDC fee signature too
    *  (see docs/TRADING.md#guaranteed-usdc-fees) rather than waiting for a second explicit
    *  click — this reverses the previous "never auto-fire, so a second popup never
@@ -524,10 +537,9 @@ export function TradePanel({
       setTransaction(recorded);
       setPendingHash(null);
       setStep('pending');
+      feeRequestedRef.current = false;
+      // The fee signature follows from pollTransactionStatus once the swap confirms.
       pollTransactionStatus(recorded.id);
-      if (quote?.feeUnsignedTx) {
-        await handleSignFeeTransfer(recorded);
-      }
     } catch (err) {
       // The trade WAS broadcast — only recording it failed. Keep the hash so the user can
       // verify it themselves and so a retry never needs a new signature.
@@ -668,7 +680,7 @@ export function TradePanel({
     return (
       <Panel title={tU('trade_5f39')} onClose={onClose} animKey={step}>
         <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} />
-        {quote?.feeUnsignedTx && transaction && (
+        {quote?.feeUnsignedTx && transaction && (transaction.status === 'CONFIRMED' || transaction.feeTxHash || transaction.sponsoredByRelayer) && (
           <FeeTransferSection
             transaction={transaction}
             feeSignState={feeSignState}

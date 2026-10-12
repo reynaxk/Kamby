@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { formatCompactCount } from '@/lib/format';
-import type { Candle, MarketSummary, SocialActivity, TokenTraderConnection } from '@kamby/domain';
+import { isCuratedMarket, type Candle, type MarketSummary, type SocialActivity, type TokenTraderConnection } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { MarketInfoPanel } from './MarketInfoPanel';
@@ -100,6 +100,7 @@ export function KambyTerminal({
       quoteTokenAddress={market.quoteAddress}
       quoteTokenSymbol={market.quoteSymbol}
       quoteTokenDecimals={market.quoteDecimals as number}
+      volatile={!isCuratedMarket(market.chainIdentifier, market.tokenAddress)}
     />
   ) : (
     <Surface className="p-4">
@@ -151,6 +152,7 @@ export function KambyTerminal({
             quoteTokenAddress={market.quoteAddress}
             quoteTokenSymbol={market.quoteSymbol}
             quoteTokenDecimals={market.quoteDecimals as number}
+            volatile={!isCuratedMarket(market.chainIdentifier, market.tokenAddress)}
           />
         )}
       />

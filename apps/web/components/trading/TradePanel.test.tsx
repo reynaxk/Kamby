@@ -221,7 +221,7 @@ describe('TradePanel', () => {
     expect(screen.queryByText(/quick wallet approvals/i)).not.toBeInTheDocument();
   });
 
-  it('real 1-click: after the swap is recorded, the fee-transfer signature fires automatically with no extra click', async () => {
+  it('real 1-click: once the swap confirms, the fee-transfer signature fires automatically with no extra click', async () => {
     const quote = fakeQuote({
       requiresApproval: false,
       feeUnsignedTx: { to: '0xfee', data: '0xfeedata', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null },
@@ -233,13 +233,14 @@ describe('TradePanel', () => {
       .mockResolvedValueOnce(`0x${'3'.repeat(64)}`); // the fee transfer — never clicked, only awaited
     submitTransactionMock.mockResolvedValue(fakeTransaction());
     submitFeeTransactionMock.mockResolvedValue(fakeTransaction({ feeTxHash: `0x${'3'.repeat(64)}`, feeStatus: 'PENDING' }));
+    getTransactionMock.mockResolvedValue(fakeTransaction({ status: 'CONFIRMED' }));
 
     await clickTrade();
 
     // The swap signature happens first...
     await waitFor(() => expect(submitTransactionMock).toHaveBeenCalledWith(expect.objectContaining({ quoteId: quote.id })));
-    // ...and the fee signature follows on its own, with no "Send platform fee" click.
-    await waitFor(() => expect(sendTransactionMock).toHaveBeenCalledTimes(2));
+    // ...and once it confirms, the fee signature follows on its own, with no "Send platform fee" click.
+    await waitFor(() => expect(sendTransactionMock).toHaveBeenCalledTimes(2), { timeout: 4000 });
     expect(sendTransactionMock).toHaveBeenNthCalledWith(2, expect.anything(), expect.objectContaining({ data: '0xfeedata' }));
     await waitFor(() => expect(submitFeeTransactionMock).toHaveBeenCalledWith('tx-1', `0x${'3'.repeat(64)}`));
   });
@@ -255,13 +256,12 @@ describe('TradePanel', () => {
       .mockResolvedValueOnce(`0x${'2'.repeat(64)}`) // the swap succeeds
       .mockRejectedValueOnce(new Error('User rejected the request')); // the auto-fired fee signature is rejected
     submitTransactionMock.mockResolvedValue(fakeTransaction());
+    getTransactionMock.mockResolvedValue(fakeTransaction({ status: 'CONFIRMED' }));
 
     await clickTrade();
 
-    // The swap itself is never affected — still shows a real trade in flight.
-    expect(await screen.findByText(/waiting for confirmation on-chain/i)).toBeInTheDocument();
     // The manual fallback appears, with the real rejection surfaced, never a silent retry.
-    expect(await screen.findByRole('button', { name: 'Send platform fee' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Send platform fee' }, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getByText('You cancelled this in your wallet — nothing was sent.')).toBeInTheDocument();
     expect(submitFeeTransactionMock).not.toHaveBeenCalled();
   });
@@ -275,6 +275,24 @@ describe('TradePanel', () => {
 
     expect(await screen.findByText(/This trade would fail right now/, {}, { timeout: 4000 })).toBeInTheDocument();
     expect(sendTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it('never asks for the fee when the swap reverts on-chain (2026-10-12: $0.14 taken for a failed BNB buy)', async () => {
+    const quote = fakeQuote({
+      requiresApproval: false,
+      feeUnsignedTx: { to: '0xfee', data: '0xfeedata', value: '0', gas: null, maxFeePerGas: null, maxPriorityFeePerGas: null },
+    });
+    await driveToReview(quote);
+    sendTransactionMock.mockResolvedValueOnce(`0x${'2'.repeat(64)}`);
+    submitTransactionMock.mockResolvedValue(fakeTransaction());
+    getTransactionMock.mockResolvedValue(fakeTransaction({ status: 'FAILED', failureReason: 'Transaction reverted on-chain' }));
+
+    await clickTrade();
+
+    await waitFor(() => expect(getTransactionMock).toHaveBeenCalled(), { timeout: 4000 });
+    await new Promise((r) => setTimeout(r, 300));
+    expect(sendTransactionMock).toHaveBeenCalledTimes(1); // the swap only
+    expect(screen.queryByRole('button', { name: 'Send platform fee' })).not.toBeInTheDocument();
   });
 
   it('never auto-fires a fee signature for a trade with no guaranteed-USDC fee', async () => {
