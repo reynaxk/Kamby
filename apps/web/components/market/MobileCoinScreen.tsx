@@ -249,7 +249,7 @@ export function MobileCoinScreen({
 
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <span className="flex shrink-0 items-baseline gap-1.5 rounded-full bg-surface-raised px-3 py-1.5 font-body text-xs">
+    <span className="kamby-glass flex shrink-0 items-baseline gap-1.5 rounded-full px-3 py-1.5 font-body text-xs">
       <span className="text-ink-400">{label}</span>
       <span className="font-semibold tabular-nums text-ink-900">{value}</span>
     </span>

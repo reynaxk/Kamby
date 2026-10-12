@@ -22,9 +22,9 @@ export function HomeHoldings() {
   if (!positions || positions.length === 0) return null;
 
   return (
-    <section className="mt-2 md:hidden">
-      <h2 className="px-4 pb-1 font-display text-sm font-semibold text-ink-400">{t('yourCoins')}</h2>
-      <ul>
+    <section className="mt-3 px-4 md:hidden">
+      <h2 className="px-1 pb-1.5 font-display text-sm font-semibold text-ink-400">{t('yourCoins')}</h2>
+      <ul className="kamby-glass overflow-hidden rounded-3xl">
         {positions.map((p) => {
           const chainId = p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : null);
           const href = chainId ? marketHref(chainId, p.tokenAddress) : null;

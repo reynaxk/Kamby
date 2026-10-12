@@ -53,7 +53,7 @@ export function MobileDrawer({
             exit={{ opacity: 0 }}
             onClick={onClose}
             aria-hidden
-            className="fixed inset-0 z-50 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
           />
           <motion.div
             role="dialog"
@@ -63,7 +63,7 @@ export function MobileDrawer({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-line bg-surface p-4 lg:hidden"
+            className="kamby-glass-solid fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-b-0 p-4 lg:hidden"
           >
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-sm font-bold uppercase tracking-wide text-ink-900">{title}</h2>

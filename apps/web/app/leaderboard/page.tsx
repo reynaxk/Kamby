@@ -112,7 +112,7 @@ export default async function LeaderboardPage({
         {leaderboard.entries.length < MIN_RANKED ? (
           // Too few traders to rank (2026-10-06: one test wallet at -$0.37 looked empty and off at
           // launch) — an invitation instead of a near-empty table.
-          <div className="mt-10 flex flex-col items-center rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+          <div className="kamby-glass mt-10 flex flex-col items-center rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-accent">{t('season')}</p>
             <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-white">{t('beFirst')}</h2>
             <p className="mt-2 max-w-sm font-body text-sm text-ink-400">{t('beFirstSub')}</p>

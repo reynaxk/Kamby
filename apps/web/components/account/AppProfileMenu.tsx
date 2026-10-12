@@ -123,7 +123,7 @@ export function AppProfileMenu() {
 }
 
 function MenuGroup({ children }: { children: ReactNode }) {
-  return <div className="mx-4 mt-4 divide-y divide-white/5 overflow-hidden rounded-2xl bg-surface">{children}</div>;
+  return <div className="kamby-glass mx-4 mt-4 divide-y divide-white/5 overflow-hidden rounded-3xl bg-surface">{children}</div>;
 }
 
 function MenuLink({ href, icon, label }: { href: string; icon: ReactNode; label: string }) {

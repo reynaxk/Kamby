@@ -40,7 +40,7 @@ export function PortfolioHeader() {
     return (
       <>
       <ScrolledBar />
-      <section className="kamby-rise flex items-center justify-between gap-3 px-1 py-4">
+      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:px-1">
         <div>
           <p className="font-display text-2xl font-bold text-ink-900">{t('welcome')}</p>
           <p className="font-body text-sm text-ink-600">{t('welcomeSub')}</p>
@@ -69,7 +69,7 @@ export function PortfolioHeader() {
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
       <AppBell />
     </div>
-    <section className="kamby-rise kamby-rise-2 flex items-start justify-between gap-3 px-1 py-4">
+    <section className="kamby-rise kamby-rise-2 kamby-glass mt-3 flex items-start justify-between gap-3 rounded-3xl px-4 py-4 md:px-1">
       <div className={cn('min-w-0', hidden && 'select-none blur-md')}>
         <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />
         <p className={cn('mt-1 font-mono text-xs', openPnl >= 0 ? 'text-up' : 'text-down')}>

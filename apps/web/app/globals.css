@@ -450,3 +450,38 @@ body:has(.kamby-void) {
   }
 }
 
+
+/* Glass, without the blur (2026-10-12): a translucent light wash, a hairline border and a top
+   highlight read as frosted glass on the dark background — and cost nothing while scrolling
+   (real backdrop blur stuttered on older Android). No glow. */
+@media (max-width: 767px) {
+  .kamby-glass {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02) 60%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+}
+/* The same over a solid base — for bars and sheets that sit on top of moving content. */
+.kamby-glass-solid {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 60%), rgb(var(--kamby-surface));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Glass everywhere on the phone app (owner 2026-10-12): every card, pill, field and sheet gets
+   the frosted wash and a hairline edge — background-image + inset lines only, so sizes, solid
+   bases and existing borders stay as they were, and nothing blurs while scrolling. */
+@media (max-width: 767px) {
+  .kamby-void .bg-surface,
+  .kamby-void .bg-surface-raised,
+  .kamby-void .backdrop-blur-glass {
+    background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.012) 60%);
+  }
+  .kamby-void :is(.bg-surface, .bg-surface-raised):not([class*='shadow-']):not([class*='border']):not([class*='divide-']) {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .kamby-void .backdrop-blur-glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
