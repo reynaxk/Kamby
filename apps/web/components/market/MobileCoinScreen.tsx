@@ -234,7 +234,7 @@ export function MobileCoinScreen({
           type="button"
           disabled={!canTrade}
           onClick={() => setSide('SELL')}
-          className="h-14 flex-1 rounded-2xl border border-down/40 bg-down/10 font-display text-base font-bold text-down transition-transform active:scale-[0.98] disabled:opacity-40"
+          className="h-14 flex-1 rounded-2xl border border-down/40 bg-surface font-display text-base font-bold text-down transition-transform active:scale-[0.98] disabled:opacity-40"
         >
           {tT('sell')}
         </button>
