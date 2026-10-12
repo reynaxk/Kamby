@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatCompactUsd,
+  formatTokenAmount,
   formatDateTime,
   formatPercent,
   formatPrice,
@@ -121,5 +122,16 @@ describe('formatRelativeTime', () => {
 
   it('never renders a negative age for a timestamp fractionally ahead of "now" (clock skew)', () => {
     expect(formatRelativeTime(new Date(now.getTime() + 500).toISOString(), now)).toBe('just now');
+  });
+});
+
+describe('formatTokenAmount', () => {
+  it('shows how many coins you hold, short for big amounts and precise for tiny ones', () => {
+    expect(formatTokenAmount(1_234_567_890)).toBe('1.23B');
+    expect(formatTokenAmount(4_560_000)).toBe('4.56M');
+    expect(formatTokenAmount(12_345.6)).toBe('12,346');
+    expect(formatTokenAmount(3.5)).toBe('3.5');
+    expect(formatTokenAmount(0.004521)).toBe('0.004521');
+    expect(formatTokenAmount(0)).toBe('0');
   });
 });

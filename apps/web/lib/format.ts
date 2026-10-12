@@ -33,6 +33,16 @@ export function formatCompactCount(value: number): string {
   return value.toLocaleString('en-US');
 }
 
+/** How many coins you hold, readable at a glance — 1.23B, 4.56M, 12,345, 3.5, 0.004521. */
+export function formatTokenAmount(value: number): string {
+  if (!(value > 0)) return '0';
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (value >= 1_000) return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (value >= 1) return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  return value.toLocaleString('en-US', { maximumSignificantDigits: 4 });
+}
+
 /** "+12.34%" / "-5.67%" — the sign is always shown so a glance can tell direction. */
 export function formatPercent(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return EM_DASH;

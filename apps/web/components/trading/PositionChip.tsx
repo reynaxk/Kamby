@@ -3,7 +3,7 @@
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
 import type { ChartSource } from '@/lib/chart-data';
-import { formatCompactUsd, formatPrice, formatSignedCompactUsd } from '@/lib/format';
+import { formatCompactUsd, formatPrice, formatSignedCompactUsd, formatTokenAmount } from '@/lib/format';
 import { useMyPosition } from '@/lib/my-positions';
 import { useLivePrice } from '@/lib/use-live-price';
 import { PnlShareButton } from '@/components/share/PnlShareCard';
@@ -39,6 +39,9 @@ export function PositionChip({ source }: { source: ChartSource }) {
     >
       <span className="text-ink-600">{tPos('youHold')}</span>
       <span className="font-semibold text-ink-900">{formatCompactUsd(value)}</span>
+      <span className="text-ink-600">
+        {formatTokenAmount(position.quantity)} {position.symbol ?? ''}
+      </span>
       <span className={up ? 'text-up' : 'text-down'}>
         {formatSignedCompactUsd(pnl)}
         {pct !== null && ` (${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)`}
