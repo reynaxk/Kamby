@@ -180,7 +180,8 @@
     "season": "第一赛季",
     "beFirst": "成为榜上第一人。",
     "beFirstSub": "交易员按在 Kamby 上交易的真实利润排名 — 买入、卖出，你的名字就会出现在这里。",
-    "goTrade": "去交易"
+    "goTrade": "去交易",
+    "allChains": "全部"
   },
   "auth": {
     "loading": "加载中…",

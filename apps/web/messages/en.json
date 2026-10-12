@@ -180,7 +180,8 @@
     "season": "Season 1",
     "beFirst": "Be the first on the board.",
     "beFirstSub": "Traders are ranked by real profit on trades made through Kamby — buy, sell, and your name goes up here.",
-    "goTrade": "Go Trade"
+    "goTrade": "Go Trade",
+    "allChains": "All"
   },
   "auth": {
     "loading": "Loading…",

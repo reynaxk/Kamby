@@ -180,7 +180,8 @@
     "season": "Temporada 1",
     "beFirst": "Sé el primero del ranking.",
     "beFirstSub": "Los traders se ordenan por la ganancia real de sus operaciones en Kamby: compra, vende y tu nombre aparecerá aquí.",
-    "goTrade": "Ir a operar"
+    "goTrade": "Ir a operar",
+    "allChains": "Todas"
   },
   "auth": {
     "loading": "Cargando…",

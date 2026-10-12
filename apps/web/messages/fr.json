@@ -180,7 +180,8 @@
     "season": "Saison 1",
     "beFirst": "Soyez le premier du classement.",
     "beFirstSub": "Les traders sont classés selon le profit réel de leurs trades sur Kamby — achetez, vendez, et votre nom apparaît ici.",
-    "goTrade": "Trader maintenant"
+    "goTrade": "Trader maintenant",
+    "allChains": "Toutes"
   },
   "auth": {
     "loading": "Chargement…",

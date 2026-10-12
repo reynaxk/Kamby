@@ -43,10 +43,15 @@ export function formatTokenAmount(value: number): string {
   return value.toLocaleString('en-US', { maximumSignificantDigits: 4 });
 }
 
-/** "+12.34%" / "-5.67%" — the sign is always shown so a glance can tell direction. */
+/** "+12.34%" / "-5.67%" — the sign is always shown so a glance can tell direction. Memecoin
+ *  moonshots stay readable: "+228.9%", "+3.6K%", "+446.5K%" (not "+446507.80%"). */
 export function formatPercent(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return EM_DASH;
   const sign = value > 0 ? '+' : '';
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `${sign}${(value / 1_000_000).toFixed(1)}M%`;
+  if (abs >= 1_000) return `${sign}${(value / 1_000).toFixed(1)}K%`;
+  if (abs >= 100) return `${sign}${value.toFixed(1)}%`;
   return `${sign}${value.toFixed(2)}%`;
 }
 

@@ -29,8 +29,8 @@ function isChainFilter(value: string | undefined): value is LeaderboardChainFilt
   return value === 'solana' || (SUPPORTED_CHAIN_SLUGS as readonly string[]).includes(value);
 }
 
-function chainLabel(chain: LeaderboardChainFilter | null): string {
-  if (chain === null) return 'All';
+function chainLabel(chain: LeaderboardChainFilter | null, all: string): string {
+  if (chain === null) return all;
   if (chain === 'solana') return 'Solana';
   return CHAIN_REGISTRY[chain].name;
 }
@@ -74,7 +74,7 @@ export default async function LeaderboardPage({
             <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
               {t('title')}
             </h1>
-            <p className="mt-1 max-w-md font-mono text-xs text-ink-400">
+            <p className="mt-1 max-w-md font-mono text-xs text-ink-400 max-md:hidden">
               {t('subtitle')}
             </p>
           </div>
@@ -100,11 +100,11 @@ export default async function LeaderboardPage({
               key={c ?? 'all'}
               href={`/leaderboard?window=${window}${c ? `&chain=${c}` : ''}`}
               className={cn(
-                'rounded-full border border-white/[0.06] px-2.5 py-1 font-mono text-[0.65rem] font-medium uppercase tracking-wide transition-colors',
-                c === chain ? 'bg-accent text-accent-ink' : 'bg-white/[0.03] text-ink-400 hover:text-ink-900',
+                'rounded-full px-3.5 py-1.5 font-body text-sm font-semibold transition-colors',
+                c === chain ? 'bg-white/10 text-ink-900' : 'text-ink-400 hover:text-ink-900',
               )}
             >
-              {chainLabel(c)}
+              {chainLabel(c, t('allChains'))}
             </Link>
           ))}
         </nav>
@@ -113,12 +113,12 @@ export default async function LeaderboardPage({
           // Too few traders to rank (2026-10-06: one test wallet at -$0.37 looked empty and off at
           // launch) — an invitation instead of a near-empty table.
           <div className="mt-10 flex flex-col items-center rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('season')}</p>
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-accent">{t('season')}</p>
             <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-white">{t('beFirst')}</h2>
-            <p className="mt-2 max-w-sm font-body text-sm text-[#94A3B8]">{t('beFirstSub')}</p>
+            <p className="mt-2 max-w-sm font-body text-sm text-ink-400">{t('beFirstSub')}</p>
             <Link
               href="/terminal"
-              className="mt-8 rounded-xl bg-[#00FF87] px-8 py-3.5 font-display text-sm font-bold text-black shadow-[0_0_28px_rgba(0,255,135,0.45)] transition-shadow hover:shadow-[0_0_44px_rgba(0,255,135,0.75)]"
+              className="mt-8 rounded-2xl bg-accent px-8 py-3.5 font-display text-sm font-bold text-accent-ink shadow-[0_0_28px_rgb(var(--kamby-accent)/0.35)] transition-shadow active:scale-[0.98]"
             >
               {t('goTrade')}
             </Link>

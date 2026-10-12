@@ -180,7 +180,8 @@
     "season": "1. Sezon",
     "beFirst": "Tabloda ilk sen ol.",
     "beFirstSub": "Trader’lar Kamby’deki işlemlerin gerçek kârına göre sıralanır — al, sat, adın buraya çıksın.",
-    "goTrade": "İşleme başla"
+    "goTrade": "İşleme başla",
+    "allChains": "Tümü"
   },
   "auth": {
     "loading": "Yükleniyor…",

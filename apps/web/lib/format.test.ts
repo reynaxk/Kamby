@@ -63,6 +63,9 @@ describe('formatPercent', () => {
   it('always shows a sign so direction reads at a glance', () => {
     expect(formatPercent(12.345)).toBe('+12.35%');
     expect(formatPercent(-5.6)).toBe('-5.60%');
+    expect(formatPercent(228.98)).toBe('+229.0%');
+    expect(formatPercent(3626)).toBe('+3.6K%');
+    expect(formatPercent(446507.8)).toBe('+446.5K%');
   });
 });
 

@@ -180,7 +180,8 @@
     "season": "Saison 1",
     "beFirst": "Sei der Erste in der Liste.",
     "beFirstSub": "Trader werden nach echtem Gewinn aus Trades über Kamby gewertet — kaufen, verkaufen, und dein Name steht hier.",
-    "goTrade": "Jetzt handeln"
+    "goTrade": "Jetzt handeln",
+    "allChains": "Alle"
   },
   "auth": {
     "loading": "Lädt…",

@@ -180,7 +180,8 @@
     "season": "시즌 1",
     "beFirst": "첫 번째 주인공이 되세요.",
     "beFirstSub": "트레이더는 Kamby에서 한 거래의 실제 수익으로 순위가 매겨집니다 — 사고팔면 이름이 여기에 올라갑니다.",
-    "goTrade": "거래하기"
+    "goTrade": "거래하기",
+    "allChains": "전체"
   },
   "auth": {
     "loading": "로딩 중…",

@@ -180,7 +180,8 @@
     "season": "シーズン1",
     "beFirst": "最初のランカーになろう。",
     "beFirstSub": "トレーダーは Kamby での取引の実利益でランク付けされます — 売買すればここに名前が載ります。",
-    "goTrade": "取引する"
+    "goTrade": "取引する",
+    "allChains": "すべて"
   },
   "auth": {
     "loading": "読み込み中…",
