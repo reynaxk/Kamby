@@ -1,6 +1,8 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import type { MarketSummary } from '@kamby/domain';
 import type { MarketFeedSnapshot } from '@kamby/domain';
 import { useMarketFeeds } from '@/lib/market-feeds';
 import { marketHref, solanaMarketHref } from '@/lib/solana-links';
@@ -15,6 +17,14 @@ import { DiscoverTokenList } from './DiscoverTokenList';
 export function CoinRail({ initial, selectedKey, pageScroll = false }: { initial: MarketFeedSnapshot; selectedKey: string | null; pageScroll?: boolean }) {
   const router = useRouter();
   const { feeds } = useMarketFeeds(initial);
+  // Stable, so a live price tick only re-renders the rows whose numbers changed (SelectableTokenRow).
+  const openCoin = useCallback(
+    (market: MarketSummary) => {
+      const href = market.chainIdentifier === 'solana' ? solanaMarketHref(market.tokenAddress) : marketHref(market.chainIdentifier, market.tokenAddress);
+      if (href) router.push(href);
+    },
+    [router],
+  );
   return (
     <div className={`kamby-terminal h-full overflow-hidden md:rounded-2xl md:border md:border-line md:bg-surface ${pageScroll ? 'max-md:h-auto max-md:overflow-visible' : ''}`}>
       <DiscoverTokenList
@@ -22,10 +32,7 @@ export function CoinRail({ initial, selectedKey, pageScroll = false }: { initial
         selectedKey={selectedKey}
         selectionDisabled={false}
         pageScroll={pageScroll}
-        onSelect={(market) => {
-          const href = market.chainIdentifier === 'solana' ? solanaMarketHref(market.tokenAddress) : marketHref(market.chainIdentifier, market.tokenAddress);
-          if (href) router.push(href);
-        }}
+        onSelect={openCoin}
       />
     </div>
   );

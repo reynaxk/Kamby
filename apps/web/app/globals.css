@@ -370,6 +370,12 @@ body:has(.kamby-void) {
   *::-webkit-scrollbar {
     display: none;
   }
+  /* Long coin lists: off-screen rows skip layout and paint until scrolled near (smoother
+     scrolling on older phones, 2026-10-12). The size hint keeps the scrollbar honest. */
+  .terminal-token-row {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 68px;
+  }
 }
 
 /* Each new phone screen eases in (app/template.tsx). Never from invisible: on a busy phone the

@@ -9,6 +9,7 @@ import { NewListingBadge } from './feeds/NewListingBadge';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { PriceText } from '@/components/market/PriceText';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
+import { memo } from 'react';
 import { useTranslations } from 'next-intl';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
@@ -16,7 +17,7 @@ import { useTranslations } from 'next-intl';
  *  Link that navigates away. 'use client' since 2026-10-03 (broken-logo fallback state); before that it had no hooks, same reasoning
  *  TokenMetricsBar/TokenTradersPanel already rely on for living safely inside a client
  *  subtree. */
-export function SelectableTokenRow({
+function SelectableTokenRowView({
   market,
   selected,
   onSelect,
@@ -109,3 +110,22 @@ export function SelectableTokenRow({
     </button>
   );
 }
+
+const SHOWN_FIELDS = ['tokenAddress', 'chainIdentifier', 'symbol', 'logoUrl', 'priceUsd', 'priceChange24hPct', 'marketCapUsd'] as const;
+
+function sameCloses(a: readonly number[] | undefined, b: readonly number[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((v, i) => v === b[i]);
+}
+
+/** Memoized on what the row shows (2026-10-12, "make it smoother"): every live feed tick
+ *  rebuilt all ~100 rows mid-scroll; now only rows whose numbers changed re-render. */
+export const SelectableTokenRow = memo(SelectableTokenRowView, (prev, next) =>
+  prev.selected === next.selected &&
+  prev.disabled === next.disabled &&
+  prev.isNew === next.isNew &&
+  prev.onSelect === next.onSelect &&
+  SHOWN_FIELDS.every((field) => prev.market[field] === next.market[field]) &&
+  sameCloses(prev.market.recentCloses, next.market.recentCloses),
+);

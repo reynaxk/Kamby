@@ -1,7 +1,7 @@
 'use client';
 
 import { XxxRiskFeedRow } from './feeds/XxxRiskFeedRow';
-import { useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { slugForIdentifier, type CryptoPrice, type FeedMarket, type MarketFeedSnapshot, type MarketFeedTab, type MarketSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -113,6 +113,7 @@ export function DiscoverTokenList({
   const tU = useTranslations('ui');
   const tLists = useTranslations('lists');
   const router = useRouter();
+  const openSolana = useCallback((market: MarketSummary) => router.push(solanaMarketHref(market.tokenAddress)), [router]);
   const [uncontrolledPrimaryTab, setUncontrolledPrimaryTab] = useState<PrimaryTab>('tokens');
   const [tokenTab, setTokenTab] = useState<MarketFeedTab>('trending');
   const primaryTab = activePrimaryTab ?? uncontrolledPrimaryTab;
@@ -154,7 +155,7 @@ export function DiscoverTokenList({
         key={key}
         market={market}
         selected={key === selectedKey}
-        onSelect={isSolana ? () => router.push(solanaMarketHref(market.tokenAddress)) : onSelect}
+        onSelect={isSolana ? openSolana : onSelect}
         disabled={isSolana ? false : selectionDisabled || !selectable}
         isNew={market.listing === 'new'}
       />
