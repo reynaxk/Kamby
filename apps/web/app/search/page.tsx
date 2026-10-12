@@ -20,7 +20,7 @@ export default async function SearchPage() {
   const feeds = await soft(fetchMarketFeeds(), null);
   const trending = (feeds?.trending.markets ?? []).slice(0, 15);
   return (
-    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+1rem)]">
+    <main className="kamby-void kamby-aura mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+1rem)]">
       <div className="px-4">
         <SearchBar />
       </div>

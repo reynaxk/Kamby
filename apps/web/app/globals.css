@@ -83,18 +83,20 @@ body:has(.kamby-void) {
  * anything that puts text on `bg-accent` should use `text-accent-ink`, never a hardcoded
  * `text-white`, precisely because that pairing has flipped before and silently broken.
  */
+/* Kamby Neon (2026-10-12, owner: "interesting and aesthetic", own style — not fomo's): a deep
+ * blue-black, the brand's own #00FF87 on every main action (black text on it), juicy up/down. */
 .kamby-void {
-  --kamby-bg: 8 10 15;
-  --kamby-surface: 13 16 23;
-  --kamby-surface-raised: 19 23 32;
-  --kamby-line: 28 32 42;
-  --kamby-ink-900: 237 239 245;
-  --kamby-ink-600: 148 152 166;
-  --kamby-ink-400: 96 100 114;
-  --kamby-accent: 34 197 94;
-  --kamby-accent-ink: 255 255 255;
-  --kamby-up: 34 197 94;
-  --kamby-down: 239 68 68;
+  --kamby-bg: 6 7 12;
+  --kamby-surface: 12 14 22;
+  --kamby-surface-raised: 19 22 33;
+  --kamby-line: 27 31 46;
+  --kamby-ink-900: 240 242 248;
+  --kamby-ink-600: 150 155 172;
+  --kamby-ink-400: 98 103 122;
+  --kamby-accent: 0 255 135;
+  --kamby-accent-ink: 2 10 6;
+  --kamby-up: 0 230 118;
+  --kamby-down: 255 59 105;
   --kamby-warn: 255 184 0;
   color-scheme: dark;
 }
@@ -438,4 +440,16 @@ body:has(.kamby-void) {
   .kamby-tabbar-in {
     animation: kamby-tabbar-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s backwards;
   }
+}
+
+/* A soft neon aura at the top of the main phone screens — static gradients, no blur, no motion. */
+.kamby-aura {
+  background-image:
+    radial-gradient(90% 340px at 12% -80px, rgb(var(--kamby-accent) / 0.14), transparent 70%),
+    radial-gradient(70% 300px at 100% -60px, rgb(139 92 246 / 0.13), transparent 70%);
+  background-repeat: no-repeat;
+}
+/* The big balance glows a little, like the K. */
+.kamby-balance-glow {
+  text-shadow: 0 0 32px rgb(var(--kamby-accent) / 0.28);
 }

@@ -64,7 +64,7 @@ export function TerminalPrimaryNav({
           )}
         >
           {tLists(tab.id)}
-          {activeTab === tab.id && <span aria-hidden className="absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent md:hidden" />}
+          {activeTab === tab.id && <span aria-hidden className="absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent shadow-[0_0_12px_rgb(var(--kamby-accent)/0.9)] md:hidden" />}
         </button>
       ))}
     </nav>

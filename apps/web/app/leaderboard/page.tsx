@@ -66,7 +66,7 @@ export default async function LeaderboardPage({
   const tL = await getTranslations('labels');
 
   return (
-    <div className="kamby-void min-h-screen bg-bg">
+    <div className="kamby-void kamby-aura min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-2">
         <div className="flex flex-wrap items-center justify-between gap-4">

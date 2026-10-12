@@ -22,7 +22,7 @@ export default async function HomePage() {
     <div className="kamby-void hidden md:block">
       <MarketHeader />
     </div>
-    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-4">
+    <main className="kamby-void kamby-aura mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-4">
       <div className="px-4 md:px-0">
         <PortfolioHeader />
         <TopTradersStrip />

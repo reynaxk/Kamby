@@ -28,7 +28,7 @@ export function MobileTabBar() {
   if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/market/')) return null;
   return (
     <nav aria-label={tU('main_a02c')} className="kamby-tabbar-in fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 md:hidden">
-      <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface px-2 shadow-[0_8px_32px_rgba(0,0,0,0.55)]">
+      <ul className="kamby-void flex h-14 items-center justify-around rounded-full border border-white/10 bg-surface px-2 shadow-[0_8px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)]">
         {TABS.map((tab) => {
           const active = tab.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
           const Icon = tab.icon;
@@ -52,7 +52,7 @@ export function MobileTabBar() {
                       ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,255,135,0.5)]'
                       : 'bg-accent/15 text-accent'
                     : active
-                      ? 'bg-white/10 text-ink-900'
+                      ? 'bg-accent/10 text-accent [filter:drop-shadow(0_0_6px_rgb(var(--kamby-accent)/0.6))]'
                       : 'text-ink-400',
                 )}
               >
