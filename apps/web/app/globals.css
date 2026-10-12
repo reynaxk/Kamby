@@ -389,10 +389,6 @@ body:has(.kamby-void) {
   button:active:not(:disabled) {
     transition: transform 0.08s ease-out;
   }
-  .terminal-token-row:active,
-  li > a:active {
-    transform: scale(0.985);
-  }
 }
 
 /* Launch splash (components/pwa/AppSplash.tsx) — hidden before paint unless it's a fresh launch

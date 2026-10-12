@@ -82,7 +82,7 @@ export function LiveTradesPanel({ source }: { source: ChartSource }) {
     <ul>
       {trades.map((t) => (
         <li key={t.txHash} className={cn(fresh.has(t.txHash) && 'animate-[kamby-slide-in_0.4s_ease-out]')}>
-          <a href={EXPLORER_TX[network]?.(t.txHash)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-2.5 active:bg-white/5">
+          <a href={EXPLORER_TX[network]?.(t.txHash)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-2.5">
             <span
               className={cn(
                 'w-12 shrink-0 rounded-full py-0.5 text-center font-display text-[0.7rem] font-bold',

@@ -4,26 +4,23 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
-import { usePrivy } from '@privy-io/react-auth';
 
 const TABS = [
   { href: '/home', label: 'home', match: ['/home'], icon: HomeIcon },
   { href: '/search', label: 'search', match: ['/search'], icon: SearchIcon },
-  { href: '/terminal', label: 'trade', match: ['/terminal', '/market', '/solana'], icon: TradeIcon, center: true },
   { href: '/leaderboard', label: 'leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },
   { href: '/account', label: 'profile', match: ['/account', '/trades', '/notifications', '/referrals', '/watchlist'], icon: UserIcon },
 ] as const;
 
 /**
  * Phone navigation (2026-10-09 app redesign): a floating glass pill under the thumb — Home,
- * Search, Trade (centre), Leaders, Profile — icons only, the active one lit. Phones only (the
+ * Search, Leaders, Profile — icons only (the centre Trade button was removed 2026-10-12: confusing), the active one lit. Phones only (the
  * price ticker keeps the desktop bottom edge); hidden on the landing page.
  */
 export function MobileTabBar() {
   const tU = useTranslations('ui');
   const pathname = usePathname() ?? '/';
   const t = useTranslations('nav');
-  const { ready, authenticated, login } = usePrivy();
   // The landing page has none; a coin's screen has its own Buy/Sell bar there instead (like fomo).
   if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/market/')) return null;
   return (
@@ -38,22 +35,9 @@ export function MobileTabBar() {
                 href={tab.href}
                 aria-label={t(tab.label)}
                 aria-current={active ? 'page' : undefined}
-                onClick={(e) => {
-                  // The terminal is for signed-in traders — signed out, Trade opens sign-in.
-                  if (tab.href === '/terminal' && ready && !authenticated) {
-                    e.preventDefault();
-                    login();
-                  }
-                }}
                 className={cn(
                   'flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90',
-                  'center' in tab && tab.center
-                    ? active
-                      ? 'bg-accent text-black shadow-[0_0_20px_rgba(0,255,135,0.5)]'
-                      : 'bg-accent/15 text-accent'
-                    : active
-                      ? 'bg-accent/10 text-accent [filter:drop-shadow(0_0_6px_rgb(var(--kamby-accent)/0.6))]'
-                      : 'text-ink-400',
+                  active ? 'bg-accent/10 text-accent [filter:drop-shadow(0_0_6px_rgb(var(--kamby-accent)/0.6))]' : 'text-ink-400',
                 )}
               >
                 <Icon />
@@ -78,9 +62,6 @@ function HomeIcon() {
 }
 function SearchIcon() {
   return svg(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
-}
-function TradeIcon() {
-  return svg(<><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></>);
 }
 function TrophyIcon() {
   return svg(<><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></>);

@@ -54,7 +54,7 @@ export function HomeHoldings() {
           return (
             <li key={`${chainId ?? 'evm'}:${p.tokenAddress}`}>
               {href ? (
-                <Link href={href} className="flex items-center gap-3 px-4 py-2.5 active:bg-white/5">
+                <Link href={href} className="flex items-center gap-3 px-4 py-2.5">
                   {row}
                 </Link>
               ) : (

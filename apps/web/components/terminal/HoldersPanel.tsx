@@ -92,7 +92,7 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
           const pct = `${h.percent < 0.01 ? '<0.01' : h.percent.toFixed(2)}%`;
           return (
             <li key={h.address}>
-              <a href={EXPLORER[chain](h.address)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3 active:bg-white/5">
+              <a href={EXPLORER[chain](h.address)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3">
                 <TokenAvatar src={null} seed={h.address} label={h.tag ?? h.address.slice(-2)} className="h-10 w-10 shrink-0 text-xs" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 truncate font-display text-[0.95rem] font-semibold text-ink-900">

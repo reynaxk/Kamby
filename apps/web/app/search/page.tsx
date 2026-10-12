@@ -36,7 +36,7 @@ export default async function SearchPage() {
               if (!href) return null;
               return (
                 <li key={`${m.chainIdentifier}:${m.tokenAddress}`}>
-                  <Link href={href} className="flex items-center gap-3 px-4 py-3 active:bg-white/5">
+                  <Link href={href} className="flex items-center gap-3 px-4 py-3">
                     <span className="relative shrink-0">
                       <TokenAvatar src={m.logoUrl} seed={m.tokenAddress} label={m.symbol ?? m.tokenAddress} className="h-11 w-11 text-sm" />
                       {chain && <ChainBadge chain={chain} />}
