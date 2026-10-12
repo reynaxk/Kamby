@@ -83,7 +83,7 @@ export function TerminalPrimaryNav({
  * - Graduated: Base/BNB pools Kamby started tracking in the last few days (selectable and
  *   tradeable, always "New"), then coins that just left Pump.fun's curve (open their Solana
  *   trade page).
- * - Crypto: BTC/ETH/SOL/BNB/AVAX spot prices; a row selects the market it trades as.
+ * - Crypto: the majors' (CRYPTO_MAJORS) spot prices; a row selects the market it trades as.
  *
  * EVM rows are selected into DiscoverTerminal's chart/trade flow. Solana rows can't be — that
  * flow resolves chain purely through CHAIN_REGISTRY (EVM-only), so a Solana row there would

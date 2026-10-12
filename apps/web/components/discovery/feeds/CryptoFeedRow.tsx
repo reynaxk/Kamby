@@ -14,16 +14,16 @@ export function CryptoFeedRow({ price, onOpen }: { price: CryptoPrice; onOpen: (
       type="button"
       onClick={() => onOpen(price)}
       aria-label={`${price.symbol} ${formatPrice(price.priceUsd)} — open ${target.label}`}
-      className="flex w-full items-center gap-2.5 border-b border-line/60 px-2 py-2 text-left transition-colors hover:bg-surface-raised"
+      className="flex w-full items-center gap-2.5 border-b border-line/60 px-2 py-2 text-left transition-colors hover:bg-surface-raised max-md:gap-3 max-md:border-0 max-md:px-4 max-md:py-3"
     >
-      <TokenAvatar src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${price.symbol.toLowerCase()}.png`} seed={price.symbol} label={price.symbol} className="h-9 w-9 text-[0.85rem]" />
+      <TokenAvatar src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${price.symbol.toLowerCase()}.png`} seed={price.symbol} label={price.symbol} className="h-9 w-9 text-[0.85rem] max-md:h-11 max-md:w-11" />
       <span className="min-w-0 flex-1">
-        <span className="block font-display text-[0.88rem] font-semibold tracking-tight text-ink-900">{price.symbol}</span>
+        <span className="block font-display text-[0.88rem] font-semibold tracking-tight text-ink-900 max-md:text-base">{price.symbol}</span>
         <span className="block truncate font-mono text-[0.7rem] text-ink-400">{target.label}</span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-0.5">
-        <GlowValue value={String(price.priceUsd)} display={formatPrice(price.priceUsd)} className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900" />
-        <span className={cn('rounded-full px-1 py-0.5 font-mono text-[0.7rem] font-semibold tabular-nums', isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>
+        <GlowValue value={String(price.priceUsd)} display={formatPrice(price.priceUsd)} className="font-mono text-[0.82rem] font-semibold tabular-nums text-ink-900 max-md:text-base" />
+        <span className={cn('rounded-full px-1 py-0.5 font-mono text-[0.7rem] font-semibold tabular-nums max-md:bg-transparent max-md:px-0 max-md:py-0 max-md:text-xs', isUp ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>
           {formatPercent(price.change24hPct)}
         </span>
       </span>

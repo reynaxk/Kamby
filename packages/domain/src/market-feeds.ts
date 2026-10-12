@@ -18,7 +18,9 @@ export interface PumpFunLiveBatch {
   atIso: string;
 }
 
-export const CRYPTO_MAJORS = ['BTC', 'ETH', 'SOL', 'BNB', 'AVAX'] as const;
+/** By market cap. XRP/DOGE/DOT/UNI added 2026-10-12 (Binance-Peg on BNB Chain, each with a live
+ *  $120K+ Kamby market whose price matched Coinbase within 0.2%). */
+export const CRYPTO_MAJORS = ['BTC', 'ETH', 'XRP', 'BNB', 'SOL', 'DOGE', 'AVAX', 'DOT', 'UNI'] as const;
 export type CryptoMajor = (typeof CRYPTO_MAJORS)[number];
 
 /**

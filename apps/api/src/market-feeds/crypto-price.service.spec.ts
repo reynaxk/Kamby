@@ -19,7 +19,7 @@ describe('priceFromTicker', () => {
 
   it('ignores non-ticker frames, unknown products and unusable prices', () => {
     expect(priceFromTicker({ type: 'subscriptions' })).toBeNull();
-    expect(priceFromTicker({ ...REAL_BTC_TICKER, product_id: 'DOGE-USD' })).toBeNull();
+    expect(priceFromTicker({ ...REAL_BTC_TICKER, product_id: 'ZZZ-USD' })).toBeNull();
     expect(priceFromTicker({ ...REAL_BTC_TICKER, price: 'NaN' })).toBeNull();
     expect(priceFromTicker({ ...REAL_BTC_TICKER, price: '0' })).toBeNull();
   });

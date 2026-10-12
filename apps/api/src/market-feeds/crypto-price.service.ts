@@ -5,7 +5,17 @@ import { BehaviorSubject, type Observable } from 'rxjs';
 import WebSocket from 'ws';
 
 export const COINBASE_FEED_URL = 'wss://ws-feed.exchange.coinbase.com';
-const PRODUCT_IDS: Record<CryptoMajor, string> = { BTC: 'BTC-USD', ETH: 'ETH-USD', SOL: 'SOL-USD', BNB: 'BNB-USD', AVAX: 'AVAX-USD' };
+const PRODUCT_IDS: Record<CryptoMajor, string> = {
+  BTC: 'BTC-USD',
+  ETH: 'ETH-USD',
+  XRP: 'XRP-USD',
+  BNB: 'BNB-USD',
+  SOL: 'SOL-USD',
+  DOGE: 'DOGE-USD',
+  AVAX: 'AVAX-USD',
+  DOT: 'DOT-USD',
+  UNI: 'UNI-USD',
+};
 const SYMBOL_BY_PRODUCT = new Map(Object.entries(PRODUCT_IDS).map(([symbol, product]) => [product, symbol as CryptoMajor]));
 /** BTC alone ticks several times a second — the stream never needs more than this. */
 const EMIT_EVERY_MS = 1_000;
@@ -36,7 +46,7 @@ export function priceFromTicker(message: CoinbaseTicker): CryptoPrice | null {
 }
 
 /**
- * The Crypto tab's BTC/ETH/SOL/BNB/AVAX prices, from Coinbase Exchange's public ticker
+ * The Crypto tab's majors' prices (CRYPTO_MAJORS), from Coinbase Exchange's public ticker
  * WebSocket — free, keyless, and US-hosted, so nothing geo-blocks it from this API. One
  * upstream connection per API process, fanned out to every browser through the market feed
  * stream (see MarketFeedsService), so viewers never poll anything themselves.
