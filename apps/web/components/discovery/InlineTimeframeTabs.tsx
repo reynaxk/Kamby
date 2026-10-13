@@ -21,7 +21,7 @@ export function InlineTimeframeTabs({
 }) {
   const tU = useTranslations('ui');
   return (
-    <div className="kamby-timeframe-tabs inline-flex rounded-lg border border-line bg-surface p-0.5">
+    <div className="kamby-timeframe-tabs inline-flex rounded-lg border border-line bg-surface p-0.5 max-md:gap-1 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:bg-none max-md:p-0 max-md:shadow-none">
       {timeframes.map((tf) => (
         <button
           key={tf}
@@ -29,7 +29,7 @@ export function InlineTimeframeTabs({
           onClick={() => onChange(tf)}
           aria-pressed={tf === active}
           className={cn(
-            'inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[0.7rem] font-medium tracking-tight transition-colors',
+            'inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[0.7rem] font-medium tracking-tight transition-colors max-md:rounded-full max-md:px-3 max-md:py-1.5 max-md:text-xs max-md:font-semibold',
             tf === active ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
           )}
         >

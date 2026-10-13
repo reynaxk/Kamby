@@ -355,6 +355,7 @@ export function KambyChart({
     // Prices can't go below zero — the axis's bottom margin (room for volume) used to show
     // negative labels on tiny coins. Blank them; everything else formats as before.
     const { precision, minMove } = pricePrecision(candles);
+    const lineRising = (candles[candles.length - 1]?.close ?? 0) >= (candles[0]?.close ?? 0);
     const priceFormat = { type: 'custom' as const, minMove, formatter: (price: number) => axisPrice(price, precision) };
     // Candles, or a line of closes (the chart-style toggle, 2026-10-03). The library's own
     // last-price line/label is off either way — the accent-styled one below replaces it.
@@ -362,10 +363,11 @@ export function KambyChart({
       chartStyle === 'line'
         ? chart.addSeries(AreaSeries, {
             priceFormat,
-            lineColor: accent,
+            // The move's own colour, like Robinhood: up over this window green, down red.
+            lineColor: lineRising ? up : down,
             lineWidth: 2,
-            topColor: readRgba('--kamby-accent', container, 0.25),
-            bottomColor: readRgba('--kamby-accent', container, 0.02),
+            topColor: readRgba(lineRising ? '--kamby-up' : '--kamby-down', container, 0.28),
+            bottomColor: readRgba(lineRising ? '--kamby-up' : '--kamby-down', container, 0),
             priceLineVisible: false,
             lastValueVisible: false,
           })

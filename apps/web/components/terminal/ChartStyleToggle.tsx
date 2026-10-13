@@ -5,15 +5,18 @@ import { cn } from '@kamby/ui';
 import type { ChartStyle } from './KambyChart';
 import { useTranslations } from 'next-intl';
 
-const STORAGE_KEY = 'kamby:chart-style';
+// v2 (2026-10-13): phones now default to the line, so the old saved choice starts fresh once.
+const STORAGE_KEY = 'kamby:chart-style:v2';
 
-/** The chart style the user picked last (candles by default), remembered on this device. */
+/** The chart style the user picked last (line on phones, candles on desktop by default), remembered on this device. */
 export function useChartStyle(): [ChartStyle, (style: ChartStyle) => void] {
   const [style, setStyle] = useState<ChartStyle>('candles');
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved === 'line' || saved === 'candles') setStyle(saved);
+      // Phones open on the smooth line, like Robinhood and Phantom; candles are one tap away.
+      else if (window.innerWidth < 768) setStyle('line');
     } catch {
       // storage unavailable — default stays
     }
@@ -48,7 +51,7 @@ export function ChartStyleToggle({ value, onChange }: { value: ChartStyle; onCha
     </button>
   );
   return (
-    <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
+    <div className="inline-flex rounded-lg border border-line bg-surface p-0.5 max-md:rounded-full max-md:border-white/10">
       {option(
         'candles',
         tU('candles_d44b'),
