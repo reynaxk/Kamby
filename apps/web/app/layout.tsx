@@ -25,7 +25,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 /** Phone status bar and browser chrome in Kamby's background colour (installed app included). */
-export const viewport: Viewport = { themeColor: '#05070A' };
+// maximumScale 1: iOS Safari zoomed into every small text field on tap and stayed zoomed
+// (owner, 2026-10-13 — "the user gotta zoom out with fingers"). iOS still lets people pinch-zoom
+// for accessibility; it only stops the automatic zoom-on-focus.
+export const viewport: Viewport = { themeColor: '#05070A', width: 'device-width', initialScale: 1, maximumScale: 1 };
 
 /** iPhone screens (CSS px wide, tall, pixel ratio) — keep in step with scripts/gen-logo.cjs. */
 const IPHONE_LAUNCH_SCREENS: [number, number, number][] = [

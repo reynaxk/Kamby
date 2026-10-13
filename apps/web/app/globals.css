@@ -370,6 +370,11 @@ body:has(.kamby-void) {
     scrollbar-width: none;
     -webkit-tap-highlight-color: transparent;
   }
+  /* No double-tap zoom — taps respond at once, like a native app. */
+  html {
+    touch-action: manipulation;
+  }
+
   *::-webkit-scrollbar {
     display: none;
   }
