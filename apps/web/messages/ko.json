@@ -555,7 +555,8 @@
     "push_error": "알림을 켜지 못했습니다 — 다시 시도하세요",
     "notEnoughUsdc": "USDC 부족",
     "notEnoughUsdcDetail": "Solana에 {balance} USDC가 있습니다 — 입금하거나 금액을 줄이세요",
-    "minTradeButton": "최소 거래 $2"
+    "minTradeButton": "최소 거래 $2",
+    "aboutToken": "{symbol} 정보"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",
@@ -599,5 +600,8 @@
     "sendFailed": "보내지 못했습니다 — 다시 시도하세요.",
     "charsLeft": "{n}자 남음",
     "rules": "매너 있게. 링크 금지. 투자 조언 아님."
+  },
+  "legal": {
+    "agree": "로그인하면 Kamby의 <terms>서비스 약관</terms> 및 <privacy>개인정보 처리방침</privacy>에 동의하게 됩니다."
   }
 }

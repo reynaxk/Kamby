@@ -555,7 +555,8 @@
     "push_error": "Không bật được thông báo — thử lại",
     "notEnoughUsdc": "Không đủ USDC",
     "notEnoughUsdcDetail": "Bạn có {balance} USDC trên Solana — nạp thêm hoặc giảm số tiền",
-    "minTradeButton": "Tối thiểu $2"
+    "minTradeButton": "Tối thiểu $2",
+    "aboutToken": "Về {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",
@@ -599,5 +600,8 @@
     "sendFailed": "Không gửi được — thử lại.",
     "charsLeft": "Còn {n} ký tự",
     "rules": "Lịch sự. Không link. Không phải lời khuyên tài chính."
+  },
+  "legal": {
+    "agree": "Khi đăng nhập, bạn đồng ý với <terms>Điều khoản dịch vụ</terms> và <privacy>Chính sách quyền riêng tư</privacy> của Kamby."
   }
 }

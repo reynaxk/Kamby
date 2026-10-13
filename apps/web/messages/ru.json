@@ -555,7 +555,8 @@
     "push_error": "Не удалось включить уведомления — попробуйте ещё раз",
     "notEnoughUsdc": "Недостаточно USDC",
     "notEnoughUsdcDetail": "У вас {balance} USDC в Solana — пополните или уменьшите сумму",
-    "minTradeButton": "Минимальная сделка $2"
+    "minTradeButton": "Минимальная сделка $2",
+    "aboutToken": "О {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",
@@ -599,5 +600,8 @@
     "sendFailed": "Не удалось отправить — попробуйте ещё раз.",
     "charsLeft": "Осталось {n} символов",
     "rules": "Будьте вежливы. Без ссылок. Не финансовый совет."
+  },
+  "legal": {
+    "agree": "Входя, ты принимаешь <terms>Условия использования</terms> и <privacy>Политику конфиденциальности</privacy> Kamby."
   }
 }

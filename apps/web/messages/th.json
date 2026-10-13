@@ -555,7 +555,8 @@
     "push_error": "เปิดการแจ้งเตือนไม่สำเร็จ — ลองอีกครั้ง",
     "notEnoughUsdc": "USDC ไม่พอ",
     "notEnoughUsdcDetail": "คุณมี {balance} USDC บน Solana — ฝากเพิ่มหรือลดจำนวน",
-    "minTradeButton": "ขั้นต่ำ $2"
+    "minTradeButton": "ขั้นต่ำ $2",
+    "aboutToken": "เกี่ยวกับ {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",
@@ -599,5 +600,8 @@
     "sendFailed": "ส่งไม่สำเร็จ — ลองอีกครั้ง",
     "charsLeft": "เหลือ {n} ตัวอักษร",
     "rules": "สุภาพ ห้ามลิงก์ ไม่ใช่คำแนะนำทางการเงิน"
+  },
+  "legal": {
+    "agree": "เมื่อเข้าสู่ระบบ คุณยอมรับ<terms>ข้อกำหนดการให้บริการ</terms>และ<privacy>นโยบายความเป็นส่วนตัว</privacy>ของ Kamby"
   }
 }

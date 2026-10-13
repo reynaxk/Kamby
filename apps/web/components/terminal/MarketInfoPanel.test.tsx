@@ -56,7 +56,7 @@ describe('MarketInfoPanel', () => {
       />,
     );
 
-    expect(screen.getByText('About $Token')).toBeInTheDocument();
+    expect(screen.getByText('About Token')).toBeInTheDocument();
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(5);
   });
 });

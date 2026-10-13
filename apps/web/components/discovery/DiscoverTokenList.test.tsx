@@ -199,14 +199,13 @@ describe('DiscoverTokenList', () => {
     expect(screen.getByText(/AAA.*\(selected\).*\(disabled\)/)).toBeInTheDocument();
   });
 
-  it('renders the Leaderboard sidebar, the Pulse chat and an honest "not built" Alerts tab', async () => {
+  it('renders the Leaderboard sidebar and the Pulse chat, with no unbuilt Alerts tab', async () => {
     render(<DiscoverTokenList {...defaultProps} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Leaderboard' }));
     expect(screen.getByText('LeaderboardSidebar')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Pulse' }));
     expect(screen.getByText('PulseChat')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Alerts' }));
-    expect(screen.getByText("Alerts aren't built yet")).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Alerts' })).not.toBeInTheDocument();
   });
 });

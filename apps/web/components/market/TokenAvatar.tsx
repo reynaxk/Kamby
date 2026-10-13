@@ -63,7 +63,10 @@ export function TokenAvatar({
     );
   }
   const hue = hueFor(seed);
-  const letter = (label?.replace(/^\$+/, '').trim() || '?').slice(0, 1).toUpperCase();
+  // By code point, never .slice(0, 1): half of an emoji symbol ("$🌙B") rendered as "�" on the
+  // server and differently in the browser — a hydration mismatch on every page listing one
+  // (2026-10-13, React #425). Array.from keeps the whole emoji.
+  const letter = (Array.from(label?.replace(/^\$+/, '').trim() || '?')[0] ?? '?').toUpperCase();
   return (
     <span
       aria-hidden

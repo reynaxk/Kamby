@@ -555,7 +555,8 @@
     "push_error": "Не успяхме да включим известията — опитай пак",
     "notEnoughUsdc": "Нямаш достатъчно USDC",
     "notEnoughUsdcDetail": "Имаш {balance} USDC в Solana — депозирай още или намали сумата",
-    "minTradeButton": "Минималната сделка е $2"
+    "minTradeButton": "Минималната сделка е $2",
+    "aboutToken": "За {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "Последване",
@@ -599,5 +600,8 @@
     "sendFailed": "Не успяхме да изпратим — опитай пак.",
     "charsLeft": "Остават {n} знака",
     "rules": "Бъди готин. Без линкове. Не е финансов съвет."
+  },
+  "legal": {
+    "agree": "С влизането приемаш <terms>Условията за ползване</terms> и <privacy>Политиката за поверителност</privacy> на Kamby."
   }
 }

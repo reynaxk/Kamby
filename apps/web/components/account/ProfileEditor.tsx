@@ -129,7 +129,7 @@ export function ProfileEditor() {
               aria-hidden
               className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xl font-bold text-accent"
             >
-              {(profile.username ?? '?').slice(0, 2).toUpperCase()}
+              {Array.from(profile.username ?? '?').slice(0, 2).join('').toUpperCase()}
             </div>
           )}
           <div>

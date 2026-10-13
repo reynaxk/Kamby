@@ -555,7 +555,8 @@
     "push_error": "无法开启通知 — 请重试",
     "notEnoughUsdc": "USDC 不足",
     "notEnoughUsdcDetail": "你在 Solana 上有 {balance} USDC — 请充值或降低金额",
-    "minTradeButton": "最低交易 $2"
+    "minTradeButton": "最低交易 $2",
+    "aboutToken": "关于 {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "关注",
@@ -599,5 +600,8 @@
     "sendFailed": "发送失败 — 请重试。",
     "charsLeft": "还剩 {n} 个字符",
     "rules": "友善交流。禁止链接。非投资建议。"
+  },
+  "legal": {
+    "agree": "登录即表示你同意 Kamby 的<terms>服务条款</terms>和<privacy>隐私政策</privacy>。"
   }
 }

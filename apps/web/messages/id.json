@@ -555,7 +555,8 @@
     "push_error": "Gagal menyalakan notifikasi — coba lagi",
     "notEnoughUsdc": "USDC tidak cukup",
     "notEnoughUsdcDetail": "Kamu punya {balance} USDC di Solana — deposit lagi atau kurangi jumlahnya",
-    "minTradeButton": "Minimal trade $2"
+    "minTradeButton": "Minimal trade $2",
+    "aboutToken": "Tentang {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",
@@ -599,5 +600,8 @@
     "sendFailed": "Gagal mengirim — coba lagi.",
     "charsLeft": "Sisa {n} karakter",
     "rules": "Bersikap baik. Tanpa link. Bukan saran keuangan."
+  },
+  "legal": {
+    "agree": "Dengan masuk, kamu menyetujui <terms>Ketentuan Layanan</terms> dan <privacy>Kebijakan Privasi</privacy> Kamby."
   }
 }

@@ -103,7 +103,7 @@ function Avatar({ notification }: { notification: NotificationDto }) {
     );
   }
   const initials =
-    notification.actor?.displayName?.slice(0, 2)?.toUpperCase() ??
+    (notification.actor?.displayName ? Array.from(notification.actor.displayName).slice(0, 2).join('').toUpperCase() : null) ??
     notification.actor?.address?.slice(2, 4)?.toUpperCase();
   return (
     <div

@@ -555,7 +555,8 @@
     "push_error": "Could not turn on notifications — try again",
     "notEnoughUsdc": "Not enough USDC",
     "notEnoughUsdcDetail": "You have {balance} USDC on Solana — deposit more or lower the amount",
-    "minTradeButton": "Minimum trade is $2"
+    "minTradeButton": "Minimum trade is $2",
+    "aboutToken": "About {symbol}"
   },
   "notif": {
     "kind_FOLLOW": "Follow",
@@ -599,5 +600,8 @@
     "sendFailed": "Could not send — try again.",
     "charsLeft": "{n} characters left",
     "rules": "Be nice. No links. Not financial advice."
+  },
+  "legal": {
+    "agree": "By signing in, you agree to Kamby's <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
   }
 }

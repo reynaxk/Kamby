@@ -19,7 +19,7 @@ export function TraderIdentity({
   size?: 'sm' | 'md' | 'lg';
 }) {
   const label = displayName ?? truncateAddress(address);
-  const initials = (displayName ?? address.slice(2)).slice(0, 2).toUpperCase();
+  const initials = Array.from(displayName ?? address.slice(2)).slice(0, 2).join('').toUpperCase();
   const dims = size === 'lg' ? 'h-11 w-11 text-base' : size === 'sm' ? 'h-7 w-7 text-[0.65rem]' : 'h-9 w-9 text-xs';
 
   return (

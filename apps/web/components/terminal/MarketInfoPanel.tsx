@@ -4,6 +4,7 @@ import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { formatCompactUsd, formatPercent, formatPrice, truncateAddress } from '@/lib/format';
 import { TokenLinks } from './TokenLinks';
 import { useTranslations } from 'next-intl';
+import { cashtag } from '@/lib/format';
 
 /**
  * Compact market context for the terminal's right rail. This fills the same orientation
@@ -13,6 +14,7 @@ import { useTranslations } from 'next-intl';
  */
 export function MarketInfoPanel({ market }: { market: MarketSummary }) {
   const tU = useTranslations('ui');
+  const tL = useTranslations('labels');
   const slug = slugForIdentifier(market.chainIdentifier);
   const chainName = slug ? CHAIN_REGISTRY[slug].name : market.chainIdentifier;
   const display = market.symbol ?? market.name ?? tU('token_459a');
@@ -21,7 +23,7 @@ export function MarketInfoPanel({ market }: { market: MarketSummary }) {
     <Surface className="p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-display text-sm font-bold text-ink-900">About ${display}</h3>
+          <h3 className="truncate font-display text-sm font-bold text-ink-900">{tL('aboutToken', { symbol: market.symbol ? cashtag(market.symbol) : display })}</h3>
           <p className="mt-0.5 font-body text-xs text-ink-400">{tU('liquidityPoolOverview_05fd')}</p>
         </div>
         <span className="shrink-0 rounded-full border border-line bg-surface-raised px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">

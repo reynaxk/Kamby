@@ -20,7 +20,6 @@ export type PrimaryTab = 'watchlist' | 'alerts' | 'tokens' | 'leaderboard' | 'tr
 
 const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
   { id: 'watchlist', label: 'Watchlist' },
-  { id: 'alerts', label: 'Alerts' },
   { id: 'tokens', label: 'Tokens' },
   { id: 'leaderboard', label: 'Leaderboard' },
   { id: 'traders', label: 'Pulse' },

@@ -555,7 +555,8 @@
     "push_error": "Bildirimler açılamadı — tekrar dene",
     "notEnoughUsdc": "Yetersiz USDC",
     "notEnoughUsdcDetail": "Solana'da {balance} USDC var — yatır ya da tutarı düşür",
-    "minTradeButton": "Minimum işlem $2"
+    "minTradeButton": "Minimum işlem $2",
+    "aboutToken": "{symbol} hakkında"
   },
   "notif": {
     "kind_FOLLOW": "Takip",
@@ -599,5 +600,8 @@
     "sendFailed": "Gönderilemedi — tekrar dene.",
     "charsLeft": "{n} karakter kaldı",
     "rules": "Kibar ol. Link yok. Yatırım tavsiyesi değildir."
+  },
+  "legal": {
+    "agree": "Giriş yaparak Kamby’nin <terms>Hizmet Şartları</terms>’nı ve <privacy>Gizlilik Politikası</privacy>’nı kabul etmiş olursun."
   }
 }
