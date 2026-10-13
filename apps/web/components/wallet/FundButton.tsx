@@ -31,12 +31,22 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
             // shrink-0 here too, not just on the icon variant above — without it, the button
             // could shrink below "Fund wallet"'s natural width in a tight flex row (e.g. next
             // to Send on /account), wrapping the two-word label onto two lines.
-            : 'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-line bg-surface-raised px-4 py-2.5 font-body text-sm font-semibold text-ink-900 transition-colors hover:border-accent/60 hover:text-accent',
+            // The money buttons (2026-10-13, owner: "not basic"): Deposit is the solid neon one,
+            // its icon in a small dark disc. Flat — no glow.
+            : 'flex shrink-0 items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl bg-accent px-4 py-3 font-display text-sm font-bold text-black transition-transform active:scale-[0.97]',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        <FundIcon />
-        {variant === 'labeled' && tW('deposit')}
+        {variant === 'labeled' ? (
+          <>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/15">
+              <FundIcon />
+            </span>
+            {tW('deposit')}
+          </>
+        ) : (
+          <FundIcon />
+        )}
       </button>
       <FundModal open={open} onClose={() => setOpen(false)} />
     </>
@@ -46,9 +56,9 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
 function FundIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2" y="5" width="20" height="14" rx="2" />
-      <line x1="2" y1="10" x2="22" y2="10" />
-      <line x1="6" y1="15" x2="10" y2="15" />
+      <path d="M12 4v11" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 20h14" />
     </svg>
   );
 }

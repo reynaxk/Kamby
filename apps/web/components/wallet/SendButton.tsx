@@ -34,12 +34,21 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
-            : 'flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-5 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-accent shadow-[0_0_18px_rgba(0,255,135,0.15)] transition-all hover:border-accent hover:bg-accent/20 hover:shadow-[0_0_26px_rgba(0,255,135,0.35)]',
+            // Withdraw is the glass one, its icon in a neon disc (see FundButton). No glow.
+            : 'flex items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl border border-white/10 bg-surface-raised px-4 py-3 font-display text-sm font-bold text-ink-900 transition-transform hover:border-accent/50 active:scale-[0.97]',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        <WithdrawIcon />
-        {variant === 'labeled' && tW('withdraw')}
+        {variant === 'labeled' ? (
+          <>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
+              <WithdrawIcon />
+            </span>
+            {tW('withdraw')}
+          </>
+        ) : (
+          <WithdrawIcon />
+        )}
       </button>
       <SendModal open={open} onClose={() => setOpen(false)} />
     </>
@@ -49,9 +58,9 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
 function WithdrawIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 3v12" />
-      <path d="m7 10 5 5 5-5" />
-      <path d="M5 21h14" />
+      <path d="M12 15V4" />
+      <path d="m7 9 5-5 5 5" />
+      <path d="M5 20h14" />
     </svg>
   );
 }

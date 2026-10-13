@@ -10,7 +10,8 @@ import { useAccount } from 'wagmi';
 import { cn } from '@kamby/ui';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
 import { BigUsd } from '@/components/ui-kit/BigUsd';
-import { FundModal } from '@/components/wallet/FundModal';
+import { FundButton } from '@/components/wallet/FundButton';
+import { SendButton } from '@/components/wallet/SendButton';
 import { formatSignedCompactUsd } from '@/lib/format';
 import { useMyPositions } from '@/lib/my-positions';
 import { totalUsdc, useUsdcBalances } from '@/lib/use-usdc-balance';
@@ -28,7 +29,6 @@ export function PortfolioHeader() {
   const balances = useUsdcBalances(address, wallets[0]?.address);
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
-  const [fundOpen, setFundOpen] = useState(false);
 
   // The launch splash waits for this: signed out, or the balance is in (2026-10-11).
   const cashReady = totalUsdc([balances.base, balances.bnb, balances.solana]) !== null;
@@ -69,21 +69,18 @@ export function PortfolioHeader() {
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
       <AppBell />
     </div>
-    <section className="kamby-rise kamby-rise-2 kamby-glass mt-3 flex items-start justify-between gap-3 rounded-3xl px-4 py-4 md:px-1">
+    <section className="kamby-rise kamby-rise-2 kamby-glass mt-3 rounded-3xl px-4 py-4 md:px-1">
       <div className={cn('min-w-0', hidden && 'select-none blur-md')}>
         <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />
         <p className={cn('mt-1 font-mono text-xs', openPnl >= 0 ? 'text-up' : 'text-down')}>
           {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : t('noPositions')}
         </p>
       </div>
-      <button
-        type="button"
-        onClick={() => setFundOpen(true)}
-        className="shrink-0 rounded-2xl bg-accent px-6 py-3 font-display text-sm font-bold text-black"
-      >
-        {t('deposit')}
-      </button>
-      <FundModal open={fundOpen} onClose={() => setFundOpen(false)} />
+      {/* Deposit + Withdraw side by side, like a wallet app's quick actions. */}
+      <div className="mt-4 grid grid-cols-2 gap-2 md:flex">
+        <FundButton variant="labeled" />
+        <SendButton variant="labeled" />
+      </div>
     </section>
     </>
   );
