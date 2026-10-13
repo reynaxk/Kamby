@@ -47,10 +47,8 @@ export function AppProfileMenu() {
   if (!authenticated) {
     return (
       <section className="kamby-glass mx-4 mt-6 flex flex-col items-center rounded-3xl px-5 pb-6 pt-8 text-center md:hidden">
-        <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/5 ring-1 ring-inset ring-white/10">
-          {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
-          <img src="/brand/kamby-mark.svg" alt="" className="h-11 w-11" />
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
+        <img src="/brand/kamby-mark.svg" alt="" className="h-20 w-20" />
         <h1 className="mt-4 font-display text-2xl font-bold text-ink-900">{t('profileWelcome')}</h1>
         <p className="mt-2 max-w-xs font-body text-sm text-ink-400">{t('profileWelcomeSub')}</p>
         <button

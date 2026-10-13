@@ -1,7 +1,8 @@
 import { cn } from '@kamby/ui';
 
 /**
- * The Kamby mark (the K with three rising arrows, public/brand/kamby-mark.svg — redrawn as a
+ * The Kamby mark (since 2026-10-13: a black K with a rising arrow cut out of a neon tile —
+ * public/brand/kamby-mark.svg, generated with every app icon by apps/web/scripts/gen-logo.cjs — redrawn as a
  * vector from the brand mockup, 2026-09-30) + the "KAMBY" wordmark, used everywhere the
  * logo appears (MarketHeader, WelcomePage, loading states, footers). Renders just the mark
  * and the wordmark, not a wrapping element — callers keep their own wrapper (a
