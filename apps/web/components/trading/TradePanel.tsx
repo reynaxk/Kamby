@@ -24,6 +24,8 @@ import { autoSlippageBps, nextAutoSlippageBps, SlippageControl } from './Slippag
 import { QuoteSummary } from './QuoteSummary';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { ChainUsdcLine } from './ChainUsdcLine';
+import { isMoveBusy, MoveNote, useMoveButtonLabel } from './CrossChainMove';
+import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 import { PositionChip } from './PositionChip';
 import { evmChartSource } from '@/lib/chart-data';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
@@ -204,6 +206,17 @@ export function TradePanel({
   }, [autoSlippage, quote, volatile]);
   const [quoteStatus, setQuoteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [quoteError, setQuoteError] = useState<string | null>(null);
+  // One USDC (2026-10-13): short on this chain but enough on another → the buy moves it over
+  // first (the API refuses to quote a buy the wallet can't pay for, so this is decided here).
+  const moveTarget = chainId === 56 ? 'bnb' : 'base';
+  const buyUsd = side === 'BUY' && Number.parseFloat(amount) > 0 ? Number.parseFloat(amount) : null;
+  const funding = useCrossChainFunding(moveTarget, buyUsd);
+  const chainUsdc = funding.balances[moveTarget];
+  const shortOnChain = buyUsd !== null && chainUsdc !== null && buyUsd > chainUsdc;
+  const needsMove = shortOnChain && funding.canCover && funding.stage !== 'done';
+  const moveBusy = isMoveBusy(funding);
+  const moveLabel = useMoveButtonLabel(funding, moveTarget);
+  const [buyAfterMove, setBuyAfterMove] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   const [step, setStep] = useState<Step>('form');
@@ -311,6 +324,24 @@ export function TradePanel({
   }, []);
 
   const isExpired = quote !== null && isQuoteExpired(new Date(quote.expiresAt), new Date(now));
+
+  useEffect(() => {
+    if (!buyAfterMove || quoteStatus !== 'ready' || !quote) return;
+    setBuyAfterMove(false);
+    void handleOneTap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buyAfterMove, quoteStatus, quote]);
+
+  /** Move the shortfall from the other chain first, then buy as usual — one tap (2026-10-13). */
+  async function handleMoveThenBuy() {
+    try {
+      await funding.move();
+    } catch {
+      return; // MoveNote shows why; nothing was bought
+    }
+    setBuyAfterMove(true);
+    setRefreshTick((n) => n + 1); // the old quote said "not enough USDC" — ask again
+  }
 
   /** Polls until the swap resolves *and* (if this trade has a guaranteed-USDC fee) the fee
    *  transfer also resolves — see docs/TRADING.md#guaranteed-usdc-fees. The swap's own
@@ -871,7 +902,8 @@ export function TradePanel({
           silently do nothing when switched on. */}
       {quote?.sponsorshipAvailable && <GaslessToggle value={gasless} onChange={setGasless} label={tU('gaslessNoGasNeeded_7181')} />}
 
-      {quoteStatus === 'error' && !belowMinimum && <p className="font-body text-xs text-down">{quoteError}</p>}
+      {(needsMove || moveBusy || funding.stage === 'error') && <MoveNote funding={funding} target={moveTarget} />}
+      {quoteStatus === 'error' && !belowMinimum && !needsMove && !moveBusy && <p className="font-body text-xs text-down">{quoteError}</p>}
 
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 
@@ -879,11 +911,11 @@ export function TradePanel({
         <Button
           type="button"
           variant={sheet ? (side === 'BUY' ? 'buy' : 'sell') : undefined}
-          disabled={quoteStatus !== 'ready' || !quote}
-          onClick={() => void handleOneTap()}
+          disabled={moveBusy || buyAfterMove || (!needsMove && (quoteStatus !== 'ready' || !quote))}
+          onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
           className={cn('w-full', sheet && 'h-14 rounded-2xl text-base font-bold')}
         >
-          {belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
+          {needsMove || moveBusy ? moveLabel : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
         </Button>
       ) : (
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —

@@ -249,6 +249,9 @@ export const EnvSchema = z.object({
   /** Top-ups one wallet can get per chain per day (owner decision 2026-10-05: 15 — one drip
    *  covers ~6–10 trades, and active traders ran dry with the old one-a-day limit). */
   EVM_GAS_TOPUP_PER_WALLET_DAILY: z.coerce.number().int().positive().default(15),
+  /** Relay (the bridge behind "one USDC", bridge/relay-client.ts) — optional: quotes work
+   *  without one today; a key lifts the rate limit. Never logged. */
+  RELAY_API_KEY: z.string().min(1).optional(),
   EVM_GAS_RELAYER_ENABLED: z.coerce.boolean().default(false),
   /** One key, reused across every chain in EVM_GAS_RELAYER_CHAINS — an EVM private key
    *  produces the same address on every EVM chain, unlike Solana's per-chain-by-necessity

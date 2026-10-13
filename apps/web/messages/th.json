@@ -562,7 +562,12 @@
     "notEnoughUsdc": "USDC ไม่พอ",
     "notEnoughUsdcDetail": "คุณมี {balance} USDC บน Solana — ฝากเพิ่มหรือลดจำนวน",
     "minTradeButton": "ขั้นต่ำ $2",
-    "aboutToken": "เกี่ยวกับ {symbol}"
+    "aboutToken": "เกี่ยวกับ {symbol}",
+    "moveAndBuy": "ซื้อ · ย้าย ${amount} จาก {chain}",
+    "moveNote": "USDC ของคุณอยู่บน {from} — Kamby จะย้าย ${amount} ไปยัง {to} ก่อนภายในไม่กี่วินาที (ค่าธรรมเนียมไม่กี่เซนต์)",
+    "movePreparing": "กำลังเตรียมการย้าย…",
+    "moveSigning": "ยืนยันในกระเป๋าของคุณ…",
+    "moveMoving": "กำลังย้าย USDC ไปยัง {chain}…"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

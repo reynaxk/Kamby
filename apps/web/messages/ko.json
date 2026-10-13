@@ -562,7 +562,12 @@
     "notEnoughUsdc": "USDC 부족",
     "notEnoughUsdcDetail": "Solana에 {balance} USDC가 있습니다 — 입금하거나 금액을 줄이세요",
     "minTradeButton": "최소 거래 $2",
-    "aboutToken": "{symbol} 정보"
+    "aboutToken": "{symbol} 정보",
+    "moveAndBuy": "구매 · {chain}에서 ${amount} 이동",
+    "moveNote": "USDC가 {from}에 있어요 — Kamby가 먼저 ${amount}를 {to}로 몇 초 만에 옮겨요 (수수료 몇 센트).",
+    "movePreparing": "이동 준비 중…",
+    "moveSigning": "지갑에서 확인…",
+    "moveMoving": "USDC를 {chain}로 옮기는 중…"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

@@ -562,7 +562,12 @@
     "notEnoughUsdc": "USDC tidak cukup",
     "notEnoughUsdcDetail": "Kamu punya {balance} USDC di Solana — deposit lagi atau kurangi jumlahnya",
     "minTradeButton": "Minimal trade $2",
-    "aboutToken": "Tentang {symbol}"
+    "aboutToken": "Tentang {symbol}",
+    "moveAndBuy": "Beli · pindahkan ${amount} dari {chain}",
+    "moveNote": "USDC kamu ada di {from} — Kamby memindahkan ${amount} ke {to} dulu, dalam hitungan detik (biaya beberapa sen).",
+    "movePreparing": "Menyiapkan pemindahan…",
+    "moveSigning": "Konfirmasi di dompetmu…",
+    "moveMoving": "Memindahkan USDC kamu ke {chain}…"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

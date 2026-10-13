@@ -562,7 +562,12 @@
     "notEnoughUsdc": "Not enough USDC",
     "notEnoughUsdcDetail": "You have {balance} USDC on Solana — deposit more or lower the amount",
     "minTradeButton": "Minimum trade is $2",
-    "aboutToken": "About {symbol}"
+    "aboutToken": "About {symbol}",
+    "moveAndBuy": "Buy · move ${amount} from {chain}",
+    "moveNote": "Your USDC is on {from} — Kamby moves ${amount} to {to} first, in seconds (a few cents fee).",
+    "movePreparing": "Preparing the move…",
+    "moveSigning": "Confirm in your wallet…",
+    "moveMoving": "Moving your USDC to {chain}…"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

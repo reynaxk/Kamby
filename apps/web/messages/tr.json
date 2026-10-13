@@ -562,7 +562,12 @@
     "notEnoughUsdc": "Yetersiz USDC",
     "notEnoughUsdcDetail": "Solana'da {balance} USDC var — yatır ya da tutarı düşür",
     "minTradeButton": "Minimum işlem $2",
-    "aboutToken": "{symbol} hakkında"
+    "aboutToken": "{symbol} hakkında",
+    "moveAndBuy": "Satın al · {chain} üzerinden ${amount} taşı",
+    "moveNote": "USDC’n {from} üzerinde — Kamby önce ${amount} tutarını saniyeler içinde {to} ağına taşır (birkaç sent ücret).",
+    "movePreparing": "Taşıma hazırlanıyor…",
+    "moveSigning": "Cüzdanında onayla…",
+    "moveMoving": "USDC’n {chain} ağına taşınıyor…"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

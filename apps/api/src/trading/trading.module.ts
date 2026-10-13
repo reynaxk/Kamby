@@ -44,5 +44,7 @@ import { TransactionService } from './transaction.service';
     EvmGasRelayerService,
     EvmGasRelayerQuoteService,
   ],
+  // The bridge (moving a user's USDC between chains) tops up gas the same way trades do.
+  exports: [EvmGasTopupService],
 })
 export class TradingModule {}

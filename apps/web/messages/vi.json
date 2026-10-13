@@ -562,7 +562,12 @@
     "notEnoughUsdc": "Không đủ USDC",
     "notEnoughUsdcDetail": "Bạn có {balance} USDC trên Solana — nạp thêm hoặc giảm số tiền",
     "minTradeButton": "Tối thiểu $2",
-    "aboutToken": "Về {symbol}"
+    "aboutToken": "Về {symbol}",
+    "moveAndBuy": "Mua · chuyển ${amount} từ {chain}",
+    "moveNote": "USDC của bạn ở {from} — Kamby chuyển ${amount} sang {to} trước, trong vài giây (phí vài xu).",
+    "movePreparing": "Đang chuẩn bị chuyển…",
+    "moveSigning": "Xác nhận trong ví…",
+    "moveMoving": "Đang chuyển USDC sang {chain}…"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

@@ -562,7 +562,12 @@
     "notEnoughUsdc": "USDC 不足",
     "notEnoughUsdcDetail": "你在 Solana 上有 {balance} USDC — 请充值或降低金额",
     "minTradeButton": "最低交易 $2",
-    "aboutToken": "关于 {symbol}"
+    "aboutToken": "关于 {symbol}",
+    "moveAndBuy": "购买 · 从 {chain} 转入 ${amount}",
+    "moveNote": "你的 USDC 在 {from}——Kamby 会先在几秒内把 ${amount} 转到 {to}（手续费几美分）。",
+    "movePreparing": "正在准备转移…",
+    "moveSigning": "请在钱包中确认…",
+    "moveMoving": "正在把你的 USDC 转到 {chain}…"
   },
   "notif": {
     "kind_FOLLOW": "关注",

@@ -152,6 +152,11 @@ const defaultProps = {
   quoteTokenDecimals: 6,
 };
 
+vi.mock('@/lib/use-cross-chain-funding', () => ({
+  // No cross-chain move in these tests — the wallet's chain balance decides, as before.
+  useCrossChainFunding: () => ({ balances: { base: null, bnb: null, solana: null, total: null }, moveUsd: 0, source: null, canCover: false, stage: 'idle', error: null, feeUsd: null, move: async () => {} }),
+}));
+
 describe('TradePanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();

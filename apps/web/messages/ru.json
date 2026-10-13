@@ -562,7 +562,12 @@
     "notEnoughUsdc": "Недостаточно USDC",
     "notEnoughUsdcDetail": "У вас {balance} USDC в Solana — пополните или уменьшите сумму",
     "minTradeButton": "Минимальная сделка $2",
-    "aboutToken": "О {symbol}"
+    "aboutToken": "О {symbol}",
+    "moveAndBuy": "Купить · перевести ${amount} из {chain}",
+    "moveNote": "Твой USDC в {from} — Kamby сначала переведёт ${amount} в {to} за секунды (комиссия пара центов).",
+    "movePreparing": "Готовим перевод…",
+    "moveSigning": "Подтверди в кошельке…",
+    "moveMoving": "Переводим твой USDC в {chain}…"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",
