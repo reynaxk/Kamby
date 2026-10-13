@@ -1,5 +1,6 @@
 'use client';
 
+import { USDC_BY_CHAIN_ID } from './usdc';
 import {
   PublicKey,
   SystemProgram,
@@ -89,14 +90,16 @@ export interface SendAsset {
  *  /market/chains (lib/market-client.ts's fetchEvmChainConfigs) — the exact same addresses
  *  every trading service already trades against, never a second, independently-sourced
  *  address hardcoded here (see EvmChainConfigSchema's own doc comment in @kamby/domain). */
+/** USDC only (2026-10-13, owner): Kamby users hold only USDC — the ETH/BNB/SOL in a wallet is
+ *  Kamby's own gas top-up, never theirs to withdraw. The backend-configured USDC address is
+ *  preferred; until that config loads, the same known address the trade panel uses. */
 export function assetsForChain(chain: SendChainOption, evmChainConfigs: EvmChainConfig[]): SendAsset[] {
-  const native: SendAsset = { kind: 'native', symbol: chain.nativeSymbol, decimals: chain.kind === 'solana' ? 9 : 18 };
   if (chain.kind === 'solana') {
-    return [native, { kind: 'token', symbol: 'USDC', address: SOLANA_USDC_MINT, decimals: 6 }];
+    return [{ kind: 'token', symbol: 'USDC', address: SOLANA_USDC_MINT, decimals: 6 }];
   }
   const config = evmChainConfigs.find((c) => c.chainId === chain.evmChainId);
-  if (!config) return [native];
-  return [native, { kind: 'token', symbol: 'USDC', address: config.usdcAddress, decimals: null }];
+  const address = config?.usdcAddress ?? (chain.evmChainId !== undefined ? USDC_BY_CHAIN_ID[chain.evmChainId]?.address : undefined);
+  return address ? [{ kind: 'token', symbol: 'USDC', address, decimals: null }] : [];
 }
 
 /** Layered validation for a typed-or-pasted destination — format regex (@kamby/domain's

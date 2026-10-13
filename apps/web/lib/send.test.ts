@@ -14,9 +14,16 @@ const EVM_CONFIGS: EvmChainConfig[] = [
 ];
 
 describe('assetsForChain', () => {
-  it('always lists the native asset first', () => {
-    expect(assetsForChain(BASE, EVM_CONFIGS)[0]).toMatchObject({ kind: 'native', symbol: 'ETH' });
-    expect(assetsForChain(SOLANA, EVM_CONFIGS)[0]).toMatchObject({ kind: 'native', symbol: 'SOL' });
+  it('offers USDC only — never the native coin (Kamby gas, 2026-10-13)', () => {
+    for (const chain of [BASE, BNB, SOLANA]) {
+      const assets = assetsForChain(chain, EVM_CONFIGS);
+      expect(assets.map((a) => a.symbol)).toEqual(['USDC']);
+      expect(assets.some((a) => a.kind === 'native')).toBe(false);
+    }
+  });
+
+  it('still offers USDC before the chain config loads, at the known address', () => {
+    expect(assetsForChain(BNB, [])).toEqual([expect.objectContaining({ kind: 'token', symbol: 'USDC' })]);
   });
 
   it('uses the real, backend-configured USDC address for an EVM chain — never a second, hardcoded one', () => {
@@ -27,12 +34,6 @@ describe('assetsForChain', () => {
   it('uses the single well-known SOLANA_USDC_MINT for Solana, with its real, fixed decimals', () => {
     const assets = assetsForChain(SOLANA, EVM_CONFIGS);
     expect(assets).toContainEqual({ kind: 'token', symbol: 'USDC', address: SOLANA_USDC_MINT, decimals: 6 });
-  });
-
-  it('offers native-only when this deployment has no USDC configured for that chain', () => {
-    const assets = assetsForChain(BNB, []); // BNB not in the configured list
-    expect(assets).toHaveLength(1);
-    expect(assets[0]!.kind).toBe('native');
   });
 
   it('never assumes an EVM token’s decimals — always null until read live on-chain', () => {

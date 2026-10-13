@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as WagmiModule from 'wagmi';
 import type * as SendModule from '@/lib/send';
 import { SendModal } from './SendModal';
@@ -70,7 +70,7 @@ function setConnectedEvm() {
   usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn() });
   useAccountMock.mockReturnValue({ address: EVM_ADDRESS, chainId: 8453 });
   useSolanaWalletsMock.mockReturnValue({ wallets: [] });
-  useBalanceMock.mockReturnValue({ data: { value: 10_000_000_000_000_000_000n } }); // 10 ETH
+  useBalanceMock.mockReturnValue({ data: { value: 25_000_000n } }); // 25 USDC (6 decimals)
 }
 
 function setConnectedSolana() {
@@ -81,7 +81,10 @@ function setConnectedSolana() {
   getBalanceMock.mockResolvedValue(1_000_000_000); // 1 SOL — plenty for fees, the sane default
 }
 
+const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
 describe('SendModal', () => {
+  beforeEach(() => readEvmTokenDecimalsMock.mockResolvedValue(6));
   afterEach(() => vi.clearAllMocks());
 
   it('renders nothing when closed', () => {
@@ -118,19 +121,16 @@ describe('SendModal', () => {
     expect(screen.queryByTestId('connect-wallet-button')).not.toBeInTheDocument();
   });
 
-  it('resets the asset selection back to native when the chain is switched', async () => {
+  it('withdraws USDC only — no ETH/BNB/SOL to pick (that is Kamby gas, 2026-10-13)', async () => {
     setConnectedEvm();
-    fetchEvmChainConfigsMock.mockResolvedValue([{ slug: 'base', chainId: 8453, usdcAddress: '0xusdc' }]);
-    readEvmTokenDecimalsMock.mockResolvedValue(6);
+    fetchEvmChainConfigsMock.mockResolvedValue([]);
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'USDC' })).toBeInTheDocument());
-    await user.click(screen.getByRole('button', { name: 'USDC' }));
-    await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
-
-    // Back on the native asset for the new chain — USDC isn't configured for BNB in this mock.
-    expect(screen.queryByRole('button', { name: 'USDC' })).not.toBeInTheDocument();
+    expect(await screen.findByText(/Amount \(USDC\)/)).toBeInTheDocument();
+    for (const native of ['ETH', 'BNB', 'SOL']) expect(screen.queryByRole('button', { name: native })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Solana' }));
+    for (const native of ['ETH', 'BNB', 'SOL']) expect(screen.queryByRole('button', { name: native })).not.toBeInTheDocument();
   });
 
   it('shows a live validation error for a malformed destination address, and clears it once fixed', async () => {
@@ -155,17 +155,18 @@ describe('SendModal', () => {
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
+    await screen.findByText('Balance: 25');
     const reviewButton = await screen.findByRole('button', { name: 'Review' });
     expect(reviewButton).toBeDisabled();
 
-    await user.type(screen.getByPlaceholderText('0.0'), '1');
+    await user.type(screen.getByPlaceholderText('0.0'), '12');
     await user.type(screen.getByPlaceholderText('0x…'), EVM_ADDRESS);
 
     expect(reviewButton).toBeEnabled();
   });
 
   it('rejects an amount greater than the real, live-read balance', async () => {
-    setConnectedEvm(); // balance mocked to 10 ETH
+    setConnectedEvm(); // balance mocked to 25 USDC
     fetchEvmChainConfigsMock.mockResolvedValue([]);
     const user = userEvent.setup();
 
@@ -177,37 +178,39 @@ describe('SendModal', () => {
     expect(screen.getByRole('button', { name: 'Review' })).toBeDisabled();
   });
 
-  it('reserves gas on "Max" for an EVM native asset even before a destination is typed — real bug: this used to skip the reserve entirely and set the amount to the full balance', async () => {
-    setConnectedEvm(); // 10 ETH balance
+  it('"Max" fills the whole USDC balance — the network fee is Kamby’s gas, not the user’s USDC', async () => {
+    setConnectedEvm(); // 25 USDC
     fetchEvmChainConfigsMock.mockResolvedValue([]);
-    estimateNativeSendReserveMock.mockResolvedValue(1_000_000_000_000_000n); // 0.001 ETH
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
-    await user.click(screen.getByRole('button', { name: 'Max' }));
+    await waitFor(() => expect(readEvmTokenDecimalsMock).toHaveBeenCalled());
+    await user.click(await screen.findByRole('button', { name: 'Max' }));
 
-    await waitFor(() => expect(estimateNativeSendReserveMock).toHaveBeenCalledWith(8453, EVM_ADDRESS));
     const amountInput = screen.getByPlaceholderText('0.0') as HTMLInputElement;
-    expect(amountInput.value).toBe('9.999'); // 10 ETH balance minus the 0.001 ETH reserve
+    await waitFor(() => expect(amountInput.value).toBe('25'));
+    expect(estimateNativeSendReserveMock).not.toHaveBeenCalled();
   });
 
-  it('completes a full EVM native send: form → review → confirm → real explorer link for the actual chain', async () => {
+  it('completes a full USDC withdrawal: form → review → confirm → real explorer link for the actual chain', async () => {
     setConnectedEvm();
     fetchEvmChainConfigsMock.mockResolvedValue([]);
-    sendEvmNativeMock.mockResolvedValue('0xdeadbeef');
+    sendEvmTokenMock.mockResolvedValue('0xdeadbeef');
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
-    await user.type(screen.getByPlaceholderText('0.0'), '1');
+    await screen.findByText('Balance: 25');
+    await user.type(screen.getByPlaceholderText('0.0'), '12');
     await user.type(screen.getByPlaceholderText('0x…'), EVM_ADDRESS);
     await user.click(screen.getByRole('button', { name: 'Review' }));
 
     expect(screen.getByText(EVM_ADDRESS)).toBeInTheDocument();
-    expect(screen.getByText(/1 ETH/)).toBeInTheDocument();
+    expect(screen.getByText(/12 USDC/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /confirm.*send/i }));
 
-    await waitFor(() => expect(sendEvmNativeMock).toHaveBeenCalledWith(EVM_ADDRESS, 1_000_000_000_000_000_000n, 8453));
+    await waitFor(() => expect(sendEvmTokenMock).toHaveBeenCalledWith(BASE_USDC, EVM_ADDRESS, 12_000_000n, 8453));
+    expect(sendEvmNativeMock).not.toHaveBeenCalled();
     const link = await screen.findByRole('link', { name: /basescan/i });
     expect(link).toHaveAttribute('href', 'https://basescan.org/tx/0xdeadbeef');
   });
@@ -215,11 +218,12 @@ describe('SendModal', () => {
   it('shows the real error message and a Try again action when the send itself fails, never a fake success', async () => {
     setConnectedEvm();
     fetchEvmChainConfigsMock.mockResolvedValue([]);
-    sendEvmNativeMock.mockRejectedValue(new Error('User rejected the request.'));
+    sendEvmTokenMock.mockRejectedValue(new Error('User rejected the request.'));
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
-    await user.type(screen.getByPlaceholderText('0.0'), '1');
+    await screen.findByText('Balance: 25');
+    await user.type(screen.getByPlaceholderText('0.0'), '12');
     await user.type(screen.getByPlaceholderText('0x…'), EVM_ADDRESS);
     await user.click(screen.getByRole('button', { name: 'Review' }));
     await user.click(screen.getByRole('button', { name: /confirm.*send/i }));
@@ -229,20 +233,17 @@ describe('SendModal', () => {
     expect(screen.queryByRole('link', { name: /basescan/i })).not.toBeInTheDocument();
   });
 
-  it('warns when the Solana wallet has no SOL for the network fee — even when sending a token, not native SOL — and blocks Review', async () => {
+  it('shows no SOL-fee warning for a USDC withdrawal, even at zero SOL — Kamby covers that fee', async () => {
     setConnectedSolana();
-    getBalanceMock.mockResolvedValue(0); // real reported failure mode: a USDC-only wallet with zero SOL
+    getBalanceMock.mockResolvedValue(0);
     fetchEvmChainConfigsMock.mockResolvedValue([]);
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Solana' }));
 
-    expect(await screen.findByText(/no SOL to pay the network fee/i)).toBeInTheDocument();
-
-    await user.type(screen.getByPlaceholderText('0.0'), '1');
-    await user.type(screen.getByPlaceholderText('Solana address'), SOLANA_ADDRESS);
-    expect(screen.getByRole('button', { name: 'Review' })).toBeDisabled();
+    await waitFor(() => expect(getBalanceMock).toHaveBeenCalled());
+    expect(screen.queryByText(/no SOL to pay the network fee/i)).not.toBeInTheDocument();
   });
 
   it('shows no fee warning once the wallet has enough SOL', async () => {
@@ -257,24 +258,4 @@ describe('SendModal', () => {
     expect(screen.queryByText(/no SOL to pay the network fee/i)).not.toBeInTheDocument();
   });
 
-  it('completes a full Solana send by building the real transaction bytes and encoding the returned signature as base58', async () => {
-    setConnectedSolana();
-    fetchEvmChainConfigsMock.mockResolvedValue([]);
-    const fakeTx = { serialize: vi.fn().mockReturnValue(new Uint8Array([1, 2, 3])) };
-    buildSolanaNativeTransferTxMock.mockResolvedValue(fakeTx);
-    signAndSendTransactionMock.mockResolvedValue({ signature: new Uint8Array(64) }); // all-zero -> a real, decodable base58 string
-    const user = userEvent.setup();
-
-    render(<SendModal open onClose={vi.fn()} />);
-    await user.click(screen.getByRole('button', { name: 'Solana' }));
-    await user.type(screen.getByPlaceholderText('0.0'), '1');
-    await user.type(screen.getByPlaceholderText('Solana address'), SOLANA_ADDRESS);
-    await user.click(screen.getByRole('button', { name: 'Review' }));
-    await user.click(screen.getByRole('button', { name: /confirm.*send/i }));
-
-    await waitFor(() => expect(buildSolanaNativeTransferTxMock).toHaveBeenCalled());
-    expect(fakeTx.serialize).toHaveBeenCalledWith({ requireAllSignatures: false, verifySignatures: false });
-    const link = await screen.findByRole('link', { name: /solscan/i });
-    expect(link.getAttribute('href')).toMatch(/^https:\/\/solscan\.io\/tx\//);
-  });
 });

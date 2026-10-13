@@ -133,17 +133,17 @@ describe('FundModal', () => {
     expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
   });
 
-  it('disables Continue when connected but this chain has no real, resolved USDC address', async () => {
+  it('can buy USDC on BNB before the chain config loads — the known USDC address is used', async () => {
     usePrivyMock.mockReturnValue({ ready: true, authenticated: true, login: vi.fn() });
     useAccountMock.mockReturnValue({ address: EVM_ADDRESS, chainId: 56 }); // connected on BNB
     useSolanaWalletsMock.mockReturnValue({ wallets: [] });
-    fetchEvmChainConfigsMock.mockResolvedValue([]); // no USDC config for any chain
+    fetchEvmChainConfigsMock.mockResolvedValue([]); // the API's chain config hasn't loaded
     const user = userEvent.setup();
 
     render(<FundModal open onClose={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
     await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
 
-    expect(await screen.findByRole('button', { name: 'Continue' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Continue' })).toBeEnabled();
   });
 });

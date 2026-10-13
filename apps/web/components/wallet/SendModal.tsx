@@ -318,6 +318,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             </div>
           </div>
 
+          {assets.length > 1 && (
           <div>
             <div className="font-body text-xs text-ink-600">{tU('asset_26e9')}</div>
             <div className="mt-1.5 flex gap-1.5">
@@ -338,6 +339,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
               ))}
             </div>
           </div>
+          )}
 
           {!isConnectedForChain ? (
             chain.kind === 'evm' ? (
