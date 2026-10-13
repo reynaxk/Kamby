@@ -101,22 +101,28 @@ export class EvmGasTopupService {
     }
   }
 
-  async ensureGas(chainId: number, wallet: string, usdc: { address: string; decimals: number }): Promise<void> {
+  /** Tops the wallet up with a few cents of gas when it holds USDC but almost no native coin.
+   *  Returns 'stranded' only when the wallet has no native coin at all and no top-up could be
+   *  sent (e.g. Kamby's tank on that chain is empty) — the trade would fail in the wallet, so
+   *  the caller says so plainly instead (2026-10-13, Robinhood Chain's tank started empty). */
+  async ensureGas(chainId: number, wallet: string, usdc: { address: string; decimals: number }): Promise<'ok' | 'stranded'> {
     const clients = this.clients.get(chainId);
-    if (!clients) return;
+    if (!clients) return 'ok';
     const walletKey = wallet.toLowerCase();
+    let nativeWei: bigint | null = null;
     try {
-      if (await this.redis.get(`gas-ok:${chainId}:${walletKey}`)) return;
-      const [nativeWei, usdcRaw] = await Promise.all([
+      if (await this.redis.get(`gas-ok:${chainId}:${walletKey}`)) return 'ok';
+      const [native, usdcRaw] = await Promise.all([
         clients.publicClient.getBalance({ address: wallet as `0x${string}` }),
         clients.publicClient.readContract({ address: usdc.address as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [wallet as `0x${string}`] }),
       ]);
-      if (!needsTopup(nativeWei, usdcRaw, usdc.decimals, clients.minWei)) {
-        if (nativeWei >= clients.minWei) await this.redis.set(`gas-ok:${chainId}:${walletKey}`, '1', 'EX', HAS_GAS_CACHE_SECONDS);
-        return;
+      nativeWei = native;
+      if (!needsTopup(native, usdcRaw, usdc.decimals, clients.minWei)) {
+        if (native >= clients.minWei) await this.redis.set(`gas-ok:${chainId}:${walletKey}`, '1', 'EX', HAS_GAS_CACHE_SECONDS);
+        return 'ok';
       }
       const inFlightKey = `gas-topup:inflight:${chainId}:${walletKey}`;
-      if ((await this.redis.set(inFlightKey, '1', 'EX', IN_FLIGHT_SECONDS, 'NX')) !== 'OK') return; // one already on its way
+      if ((await this.redis.set(inFlightKey, '1', 'EX', IN_FLIGHT_SECONDS, 'NX')) !== 'OK') return 'ok'; // one already on its way
       const day = new Date().toISOString().slice(0, 10);
       const walletCountKey = `gas-topup:wallet:${chainId}:${walletKey}:${day}`;
       const countKey = `gas-topup:count:${chainId}:${day}`;
@@ -125,14 +131,14 @@ export class EvmGasTopupService {
       if (walletCount > this.perWalletDaily) {
         await this.redis.del(inFlightKey);
         this.logger.warn({ chainId, wallet: walletKey, walletCount, cap: this.perWalletDaily }, 'EVM gas top-up per-wallet daily limit reached');
-        return;
+        return 'ok';
       }
       const count = await this.redis.incr(countKey);
       if (count === 1) await this.redis.expire(countKey, 2 * DAY_SECONDS);
       if (count > this.dailyCap) {
         await this.redis.del(inFlightKey);
         this.logger.warn({ chainId, count, cap: this.dailyCap }, 'EVM gas top-up daily cap reached — not topping up');
-        return;
+        return 'ok';
       }
       // A top-up that fails to send (e.g. an empty tank) gives the wallet its allowance back.
       const refund = async () => {
@@ -155,8 +161,10 @@ export class EvmGasTopupService {
         throw error;
       });
       await this.redis.del(inFlightKey);
+      return 'ok';
     } catch (error) {
       this.logger.error({ err: error, chainId, wallet: walletKey }, 'EVM gas top-up failed — quote continues');
+      return nativeWei === 0n ? 'stranded' : 'ok';
     }
   }
 }

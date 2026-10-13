@@ -169,7 +169,11 @@ export class QuoteService {
     }
     // Kamby pays the gas: a USDC-holding wallet with no ETH/BNB gets a few cents of it first.
     if (usdc && this.gasTopup) {
-      await this.gasTopup.ensureGas(params.chainId, walletAddress, { address: usdc.contractAddress, decimals: usdc.decimals! });
+      const gas = await this.gasTopup.ensureGas(params.chainId, walletAddress, { address: usdc.contractAddress, decimals: usdc.decimals! });
+      if (gas === 'stranded') {
+        const chainName = params.chainId === 56 ? 'BNB Chain' : params.chainId === 4663 ? 'Robinhood Chain' : params.chainId === 8453 ? 'Base' : 'this chain';
+        throw new UnprocessableEntityException(`Trading on ${chainName} is getting ready — try again in a few minutes.`);
+      }
     }
 
     const inputAmountRaw = parseInputAmount(params.amount, inputToken.decimals!);
