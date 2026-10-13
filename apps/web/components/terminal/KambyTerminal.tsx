@@ -89,7 +89,7 @@ export function KambyTerminal({
   const [holderCount, setHolderCount] = useState<number | null>(null);
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
   const chartSource = useMemo<ChartSource>(
-    () => ({ kind: 'evm', chain: chain === 'bnb' ? 'bnb' : 'base', address: market.tokenAddress, chainId }),
+    () => ({ kind: 'evm', chain: chain === 'bnb' ? 'bnb' : chain === 'robinhood' ? 'robinhood' : 'base', address: market.tokenAddress, chainId }),
     [chain, market.tokenAddress, chainId],
   );
 
@@ -137,7 +137,7 @@ export function KambyTerminal({
                 <MyPositionsPanel />
                 <CoinInfoTab
                   source={chartSource}
-                  chain={chain === 'bnb' ? 'bnb' : 'base'}
+                  chain={chain === 'bnb' ? 'bnb' : chain === 'robinhood' ? 'robinhood' : 'base'}
                   address={market.tokenAddress}
                   chainIdentifier={market.chainIdentifier}
                   symbol={market.symbol}

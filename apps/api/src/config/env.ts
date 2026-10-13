@@ -94,6 +94,12 @@ export const EnvSchema = z.object({
   CHAIN_BNB_RPC_URL_FALLBACK: z.string().url('CHAIN_BNB_RPC_URL_FALLBACK must be a valid URL').optional(),
   CHAIN_BNB_USDC_ADDRESS: z.string().regex(EVM_ADDRESS_REGEX, 'CHAIN_BNB_USDC_ADDRESS must be a valid EVM address').optional(),
 
+  /** Robinhood Chain (2026-10-13). Its "USDC" slot holds USDG — the chain has no USDC. */
+  CHAIN_ROBINHOOD_ID: z.coerce.number().int().positive().optional(),
+  CHAIN_ROBINHOOD_RPC_URL: z.string().url('CHAIN_ROBINHOOD_RPC_URL must be a valid URL').optional(),
+  CHAIN_ROBINHOOD_RPC_URL_FALLBACK: z.string().url('CHAIN_ROBINHOOD_RPC_URL_FALLBACK must be a valid URL').optional(),
+  CHAIN_ROBINHOOD_USDC_ADDRESS: z.string().regex(EVM_ADDRESS_REGEX, 'CHAIN_ROBINHOOD_USDC_ADDRESS must be a valid EVM address').optional(),
+
   CHAIN_ETHEREUM_ID: z.coerce.number().int().positive().optional(),
   CHAIN_ETHEREUM_RPC_URL: z.string().url('CHAIN_ETHEREUM_RPC_URL must be a valid URL').optional(),
   /** See CHAIN_BASE_RPC_URL_FALLBACK's doc comment — same deal, per chain. */
@@ -290,6 +296,8 @@ export const EnvSchema = z.object({
   EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM: z.coerce.number().int().positive().optional(),
   EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB: z.coerce.number().positive().optional(),
   EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB: z.coerce.number().int().positive().optional(),
+  EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ROBINHOOD: z.coerce.number().positive().optional(),
+  EVM_GAS_RELAYER_MAX_WEI_CEILING_ROBINHOOD: z.coerce.number().int().positive().optional(),
   EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ETHEREUM: z.coerce.number().positive().optional(),
   EVM_GAS_RELAYER_MAX_WEI_CEILING_ETHEREUM: z.coerce.number().int().positive().optional(),
 
@@ -317,19 +325,21 @@ export const EnvSchema = z.object({
 const CHAIN_ENV_BLOCKS: Record<
   ChainSlug,
   {
-    id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID' | 'CHAIN_BNB_ID' | 'CHAIN_ETHEREUM_ID';
-    rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL' | 'CHAIN_BNB_RPC_URL' | 'CHAIN_ETHEREUM_RPC_URL';
+    id: 'CHAIN_BASE_ID' | 'CHAIN_ARBITRUM_ID' | 'CHAIN_BNB_ID' | 'CHAIN_ROBINHOOD_ID' | 'CHAIN_ETHEREUM_ID';
+    rpcUrl: 'CHAIN_BASE_RPC_URL' | 'CHAIN_ARBITRUM_RPC_URL' | 'CHAIN_BNB_RPC_URL' | 'CHAIN_ROBINHOOD_RPC_URL' | 'CHAIN_ETHEREUM_RPC_URL';
     rpcUrlFallback:
       | 'CHAIN_BASE_RPC_URL_FALLBACK'
       | 'CHAIN_ARBITRUM_RPC_URL_FALLBACK'
       | 'CHAIN_BNB_RPC_URL_FALLBACK'
+      | 'CHAIN_ROBINHOOD_RPC_URL_FALLBACK'
       | 'CHAIN_ETHEREUM_RPC_URL_FALLBACK';
-    usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' | 'CHAIN_BNB_USDC_ADDRESS' | 'CHAIN_ETHEREUM_USDC_ADDRESS';
+    usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' | 'CHAIN_ARBITRUM_USDC_ADDRESS' | 'CHAIN_BNB_USDC_ADDRESS' | 'CHAIN_ROBINHOOD_USDC_ADDRESS' | 'CHAIN_ETHEREUM_USDC_ADDRESS';
   }
 > = {
   base: { id: 'CHAIN_BASE_ID', rpcUrl: 'CHAIN_BASE_RPC_URL', rpcUrlFallback: 'CHAIN_BASE_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BASE_USDC_ADDRESS' },
   arbitrum: { id: 'CHAIN_ARBITRUM_ID', rpcUrl: 'CHAIN_ARBITRUM_RPC_URL', rpcUrlFallback: 'CHAIN_ARBITRUM_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_ARBITRUM_USDC_ADDRESS' },
   bnb: { id: 'CHAIN_BNB_ID', rpcUrl: 'CHAIN_BNB_RPC_URL', rpcUrlFallback: 'CHAIN_BNB_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_BNB_USDC_ADDRESS' },
+  robinhood: { id: 'CHAIN_ROBINHOOD_ID', rpcUrl: 'CHAIN_ROBINHOOD_RPC_URL', rpcUrlFallback: 'CHAIN_ROBINHOOD_RPC_URL_FALLBACK', usdcAddress: 'CHAIN_ROBINHOOD_USDC_ADDRESS' },
   ethereum: {
     id: 'CHAIN_ETHEREUM_ID',
     rpcUrl: 'CHAIN_ETHEREUM_RPC_URL',
@@ -345,17 +355,20 @@ const EVM_GAS_RELAYER_CEILING_BLOCKS: Record<
       | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE'
       | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM'
       | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB'
+      | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ROBINHOOD'
       | 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ETHEREUM';
     maxWeiCeiling:
       | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE'
       | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM'
       | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB'
+      | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ROBINHOOD'
       | 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ETHEREUM';
   }
 > = {
   base: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BASE', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BASE' },
   arbitrum: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ARBITRUM', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ARBITRUM' },
   bnb: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_BNB', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_BNB' },
+  robinhood: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ROBINHOOD', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ROBINHOOD' },
   ethereum: { maxGasPriceGwei: 'EVM_GAS_RELAYER_MAX_GAS_PRICE_GWEI_ETHEREUM', maxWeiCeiling: 'EVM_GAS_RELAYER_MAX_WEI_CEILING_ETHEREUM' },
 };
 

@@ -20,7 +20,7 @@ export type TransactionRow = Prisma.TradeTransactionGetPayload<{ include: typeof
 
 /** USDC's decimals per chain — fixed by each token contract. Trades pay and sell into USDC
  *  (since 2026-10-02) whatever the pool's own pair token is — see QuoteService#createQuote. */
-const USDC_DECIMALS_BY_CHAIN_ID: Record<number, number> = { 8453: 6, 42161: 6, 1: 6, 56: 18 };
+const USDC_DECIMALS_BY_CHAIN_ID: Record<number, number> = { 8453: 6, 42161: 6, 1: 6, 56: 18, 4663: 6 }; // 4663: USDG
 
 /** The trade's USDC/pair side ("pay with" on a buy, "receive" on a sell): the token actually
  *  traded, as stored on the transaction — the pool's pair token for older trades, USDC after. */

@@ -1,6 +1,6 @@
 import { IsIn, IsString, Matches, MaxLength } from 'class-validator';
 
-const CHAINS = ['base', 'bnb', 'solana'] as const;
+const CHAINS = ['base', 'bnb', 'robinhood', 'solana'] as const;
 
 export class BridgeQuoteDto {
   @IsIn(CHAINS)

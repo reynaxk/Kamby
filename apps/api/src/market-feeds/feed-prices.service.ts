@@ -3,7 +3,7 @@ import type { MarketSummary, TokenInfoChain } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { correctedLaunchPrice, jupiterPrices, launchPoolOnly, pricesFromPairs } from './live-price.service';
 
-const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
+const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', robinhood: 'robinhood', solana: 'solana' };
 const BATCH_SIZE = 30; // DexScreener's tokens endpoint takes up to 30 addresses per call
 const FRESH_MS = 8_000; // shared by every tab rebuilt in the same 10s cycle
 const FETCH_TIMEOUT_MS = 4_000;

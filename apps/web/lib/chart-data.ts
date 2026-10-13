@@ -21,7 +21,7 @@ export function candleWidthFor(tf: ChartTimeframe): Timeframe {
 
 /** A coin as the chart needs it: which history API serves its candles, and its live-price key. */
 export type ChartSource =
-  | { kind: 'evm'; chain: 'base' | 'bnb'; address: string; chainId: number }
+  | { kind: 'evm'; chain: 'base' | 'bnb' | 'robinhood'; address: string; chainId: number }
   | { kind: 'solana'; mint: string };
 
 export function livePriceKey(source: ChartSource): { chain: TokenInfoChain; address: string } {
@@ -33,7 +33,7 @@ export const CANDLE_REFRESH_MS: Partial<Record<Timeframe, number>> = { '1m': 10_
 
 /** The chart source for a Base/BNB coin by chain id. */
 export function evmChartSource(address: string, chainId: number): ChartSource {
-  return { kind: 'evm', chain: chainId === 56 ? 'bnb' : 'base', address, chainId };
+  return { kind: 'evm', chain: chainId === 56 ? 'bnb' : chainId === 4663 ? 'robinhood' : 'base', address, chainId };
 }
 
 /** How long fetched candles count as fresh — short widths move fast. */

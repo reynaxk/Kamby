@@ -7,7 +7,7 @@ import { REDIS_CLIENT } from '../redis/redis.module';
 import { SOLANA_CONNECTION_POOL, type SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { isListedCoin } from './listed-coins';
 
-const GOPLUS_EVM_CHAIN_ID: Record<Exclude<TokenInfoChain, 'solana'>, number> = { base: 8453, bnb: 56 };
+const GOPLUS_EVM_CHAIN_ID: Record<Exclude<TokenInfoChain, 'solana'>, number> = { base: 8453, bnb: 56, robinhood: 4663 };
 const HOLDERS_TTL_SECONDS = 60;
 const FAILED_TTL_SECONDS = 15;
 const MAX_HOLDERS = 20;

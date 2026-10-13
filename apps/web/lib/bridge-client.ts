@@ -3,7 +3,7 @@
 import { authedFetch } from './session-client';
 
 /** The chains Kamby moves a user's USDC between (see apps/api bridge/BridgeService). */
-export type BridgeChain = 'base' | 'bnb' | 'solana';
+export type BridgeChain = 'base' | 'bnb' | 'robinhood' | 'solana';
 
 export interface BridgeQuote {
   requestId: string;

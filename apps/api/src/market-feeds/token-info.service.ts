@@ -5,8 +5,8 @@ import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { isListedCoin } from './listed-coins';
 
-const GECKO_NETWORK: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
-const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
+const GECKO_NETWORK: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', robinhood: 'robinhood', solana: 'solana' };
+const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', robinhood: 'robinhood', solana: 'solana' };
 /** Project links barely change — a day is fresh enough, and keeps GeckoTerminal's ~30/min
  *  shared budget for charts. A failed lookup is retried after 10 minutes. */
 const INFO_TTL_SECONDS = 24 * 60 * 60;

@@ -67,7 +67,7 @@ export function MarketInfoPanel({ market }: { market: MarketSummary }) {
         </div>
       </div>
 
-      {(slug === 'base' || slug === 'bnb') && <TokenLinks chain={slug} address={market.tokenAddress} />}
+      {(slug === 'base' || slug === 'bnb' || slug === 'robinhood') && <TokenLinks chain={slug} address={market.tokenAddress} />}
     </Surface>
   );
 }

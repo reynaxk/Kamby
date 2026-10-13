@@ -9,9 +9,9 @@ import { moveStatus, quoteMove, submitSolanaMove, type BridgeChain } from './bri
 import { useUsdcBalances } from './use-usdc-balance';
 import { notifyTradeConfirmed } from './my-positions';
 
-const DECIMALS: Record<BridgeChain, number> = { base: 6, bnb: 18, solana: 6 };
+const DECIMALS: Record<BridgeChain, number> = { base: 6, bnb: 18, robinhood: 6, solana: 6 };
 /** Every chain can fund every other (out of Solana Kamby's relayer pays the fee). */
-const SOURCES: BridgeChain[] = ['base', 'bnb', 'solana'];
+const SOURCES: BridgeChain[] = ['base', 'bnb', 'robinhood', 'solana'];
 const MIN_MOVE_USD = 0.5;
 const POLL_MS = 1500;
 const TIMEOUT_MS = 120_000;
@@ -84,16 +84,16 @@ export function useCrossChainFunding(target: BridgeChain, neededUsd: number | nu
         await submitSolanaMove(quote.requestId, bytesToBase64(signedTransaction));
       }
       for (const step of quote.steps) {
-        if (getAccount(wagmiConfig).chainId !== step.chainId) await switchChain(wagmiConfig, { chainId: step.chainId as 8453 | 56 });
+        if (getAccount(wagmiConfig).chainId !== step.chainId) await switchChain(wagmiConfig, { chainId: step.chainId as 8453 | 56 | 4663 });
         const hash = await sendTransaction(wagmiConfig, {
           to: step.to as `0x${string}`,
           data: step.data as `0x${string}`,
           value: 0n,
-          chainId: step.chainId as 8453 | 56,
+          chainId: step.chainId as 8453 | 56 | 4663,
           gas: step.gas ? (BigInt(step.gas) * 13n) / 10n : undefined,
         });
         // Approve first, then the deposit that spends it.
-        await waitForTransactionReceipt(wagmiConfig, { hash, chainId: step.chainId as 8453 | 56, timeout: 60_000 });
+        await waitForTransactionReceipt(wagmiConfig, { hash, chainId: step.chainId as 8453 | 56 | 4663, timeout: 60_000 });
       }
       setStage('moving');
       const startedAt = Date.now();

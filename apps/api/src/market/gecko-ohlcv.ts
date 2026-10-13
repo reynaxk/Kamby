@@ -1,7 +1,7 @@
 import type { Candle, Timeframe } from '@kamby/domain';
 
 /** GeckoTerminal's network ids for the EVM chains Kamby lists aggregator-priced coins on. */
-export const GECKO_NETWORK_BY_CHAIN_ID: Record<number, string> = { 8453: 'base', 56: 'bsc' };
+export const GECKO_NETWORK_BY_CHAIN_ID: Record<number, string> = { 8453: 'base', 56: 'bsc', 4663: 'robinhood' };
 
 const OHLCV: Record<Timeframe, { unit: 'minute' | 'hour' | 'day'; aggregate: number; limit: number }> = {
   '1m': { unit: 'minute', aggregate: 1, limit: 200 },

@@ -163,7 +163,7 @@ export class QuoteService {
       const neededRaw = parseInputAmount(params.amount, usdc.decimals!);
       if (balanceRaw !== null && balanceRaw < neededRaw) {
         const have = Number(formatUnits(balanceRaw, usdc.decimals!)).toFixed(2);
-        const chainName = params.chainId === 56 ? 'BNB Chain' : params.chainId === 8453 ? 'Base' : 'this chain';
+        const chainName = params.chainId === 56 ? 'BNB Chain' : params.chainId === 8453 ? 'Base' : params.chainId === 4663 ? 'Robinhood Chain' : 'this chain';
         throw new UnprocessableEntityException(`Not enough USDC on ${chainName} — you have $${have}. Deposit USDC on ${chainName} to trade this coin.`);
       }
     }

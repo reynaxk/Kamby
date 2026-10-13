@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { BridgeChain } from '@/lib/bridge-client';
 import type { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 
-export const BRIDGE_CHAIN_NAME: Record<BridgeChain, string> = { base: 'Base', bnb: 'BNB Chain', solana: 'Solana' };
+export const BRIDGE_CHAIN_NAME: Record<BridgeChain, string> = { base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood Chain', solana: 'Solana' };
 
 type Funding = ReturnType<typeof useCrossChainFunding>;
 

@@ -29,6 +29,14 @@ export const CHAIN_REGISTRY = {
     name: 'BNB Chain',
     nativeSymbol: 'BNB',
   },
+  /** Robinhood Chain (Arbitrum Orbit L2, live since 2026-07; added 2026-10-13). Its dollar is
+   *  USDG, not USDC — see EVM_USDC_BY_CHAIN_ID. */
+  robinhood: {
+    identifier: 'eip155:4663',
+    numericId: 4663,
+    name: 'Robinhood Chain',
+    nativeSymbol: 'ETH',
+  },
   ethereum: {
     identifier: 'eip155:1',
     numericId: 1,

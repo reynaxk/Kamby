@@ -151,6 +151,7 @@ export function priceMoveDedupeKey(tokenKey: string, direction: 'up' | 'down', b
 export function tokenDeepLink(chainIdentifier: string | null | undefined, tokenAddress: string): string {
   if (chainIdentifier === 'solana') return `/solana?mint=${encodeURIComponent(tokenAddress)}`;
   if (chainIdentifier === 'eip155:56') return `/market/bnb/${tokenAddress}`;
+  if (chainIdentifier === 'eip155:4663') return `/market/robinhood/${tokenAddress}`;
   if (chainIdentifier === 'eip155:8453') return `/market/base/${tokenAddress}`;
   return `/market/${tokenAddress}`;
 }

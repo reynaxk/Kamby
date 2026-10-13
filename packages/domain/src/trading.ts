@@ -458,7 +458,10 @@ export type SolanaSocialActivity = z.infer<typeof SolanaSocialActivitySchema>;
  * CHAIN_<SLUG>_USDC_ADDRESS; decimals are fixed by each token contract (BNB Chain's USDC
  * uses 18, not 6). Shared by the web (lib/usdc.ts) and the PnL ledger (apps/workers).
  */
-export const EVM_USDC_BY_CHAIN_ID: Readonly<Record<number, { address: string; symbol: 'USDC'; decimals: number }>> = {
+export const EVM_USDC_BY_CHAIN_ID: Readonly<Record<number, { address: string; symbol: 'USDC' | 'USDG'; decimals: number }>> = {
   8453: { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC', decimals: 6 },
   56: { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', decimals: 18 },
+  // Robinhood Chain has no USDC — its dollar is Paxos' USDG (1:1, 6 decimals; verified 2026-10-13).
+  // Users still see one dollar balance; Relay converts USDC↔USDG when it moves funds.
+  4663: { address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', symbol: 'USDG', decimals: 6 },
 };

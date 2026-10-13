@@ -1,6 +1,6 @@
 import type { PrivyClientConfig } from '@privy-io/react-auth';
 import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
-import { base, bsc } from 'wagmi/chains';
+import { base, bsc, robinhood } from 'wagmi/chains';
 import { clientEnv } from './env';
 
 /**
@@ -89,7 +89,7 @@ const solanaRpcUrl = clientEnv.NEXT_PUBLIC_SOLANA_RPC_URL;
 export const privyConfig = {
   loginMethods: ['email', 'google'] satisfies PrivyClientConfig['loginMethods'],
   defaultChain: base,
-  supportedChains: [base, bsc],
+  supportedChains: [base, bsc, robinhood],
   appearance: {
     // Retuned 2026-09-22 alongside globals.css's `.kamby-void` block — kept in sync there,
     // not here, since Privy's modal renders outside our CSS scope and needs a literal hex.

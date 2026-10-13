@@ -18,6 +18,8 @@ export interface UsdcBalances {
   base: number | null;
   bnb: number | null;
   solana: number | null;
+  /** Robinhood Chain's dollar — USDG (that chain has no USDC). */
+  robinhood: number | null;
   /** Sum of whatever loaded; null until at least one chain has. */
   total: number | null;
 }
@@ -38,11 +40,13 @@ export function totalUsdc(parts: (number | null)[]): number | null {
 export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: string | undefined): UsdcBalances {
   const base = USDC_BY_CHAIN_ID[8453]!;
   const bnb = USDC_BY_CHAIN_ID[56]!;
+  const robinhood = USDC_BY_CHAIN_ID[4663]!;
   const { data, refetch } = useReadContracts({
     contracts: evmAddress
       ? [
           { chainId: 8453, address: base.address as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [evmAddress as `0x${string}`] },
           { chainId: 56, address: bnb.address as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [evmAddress as `0x${string}`] },
+          { chainId: 4663, address: robinhood.address as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [evmAddress as `0x${string}`] },
         ]
       : [],
     query: { enabled: Boolean(evmAddress), refetchInterval: REFRESH_MS },
@@ -53,6 +57,7 @@ export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: s
   };
   const baseUsdc = read(0, base.decimals);
   const bnbUsdc = read(1, bnb.decimals);
+  const robinhoodUsd = read(2, robinhood.decimals);
 
   // EVM balances right after a trade too, not on the 30s poll.
   useEffect(() => {
@@ -92,5 +97,5 @@ export function useUsdcBalances(evmAddress: string | undefined, solanaAddress: s
     };
   }, [solanaAddress]);
 
-  return { base: baseUsdc, bnb: bnbUsdc, solana: solanaUsdc, total: totalUsdc([baseUsdc, bnbUsdc, solanaUsdc]) };
+  return { base: baseUsdc, bnb: bnbUsdc, robinhood: robinhoodUsd, solana: solanaUsdc, total: totalUsdc([baseUsdc, bnbUsdc, robinhoodUsd, solanaUsdc]) };
 }

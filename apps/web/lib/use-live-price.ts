@@ -10,7 +10,7 @@ const REFRESH_MS = 1_500;
 export function liveSourceFor(market: Pick<MarketSummary, 'chainIdentifier' | 'tokenAddress'>): ChartSource | null {
   if (market.chainIdentifier.toLowerCase() === 'solana') return { kind: 'solana', mint: market.tokenAddress };
   const slug = slugForIdentifier(market.chainIdentifier);
-  if (slug === 'base' || slug === 'bnb') return { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: CHAIN_REGISTRY[slug].numericId };
+  if (slug === 'base' || slug === 'bnb' || slug === 'robinhood') return { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: CHAIN_REGISTRY[slug].numericId };
   return null;
 }
 

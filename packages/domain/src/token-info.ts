@@ -1,5 +1,5 @@
 /** Chains the token-info endpoint accepts: the EVM chain slugs Kamby trades on, plus Solana. */
-export const TOKEN_INFO_CHAINS = ['base', 'bnb', 'solana'] as const;
+export const TOKEN_INFO_CHAINS = ['base', 'bnb', 'robinhood', 'solana'] as const;
 export type TokenInfoChain = (typeof TOKEN_INFO_CHAINS)[number];
 
 /**

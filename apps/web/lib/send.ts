@@ -27,7 +27,7 @@ import { wagmiConfig } from './wagmi-config';
  * discipline as SolAmountInput.tsx/UsdPresetAmountInput.tsx.
  */
 
-export type SendChainSlug = 'solana' | 'base' | 'bnb';
+export type SendChainSlug = 'solana' | 'base' | 'bnb' | 'robinhood';
 export type SendChainKind = 'solana' | 'evm';
 
 export interface SendChainOption {
@@ -36,7 +36,7 @@ export interface SendChainOption {
   name: string;
   nativeSymbol: string;
   /** Only present for `kind: 'evm'` — the real wagmi/viem chain id. */
-  evmChainId?: 8453 | 56;
+  evmChainId?: 8453 | 56 | 4663;
   explorerName: string;
   txExplorerUrl: (hash: string) => string;
 }
@@ -67,6 +67,15 @@ export const SEND_CHAINS: SendChainOption[] = [
     evmChainId: 56,
     explorerName: 'BscScan',
     txExplorerUrl: (hash) => `https://bscscan.com/tx/${hash}`,
+  },
+  {
+    slug: 'robinhood',
+    kind: 'evm',
+    name: 'Robinhood Chain',
+    nativeSymbol: 'ETH',
+    evmChainId: 4663,
+    explorerName: 'Blockscout',
+    txExplorerUrl: (hash) => `https://robinhoodchain.blockscout.com/tx/${hash}`,
   },
 ];
 
@@ -139,7 +148,7 @@ export function isValidDestination(chainKind: SendChainKind, input: string): boo
  *  can genuinely differ (e.g. BNB Chain's Binance-Peg USD Coin mints at 18, not 6) — the
  *  one place in this whole flow where guessing wrong silently sends 10^12x the intended
  *  amount, so this is never worth hardcoding. */
-export async function readEvmTokenDecimals(tokenAddress: string, chainId: 8453 | 56): Promise<number> {
+export async function readEvmTokenDecimals(tokenAddress: string, chainId: 8453 | 56 | 4663): Promise<number> {
   return readContract(wagmiConfig, {
     address: tokenAddress as `0x${string}`,
     abi: erc20Abi,
@@ -153,7 +162,7 @@ export async function readEvmTokenDecimals(tokenAddress: string, chainId: 8453 |
  *  wagmi-config.ts's BNB Chain notes) — so "Max" can never leave the wallet unable to pay
  *  for the very transaction sending it. Falls back to a generous fixed reserve if
  *  estimation itself fails (an RPC hiccup must never silently become "no reserve at all"). */
-export async function estimateNativeSendReserve(chainId: 8453 | 56, to: `0x${string}`): Promise<bigint> {
+export async function estimateNativeSendReserve(chainId: 8453 | 56 | 4663, to: `0x${string}`): Promise<bigint> {
   try {
     const [gas, gasPrice] = await Promise.all([
       estimateGas(wagmiConfig, { to, value: 1n, chainId }),
@@ -165,7 +174,7 @@ export async function estimateNativeSendReserve(chainId: 8453 | 56, to: `0x${str
   }
 }
 
-export async function sendEvmNative(to: `0x${string}`, amountRaw: bigint, chainId: 8453 | 56): Promise<`0x${string}`> {
+export async function sendEvmNative(to: `0x${string}`, amountRaw: bigint, chainId: 8453 | 56 | 4663): Promise<`0x${string}`> {
   return sendTransaction(wagmiConfig, { to, value: amountRaw, chainId });
 }
 
@@ -173,7 +182,7 @@ export async function sendEvmToken(
   tokenAddress: `0x${string}`,
   to: `0x${string}`,
   amountRaw: bigint,
-  chainId: 8453 | 56,
+  chainId: 8453 | 56 | 4663,
 ): Promise<`0x${string}`> {
   return writeContract(wagmiConfig, {
     address: tokenAddress,

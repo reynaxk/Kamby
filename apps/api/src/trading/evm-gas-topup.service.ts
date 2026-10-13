@@ -16,6 +16,8 @@ import { REDIS_CLIENT } from '../redis/redis.module';
 export const GAS_TOPUP_BY_CHAIN_ID: Record<number, { dripWei: bigint; minWei: bigint; name: string; symbol: string }> = {
   8453: { dripWei: 30_000_000_000_000n, minWei: 10_000_000_000_000n, name: 'Base', symbol: 'ETH' }, // 0.00003 / 0.00001 ETH
   56: { dripWei: 150_000_000_000_000n, minWei: 50_000_000_000_000n, name: 'BNB Chain', symbol: 'BNB' }, // 0.00015 / 0.00005 BNB
+  // A Robinhood Chain swap ran ~640k gas at 0.02 gwei ≈ 0.000013 ETH (2026-10-13) — a drip covers ~4.
+  4663: { dripWei: 50_000_000_000_000n, minWei: 20_000_000_000_000n, name: 'Robinhood Chain', symbol: 'ETH' }, // 0.00005 / 0.00002 ETH
 };
 const DAY_SECONDS = 24 * 60 * 60;
 /** A wallet seen with enough gas isn't re-checked for this long — kept short so a wallet that

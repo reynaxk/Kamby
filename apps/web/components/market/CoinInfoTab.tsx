@@ -14,7 +14,7 @@ import { useTokenStats } from '@/lib/use-live-price';
 import { formatAge } from './TokenStatsStrip';
 
 const WINDOW_LABEL: Record<TokenStatsWindow, string> = { m5: '5M', h1: '1H', h6: '6H', h24: '24H' };
-const CHAIN_NAME: Record<TokenInfoChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BNB Chain' };
+const CHAIN_NAME: Record<TokenInfoChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood Chain' };
 
 function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
   return (

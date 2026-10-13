@@ -208,7 +208,7 @@ export function TradePanel({
   const [quoteError, setQuoteError] = useState<string | null>(null);
   // One USDC (2026-10-13): short on this chain but enough on another → the buy moves it over
   // first (the API refuses to quote a buy the wallet can't pay for, so this is decided here).
-  const moveTarget = chainId === 56 ? 'bnb' : 'base';
+  const moveTarget = chainId === 56 ? 'bnb' : chainId === 4663 ? 'robinhood' : 'base';
   const buyUsd = side === 'BUY' && Number.parseFloat(amount) > 0 ? Number.parseFloat(amount) : null;
   const funding = useCrossChainFunding(moveTarget, buyUsd);
   const chainUsdc = funding.balances[moveTarget];

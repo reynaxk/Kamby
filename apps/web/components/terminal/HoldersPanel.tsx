@@ -18,10 +18,11 @@ const TIER_STYLE: Record<HolderTier, { label: string; icon: string; className: s
   fish: { label: 'Fish', icon: '🐟', className: 'bg-up/15 text-up' },
 };
 
-const EXPLORER: Record<'solana' | 'base' | 'bnb', (address: string) => string> = {
+const EXPLORER: Record<'solana' | 'base' | 'bnb' | 'robinhood', (address: string) => string> = {
   solana: (a) => `https://solscan.io/account/${a}`,
   base: (a) => `https://basescan.org/address/${a}`,
   bnb: (a) => `https://bscscan.com/address/${a}`,
+  robinhood: (a) => `https://robinhoodchain.blockscout.com/address/${a}`,
 };
 
 /**

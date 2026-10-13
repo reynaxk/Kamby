@@ -295,7 +295,7 @@ export function DiscoverTerminal({
     // A coin with no candle history yet (brand new, or a pool nobody indexes) still gets a
     // moving chart: 10-second candles built live from the price feed (2026-10-05).
     const noHistory = candlesStatus === 'ready' && candles.length < 2;
-    if ((isTickTimeframe(timeframe) || noHistory) && (slug === 'base' || slug === 'bnb')) {
+    if ((isTickTimeframe(timeframe) || noHistory) && (slug === 'base' || slug === 'bnb' || slug === 'robinhood')) {
       const source: ChartSource = { kind: 'evm', chain: slug, address: market.tokenAddress, chainId: chainIdFor(market) };
       const bucketSeconds = timeframe === 'live' ? 60 : 10;
       return <LivePriceChart key={`${market.tokenAddress}:${bucketSeconds}`} source={source} seedCandles={candles} chartStyle={chartStyle} bucketSeconds={bucketSeconds} entryPrice={entry?.price} />;

@@ -10,7 +10,7 @@ export const RELAY_API_URL = 'https://api.relay.link';
 const TIMEOUT_MS = 10_000;
 
 /** Relay's own chain ids. Solana has a Relay-specific id. */
-export const RELAY_CHAIN_ID = { base: 8453, bnb: 56, solana: 792703809 } as const;
+export const RELAY_CHAIN_ID = { base: 8453, bnb: 56, robinhood: 4663, solana: 792703809 } as const;
 export type BridgeChain = keyof typeof RELAY_CHAIN_ID;
 
 export interface RelayTxItem {

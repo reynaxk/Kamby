@@ -14,6 +14,8 @@ import { RELAY_CHAIN_ID, RelayClient, RelayError, type BridgeChain, type RelayQu
 const USDC: Record<BridgeChain, { address: string; decimals: number }> = {
   base: { address: EVM_USDC_BY_CHAIN_ID[8453]!.address, decimals: EVM_USDC_BY_CHAIN_ID[8453]!.decimals },
   bnb: { address: EVM_USDC_BY_CHAIN_ID[56]!.address, decimals: EVM_USDC_BY_CHAIN_ID[56]!.decimals },
+  // Robinhood Chain's dollar is USDG — Relay converts USDC↔USDG as part of the move.
+  robinhood: { address: EVM_USDC_BY_CHAIN_ID[4663]!.address, decimals: EVM_USDC_BY_CHAIN_ID[4663]!.decimals },
   solana: { address: SOLANA_USDC_MINT, decimals: 6 },
 };
 

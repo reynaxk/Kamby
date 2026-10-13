@@ -9,7 +9,7 @@ import type { Candle, Timeframe } from '@kamby/domain';
  * traffic it 429s and charts went blank. From the browser each viewer has their own budget
  * (GeckoTerminal allows CORS). Used only when the API comes back empty or fails.
  */
-const NETWORK = { solana: 'solana', 8453: 'base', 56: 'bsc' } as const;
+const NETWORK = { solana: 'solana', 8453: 'base', 56: 'bsc', 4663: 'robinhood' } as const;
 export type GeckoNetwork = (typeof NETWORK)[keyof typeof NETWORK];
 
 export function geckoNetworkFor(source: { kind: 'solana' } | { kind: 'evm'; chainId: number }): GeckoNetwork | null {

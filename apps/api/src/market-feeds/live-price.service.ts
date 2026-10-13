@@ -11,7 +11,7 @@ import { isListedCoin } from './listed-coins';
 import { dexTokenPairs, geckoPools, statsFromGeckoPools } from './graduated-pools';
 import { BitqueryPriceStream, type BitqueryTick } from './bitquery-stream';
 
-const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', solana: 'solana' };
+const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: 'bsc', robinhood: 'robinhood', solana: 'solana' };
 /** DexScreener's token endpoint takes up to 30 addresses per call. */
 const BATCH_SIZE = 30;
 /** A live curve read older than this is ignored (the stream is down or the coin went quiet). */

@@ -1,6 +1,6 @@
 import { cn } from '@kamby/ui';
 
-export type BadgeChain = 'base' | 'bnb' | 'solana';
+export type BadgeChain = 'base' | 'bnb' | 'robinhood' | 'solana';
 
 /** Exported for tests. A market's chain identifier → which badge to draw (null = none). */
 export function badgeChainFor(chainIdentifier: string): BadgeChain | null {
@@ -8,10 +8,11 @@ export function badgeChainFor(chainIdentifier: string): BadgeChain | null {
   if (id === 'solana') return 'solana';
   if (id === 'eip155:8453') return 'base';
   if (id === 'eip155:56') return 'bnb';
+  if (id === 'eip155:4663') return 'robinhood';
   return null;
 }
 
-const NAMES: Record<BadgeChain, string> = { base: 'Base', bnb: 'BNB Chain', solana: 'Solana' };
+const NAMES: Record<BadgeChain, string> = { base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood Chain', solana: 'Solana' };
 
 /**
  * The chain a coin trades on, as a tiny mark on the corner of its logo (user request
@@ -30,6 +31,13 @@ export function ChainBadge({ chain, className }: { chain: BadgeChain; className?
         <svg viewBox="0 0 12 12" className="h-full w-full" aria-hidden>
           <circle cx="6" cy="6" r="6" fill="#0052FF" />
           <rect x="3" y="5.1" width="6" height="1.8" rx="0.4" fill="#fff" />
+        </svg>
+      )}
+      {chain === 'robinhood' && (
+        // A simple lime mark with a rising stroke — not Robinhood's official artwork.
+        <svg viewBox="0 0 12 12" className="h-full w-full" aria-hidden>
+          <circle cx="6" cy="6" r="6" fill="#CCFF00" />
+          <path d="M3.6 8.6 8.2 3.4 M5.6 3.4 H8.2 V6" stroke="#0B0B0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         </svg>
       )}
       {chain === 'bnb' && (
