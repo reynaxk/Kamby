@@ -40,6 +40,8 @@ const GECKOTERMINAL_REFRESH_MS = 3 * 60_000;
 const GECKOTERMINAL_BY_CHAIN: Record<number, { network: string; dexIds: readonly string[] }> = {
   8453: { network: 'base', dexIds: ['uniswap-v3-base'] },
   56: { network: 'bsc', dexIds: ['pancakeswap-v3-bsc'] },
+  // Robinhood Chain (2026-10-13): its Uniswap V3 and PancakeSwap V3 pools (V3 ABI).
+  4663: { network: 'robinhood', dexIds: ['uniswap-v3-robinhood', 'pancakeswap-v3-robinhood'] },
 };
 
 export interface GeckoTerminalPool {

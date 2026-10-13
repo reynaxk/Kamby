@@ -17,8 +17,8 @@ import { clampPct } from './clamp-pct';
  */
 export const AGGREGATOR_DEX_PREFIX = 'agg:';
 
-const DEXSCREENER_CHAIN: Record<number, string> = { 8453: 'base', 56: 'bsc' };
-const SAFETY_CHAIN: Record<number, string> = { 8453: '8453', 56: '56' };
+const DEXSCREENER_CHAIN: Record<number, string> = { 8453: 'base', 56: 'bsc', 4663: 'robinhood' };
+const SAFETY_CHAIN: Record<number, string> = { 8453: '8453', 56: '56', 4663: '4663' };
 const MIN_RESERVE_USD = 10_000;
 const MIN_BUYERS_24H = 20;
 const MIN_SELLERS_24H = 10;

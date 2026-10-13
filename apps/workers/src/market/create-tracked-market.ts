@@ -14,7 +14,7 @@ const DEXSCREENER_TOKENS_URL = 'https://api.dexscreener.com/latest/dex/tokens';
  *  convention than this codebase's CAIP-2 identifiers (e.g. BNB Chain is 'bsc' here, not
  *  'bnb', matching every DexScreener query already used to research this session's seed
  *  list). Add an entry here before a new EVM chain can get real logos. */
-const DEXSCREENER_CHAIN_ID: Record<number, string> = { 8453: 'base', 56: 'bsc' };
+const DEXSCREENER_CHAIN_ID: Record<number, string> = { 8453: 'base', 56: 'bsc', 4663: 'robinhood' };
 /** Trust Wallet's public assets repo — the fallback when DexScreener has no image, which is
  *  common for exactly the biggest tokens (WBNB, CAKE, BTCB, ETH on BNB had none, found
  *  2026-09-30). Paths use the checksummed address. */

@@ -25,4 +25,6 @@ export const PUBLIC_EVM_RPC_URLS: Readonly<Record<number, readonly string[]>> = 
     'https://rpc-bsc.48.club',
     'https://0.48.club',
   ],
+  // Robinhood Chain (2026-10-13) — the chain's own public RPC.
+  4663: ['https://rpc.mainnet.chain.robinhood.com'],
 };

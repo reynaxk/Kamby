@@ -336,9 +336,26 @@ export const BNB_SEED_MARKETS: SeedMarket[] = [
  *  `env.CHAIN_IDENTIFIER` — see MarketIngestionConfig in ingestion.ts, which is what
  *  actually consumes this (main.ts looks the entry up once at startup, never both at once,
  *  matching apps/workers' one-chain-per-deployment architecture). */
+/** Robinhood Chain's dollar is USDG (no USDC there) — verified on-chain 2026-10-13. */
+export const USDG_ADDRESS_ROBINHOOD = '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168';
+
+/**
+ * Robinhood Chain (eip155:4663) — added 2026-10-13. WETH/USDG on Uniswap V3 at 0.01%, by far
+ * the deepest of the four fee tiers (~5,552 WETH + ~6.39M USDG vs ~922 WETH at 0.05%), read
+ * via factory 0x1f7d…2efa getPool(). Prices WETH, which every WETH-quoted Robinhood coin needs.
+ */
+export const ROBINHOOD_SEED_MARKETS: SeedMarket[] = [
+  {
+    poolAddress: '0x52e65b17fb6e5ba00ed806f37afcd2daa50271ca',
+    baseTokenAddress: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73',
+    dex: 'uniswap-v3',
+  },
+];
+
 export const SEED_MARKETS_BY_CHAIN_IDENTIFIER: Record<string, { seedMarkets: SeedMarket[]; quoteUsdcAddress: string }> = {
   'eip155:8453': { seedMarkets: BASE_SEED_MARKETS, quoteUsdcAddress: USDC_ADDRESS_BASE },
   'eip155:56': { seedMarkets: BNB_SEED_MARKETS, quoteUsdcAddress: USDC_ADDRESS_BNB },
+  'eip155:4663': { seedMarkets: ROBINHOOD_SEED_MARKETS, quoteUsdcAddress: USDG_ADDRESS_ROBINHOOD },
 };
 
 const CURATED_MARKET_KEYS: ReadonlySet<string> = new Set(
