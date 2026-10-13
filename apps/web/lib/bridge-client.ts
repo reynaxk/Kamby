@@ -14,6 +14,8 @@ export interface BridgeQuote {
   feeUsd: number;
   timeEstimateSeconds: number;
   steps: { id: string; to: string; data: string; value: string; chainId: number; gas: string | null }[];
+  /** Moves out of Solana: the deposit transaction (Kamby pays its fee) for the user to sign. */
+  solanaTxBase64: string | null;
 }
 
 export type MoveStatus = 'waiting' | 'depositing' | 'pending' | 'success' | 'failure' | 'refund' | 'unknown';
@@ -44,4 +46,15 @@ export async function moveStatus(requestId: string): Promise<MoveStatus> {
   if (!res.ok) return 'unknown';
   const body = (await res.json()) as { status?: MoveStatus };
   return body.status ?? 'unknown';
+}
+
+/** Hands the user-signed Solana move back for Kamby's relayer to co-sign (fee only) and send. */
+export async function submitSolanaMove(requestId: string, signedTxBase64: string): Promise<{ signature: string }> {
+  const res = await authedFetch('/bridge/solana/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requestId, signedTxBase64 }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res, `Couldn't send the move (${res.status})`));
+  return res.json();
 }

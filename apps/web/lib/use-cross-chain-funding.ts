@@ -3,15 +3,15 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { getAccount, sendTransaction, switchChain, waitForTransactionReceipt } from 'wagmi/actions';
-import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
+import { useSignTransaction, useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { wagmiConfig } from './wagmi-config';
-import { moveStatus, quoteMove, type BridgeChain } from './bridge-client';
+import { moveStatus, quoteMove, submitSolanaMove, type BridgeChain } from './bridge-client';
 import { useUsdcBalances } from './use-usdc-balance';
 import { notifyTradeConfirmed } from './my-positions';
 
 const DECIMALS: Record<BridgeChain, number> = { base: 6, bnb: 18, solana: 6 };
-/** Phase 1 moves out of Base and BNB Chain only (see apps/api BridgeService). */
-const SOURCES: BridgeChain[] = ['base', 'bnb'];
+/** Every chain can fund every other (out of Solana Kamby's relayer pays the fee). */
+const SOURCES: BridgeChain[] = ['base', 'bnb', 'solana'];
 const MIN_MOVE_USD = 0.5;
 const POLL_MS = 1500;
 const TIMEOUT_MS = 120_000;
@@ -27,10 +27,23 @@ export function moveAmountUsd(neededUsd: number, haveUsd: number): number {
 }
 
 /** Exported for tests. The chain to pull from: the richest other chain that covers the move. */
-export function pickSource(target: BridgeChain, moveUsd: number, balances: Record<BridgeChain, number | null>): BridgeChain | null {
+export function pickSource(target: BridgeChain, moveUsd: number, balances: Partial<Record<BridgeChain, number | null>>): BridgeChain | null {
   const candidates = SOURCES.filter((c) => c !== target && (balances[c] ?? 0) >= moveUsd + 0.05);
   candidates.sort((a, b) => (balances[b] ?? 0) - (balances[a] ?? 0));
   return candidates[0] ?? null;
+}
+
+function base64ToBytes(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
+  return btoa(binary);
 }
 
 function toRaw(usd: number, decimals: number): string {
@@ -46,6 +59,7 @@ function toRaw(usd: number, decimals: number): string {
 export function useCrossChainFunding(target: BridgeChain, neededUsd: number | null) {
   const { address: evmAddress } = useAccount();
   const { wallets } = useSolanaWallets();
+  const { signTransaction } = useSignTransaction();
   const balances = useUsdcBalances(evmAddress, wallets[0]?.address);
   const have = balances[target];
   const moveUsd = neededUsd !== null && have !== null ? moveAmountUsd(neededUsd, have) : 0;
@@ -62,6 +76,13 @@ export function useCrossChainFunding(target: BridgeChain, neededUsd: number | nu
       const quote = await quoteMove({ from: source, to: target, amountOut: toRaw(moveUsd, DECIMALS[target]) });
       setFeeUsd(quote.feeUsd);
       setStage('signing');
+      if (quote.solanaTxBase64) {
+        // Out of Solana: the user signs; Kamby's relayer co-signs as fee payer and sends it.
+        const wallet = wallets[0];
+        if (!wallet) throw new Error('Your Solana wallet is still being set up — try again in a moment.');
+        const { signedTransaction } = await signTransaction({ transaction: base64ToBytes(quote.solanaTxBase64), wallet });
+        await submitSolanaMove(quote.requestId, bytesToBase64(signedTransaction));
+      }
       for (const step of quote.steps) {
         if (getAccount(wagmiConfig).chainId !== step.chainId) await switchChain(wagmiConfig, { chainId: step.chainId as 8453 | 56 });
         const hash = await sendTransaction(wagmiConfig, {

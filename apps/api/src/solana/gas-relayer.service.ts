@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AddressLookupTableAccount, Connection, Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
+import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import bs58 from 'bs58';
 import { Prisma, prisma } from '@kamby/db';
@@ -283,6 +283,71 @@ export class GasRelayerService {
     return this.persistSponsoredTransaction(params, quote, signature, feePayerKeypair.publicKey.toBase58());
   }
 
+  /**
+   * One USDC (2026-10-13): builds the Solana side of a USDC move out of Solana — Relay's own
+   * deposit instruction, with this relayer as fee payer so a USDC-only wallet can move funds.
+   * Only Relay's deposit program and compute-budget instructions are accepted, the user must
+   * be the only instruction signer, and this relayer must not appear in any instruction at
+   * all — so the most it can ever spend is the transaction fee itself.
+   */
+  async buildSponsoredRelayDeposit(params: {
+    userWallet: string;
+    instructions: RelayInstructionJson[];
+    lookupTableAddresses: string[];
+  }): Promise<string> {
+    if (!this.connection || !this.feePayerKeypair) throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
+    if (this.testWalletAddresses !== null && !this.testWalletAddresses.has(params.userWallet)) {
+      throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
+    }
+    const relayer = this.feePayerKeypair.publicKey;
+    const instructions = toRelayDepositInstructions(params.instructions, params.userWallet, relayer.toBase58());
+    const lookups = await Promise.all(
+      params.lookupTableAddresses.map(async (address) => {
+        const { value } = await this.connection!.getAddressLookupTable(new PublicKey(address));
+        if (!value) throw new UnprocessableEntityException('Could not prepare the move — try again');
+        return value;
+      }),
+    );
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const message = new TransactionMessage({ payerKey: relayer, recentBlockhash: blockhash, instructions }).compileToV0Message(lookups);
+    return Buffer.from(new VersionedTransaction(message).serialize()).toString('base64');
+  }
+
+  /** Co-signs and broadcasts a Relay deposit built by buildSponsoredRelayDeposit — only the exact
+   *  transaction quoted (byte for byte), only once the user has signed, only after a clean
+   *  simulation, and only if this relayer pays nothing beyond a normal fee. */
+  async submitSponsoredRelayDeposit(params: { userWallet: string; expectedUnsignedTxBase64: string; partiallySignedTxBase64: string }): Promise<string> {
+    if (!this.connection || !this.feePayerKeypair) throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
+    const connection = this.connection;
+    const relayer = this.feePayerKeypair;
+    const transaction = deserializeOrThrow(params.partiallySignedTxBase64);
+    if (!solanaTransactionMatchesQuote(transaction, params.expectedUnsignedTxBase64)) {
+      throw new ForbiddenException('This transaction does not match the move you were quoted');
+    }
+    const lookupTableAccounts = await resolveLookupTables(connection, transaction);
+    const accountKeys = transaction.message.getAccountKeys({ addressLookupTableAccounts: lookupTableAccounts });
+    if (!accountKeys.get(0)?.equals(relayer.publicKey)) throw new ForbiddenException("This transaction's fee payer is not this relayer — refusing to sign");
+    // Defense in depth: the relayer is the fee payer and nothing else.
+    for (const ix of transaction.message.compiledInstructions) {
+      if (ix.accountKeyIndexes.some((i) => accountKeys.get(i)?.equals(relayer.publicKey))) {
+        throw new ForbiddenException('This transaction uses the relayer beyond paying its fee — refusing to sign');
+      }
+    }
+    assertUserAlreadySigned(transaction, params.userWallet, accountKeys);
+    const simulation = await connection.simulateTransaction(transaction, { sigVerify: false, replaceRecentBlockhash: false });
+    if (simulation.value.err) {
+      this.logger.warn({ err: simulation.value.err }, 'relay deposit failed simulation');
+      throw new UnprocessableEntityException("The move would fail right now — nothing was sent. Check your Solana USDC and try again.");
+    }
+    const fee = (await connection.getFeeForMessage(transaction.message, 'confirmed')).value ?? 0;
+    if (fee > RELAY_DEPOSIT_MAX_FEE_LAMPORTS) throw new ForbiddenException('This move would cost the relayer more than a normal fee');
+    transaction.sign([relayer]);
+    const signature = await connection.sendTransaction(transaction, { skipPreflight: false, maxRetries: 3 });
+    this.logger.info({ walletAddress: params.userWallet, signature }, 'gas relayer sponsored a USDC move out of Solana');
+    rebroadcastUntilLanded(connection, transaction.serialize(), signature, this.logger);
+    return signature;
+  }
+
   /** Broadcasting above already succeeded — the on-chain effect is real and irreversible by
    *  the time this runs, so a persistence failure here must never look like the trade
    *  itself failed. Same P2002-recovery shape as
@@ -406,4 +471,41 @@ export function rebroadcastUntilLanded(
     if (left > 0) setTimeout(() => void tick(), intervalMs).unref?.();
   };
   setTimeout(() => void tick(), intervalMs).unref?.();
+}
+
+/** Relay's Solana deposit program (seen in its quotes, 2026-10-13). */
+export const RELAY_SOLANA_DEPOSIT_PROGRAM_ID = '99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2';
+/** A normal fee with priority — a move never needs more of the relayer than this. */
+const RELAY_DEPOSIT_MAX_FEE_LAMPORTS = 200_000;
+
+export interface RelayInstructionJson {
+  programId: string;
+  keys: { pubkey: string; isSigner: boolean; isWritable: boolean }[];
+  data: string;
+}
+
+/** Exported for tests. Relay's instruction JSON → web3 instructions, refusing anything that
+ *  isn't exactly one Relay deposit (plus compute-budget settings) signed by the user alone and
+ *  never touching the relayer. */
+export function toRelayDepositInstructions(raw: RelayInstructionJson[], userWallet: string, relayer: string): TransactionInstruction[] {
+  const computeBudget = ComputeBudgetProgram.programId.toBase58();
+  let deposits = 0;
+  const out = raw.map((ix) => {
+    if (ix.programId !== RELAY_SOLANA_DEPOSIT_PROGRAM_ID && ix.programId !== computeBudget) {
+      throw new UnprocessableEntityException('The move asked for an unexpected Solana program — nothing was sent');
+    }
+    if (ix.programId === RELAY_SOLANA_DEPOSIT_PROGRAM_ID) deposits += 1;
+    for (const key of ix.keys) {
+      if (key.pubkey === relayer) throw new UnprocessableEntityException('The move tried to use the Kamby fee account — nothing was sent');
+      if (key.isSigner && key.pubkey !== userWallet) throw new UnprocessableEntityException('The move asked for another signer — nothing was sent');
+    }
+    if (!/^[0-9a-fA-F]*$/.test(ix.data)) throw new UnprocessableEntityException('Could not read the move — nothing was sent');
+    return new TransactionInstruction({
+      programId: new PublicKey(ix.programId),
+      keys: ix.keys.map((k) => ({ pubkey: new PublicKey(k.pubkey), isSigner: k.isSigner, isWritable: k.isWritable })),
+      data: Buffer.from(ix.data, 'hex'),
+    });
+  });
+  if (deposits !== 1) throw new UnprocessableEntityException('Could not read the move — nothing was sent');
+  return out;
 }

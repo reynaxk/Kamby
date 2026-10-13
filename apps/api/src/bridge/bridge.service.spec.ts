@@ -1,6 +1,8 @@
 import { prisma } from '@kamby/db';
 import type { PinoLogger } from 'nestjs-pino';
+import { ComputeBudgetProgram } from '@solana/web3.js';
 import { BridgeService, feeUsd, toEvmSteps } from './bridge.service';
+import { RELAY_SOLANA_DEPOSIT_PROGRAM_ID, toRelayDepositInstructions } from '../solana/gas-relayer.service';
 import type { RelayClient, RelayQuote } from './relay-client';
 
 jest.mock('@kamby/db', () => ({ prisma: { wallet: { findMany: jest.fn() } } }));
@@ -10,6 +12,7 @@ const config = { get: jest.fn().mockReturnValue(undefined) } as never;
 const USER = '0x1234567890AbcdEF1234567890aBcdef12345678';
 const SOL = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
 const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const USER_SOL_2 = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
 
 function relayQuote(over: Partial<RelayQuote> = {}): RelayQuote {
   return {
@@ -27,13 +30,17 @@ function relayQuote(over: Partial<RelayQuote> = {}): RelayQuote {
 describe('BridgeService', () => {
   let relay: { quote: jest.Mock; status: jest.Mock };
   let gasTopup: { ensureGas: jest.Mock };
+  let gasRelayer: { feePayerPublicKey: string; buildSponsoredRelayDeposit: jest.Mock; submitSponsoredRelayDeposit: jest.Mock };
+  let redis: { set: jest.Mock; get: jest.Mock; del: jest.Mock };
   let service: BridgeService;
 
   beforeEach(() => {
     jest.clearAllMocks();
     relay = { quote: jest.fn().mockResolvedValue(relayQuote()), status: jest.fn() };
     gasTopup = { ensureGas: jest.fn().mockResolvedValue(undefined) };
-    service = new BridgeService(config, logger, gasTopup as never, relay as unknown as RelayClient);
+    gasRelayer = { feePayerPublicKey: 'RelayerFeePayer1111111111111111111111111111', buildSponsoredRelayDeposit: jest.fn().mockResolvedValue('UNSIGNEDTX'), submitSponsoredRelayDeposit: jest.fn().mockResolvedValue('SIG') };
+    redis = { set: jest.fn().mockResolvedValue('OK'), get: jest.fn(), del: jest.fn().mockResolvedValue(1) };
+    service = new BridgeService(config, logger, gasTopup as never, gasRelayer as never, redis as never, relay as unknown as RelayClient);
     (prisma.wallet.findMany as jest.Mock).mockResolvedValue([
       { address: USER, chain: 'EVM' },
       { address: SOL, chain: 'SOLANA' },
@@ -55,8 +62,26 @@ describe('BridgeService', () => {
     expect(relay.quote).not.toHaveBeenCalled();
   });
 
-  it('refuses moves out of Solana (phase 2), same-chain moves and dust', async () => {
-    await expect(service.quote('u1', { from: 'solana', to: 'base', amountOut: '5000000' })).rejects.toThrow(/coming soon/);
+  it('prepares a move out of Solana with Kamby’s relayer as fee payer, and keeps it for the submit', async () => {
+    relay.quote.mockResolvedValue(
+      relayQuote({ steps: [{ id: 'deposit', kind: 'transaction', items: [{ status: 'incomplete', data: { instructions: [{ programId: RELAY_SOLANA_DEPOSIT_PROGRAM_ID, keys: [], data: '0b' }], addressLookupTableAddresses: ['Alt111'] } }] }] }),
+    );
+    const quote = await service.quote('u1', { from: 'solana', to: 'base', amountOut: '5000000' });
+    expect(relay.quote).toHaveBeenCalledWith(expect.objectContaining({ user: SOL, recipient: USER, depositFeePayer: gasRelayer.feePayerPublicKey }));
+    expect(gasRelayer.buildSponsoredRelayDeposit).toHaveBeenCalledWith(expect.objectContaining({ userWallet: SOL, lookupTableAddresses: ['Alt111'] }));
+    expect(quote).toMatchObject({ solanaTxBase64: 'UNSIGNEDTX', steps: [] });
+    expect(redis.set).toHaveBeenCalledWith(expect.stringContaining(quote.requestId), expect.stringContaining('UNSIGNEDTX'), 'EX', 120);
+    expect(gasTopup.ensureGas).not.toHaveBeenCalled();
+  });
+
+  it('only the user who prepared a Solana move can submit it', async () => {
+    redis.get.mockResolvedValue(JSON.stringify({ userId: 'u1', wallet: SOL, tx: 'UNSIGNEDTX' }));
+    await expect(service.submitSolana('u2', { requestId: `0x${'a'.repeat(64)}`, signedTxBase64: 'X' })).rejects.toThrow(/does not belong/);
+    await expect(service.submitSolana('u1', { requestId: `0x${'a'.repeat(64)}`, signedTxBase64: 'X' })).resolves.toEqual({ signature: 'SIG' });
+    expect(gasRelayer.submitSponsoredRelayDeposit).toHaveBeenCalledWith({ userWallet: SOL, expectedUnsignedTxBase64: 'UNSIGNEDTX', partiallySignedTxBase64: 'X' });
+  });
+
+  it('refuses same-chain moves and dust', async () => {
     await expect(service.quote('u1', { from: 'base', to: 'base', amountOut: '5000000' })).rejects.toThrow(/different chains/);
     await expect(service.quote('u1', { from: 'base', to: 'solana', amountOut: '100000' })).rejects.toThrow(/start at/);
   });
@@ -75,5 +100,22 @@ describe('toEvmSteps', () => {
 
   it('sums the fees the user pays', () => {
     expect(feeUsd(relayQuote())).toBeCloseTo(0.0228, 4);
+  });
+});
+
+describe('toRelayDepositInstructions', () => {
+  const RELAYER = 'RelayerFeePayer1111111111111111111111111111'.replace(/1+$/, '') + '1'.repeat(44 - 'RelayerFeePayer'.length);
+  const deposit = (keys: { pubkey: string; isSigner: boolean; isWritable: boolean }[] = [{ pubkey: SOL, isSigner: true, isWritable: true }]) => ({ programId: RELAY_SOLANA_DEPOSIT_PROGRAM_ID, keys, data: '0b9c' });
+
+  it('accepts exactly one Relay deposit (plus compute budget) signed by the user alone', () => {
+    const budget = { programId: ComputeBudgetProgram.programId.toBase58(), keys: [], data: '02' };
+    expect(toRelayDepositInstructions([budget, deposit()], SOL, RELAYER)).toHaveLength(2);
+  });
+
+  it('refuses another program, a second signer, the relayer in any instruction, or no deposit', () => {
+    expect(() => toRelayDepositInstructions([{ ...deposit(), programId: '11111111111111111111111111111111' }], SOL, RELAYER)).toThrow(/unexpected Solana program/);
+    expect(() => toRelayDepositInstructions([deposit([{ pubkey: SOL, isSigner: true, isWritable: true }, { pubkey: USER_SOL_2, isSigner: true, isWritable: false }])], SOL, RELAYER)).toThrow(/another signer/);
+    expect(() => toRelayDepositInstructions([deposit([{ pubkey: SOL, isSigner: true, isWritable: true }, { pubkey: RELAYER, isSigner: false, isWritable: true }])], SOL, RELAYER)).toThrow(/fee account/);
+    expect(() => toRelayDepositInstructions([], SOL, RELAYER)).toThrow(/Could not read/);
   });
 });

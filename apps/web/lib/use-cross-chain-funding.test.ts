@@ -10,10 +10,10 @@ describe('moveAmountUsd', () => {
 });
 
 describe('pickSource', () => {
-  it('pulls from the richest other chain that covers the move — never Solana yet, never the target', () => {
+  it('pulls from the richest other chain that covers the move — never the target itself', () => {
     expect(pickSource('solana', 3, { base: 10, bnb: 20, solana: 0 })).toBe('bnb');
-    expect(pickSource('base', 3, { base: 0, bnb: 5, solana: 50 })).toBe('bnb');
-    expect(pickSource('base', 3, { base: 0, bnb: 1, solana: 50 })).toBeNull();
+    expect(pickSource('base', 3, { base: 0, bnb: 5, solana: 50 })).toBe('solana');
+    expect(pickSource('base', 3, { base: 0, bnb: 1, solana: 2 })).toBeNull();
     expect(pickSource('bnb', 3, { base: 3.01, bnb: 0, solana: 0 })).toBeNull(); // too tight to cover
   });
 });

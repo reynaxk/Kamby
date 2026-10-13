@@ -28,6 +28,6 @@ import { SolanaTransactionService } from './solana-transaction.service';
   // the Solana activity routes alongside the EVM ones, same reasoning ActivityService is
   // already exported for DiscoveryModule's reuse (see social.module.ts's own comment): a
   // one-way dependency, SolanaModule has no need to import SocialModule back.
-  exports: [SolanaTransactionService],
+  exports: [SolanaTransactionService, GasRelayerService],
 })
 export class SolanaModule {}
