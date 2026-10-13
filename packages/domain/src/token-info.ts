@@ -31,8 +31,19 @@ export interface TokenStats {
   fdvUsd: number | null;
   /** When the coin's oldest real pool was created (unix ms) — its trading age. */
   pairCreatedAtMs: number | null;
+  /** Buys/sells per window for the coin screen's Transactions card (2026-10-13). Buyers and
+   *  sellers (unique wallets) only where the source reports them (GeckoTerminal), else null. */
+  txns?: Record<TokenStatsWindow, { buys: number; sells: number; buyers: number | null; sellers: number | null }>;
+  /** The coin's real pools' liquidity, summed. */
+  liquidityUsd?: number | null;
+  marketCapUsd?: number | null;
+  /** The chart pool's price — with fdvUsd it gives the total supply. */
+  priceUsd?: number | null;
   atIso: string;
 }
+
+export const TOKEN_STATS_WINDOWS = ['m5', 'h1', 'h6', 'h24'] as const;
+export type TokenStatsWindow = (typeof TOKEN_STATS_WINDOWS)[number];
 
 /** The latest price for the chart's "Live" timeframe. */
 export interface LivePrice {
@@ -41,4 +52,11 @@ export interface LivePrice {
   /** The pool this price is from — the coin's chart pool, so every timeframe shows one market
    *  (2026-10-05: Live and the candle widths read different pools and disagreed). */
   poolAddress?: string;
+}
+
+/** One TokenStats.txns entry per window. */
+export function windowTxns(
+  pick: (w: TokenStatsWindow) => { buys: number; sells: number; buyers: number | null; sellers: number | null },
+): NonNullable<TokenStats['txns']> {
+  return { m5: pick('m5'), h1: pick('h1'), h6: pick('h6'), h24: pick('h24') };
 }

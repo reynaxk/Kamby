@@ -1,4 +1,4 @@
-import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS, type TokenStats } from '@kamby/domain';
+import { pickSanePair, SOLANA_STANDARD_QUOTE_MINTS, windowTxns, type TokenStats } from '@kamby/domain';
 import { geckoCoolingDown, noteGeckoStatus } from '../market/gecko-ohlcv';
 
 /**
@@ -17,7 +17,8 @@ export interface GeckoPool {
     pool_created_at?: string | null;
     price_change_percentage?: Partial<Record<'m5' | 'h1' | 'h6' | 'h24', string>>;
     volume_usd?: Partial<Record<'m5' | 'h1' | 'h6' | 'h24', string>>;
-    transactions?: Partial<Record<'h1' | 'h24', { buys?: number; sells?: number }>>;
+    transactions?: Partial<Record<'m5' | 'h1' | 'h6' | 'h24', { buys?: number; sells?: number; buyers?: number; sellers?: number }>>;
+    market_cap_usd?: string | null;
   };
   relationships?: { base_token?: { data?: { id?: string } }; quote_token?: { data?: { id?: string } } };
 }
@@ -93,6 +94,16 @@ export function statsFromGeckoPools(pools: GeckoPool[], mint: string, atIso: str
     txns1h: { buys: sum((p) => p.attributes?.transactions?.h1?.buys), sells: sum((p) => p.attributes?.transactions?.h1?.sells) },
     fdvUsd: fdv > 0 ? fdv : null,
     pairCreatedAtMs: created.length > 0 ? Math.min(...created) : null,
+    txns: windowTxns((w) => ({
+      buys: sum((p) => p.attributes?.transactions?.[w]?.buys),
+      sells: sum((p) => p.attributes?.transactions?.[w]?.sells),
+      // Unique wallets can't be added up across pools without double counting — the main pool's.
+      buyers: typeof main.attributes?.transactions?.[w]?.buyers === 'number' ? main.attributes.transactions[w]!.buyers! : null,
+      sellers: typeof main.attributes?.transactions?.[w]?.sellers === 'number' ? main.attributes.transactions[w]!.sellers! : null,
+    })),
+    liquidityUsd: sum((p) => p.attributes?.reserve_in_usd) || null,
+    marketCapUsd: num(main.attributes?.market_cap_usd) > 0 ? num(main.attributes?.market_cap_usd) : null,
+    priceUsd: mainPrice > 0 ? mainPrice : null,
     atIso,
   };
 }

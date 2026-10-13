@@ -6,11 +6,10 @@ import { useTranslations } from 'next-intl';
 import { formatCompactCount } from '@/lib/format';
 import { MobileCoinScreen } from './MobileCoinScreen';
 import { NewListingBanner } from './NewListingBanner';
-import { TokenStatsStrip } from './TokenStatsStrip';
+import { CoinInfoTab } from './CoinInfoTab';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
 import { LiveTradesPanel } from '@/components/terminal/LiveTradesPanel';
-import { TokenLinks } from '@/components/terminal/TokenLinks';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
@@ -70,8 +69,7 @@ export function SolanaCoinApp({
           content: (
             <div className="flex flex-col gap-3 px-4 pt-3">
               <MyPositionsPanel />
-              <TokenStatsStrip source={source} />
-              <TokenLinks chain="solana" address={mint} cardTitle={`About $${symbol ?? ''}`} />
+              <CoinInfoTab source={source} chain="solana" address={mint} chainIdentifier="solana" symbol={symbol} fallback={{ marketCapUsd }} />
             </div>
           ),
         },

@@ -1,5 +1,7 @@
 'use client';
 
+import { CoinInfoTab } from '@/components/market/CoinInfoTab';
+
 import { useMemo, useState } from 'react';
 import { formatCompactCount } from '@/lib/format';
 import { isCuratedMarket, type Candle, type MarketSummary, type SocialActivity, type TokenTraderConnection } from '@kamby/domain';
@@ -133,8 +135,14 @@ export function KambyTerminal({
             content: (
               <div className="flex flex-col gap-3 px-4 pt-3">
                 <MyPositionsPanel />
-                <TokenMetricsBar market={market} />
-                <MarketInfoPanel market={market} />
+                <CoinInfoTab
+                  source={chartSource}
+                  chain={chain === 'bnb' ? 'bnb' : 'base'}
+                  address={market.tokenAddress}
+                  chainIdentifier={market.chainIdentifier}
+                  symbol={market.symbol}
+                  fallback={{ marketCapUsd: market.marketCapUsd, liquidityUsd: market.liquidityUsd }}
+                />
               </div>
             ),
           },

@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException, Optional, type MessageEvent, type OnModuleDestroy } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
-import { pickChartPair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain, type TokenStats } from '@kamby/domain';
+import { pickChartPair, SOLANA_STANDARD_QUOTE_MINTS, type LivePrice, type PricedPair, type TokenInfoChain, type TokenStats, windowTxns } from '@kamby/domain';
 import { prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
 import type { Redis } from 'ioredis';
@@ -33,7 +33,8 @@ interface DexScreenerPair {
   priceUsd?: string;
   liquidity?: { usd?: number };
   volume?: { m5?: number; h1?: number; h6?: number; h24?: number };
-  txns?: { h1?: { buys?: number; sells?: number }; h24?: { buys?: number; sells?: number } };
+  txns?: Partial<Record<'m5' | 'h1' | 'h6' | 'h24', { buys?: number; sells?: number }>>;
+  marketCap?: number;
   priceChange?: { m5?: number; h1?: number; h6?: number; h24?: number };
   fdv?: number;
   pairCreatedAt?: number;
@@ -76,6 +77,10 @@ export function statsFromPairs(
       txns1h: { buys: sum((p) => p.txns?.h1?.buys), sells: sum((p) => p.txns?.h1?.sells) },
       fdvUsd: num(main.fdv) > 0 ? num(main.fdv) : null,
       pairCreatedAtMs: created.length > 0 ? Math.min(...created) : null,
+      txns: windowTxns((w) => ({ buys: sum((p) => p.txns?.[w]?.buys), sells: sum((p) => p.txns?.[w]?.sells), buyers: null, sellers: null })),
+      liquidityUsd: sum((p) => p.liquidity?.usd) || null,
+      marketCapUsd: num(main.marketCap) > 0 ? num(main.marketCap) : null,
+      priceUsd: num(Number(main.priceUsd)) > 0 ? Number(main.priceUsd) : null,
       atIso,
     });
   }

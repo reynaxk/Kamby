@@ -9,7 +9,6 @@ import { badgeChainFor, ChainBadge } from './ChainBadge';
 import { LaunchpadBadge } from './LaunchpadBadge';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { PriceText } from './PriceText';
-import { formatAge } from './TokenStatsStrip';
 import { PositionChip } from '@/components/trading/PositionChip';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
 import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
@@ -66,8 +65,6 @@ export function MobileCoinScreen({
   const router = useRouter();
   const tT = useTranslations('terminal');
   const tU = useTranslations('ui');
-  const tC = useTranslations('coin');
-  const tL = useTranslations('labels');
   const live = useLivePrice(source);
   const stats = useTokenStats(source);
   const [tab, setTab] = useState(tabs[0]?.id ?? '');
@@ -164,22 +161,6 @@ export function MobileCoinScreen({
         )}
       </div>
 
-      {/* The coin at a glance — 24h volume, trades and age, from the same live stream. */}
-      {stats && (
-        <div className="flex gap-2 overflow-x-auto px-4 pt-3">
-          <StatPill label={tC('vol24h')} value={formatCompactUsd(stats.volumeUsd.h24)} />
-          <StatPill label={tC('trades24h')} value={(stats.txns24h.buys + stats.txns24h.sells).toLocaleString('en-US')} />
-          {stats.txns24h.buys + stats.txns24h.sells > 0 && (
-            <StatPill
-              label={tL('buyShare')}
-              value={`${Math.round((stats.txns24h.buys / (stats.txns24h.buys + stats.txns24h.sells)) * 100)}%`}
-            />
-          )}
-          {stats.pairCreatedAtMs !== null && <StatPill label={tC('age')} value={formatAge(stats.pairCreatedAtMs)} />}
-          <CopyAddressPill address={address} />
-        </div>
-      )}
-
       {/* What you hold of it, right under the price — trading apps lead with your position. */}
       <div className="px-4 pt-2 empty:hidden">
         <PositionChip source={source} />
@@ -247,34 +228,4 @@ export function MobileCoinScreen({
   );
 }
 
-function StatPill({ label, value }: { label: string; value: string }) {
-  return (
-    <span className="kamby-glass flex shrink-0 items-baseline gap-1.5 rounded-full px-3 py-1.5 font-body text-xs">
-      <span className="text-ink-400">{label}</span>
-      <span className="font-semibold tabular-nums text-ink-900">{value}</span>
-    </span>
-  );
-}
 
-/** The contract address, one tap to copy — what traders paste everywhere. */
-function CopyAddressPill({ address }: { address: string }) {
-  const tU = useTranslations('ui');
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        void navigator.clipboard?.writeText(address).then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        });
-      }}
-      className="flex shrink-0 items-baseline gap-1.5 rounded-full bg-surface-raised px-3 py-1.5 font-body text-xs active:bg-white/10"
-    >
-      <span className="text-ink-400">CA</span>
-      <span className={cn('font-semibold tabular-nums', copied ? 'text-accent' : 'text-ink-900')}>
-        {copied ? tU('copied_6d6d') : `${address.slice(0, 4)}…${address.slice(-4)}`}
-      </span>
-    </button>
-  );
-}
