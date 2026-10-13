@@ -654,7 +654,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
             {(needsMove || moveBusy || funding.stage === 'error') && <MoveNote funding={funding} target="solana" />}
             {blockedByBalance && usdcBalanceRaw !== null && (
               <p className="text-center font-body text-xs font-semibold text-down">
-                {tL('notEnoughUsdcDetail', { balance: `$${(Number(usdcBalanceRaw) / 1e6).toFixed(2)}` })}
+                {tL('notEnoughUsdcTotal', { balance: `$${(funding.balances.total ?? Number(usdcBalanceRaw) / 1e6).toFixed(2)}` })}
               </p>
             )}
           </>

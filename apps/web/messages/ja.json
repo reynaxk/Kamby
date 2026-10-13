@@ -178,7 +178,9 @@
     "copyAddress": "アドレスをコピー",
     "sendOnly": "このアドレスには <b>{network}</b> の <b>USDC</b> だけを送ってください。他のコインやネットワークは失われる可能性があります。",
     "otherWays": "← ほかの入金方法",
-    "settingUpChain": "{chain}ウォレットを準備中…"
+    "settingUpChain": "{chain}ウォレットを準備中…",
+    "otherNetworks": "別のネットワークが必要な取引所から送金しますか？",
+    "depositOneNetwork": "このアドレスへBaseネットワークでUSDCを送金してください。1つのKamby残高に入ります。"
   },
   "leaderboard": {
     "title": "ランキング",
@@ -567,7 +569,10 @@
     "moveNote": "USDCは{from}にあります — Kambyが先に${amount}を{to}へ数秒で移動します（手数料は数セント）。",
     "movePreparing": "移動を準備中…",
     "moveSigning": "ウォレットで確認…",
-    "moveMoving": "USDCを{chain}へ移動中…"
+    "moveMoving": "USDCを{chain}へ移動中…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "すべてのコインに使える1つのUSDC残高 — 取引に必要な場所へKambyが数秒で移動します。",
+    "notEnoughUsdcTotal": "USDCは{balance}です — 入金するか金額を下げてください"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

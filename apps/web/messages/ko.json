@@ -178,7 +178,9 @@
     "copyAddress": "주소 복사",
     "sendOnly": "이 주소로는 <b>{network}</b>의 <b>USDC</b>만 보내세요. 다른 코인이나 네트워크는 잃을 수 있습니다.",
     "otherWays": "← 다른 충전 방법",
-    "settingUpChain": "{chain} 지갑을 준비하는 중…"
+    "settingUpChain": "{chain} 지갑을 준비하는 중…",
+    "otherNetworks": "다른 네트워크가 필요한 거래소에서 보내나요?",
+    "depositOneNetwork": "이 주소로 Base 네트워크의 USDC를 보내세요 — 하나의 Kamby 잔액에 들어가요."
   },
   "leaderboard": {
     "title": "리더보드",
@@ -567,7 +569,10 @@
     "moveNote": "USDC가 {from}에 있어요 — Kamby가 먼저 ${amount}를 {to}로 몇 초 만에 옮겨요 (수수료 몇 센트).",
     "movePreparing": "이동 준비 중…",
     "moveSigning": "지갑에서 확인…",
-    "moveMoving": "USDC를 {chain}로 옮기는 중…"
+    "moveMoving": "USDC를 {chain}로 옮기는 중…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "모든 코인에 쓰는 하나의 USDC 잔액 — 거래에 필요한 곳으로 Kamby가 몇 초 만에 옮겨요.",
+    "notEnoughUsdcTotal": "USDC가 {balance} 있어요 — 더 입금하거나 금액을 낮추세요"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

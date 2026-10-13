@@ -903,7 +903,12 @@ export function TradePanel({
       {quote?.sponsorshipAvailable && <GaslessToggle value={gasless} onChange={setGasless} label={tU('gaslessNoGasNeeded_7181')} />}
 
       {(needsMove || moveBusy || funding.stage === 'error') && <MoveNote funding={funding} target={moveTarget} />}
-      {quoteStatus === 'error' && !belowMinimum && !needsMove && !moveBusy && <p className="font-body text-xs text-down">{quoteError}</p>}
+      {quoteStatus === 'error' && !belowMinimum && !needsMove && !moveBusy && (
+        <p className="font-body text-xs text-down">
+          {/* One USDC: short everywhere, say so without naming a chain. */}
+          {shortOnChain ? tL('notEnoughUsdcTotal', { balance: `$${(funding.balances.total ?? 0).toFixed(2)}` }) : quoteError}
+        </p>
+      )}
 
       {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
 

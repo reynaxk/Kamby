@@ -178,7 +178,9 @@
     "copyAddress": "Copy address",
     "sendOnly": "Send only <b>USDC</b> on <b>{network}</b> to this address. Other coins or networks can be lost.",
     "otherWays": "← Other ways to add funds",
-    "settingUpChain": "Setting up your {chain} wallet…"
+    "settingUpChain": "Setting up your {chain} wallet…",
+    "otherNetworks": "Sending from an exchange that needs another network?",
+    "depositOneNetwork": "Send USDC on the Base network to this address — it lands in your one Kamby balance."
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -567,7 +569,10 @@
     "moveNote": "Your USDC is on {from} — Kamby moves ${amount} to {to} first, in seconds (a few cents fee).",
     "movePreparing": "Preparing the move…",
     "moveSigning": "Confirm in your wallet…",
-    "moveMoving": "Moving your USDC to {chain}…"
+    "moveMoving": "Moving your USDC to {chain}…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "One USDC balance for every coin — Kamby moves it where a trade needs it, in seconds.",
+    "notEnoughUsdcTotal": "You have {balance} USDC — deposit more or lower the amount"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

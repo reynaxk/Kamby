@@ -178,7 +178,9 @@
     "copyAddress": "Adresse kopieren",
     "sendOnly": "Sende nur <b>USDC</b> auf <b>{network}</b> an diese Adresse. Andere Coins oder Netzwerke können verloren gehen.",
     "otherWays": "← Andere Wege zum Aufladen",
-    "settingUpChain": "Deine {chain}-Wallet wird eingerichtet…"
+    "settingUpChain": "Deine {chain}-Wallet wird eingerichtet…",
+    "otherNetworks": "Du sendest von einer Börse, die ein anderes Netzwerk braucht?",
+    "depositOneNetwork": "Sende USDC im Base-Netzwerk an diese Adresse — es landet in deinem einen Kamby-Guthaben."
   },
   "leaderboard": {
     "title": "Bestenliste",
@@ -567,7 +569,10 @@
     "moveNote": "Dein USDC liegt auf {from} — Kamby verschiebt zuerst ${amount} nach {to}, in Sekunden (ein paar Cent Gebühr).",
     "movePreparing": "Verschiebung wird vorbereitet…",
     "moveSigning": "In deiner Wallet bestätigen…",
-    "moveMoving": "Dein USDC wird nach {chain} verschoben…"
+    "moveMoving": "Dein USDC wird nach {chain} verschoben…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "Ein USDC-Guthaben für jeden Coin — Kamby verschiebt es in Sekunden dorthin, wo ein Trade es braucht.",
+    "notEnoughUsdcTotal": "Du hast {balance} USDC — zahle mehr ein oder senke den Betrag"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

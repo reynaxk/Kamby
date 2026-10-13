@@ -178,7 +178,9 @@
     "copyAddress": "Adresi kopyala",
     "sendOnly": "Bu adrese sadece <b>{network}</b> ağında <b>USDC</b> gönder. Diğer coinler ya da ağlar kaybolabilir.",
     "otherWays": "← Para eklemenin diğer yolları",
-    "settingUpChain": "{chain} cüzdanın hazırlanıyor…"
+    "settingUpChain": "{chain} cüzdanın hazırlanıyor…",
+    "otherNetworks": "Başka bir ağ isteyen bir borsadan mı gönderiyorsun?",
+    "depositOneNetwork": "Bu adrese Base ağında USDC gönder — tek Kamby bakiyene düşer."
   },
   "leaderboard": {
     "title": "Liderlik tablosu",
@@ -567,7 +569,10 @@
     "moveNote": "USDC’n {from} üzerinde — Kamby önce ${amount} tutarını saniyeler içinde {to} ağına taşır (birkaç sent ücret).",
     "movePreparing": "Taşıma hazırlanıyor…",
     "moveSigning": "Cüzdanında onayla…",
-    "moveMoving": "USDC’n {chain} ağına taşınıyor…"
+    "moveMoving": "USDC’n {chain} ağına taşınıyor…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "Her coin için tek bir USDC bakiyesi — Kamby onu işlemin gerektirdiği yere saniyeler içinde taşır.",
+    "notEnoughUsdcTotal": "{balance} USDC’n var — daha fazla yatır veya tutarı düşür"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

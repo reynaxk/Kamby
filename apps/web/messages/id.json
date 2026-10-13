@@ -178,7 +178,9 @@
     "copyAddress": "Salin alamat",
     "sendOnly": "Kirim hanya <b>USDC</b> di jaringan <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang.",
     "otherWays": "← Cara lain menambah dana",
-    "settingUpChain": "Menyiapkan dompet {chain} kamu…"
+    "settingUpChain": "Menyiapkan dompet {chain} kamu…",
+    "otherNetworks": "Mengirim dari exchange yang butuh jaringan lain?",
+    "depositOneNetwork": "Kirim USDC lewat jaringan Base ke alamat ini — masuk ke satu saldo Kamby kamu."
   },
   "leaderboard": {
     "title": "Peringkat",
@@ -567,7 +569,10 @@
     "moveNote": "USDC kamu ada di {from} — Kamby memindahkan ${amount} ke {to} dulu, dalam hitungan detik (biaya beberapa sen).",
     "movePreparing": "Menyiapkan pemindahan…",
     "moveSigning": "Konfirmasi di dompetmu…",
-    "moveMoving": "Memindahkan USDC kamu ke {chain}…"
+    "moveMoving": "Memindahkan USDC kamu ke {chain}…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "Satu saldo USDC untuk setiap koin — Kamby memindahkannya ke tempat yang dibutuhkan trading, dalam hitungan detik.",
+    "notEnoughUsdcTotal": "Kamu punya {balance} USDC — deposit lagi atau kurangi jumlahnya"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

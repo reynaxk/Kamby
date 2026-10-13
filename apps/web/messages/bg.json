@@ -178,7 +178,9 @@
     "copyAddress": "Копирай адреса",
     "sendOnly": "Изпращай на този адрес само <b>USDC</b> в мрежата <b>{network}</b>. Други монети или мрежи може да бъдат загубени.",
     "otherWays": "← Други начини за зареждане",
-    "settingUpChain": "Подготвяме портфейла ти в {chain}…"
+    "settingUpChain": "Подготвяме портфейла ти в {chain}…",
+    "otherNetworks": "Пращаш от борса, която иска друга мрежа?",
+    "depositOneNetwork": "Прати USDC по мрежата Base на този адрес — влиза в единния ти баланс в Kamby."
   },
   "leaderboard": {
     "title": "Класация",
@@ -567,7 +569,10 @@
     "moveNote": "USDC-то ти е в {from} — Kamby първо премества ${amount} в {to} за секунди (такса няколко цента).",
     "movePreparing": "Подготвяме преместването…",
     "moveSigning": "Потвърди в портфейла…",
-    "moveMoving": "Местим USDC-то ти в {chain}…"
+    "moveMoving": "Местим USDC-то ти в {chain}…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "Един USDC баланс за всяка монета — Kamby го премества там, където е нужно за сделката, за секунди.",
+    "notEnoughUsdcTotal": "Имаш {balance} USDC — депозирай още или намали сумата"
   },
   "notif": {
     "kind_FOLLOW": "Последване",

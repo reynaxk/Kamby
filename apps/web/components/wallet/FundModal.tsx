@@ -42,6 +42,8 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
   const { addFunds } = useAddFunds();
 
   const [chain, setChain] = useState<SendChainOption>(SEND_CHAINS[1]!); // Base — matches privyConfig.defaultChain
+  // One deposit network (2026-10-13): Base, unless someone's exchange needs another.
+  const [showNetworks, setShowNetworks] = useState(false);
   // Opened from a chain's own "Deposit" button: start on that chain.
   useEffect(() => {
     const preset = initialChain ? SEND_CHAINS.find((c) => c.slug === initialChain) : undefined;
@@ -143,7 +145,16 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : step === 'deposit' ? (
         <div className="mt-4 flex flex-col gap-4">
-          {networkPicker}
+          {showNetworks || chain.slug !== 'base' ? (
+            networkPicker
+          ) : (
+            <div>
+              <p className="font-body text-xs text-ink-600">{tF('depositOneNetwork')}</p>
+              <button type="button" onClick={() => setShowNetworks(true)} className="mt-1 font-body text-xs text-ink-400 underline-offset-2 hover:text-ink-900 hover:underline">
+                {tF('otherNetworks')}
+              </button>
+            </div>
+          )}
           {depositAddress ? (
             <DepositAddress address={depositAddress} networkName={chain.name} />
           ) : (
@@ -153,7 +164,16 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : step === 'buy' ? (
         <div className="mt-4 flex flex-col gap-4">
-          {networkPicker}
+          {showNetworks || chain.slug !== 'base' ? (
+            networkPicker
+          ) : (
+            <div>
+              <p className="font-body text-xs text-ink-600">{tF('depositOneNetwork')}</p>
+              <button type="button" onClick={() => setShowNetworks(true)} className="mt-1 font-body text-xs text-ink-400 underline-offset-2 hover:text-ink-900 hover:underline">
+                {tF('otherNetworks')}
+              </button>
+            </div>
+          )}
           {!isConnectedForChain ? (
             chain.kind === 'evm' ? (
               <ConnectWalletButton expectedChainId={chain.evmChainId} />

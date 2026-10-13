@@ -178,7 +178,9 @@
     "copyAddress": "复制地址",
     "sendOnly": "请只向此地址发送 <b>{network}</b> 上的 <b>USDC</b>。其他币种或网络可能会丢失。",
     "otherWays": "← 其他充值方式",
-    "settingUpChain": "正在设置你的 {chain} 钱包…"
+    "settingUpChain": "正在设置你的 {chain} 钱包…",
+    "otherNetworks": "从需要其他网络的交易所转账？",
+    "depositOneNetwork": "通过 Base 网络把 USDC 转到这个地址——会进入你唯一的 Kamby 余额。"
   },
   "leaderboard": {
     "title": "排行榜",
@@ -567,7 +569,10 @@
     "moveNote": "你的 USDC 在 {from}——Kamby 会先在几秒内把 ${amount} 转到 {to}（手续费几美分）。",
     "movePreparing": "正在准备转移…",
     "moveSigning": "请在钱包中确认…",
-    "moveMoving": "正在把你的 USDC 转到 {chain}…"
+    "moveMoving": "正在把你的 USDC 转到 {chain}…",
+    "yourUsdcLine": "USDC：{amount}",
+    "oneUsdcNote": "一个 USDC 余额适用于所有币——Kamby 会在几秒内把它转到交易需要的地方。",
+    "notEnoughUsdcTotal": "你有 {balance} USDC——请充值或降低金额"
   },
   "notif": {
     "kind_FOLLOW": "关注",

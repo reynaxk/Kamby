@@ -76,6 +76,8 @@ describe('FundModal', () => {
     await user.click(screen.getByRole('button', { name: /Deposit USDC/ }));
     expect(screen.getByText('0x1111111111111111111111111111111111111111')).toBeInTheDocument();
 
+    await user.click(screen.getByRole('button', { name: /another network/ }));
+
     await user.click(screen.getByRole('button', { name: 'Solana' }));
     expect(screen.getByText('SoLWaLLet1111111111111111111111111111111111')).toBeInTheDocument();
     expect(screen.getByText(/Send only/)).toHaveTextContent('Send only USDC on Solana');
@@ -108,6 +110,7 @@ describe('FundModal', () => {
 
     render(<FundModal open onClose={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
+    await user.click(screen.getByRole('button', { name: /another network/ }));
     await user.click(screen.getByRole('button', { name: 'Solana' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
@@ -142,6 +145,7 @@ describe('FundModal', () => {
 
     render(<FundModal open onClose={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
+    await user.click(screen.getByRole('button', { name: /another network/ }));
     await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
 
     expect(await screen.findByRole('button', { name: 'Continue' })).toBeEnabled();

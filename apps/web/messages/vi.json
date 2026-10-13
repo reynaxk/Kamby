@@ -178,7 +178,9 @@
     "copyAddress": "Sao chép địa chỉ",
     "sendOnly": "Chỉ gửi <b>USDC</b> trên mạng <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất.",
     "otherWays": "← Cách nạp tiền khác",
-    "settingUpChain": "Đang thiết lập ví {chain} của bạn…"
+    "settingUpChain": "Đang thiết lập ví {chain} của bạn…",
+    "otherNetworks": "Gửi từ sàn cần mạng khác?",
+    "depositOneNetwork": "Gửi USDC qua mạng Base đến địa chỉ này — tiền vào số dư Kamby duy nhất của bạn."
   },
   "leaderboard": {
     "title": "Bảng xếp hạng",
@@ -567,7 +569,10 @@
     "moveNote": "USDC của bạn ở {from} — Kamby chuyển ${amount} sang {to} trước, trong vài giây (phí vài xu).",
     "movePreparing": "Đang chuẩn bị chuyển…",
     "moveSigning": "Xác nhận trong ví…",
-    "moveMoving": "Đang chuyển USDC sang {chain}…"
+    "moveMoving": "Đang chuyển USDC sang {chain}…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "Một số dư USDC cho mọi đồng coin — Kamby tự chuyển đến nơi giao dịch cần, trong vài giây.",
+    "notEnoughUsdcTotal": "Bạn có {balance} USDC — nạp thêm hoặc giảm số tiền"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

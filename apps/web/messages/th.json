@@ -178,7 +178,9 @@
     "copyAddress": "คัดลอกที่อยู่",
     "sendOnly": "ส่งเฉพาะ <b>USDC</b> บนเครือข่าย <b>{network}</b> มาที่อยู่นี้ เหรียญหรือเครือข่ายอื่นอาจสูญหายได้",
     "otherWays": "← วิธีเติมเงินอื่นๆ",
-    "settingUpChain": "กำลังเตรียมกระเป๋า {chain} ของคุณ…"
+    "settingUpChain": "กำลังเตรียมกระเป๋า {chain} ของคุณ…",
+    "otherNetworks": "ส่งจากกระดานเทรดที่ต้องใช้เครือข่ายอื่นใช่ไหม",
+    "depositOneNetwork": "ส่ง USDC ผ่านเครือข่าย Base มายังที่อยู่นี้ — จะเข้าสู่ยอด Kamby เดียวของคุณ"
   },
   "leaderboard": {
     "title": "อันดับ",
@@ -567,7 +569,10 @@
     "moveNote": "USDC ของคุณอยู่บน {from} — Kamby จะย้าย ${amount} ไปยัง {to} ก่อนภายในไม่กี่วินาที (ค่าธรรมเนียมไม่กี่เซนต์)",
     "movePreparing": "กำลังเตรียมการย้าย…",
     "moveSigning": "ยืนยันในกระเป๋าของคุณ…",
-    "moveMoving": "กำลังย้าย USDC ไปยัง {chain}…"
+    "moveMoving": "กำลังย้าย USDC ไปยัง {chain}…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "ยอด USDC เดียวสำหรับทุกเหรียญ — Kamby ย้ายไปยังที่ที่การเทรดต้องการภายในไม่กี่วินาที",
+    "notEnoughUsdcTotal": "คุณมี {balance} USDC — ฝากเพิ่มหรือลดจำนวนลง"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

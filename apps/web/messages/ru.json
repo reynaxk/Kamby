@@ -178,7 +178,9 @@
     "copyAddress": "Скопировать адрес",
     "sendOnly": "Отправляйте на этот адрес только <b>USDC</b> в сети <b>{network}</b>. Другие монеты или сети могут быть потеряны.",
     "otherWays": "← Другие способы пополнения",
-    "settingUpChain": "Готовим твой кошелёк {chain}…"
+    "settingUpChain": "Готовим твой кошелёк {chain}…",
+    "otherNetworks": "Отправляешь с биржи, которой нужна другая сеть?",
+    "depositOneNetwork": "Отправь USDC по сети Base на этот адрес — он попадёт в твой единый баланс Kamby."
   },
   "leaderboard": {
     "title": "Таблица лидеров",
@@ -567,7 +569,10 @@
     "moveNote": "Твой USDC в {from} — Kamby сначала переведёт ${amount} в {to} за секунды (комиссия пара центов).",
     "movePreparing": "Готовим перевод…",
     "moveSigning": "Подтверди в кошельке…",
-    "moveMoving": "Переводим твой USDC в {chain}…"
+    "moveMoving": "Переводим твой USDC в {chain}…",
+    "yourUsdcLine": "USDC: {amount}",
+    "oneUsdcNote": "Один баланс USDC для любой монеты — Kamby сам переводит его туда, где он нужен для сделки, за секунды.",
+    "notEnoughUsdcTotal": "У тебя {balance} USDC — пополни или уменьши сумму"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",
