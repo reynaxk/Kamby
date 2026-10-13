@@ -29,7 +29,7 @@ export function InlineTimeframeTabs({
           onClick={() => onChange(tf)}
           aria-pressed={tf === active}
           className={cn(
-            'inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[0.7rem] font-medium tracking-tight transition-colors max-md:rounded-full max-md:px-3 max-md:py-1.5 max-md:text-xs max-md:font-semibold',
+            'inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[0.7rem] font-medium tracking-tight transition-colors max-md:rounded-full max-md:px-2.5 max-md:py-1.5 max-md:text-xs max-md:font-semibold',
             tf === active ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
           )}
         >

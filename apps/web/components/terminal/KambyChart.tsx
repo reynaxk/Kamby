@@ -436,14 +436,16 @@ export function KambyChart({
     // realistic "glow" here, not a compromise.
     const lastClose = candles[candles.length - 1]?.close;
     if (lastClose !== undefined) {
+      // On the line chart the price tag wears the line's colour (a red line had a green tag).
+      const tagColor = chartStyle === 'line' ? (lineRising ? up : down) : accent;
       lastPriceLine = series.createPriceLine({
         price: lastClose,
-        color: accent,
+        color: tagColor,
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
-        axisLabelColor: accent,
-        axisLabelTextColor: accentInk,
+        axisLabelColor: tagColor,
+        axisLabelTextColor: chartStyle === 'line' && !lineRising ? '#FFFFFF' : accentInk,
       });
     }
 

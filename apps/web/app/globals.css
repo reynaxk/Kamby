@@ -482,6 +482,11 @@ body:has(.kamby-void) {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+  /* The chart's period pills sit on the screen itself, not on a glass strip. */
+  .kamby-void .kamby-timeframe-tabs {
+    background: none;
+    box-shadow: none;
+  }
 }
 
 /* Bottom sheets slide up; their backdrop fades (transform/opacity of the overlay only — the
