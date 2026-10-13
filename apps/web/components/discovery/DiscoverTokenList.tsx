@@ -1,7 +1,7 @@
 'use client';
 
 import { XxxRiskFeedRow } from './feeds/XxxRiskFeedRow';
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { slugForIdentifier, type CryptoPrice, type FeedMarket, type MarketFeedSnapshot, type MarketFeedTab, type MarketSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -117,6 +117,11 @@ export function DiscoverTokenList({
   const [tokenTab, setTokenTab] = useState<MarketFeedTab>('trending');
   const primaryTab = activePrimaryTab ?? uncontrolledPrimaryTab;
   const setPrimaryTab = onPrimaryTabChange ?? setUncontrolledPrimaryTab;
+  const tabsAnchorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!pageScroll || primaryTab !== 'traders' || window.innerWidth >= 768) return;
+    tabsAnchorRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [pageScroll, primaryTab]);
 
   const trendingRows = useSteadyOrder(uniqueMarkets(feeds.trending.markets), (m) => `${m.chainIdentifier}:${m.tokenAddress}`);
   const bondingRows = useSteadyOrder(feeds.bonding.tokens, (t) => t.mintAddress);
@@ -221,6 +226,9 @@ export function DiscoverTokenList({
 
   return (
     <div className={cn('flex h-full flex-col gap-1.5', pageScroll && 'max-md:h-auto')}>
+      {/* Phones: opening Pulse scrolls here so the tabs stick at the top and the chat fills the
+          rest of the screen (its composer was ending up behind the tab bar, 2026-10-13). */}
+      {pageScroll && <div ref={tabsAnchorRef} aria-hidden className="max-md:scroll-mt-[calc(env(safe-area-inset-top)+3rem)]" />}
       <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
       {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} />}
       {primaryTab === 'tokens' && pageScroll && tokenChips}
@@ -237,7 +245,7 @@ export function DiscoverTokenList({
           // Pulse, the worldwide chat (2026-10-11) — replaced the old Feed list (owner: "not
           // useful"). On the phone Home it fills the screen under the sticky tabs.
           <div className="min-h-0 flex-1">
-            <PulseChat className={pageScroll ? 'h-[calc(100dvh-11.5rem)] md:h-full' : 'h-full'} />
+            <PulseChat className={pageScroll ? 'h-[calc(100dvh-env(safe-area-inset-top)-6.5rem)] md:h-full' : 'h-full'} />
           </div>
         ) : primaryTab === 'watchlist' ? (
           <div className="min-h-0 flex-1">

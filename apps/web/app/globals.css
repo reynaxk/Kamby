@@ -121,10 +121,10 @@ body:has(.kamby-void) {
   --kamby-ink-900: 238 235 246;
   --kamby-ink-600: 151 145 169;
   --kamby-ink-400: 95 88 116;
-  --kamby-accent: 31 201 103;
-  --kamby-accent-ink: 3 10 6;
-  --kamby-up: 31 201 103;
-  --kamby-down: 245 63 97;
+  --kamby-accent: 0 255 135;
+  --kamby-accent-ink: 2 10 6;
+  --kamby-up: 0 230 118;
+  --kamby-down: 255 59 105;
   --kamby-warn: 255 183 0;
 }
 
