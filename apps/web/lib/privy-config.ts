@@ -93,8 +93,8 @@ export const privyConfig = {
   appearance: {
     // Retuned 2026-09-22 alongside globals.css's `.kamby-void` block — kept in sync there,
     // not here, since Privy's modal renders outside our CSS scope and needs a literal hex.
-    theme: '#080A0F' as const,
-    accentColor: '#22C55E' as const,
+    theme: '#06070C' as const,
+    accentColor: '#00FF87' as const,
     logo: 'https://kambesh.com/icon.png',
   },
   // Privy creates both wallets during sign-in (matches the dashboard's "Automatically create
