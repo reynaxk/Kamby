@@ -62,8 +62,8 @@ describe('hideLookalikes', () => {
   });
 
   it('never merges the same ticker across chains', () => {
-    const onBase = market({ symbol: 'USDT' });
-    const onBnb = market({ chainIdentifier: 'eip155:56', symbol: 'USDT' });
+    const onBase = market({ symbol: 'TOSHI' });
+    const onBnb = market({ chainIdentifier: 'eip155:56', symbol: 'TOSHI' });
 
     expect(hideLookalikes([onBase, onBnb])).toEqual([onBase, onBnb]);
   });
@@ -73,4 +73,12 @@ describe('hideLookalikes', () => {
 
     expect(hideLookalikes(list)).toEqual(list);
   });
+
+  it('hides a discovered token using a famous coin ticker, but never a hand-picked one', () => {
+    const fakeDoge = market({ chainIdentifier: 'eip155:4663', tokenAddress: '0x1b997746000000000000000000000000000000aa', symbol: 'DOGE', name: 'Dogecoin' });
+    const realWeth = market({ chainIdentifier: 'eip155:4663', tokenAddress: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73', symbol: 'WETH', name: 'WETH' }); // Robinhood seed
+    const meme = market({ chainIdentifier: 'eip155:4663', tokenAddress: '0x94641b97010608C3827fB058074889f19868FF33', symbol: 'VRAX' });
+    expect(hideLookalikes([fakeDoge, realWeth, meme])).toEqual([realWeth, meme]);
+  });
 });
+

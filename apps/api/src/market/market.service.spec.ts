@@ -331,13 +331,13 @@ describe('MarketService — discover/search', () => {
 
     it('applies the real search filter before ranking, matching symbol/name/contractAddress case-insensitively', async () => {
       (mockedPrisma.tokenMarket.findMany as jest.Mock).mockResolvedValue([
-        fakeDiscoverableRow({ id: 'match', token: { ...fakeDiscoverableRow().token, symbol: 'PEPE', contractAddress: '0xaaa' } }),
-        fakeDiscoverableRow({ id: 'no-match', token: { ...fakeDiscoverableRow().token, symbol: 'DOGE', contractAddress: '0xbbb' } }),
+        fakeDiscoverableRow({ id: 'match', token: { ...fakeDiscoverableRow().token, symbol: 'PEPU', contractAddress: '0xaaa' } }),
+        fakeDiscoverableRow({ id: 'no-match', token: { ...fakeDiscoverableRow().token, symbol: 'MOG', contractAddress: '0xbbb' } }),
       ]);
 
       const result = await service.discover({ sort: 'score', limit: 20, search: 'pep' });
 
-      expect(result.map((r) => r.symbol)).toEqual(['PEPE']);
+      expect(result.map((r) => r.symbol)).toEqual(['PEPU']);
     });
 
     it('respects the real limit even when more rows qualify, keeping the top-ranked ones', async () => {

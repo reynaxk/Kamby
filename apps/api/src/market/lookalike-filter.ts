@@ -28,15 +28,31 @@ function preferred(a: MarketSummary, b: MarketSummary): MarketSummary {
  * one does (24h volume, then liquidity). Markets without a symbol pass through untouched.
  * Order of the surviving markets is preserved.
  *
+ * Also hides any discovered token using a famous coin's ticker (FAMOUS_TICKERS).
+ *
  * Deliberately a display filter, not deletion: a hidden market still resolves by its exact
  * contract address (token page, address search), and a real token that loses a tie today
  * reappears once it out-trades the copies.
  */
+/** Tickers of the big, famous coins. A discovered (not hand-picked) token using one is
+ *  pretending to be it — found 2026-10-13: a "DOGE · Dogecoin" with $36K liquidity on Robinhood
+ *  Chain, where no real Dogecoin lives. The real ones trade through vetted markets (the Crypto
+ *  tab, seed lists), which this never hides. */
+const FAMOUS_TICKERS: ReadonlySet<string> = new Set([
+  'btc', 'wbtc', 'cbbtc', 'eth', 'weth', 'sol', 'wsol', 'bnb', 'wbnb', 'xrp', 'doge', 'ada', 'dot', 'uni', 'avax', 'link',
+  'ltc', 'shib', 'pepe', 'trx', 'ton', 'sui', 'arb', 'op', 'matic', 'pol', 'usdc', 'usdt', 'usdg', 'dai', 'busd',
+]);
+
 export function hideLookalikes(markets: MarketSummary[]): MarketSummary[] {
   const winners = new Map<string, MarketSummary[]>();
+  const impostors = new Set<MarketSummary>();
   for (const market of markets) {
     const symbol = normalizedSymbol(market.symbol);
     if (!symbol) continue;
+    if (FAMOUS_TICKERS.has(symbol) && !isHandPicked(market)) {
+      impostors.add(market);
+      continue;
+    }
     const key = `${market.chainIdentifier}:${symbol}`;
     const current = winners.get(key);
     if (!current) {
@@ -48,5 +64,5 @@ export function hideLookalikes(markets: MarketSummary[]): MarketSummary[] {
     }
   }
   const keep = new Set([...winners.values()].flat());
-  return markets.filter((market) => !normalizedSymbol(market.symbol) || keep.has(market));
+  return markets.filter((market) => !impostors.has(market) && (!normalizedSymbol(market.symbol) || keep.has(market)));
 }
