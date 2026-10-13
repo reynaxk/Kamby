@@ -582,7 +582,7 @@
     "infoHolders": "保有者",
     "infoHolderCount": "保有者数",
     "infoTop10": "上位10の保有率",
-    "infoStats": "統計",
+    "infoStats": "{symbol}の情報",
     "infoMarketCap": "時価総額",
     "infoVolume24h": "24時間出来高",
     "infoLiquidity": "流動性",

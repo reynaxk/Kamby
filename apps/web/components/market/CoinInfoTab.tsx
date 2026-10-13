@@ -158,7 +158,7 @@ export function CoinInfoTab({
         </Card>
       )}
 
-      <Card title={tL('infoStats')}>
+      <Card title={tL('infoStats', { symbol: symbol ? cashtag(symbol) : '' })}>
         <StatRow label={tL('infoMarketCap')}>{marketCap !== null ? formatCompactUsd(marketCap) : '—'}</StatRow>
         {stats && <StatRow label={tL('infoVolume24h')}>{formatCompactUsd(stats.volumeUsd.h24)}</StatRow>}
         <StatRow label={tL('infoLiquidity')}>{liquidity !== null ? formatCompactUsd(liquidity) : '—'}</StatRow>

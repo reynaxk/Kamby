@@ -582,7 +582,7 @@
     "infoHolders": "ผู้ถือ",
     "infoHolderCount": "จำนวนผู้ถือ",
     "infoTop10": "สัดส่วน 10 อันดับแรก",
-    "infoStats": "สถิติ",
+    "infoStats": "ข้อมูลเกี่ยวกับ {symbol}",
     "infoMarketCap": "มูลค่าตลาด",
     "infoVolume24h": "ปริมาณ 24 ชม.",
     "infoLiquidity": "สภาพคล่อง",

@@ -582,7 +582,7 @@
     "infoHolders": "Người nắm giữ",
     "infoHolderCount": "Số người nắm giữ",
     "infoTop10": "Top 10 nắm giữ",
-    "infoStats": "Thống kê",
+    "infoStats": "Thông tin về {symbol}",
     "infoMarketCap": "Vốn hóa",
     "infoVolume24h": "Khối lượng 24h",
     "infoLiquidity": "Thanh khoản",

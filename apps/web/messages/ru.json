@@ -582,7 +582,7 @@
     "infoHolders": "Держатели",
     "infoHolderCount": "Число держателей",
     "infoTop10": "У топ-10",
-    "infoStats": "Статистика",
+    "infoStats": "Инфо о {symbol}",
     "infoMarketCap": "Капитализация",
     "infoVolume24h": "Объём за 24ч",
     "infoLiquidity": "Ликвидность",

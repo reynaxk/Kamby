@@ -582,7 +582,7 @@
     "infoHolders": "보유자",
     "infoHolderCount": "보유자 수",
     "infoTop10": "상위 10 보유",
-    "infoStats": "통계",
+    "infoStats": "{symbol} 정보",
     "infoMarketCap": "시가총액",
     "infoVolume24h": "24시간 거래량",
     "infoLiquidity": "유동성",

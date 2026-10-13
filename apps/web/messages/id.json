@@ -582,7 +582,7 @@
     "infoHolders": "Pemegang",
     "infoHolderCount": "Jumlah pemegang",
     "infoTop10": "Top 10 memegang",
-    "infoStats": "Statistik",
+    "infoStats": "Info tentang {symbol}",
     "infoMarketCap": "Kapitalisasi pasar",
     "infoVolume24h": "Volume 24j",
     "infoLiquidity": "Likuiditas",

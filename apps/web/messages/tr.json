@@ -582,7 +582,7 @@
     "infoHolders": "Sahipler",
     "infoHolderCount": "Sahip sayısı",
     "infoTop10": "İlk 10 tutuyor",
-    "infoStats": "İstatistikler",
+    "infoStats": "{symbol} hakkında bilgi",
     "infoMarketCap": "Piyasa değeri",
     "infoVolume24h": "24s hacim",
     "infoLiquidity": "Likidite",

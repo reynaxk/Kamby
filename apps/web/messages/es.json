@@ -582,7 +582,7 @@
     "infoHolders": "Holders",
     "infoHolderCount": "Número de holders",
     "infoTop10": "Top 10 poseen",
-    "infoStats": "Estadísticas",
+    "infoStats": "Info sobre {symbol}",
     "infoMarketCap": "Capitalización",
     "infoVolume24h": "Volumen 24h",
     "infoLiquidity": "Liquidez",

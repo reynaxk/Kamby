@@ -582,7 +582,7 @@
     "infoHolders": "持有人",
     "infoHolderCount": "持有人数",
     "infoTop10": "前10持有",
-    "infoStats": "统计",
+    "infoStats": "关于 {symbol} 的信息",
     "infoMarketCap": "市值",
     "infoVolume24h": "24小时成交量",
     "infoLiquidity": "流动性",
