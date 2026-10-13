@@ -7,7 +7,7 @@ import { cn } from '@kamby/ui';
 import { TokenLinks } from '@/components/terminal/TokenLinks';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import type { ChartSource } from '@/lib/chart-data';
-import { formatCompactCount, formatCompactUsd } from '@/lib/format';
+import { cashtag, formatCompactCount, formatCompactUsd } from '@/lib/format';
 import { launchpadFor } from '@/lib/launchpad';
 import { API_BASE } from '@/lib/session-client';
 import { useTokenStats } from '@/lib/use-live-price';
@@ -115,7 +115,7 @@ export function CoinInfoTab({
 
   return (
     <div className="flex flex-col gap-3">
-      <TokenLinks chain={chain} address={address} cardTitle={tL('aboutToken', { symbol: symbol ? `$${symbol}` : '' })} />
+      <TokenLinks chain={chain} address={address} cardTitle={tL('aboutToken', { symbol: symbol ? cashtag(symbol) : '' })} />
 
       {stats && (
         <Card
