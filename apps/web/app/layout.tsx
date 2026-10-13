@@ -27,6 +27,12 @@ const jetbrainsMono = JetBrains_Mono({
 /** Phone status bar and browser chrome in Kamby's background colour (installed app included). */
 export const viewport: Viewport = { themeColor: '#05070A' };
 
+/** iPhone screens (CSS px wide, tall, pixel ratio) — keep in step with scripts/gen-logo.cjs. */
+const IPHONE_LAUNCH_SCREENS: [number, number, number][] = [
+  [440, 956, 3], [430, 932, 3], [402, 874, 3], [393, 852, 3], [390, 844, 3],
+  [428, 926, 3], [414, 896, 3], [375, 812, 3], [414, 896, 2], [375, 667, 2],
+];
+
 export const metadata: Metadata = {
   // Required for the OG/Twitter image URLs Next.js builds from icon.png/opengraph-image.png
   // to resolve to a real, publicly-reachable address — without this, Next defaults to
@@ -37,7 +43,18 @@ export const metadata: Metadata = {
   title: 'Kamby',
   description: 'A social crypto discovery and trading platform.',
   // Installable app (see app/manifest.ts): full-screen on iPhone home screens too.
-  appleWebApp: { capable: true, title: 'Kamby', statusBarStyle: 'black-translucent' },
+  appleWebApp: {
+    capable: true,
+    title: 'Kamby',
+    statusBarStyle: 'black-translucent',
+    // iOS launch screens — the bare neon K on black, like Robinhood's and Phantom's (owner,
+    // 2026-10-13); also what stops the white flash before the app paints. Made by
+    // scripts/gen-logo.cjs, one per iPhone size.
+    startupImage: IPHONE_LAUNCH_SCREENS.map(([w, h, dpr]) => ({
+      url: `/brand/startup/kamby-${w * dpr}x${h * dpr}.png`,
+      media: `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)`,
+    })),
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

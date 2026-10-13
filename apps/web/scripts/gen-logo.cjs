@@ -35,6 +35,15 @@ const svgs = {
   badge: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${K('#FFFFFF', 1.25)}</svg>`,
 };
 
+/** The bare K — the launch screens' mark (no tile), like Robinhood's feather or Phantom's ghost. */
+const BARE_K = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${K(NEON)}</svg>`;
+/** iPhone launch screens (portrait, CSS px x DPR). The K is 52vw wide there and in AppSplash,
+ *  so iOS's native launch image and the in-app intro line up exactly. */
+const IPHONES = [
+  [440, 956, 3], [430, 932, 3], [402, 874, 3], [393, 852, 3], [390, 844, 3],
+  [428, 926, 3], [414, 896, 3], [375, 812, 3], [414, 896, 2], [375, 667, 2],
+];
+
 const outputs = [
   ['tile', 192, 'public/brand/kamby-app-icon-192.png'],
   ['tile', 512, 'public/brand/kamby-app-icon-512.png'],
@@ -59,5 +68,17 @@ const outputs = [
     await page.close();
     console.log('wrote', out, size);
   }
+  fs.mkdirSync(path.join(web, 'public/brand/startup'), { recursive: true });
+  const kUrl = 'data:image/svg+xml;base64,' + Buffer.from(BARE_K).toString('base64');
+  for (const [w, h, dpr] of IPHONES) {
+    const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr });
+    await page.setContent(`<html><body style="margin:0;height:100vh;background:${INK};display:flex;align-items:center;justify-content:center"><img src="${kUrl}" style="width:52vw;height:52vw;display:block"></body></html>`);
+    await page.waitForTimeout(150);
+    const out = `public/brand/startup/kamby-${w * dpr}x${h * dpr}.png`;
+    await page.screenshot({ path: path.join(web, out) });
+    await page.close();
+    console.log('wrote', out);
+  }
+  fs.writeFileSync(path.join(web, 'public/brand/kamby-k.svg'), BARE_K);
   await browser.close();
 })();
