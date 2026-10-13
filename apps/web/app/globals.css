@@ -42,6 +42,9 @@
   }
 }
 
+html {
+  background-color: rgb(5 7 10);
+}
 body {
   background-color: rgb(var(--kamby-bg));
   color: rgb(var(--kamby-ink-900));

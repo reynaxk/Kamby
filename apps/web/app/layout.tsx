@@ -43,12 +43,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`} style={{ backgroundColor: '#05070A', colorScheme: 'dark' }} suppressHydrationWarning>
       <head>
+        {/* Dark from the very first paint (2026-10-13: the app opened on a white page — the
+            light :root theme showed until a .kamby-void screen streamed in). */}
+        <meta name="color-scheme" content="dark" />
         {/* Decides before first paint whether the launch splash shows — see AppSplash. */}
         <script dangerouslySetInnerHTML={{ __html: SPLASH_GATE_SCRIPT }} />
       </head>
-      <body className="font-body antialiased">
+      <body className="kamby-void font-body antialiased">
         <AppSplash />
         <NextIntlClientProvider locale={locale} messages={messages}>
         <Providers>
