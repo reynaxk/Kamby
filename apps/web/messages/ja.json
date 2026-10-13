@@ -591,7 +591,16 @@
     "infoCreatedAgo": "{age}前",
     "infoLaunchpad": "ローンチパッド",
     "infoChain": "ブロックチェーン",
-    "infoContract": "コントラクトアドレス"
+    "infoContract": "コントラクトアドレス",
+    "viewPublicProfile": "公開プロフィールを見る →",
+    "xxxRiskNote": "超高リスク：作成10分未満・流動性がごくわずかで、Kambyの通常の安全チェック未満のコイン。ほとんどがゼロになります。",
+    "openToSell": "開いて売る →",
+    "referralsPitch": "このリンクから登録して取引した人の取引手数料の20%があなたに入ります — 定期的に支払われ、ここでリアルタイムに確認できます。",
+    "slowConfirmation": "通常より時間がかかっています — ネットワークが混雑中です。閉じても大丈夫です。取引は追跡を続け、取引履歴に表示されます。",
+    "tradeNotRecorded": "取引はネットワークに送信されましたが、記録できませんでした。",
+    "withdrawIrreversible": "ウォレットから実際の資金を送金し、取り消せません。アドレスをよく確認してください。",
+    "confirmAndSend": "確認して送金",
+    "toLabel": "宛先"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

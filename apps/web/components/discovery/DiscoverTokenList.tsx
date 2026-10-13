@@ -110,6 +110,7 @@ export function DiscoverTokenList({
    *  top bar, instead of the list scrolling inside its own box. */
   pageScroll?: boolean;
 }) {
+  const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const tLists = useTranslations('lists');
   const router = useRouter();
@@ -214,7 +215,7 @@ export function DiscoverTokenList({
     xxxrisk: (
       <>
         <p role="note" className="col-span-full mx-1 my-1 rounded-lg border border-down/40 bg-down/10 px-2 py-1.5 font-body text-[0.65rem] text-ink-900">
-          Extreme risk: coins under 10 minutes old with tiny liquidity, below Kamby&rsquo;s normal safety checks. Most go to zero.
+          {tL('xxxRiskNote')}
         </p>
         {(solanaShown ? feeds.xxxrisk?.tokens ?? [] : []).length === 0 ? (
           <p className="col-span-full p-3 font-body text-xs text-ink-400">{tU('nothingInRangeRightNow_ba3c')}</p>

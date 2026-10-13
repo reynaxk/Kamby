@@ -27,6 +27,7 @@ import { useTranslations } from 'next-intl';
  * what's actually, currently true.
  */
 export function MyPositionsPanel() {
+  const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const positions = useMyPositions();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export function MyPositionsPanel() {
                   vs. your {formatCompactUsd(position.costBasisUsd)} cost basis.
                   {position.chain === 'solana' && (
                     <a href={`/solana?mint=${position.tokenAddress}`} className="mt-2 block font-semibold text-accent hover:underline">
-                      Open to sell →
+                      {tL('openToSell')}
                     </a>
                   )}
                 </div>

@@ -591,7 +591,16 @@
     "infoCreatedAgo": "{age} lalu",
     "infoLaunchpad": "Launchpad",
     "infoChain": "Blockchain",
-    "infoContract": "Alamat kontrak"
+    "infoContract": "Alamat kontrak",
+    "viewPublicProfile": "Lihat profil publikmu →",
+    "xxxRiskNote": "Risiko ekstrem: koin berumur kurang dari 10 menit dengan likuiditas sangat kecil, di bawah pemeriksaan normal Kamby. Kebanyakan jatuh ke nol.",
+    "openToSell": "Buka untuk menjual →",
+    "referralsPitch": "Siapa pun yang trading setelah mendaftar lewat tautan ini memberimu 20% biaya platform Kamby dari tradingnya — dibayar berkala, dipantau di sini secara real time.",
+    "slowConfirmation": "Lebih lama dari biasanya — jaringan sedang sibuk. Aman untuk menutup ini; kami terus memantau trading dan akan muncul di Trading kamu.",
+    "tradeNotRecorded": "Trading kamu sudah dikirim ke jaringan, tapi kami gagal mencatatnya.",
+    "withdrawIrreversible": "Ini mengirim dana sungguhan langsung dari dompetmu dan tidak bisa dibatalkan. Periksa lagi alamatnya.",
+    "confirmAndSend": "Konfirmasi & kirim",
+    "toLabel": "Ke"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

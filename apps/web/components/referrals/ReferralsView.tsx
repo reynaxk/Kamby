@@ -18,6 +18,7 @@ type State = 'loading' | 'loaded' | 'error';
  * lib/referrals-client.ts.
  */
 export function ReferralsView() {
+  const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const [state, setState] = useState<State>('loading');
   const [summary, setSummary] = useState<ReferralSummaryDto | null>(null);
@@ -70,8 +71,7 @@ export function ReferralsView() {
           {copied ? tU('copied_6d6d') : tU('copyLink_b758')}
         </Button>
         <p className="font-body text-xs text-ink-400">
-          Anyone who trades after signing up through this link earns you 20% of Kamby&apos;s platform fee on
-          their trades — paid out periodically, tracked here in real time.
+          {tL('referralsPitch')}
         </p>
       </Surface>
 

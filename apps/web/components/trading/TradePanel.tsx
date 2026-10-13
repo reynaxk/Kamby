@@ -737,7 +737,7 @@ export function TradePanel({
       <Panel title={tU('trade_5f39')} onClose={onClose} animKey="record-failed">
         <div className="space-y-3 text-center">
           <p className="font-body text-sm font-semibold text-down">
-            Your trade was sent to the network, but we couldn&apos;t record it.
+            {tL('tradeNotRecorded')}
           </p>
           {flowError && <p className="font-body text-xs text-ink-600">{flowError}</p>}
           {explorerUrl && (

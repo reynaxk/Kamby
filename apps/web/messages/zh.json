@@ -591,7 +591,16 @@
     "infoCreatedAgo": "{age}前",
     "infoLaunchpad": "发射平台",
     "infoChain": "区块链",
-    "infoContract": "合约地址"
+    "infoContract": "合约地址",
+    "viewPublicProfile": "查看公开主页 →",
+    "xxxRiskNote": "极高风险：上线不到 10 分钟、流动性极小、低于 Kamby 常规安全检查的币。大多数会归零。",
+    "openToSell": "打开以卖出 →",
+    "referralsPitch": "通过此链接注册并交易的人，其交易的 Kamby 平台费有 20% 归你——定期发放，在此实时统计。",
+    "slowConfirmation": "比平时慢——网络繁忙。可以放心关闭；我们会继续跟踪，交易会出现在你的交易记录中。",
+    "tradeNotRecorded": "你的交易已发送到网络，但我们没能记录下来。",
+    "withdrawIrreversible": "这会直接从你的钱包转出真实资金，且无法撤回。请再次核对地址。",
+    "confirmAndSend": "确认并发送",
+    "toLabel": "至"
   },
   "notif": {
     "kind_FOLLOW": "关注",

@@ -141,6 +141,7 @@ function useSolanaNativeBalance(solanaAddress: string | undefined): bigint | nul
  * unable to pay for its own transaction.
  */
 export function SendModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const tAuth = useTranslations('auth');
@@ -443,18 +444,18 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             <Row label={tU('network_eec8')} value={chain.name} />
             <Row label={tU('asset_26e9')} value={asset.symbol} />
             <Row label={tU('amount_b2f4')} value={`${formatUnits(amountRaw, tokenDecimals)} ${asset.symbol}`} />
-            <Row label="To" value={destination.trim()} mono />
+            <Row label={tL('toLabel')} value={destination.trim()} mono />
           </div>
           {needsMove && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}
           <p className="font-body text-xs text-down">
-            This sends real funds directly from your wallet and can&rsquo;t be reversed. Double-check the address.
+            {tL('withdrawIrreversible')}
           </p>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" className="flex-1" onClick={() => setStep('form')}>
               {tU('back_0557')}
             </Button>
             <Button type="button" className="flex-1" onClick={() => void confirmSend()}>
-              Confirm &amp; Send
+              {tL('confirmAndSend')}
             </Button>
           </div>
         </div>

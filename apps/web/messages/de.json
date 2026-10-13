@@ -591,7 +591,16 @@
     "infoCreatedAgo": "vor {age}",
     "infoLaunchpad": "Launchpad",
     "infoChain": "Blockchain",
-    "infoContract": "Kontraktadresse"
+    "infoContract": "Kontraktadresse",
+    "viewPublicProfile": "Öffentliches Profil ansehen →",
+    "xxxRiskNote": "Extremes Risiko: Coins unter 10 Minuten alt mit winziger Liquidität, unter Kambys üblichen Sicherheitsprüfungen. Die meisten fallen auf null.",
+    "openToSell": "Zum Verkaufen öffnen →",
+    "referralsPitch": "Wer sich über diesen Link anmeldet und handelt, bringt dir 20 % von Kambys Plattformgebühr auf seine Trades — regelmäßig ausgezahlt, hier live verfolgt.",
+    "slowConfirmation": "Dauert länger als üblich — das Netzwerk ist ausgelastet. Du kannst das schließen; wir verfolgen den Trade weiter und er erscheint in deinen Trades.",
+    "tradeNotRecorded": "Dein Trade wurde gesendet, konnte aber nicht erfasst werden.",
+    "withdrawIrreversible": "Das sendet echtes Geld direkt aus deiner Wallet und lässt sich nicht rückgängig machen. Prüfe die Adresse genau.",
+    "confirmAndSend": "Bestätigen & senden",
+    "toLabel": "An"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

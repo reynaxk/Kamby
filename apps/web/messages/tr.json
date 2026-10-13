@@ -591,7 +591,16 @@
     "infoCreatedAgo": "{age} önce",
     "infoLaunchpad": "Launchpad",
     "infoChain": "Blokzincir",
-    "infoContract": "Kontrat adresi"
+    "infoContract": "Kontrat adresi",
+    "viewPublicProfile": "Herkese açık profilini gör →",
+    "xxxRiskNote": "Aşırı risk: 10 dakikadan genç, çok az likiditeli, Kamby’nin normal güvenlik kontrollerinin altındaki coinler. Çoğu sıfıra iner.",
+    "openToSell": "Satmak için aç →",
+    "referralsPitch": "Bu bağlantıyla kaydolup işlem yapan herkes, işlemlerindeki Kamby ücretinin %20’sini sana kazandırır — dönemsel ödenir, burada canlı izlenir.",
+    "slowConfirmation": "Her zamankinden uzun sürüyor — ağ yoğun. Kapatabilirsin; işlemi izlemeye devam ediyoruz, İşlemlerinde görünecek.",
+    "tradeNotRecorded": "İşlemin ağa gönderildi ama kaydedemedik.",
+    "withdrawIrreversible": "Bu, cüzdanından gerçek parayı doğrudan gönderir ve geri alınamaz. Adresi iki kez kontrol et.",
+    "confirmAndSend": "Onayla ve gönder",
+    "toLabel": "Alıcı"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

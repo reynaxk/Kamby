@@ -26,6 +26,7 @@ const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
  * also what the onboarding prompt (see OnboardingPrompt.tsx) opens into.
  */
 export function ProfileEditor() {
+  const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const { address } = useAccount();
   const [state, setState] = useState<State>('loading');
@@ -196,7 +197,7 @@ export function ProfileEditor() {
           href={`/trader/${address}`}
           className="font-body text-sm text-accent hover:underline"
         >
-          View your public profile →
+          {tL('viewPublicProfile')}
         </Link>
       )}
     </div>

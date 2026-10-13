@@ -591,7 +591,16 @@
     "infoCreatedAgo": "há {age}",
     "infoLaunchpad": "Launchpad",
     "infoChain": "Blockchain",
-    "infoContract": "Endereço do contrato"
+    "infoContract": "Endereço do contrato",
+    "viewPublicProfile": "Ver seu perfil público →",
+    "xxxRiskNote": "Risco extremo: moedas com menos de 10 minutos e liquidez mínima, abaixo das verificações normais da Kamby. A maioria vai a zero.",
+    "openToSell": "Abrir para vender →",
+    "referralsPitch": "Quem negociar depois de se cadastrar por este link rende a você 20% da taxa da Kamby nas negociações dele — pago periodicamente, acompanhado aqui em tempo real.",
+    "slowConfirmation": "Demorando mais que o normal — a rede está congestionada. Pode fechar; seguimos acompanhando e a negociação aparece em Negociações.",
+    "tradeNotRecorded": "Sua negociação foi enviada à rede, mas não conseguimos registrá-la.",
+    "withdrawIrreversible": "Isso envia fundos reais direto da sua carteira e não pode ser desfeito. Confira o endereço.",
+    "confirmAndSend": "Confirmar e enviar",
+    "toLabel": "Para"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",

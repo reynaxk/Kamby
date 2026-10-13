@@ -591,7 +591,16 @@
     "infoCreatedAgo": "{age} 전",
     "infoLaunchpad": "런치패드",
     "infoChain": "블록체인",
-    "infoContract": "컨트랙트 주소"
+    "infoContract": "컨트랙트 주소",
+    "viewPublicProfile": "공개 프로필 보기 →",
+    "xxxRiskNote": "극고위험: 생성 10분 미만, 유동성이 매우 적어 Kamby의 일반 안전 점검 기준에 못 미치는 코인. 대부분 0이 됩니다.",
+    "openToSell": "열어서 팔기 →",
+    "referralsPitch": "이 링크로 가입해 거래하는 사람의 Kamby 수수료 20%가 당신에게 — 정기적으로 지급되며 여기서 실시간으로 확인돼요.",
+    "slowConfirmation": "평소보다 오래 걸려요 — 네트워크가 혼잡해요. 닫아도 괜찮아요. 거래를 계속 추적하며 거래 내역에 표시돼요.",
+    "tradeNotRecorded": "거래는 네트워크로 전송됐지만 기록하지 못했어요.",
+    "withdrawIrreversible": "지갑에서 실제 자금을 보내며 되돌릴 수 없어요. 주소를 다시 확인하세요.",
+    "confirmAndSend": "확인 후 보내기",
+    "toLabel": "받는 곳"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

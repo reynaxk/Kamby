@@ -591,7 +591,16 @@
     "infoCreatedAgo": "{age} trước",
     "infoLaunchpad": "Launchpad",
     "infoChain": "Blockchain",
-    "infoContract": "Địa chỉ hợp đồng"
+    "infoContract": "Địa chỉ hợp đồng",
+    "viewPublicProfile": "Xem hồ sơ công khai →",
+    "xxxRiskNote": "Rủi ro cực cao: coin dưới 10 phút tuổi, thanh khoản rất nhỏ, dưới mức kiểm tra an toàn thông thường của Kamby. Phần lớn về 0.",
+    "openToSell": "Mở để bán →",
+    "referralsPitch": "Ai giao dịch sau khi đăng ký qua liên kết này sẽ mang lại cho bạn 20% phí nền tảng Kamby từ giao dịch của họ — trả định kỳ, theo dõi trực tiếp tại đây.",
+    "slowConfirmation": "Lâu hơn bình thường — mạng đang bận. Bạn có thể đóng; chúng tôi vẫn theo dõi và giao dịch sẽ hiện trong mục Giao dịch.",
+    "tradeNotRecorded": "Giao dịch đã gửi lên mạng, nhưng chúng tôi không ghi lại được.",
+    "withdrawIrreversible": "Thao tác này gửi tiền thật từ ví của bạn và không thể hoàn tác. Kiểm tra kỹ địa chỉ.",
+    "confirmAndSend": "Xác nhận & gửi",
+    "toLabel": "Đến"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",
