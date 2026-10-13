@@ -1,9 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kamby"><defs><linearGradient id="g" x1="80" y1="40" x2="440" y2="480" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#00FF87"/><stop offset="0.55" stop-color="#00F0B5"/><stop offset="1" stop-color="#00D9FF"/></linearGradient></defs>
-  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#g)"/>
-  <g fill="#05070A" transform="translate(-18 4)">
-    <path d="M128 104h88v304h-88z"/>
-    <path d="M216 252 L340 128 L312 112 L414 96 L398 198 L382 172 L266 288 Z"/>
-    <path d="M252 276 L310 228 L420 408 H322 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kamby">
+  <rect x="16" y="16" width="480" height="480" rx="132" fill="#05070A"/>
+  <rect x="16.5" y="16.5" width="479" height="479" rx="131.5" fill="none" stroke="#1E2230"/>
+  <g transform="translate(256 256) scale(1) translate(-256 -256)" fill="none" stroke="#00FF87" stroke-width="92" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M186 140 V372"/><path d="M200 268 L338 140"/><path d="M232 246 L346 372"/>
   </g>
 </svg>
