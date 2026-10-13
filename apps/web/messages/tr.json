@@ -114,7 +114,11 @@
     "hideBalances": "Bakiyeleri gizle",
     "invalidAmount": "Geçerli bir tutar gir.",
     "minimumWithdrawal": "Minimum çekim ${amount} (ya da bakiyenin tamamı).",
-    "exceedsBalance": "Tutar bakiyeni aşıyor."
+    "exceedsBalance": "Tutar bakiyeni aşıyor.",
+    "amountOf": "Tutar ({symbol})",
+    "balanceN": "Bakiye: {n}",
+    "invalidAddressFor": "Bu geçerli bir {chain} adresine benzemiyor.",
+    "viewOn": "{explorer} üzerinde gör →"
   },
   "account": {
     "title": "Profilin",
@@ -172,7 +176,9 @@
     "close": "Kapat",
     "copied": "Kopyalandı!",
     "copyAddress": "Adresi kopyala",
-    "sendOnly": "Bu adrese sadece <b>{network}</b> ağında <b>USDC</b> gönder. Diğer coinler ya da ağlar kaybolabilir."
+    "sendOnly": "Bu adrese sadece <b>{network}</b> ağında <b>USDC</b> gönder. Diğer coinler ya da ağlar kaybolabilir.",
+    "otherWays": "← Para eklemenin diğer yolları",
+    "settingUpChain": "{chain} cüzdanın hazırlanıyor…"
   },
   "leaderboard": {
     "title": "Liderlik tablosu",

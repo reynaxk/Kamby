@@ -32,7 +32,9 @@ import {
   type SendChainOption,
 } from '@/lib/send';
 import { friendlyError } from '@/lib/friendly-error';
+import { Check } from 'lucide-react';
 import { TradeModal } from '../trading/TradeModal';
+import { ModalHeader, WithdrawGlyph } from './ModalHeader';
 import { ConnectWalletButton } from './ConnectWalletButton';
 import { useTranslations } from 'next-intl';
 
@@ -291,12 +293,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <TradeModal open={open} onClose={close}>
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-base font-bold text-ink-900">{tW('withdraw')}</h2>
-        <button type="button" onClick={close} className="font-body text-sm text-ink-400 hover:text-ink-900">
-          {tU('close_d3d2')}
-        </button>
-      </div>
+      <ModalHeader icon={<WithdrawGlyph />} title={tW('withdraw')} onClose={close} closeLabel={tU('close_d3d2')} />
 
       {step === 'form' && (
         <div className="mt-4 flex flex-col gap-4">
@@ -309,7 +306,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                   type="button"
                   onClick={() => setChain(c)}
                   className={cn(
-                    'flex-1 rounded-lg border px-2 py-1.5 font-body text-xs font-semibold transition-colors',
+                    'flex-1 rounded-full border px-2 py-2 font-body text-xs font-semibold transition-colors active:scale-[0.97]',
                     chain.slug === c.slug
                       ? 'border-accent bg-accent/15 text-accent'
                       : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
@@ -330,7 +327,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                   type="button"
                   onClick={() => setAsset(a)}
                   className={cn(
-                    'flex-1 rounded-lg border px-2 py-1.5 font-body text-xs font-semibold transition-colors',
+                    'flex-1 rounded-full border px-2 py-2 font-body text-xs font-semibold transition-colors active:scale-[0.97]',
                     asset.symbol === a.symbol
                       ? 'border-accent bg-accent/15 text-accent'
                       : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
@@ -359,9 +356,9 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
               )}
               <div>
                 <div className="flex items-center justify-between font-body text-xs text-ink-600">
-                  <span>Amount ({asset.symbol})</span>
+                  <span>{tW('amountOf', { symbol: asset.symbol })}</span>
                   {balance !== null && tokenDecimals !== null && (
-                    <span>Balance: {Number(formatUnits(balance, tokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })}</span>
+                    <span>{tW('balanceN', { n: Number(formatUnits(balance, tokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 }) })}</span>
                   )}
                 </div>
                 <div className="mt-1 flex items-center gap-2">
@@ -374,13 +371,13 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                       const raw = e.target.value;
                       if (raw === '' || /^\d*\.?\d*$/.test(raw)) setAmountDisplay(raw);
                     }}
-                    className="w-full rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-lg text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
+                    className="w-full rounded-2xl border border-white/10 bg-bg px-4 py-3.5 font-display text-3xl font-bold tabular-nums text-ink-900 placeholder:text-ink-400 focus:border-accent/60 focus:outline-none"
                   />
                   <button
                     type="button"
                     disabled={balance === null || tokenDecimals === null}
                     onClick={() => void applyMax()}
-                    className="shrink-0 rounded-lg bg-surface-raised px-3 py-2.5 font-body text-xs font-medium text-ink-600 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="shrink-0 rounded-full bg-accent/15 px-4 py-2.5 font-display text-xs font-bold text-accent active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {tU('max_6a06')}
                   </button>
@@ -408,7 +405,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                   className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2.5 font-mono text-sm text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
                 />
                 {destination.trim().length > 0 && !destinationValid && (
-                  <p className="mt-1 font-body text-xs text-down">That doesn&rsquo;t look like a valid {chain.name} address.</p>
+                  <p className="mt-1 font-body text-xs text-down">{tW('invalidAddressFor', { chain: chain.name })}</p>
                 )}
               </div>
 
@@ -450,14 +447,17 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
       {step === 'confirmed' && txResult && (
         <div className="mt-6 flex flex-col items-center gap-3 py-4 text-center">
-          <p className="font-display text-sm font-semibold text-up">{tU('sent_7f8c')}</p>
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-black">
+            <Check className="h-8 w-8" strokeWidth={3} aria-hidden />
+          </span>
+          <p className="font-display text-lg font-bold text-ink-900">{tU('sent_7f8c')}</p>
           <a
             href={chain.txExplorerUrl(txResult)}
             target="_blank"
             rel="noreferrer"
             className="font-body text-xs text-accent underline-offset-2 hover:underline"
           >
-            View on {chain.explorerName} →
+            {tW('viewOn', { explorer: chain.explorerName })}
           </a>
           <Button type="button" className="w-full" onClick={close}>
             {tU('done_f929')}

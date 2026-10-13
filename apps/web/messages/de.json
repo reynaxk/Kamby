@@ -114,7 +114,11 @@
     "hideBalances": "Guthaben verbergen",
     "invalidAmount": "Gib einen gültigen Betrag ein.",
     "minimumWithdrawal": "Mindestauszahlung ${amount} (oder dein gesamtes Guthaben).",
-    "exceedsBalance": "Betrag übersteigt dein Guthaben."
+    "exceedsBalance": "Betrag übersteigt dein Guthaben.",
+    "amountOf": "Betrag ({symbol})",
+    "balanceN": "Guthaben: {n}",
+    "invalidAddressFor": "Das sieht nicht nach einer gültigen {chain}-Adresse aus.",
+    "viewOn": "Auf {explorer} ansehen →"
   },
   "account": {
     "title": "Dein Profil",
@@ -172,7 +176,9 @@
     "close": "Schließen",
     "copied": "Kopiert!",
     "copyAddress": "Adresse kopieren",
-    "sendOnly": "Sende nur <b>USDC</b> auf <b>{network}</b> an diese Adresse. Andere Coins oder Netzwerke können verloren gehen."
+    "sendOnly": "Sende nur <b>USDC</b> auf <b>{network}</b> an diese Adresse. Andere Coins oder Netzwerke können verloren gehen.",
+    "otherWays": "← Andere Wege zum Aufladen",
+    "settingUpChain": "Deine {chain}-Wallet wird eingerichtet…"
   },
   "leaderboard": {
     "title": "Bestenliste",

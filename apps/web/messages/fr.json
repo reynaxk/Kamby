@@ -114,7 +114,11 @@
     "hideBalances": "Masquer les soldes",
     "invalidAmount": "Saisissez un montant valide.",
     "minimumWithdrawal": "Retrait minimum ${amount} (ou la totalité du solde).",
-    "exceedsBalance": "Le montant dépasse votre solde."
+    "exceedsBalance": "Le montant dépasse votre solde.",
+    "amountOf": "Montant ({symbol})",
+    "balanceN": "Solde : {n}",
+    "invalidAddressFor": "Ce n’est pas une adresse {chain} valide.",
+    "viewOn": "Voir sur {explorer} →"
   },
   "account": {
     "title": "Votre profil",
@@ -172,7 +176,9 @@
     "close": "Fermer",
     "copied": "Copié !",
     "copyAddress": "Copier l’adresse",
-    "sendOnly": "Envoyez uniquement des <b>USDC</b> sur <b>{network}</b> à cette adresse. D’autres coins ou réseaux peuvent être perdus."
+    "sendOnly": "Envoyez uniquement des <b>USDC</b> sur <b>{network}</b> à cette adresse. D’autres coins ou réseaux peuvent être perdus.",
+    "otherWays": "← Autres façons d’ajouter des fonds",
+    "settingUpChain": "Préparation de ton portefeuille {chain}…"
   },
   "leaderboard": {
     "title": "Classement",

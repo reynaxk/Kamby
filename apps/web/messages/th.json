@@ -114,7 +114,11 @@
     "hideBalances": "ซ่อนยอดเงิน",
     "invalidAmount": "กรอกจำนวนที่ถูกต้อง",
     "minimumWithdrawal": "ถอนขั้นต่ำ ${amount} (หรือยอดทั้งหมด)",
-    "exceedsBalance": "จำนวนเกินยอดคงเหลือ"
+    "exceedsBalance": "จำนวนเกินยอดคงเหลือ",
+    "amountOf": "จำนวน ({symbol})",
+    "balanceN": "ยอดคงเหลือ: {n}",
+    "invalidAddressFor": "ดูเหมือนไม่ใช่ที่อยู่ {chain} ที่ถูกต้อง",
+    "viewOn": "ดูบน {explorer} →"
   },
   "account": {
     "title": "โปรไฟล์ของคุณ",
@@ -172,7 +176,9 @@
     "close": "ปิด",
     "copied": "คัดลอกแล้ว!",
     "copyAddress": "คัดลอกที่อยู่",
-    "sendOnly": "ส่งเฉพาะ <b>USDC</b> บนเครือข่าย <b>{network}</b> มาที่อยู่นี้ เหรียญหรือเครือข่ายอื่นอาจสูญหายได้"
+    "sendOnly": "ส่งเฉพาะ <b>USDC</b> บนเครือข่าย <b>{network}</b> มาที่อยู่นี้ เหรียญหรือเครือข่ายอื่นอาจสูญหายได้",
+    "otherWays": "← วิธีเติมเงินอื่นๆ",
+    "settingUpChain": "กำลังเตรียมกระเป๋า {chain} ของคุณ…"
   },
   "leaderboard": {
     "title": "อันดับ",

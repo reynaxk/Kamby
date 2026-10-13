@@ -11,7 +11,9 @@ import { useAccount } from 'wagmi';
 import { fetchEvmChainConfigs } from '@/lib/market-client';
 import { assetsForChain, SEND_CHAINS, type SendChainOption, type SendChainSlug } from '@/lib/send';
 import { TradeModal } from '../trading/TradeModal';
+import { ChevronRight, CreditCard } from 'lucide-react';
 import { ConnectWalletButton } from './ConnectWalletButton';
+import { DepositGlyph, ModalHeader } from './ModalHeader';
 import { useTranslations } from 'next-intl';
 
 type Step = 'choose' | 'deposit' | 'buy' | 'error';
@@ -100,7 +102,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
             type="button"
             onClick={() => setChain(c)}
             className={cn(
-              'flex-1 rounded-lg border px-2 py-1.5 font-body text-xs font-semibold transition-colors',
+              'flex-1 rounded-full border px-2 py-2 font-body text-xs font-semibold transition-colors active:scale-[0.97]',
               chain.slug === c.slug
                 ? 'border-accent bg-accent/15 text-accent'
                 : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
@@ -115,18 +117,13 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
 
   const back = (
     <button type="button" onClick={() => setStep('choose')} className="font-body text-xs text-ink-400 hover:text-ink-900">
-      ← Other ways to add funds
+      {tF('otherWays')}
     </button>
   );
 
   return (
     <TradeModal open={open} onClose={close}>
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-base font-bold text-ink-900">{step === 'buy' ? tF('buyUsdc') : tF('deposit')}</h2>
-        <button type="button" onClick={close} className="font-body text-sm text-ink-400 hover:text-ink-900">
-          {tF('close')}
-        </button>
-      </div>
+      <ModalHeader icon={step === 'buy' ? <CreditCard className="h-5 w-5" aria-hidden /> : <DepositGlyph />} title={step === 'buy' ? tF('buyUsdc') : tF('deposit')} onClose={close} closeLabel={tF('close')} />
 
       {!authenticated ? (
         <div className="mt-4">
@@ -136,8 +133,9 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : step === 'choose' ? (
         <div className="mt-4 flex flex-col gap-2">
-          <MethodButton title={tF('depositUsdc')} detail={tF('depositUsdcDetail')} onClick={() => setStep('deposit')} />
+          <MethodButton icon={<DepositGlyph />} title={tF('depositUsdc')} detail={tF('depositUsdcDetail')} onClick={() => setStep('deposit')} />
           <MethodButton
+            icon={<CreditCard className="h-5 w-5" aria-hidden />}
             title={tF('buyWithCard')}
             detail={tF('buyWithCardDetail')}
             onClick={() => setStep('buy')}
@@ -149,7 +147,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
           {depositAddress ? (
             <DepositAddress address={depositAddress} networkName={chain.name} />
           ) : (
-            <p className="font-body text-sm text-ink-600">Setting up your {chain.name} wallet…</p>
+            <p className="font-body text-sm text-ink-600">{tF('settingUpChain', { chain: chain.name })}</p>
           )}
           {back}
         </div>
@@ -193,11 +191,19 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
   );
 }
 
-function MethodButton({ title, detail, onClick }: { title: string; detail: string; onClick: () => void }) {
+function MethodButton({ icon, title, detail, onClick }: { icon: React.ReactNode; title: string; detail: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="rounded-xl border border-line bg-surface-raised px-4 py-3 text-left transition-colors hover:border-accent/60">
-      <div className="font-display text-sm font-semibold text-ink-900">{title}</div>
-      <div className="mt-0.5 font-body text-xs text-ink-600">{detail}</div>
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-surface-raised px-4 py-3.5 text-left transition-[transform,border-color] hover:border-accent/50 active:scale-[0.98]"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-display text-sm font-bold text-ink-900">{title}</span>
+        <span className="mt-0.5 block font-body text-xs text-ink-600">{detail}</span>
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
     </button>
   );
 }
@@ -222,9 +228,9 @@ function DepositAddress({ address, networkName }: { address: string; networkName
     <div className="flex flex-col items-center gap-3">
       {qr && (
         // eslint-disable-next-line @next/next/no-img-element -- a generated data: URL
-        <img src={qr} alt={`QR code for your ${networkName} address`} className="h-40 w-40 rounded-lg bg-white p-1.5" />
+        <img src={qr} alt={`QR code for your ${networkName} address`} className="h-44 w-44 rounded-2xl bg-white p-2.5" />
       )}
-      <div className="w-full break-all rounded-lg border border-line bg-surface-raised px-3 py-2 text-center font-mono text-xs text-ink-900">{address}</div>
+      <div className="w-full break-all rounded-2xl border border-white/10 bg-surface-raised px-3 py-2.5 text-center font-mono text-xs text-ink-900">{address}</div>
       <Button
         type="button"
         className="w-full"

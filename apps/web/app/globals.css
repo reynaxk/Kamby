@@ -485,3 +485,19 @@ body:has(.kamby-void) {
     backdrop-filter: none;
   }
 }
+
+/* Bottom sheets slide up; their backdrop fades (transform/opacity of the overlay only — the
+   sheet's own content is never invisible). */
+@keyframes kamby-sheet-up {
+  from { transform: translateY(100%); }
+}
+@keyframes kamby-fade-in {
+  from { opacity: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kamby-sheet-up { animation: kamby-sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .kamby-fade-in { animation: kamby-fade-in 0.2s ease-out; }
+}
+@media (min-width: 640px) {
+  .kamby-sheet-up { animation: none; }
+}

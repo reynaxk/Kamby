@@ -114,7 +114,11 @@
     "hideBalances": "Sembunyikan saldo",
     "invalidAmount": "Masukkan jumlah yang valid.",
     "minimumWithdrawal": "Penarikan minimal ${amount} (atau seluruh saldo).",
-    "exceedsBalance": "Jumlah melebihi saldo."
+    "exceedsBalance": "Jumlah melebihi saldo.",
+    "amountOf": "Jumlah ({symbol})",
+    "balanceN": "Saldo: {n}",
+    "invalidAddressFor": "Itu bukan alamat {chain} yang valid.",
+    "viewOn": "Lihat di {explorer} →"
   },
   "account": {
     "title": "Profilmu",
@@ -172,7 +176,9 @@
     "close": "Tutup",
     "copied": "Tersalin!",
     "copyAddress": "Salin alamat",
-    "sendOnly": "Kirim hanya <b>USDC</b> di jaringan <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang."
+    "sendOnly": "Kirim hanya <b>USDC</b> di jaringan <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang.",
+    "otherWays": "← Cara lain menambah dana",
+    "settingUpChain": "Menyiapkan dompet {chain} kamu…"
   },
   "leaderboard": {
     "title": "Peringkat",

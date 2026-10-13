@@ -114,7 +114,11 @@
     "hideBalances": "Hide balances",
     "invalidAmount": "Enter a valid amount.",
     "minimumWithdrawal": "Minimum withdrawal is ${amount} (or your full balance).",
-    "exceedsBalance": "Amount exceeds your balance."
+    "exceedsBalance": "Amount exceeds your balance.",
+    "amountOf": "Amount ({symbol})",
+    "balanceN": "Balance: {n}",
+    "invalidAddressFor": "That doesn’t look like a valid {chain} address.",
+    "viewOn": "View on {explorer} →"
   },
   "account": {
     "title": "Your profile",
@@ -172,7 +176,9 @@
     "close": "Close",
     "copied": "Copied!",
     "copyAddress": "Copy address",
-    "sendOnly": "Send only <b>USDC</b> on <b>{network}</b> to this address. Other coins or networks can be lost."
+    "sendOnly": "Send only <b>USDC</b> on <b>{network}</b> to this address. Other coins or networks can be lost.",
+    "otherWays": "← Other ways to add funds",
+    "settingUpChain": "Setting up your {chain} wallet…"
   },
   "leaderboard": {
     "title": "Leaderboard",

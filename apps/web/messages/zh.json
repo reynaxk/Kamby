@@ -114,7 +114,11 @@
     "hideBalances": "隐藏余额",
     "invalidAmount": "请输入有效金额。",
     "minimumWithdrawal": "最低提现 ${amount}（或全部余额）。",
-    "exceedsBalance": "金额超过你的余额。"
+    "exceedsBalance": "金额超过你的余额。",
+    "amountOf": "金额（{symbol}）",
+    "balanceN": "余额：{n}",
+    "invalidAddressFor": "这看起来不是有效的 {chain} 地址。",
+    "viewOn": "在 {explorer} 查看 →"
   },
   "account": {
     "title": "我的资料",
@@ -172,7 +176,9 @@
     "close": "关闭",
     "copied": "已复制！",
     "copyAddress": "复制地址",
-    "sendOnly": "请只向此地址发送 <b>{network}</b> 上的 <b>USDC</b>。其他币种或网络可能会丢失。"
+    "sendOnly": "请只向此地址发送 <b>{network}</b> 上的 <b>USDC</b>。其他币种或网络可能会丢失。",
+    "otherWays": "← 其他充值方式",
+    "settingUpChain": "正在设置你的 {chain} 钱包…"
   },
   "leaderboard": {
     "title": "排行榜",

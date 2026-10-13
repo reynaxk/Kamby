@@ -114,7 +114,11 @@
     "hideBalances": "Ocultar saldos",
     "invalidAmount": "Introduce un monto válido.",
     "minimumWithdrawal": "El retiro mínimo es ${amount} (o tu saldo completo).",
-    "exceedsBalance": "El monto supera tu saldo."
+    "exceedsBalance": "El monto supera tu saldo.",
+    "amountOf": "Cantidad ({symbol})",
+    "balanceN": "Saldo: {n}",
+    "invalidAddressFor": "Eso no parece una dirección válida de {chain}.",
+    "viewOn": "Ver en {explorer} →"
   },
   "account": {
     "title": "Tu perfil",
@@ -172,7 +176,9 @@
     "close": "Cerrar",
     "copied": "¡Copiado!",
     "copyAddress": "Copiar dirección",
-    "sendOnly": "Envía solo <b>USDC</b> en <b>{network}</b> a esta dirección. Otras monedas o redes pueden perderse."
+    "sendOnly": "Envía solo <b>USDC</b> en <b>{network}</b> a esta dirección. Otras monedas o redes pueden perderse.",
+    "otherWays": "← Otras formas de añadir fondos",
+    "settingUpChain": "Preparando tu billetera de {chain}…"
   },
   "leaderboard": {
     "title": "Ranking",

@@ -114,7 +114,11 @@
     "hideBalances": "Скрыть балансы",
     "invalidAmount": "Введите корректную сумму.",
     "minimumWithdrawal": "Минимальный вывод — ${amount} (или весь баланс).",
-    "exceedsBalance": "Сумма превышает баланс."
+    "exceedsBalance": "Сумма превышает баланс.",
+    "amountOf": "Сумма ({symbol})",
+    "balanceN": "Баланс: {n}",
+    "invalidAddressFor": "Это не похоже на адрес {chain}.",
+    "viewOn": "Открыть в {explorer} →"
   },
   "account": {
     "title": "Ваш профиль",
@@ -172,7 +176,9 @@
     "close": "Закрыть",
     "copied": "Скопировано!",
     "copyAddress": "Скопировать адрес",
-    "sendOnly": "Отправляйте на этот адрес только <b>USDC</b> в сети <b>{network}</b>. Другие монеты или сети могут быть потеряны."
+    "sendOnly": "Отправляйте на этот адрес только <b>USDC</b> в сети <b>{network}</b>. Другие монеты или сети могут быть потеряны.",
+    "otherWays": "← Другие способы пополнения",
+    "settingUpChain": "Готовим твой кошелёк {chain}…"
   },
   "leaderboard": {
     "title": "Таблица лидеров",

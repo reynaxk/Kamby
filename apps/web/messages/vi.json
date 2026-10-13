@@ -114,7 +114,11 @@
     "hideBalances": "Ẩn số dư",
     "invalidAmount": "Nhập số tiền hợp lệ.",
     "minimumWithdrawal": "Rút tối thiểu ${amount} (hoặc toàn bộ số dư).",
-    "exceedsBalance": "Số tiền vượt quá số dư."
+    "exceedsBalance": "Số tiền vượt quá số dư.",
+    "amountOf": "Số lượng ({symbol})",
+    "balanceN": "Số dư: {n}",
+    "invalidAddressFor": "Đó không giống địa chỉ {chain} hợp lệ.",
+    "viewOn": "Xem trên {explorer} →"
   },
   "account": {
     "title": "Hồ sơ của bạn",
@@ -172,7 +176,9 @@
     "close": "Đóng",
     "copied": "Đã sao chép!",
     "copyAddress": "Sao chép địa chỉ",
-    "sendOnly": "Chỉ gửi <b>USDC</b> trên mạng <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất."
+    "sendOnly": "Chỉ gửi <b>USDC</b> trên mạng <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất.",
+    "otherWays": "← Cách nạp tiền khác",
+    "settingUpChain": "Đang thiết lập ví {chain} của bạn…"
   },
   "leaderboard": {
     "title": "Bảng xếp hạng",

@@ -114,7 +114,11 @@
     "hideBalances": "잔액 숨기기",
     "invalidAmount": "올바른 금액을 입력하세요.",
     "minimumWithdrawal": "최소 출금액은 ${amount}입니다 (또는 전액).",
-    "exceedsBalance": "금액이 잔액보다 많습니다."
+    "exceedsBalance": "금액이 잔액보다 많습니다.",
+    "amountOf": "금액 ({symbol})",
+    "balanceN": "잔액: {n}",
+    "invalidAddressFor": "올바른 {chain} 주소가 아닌 것 같습니다.",
+    "viewOn": "{explorer}에서 보기 →"
   },
   "account": {
     "title": "내 프로필",
@@ -172,7 +176,9 @@
     "close": "닫기",
     "copied": "복사됨!",
     "copyAddress": "주소 복사",
-    "sendOnly": "이 주소로는 <b>{network}</b>의 <b>USDC</b>만 보내세요. 다른 코인이나 네트워크는 잃을 수 있습니다."
+    "sendOnly": "이 주소로는 <b>{network}</b>의 <b>USDC</b>만 보내세요. 다른 코인이나 네트워크는 잃을 수 있습니다.",
+    "otherWays": "← 다른 충전 방법",
+    "settingUpChain": "{chain} 지갑을 준비하는 중…"
   },
   "leaderboard": {
     "title": "리더보드",

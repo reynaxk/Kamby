@@ -114,7 +114,11 @@
     "hideBalances": "残高を隠す",
     "invalidAmount": "有効な金額を入力してください。",
     "minimumWithdrawal": "最低出金額は ${amount} です（または全額）。",
-    "exceedsBalance": "金額が残高を超えています。"
+    "exceedsBalance": "金額が残高を超えています。",
+    "amountOf": "金額（{symbol}）",
+    "balanceN": "残高: {n}",
+    "invalidAddressFor": "有効な{chain}アドレスではないようです。",
+    "viewOn": "{explorer}で見る →"
   },
   "account": {
     "title": "プロフィール",
@@ -172,7 +176,9 @@
     "close": "閉じる",
     "copied": "コピーしました！",
     "copyAddress": "アドレスをコピー",
-    "sendOnly": "このアドレスには <b>{network}</b> の <b>USDC</b> だけを送ってください。他のコインやネットワークは失われる可能性があります。"
+    "sendOnly": "このアドレスには <b>{network}</b> の <b>USDC</b> だけを送ってください。他のコインやネットワークは失われる可能性があります。",
+    "otherWays": "← ほかの入金方法",
+    "settingUpChain": "{chain}ウォレットを準備中…"
   },
   "leaderboard": {
     "title": "ランキング",
