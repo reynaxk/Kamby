@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "Khi đăng nhập, bạn đồng ý với <terms>Điều khoản dịch vụ</terms> và <privacy>Chính sách quyền riêng tư</privacy> của Kamby."
+  },
+  "gate": {
+    "cta": "Đăng nhập hoặc đăng ký",
+    "sub": "Giao dịch meme coin trên Solana, Base và BNB — chỉ với USDC, không phí gas.",
+    "how": "Bằng email hoặc Google — ví được tạo sẵn cho bạn."
   }
 }

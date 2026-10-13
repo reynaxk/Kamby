@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "로그인하면 Kamby의 <terms>서비스 약관</terms> 및 <privacy>개인정보 처리방침</privacy>에 동의하게 됩니다."
+  },
+  "gate": {
+    "cta": "로그인 또는 가입",
+    "sub": "Solana, Base, BNB의 밈코인을 USDC만으로 거래 — 가스비 없음.",
+    "how": "이메일 또는 Google로 — 지갑은 자동으로 만들어집니다."
   }
 }

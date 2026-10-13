@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "Mit der Anmeldung akzeptierst du Kambys <terms>Nutzungsbedingungen</terms> und <privacy>Datenschutzerklärung</privacy>."
+  },
+  "gate": {
+    "cta": "Anmelden oder registrieren",
+    "sub": "Handle Memecoins auf Solana, Base und BNB — nur mit USDC, ohne Gasgebühren.",
+    "how": "Mit E-Mail oder Google — deine Wallet wird für dich erstellt."
   }
 }

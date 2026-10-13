@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "Ao entrar, você concorda com os <terms>Termos de Serviço</terms> e a <privacy>Política de Privacidade</privacy> da Kamby."
+  },
+  "gate": {
+    "cta": "Entrar ou cadastrar-se",
+    "sub": "Negocie memecoins na Solana, Base e BNB — só com USDC, sem taxas de gas.",
+    "how": "Com seu e-mail ou Google — sua carteira é criada para você."
   }
 }

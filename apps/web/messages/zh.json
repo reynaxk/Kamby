@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "登录即表示你同意 Kamby 的<terms>服务条款</terms>和<privacy>隐私政策</privacy>。"
+  },
+  "gate": {
+    "cta": "登录或注册",
+    "sub": "用 USDC 交易 Solana、Base 和 BNB 上的 Meme 币——无需 Gas 费。",
+    "how": "使用邮箱或 Google 登录——钱包会自动为你创建。"
   }
 }

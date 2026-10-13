@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "サインインすると、Kambyの<terms>利用規約</terms>と<privacy>プライバシーポリシー</privacy>に同意したことになります。"
+  },
+  "gate": {
+    "cta": "ログイン / 新規登録",
+    "sub": "Solana・Base・BNBのミームコインをUSDCだけで取引。ガス代なし。",
+    "how": "メールまたはGoogleで。ウォレットは自動で作成されます。"
   }
 }

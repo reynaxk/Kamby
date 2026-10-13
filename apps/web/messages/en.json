@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "By signing in, you agree to Kamby's <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
+  },
+  "gate": {
+    "cta": "Sign in or sign up",
+    "sub": "Trade meme coins on Solana, Base and BNB — with just USDC, no gas fees.",
+    "how": "With your email or Google — your wallet is created for you."
   }
 }

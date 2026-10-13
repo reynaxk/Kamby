@@ -13,6 +13,7 @@ import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { LandingOnlyOnPhones } from '@/components/layout/LandingOnlyOnPhones';
 import { LaunchOnHome } from '@/components/pwa/LaunchOnHome';
 import { AppSplash, SPLASH_GATE_SCRIPT } from '@/components/pwa/AppSplash';
+import { AUTH_GATE_SCRIPT, AuthGate } from '@/components/auth/AuthGate';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -50,11 +51,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="color-scheme" content="dark" />
         {/* Decides before first paint whether the launch splash shows — see AppSplash. */}
         <script dangerouslySetInnerHTML={{ __html: SPLASH_GATE_SCRIPT }} />
+        {/* Decides before first paint whether the sign-in wall shows — see AuthGate. */}
+        <script dangerouslySetInnerHTML={{ __html: AUTH_GATE_SCRIPT }} />
       </head>
       <body className="kamby-void font-body antialiased">
         <AppSplash />
         <NextIntlClientProvider locale={locale} messages={messages}>
         <Providers>
+          <div id="kamby-app">
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
               the TickerBar (h-8) from md up — so neither covers the end of the page. */}
           <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8">
@@ -65,6 +69,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
           <TickerBar />
           <MobileTabBar />
+          </div>
+          <AuthGate />
         </Providers>
         <InstallApp />
         <LaunchOnHome />

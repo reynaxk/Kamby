@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "Al iniciar sesión, aceptas los <terms>Términos de servicio</terms> y la <privacy>Política de privacidad</privacy> de Kamby."
+  },
+  "gate": {
+    "cta": "Inicia sesión o regístrate",
+    "sub": "Opera memecoins en Solana, Base y BNB — solo con USDC, sin comisiones de gas.",
+    "how": "Con tu email o Google — tu billetera se crea sola."
   }
 }

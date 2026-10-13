@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "Dengan masuk, kamu menyetujui <terms>Ketentuan Layanan</terms> dan <privacy>Kebijakan Privasi</privacy> Kamby."
+  },
+  "gate": {
+    "cta": "Masuk atau daftar",
+    "sub": "Trading meme coin di Solana, Base dan BNB — cukup dengan USDC, tanpa biaya gas.",
+    "how": "Dengan email atau Google — dompetmu dibuat otomatis."
   }
 }

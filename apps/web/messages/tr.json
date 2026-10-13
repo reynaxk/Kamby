@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "Giriş yaparak Kamby’nin <terms>Hizmet Şartları</terms>’nı ve <privacy>Gizlilik Politikası</privacy>’nı kabul etmiş olursun."
+  },
+  "gate": {
+    "cta": "Giriş yap veya kaydol",
+    "sub": "Solana, Base ve BNB’de meme coin al-sat — sadece USDC ile, gas ücreti yok.",
+    "how": "E-posta veya Google ile — cüzdanın senin için oluşturulur."
   }
 }

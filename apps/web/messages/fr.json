@@ -609,5 +609,10 @@
   },
   "legal": {
     "agree": "En te connectant, tu acceptes les <terms>Conditions d’utilisation</terms> et la <privacy>Politique de confidentialité</privacy> de Kamby."
+  },
+  "gate": {
+    "cta": "Se connecter ou s’inscrire",
+    "sub": "Trade des memecoins sur Solana, Base et BNB — avec juste de l’USDC, sans frais de gas.",
+    "how": "Avec ton e-mail ou Google — ton portefeuille est créé pour toi."
   }
 }
