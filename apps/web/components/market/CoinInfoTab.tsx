@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { TOKEN_STATS_WINDOWS, type TokenHolders, type TokenInfoChain, type TokenStatsWindow } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenLinks } from '@/components/terminal/TokenLinks';
@@ -11,10 +11,24 @@ import { cashtag, formatCompactCount, formatCompactUsd } from '@/lib/format';
 import { launchpadFor } from '@/lib/launchpad';
 import { API_BASE } from '@/lib/session-client';
 import { useTokenStats } from '@/lib/use-live-price';
-import { formatAge } from './TokenStatsStrip';
 
 const WINDOW_LABEL: Record<TokenStatsWindow, string> = { m5: '5M', h1: '1H', h6: '6H', h24: '24H' };
 const CHAIN_NAME: Record<TokenInfoChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood Chain' };
+
+/** "2 years ago" / "преди 2 години" — the coin's age in the reader's own language. */
+export function relativeAge(createdAtMs: number, locale: string, now = Date.now()): string {
+  const minutes = Math.max(1, Math.floor((now - createdAtMs) / 60_000));
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30);
+  const [value, unit]: [number, Intl.RelativeTimeFormatUnit] =
+    minutes < 60 ? [minutes, 'minute'] : hours < 48 ? [hours, 'hour'] : days < 60 ? [days, 'day'] : months < 24 ? [months, 'month'] : [Math.floor(months / 12), 'year'];
+  try {
+    return new Intl.RelativeTimeFormat(locale, { numeric: 'always' }).format(-value, unit);
+  } catch {
+    return `${value} ${unit}${value === 1 ? '' : 's'} ago`;
+  }
+}
 
 function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
   return (
@@ -101,6 +115,7 @@ export function CoinInfoTab({
   fallback?: { marketCapUsd?: number | null; liquidityUsd?: number | null };
 }) {
   const tL = useTranslations('labels');
+  const locale = useLocale();
   const stats = useTokenStats(source);
   const holders = useHolderSummary(chain, address);
   const [window, setWindow] = useState<TokenStatsWindow>('h1');
@@ -163,7 +178,7 @@ export function CoinInfoTab({
         {stats && <StatRow label={tL('infoVolume24h')}>{formatCompactUsd(stats.volumeUsd.h24)}</StatRow>}
         <StatRow label={tL('infoLiquidity')}>{liquidity !== null ? formatCompactUsd(liquidity) : '—'}</StatRow>
         {supply !== null && <StatRow label={tL('infoSupply')}>{formatCompactCount(Math.round(supply))}</StatRow>}
-        {stats?.pairCreatedAtMs != null && <StatRow label={tL('infoCreated')}>{tL('infoCreatedAgo', { age: formatAge(stats.pairCreatedAtMs) })}</StatRow>}
+        {stats?.pairCreatedAtMs != null && <StatRow label={tL('infoCreated')}>{relativeAge(stats.pairCreatedAtMs, locale)}</StatRow>}
         {pad && <StatRow label={tL('infoLaunchpad')}>{pad.name}</StatRow>}
         <StatRow label={tL('infoChain')}>{CHAIN_NAME[chain]}</StatRow>
         <div className="flex items-center gap-2 py-1.5 font-body text-sm">
