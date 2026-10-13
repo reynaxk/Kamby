@@ -63,6 +63,11 @@ vi.mock('@/lib/send', async (importOriginal) => {
   };
 });
 
+vi.mock('@/lib/use-cross-chain-funding', () => ({
+  // No cross-chain move in these tests — the network's own balance decides, as before.
+  useCrossChainFunding: () => ({ balances: { base: null, bnb: null, robinhood: null, solana: null, total: null }, moveUsd: 0, source: null, canCover: false, stage: 'idle', error: null, feeUsd: null, move: async () => {} }),
+}));
+
 const EVM_ADDRESS = '0x1234567890AbcdEF1234567890aBcdef12345678';
 const SOLANA_ADDRESS = '11111111111111111111111111111112';
 

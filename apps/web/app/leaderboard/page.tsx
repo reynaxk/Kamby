@@ -18,7 +18,7 @@ const MIN_RANKED = 3;
 
 /** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
 // Only chains Kamby trades on — Arbitrum/Ethereum are in the registry but have no markets.
-const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', 'base', 'bnb'];
+const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', 'base', 'bnb', 'robinhood'];
 
 function isPnlWindow(value: string | undefined): value is PnlWindow {
   return WINDOWS.includes(value as PnlWindow);

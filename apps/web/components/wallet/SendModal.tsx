@@ -35,6 +35,9 @@ import { friendlyError } from '@/lib/friendly-error';
 import { Check } from 'lucide-react';
 import { TradeModal } from '../trading/TradeModal';
 import { ModalHeader, WithdrawGlyph } from './ModalHeader';
+import { MoveNote } from '../trading/CrossChainMove';
+import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
+import type { BridgeChain } from '@/lib/bridge-client';
 import { ConnectWalletButton } from './ConnectWalletButton';
 import { useTranslations } from 'next-intl';
 
@@ -211,7 +214,12 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
   const isUsdc = asset.symbol.toUpperCase() === 'USDC';
   const belowMinimum =
     isUsdc && amountRaw !== null && tokenDecimals !== null && amountRaw < MIN_USDC_WITHDRAWAL * 10n ** BigInt(tokenDecimals) && amountRaw !== balance;
-  const amountValid = amountRaw !== null && amountRaw > 0n && (balance === null || amountRaw <= balance) && !belowMinimum;
+  // One USDC (2026-10-13): withdrawing more than this network holds moves the rest over first.
+  const amountUsd = amountRaw !== null && tokenDecimals !== null ? Number(formatUnits(amountRaw, tokenDecimals)) : null;
+  const funding = useCrossChainFunding(chain.slug as BridgeChain, isUsdc ? amountUsd : null);
+  const shortOnChain = balance !== null && amountRaw !== null && amountRaw > balance;
+  const needsMove = isUsdc && shortOnChain && funding.canCover && funding.stage !== 'done';
+  const amountValid = amountRaw !== null && amountRaw > 0n && (balance === null || amountRaw <= balance || needsMove) && !belowMinimum;
   const canReview = destinationValid && amountValid && tokenDecimals !== null && !solanaFeeInsufficient;
 
   function reset() {
@@ -253,6 +261,15 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
     if (!amountRaw || tokenDecimals === null) return;
     setStep('signing');
     setFlowError(null);
+    if (needsMove) {
+      try {
+        await funding.move();
+      } catch (err) {
+        setFlowError(funding.error ?? friendlyError(err));
+        setStep('failed');
+        return;
+      }
+    }
     try {
       const to = destination.trim();
       let result: string;
@@ -411,6 +428,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                 )}
               </div>
 
+              {(needsMove || funding.stage === 'error') && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}
               <Button type="button" className="w-full" disabled={!canReview} onClick={() => setStep('review')}>
                 {tU('review_457d')}
               </Button>
@@ -427,6 +445,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             <Row label={tU('amount_b2f4')} value={`${formatUnits(amountRaw, tokenDecimals)} ${asset.symbol}`} />
             <Row label="To" value={destination.trim()} mono />
           </div>
+          {needsMove && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}
           <p className="font-body text-xs text-down">
             This sends real funds directly from your wallet and can&rsquo;t be reversed. Double-check the address.
           </p>
