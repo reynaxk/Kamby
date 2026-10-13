@@ -14,7 +14,8 @@ const TABS = [
 
 /**
  * Phone navigation (2026-10-09 app redesign): a floating glass pill under the thumb — Home,
- * Search, Leaders, Profile — icons only (the centre Trade button was removed 2026-10-12: confusing), the active one lit. Phones only (the
+ * Search, Leaders, Profile — the active one a neon capsule with its name, the rest icons (the
+ * centre Trade button was removed 2026-10-12: confusing). Phones only (the
  * price ticker keeps the desktop bottom edge); hidden on the landing page.
  */
 export function MobileTabBar() {
@@ -36,11 +37,22 @@ export function MobileTabBar() {
                 aria-label={t(tab.label)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90',
-                  active ? 'bg-accent/10 text-accent' : 'text-ink-400',
+                  // The active tab is a solid neon capsule with its name; the rest are icons
+                  // (2026-10-12, owner: the bar looked boring). Flat — no glow.
+                  'flex h-11 min-w-11 items-center justify-center rounded-full transition-[background-color,color,padding] duration-300 ease-out active:scale-95',
+                  active ? 'bg-accent pl-3.5 pr-4 text-black' : 'px-2.5 text-ink-400',
                 )}
               >
-                <Icon />
+                <Icon active={active} />
+                <span
+                  className={cn(
+                    'overflow-hidden whitespace-nowrap font-display text-sm font-bold transition-[max-width,opacity,margin] duration-300 ease-out',
+                    active ? 'ml-2 max-w-[7rem] opacity-100' : 'ml-0 max-w-0 opacity-0',
+                  )}
+                  aria-hidden
+                >
+                  {t(tab.label)}
+                </span>
               </Link>
             </li>
           );
@@ -50,22 +62,22 @@ export function MobileTabBar() {
   );
 }
 
-function svg(children: React.ReactNode) {
+function svg(children: React.ReactNode, active = false) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {children}
     </svg>
   );
 }
-function HomeIcon() {
-  return svg(<><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V20h14V9.5" /></>);
+function HomeIcon({ active = false }: { active?: boolean }) {
+  return svg(<><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V20h14V9.5" /></>, active);
 }
-function SearchIcon() {
-  return svg(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
+function SearchIcon({ active = false }: { active?: boolean }) {
+  return svg(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>, active);
 }
-function TrophyIcon() {
-  return svg(<><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></>);
+function TrophyIcon({ active = false }: { active?: boolean }) {
+  return svg(<><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></>, active);
 }
-function UserIcon() {
-  return svg(<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>);
+function UserIcon({ active = false }: { active?: boolean }) {
+  return svg(<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>, active);
 }
