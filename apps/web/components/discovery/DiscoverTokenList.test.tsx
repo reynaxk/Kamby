@@ -139,7 +139,7 @@ describe('DiscoverTokenList', () => {
     );
 
     await openTab('Graduated');
-    expect(screen.getByText('New pools · Base & BNB')).toBeInTheDocument();
+    expect(screen.getByText('New pools')).toBeInTheDocument();
     expect(screen.getByText(/POOL.*\(new\)/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /GRAD/ })).toHaveAttribute('href', '/solana?mint=MintGRAD');
   });
@@ -207,5 +207,15 @@ describe('DiscoverTokenList', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Pulse' }));
     expect(screen.getByText('PulseChat')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Alerts' })).not.toBeInTheDocument();
+  });
+});
+
+describe('ChainFilter', () => {
+  it('matches a coin to its chain, and All to every chain', async () => {
+    const { matchesChain } = await import('./ChainFilter');
+    expect(matchesChain('all', 'eip155:4663')).toBe(true);
+    expect(matchesChain('robinhood', 'eip155:4663')).toBe(true);
+    expect(matchesChain('robinhood', 'eip155:8453')).toBe(false);
+    expect(matchesChain('solana', 'solana')).toBe(true);
   });
 });

@@ -16,6 +16,7 @@ import { PulseChat } from '@/components/pulse/PulseChat';
 import { useTranslations } from 'next-intl';
 import { useSteadyOrder } from '@/lib/use-steady-order';
 import { WatchlistTokens } from './WatchlistTokens';
+import { ChainFilter, matchesChain, useChainFilter } from './ChainFilter';
 export type PrimaryTab = 'watchlist' | 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
 const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
@@ -126,6 +127,8 @@ export function DiscoverTokenList({
   const trendingRows = useSteadyOrder(uniqueMarkets(feeds.trending.markets), (m) => `${m.chainIdentifier}:${m.tokenAddress}`);
   const bondingRows = useSteadyOrder(feeds.bonding.tokens, (t) => t.mintAddress);
 
+  const [chainFilter, setChainFilter] = useChainFilter();
+  const solanaShown = chainFilter === 'all' || chainFilter === 'solana';
   const tokenChips = (
           <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2">
             {TOKEN_TABS.map((t) => (
@@ -183,25 +186,27 @@ export function DiscoverTokenList({
   const list = (rows: ReactNode[], emptyText: string) =>
     rows.length === 0 ? <p className="col-span-full p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
 
+  const graduatedMarkets = uniqueMarkets(feeds.graduated.markets).filter((m) => matchesChain(chainFilter, m.chainIdentifier));
+  const graduatedPumpfun = solanaShown ? feeds.graduated.pumpfun : [];
   const tabContent: Record<MarketFeedTab, ReactNode> = {
-    trending: list(trendingRows.map(marketRow), tU('nothingTrendingYet_a318')),
+    trending: list(trendingRows.filter((m) => matchesChain(chainFilter, m.chainIdentifier)).map(marketRow), tU('nothingTrendingYet_a318')),
     trenches: list(
-      feeds.trenches.tokens.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
+      (solanaShown ? feeds.trenches.tokens : []).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
       tU('noNewPumpFunLaunches_09ad'),
     ),
     bonding: list(
-      bondingRows.map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
+      (solanaShown ? bondingRows : []).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
       tU('nothingCloseToGraduatingRight_e349'),
     ),
     graduated: (
       <>
-        {feeds.graduated.markets.length > 0 && <SectionLabel>New pools · Base &amp; BNB</SectionLabel>}
-        {uniqueMarkets(feeds.graduated.markets).map(marketRow)}
-        {feeds.graduated.pumpfun.length > 0 && <SectionLabel>{tU('graduatedFromPumpFun_9d58')}</SectionLabel>}
-        {feeds.graduated.pumpfun.map((token) => (
+        {graduatedMarkets.length > 0 && <SectionLabel>New pools</SectionLabel>}
+        {graduatedMarkets.map(marketRow)}
+        {graduatedPumpfun.length > 0 && <SectionLabel>{tU('graduatedFromPumpFun_9d58')}</SectionLabel>}
+        {graduatedPumpfun.map((token) => (
           <PumpFunFeedRow key={token.mintAddress} token={token} />
         ))}
-        {feeds.graduated.markets.length === 0 && feeds.graduated.pumpfun.length === 0 && (
+        {graduatedMarkets.length === 0 && graduatedPumpfun.length === 0 && (
           <p className="col-span-full p-3 font-body text-xs text-ink-400">{tU('nothingHasGraduatedRecently_4271')}</p>
         )}
       </>
@@ -211,7 +216,7 @@ export function DiscoverTokenList({
         <p role="note" className="col-span-full mx-1 my-1 rounded-lg border border-down/40 bg-down/10 px-2 py-1.5 font-body text-[0.65rem] text-ink-900">
           Extreme risk: coins under 10 minutes old with tiny liquidity, below Kamby&rsquo;s normal safety checks. Most go to zero.
         </p>
-        {(feeds.xxxrisk?.tokens ?? []).length === 0 ? (
+        {(solanaShown ? feeds.xxxrisk?.tokens ?? [] : []).length === 0 ? (
           <p className="col-span-full p-3 font-body text-xs text-ink-400">{tU('nothingInRangeRightNow_ba3c')}</p>
         ) : (
           (feeds.xxxrisk?.tokens ?? []).map((token) => <XxxRiskFeedRow key={token.mintAddress} token={token} />)
@@ -232,10 +237,12 @@ export function DiscoverTokenList({
       <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
       {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} />}
       {primaryTab === 'tokens' && pageScroll && tokenChips}
+      {primaryTab === 'tokens' && pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} className="pt-1.5" />}
       </div>
 
       <div className={cn('flex min-h-0 flex-1 flex-col gap-1.5', pageScroll && 'max-md:flex-none')}>
         {primaryTab === 'tokens' && !pageScroll && tokenChips}
+        {primaryTab === 'tokens' && !pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} />}
 
         {primaryTab === 'leaderboard' ? (
           <div className="min-h-0 flex-1">
