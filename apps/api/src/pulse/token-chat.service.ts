@@ -211,7 +211,11 @@ export class TokenChatService {
       if (value >= TOKEN_CHAT_LIMITS.whaleUsd) badges.push('whale');
       const board = await this.leaderboard.getLeaderboard('7d', TOKEN_CHAT_LIMITS.topTraderRank);
       if (board.entries.some((e) => e.userId === userId && e.realizedPnlUsd > 0)) badges.push('top');
-      if (tokenKey.startsWith('solana:')) {
+      // 👑: created in Kamby's LaunchPad (any chain) — or, for Pump.fun, created by one of their wallets.
+      const address = tokenKey.startsWith('solana:') ? tokenKey.slice(7) : tokenKey.split(':')[2]!;
+      const launched = await prisma.tokenLaunch.count({ where: { userId, status: 'LIVE', tokenAddress: { in: [address, address.toLowerCase()] } } });
+      if (launched > 0) badges.push('dev');
+      else if (tokenKey.startsWith('solana:')) {
         const coin = await prisma.pumpFunToken.findUnique({ where: { mintAddress: tokenKey.slice(7) }, select: { creatorAddress: true } });
         if (coin?.creatorAddress && (await prisma.wallet.count({ where: { userId, address: coin.creatorAddress } })) > 0) badges.push('dev');
       }

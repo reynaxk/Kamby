@@ -160,6 +160,50 @@ export class GasRelayerService {
       throw new ForbiddenException('This transaction does not match the trade you were quoted');
     }
 
+    const signature = await this.coSignAndSend(connection, feePayerKeypair, transaction, wallet.address, { userId: params.userId, quoteId: quote.id });
+    return this.persistSponsoredTransaction(params, quote, signature, feePayerKeypair.publicKey.toBase58());
+  }
+
+  /**
+   * Kamby's LaunchPad (2026-10-14): the funding step of a launch — the creator's USDC swapped on
+   * Jupiter for the SOL their launch needs, plus Kamby's fixed launch fee in USDC, with this
+   * relayer paying the network fee. Built by LaunchpadService; accepted only byte for byte as
+   * built, only from the creator's own verified wallet, and then through exactly the same
+   * checks as a sponsored trade (coSignAndSend). Returns the broadcast signature.
+   */
+  async submitSponsoredLaunchFunding(params: {
+    userId: string;
+    walletAddress: string;
+    expectedUnsignedTxBase64: string;
+    partiallySignedTxBase64: string;
+  }): Promise<string> {
+    if (!this.connection || !this.feePayerKeypair) {
+      throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
+    }
+    const transaction = deserializeOrThrow(params.partiallySignedTxBase64);
+    if (!solanaTransactionMatchesQuote(transaction, params.expectedUnsignedTxBase64)) {
+      throw new ForbiddenException('This transaction does not match the launch you prepared');
+    }
+    const wallet = await prisma.wallet.findUnique({ where: { address: params.walletAddress } });
+    if (!wallet || wallet.userId !== params.userId || wallet.verifiedAt === null || wallet.chain !== 'SOLANA') {
+      throw new ForbiddenException('This wallet is not verified as belonging to your account');
+    }
+    return this.coSignAndSend(this.connection, this.feePayerKeypair, transaction, wallet.address, { userId: params.userId, purpose: 'launch-funding' });
+  }
+
+  /**
+   * Steps 3–9 of a sponsored transaction, shared by trades and launch funding: resolve accounts,
+   * fee payer must be this relayer, the user must have signed, the instruction allowlist, the
+   * fresh-WSOL-close check, a clean simulation, the lamport ceiling — and only then co-sign and
+   * broadcast. Callers do their own "is this the transaction we built, for this user" checks first.
+   */
+  private async coSignAndSend(
+    connection: Connection,
+    feePayerKeypair: Keypair,
+    transaction: VersionedTransaction,
+    walletAddress: string,
+    log: Record<string, string>,
+  ): Promise<string> {
     // 3. Resolve every account this transaction actually touches, address-lookup-table
     //    indirection included — everything from here on needs this to be trustworthy, so
     //    it happens before any of the identity/allowlist checks that depend on it.
@@ -175,7 +219,7 @@ export class GasRelayerService {
 
     // 5. The user's own signer slot must already carry a valid signature. This relayer
     //    never signs first and never signs alone — see this class's own doc comment.
-    assertUserAlreadySigned(transaction, wallet.address, accountKeys);
+    assertUserAlreadySigned(transaction, walletAddress, accountKeys);
 
     // 6. Instruction allowlist — the named, tested security core (see
     //    gas-relayer-instruction-guard.ts and its adversarial .spec.ts). `accounts` (added
@@ -195,10 +239,10 @@ export class GasRelayerService {
     const guardResult = validateRelayerInstructions(resolvedInstructions, {
       // Jupiter's real WSOL-unwrap cleanup refunds the account's owner (the user), not the
       // fee payer — both are legitimate destinations; see the guard's own doc comment.
-      acceptableCloseDestinations: [feePayerKeypair.publicKey.toBase58(), wallet.address],
+      acceptableCloseDestinations: [feePayerKeypair.publicKey.toBase58(), walletAddress],
     });
     if (!guardResult.ok) {
-      this.logger.warn({ userId: params.userId, walletAddress: params.walletAddress, reason: guardResult.reason }, 'gas relayer rejected transaction');
+      this.logger.warn({ ...log, walletAddress, reason: guardResult.reason }, 'gas relayer rejected transaction');
       throw new ForbiddenException(guardResult.reason);
     }
 
@@ -210,7 +254,7 @@ export class GasRelayerService {
     for (const target of guardResult.wsolClosesRequiringFreshnessCheck) {
       const info = await connection.getAccountInfo(new PublicKey(target), 'confirmed');
       if (info !== null) {
-        this.logger.warn({ userId: params.userId, walletAddress: params.walletAddress, target }, 'gas relayer rejected: WSOL close targets an account that already existed before this transaction');
+        this.logger.warn({ ...log, walletAddress, target }, 'gas relayer rejected: WSOL close targets an account that already existed before this transaction');
         throw new ForbiddenException('This transaction closes a token account that was not created fresh by this same transaction');
       }
     }
@@ -277,10 +321,10 @@ export class GasRelayerService {
     // 9. Only now: co-sign as fee payer, broadcast, and persist.
     transaction.sign([feePayerKeypair]);
     const signature = await connection.sendTransaction(transaction, { skipPreflight: false, maxRetries: 3 });
-    this.logger.info({ userId: params.userId, walletAddress: params.walletAddress, quoteId: quote.id, signature }, 'gas relayer sponsored and broadcast a transaction');
+    this.logger.info({ ...log, walletAddress, signature }, 'gas relayer sponsored and broadcast a transaction');
     rebroadcastUntilLanded(connection, transaction.serialize(), signature, this.logger);
 
-    return this.persistSponsoredTransaction(params, quote, signature, feePayerKeypair.publicKey.toBase58());
+    return signature;
   }
 
   /**

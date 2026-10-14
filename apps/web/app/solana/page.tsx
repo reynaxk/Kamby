@@ -13,7 +13,7 @@ import { CoinRail } from '@/components/discovery/CoinRail';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
-import { fetchDiscoverMarkets, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
+import { fetchDiscoverMarkets, fetchLaunchedToken, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
 import { formatPercent } from '@/lib/format';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
@@ -82,6 +82,11 @@ async function resolveMarket(mint: string | undefined): Promise<SolanaTradeTarge
       onBondingCurve: !pumpFun.complete,
       priceChange24hPct: null,
     };
+  }
+  // Created a moment ago in Kamby's LaunchPad — open it before Pump.fun's feed has it.
+  const launched = await fetchLaunchedToken(mint);
+  if (launched) {
+    return { tokenAddress: mint, symbol: launched.symbol, name: launched.name, logoUrl: launched.imageUrl, isNewListing: true, onBondingCurve: true, priceChange24hPct: null };
   }
   return NATIVE_SOL;
 }

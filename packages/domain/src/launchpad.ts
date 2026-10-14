@@ -1,0 +1,77 @@
+import { z } from 'zod';
+
+/**
+ * Kamby's LaunchPad (2026-10-14) — create a coin from inside Kamby, paid in USDC like everything
+ * else. Owner calls: Pump.fun (Solana), Clanker (Base) and Four.meme (BNB), in that order; Kamby's
+ * fee is a fixed USDC amount (LAUNCH_FEE_USD on the API, default below); the creator's USDC is
+ * swapped on the market for the chain's own coin the launch needs — Kamby holds no inventory.
+ */
+export const LAUNCHPADS = [
+  { id: 'pumpfun', chainIdentifier: 'solana', chainName: 'Solana', name: 'Pump.fun', live: true },
+  { id: 'clanker', chainIdentifier: 'eip155:8453', chainName: 'Base', name: 'Clanker', live: false },
+  { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BNB Chain', name: 'Four.meme', live: false },
+] as const;
+export type LaunchpadId = (typeof LAUNCHPADS)[number]['id'];
+
+export const LAUNCH_LIMITS = {
+  defaultFeeUsd: 5,
+  devBuyPresetsUsd: [10, 50, 100] as const,
+  maxDevBuyUsd: 1_000,
+  nameMax: 32,
+  symbolMax: 10,
+  descriptionMax: 500,
+  imageMaxBytes: 1_000_000,
+} as const;
+
+const optionalUrl = z
+  .string()
+  .trim()
+  .max(200)
+  .url()
+  .refine((u) => u.startsWith('https://'), 'Links must start with https://')
+  .optional()
+  .or(z.literal('').transform(() => undefined));
+
+export const LaunchInputSchema = z.object({
+  launchpad: z.enum(['pumpfun', 'clanker', 'fourmeme']),
+  walletAddress: z.string().min(32).max(64),
+  name: z.string().trim().min(1).max(LAUNCH_LIMITS.nameMax),
+  symbol: z
+    .string()
+    .trim()
+    .min(1)
+    .max(LAUNCH_LIMITS.symbolMax)
+    .regex(/^[A-Za-z0-9]+$/, 'Ticker: letters and numbers only'),
+  description: z.string().trim().max(LAUNCH_LIMITS.descriptionMax).optional(),
+  imageId: z.string().uuid(),
+  website: optionalUrl,
+  twitter: optionalUrl,
+  telegram: optionalUrl,
+  devBuyUsd: z.number().min(0).max(LAUNCH_LIMITS.maxDevBuyUsd),
+});
+export type LaunchInput = z.infer<typeof LaunchInputSchema>;
+
+export const LaunchStatusSchema = z.enum(['PREPARED', 'FUNDED', 'CREATING', 'LIVE', 'FAILED']);
+export type LaunchStatus = z.infer<typeof LaunchStatusSchema>;
+
+export const LaunchSchema = z.object({
+  id: z.string(),
+  launchpad: z.enum(['pumpfun', 'clanker', 'fourmeme']),
+  chainIdentifier: z.string(),
+  name: z.string(),
+  symbol: z.string(),
+  imageUrl: z.string().nullable(),
+  devBuyUsd: z.number(),
+  feeUsd: z.number(),
+  /** What the launch itself costs on-chain (accounts, network fees), in USD — an estimate. */
+  networkCostUsd: z.number(),
+  status: LaunchStatusSchema,
+  tokenAddress: z.string().nullable(),
+  failureReason: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type Launch = z.infer<typeof LaunchSchema>;
+
+/** A step the creator signs: the launch, and the transaction for this step (base64). */
+export const LaunchStepSchema = z.object({ launch: LaunchSchema, transactionBase64: z.string() });
+export type LaunchStep = z.infer<typeof LaunchStepSchema>;

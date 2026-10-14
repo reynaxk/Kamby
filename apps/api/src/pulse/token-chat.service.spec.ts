@@ -8,6 +8,7 @@ jest.mock('@kamby/db', () => ({
     user: { findUnique: jest.fn() },
     wallet: { count: jest.fn() },
     pumpFunToken: { findUnique: jest.fn() },
+    tokenLaunch: { count: jest.fn().mockResolvedValue(0) },
     pulseMessage: { findFirst: jest.fn(), findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
     pulseReport: { create: jest.fn() },
     solanaTradeTransaction: { findMany: jest.fn() },

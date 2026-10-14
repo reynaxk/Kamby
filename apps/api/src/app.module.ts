@@ -16,6 +16,7 @@ import { MarketModule } from './market/market.module';
 import { TradingModule } from './trading/trading.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PulseModule } from './pulse/pulse.module';
+import { LaunchpadModule } from './launchpad/launchpad.module';
 import { BridgeModule } from './bridge/bridge.module';
 import { DiscoveryModule } from './discovery/discovery.module';
 import { TokensModule } from './tokens/tokens.module';
@@ -79,6 +80,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     TradingModule,
     NotificationsModule,
     PulseModule,
+    LaunchpadModule,
     BridgeModule,
     DiscoveryModule,
     TokensModule,

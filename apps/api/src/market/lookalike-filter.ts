@@ -38,7 +38,7 @@ function preferred(a: MarketSummary, b: MarketSummary): MarketSummary {
  *  pretending to be it — found 2026-10-13: a "DOGE · Dogecoin" with $36K liquidity on Robinhood
  *  Chain, where no real Dogecoin lives. The real ones trade through vetted markets (the Crypto
  *  tab, seed lists), which this never hides. */
-const FAMOUS_TICKERS: ReadonlySet<string> = new Set([
+export const FAMOUS_TICKERS: ReadonlySet<string> = new Set([
   'btc', 'wbtc', 'cbbtc', 'eth', 'weth', 'sol', 'wsol', 'bnb', 'wbnb', 'xrp', 'doge', 'ada', 'dot', 'uni', 'avax', 'link',
   'ltc', 'shib', 'pepe', 'trx', 'ton', 'sui', 'arb', 'op', 'matic', 'pol', 'usdc', 'usdt', 'usdg', 'dai', 'busd',
 ]);

@@ -320,6 +320,10 @@ export const EnvSchema = z.object({
    *  URL or a custom domain fronting it, never derived/guessed from R2_ENDPOINT (a
    *  private, account-scoped API endpoint, not a public asset host). */
   R2_PUBLIC_BASE_URL: z.string().url('R2_PUBLIC_BASE_URL must be a valid URL').optional(),
+  /** Kamby's LaunchPad: Kamby's fixed fee per coin created, in USD (paid in USDC). */
+  LAUNCH_FEE_USD: z.coerce.number().min(0).max(100).optional(),
+  /** Where launch logos and metadata are served from (the coin's on-chain `uri` points here). */
+  LAUNCH_ASSET_BASE_URL: z.string().url().optional(),
 });
 
 const CHAIN_ENV_BLOCKS: Record<

@@ -59,6 +59,15 @@ export async function fetchPumpFunToken(mint: string): Promise<PumpFunTokenSumma
   }
 }
 
+/** A coin created in Kamby's LaunchPad — so its page opens the moment it's live (2026-10-14). */
+export async function fetchLaunchedToken(address: string): Promise<{ symbol: string; name: string; imageUrl: string | null } | null> {
+  try {
+    return await apiGet<{ symbol: string; name: string; imageUrl: string | null }>(`/launchpad/tokens/${encodeURIComponent(address)}`, 0);
+  } catch {
+    return null;
+  }
+}
+
 export const SOLANA_CHART_TIMEFRAMES = ['1m', '5m', '1H', '4H', '1D'] as const;
 export type SolanaChartTimeframe = (typeof SOLANA_CHART_TIMEFRAMES)[number];
 

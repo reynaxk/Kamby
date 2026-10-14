@@ -62,6 +62,9 @@ export function MarketHeader({
           <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
         </div>
         <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
+          <Link href="/launch" className="hidden rounded-full border border-accent/30 px-3 py-1.5 font-display text-xs font-bold text-accent transition-colors hover:bg-accent/10 lg:inline-flex">
+            LaunchPad
+          </Link>
           <UsdcBalancePill />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} enforceChain={false} />
         </div>

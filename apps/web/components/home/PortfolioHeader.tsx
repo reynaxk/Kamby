@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
@@ -22,6 +24,7 @@ import { totalUsdc, useUsdcBalances } from '@/lib/use-usdc-balance';
  * under it and Deposit beside it. Signed out: a sign-in prompt in the same spot.
  */
 export function PortfolioHeader() {
+  const tLp = useTranslations('launchpad');
   const t = useTranslations('home');
   const { ready, authenticated, login } = usePrivy();
   const { address } = useAccount();
@@ -81,6 +84,16 @@ export function PortfolioHeader() {
         <FundButton variant="labeled" />
         <SendButton variant="labeled" />
       </div>
+      {/* Kamby's LaunchPad (2026-10-14). */}
+      <Link href="/launch" className="mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08]">
+        <span>
+          <span className="block font-display text-sm font-bold text-ink-900">Kamby&apos;s LaunchPad</span>
+          <span className="block font-body text-xs text-ink-400">{tLp('homeCard')}</span>
+        </span>
+        <span className="font-display text-lg font-bold text-accent" aria-hidden>
+          →
+        </span>
+      </Link>
     </section>
     </>
   );

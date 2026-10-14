@@ -377,6 +377,8 @@ model User {
   pushSubscriptions       PushSubscription[]
   pulseMessages           PulseMessage[]
   pulseReports            PulseReport[]
+  tokenLaunches           TokenLaunch[]
+  launchAssets            LaunchAsset[]
   tokenWatches            TokenWatch[]
   savedSearches           SavedSearch[]
   tokenLots               TokenLot[]
@@ -1257,4 +1259,63 @@ model SolanaTokenMarket {
 
   @@index([liquidityUsd])
   @@map("solana_token_markets")
+}
+
+/// Kamby's LaunchPad (2026-10-14, see @kamby/domain launchpad.ts): one coin a user creates from
+/// inside Kamby, step by step — PREPARED (metadata stored, funding transaction built) → FUNDED
+/// (their USDC swapped for the chain's coin, Kamby's fee taken) → CREATING (create transaction
+/// handed to them to sign) → LIVE (on-chain, `tokenAddress` set) or FAILED.
+model TokenLaunch {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  /// 'pumpfun' | 'clanker' | 'fourmeme'
+  launchpad       String    @db.VarChar(16)
+  chainIdentifier String    @map("chain_identifier") @db.VarChar(24)
+  walletAddress   String    @map("wallet_address")
+  name            String    @db.VarChar(32)
+  symbol          String    @db.VarChar(10)
+  description     String?   @db.VarChar(500)
+  website         String?   @db.VarChar(200)
+  twitter         String?   @db.VarChar(200)
+  telegram        String?   @db.VarChar(200)
+  imageId         String?   @map("image_id")
+  metadataUri     String?   @map("metadata_uri")
+  devBuyUsd       Decimal   @map("dev_buy_usd") @db.Decimal(18, 6)
+  feeUsd          Decimal   @map("fee_usd") @db.Decimal(18, 6)
+  networkCostUsd  Decimal   @default(0) @map("network_cost_usd") @db.Decimal(18, 6)
+  /// USDC (raw, 6 decimals) swapped for the chain's coin in the funding step.
+  fundUsdcRaw     String?   @map("fund_usdc_raw")
+  status          String    @default("PREPARED") @db.VarChar(12)
+  /// The exact transactions handed out to sign (base64) — what comes back must match them.
+  fundTx          String?   @map("fund_tx")
+  fundSignature   String?   @unique @map("fund_signature")
+  createTx        String?   @map("create_tx")
+  createSignature String?   @unique @map("create_signature")
+  tokenAddress    String?   @map("token_address")
+  failureReason   String?   @map("failure_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  liveAt          DateTime? @map("live_at")
+
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  image LaunchAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([tokenAddress])
+  @@map("token_launches")
+}
+
+/// A launch's logo, kept by Kamby and served from kambesh.com (no third-party storage needed).
+model LaunchAsset {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  contentType String   @map("content_type") @db.VarChar(32)
+  bytes       Bytes
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  launches TokenLaunch[]
+
+  @@index([userId, createdAt])
+  @@map("launch_assets")
 }
