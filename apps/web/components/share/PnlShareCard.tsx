@@ -262,7 +262,7 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
                 <span className="font-display text-lg font-black tracking-tight">KAMBY</span>
               </span>
               {share.chainName && (
-                <span className="rounded-full px-2.5 py-1 font-mono text-[0.6rem] font-semibold uppercase tracking-wider" style={{ background: theme.panel, color: theme.muted }}>
+                <span className="rounded-full px-2.5 py-1 font-body text-[0.6rem] font-semibold uppercase tracking-wider" style={{ background: theme.panel, color: theme.muted }}>
                   {share.chainName}
                 </span>
               )}
@@ -284,13 +284,13 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
               {pct ?? usd}
             </p>
             {pct && (
-              <p className="relative mt-2 font-mono text-xl font-bold" style={{ color: tone }}>
+              <p className="relative mt-2 font-body tabular-nums text-xl font-bold" style={{ color: tone }}>
                 {usd}
               </p>
             )}
 
             <div className="absolute inset-x-6 bottom-6">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 font-mono text-[0.7rem]">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 font-body tabular-nums text-[0.7rem]">
                 {hasAmounts ? (
                   <>
                     <Stat label={t('invested')} value={money(share.investedUsd as number)} theme={theme} />
@@ -305,7 +305,7 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={qr} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-lg bg-white p-1" />
                 )}
-                <span className="min-w-0 font-mono text-[0.68rem] leading-snug">
+                <span className="min-w-0 font-body text-[0.68rem] leading-snug">
                   <span className="block" style={{ color: theme.muted }}>
                     {t('tradeWithMe')}
                   </span>
