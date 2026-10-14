@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { cn } from '@kamby/ui';
-import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { formatPrice } from '@/lib/format';
 import { fetchMyReferralSummary } from '@/lib/referrals-client';
@@ -39,6 +39,8 @@ interface CardTheme {
   /** The big K behind the numbers, faded as one shape. */
   mark: string;
   markOpacity: number;
+  /** The colour the card ends on — the controls under it sit on this, so it reads as one card. */
+  base: string;
   swatch: string;
 }
 
@@ -51,6 +53,7 @@ const THEMES: Record<ThemeId, CardTheme> = {
     up: '#00FF87',
     down: '#FF3B69',
     mark: '#00FF87',
+    base: '#05070A',
     markOpacity: 0.08,
     swatch: 'linear-gradient(135deg,#05070A 55%,#00FF87)',
   },
@@ -62,6 +65,7 @@ const THEMES: Record<ThemeId, CardTheme> = {
     up: '#00FF87',
     down: '#FF5C82',
     mark: '#FFFFFF',
+    base: '#05070A',
     markOpacity: 0.05,
     swatch: 'linear-gradient(135deg,#141B4D,#05070A)',
   },
@@ -73,6 +77,7 @@ const THEMES: Record<ThemeId, CardTheme> = {
     up: '#00A85A',
     down: '#E0244F',
     mark: '#05070A',
+    base: '#F3F4EE',
     markOpacity: 0.05,
     swatch: 'linear-gradient(135deg,#F3F4EE 55%,#00A85A)',
   },
@@ -160,6 +165,7 @@ function money(value: number): string {
 
 function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => void }) {
   const t = useTranslations('share');
+  const tU = useTranslations('ui');
   const cardRef = useRef<HTMLDivElement>(null);
   const [refCode, setRefCode] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
@@ -238,111 +244,151 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
     setTimeout(() => URL.revokeObjectURL(url), 2_000);
   }
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+    };
+  }, [onClose]);
+
   const card: CSSProperties = { background: theme.background, color: theme.text, width: 360, height: 450 };
 
-  return (
-    <MobileDrawer open onClose={onClose} title={t('sharePnl')} desktop>
-      <div className="flex flex-col items-center gap-4">
-        {/* Scaled down on narrow phones so the whole card fits; the picture is still 1080×1350. */}
-        <div className="origin-top max-[400px]:scale-[0.9] max-[400px]:-mb-[45px]">
-          <div ref={cardRef} className="relative overflow-hidden rounded-[28px] p-6" style={card}>
-            {/* The neon K, big and faint behind everything. */}
-            <svg className="pointer-events-none absolute -right-16 -top-6" width="330" height="330" viewBox="0 0 512 512" aria-hidden="true">
-              <g fill="none" stroke={theme.mark} strokeWidth="92" strokeLinecap="round" opacity={theme.markOpacity}>
-                <path d="M186 140 V372" />
-                <path d="M200 268 L338 140" />
-                <path d="M232 246 L346 372" />
-              </g>
-            </svg>
+  // Only the card (owner 2026-10-14: "remove that layer, leave only the black card, put share
+  // and save inside it"): no sheet around it, the controls in the card's own bottom strip — and
+  // only the top 360×450 part (cardRef) is drawn into the picture.
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      {/* Scaled down on narrow phones so it all fits; the picture is still 1080×1350. */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('sharePnl')}
+        onClick={(e) => e.stopPropagation()}
+        className="kamby-sheet-up overflow-hidden rounded-[28px] shadow-[0_24px_80px_rgba(0,0,0,0.6)] max-[400px]:scale-[0.9]"
+        style={{ background: theme.base, color: theme.text }}
+      >
+        <div ref={cardRef} className="relative overflow-hidden rounded-[28px] p-6" style={card}>
+          {/* The neon K, big and faint behind everything. */}
+          <svg className="pointer-events-none absolute -right-16 -top-6" width="330" height="330" viewBox="0 0 512 512" aria-hidden="true">
+            <g fill="none" stroke={theme.mark} strokeWidth="92" strokeLinecap="round" opacity={theme.markOpacity}>
+              <path d="M186 140 V372" />
+              <path d="M200 268 L338 140" />
+              <path d="M232 246 L346 372" />
+            </g>
+          </svg>
 
-            <div className="relative flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/brand/kamby-mark.svg" alt="" width={28} height={28} className="h-7 w-7 rounded-lg" />
-                <span className="font-display text-lg font-black tracking-tight">KAMBY</span>
+          <div className="relative flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/kamby-mark.svg" alt="" width={28} height={28} className="h-7 w-7 rounded-lg" />
+              <span className="font-display text-lg font-black tracking-tight">KAMBY</span>
+            </span>
+            {share.chainName && (
+              <span className="rounded-full px-2.5 py-1 font-body text-[0.6rem] font-semibold uppercase tracking-wider" style={{ background: theme.panel, color: theme.muted }}>
+                {share.chainName}
               </span>
-              {share.chainName && (
-                <span className="rounded-full px-2.5 py-1 font-body text-[0.6rem] font-semibold uppercase tracking-wider" style={{ background: theme.panel, color: theme.muted }}>
-                  {share.chainName}
+            )}
+          </div>
+
+          <div className="relative mt-7 flex items-center gap-3">
+            <TokenAvatar src={share.logoUrl} seed={share.seed} label={share.symbol} className="h-12 w-12 text-base" />
+            <span className="min-w-0">
+              <span className="block truncate font-display text-2xl font-bold leading-tight">{ticker}</span>
+              {username && (
+                <span className="block truncate font-body text-xs" style={{ color: theme.muted }}>
+                  @{username}
                 </span>
               )}
-            </div>
+            </span>
+          </div>
 
-            <div className="relative mt-7 flex items-center gap-3">
-              <TokenAvatar src={share.logoUrl} seed={share.seed} label={share.symbol} className="h-12 w-12 text-base" />
-              <span className="min-w-0">
-                <span className="block truncate font-display text-2xl font-bold leading-tight">{ticker}</span>
-                {username && (
-                  <span className="block truncate font-body text-xs" style={{ color: theme.muted }}>
-                    @{username}
-                  </span>
-                )}
-              </span>
-            </div>
-
-            <p className="relative mt-4 font-display text-[4rem] font-black leading-none tracking-tight" style={{ color: tone }}>
-              {pct ?? usd}
+          <p className="relative mt-4 font-display text-[4rem] font-black leading-none tracking-tight" style={{ color: tone }}>
+            {pct ?? usd}
+          </p>
+          {pct && (
+            <p className="relative mt-2 font-body tabular-nums text-xl font-bold" style={{ color: tone }}>
+              {usd}
             </p>
-            {pct && (
-              <p className="relative mt-2 font-body tabular-nums text-xl font-bold" style={{ color: tone }}>
-                {usd}
-              </p>
-            )}
+          )}
 
-            <div className="absolute inset-x-6 bottom-6">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 font-body tabular-nums text-[0.7rem]">
-                {hasAmounts ? (
-                  <>
-                    <Stat label={t('invested')} value={money(share.investedUsd as number)} theme={theme} />
-                    <Stat label={t(share.sold ? 'soldFor' : 'worthNow')} value={money(share.valueUsd as number)} theme={theme} />
-                  </>
-                ) : null}
-                <Stat label={t('entry')} value={formatPrice(share.entryPrice)} theme={theme} />
-                <Stat label={t(share.sold ? 'exit' : 'now')} value={formatPrice(share.currentPrice)} theme={theme} />
-              </div>
-              <div className="mt-4 flex items-center gap-3 rounded-2xl p-2.5" style={{ background: theme.panel }}>
-                {qr && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={qr} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-lg bg-white p-1" />
-                )}
-                <span className="min-w-0 font-body text-[0.68rem] leading-snug">
-                  <span className="block" style={{ color: theme.muted }}>
-                    {t('tradeWithMe')}
-                  </span>
-                  <span className="block truncate font-semibold" style={{ color: theme.up }}>
-                    {link}
-                  </span>
+          <div className="absolute inset-x-6 bottom-6">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 font-body tabular-nums text-[0.7rem]">
+              {hasAmounts ? (
+                <>
+                  <Stat label={t('invested')} value={money(share.investedUsd as number)} theme={theme} />
+                  <Stat label={t(share.sold ? 'soldFor' : 'worthNow')} value={money(share.valueUsd as number)} theme={theme} />
+                </>
+              ) : null}
+              <Stat label={t('entry')} value={formatPrice(share.entryPrice)} theme={theme} />
+              <Stat label={t(share.sold ? 'exit' : 'now')} value={formatPrice(share.currentPrice)} theme={theme} />
+            </div>
+            <div className="mt-4 flex items-center gap-3 rounded-2xl p-2.5" style={{ background: theme.panel }}>
+              {qr && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={qr} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-lg bg-white p-1" />
+              )}
+              <span className="min-w-0 font-body text-[0.68rem] leading-snug">
+                <span className="block" style={{ color: theme.muted }}>
+                  {t('tradeWithMe')}
                 </span>
-              </div>
+                <span className="block truncate font-semibold" style={{ color: theme.up }}>
+                  {link}
+                </span>
+              </span>
             </div>
           </div>
         </div>
 
-        <div role="radiogroup" aria-label={t('look')} className="flex items-center gap-3">
-          {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+        <div className="px-6 pb-6">
+          <div className="flex items-center justify-between">
+            <div role="radiogroup" aria-label={t('look')} className="flex items-center gap-2.5">
+              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={themeId === id}
+                  aria-label={id}
+                  onClick={() => setThemeId(id)}
+                  className={cn('h-8 w-8 rounded-full border-2 transition-transform', themeId === id ? 'scale-110 border-accent' : 'border-white/15')}
+                  style={{ background: THEMES[id].swatch }}
+                />
+              ))}
+            </div>
             <button
-              key={id}
               type="button"
-              role="radio"
-              aria-checked={themeId === id}
-              aria-label={id}
-              onClick={() => setThemeId(id)}
-              className={cn('h-9 w-9 rounded-full border-2 transition-transform', themeId === id ? 'scale-110 border-accent' : 'border-white/15')}
-              style={{ background: THEMES[id].swatch }}
-            />
-          ))}
-        </div>
-
-        <div className="grid w-full max-w-[360px] grid-cols-2 gap-2">
-          <button type="button" disabled={busy} onClick={() => void shareImage()} className="rounded-xl bg-accent py-3 font-display text-sm font-bold text-black disabled:opacity-50">
-            {t('share')}
-          </button>
-          <button type="button" disabled={busy} onClick={() => void saveImage()} className="rounded-xl border border-line bg-surface-raised py-3 font-display text-sm font-bold text-ink-900 disabled:opacity-50">
-            {t('save')}
-          </button>
+              onClick={onClose}
+              aria-label={tU('close_d3d2')}
+              className="flex h-8 w-8 items-center justify-center rounded-full"
+              style={{ background: theme.panel, color: theme.muted }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button type="button" disabled={busy} onClick={() => void shareImage()} className="rounded-xl bg-accent py-3 font-display text-sm font-bold text-black disabled:opacity-50">
+              {t('share')}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void saveImage()}
+              className="rounded-xl py-3 font-display text-sm font-bold disabled:opacity-50"
+              style={{ background: theme.panel, color: theme.text }}
+            >
+              {t('save')}
+            </button>
+          </div>
         </div>
       </div>
-    </MobileDrawer>
+    </div>,
+    document.body,
   );
 }
 
