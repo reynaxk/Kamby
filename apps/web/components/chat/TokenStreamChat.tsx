@@ -18,7 +18,7 @@ import {
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { useMyPosition } from '@/lib/my-positions';
-import { fetchMyProfile } from '@/lib/profile-client';
+import { fetchMyProfileShared } from '@/lib/profile-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { postTokenMessage, postTokenPnl, reportMessage, sendReaction, useTokenChat } from '@/lib/token-chat-client';
 
@@ -82,6 +82,38 @@ interface Flying {
   x: number;
 }
 
+/** The emojis floating up over the chat. Owns its own state and hands its `fly` to the parent
+ *  through `register`, so a burst of reactions re-renders only this layer, never the messages. */
+const FlyingReactions = memo(function FlyingReactions({ register }: { register: (fly: (emoji: string) => void) => void }) {
+  const [flying, setFlying] = useState<Flying[]>([]);
+  const nextId = useRef(0);
+  useEffect(() => {
+    register((emoji) => {
+      const id = ++nextId.current;
+      setFlying((prev) => [...prev.slice(-(MAX_FLYING - 1)), { id, emoji, x: 12 + Math.random() * 64 }]);
+      setTimeout(() => setFlying((prev) => prev.filter((f) => f.id !== id)), 1800);
+    });
+  }, [register]);
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <AnimatePresence>
+        {flying.map((f) => (
+          <motion.span
+            key={f.id}
+            initial={{ y: 0, opacity: 1, scale: 0.6 }}
+            animate={{ y: -240, opacity: 0, scale: 1.25, x: (f.id % 2 ? 1 : -1) * 18 }}
+            transition={{ duration: 1.7, ease: 'easeOut' }}
+            className="absolute bottom-2 text-2xl will-change-transform"
+            style={{ left: `${f.x}%` }}
+          >
+            {f.emoji}
+          </motion.span>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+});
+
 /**
  * A coin's live chat, Twitch-style (2026-10-14): newest at the bottom, auto-scrolling unless
  * you've scrolled up to read (then a "new" pill brings you back), Kamby users' trades streaming
@@ -118,18 +150,16 @@ export function TokenStreamChat({
   const [reported, setReported] = useState<Set<string>>(() => new Set());
   const [picking, setPicking] = useState(false);
   const [picks, setPicks] = useMyReactions();
-  const [flying, setFlying] = useState<Flying[]>([]);
-  const flyId = useRef(0);
+  const flyRef = useRef<(emoji: string) => void>(() => undefined);
+  const registerFly = useCallback((fly: (emoji: string) => void) => {
+    flyRef.current = fly;
+  }, []);
   const ownPending = useRef<Record<string, number>>({});
   const listRef = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
   const lastCount = useRef(0);
 
-  const fly = useCallback((emoji: string) => {
-    const id = ++flyId.current;
-    setFlying((prev) => [...prev.slice(-(MAX_FLYING - 1)), { id, emoji, x: 12 + Math.random() * 64 }]);
-    setTimeout(() => setFlying((prev) => prev.filter((f) => f.id !== id)), 1800);
-  }, []);
+  const fly = useCallback((emoji: string) => flyRef.current(emoji), []);
 
   const onReaction = useCallback(
     (emoji: string) => {
@@ -151,7 +181,7 @@ export function TokenStreamChat({
       setUsername(null);
       return;
     }
-    fetchMyProfile()
+    fetchMyProfileShared()
       .then((p) => setUsername(p.username))
       .catch(() => setUsername(null));
   }, [authenticated]);
@@ -222,16 +252,20 @@ export function TokenStreamChat({
     void sendReaction(tokenKey, emoji).catch(() => undefined);
   }
 
-  async function report(id: string) {
-    setReported((prev) => new Set(prev).add(id));
-    setSelected(null);
-    try {
-      const { hidden } = await reportMessage(id);
-      if (hidden) remove(id);
-    } catch {
-      // already reported, or signed out — nothing to show
-    }
-  }
+  const report = useCallback(
+    async (id: string) => {
+      setReported((prev) => new Set(prev).add(id));
+      setSelected(null);
+      try {
+        const { hidden } = await reportMessage(id);
+        if (hidden) remove(id);
+      } catch {
+        // already reported, or signed out — nothing to show
+      }
+    },
+    [remove],
+  );
+  const select = useCallback((id: string) => setSelected((cur) => (cur === id ? null : id)), []);
 
   if (!tokenKey) return null;
   const left = PULSE_LIMITS.maxLength - draft.length;
@@ -269,7 +303,7 @@ export function TokenStreamChat({
                   item={item}
                   selected={selected === item.id}
                   reported={reported.has(item.id)}
-                  onSelect={(id) => setSelected((cur) => (cur === id ? null : id))}
+                  onSelect={select}
                   onReport={authenticated ? report : null}
                 />
               ))}
@@ -278,22 +312,7 @@ export function TokenStreamChat({
         </div>
 
         {/* Reactions float up over the chat. */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <AnimatePresence>
-            {flying.map((f) => (
-              <motion.span
-                key={f.id}
-                initial={{ y: 0, opacity: 1, scale: 0.6 }}
-                animate={{ y: -240, opacity: 0, scale: 1.25, x: (f.id % 2 ? 1 : -1) * 18 }}
-                transition={{ duration: 1.7, ease: 'easeOut' }}
-                className="absolute bottom-2 text-2xl"
-                style={{ left: `${f.x}%` }}
-              >
-                {f.emoji}
-              </motion.span>
-            ))}
-          </AnimatePresence>
-        </div>
+        <FlyingReactions register={registerFly} />
 
         {unread > 0 && (
           <button

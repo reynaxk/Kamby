@@ -13,6 +13,21 @@ export interface MyProfile {
   avatarUrl: string | null;
 }
 
+let sharedProfile: { at: number; profile: Promise<MyProfile> } | null = null;
+
+/** fetchMyProfile, shared for 30s by everything on screen that needs the name (chat, share
+ *  card) — one request, not one per component. */
+export function fetchMyProfileShared(): Promise<MyProfile> {
+  if (!sharedProfile || Date.now() - sharedProfile.at > 30_000) {
+    const profile = fetchMyProfile();
+    sharedProfile = { at: Date.now(), profile };
+    profile.catch(() => {
+      sharedProfile = null;
+    });
+  }
+  return sharedProfile.profile;
+}
+
 export async function fetchMyProfile(): Promise<MyProfile> {
   const res = await authedFetch('/identity/me');
   await expectOk(res, 'load your profile');

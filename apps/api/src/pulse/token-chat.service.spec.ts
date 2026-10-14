@@ -26,13 +26,13 @@ function messageRow(data: Record<string, unknown>) {
 }
 
 describe('TokenChatService', () => {
-  let redis: { set: jest.Mock; publish: jest.Mock };
+  let redis: { get: jest.Mock; set: jest.Mock; publish: jest.Mock };
   let positions: { getMine: jest.Mock };
   let service: TokenChatService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    redis = { set: jest.fn().mockResolvedValue('OK'), publish: jest.fn().mockResolvedValue(1) };
+    redis = { get: jest.fn().mockResolvedValue(null), set: jest.fn().mockResolvedValue('OK'), publish: jest.fn().mockResolvedValue(1) };
     positions = { getMine: jest.fn().mockResolvedValue([]) };
     const leaderboard = { getLeaderboard: jest.fn().mockResolvedValue({ entries: [{ userId: 'u1', realizedPnlUsd: 50 }] }) };
     service = new TokenChatService(redis as never, positions as never, leaderboard as never, logger);

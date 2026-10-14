@@ -1,4 +1,5 @@
 import type { Connection } from '@solana/web3.js';
+import { announceSweptTrade } from '../chat/announce-trade';
 import { prisma } from '@kamby/db';
 import { SOLANA_ACTIVITY_REALTIME_CHANNEL, TRADING_DEFAULTS } from '@kamby/domain';
 import type { Redis } from 'ioredis';
@@ -96,6 +97,7 @@ export class SolanaSweepService {
             data: { status: 'CONFIRMED', confirmedAt: new Date() },
           });
           await this.publishConfirmed(row.id);
+          void announceSweptTrade(this.redis, { solanaTransactionId: row.id });
           result.confirmed += 1;
         }
         // Otherwise: seen but not yet confirmed/finalized — left PENDING, tried again next tick.

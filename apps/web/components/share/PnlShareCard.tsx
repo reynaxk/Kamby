@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
-import QRCode from 'qrcode';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { formatPrice } from '@/lib/format';
 import { fetchMyReferralSummary } from '@/lib/referrals-client';
-import { fetchMyProfile } from '@/lib/profile-client';
+import { fetchMyProfileShared } from '@/lib/profile-client';
 
 export interface PnlShare {
   symbol: string | null;
@@ -178,7 +177,7 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
     fetchMyReferralSummary()
       .then((s) => setRefCode(s.referralCode))
       .catch(() => setRefCode(null));
-    fetchMyProfile()
+    fetchMyProfileShared()
       .then((p) => setUsername(p.username))
       .catch(() => setUsername(null));
   }, []);
@@ -186,7 +185,9 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
   const link = `kambesh.com${refCode ? `/?ref=${refCode}` : ''}`;
   useEffect(() => {
     let live = true;
-    QRCode.toDataURL(`https://${link}`, { margin: 0, width: 192, color: { dark: '#05070A', light: '#FFFFFF' } })
+    import('qrcode')
+      // A CommonJS library: bundlers hand it over as the module or under `default`.
+      .then((mod) => ((mod as unknown as { default?: typeof mod }).default ?? mod).toDataURL(`https://${link}`, { margin: 0, width: 192, color: { dark: '#05070A', light: '#FFFFFF' } }))
       .then((url) => live && setQr(url))
       .catch(() => live && setQr(null));
     return () => {

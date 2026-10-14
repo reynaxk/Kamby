@@ -240,7 +240,7 @@ async function main(): Promise<void> {
 
   let tradeSweepTicker: NodeJS.Timeout | undefined;
   if (Number.isInteger(tradeChainId)) {
-    const sweep = new TradeSweepService(tradeChainId, chainAdapter, logger);
+    const sweep = new TradeSweepService(tradeChainId, chainAdapter, logger, redis);
 
     let sweepRunning = false;
     const runSweep = async (): Promise<void> => {

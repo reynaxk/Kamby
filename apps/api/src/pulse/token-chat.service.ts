@@ -16,6 +16,7 @@ import {
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
+import { getAddress } from 'viem';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { LeaderboardService } from '../social/services/leaderboard.service';
 import { PositionService } from '../social/services/position.service';
@@ -56,8 +57,16 @@ function parseKey(tokenKey: string): { chainIdentifier: string; address: string 
  * share PulseMessage (and Pulse's rules) scoped by tokenKey; trades come straight from Kamby's
  * confirmed trades on the coin; reactions are fire-and-forget over Redis, never stored.
  */
+/** How long an opened chat's first page is reused for the next viewer of the same coin. */
+const LIST_CACHE_MS = 3_000;
+const BADGES_CACHE_SECONDS = 60;
+
 @Injectable()
 export class TokenChatService {
+  /** tokenKey → the first page, for a few seconds: a popular coin opened by many at once costs
+   *  one pair of queries, not one per viewer. Dropped when this instance posts to the room. */
+  private readonly listCache = new Map<string, { at: number; items: Promise<TokenChatItem[]> }>();
+
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly positions: PositionService,
@@ -69,6 +78,19 @@ export class TokenChatService {
 
   /** The latest messages and the coin's Kamby trades from the last day, oldest first. */
   async list(tokenKey: string): Promise<TokenChatItem[]> {
+    parseKey(tokenKey);
+    const cached = this.listCache.get(tokenKey);
+    if (cached && Date.now() - cached.at < LIST_CACHE_MS) return cached.items;
+    const items = this.load(tokenKey);
+    this.listCache.set(tokenKey, { at: Date.now(), items });
+    items.catch(() => this.listCache.delete(tokenKey));
+    if (this.listCache.size > 500) {
+      for (const [key, entry] of this.listCache) if (Date.now() - entry.at >= LIST_CACHE_MS) this.listCache.delete(key);
+    }
+    return items;
+  }
+
+  private async load(tokenKey: string): Promise<TokenChatItem[]> {
     const { chainIdentifier, address } = parseKey(tokenKey);
     const since = new Date(Date.now() - TOKEN_CHAT_LIMITS.tradeLookbackHours * 3_600_000);
     const take = TOKEN_CHAT_LIMITS.pageSize;
@@ -172,6 +194,17 @@ export class TokenChatService {
 
   /** 🐳 holds $1K+ of this coin · ⚡ top-10 trader this week · 👑 created this coin (Pump.fun). */
   private async badgesFor(userId: string, tokenKey: string, knownValueUsd?: number): Promise<TokenChatBadge[]> {
+    const cacheKey = `kamby:chat:badges:${userId}:${tokenKey}`;
+    if (knownValueUsd === undefined) {
+      const hit = await this.redis.get(cacheKey).catch(() => null);
+      if (hit !== null) return badgesOf(hit ? hit.split(',') : []);
+    }
+    const badges = await this.computeBadges(userId, tokenKey, knownValueUsd);
+    await this.redis.set(cacheKey, badges.join(','), 'EX', BADGES_CACHE_SECONDS).catch(() => undefined);
+    return badges;
+  }
+
+  private async computeBadges(userId: string, tokenKey: string, knownValueUsd?: number): Promise<TokenChatBadge[]> {
     const badges: TokenChatBadge[] = [];
     try {
       const value = knownValueUsd ?? (await this.positions.getMine(userId)).find((p) => keyOfPosition(p) === tokenKey)?.currentValueUsd ?? 0;
@@ -213,7 +246,7 @@ export class TokenChatService {
         status: 'CONFIRMED',
         confirmedAt: { gte: since },
         chainId,
-        tokenMarket: { token: { contractAddress: { equals: address, mode: 'insensitive' } } },
+        tokenMarket: { token: { contractAddress: { in: [address, getAddress(address)] }, chain: { identifier: chainIdentifier } } },
       },
       orderBy: { confirmedAt: 'desc' },
       take,
@@ -226,6 +259,7 @@ export class TokenChatService {
   }
 
   private async publish(event: TokenChatEvent): Promise<void> {
+    this.listCache.delete(event.type === 'item' ? event.item.tokenKey : event.tokenKey);
     await this.redis.publish(TOKEN_CHAT_REALTIME_CHANNEL, JSON.stringify(event)).catch((error: unknown) => {
       this.logger.warn({ err: error }, 'token chat realtime publish failed — viewers get it on their next load');
     });

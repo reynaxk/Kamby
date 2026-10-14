@@ -1,4 +1,5 @@
 import type { EvmChainDataProvider } from '@kamby/chain-adapters';
+import { announceSweptTrade } from '../chat/announce-trade';
 import { prisma } from '@kamby/db';
 import { parseUnsignedTx, TRADING_DEFAULTS, transactionMatchesQuote } from '@kamby/domain';
 import type { Logger } from 'pino';
@@ -34,6 +35,8 @@ export class TradeSweepService {
     private readonly chainId: number,
     private readonly chainReader: EvmChainDataProvider,
     private readonly logger: Logger,
+    /** For announcing a confirmed trade in its coin's live chat (optional: tests leave it out). */
+    private readonly redis?: { publish(channel: string, message: string): Promise<unknown> },
   ) {}
 
   async sweepPendingTransactions(): Promise<TradeSweepResult> {
@@ -86,6 +89,7 @@ export class TradeSweepService {
             where: { id: row.id },
             data: { status: 'CONFIRMED', confirmedAt: new Date() },
           });
+          if (this.redis) void announceSweptTrade(this.redis, { evmTransactionId: row.id });
           result.confirmed += 1;
         } else if (receiptStatus === 'reverted') {
           await prisma.tradeTransaction.update({

@@ -650,6 +650,8 @@ model TradeTransaction {
   @@index([status])
   @@index([feeStatus])
   @@index([status, pnlProcessedAt])
+  /// A coin's live chat: its Kamby trades of the last day (2026-10-14).
+  @@index([tokenMarketId, confirmedAt])
   @@map("trade_transactions")
 }
 
@@ -760,6 +762,9 @@ model SolanaTradeTransaction {
   @@index([userId, createdAt])
   @@index([status])
   @@index([status, pnlProcessedAt])
+  /// A coin's live chat: its buys (output) and sells (input) of the last day (2026-10-14).
+  @@index([outputMint, confirmedAt])
+  @@index([inputMint, confirmedAt])
   @@map("solana_trade_transactions")
 }
 
