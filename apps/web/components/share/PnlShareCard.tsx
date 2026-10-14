@@ -34,8 +34,9 @@ interface CardTheme {
   panel: string;
   up: string;
   down: string;
-  /** The big K behind the numbers. */
+  /** The big K behind the numbers, faded as one shape. */
   mark: string;
+  markOpacity: number;
   swatch: string;
 }
 
@@ -47,7 +48,8 @@ const THEMES: Record<ThemeId, CardTheme> = {
     panel: 'rgba(255,255,255,0.06)',
     up: '#00FF87',
     down: '#FF3B69',
-    mark: 'rgba(0,255,135,0.09)',
+    mark: '#00FF87',
+    markOpacity: 0.08,
     swatch: 'linear-gradient(135deg,#05070A 55%,#00FF87)',
   },
   midnight: {
@@ -57,7 +59,8 @@ const THEMES: Record<ThemeId, CardTheme> = {
     panel: 'rgba(255,255,255,0.07)',
     up: '#00FF87',
     down: '#FF5C82',
-    mark: 'rgba(255,255,255,0.05)',
+    mark: '#FFFFFF',
+    markOpacity: 0.05,
     swatch: 'linear-gradient(135deg,#141B4D,#05070A)',
   },
   paper: {
@@ -67,7 +70,8 @@ const THEMES: Record<ThemeId, CardTheme> = {
     panel: 'rgba(5,7,10,0.05)',
     up: '#00A85A',
     down: '#E0244F',
-    mark: 'rgba(5,7,10,0.05)',
+    mark: '#05070A',
+    markOpacity: 0.05,
     swatch: 'linear-gradient(135deg,#F3F4EE 55%,#00A85A)',
   },
 };
@@ -222,23 +226,11 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
           <div ref={cardRef} className="relative overflow-hidden rounded-[28px] p-6" style={card}>
             {/* The neon K, big and faint behind everything. */}
             <svg className="pointer-events-none absolute -right-16 -top-6" width="330" height="330" viewBox="0 0 512 512" aria-hidden="true">
-              <g fill="none" stroke={theme.mark} strokeWidth="92" strokeLinecap="round">
+              <g fill="none" stroke={theme.mark} strokeWidth="92" strokeLinecap="round" opacity={theme.markOpacity}>
                 <path d="M186 140 V372" />
                 <path d="M200 268 L338 140" />
                 <path d="M232 246 L346 372" />
               </g>
-            </svg>
-            {/* A little price line going the way the trade went. */}
-            <svg className="pointer-events-none absolute inset-x-0 bottom-[176px]" width="360" height="90" viewBox="0 0 360 90" aria-hidden="true">
-              <path
-                d={up ? 'M0 80 L40 70 L70 76 L110 58 L150 62 L190 40 L230 46 L270 24 L310 30 L360 6' : 'M0 10 L40 18 L70 12 L110 34 L150 28 L190 50 L230 44 L270 66 L310 60 L360 84'}
-                fill="none"
-                stroke={tone}
-                strokeOpacity="0.35"
-                strokeWidth="3"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
             </svg>
 
             <div className="relative flex items-center justify-between">
@@ -266,7 +258,7 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
               </span>
             </div>
 
-            <p className="relative mt-5 font-display text-[4.25rem] font-black leading-none tracking-tight" style={{ color: tone }}>
+            <p className="relative mt-4 font-display text-[4rem] font-black leading-none tracking-tight" style={{ color: tone }}>
               {pct ?? usd}
             </p>
             {pct && (
