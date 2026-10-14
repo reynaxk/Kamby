@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -16,17 +17,21 @@ import { useTranslations } from 'next-intl';
  * to not feel broken. Exit animation needs real AnimatePresence (unlike TradePanel's own
  * entrance-only springs — see that file's doc comment on why it avoids this): a drawer that
  * just vanishes instead of sliding away reads as a glitch, not a deliberate close.
+ *
+ * `desktop` (2026-10-14, the PnL share card): also show it on big screens, as a centred card.
  */
 export function MobileDrawer({
   open,
   onClose,
   title,
   children,
+  desktop = false,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  desktop?: boolean;
 }) {
   const tU = useTranslations('ui');
   useEffect(() => {
@@ -43,7 +48,7 @@ export function MobileDrawer({
     };
   }, [open, onClose]);
 
-  return (
+  const sheet = (
     <AnimatePresence>
       {open && (
         <>
@@ -53,7 +58,7 @@ export function MobileDrawer({
             exit={{ opacity: 0 }}
             onClick={onClose}
             aria-hidden
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
+            className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-sm ${desktop ? '' : 'lg:hidden'}`}
           />
           <motion.div
             role="dialog"
@@ -63,7 +68,7 @@ export function MobileDrawer({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
-            className="kamby-glass-solid fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-b-0 p-4 lg:hidden"
+            className={`kamby-glass-solid fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-b-0 p-4 ${desktop ? 'lg:inset-0 lg:m-auto lg:h-fit lg:w-[440px] lg:rounded-3xl lg:border-b' : 'lg:hidden'}`}
           >
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-sm font-bold uppercase tracking-wide text-ink-900">{title}</h2>
@@ -82,4 +87,7 @@ export function MobileDrawer({
       )}
     </AnimatePresence>
   );
+  // A desktop card is portalled to <body> (which carries kamby-void), so a moving/transformed
+  // panel it was opened from can't trap its fixed position.
+  return desktop && typeof document !== 'undefined' ? createPortal(sheet, document.body) : sheet;
 }

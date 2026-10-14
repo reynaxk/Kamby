@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} บน Kamby 🚀 เทรดกับฉัน: {link}",
     "invested": "ลงทุน",
     "worthNow": "มูลค่าตอนนี้",
-    "look": "รูปแบบการ์ด"
+    "look": "รูปแบบการ์ด",
+    "soldFor": "ขายได้",
+    "exit": "ราคาขาย",
+    "shareWin": "แชร์กำไรของคุณ"
   },
   "position": {
     "youHold": "คุณถือ",

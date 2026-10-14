@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} trên Kamby 🚀 Giao dịch cùng tôi: {link}",
     "invested": "Đã đầu tư",
     "worthNow": "Giá trị hiện tại",
-    "look": "Giao diện thẻ"
+    "look": "Giao diện thẻ",
+    "soldFor": "Đã bán",
+    "exit": "Giá bán",
+    "shareWin": "Chia sẻ lợi nhuận"
   },
   "position": {
     "youHold": "Bạn giữ",

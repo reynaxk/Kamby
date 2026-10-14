@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} на Kamby 🚀 Торгуй со мной: {link}",
     "invested": "Вложено",
     "worthNow": "Стоит сейчас",
-    "look": "Вид карточки"
+    "look": "Вид карточки",
+    "soldFor": "Продано за",
+    "exit": "Выход",
+    "shareWin": "Поделиться прибылью"
   },
   "position": {
     "youHold": "У вас",

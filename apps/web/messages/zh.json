@@ -104,7 +104,10 @@
     "shareText": "{ticker} 在 Kamby 上 {pct} 🚀 和我一起交易：{link}",
     "invested": "投入",
     "worthNow": "当前价值",
-    "look": "卡片样式"
+    "look": "卡片样式",
+    "soldFor": "卖出所得",
+    "exit": "卖出价",
+    "shareWin": "分享你的收益"
   },
   "position": {
     "youHold": "持有",

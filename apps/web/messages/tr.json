@@ -104,7 +104,10 @@
     "shareText": "Kamby’de {ticker} {pct} 🚀 Benimle işlem yap: {link}",
     "invested": "Yatırılan",
     "worthNow": "Şu anki değer",
-    "look": "Kart görünümü"
+    "look": "Kart görünümü",
+    "soldFor": "Satış tutarı",
+    "exit": "Çıkış",
+    "shareWin": "Kazancını paylaş"
   },
   "position": {
     "youHold": "Sende",

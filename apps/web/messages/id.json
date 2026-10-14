@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} di Kamby 🚀 Trading bareng aku: {link}",
     "invested": "Diinvestasikan",
     "worthNow": "Nilai sekarang",
-    "look": "Tampilan kartu"
+    "look": "Tampilan kartu",
+    "soldFor": "Terjual",
+    "exit": "Keluar",
+    "shareWin": "Bagikan profitmu"
   },
   "position": {
     "youHold": "Kamu pegang",

@@ -104,7 +104,10 @@
     "shareText": "Kamby で {ticker} {pct} 🚀 一緒にトレード：{link}",
     "invested": "投資額",
     "worthNow": "現在の価値",
-    "look": "カードの見た目"
+    "look": "カードの見た目",
+    "soldFor": "売却額",
+    "exit": "売却価格",
+    "shareWin": "利益をシェア"
   },
   "position": {
     "youHold": "保有",

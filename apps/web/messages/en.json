@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} on Kamby 🚀 Trade with me: {link}",
     "invested": "Invested",
     "worthNow": "Worth now",
-    "look": "Card look"
+    "look": "Card look",
+    "soldFor": "Sold for",
+    "exit": "Exit",
+    "shareWin": "Share your win"
   },
   "position": {
     "youHold": "You hold",

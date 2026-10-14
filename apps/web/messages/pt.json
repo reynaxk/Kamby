@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} na Kamby 🚀 Negocie comigo: {link}",
     "invested": "Investido",
     "worthNow": "Vale agora",
-    "look": "Estilo do cartão"
+    "look": "Estilo do cartão",
+    "soldFor": "Vendido por",
+    "exit": "Saída",
+    "shareWin": "Compartilhe seu lucro"
   },
   "position": {
     "youHold": "Você tem",

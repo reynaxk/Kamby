@@ -19,6 +19,8 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { AmountInput } from './AmountInput';
 import { TradeSuccess } from './TradeSuccess';
+import { PnlShareButton, type PnlShare } from '@/components/share/PnlShareCard';
+import { realizedShare, useSellSnapshot } from '@/components/share/SellShare';
 import { GaslessToggle } from './GaslessToggle';
 import { autoSlippageBps, nextAutoSlippageBps, SlippageControl } from './SlippageControl';
 import { QuoteSummary } from './QuoteSummary';
@@ -220,6 +222,8 @@ export function TradePanel({
   const [now, setNow] = useState(() => Date.now());
 
   const [step, setStep] = useState<Step>('form');
+  // What you held before a sell, for the "share your win" card after it confirms.
+  const sellSnapshot = useSellSnapshot(tokenAddress, !(step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed'));
   useEffect(() => {
     onStepChange?.(step);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -708,9 +712,18 @@ export function TradePanel({
   // --- Post-trade states -------------------------------------------------------------------
 
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
+    const sellShare =
+      step === 'confirmed' && transaction?.side === 'SELL'
+        ? realizedShare(
+            sellSnapshot,
+            Number(transaction.inputAmountFormatted),
+            Number(transaction.expectedOutputAmountFormatted) - (Number(transaction.platformFeeAmountFormatted) || 0),
+            tokenAddress,
+          )
+        : null;
     return (
       <Panel title={tU('trade_5f39')} onClose={onClose} animKey={step}>
-        <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} />
+        <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} share={sellShare} />
         {quote?.feeUnsignedTx && transaction && (transaction.status === 'CONFIRMED' || transaction.feeTxHash || transaction.sponsoredByRelayer) && (
           <FeeTransferSection
             transaction={transaction}
@@ -993,11 +1006,13 @@ function TradeStatusView({
   transaction,
   chainId,
   onDone,
+  share,
 }: {
   step: Extract<Step, 'submitted' | 'pending' | 'confirmed' | 'failed'>;
   transaction: TradeTransactionDto | null;
   chainId: number;
   onDone: () => void;
+  share?: PnlShare | null;
 }) {
   const tU = useTranslations('ui');
   const explorerUrl = transaction ? explorerTxUrl(chainId, transaction.txHash) : null;
@@ -1008,6 +1023,7 @@ function TradeStatusView({
       {step === 'pending' && <p className="font-body text-sm text-ink-600">{tU('waitingForConfirmationOnChain_cb34')}</p>}
       {(step === 'submitted' || step === 'pending') && <SlowConfirmationNote />}
       {step === 'confirmed' && <TradeSuccess title={tU('tradeConfirmed_132b')} />}
+      {share && <PnlShareButton share={share} variant="cta" />}
       {step === 'failed' && (
         <div className="flex items-center justify-center gap-2">
           <XCircle className="h-5 w-5 text-down" />

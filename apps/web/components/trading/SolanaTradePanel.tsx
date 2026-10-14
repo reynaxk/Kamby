@@ -29,6 +29,8 @@ import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
 import { TradeSuccess } from './TradeSuccess';
+import { PnlShareButton, type PnlShare } from '@/components/share/PnlShareCard';
+import { realizedShare, useSellSnapshot } from '@/components/share/SellShare';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
@@ -194,6 +196,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const [now, setNow] = useState(() => Date.now());
 
   const [step, setStep] = useState<Step>('form');
+  // What you held before a sell, for the "share your win" card after it confirms.
+  const sellSnapshot = useSellSnapshot(tokenMint, !(step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed'));
   const [flowError, setFlowError] = useState<string | null>(null);
   const [transaction, setTransaction] = useState<SolanaTradeTransactionDto | null>(null);
   const [pendingSignature, setPendingSignature] = useState<string | null>(null);
@@ -509,7 +513,17 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   if (step === 'submitted' || step === 'pending' || step === 'confirmed' || step === 'failed') {
     return (
       <Panel title={tTrade('title')} headerRight={<PositionChip source={{ kind: 'solana', mint: tokenMint }} />}>
-        <SolanaTradeStatusView step={step} transaction={transaction} signature={pendingSignature} onDone={resetToForm} />
+        <SolanaTradeStatusView
+          step={step}
+          transaction={transaction}
+          signature={pendingSignature}
+          onDone={resetToForm}
+          share={
+            step === 'confirmed' && transaction?.side === 'SELL' && tokenDecimals !== null
+              ? realizedShare(sellSnapshot, Number(transaction.inputAmount) / 10 ** tokenDecimals, Number(transaction.expectedOutputAmount) / 10 ** USDC_DECIMALS, tokenMint)
+              : null
+          }
+        />
       </Panel>
     );
   }
@@ -771,11 +785,13 @@ function SolanaTradeStatusView({
   transaction,
   signature,
   onDone,
+  share,
 }: {
   step: 'submitted' | 'pending' | 'confirmed' | 'failed';
   transaction: SolanaTradeTransactionDto | null;
   signature: string | null;
   onDone: () => void;
+  share?: PnlShare | null;
 }) {
   const tU = useTranslations('ui');
   const sig = transaction?.signature ?? signature;
@@ -789,7 +805,10 @@ function SolanaTradeStatusView({
   return (
     <div className="space-y-3 text-center">
       {step === 'confirmed' ? (
-        <TradeSuccess title={label} />
+        <>
+          <TradeSuccess title={label} />
+          {share && <PnlShareButton share={share} variant="cta" />}
+        </>
       ) : (
         <div className="flex items-center justify-center gap-2">
           {Icon && <Icon className={cn('h-5 w-5', color)} />}

@@ -23,6 +23,8 @@ export interface PnlShare {
   valueUsd?: number | null;
   /** 'Solana', 'Base', 'BNB Chain', 'Robinhood Chain' — a small tag on the card. */
   chainName?: string | null;
+  /** A closed (sold) part: "Sold for" and "Exit" instead of "Worth now" and "Now". */
+  sold?: boolean;
 }
 
 type ThemeId = 'neon' | 'midnight' | 'paper';
@@ -85,9 +87,29 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAA
  * shared as a PNG (phone share sheet) or downloaded. Three looks to pick from. Every shared win is
  * an invite with the sharer's code.
  */
-export function PnlShareButton({ share, className }: { share: PnlShare; className?: string }) {
+export function PnlShareButton({ share, className, variant = 'icon' }: { share: PnlShare; className?: string; variant?: 'icon' | 'cta' }) {
   const t = useTranslations('share');
   const [open, setOpen] = useState(false);
+  if (variant === 'cta') {
+    // Right after a winning sell (2026-10-14): the big way in.
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={cn('flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-3 font-display text-sm font-bold text-black', className)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 12v8h16v-8" />
+            <path d="M12 3v13" />
+            <path d="m7 8 5-5 5 5" />
+          </svg>
+          {t('shareWin')}
+        </button>
+        {open && <PnlShareSheet share={share} onClose={() => setOpen(false)} />}
+      </>
+    );
+  }
   return (
     <>
       <button
@@ -219,7 +241,7 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
   const card: CSSProperties = { background: theme.background, color: theme.text, width: 360, height: 450 };
 
   return (
-    <MobileDrawer open onClose={onClose} title={t('sharePnl')}>
+    <MobileDrawer open onClose={onClose} title={t('sharePnl')} desktop>
       <div className="flex flex-col items-center gap-4">
         {/* Scaled down on narrow phones so the whole card fits; the picture is still 1080×1350. */}
         <div className="origin-top max-[400px]:scale-[0.9] max-[400px]:-mb-[45px]">
@@ -272,11 +294,11 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
                 {hasAmounts ? (
                   <>
                     <Stat label={t('invested')} value={money(share.investedUsd as number)} theme={theme} />
-                    <Stat label={t('worthNow')} value={money(share.valueUsd as number)} theme={theme} />
+                    <Stat label={t(share.sold ? 'soldFor' : 'worthNow')} value={money(share.valueUsd as number)} theme={theme} />
                   </>
                 ) : null}
                 <Stat label={t('entry')} value={formatPrice(share.entryPrice)} theme={theme} />
-                <Stat label={t('now')} value={formatPrice(share.currentPrice)} theme={theme} />
+                <Stat label={t(share.sold ? 'exit' : 'now')} value={formatPrice(share.currentPrice)} theme={theme} />
               </div>
               <div className="mt-4 flex items-center gap-3 rounded-2xl p-2.5" style={{ background: theme.panel }}>
                 {qr && (

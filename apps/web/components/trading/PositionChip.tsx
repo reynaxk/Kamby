@@ -7,6 +7,7 @@ import { formatCompactUsd, formatPrice, formatSignedCompactUsd, formatTokenAmoun
 import { useMyPosition } from '@/lib/my-positions';
 import { useLivePrice } from '@/lib/use-live-price';
 import { PnlShareButton } from '@/components/share/PnlShareCard';
+import { SHARE_CHAIN_NAME } from '@/components/share/SellShare';
 import { useTranslations } from 'next-intl';
 
 /**
@@ -60,15 +61,13 @@ export function PositionChip({ source }: { source: ChartSource }) {
             currentPrice: price,
             investedUsd: position.costBasisUsd,
             valueUsd: value,
-            chainName: CHAIN_NAME[position.chainIdentifier ?? (source.kind === 'solana' ? 'solana' : '')] ?? null,
+            chainName: SHARE_CHAIN_NAME[position.chainIdentifier ?? (source.kind === 'solana' ? 'solana' : '')] ?? null,
           }}
         />
       )}
     </div>
   );
 }
-
-const CHAIN_NAME: Record<string, string> = { solana: 'Solana', 'eip155:8453': 'Base', 'eip155:56': 'BNB Chain', 'eip155:4663': 'Robinhood' };
 
 /** The market price you bought at: what was swapped ÷ tokens received — the fee left out (it's
  *  shown on its own line; owner request 2026-10-08). Falls back to cost ÷ quantity. */

@@ -104,7 +104,10 @@
     "shareText": "{ticker} {pct} в Kamby 🚀 Търгувай с мен: {link}",
     "invested": "Вложени",
     "worthNow": "Стойност сега",
-    "look": "Вид на картата"
+    "look": "Вид на картата",
+    "soldFor": "Продадени за",
+    "exit": "Изход",
+    "shareWin": "Сподели печалбата"
   },
   "position": {
     "youHold": "Държиш",
