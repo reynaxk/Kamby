@@ -50,6 +50,6 @@ import { SocialController } from './social.controller';
     TraderService,
     TrendingService,
   ],
-  exports: [ActivityService],
+  exports: [ActivityService, PositionService, LeaderboardService],
 })
 export class SocialModule {}

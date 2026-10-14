@@ -658,5 +658,21 @@
     "cta": "Anmelden oder registrieren",
     "sub": "Handle Memecoins auf Solana, Base und BNB — nur mit USDC, ohne Gasgebühren.",
     "how": "Mit E-Mail oder Google — deine Wallet wird für dich erstellt."
+  },
+  "tokenChat": {
+    "title": "Live-Chat",
+    "tab": "Chat",
+    "empty": "Noch hat niemand etwas zu ${symbol} gesagt — sei der Erste.",
+    "placeholder": "Sag etwas zu ${symbol}…",
+    "bought": "kaufte",
+    "sold": "verkaufte",
+    "flexPnl": "Meinen PnL zeigen",
+    "report": "Melden",
+    "reported": "Gemeldet",
+    "newMessages": "{n} neu",
+    "customize": "Wähle deine 4 Reaktionen",
+    "badge_whale": "Wal — hält $1K+ dieses Coins",
+    "badge_top": "Top-10-Trader dieser Woche",
+    "badge_dev": "Hat diesen Coin erstellt"
   }
 }

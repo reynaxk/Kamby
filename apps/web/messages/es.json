@@ -658,5 +658,21 @@
     "cta": "Inicia sesión o regístrate",
     "sub": "Opera memecoins en Solana, Base y BNB — solo con USDC, sin comisiones de gas.",
     "how": "Con tu email o Google — tu billetera se crea sola."
+  },
+  "tokenChat": {
+    "title": "Chat en vivo",
+    "tab": "Chat",
+    "empty": "Nadie ha dicho nada sobre ${symbol} aún — sé el primero.",
+    "placeholder": "Di algo sobre ${symbol}…",
+    "bought": "compró",
+    "sold": "vendió",
+    "flexPnl": "Mostrar mi PnL",
+    "report": "Reportar",
+    "reported": "Reportado",
+    "newMessages": "{n} nuevos",
+    "customize": "Elige tus 4 reacciones",
+    "badge_whale": "Ballena — tiene $1K+ de esta moneda",
+    "badge_top": "Top 10 de la semana",
+    "badge_dev": "Creó esta moneda"
   }
 }

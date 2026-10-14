@@ -658,5 +658,21 @@
     "cta": "登录或注册",
     "sub": "用 USDC 交易 Solana、Base 和 BNB 上的 Meme 币——无需 Gas 费。",
     "how": "使用邮箱或 Google 登录——钱包会自动为你创建。"
+  },
+  "tokenChat": {
+    "title": "实时聊天",
+    "tab": "聊天",
+    "empty": "还没有人聊 ${symbol} —— 来说第一句吧。",
+    "placeholder": "聊聊 ${symbol}…",
+    "bought": "买入",
+    "sold": "卖出",
+    "flexPnl": "晒我的盈亏",
+    "report": "举报",
+    "reported": "已举报",
+    "newMessages": "{n} 条新消息",
+    "customize": "选择你的 4 个表情",
+    "badge_whale": "巨鲸 — 持有该币 $1K+",
+    "badge_top": "本周前 10 交易员",
+    "badge_dev": "该币创建者"
   }
 }

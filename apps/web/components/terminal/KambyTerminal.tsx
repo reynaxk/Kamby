@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
 import { MobileCoinScreen } from '@/components/market/MobileCoinScreen';
 import { HoldersPanel } from './HoldersPanel';
 import { LiveTradesPanel } from './LiveTradesPanel';
+import { TokenStreamChatLazy } from '@/components/chat/TokenStreamChatLazy';
 import { WatchButton } from '@/components/market/WatchButton';
 
 /**
@@ -86,6 +87,7 @@ export function KambyTerminal({
   const isMobile = useIsMobile();
   const tL = useTranslations('labels');
   const tC = useTranslations('coin');
+  const tChat = useTranslations('tokenChat');
   const [holderCount, setHolderCount] = useState<number | null>(null);
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
   const chartSource = useMemo<ChartSource>(
@@ -127,6 +129,11 @@ export function KambyTerminal({
         chart={<TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" />}
         tabs={[
           { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <HoldersPanel source={chartSource} onCount={setHolderCount} /> },
+          {
+            id: 'chat',
+            label: tChat('tab'),
+            content: <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} phone className="h-[560px]" />,
+          },
           { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={chartSource} /> },
           { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></div> },
           {
@@ -199,6 +206,9 @@ export function KambyTerminal({
                 (MarketSummarySchema) until the ingestion worker has resolved them live from
                 the token contract; never pass a null decimals into TradePanel. */}
             {tradePanel}
+            <div className="h-[440px] overflow-hidden rounded-2xl border border-line bg-surface">
+              <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} className="h-full" />
+            </div>
             <MyPositionsPanel />
             <MarketInfoPanel market={market} />
             <div className="rounded-2xl border border-line bg-surface p-4">

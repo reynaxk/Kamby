@@ -658,5 +658,21 @@
     "cta": "Giriş yap veya kaydol",
     "sub": "Solana, Base ve BNB’de meme coin al-sat — sadece USDC ile, gas ücreti yok.",
     "how": "E-posta veya Google ile — cüzdanın senin için oluşturulur."
+  },
+  "tokenChat": {
+    "title": "Canlı sohbet",
+    "tab": "Sohbet",
+    "empty": "Henüz kimse ${symbol} hakkında yazmadı — ilk sen ol.",
+    "placeholder": "${symbol} hakkında bir şey yaz…",
+    "bought": "aldı",
+    "sold": "sattı",
+    "flexPnl": "PnL'imi göster",
+    "report": "Bildir",
+    "reported": "Bildirildi",
+    "newMessages": "{n} yeni",
+    "customize": "4 tepkini seç",
+    "badge_whale": "Balina — bu coinden $1K+ tutuyor",
+    "badge_top": "Haftanın ilk 10 trader’ı",
+    "badge_dev": "Bu coini oluşturdu"
   }
 }

@@ -510,6 +510,15 @@ body:has(.kamby-void) {
   .kamby-sheet-up { animation: none; }
 }
 
+/* A new chat line rises into place (components/chat/TokenStreamChat.tsx) — transform only, the
+   text is never invisible. */
+@keyframes kamby-chat-in {
+  from { transform: translateY(6px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kamby-chat-in { animation: kamby-chat-in 0.22s ease-out; }
+}
+
 /* Sign-in wall (components/auth/AuthGate.tsx): hidden unless html.kamby-locked, which the inline
    head script sets before first paint — then the app underneath isn't shown at all. */
 #kamby-gate {

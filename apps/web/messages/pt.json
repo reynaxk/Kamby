@@ -658,5 +658,21 @@
     "cta": "Entrar ou cadastrar-se",
     "sub": "Negocie memecoins na Solana, Base e BNB — só com USDC, sem taxas de gas.",
     "how": "Com seu e-mail ou Google — sua carteira é criada para você."
+  },
+  "tokenChat": {
+    "title": "Chat ao vivo",
+    "tab": "Chat",
+    "empty": "Ninguém falou de ${symbol} ainda — seja o primeiro.",
+    "placeholder": "Diga algo sobre ${symbol}…",
+    "bought": "comprou",
+    "sold": "vendeu",
+    "flexPnl": "Mostrar meu PnL",
+    "report": "Denunciar",
+    "reported": "Denunciado",
+    "newMessages": "{n} novas",
+    "customize": "Escolha suas 4 reações",
+    "badge_whale": "Baleia — tem $1K+ desta moeda",
+    "badge_top": "Top 10 da semana",
+    "badge_dev": "Criou esta moeda"
   }
 }

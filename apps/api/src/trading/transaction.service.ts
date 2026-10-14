@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException, Optional, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EvmChainDataProvider } from '@kamby/chain-adapters';
 import { Prisma, prisma } from '@kamby/db';
@@ -7,6 +7,9 @@ import { PinoLogger } from 'nestjs-pino';
 import { getConfiguredChains, type Env } from '../config/env';
 import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.service';
 import { TRANSACTION_INCLUDE, toDto, type TransactionRow } from './transaction-dto';
+import type { Redis } from 'ioredis';
+import { REDIS_CLIENT } from '../redis/redis.module';
+import { announceTradeInChat } from '../pulse/token-chat.service';
 
 export interface CursorPage<T> {
   items: T[];
@@ -36,6 +39,7 @@ export class TransactionService {
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
     private readonly gasRelayer: EvmGasRelayerQuoteService,
+    @Optional() @Inject(REDIS_CLIENT) private readonly redis?: Redis,
   ) {
     this.chainReaders = new Map(
       getConfiguredChains((key) => config.get(key, { infer: true })).map((chain) => [
@@ -337,11 +341,24 @@ export class TransactionService {
         return row;
       }
 
-      return prisma.tradeTransaction.update({
+      const confirmed = await prisma.tradeTransaction.update({
         where: { id: row.id },
         data: { status: 'CONFIRMED', confirmedAt: new Date() },
         include: TRANSACTION_INCLUDE,
       });
+      if (this.redis) {
+        // The coin's live chat shows Kamby trades (2026-10-14); the USDC leg is the dollar amount.
+        const dto = toDto(confirmed);
+        void announceTradeInChat(this.redis, {
+          id: confirmed.id,
+          userId: confirmed.userId,
+          chainIdentifier: `eip155:${confirmed.chainId}`,
+          tokenAddress: dto.token.address,
+          side: dto.side,
+          usd: dto.quoteToken.symbol === 'USDC' ? Number(dto.side === 'BUY' ? dto.inputAmountFormatted : dto.expectedOutputAmountFormatted) : 0,
+        });
+      }
+      return confirmed;
     }
     if (receiptStatus === 'reverted') {
       return prisma.tradeTransaction.update({

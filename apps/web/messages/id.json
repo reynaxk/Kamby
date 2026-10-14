@@ -658,5 +658,21 @@
     "cta": "Masuk atau daftar",
     "sub": "Trading meme coin di Solana, Base dan BNB — cukup dengan USDC, tanpa biaya gas.",
     "how": "Dengan email atau Google — dompetmu dibuat otomatis."
+  },
+  "tokenChat": {
+    "title": "Chat langsung",
+    "tab": "Chat",
+    "empty": "Belum ada yang membahas ${symbol} — jadilah yang pertama.",
+    "placeholder": "Katakan sesuatu tentang ${symbol}…",
+    "bought": "membeli",
+    "sold": "menjual",
+    "flexPnl": "Tunjukkan PnL saya",
+    "report": "Laporkan",
+    "reported": "Dilaporkan",
+    "newMessages": "{n} baru",
+    "customize": "Pilih 4 reaksimu",
+    "badge_whale": "Paus — memegang $1K+ koin ini",
+    "badge_top": "Trader top 10 minggu ini",
+    "badge_dev": "Pembuat koin ini"
   }
 }

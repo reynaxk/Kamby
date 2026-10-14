@@ -1,5 +1,6 @@
 'use client';
 
+import { TokenStreamChatLazy } from '@/components/chat/TokenStreamChatLazy';
 import type { Candle } from '@kamby/domain';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -45,6 +46,7 @@ export function SolanaCoinApp({
   const tC = useTranslations('coin');
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
+  const tChat = useTranslations('tokenChat');
   const source: ChartSource = { kind: 'solana', mint };
   const [holderCount, setHolderCount] = useState<number | null>(null);
   return (
@@ -62,6 +64,11 @@ export function SolanaCoinApp({
       chart={<TokenChartCard bare source={source} initialTimeframe={timeframe} initialCandles={candles} timeframes={timeframes} className="h-full" />}
       tabs={[
         { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <HoldersPanel source={source} onCount={setHolderCount} /> },
+        {
+          id: 'chat',
+          label: tChat('tab'),
+          content: <TokenStreamChatLazy chainIdentifier="solana" address={mint} symbol={symbol} phone className="h-[560px]" />,
+        },
         { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={source} /> },
         {
           id: 'about',

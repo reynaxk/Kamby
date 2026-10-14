@@ -658,5 +658,21 @@
     "cta": "Se connecter ou s’inscrire",
     "sub": "Trade des memecoins sur Solana, Base et BNB — avec juste de l’USDC, sans frais de gas.",
     "how": "Avec ton e-mail ou Google — ton portefeuille est créé pour toi."
+  },
+  "tokenChat": {
+    "title": "Chat en direct",
+    "tab": "Chat",
+    "empty": "Personne n'a encore parlé de ${symbol} — sois le premier.",
+    "placeholder": "Dis quelque chose sur ${symbol}…",
+    "bought": "a acheté",
+    "sold": "a vendu",
+    "flexPnl": "Montrer mon PnL",
+    "report": "Signaler",
+    "reported": "Signalé",
+    "newMessages": "{n} nouveaux",
+    "customize": "Choisis tes 4 réactions",
+    "badge_whale": "Baleine — détient $1K+ de ce coin",
+    "badge_top": "Top 10 de la semaine",
+    "badge_dev": "A créé ce coin"
   }
 }

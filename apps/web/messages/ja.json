@@ -658,5 +658,21 @@
     "cta": "ログイン / 新規登録",
     "sub": "Solana・Base・BNBのミームコインをUSDCだけで取引。ガス代なし。",
     "how": "メールまたはGoogleで。ウォレットは自動で作成されます。"
+  },
+  "tokenChat": {
+    "title": "ライブチャット",
+    "tab": "チャット",
+    "empty": "まだ${symbol}について誰も話していません — 最初の一言を。",
+    "placeholder": "${symbol}について話そう…",
+    "bought": "が購入",
+    "sold": "が売却",
+    "flexPnl": "自分のPnLを見せる",
+    "report": "報告",
+    "reported": "報告済み",
+    "newMessages": "新着{n}件",
+    "customize": "リアクションを4つ選ぶ",
+    "badge_whale": "クジラ — このコインを$1K以上保有",
+    "badge_top": "今週のトップ10トレーダー",
+    "badge_dev": "このコインの作成者"
   }
 }

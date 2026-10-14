@@ -56,7 +56,7 @@ export class PulseService {
     const take = Math.min(Math.max(limit, 1), PULSE_LIMITS.pageSize);
     const beforeDate = before ? new Date(before) : null;
     const rows = await prisma.pulseMessage.findMany({
-      where: { hiddenAt: null, ...(beforeDate && !Number.isNaN(beforeDate.getTime()) ? { createdAt: { lt: beforeDate } } : {}) },
+      where: { hiddenAt: null, tokenKey: null, ...(beforeDate && !Number.isNaN(beforeDate.getTime()) ? { createdAt: { lt: beforeDate } } : {}) },
       orderBy: { createdAt: 'desc' },
       take: take + 1,
       include: MESSAGE_INCLUDE,

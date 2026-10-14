@@ -658,5 +658,21 @@
     "cta": "Đăng nhập hoặc đăng ký",
     "sub": "Giao dịch meme coin trên Solana, Base và BNB — chỉ với USDC, không phí gas.",
     "how": "Bằng email hoặc Google — ví được tạo sẵn cho bạn."
+  },
+  "tokenChat": {
+    "title": "Chat trực tiếp",
+    "tab": "Chat",
+    "empty": "Chưa ai nói gì về ${symbol} — hãy là người đầu tiên.",
+    "placeholder": "Nói gì đó về ${symbol}…",
+    "bought": "đã mua",
+    "sold": "đã bán",
+    "flexPnl": "Khoe PnL của tôi",
+    "report": "Báo cáo",
+    "reported": "Đã báo cáo",
+    "newMessages": "{n} tin mới",
+    "customize": "Chọn 4 biểu cảm của bạn",
+    "badge_whale": "Cá voi — giữ $1K+ coin này",
+    "badge_top": "Top 10 trader tuần này",
+    "badge_dev": "Người tạo coin này"
   }
 }

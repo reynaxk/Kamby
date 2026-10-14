@@ -6,6 +6,8 @@ import {
   PULSE_REALTIME_CHANNEL,
   type PulseMessage,
   SOLANA_ACTIVITY_REALTIME_CHANNEL,
+  TOKEN_CHAT_REALTIME_CHANNEL,
+  type TokenChatEvent,
   type NotificationPing,
   type PumpFunLiveBatch,
 } from '@kamby/domain';
@@ -47,6 +49,7 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly solanaActivitySubject = new Subject<SolanaActivityPing>();
   private readonly pumpFunSubject = new Subject<PumpFunLiveBatch>();
   private readonly pulseSubject = new Subject<PulseMessage>();
+  private readonly tokenChatSubject = new Subject<TokenChatEvent>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -71,13 +74,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.pumpFunSubject.next(JSON.parse(message) as PumpFunLiveBatch);
         } else if (channel === PULSE_REALTIME_CHANNEL) {
           this.pulseSubject.next(JSON.parse(message) as PulseMessage);
+        } else if (channel === TOKEN_CHAT_REALTIME_CHANNEL) {
+          this.tokenChatSubject.next(JSON.parse(message) as TokenChatEvent);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -111,5 +116,10 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   /** Pulse chat messages as they're posted — full messages (they're small and public). */
   get pulseEvents$() {
     return this.pulseSubject.asObservable();
+  }
+
+  /** Every coin's chat events (new items, reactions, take-downs); each stream filters to its coin. */
+  get tokenChatEvents$() {
+    return this.tokenChatSubject.asObservable();
   }
 }

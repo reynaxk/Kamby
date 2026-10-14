@@ -658,5 +658,21 @@
     "cta": "Sign in or sign up",
     "sub": "Trade meme coins on Solana, Base and BNB — with just USDC, no gas fees.",
     "how": "With your email or Google — your wallet is created for you."
+  },
+  "tokenChat": {
+    "title": "Live chat",
+    "tab": "Chat",
+    "empty": "No one has said anything about ${symbol} yet — be the first.",
+    "placeholder": "Say something about ${symbol}…",
+    "bought": "bought",
+    "sold": "sold",
+    "flexPnl": "Share my PnL",
+    "report": "Report",
+    "reported": "Reported",
+    "newMessages": "{n} new",
+    "customize": "Pick your 4 reactions",
+    "badge_whale": "Whale — holds $1K+ of this coin",
+    "badge_top": "Top 10 trader this week",
+    "badge_dev": "Created this coin"
   }
 }

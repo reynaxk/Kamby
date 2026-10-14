@@ -3,6 +3,7 @@ import { Prisma, prisma } from '@kamby/db';
 import { SOLANA_ACTIVITY_REALTIME_CHANNEL, type SolanaSocialActivity, type TradeSide, type TradeStatus } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
+import { announceTradeInChat } from '../pulse/token-chat.service';
 import { SOLANA_CONNECTION_POOL, type SolanaConnectionPool } from '../chain/solana-connection-pool';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
@@ -182,6 +183,15 @@ export class SolanaTransactionService {
         data: { status: 'CONFIRMED', confirmedAt: new Date() },
       });
       await this.publishConfirmed(confirmed);
+      const usdcRaw = confirmed.side === 'SELL' ? confirmed.expectedOutputAmount : confirmed.inputAmount;
+      void announceTradeInChat(this.redis, {
+        id: confirmed.id,
+        userId: confirmed.userId,
+        chainIdentifier: 'solana',
+        tokenAddress: confirmed.side === 'SELL' ? confirmed.inputMint : confirmed.outputMint,
+        side: confirmed.side === 'SELL' ? 'SELL' : 'BUY',
+        usd: Number(usdcRaw) / 1e6,
+      });
       return confirmed;
     }
     return row;

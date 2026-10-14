@@ -376,6 +376,7 @@ model User {
   notificationPreference  NotificationPreference?
   pushSubscriptions       PushSubscription[]
   pulseMessages           PulseMessage[]
+  pulseReports            PulseReport[]
   tokenWatches            TokenWatch[]
   savedSearches           SavedSearch[]
   tokenLots               TokenLot[]
@@ -1049,14 +1050,41 @@ model PulseMessage {
   body      String    @db.VarChar(280)
   hiddenAt  DateTime? @map("hidden_at")
   createdAt DateTime  @default(now()) @map("created_at")
+  /// A coin's own chat (2026-10-14, see @kamby/domain token-chat.ts): `solana:<mint>` or
+  /// `eip155:<chainId>:<0x…>`. Null = the worldwide Pulse.
+  tokenKey  String?   @map("token_key") @db.VarChar(140)
+  /// 'text' or 'pnl' (a PnL flex the server built from the poster's real position → `pnl`).
+  kind      String    @default("text") @db.VarChar(8)
+  pnl       Json?
+  /// 'whale' / 'top' / 'dev', worked out when it was posted.
+  badges    String[]  @default([])
+  reportCount Int     @default(0) @map("report_count")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports PulseReport[]
 
   /// The chat itself: newest first.
   @@index([createdAt])
   /// A user's last message (cooldown / duplicate check).
   @@index([userId, createdAt])
+  /// One coin's chat, newest first.
+  @@index([tokenKey, createdAt])
   @@map("pulse_messages")
+}
+
+/// One user's report of one chat message (once each). Enough of them hide it — see
+/// TOKEN_CHAT_LIMITS.reportsToHide.
+model PulseReport {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message PulseMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("pulse_reports")
 }
 
 /// Whether each token market is *currently* trending per `computeTrendingScore` (see

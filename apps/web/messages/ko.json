@@ -658,5 +658,21 @@
     "cta": "로그인 또는 가입",
     "sub": "Solana, Base, BNB의 밈코인을 USDC만으로 거래 — 가스비 없음.",
     "how": "이메일 또는 Google로 — 지갑은 자동으로 만들어집니다."
+  },
+  "tokenChat": {
+    "title": "라이브 채팅",
+    "tab": "채팅",
+    "empty": "아직 ${symbol}에 대한 대화가 없어요 — 첫 마디를 남겨보세요.",
+    "placeholder": "${symbol}에 대해 말해보세요…",
+    "bought": "매수",
+    "sold": "매도",
+    "flexPnl": "내 PnL 공유",
+    "report": "신고",
+    "reported": "신고됨",
+    "newMessages": "새 메시지 {n}개",
+    "customize": "리액션 4개 고르기",
+    "badge_whale": "고래 — 이 코인 $1K+ 보유",
+    "badge_top": "이번 주 톱 10 트레이더",
+    "badge_dev": "이 코인 생성자"
   }
 }

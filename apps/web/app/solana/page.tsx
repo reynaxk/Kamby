@@ -1,4 +1,5 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
+import { TokenStreamChatLazy } from '@/components/chat/TokenStreamChatLazy';
 import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { TokenLinks } from '@/components/terminal/TokenLinks';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
@@ -214,6 +215,11 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             <div className="rounded-2xl border border-line bg-surface p-4">
               <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
             </div>
+            {!isSol && (
+              <div className="mt-3 h-[440px] overflow-hidden rounded-2xl border border-line bg-surface">
+                <TokenStreamChatLazy chainIdentifier="solana" address={market.tokenAddress} symbol={market.symbol} className="h-full" />
+              </div>
+            )}
             <div className="mt-3">
               <MyPositionsPanel />
             </div>
