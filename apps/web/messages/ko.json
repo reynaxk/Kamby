@@ -101,7 +101,10 @@
     "tradeWithMe": "같이 거래해요",
     "share": "공유",
     "save": "이미지 저장",
-    "shareText": "Kamby에서 {ticker} {pct} 🚀 같이 거래해요: {link}"
+    "shareText": "Kamby에서 {ticker} {pct} 🚀 같이 거래해요: {link}",
+    "invested": "투자금",
+    "worthNow": "현재 가치",
+    "look": "카드 스타일"
   },
   "position": {
     "youHold": "보유",

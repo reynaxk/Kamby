@@ -101,7 +101,10 @@
     "tradeWithMe": "Trading bareng aku di",
     "share": "Bagikan",
     "save": "Simpan gambar",
-    "shareText": "{ticker} {pct} di Kamby 🚀 Trading bareng aku: {link}"
+    "shareText": "{ticker} {pct} di Kamby 🚀 Trading bareng aku: {link}",
+    "invested": "Diinvestasikan",
+    "worthNow": "Nilai sekarang",
+    "look": "Tampilan kartu"
   },
   "position": {
     "youHold": "Kamu pegang",

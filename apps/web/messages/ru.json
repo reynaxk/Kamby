@@ -101,7 +101,10 @@
     "tradeWithMe": "Торгуй со мной на",
     "share": "Поделиться",
     "save": "Сохранить",
-    "shareText": "{ticker} {pct} на Kamby 🚀 Торгуй со мной: {link}"
+    "shareText": "{ticker} {pct} на Kamby 🚀 Торгуй со мной: {link}",
+    "invested": "Вложено",
+    "worthNow": "Стоит сейчас",
+    "look": "Вид карточки"
   },
   "position": {
     "youHold": "У вас",

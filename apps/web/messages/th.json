@@ -101,7 +101,10 @@
     "tradeWithMe": "เทรดกับฉันที่",
     "share": "แชร์",
     "save": "บันทึกรูป",
-    "shareText": "{ticker} {pct} บน Kamby 🚀 เทรดกับฉัน: {link}"
+    "shareText": "{ticker} {pct} บน Kamby 🚀 เทรดกับฉัน: {link}",
+    "invested": "ลงทุน",
+    "worthNow": "มูลค่าตอนนี้",
+    "look": "รูปแบบการ์ด"
   },
   "position": {
     "youHold": "คุณถือ",

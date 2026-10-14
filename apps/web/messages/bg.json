@@ -101,7 +101,10 @@
     "tradeWithMe": "Търгувай с мен в",
     "share": "Сподели",
     "save": "Запази снимка",
-    "shareText": "{ticker} {pct} в Kamby 🚀 Търгувай с мен: {link}"
+    "shareText": "{ticker} {pct} в Kamby 🚀 Търгувай с мен: {link}",
+    "invested": "Вложени",
+    "worthNow": "Стойност сега",
+    "look": "Вид на картата"
   },
   "position": {
     "youHold": "Държиш",

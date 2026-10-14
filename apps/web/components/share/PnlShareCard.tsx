@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
+import QRCode from 'qrcode';
 import { cn } from '@kamby/ui';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { formatPrice } from '@/lib/format';
 import { fetchMyReferralSummary } from '@/lib/referrals-client';
+import { fetchMyProfile } from '@/lib/profile-client';
 
 export interface PnlShare {
   symbol: string | null;
@@ -16,12 +18,67 @@ export interface PnlShare {
   pnlPct: number | null;
   entryPrice: number | null;
   currentPrice: number | null;
+  /** What was paid and what it's worth now, in USD — shown when known. */
+  investedUsd?: number | null;
+  valueUsd?: number | null;
+  /** 'Solana', 'Base', 'BNB Chain', 'Robinhood Chain' — a small tag on the card. */
+  chainName?: string | null;
 }
 
+type ThemeId = 'neon' | 'midnight' | 'paper';
+
+interface CardTheme {
+  background: string;
+  text: string;
+  muted: string;
+  panel: string;
+  up: string;
+  down: string;
+  /** The big K behind the numbers. */
+  mark: string;
+  swatch: string;
+}
+
+const THEMES: Record<ThemeId, CardTheme> = {
+  neon: {
+    background: '#05070A',
+    text: '#FFFFFF',
+    muted: 'rgba(255,255,255,0.5)',
+    panel: 'rgba(255,255,255,0.06)',
+    up: '#00FF87',
+    down: '#FF3B69',
+    mark: 'rgba(0,255,135,0.09)',
+    swatch: 'linear-gradient(135deg,#05070A 55%,#00FF87)',
+  },
+  midnight: {
+    background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#05070A 100%)',
+    text: '#FFFFFF',
+    muted: 'rgba(255,255,255,0.55)',
+    panel: 'rgba(255,255,255,0.07)',
+    up: '#00FF87',
+    down: '#FF5C82',
+    mark: 'rgba(255,255,255,0.05)',
+    swatch: 'linear-gradient(135deg,#141B4D,#05070A)',
+  },
+  paper: {
+    background: '#F3F4EE',
+    text: '#05070A',
+    muted: 'rgba(5,7,10,0.5)',
+    panel: 'rgba(5,7,10,0.05)',
+    up: '#00A85A',
+    down: '#E0244F',
+    mark: 'rgba(5,7,10,0.05)',
+    swatch: 'linear-gradient(135deg,#F3F4EE 55%,#00A85A)',
+  },
+};
+const THEME_KEY = 'kamby:pnl-theme';
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
 /**
- * A shareable PnL card (2026-10-09 app redesign, after fomo's portfolio card): the coin, the
- * profit in % and $, entry vs now, and the trader's referral link — drawn in the browser and
- * shared as a PNG (phone share sheet: Telegram, X, WhatsApp) or downloaded. Every shared win is
+ * A shareable PnL card (2026-10-09, reworked 2026-10-14 after GMGN's share cards): the coin, the
+ * profit in % and $, invested vs worth now, entry vs now, the trader's name and a QR code of their
+ * referral link — drawn in the browser at 1080×1350 (4:5, the X/Instagram/TikTok feed size) and
+ * shared as a PNG (phone share sheet) or downloaded. Three looks to pick from. Every shared win is
  * an invite with the sharer's code.
  */
 export function PnlShareButton({ share, className }: { share: PnlShare; className?: string }) {
@@ -47,28 +104,77 @@ export function PnlShareButton({ share, className }: { share: PnlShare; classNam
   );
 }
 
+function useStoredTheme(): [ThemeId, (id: ThemeId) => void] {
+  const [theme, setTheme] = useState<ThemeId>('neon');
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(THEME_KEY);
+      if (saved && saved in THEMES) setTheme(saved as ThemeId);
+    } catch {
+      // storage unavailable — neon stays
+    }
+  }, []);
+  const choose = (id: ThemeId) => {
+    setTheme(id);
+    try {
+      window.localStorage.setItem(THEME_KEY, id);
+    } catch {
+      // applied, just not remembered
+    }
+  };
+  return [theme, choose];
+}
+
+function money(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `$${(abs / 1_000_000).toFixed(2)}M`;
+  if (abs >= 10_000) return `$${(abs / 1_000).toFixed(1)}K`;
+  return `$${abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => void }) {
   const t = useTranslations('share');
   const cardRef = useRef<HTMLDivElement>(null);
   const [refCode, setRefCode] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [themeId, setThemeId] = useStoredTheme();
+  const theme = THEMES[themeId];
 
   useEffect(() => {
     fetchMyReferralSummary()
       .then((s) => setRefCode(s.referralCode))
       .catch(() => setRefCode(null));
+    fetchMyProfile()
+      .then((p) => setUsername(p.username))
+      .catch(() => setUsername(null));
   }, []);
 
   const link = `kambesh.com${refCode ? `/?ref=${refCode}` : ''}`;
+  useEffect(() => {
+    let live = true;
+    QRCode.toDataURL(`https://${link}`, { margin: 0, width: 192, color: { dark: '#05070A', light: '#FFFFFF' } })
+      .then((url) => live && setQr(url))
+      .catch(() => live && setQr(null));
+    return () => {
+      live = false;
+    };
+  }, [link]);
+
   const up = share.pnlUsd >= 0;
+  const tone = up ? theme.up : theme.down;
   const pct = share.pnlPct === null ? null : `${share.pnlPct >= 0 ? '+' : ''}${share.pnlPct.toFixed(Math.abs(share.pnlPct) >= 100 ? 0 : 1)}%`;
-  const usd = `${share.pnlUsd >= 0 ? '+' : '-'}$${Math.abs(share.pnlUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const usd = `${share.pnlUsd >= 0 ? '+' : '-'}${money(share.pnlUsd)}`;
   const ticker = `$${(share.symbol ?? 'TOKEN').replace(/^\$+/, '')}`;
+  const hasAmounts = share.investedUsd != null && share.valueUsd != null;
 
   async function render(): Promise<Blob | null> {
     if (!cardRef.current) return null;
     const { toBlob } = await import('html-to-image');
-    return toBlob(cardRef.current, { pixelRatio: 2, cacheBust: true, backgroundColor: '#05070A' }).catch(() => null);
+    // 360×450 css px × 3 = 1080×1350. A coin logo that refuses cross-origin reads is left blank
+    // instead of failing the whole picture.
+    return toBlob(cardRef.current, { pixelRatio: 3, cacheBust: true, imagePlaceholder: TRANSPARENT_PIXEL }).catch(() => null);
   }
 
   async function shareImage() {
@@ -106,39 +212,114 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
     setTimeout(() => URL.revokeObjectURL(url), 2_000);
   }
 
+  const card: CSSProperties = { background: theme.background, color: theme.text, width: 360, height: 450 };
+
   return (
     <MobileDrawer open onClose={onClose} title={t('sharePnl')}>
       <div className="flex flex-col items-center gap-4">
-        <div
-          ref={cardRef}
-          className="relative w-[320px] overflow-hidden rounded-3xl border border-white/10 p-5"
-          style={{ background: up ? 'radial-gradient(120% 90% at 85% 0%, rgba(0,255,135,0.28), transparent 60%), #05070A' : 'radial-gradient(120% 90% at 85% 0%, rgba(239,68,68,0.28), transparent 60%), #05070A' }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-display text-lg font-black tracking-tight text-white">KAMBY</span>
-            <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider text-white/70">{t('pnl')}</span>
-          </div>
-          <div className="mt-6 flex items-center gap-3">
-            <TokenAvatar src={share.logoUrl} seed={share.seed} label={share.symbol} className="h-11 w-11 text-base" />
-            <span className="font-display text-2xl font-bold text-white">{ticker}</span>
-          </div>
-          <p className={cn('mt-4 font-display text-6xl font-black leading-none tracking-tight', up ? 'text-[#00FF87]' : 'text-[#ef4444]')}>{pct ?? usd}</p>
-          {pct && <p className={cn('mt-2 font-mono text-lg font-semibold', up ? 'text-[#00FF87]' : 'text-[#ef4444]')}>{usd}</p>}
-          <div className="mt-6 grid grid-cols-2 gap-3 font-mono text-xs">
-            <div>
-              <p className="text-white/50">{t('entry')}</p>
-              <p className="mt-0.5 font-semibold text-white">{formatPrice(share.entryPrice)}</p>
+        {/* Scaled down on narrow phones so the whole card fits; the picture is still 1080×1350. */}
+        <div className="origin-top max-[400px]:scale-[0.9] max-[400px]:-mb-[45px]">
+          <div ref={cardRef} className="relative overflow-hidden rounded-[28px] p-6" style={card}>
+            {/* The neon K, big and faint behind everything. */}
+            <svg className="pointer-events-none absolute -right-16 -top-6" width="330" height="330" viewBox="0 0 512 512" aria-hidden="true">
+              <g fill="none" stroke={theme.mark} strokeWidth="92" strokeLinecap="round">
+                <path d="M186 140 V372" />
+                <path d="M200 268 L338 140" />
+                <path d="M232 246 L346 372" />
+              </g>
+            </svg>
+            {/* A little price line going the way the trade went. */}
+            <svg className="pointer-events-none absolute inset-x-0 bottom-[176px]" width="360" height="90" viewBox="0 0 360 90" aria-hidden="true">
+              <path
+                d={up ? 'M0 80 L40 70 L70 76 L110 58 L150 62 L190 40 L230 46 L270 24 L310 30 L360 6' : 'M0 10 L40 18 L70 12 L110 34 L150 28 L190 50 L230 44 L270 66 L310 60 L360 84'}
+                fill="none"
+                stroke={tone}
+                strokeOpacity="0.35"
+                strokeWidth="3"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <div className="relative flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/kamby-mark.svg" alt="" width={28} height={28} className="h-7 w-7 rounded-lg" />
+                <span className="font-display text-lg font-black tracking-tight">KAMBY</span>
+              </span>
+              {share.chainName && (
+                <span className="rounded-full px-2.5 py-1 font-mono text-[0.6rem] font-semibold uppercase tracking-wider" style={{ background: theme.panel, color: theme.muted }}>
+                  {share.chainName}
+                </span>
+              )}
             </div>
-            <div>
-              <p className="text-white/50">{t('now')}</p>
-              <p className="mt-0.5 font-semibold text-white">{formatPrice(share.currentPrice)}</p>
+
+            <div className="relative mt-7 flex items-center gap-3">
+              <TokenAvatar src={share.logoUrl} seed={share.seed} label={share.symbol} className="h-12 w-12 text-base" />
+              <span className="min-w-0">
+                <span className="block truncate font-display text-2xl font-bold leading-tight">{ticker}</span>
+                {username && (
+                  <span className="block truncate font-body text-xs" style={{ color: theme.muted }}>
+                    @{username}
+                  </span>
+                )}
+              </span>
             </div>
-          </div>
-          <div className="mt-6 rounded-2xl bg-white/5 px-3 py-2.5 font-mono text-[0.7rem] text-white/80">
-            {t('tradeWithMe')} <span className="font-semibold text-[#00FF87]">{link}</span>
+
+            <p className="relative mt-5 font-display text-[4.25rem] font-black leading-none tracking-tight" style={{ color: tone }}>
+              {pct ?? usd}
+            </p>
+            {pct && (
+              <p className="relative mt-2 font-mono text-xl font-bold" style={{ color: tone }}>
+                {usd}
+              </p>
+            )}
+
+            <div className="absolute inset-x-6 bottom-6">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 font-mono text-[0.7rem]">
+                {hasAmounts ? (
+                  <>
+                    <Stat label={t('invested')} value={money(share.investedUsd as number)} theme={theme} />
+                    <Stat label={t('worthNow')} value={money(share.valueUsd as number)} theme={theme} />
+                  </>
+                ) : null}
+                <Stat label={t('entry')} value={formatPrice(share.entryPrice)} theme={theme} />
+                <Stat label={t('now')} value={formatPrice(share.currentPrice)} theme={theme} />
+              </div>
+              <div className="mt-4 flex items-center gap-3 rounded-2xl p-2.5" style={{ background: theme.panel }}>
+                {qr && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={qr} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded-lg bg-white p-1" />
+                )}
+                <span className="min-w-0 font-mono text-[0.68rem] leading-snug">
+                  <span className="block" style={{ color: theme.muted }}>
+                    {t('tradeWithMe')}
+                  </span>
+                  <span className="block truncate font-semibold" style={{ color: theme.up }}>
+                    {link}
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="grid w-full max-w-[320px] grid-cols-2 gap-2">
+
+        <div role="radiogroup" aria-label={t('look')} className="flex items-center gap-3">
+          {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={themeId === id}
+              aria-label={id}
+              onClick={() => setThemeId(id)}
+              className={cn('h-9 w-9 rounded-full border-2 transition-transform', themeId === id ? 'scale-110 border-accent' : 'border-white/15')}
+              style={{ background: THEMES[id].swatch }}
+            />
+          ))}
+        </div>
+
+        <div className="grid w-full max-w-[360px] grid-cols-2 gap-2">
           <button type="button" disabled={busy} onClick={() => void shareImage()} className="rounded-xl bg-accent py-3 font-display text-sm font-bold text-black disabled:opacity-50">
             {t('share')}
           </button>
@@ -148,5 +329,14 @@ function PnlShareSheet({ share, onClose }: { share: PnlShare; onClose: () => voi
         </div>
       </div>
     </MobileDrawer>
+  );
+}
+
+function Stat({ label, value, theme }: { label: string; value: string; theme: CardTheme }) {
+  return (
+    <div>
+      <p style={{ color: theme.muted }}>{label}</p>
+      <p className="mt-0.5 text-sm font-semibold">{value}</p>
+    </div>
   );
 }

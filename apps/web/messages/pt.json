@@ -101,7 +101,10 @@
     "tradeWithMe": "Negocie comigo na",
     "share": "Compartilhar",
     "save": "Salvar imagem",
-    "shareText": "{ticker} {pct} na Kamby 🚀 Negocie comigo: {link}"
+    "shareText": "{ticker} {pct} na Kamby 🚀 Negocie comigo: {link}",
+    "invested": "Investido",
+    "worthNow": "Vale agora",
+    "look": "Estilo do cartão"
   },
   "position": {
     "youHold": "Você tem",

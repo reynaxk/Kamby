@@ -50,12 +50,25 @@ export function PositionChip({ source }: { source: ChartSource }) {
       {pnl !== null && (
         <PnlShareButton
           className="-my-1 -mr-1.5"
-          share={{ symbol: position.symbol, logoUrl: position.logoUrl, seed: address, pnlUsd: pnl, pnlPct: pct, entryPrice: entry, currentPrice: price }}
+          share={{
+            symbol: position.symbol,
+            logoUrl: position.logoUrl,
+            seed: address,
+            pnlUsd: pnl,
+            pnlPct: pct,
+            entryPrice: entry,
+            currentPrice: price,
+            investedUsd: position.costBasisUsd,
+            valueUsd: value,
+            chainName: CHAIN_NAME[position.chainIdentifier ?? (source.kind === 'solana' ? 'solana' : '')] ?? null,
+          }}
         />
       )}
     </div>
   );
 }
+
+const CHAIN_NAME: Record<string, string> = { solana: 'Solana', 'eip155:8453': 'Base', 'eip155:56': 'BNB Chain', 'eip155:4663': 'Robinhood' };
 
 /** The market price you bought at: what was swapped ÷ tokens received — the fee left out (it's
  *  shown on its own line; owner request 2026-10-08). Falls back to cost ÷ quantity. */

@@ -101,7 +101,10 @@
     "tradeWithMe": "Opera conmigo en",
     "share": "Compartir",
     "save": "Guardar imagen",
-    "shareText": "{ticker} {pct} en Kamby 🚀 Opera conmigo: {link}"
+    "shareText": "{ticker} {pct} en Kamby 🚀 Opera conmigo: {link}",
+    "invested": "Invertido",
+    "worthNow": "Vale ahora",
+    "look": "Estilo"
   },
   "position": {
     "youHold": "Tienes",

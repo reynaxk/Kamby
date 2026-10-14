@@ -101,7 +101,10 @@
     "tradeWithMe": "Giao dịch cùng tôi tại",
     "share": "Chia sẻ",
     "save": "Lưu ảnh",
-    "shareText": "{ticker} {pct} trên Kamby 🚀 Giao dịch cùng tôi: {link}"
+    "shareText": "{ticker} {pct} trên Kamby 🚀 Giao dịch cùng tôi: {link}",
+    "invested": "Đã đầu tư",
+    "worthNow": "Giá trị hiện tại",
+    "look": "Giao diện thẻ"
   },
   "position": {
     "youHold": "Bạn giữ",

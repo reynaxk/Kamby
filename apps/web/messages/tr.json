@@ -101,7 +101,10 @@
     "tradeWithMe": "Benimle işlem yap",
     "share": "Paylaş",
     "save": "Görseli kaydet",
-    "shareText": "Kamby’de {ticker} {pct} 🚀 Benimle işlem yap: {link}"
+    "shareText": "Kamby’de {ticker} {pct} 🚀 Benimle işlem yap: {link}",
+    "invested": "Yatırılan",
+    "worthNow": "Şu anki değer",
+    "look": "Kart görünümü"
   },
   "position": {
     "youHold": "Sende",

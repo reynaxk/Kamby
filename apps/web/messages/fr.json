@@ -101,7 +101,10 @@
     "tradeWithMe": "Tradez avec moi sur",
     "share": "Partager",
     "save": "Enregistrer l’image",
-    "shareText": "{ticker} {pct} sur Kamby 🚀 Tradez avec moi : {link}"
+    "shareText": "{ticker} {pct} sur Kamby 🚀 Tradez avec moi : {link}",
+    "invested": "Investi",
+    "worthNow": "Valeur actuelle",
+    "look": "Style"
   },
   "position": {
     "youHold": "Vous détenez",

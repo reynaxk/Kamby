@@ -101,7 +101,10 @@
     "tradeWithMe": "一緒にトレード",
     "share": "シェア",
     "save": "画像を保存",
-    "shareText": "Kamby で {ticker} {pct} 🚀 一緒にトレード：{link}"
+    "shareText": "Kamby で {ticker} {pct} 🚀 一緒にトレード：{link}",
+    "invested": "投資額",
+    "worthNow": "現在の価値",
+    "look": "カードの見た目"
   },
   "position": {
     "youHold": "保有",
