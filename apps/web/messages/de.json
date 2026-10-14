@@ -673,6 +673,10 @@
     "customize": "Wähle deine 4 Reaktionen",
     "badge_whale": "Wal — hält $1K+ dieses Coins",
     "badge_top": "Top-10-Trader dieser Woche",
-    "badge_dev": "Hat diesen Coin erstellt"
+    "badge_dev": "Hat diesen Coin erstellt",
+    "pickName": "Wähle einen Namen zum Chatten",
+    "namePlaceholder": "dein_name",
+    "startChatting": "Los",
+    "nameRules": "3–20 Buchstaben, Zahlen oder _ — später im Profil änderbar."
   }
 }

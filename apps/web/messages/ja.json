@@ -673,6 +673,10 @@
     "customize": "リアクションを4つ選ぶ",
     "badge_whale": "クジラ — このコインを$1K以上保有",
     "badge_top": "今週のトップ10トレーダー",
-    "badge_dev": "このコインの作成者"
+    "badge_dev": "このコインの作成者",
+    "pickName": "チャットする名前を決めよう",
+    "namePlaceholder": "your_name",
+    "startChatting": "始める",
+    "nameRules": "英小文字・数字・_ で3〜20文字。あとでプロフィールから変更できます。"
   }
 }

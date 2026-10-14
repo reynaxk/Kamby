@@ -673,6 +673,10 @@
     "customize": "选择你的 4 个表情",
     "badge_whale": "巨鲸 — 持有该币 $1K+",
     "badge_top": "本周前 10 交易员",
-    "badge_dev": "该币创建者"
+    "badge_dev": "该币创建者",
+    "pickName": "起个名字开始聊天",
+    "namePlaceholder": "your_name",
+    "startChatting": "开聊",
+    "nameRules": "3–20 位小写字母、数字或 _ — 之后可在个人资料中修改。"
   }
 }

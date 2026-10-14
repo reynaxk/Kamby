@@ -673,6 +673,10 @@
     "customize": "Elige tus 4 reacciones",
     "badge_whale": "Ballena — tiene $1K+ de esta moneda",
     "badge_top": "Top 10 de la semana",
-    "badge_dev": "Creó esta moneda"
+    "badge_dev": "Creó esta moneda",
+    "pickName": "Elige un nombre para chatear",
+    "namePlaceholder": "tu_nombre",
+    "startChatting": "Chatear",
+    "nameRules": "3–20 letras, números o _ — puedes cambiarlo luego en tu perfil."
   }
 }

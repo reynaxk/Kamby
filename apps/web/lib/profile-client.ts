@@ -28,6 +28,11 @@ export function fetchMyProfileShared(): Promise<MyProfile> {
   return sharedProfile.profile;
 }
 
+/** After the user changes their profile here, everyone reading the shared copy sees it at once. */
+export function rememberMyProfile(profile: MyProfile): void {
+  sharedProfile = { at: Date.now(), profile: Promise.resolve(profile) };
+}
+
 export async function fetchMyProfile(): Promise<MyProfile> {
   const res = await authedFetch('/identity/me');
   await expectOk(res, 'load your profile');

@@ -8,6 +8,7 @@ import { ArrowUp } from 'lucide-react';
 import { containsLink, PULSE_LIMITS, type PulseMessage } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { ChatUsernameSetup } from '@/components/chat/ChatUsernameSetup';
 import { fetchMyProfile } from '@/lib/profile-client';
 import { fetchPulse, postPulse, PULSE_STREAM_URL } from '@/lib/pulse-client';
 import { openResilientEventSource } from '@/lib/resilient-event-source';
@@ -200,9 +201,7 @@ export function PulseChat({ className }: { className?: string }) {
             {tAuth('signIn')} — {t('toChat')}
           </button>
         ) : username === undefined ? null : !username ? (
-          <Link href="/account#profile" className="flex h-11 w-full items-center justify-center rounded-2xl bg-surface-raised font-display text-sm font-semibold text-ink-900">
-            {t('setUsername')}
-          </Link>
+          <ChatUsernameSetup onDone={setUsername} />
         ) : (
           <>
             <form

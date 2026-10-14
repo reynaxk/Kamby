@@ -673,6 +673,10 @@
     "customize": "Choisis tes 4 réactions",
     "badge_whale": "Baleine — détient $1K+ de ce coin",
     "badge_top": "Top 10 de la semaine",
-    "badge_dev": "A créé ce coin"
+    "badge_dev": "A créé ce coin",
+    "pickName": "Choisis un nom pour discuter",
+    "namePlaceholder": "ton_nom",
+    "startChatting": "Go",
+    "nameRules": "3–20 lettres, chiffres ou _ — modifiable plus tard dans ton profil."
   }
 }

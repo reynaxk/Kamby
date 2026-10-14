@@ -673,6 +673,10 @@
     "customize": "리액션 4개 고르기",
     "badge_whale": "고래 — 이 코인 $1K+ 보유",
     "badge_top": "이번 주 톱 10 트레이더",
-    "badge_dev": "이 코인 생성자"
+    "badge_dev": "이 코인 생성자",
+    "pickName": "채팅할 이름을 정하세요",
+    "namePlaceholder": "your_name",
+    "startChatting": "시작",
+    "nameRules": "영문 소문자·숫자·_ 3–20자 — 나중에 프로필에서 바꿀 수 있어요."
   }
 }

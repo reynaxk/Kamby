@@ -17,6 +17,7 @@ import {
 } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { ChatUsernameSetup } from './ChatUsernameSetup';
 import { useMyPosition } from '@/lib/my-positions';
 import { fetchMyProfileShared } from '@/lib/profile-client';
 import { hasStoredSession } from '@/lib/session-client';
@@ -377,9 +378,7 @@ export function TokenStreamChat({
             {tAuth('signIn')} — {tP('toChat')}
           </button>
         ) : username === undefined ? null : !canPost ? (
-          <Link href="/account#profile" className="flex h-10 w-full items-center justify-center rounded-2xl bg-surface-raised font-display text-sm font-semibold text-ink-900">
-            {tP('setUsername')}
-          </Link>
+          <ChatUsernameSetup onDone={setUsername} />
         ) : (
           <>
             <form

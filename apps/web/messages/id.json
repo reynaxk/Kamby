@@ -673,6 +673,10 @@
     "customize": "Pilih 4 reaksimu",
     "badge_whale": "Paus — memegang $1K+ koin ini",
     "badge_top": "Trader top 10 minggu ini",
-    "badge_dev": "Pembuat koin ini"
+    "badge_dev": "Pembuat koin ini",
+    "pickName": "Pilih nama untuk mulai chat",
+    "namePlaceholder": "nama_kamu",
+    "startChatting": "Chat",
+    "nameRules": "3–20 huruf, angka atau _ — bisa diubah nanti di profil."
   }
 }

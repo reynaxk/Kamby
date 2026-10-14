@@ -673,6 +673,10 @@
     "customize": "Chọn 4 biểu cảm của bạn",
     "badge_whale": "Cá voi — giữ $1K+ coin này",
     "badge_top": "Top 10 trader tuần này",
-    "badge_dev": "Người tạo coin này"
+    "badge_dev": "Người tạo coin này",
+    "pickName": "Chọn tên để bắt đầu chat",
+    "namePlaceholder": "ten_ban",
+    "startChatting": "Chat",
+    "nameRules": "3–20 chữ cái, số hoặc _ — có thể đổi sau trong hồ sơ."
   }
 }

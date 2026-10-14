@@ -673,6 +673,10 @@
     "customize": "Pick your 4 reactions",
     "badge_whale": "Whale — holds $1K+ of this coin",
     "badge_top": "Top 10 trader this week",
-    "badge_dev": "Created this coin"
+    "badge_dev": "Created this coin",
+    "pickName": "Pick a name to start chatting",
+    "namePlaceholder": "your_name",
+    "startChatting": "Chat",
+    "nameRules": "3–20 letters, numbers or _ — you can change it later in your profile."
   }
 }

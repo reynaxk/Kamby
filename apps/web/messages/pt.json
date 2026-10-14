@@ -673,6 +673,10 @@
     "customize": "Escolha suas 4 reações",
     "badge_whale": "Baleia — tem $1K+ desta moeda",
     "badge_top": "Top 10 da semana",
-    "badge_dev": "Criou esta moeda"
+    "badge_dev": "Criou esta moeda",
+    "pickName": "Escolha um nome para conversar",
+    "namePlaceholder": "seu_nome",
+    "startChatting": "Conversar",
+    "nameRules": "3–20 letras, números ou _ — dá para mudar depois no perfil."
   }
 }

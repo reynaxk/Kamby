@@ -673,6 +673,10 @@
     "customize": "4 tepkini seç",
     "badge_whale": "Balina — bu coinden $1K+ tutuyor",
     "badge_top": "Haftanın ilk 10 trader’ı",
-    "badge_dev": "Bu coini oluşturdu"
+    "badge_dev": "Bu coini oluşturdu",
+    "pickName": "Sohbet için bir isim seç",
+    "namePlaceholder": "adin",
+    "startChatting": "Başla",
+    "nameRules": "3–20 harf, rakam veya _ — sonra profilinden değiştirebilirsin."
   }
 }
