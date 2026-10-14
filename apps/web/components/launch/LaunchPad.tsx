@@ -162,8 +162,8 @@ export function LaunchPad() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 pb-32 pt-2 md:pt-8">
-      <h1 className="font-display text-3xl font-black tracking-tight text-ink-900">{t('title')}</h1>
-      <p className="mt-1 font-body text-sm text-ink-400">{t('subtitle')}</p>
+      <h1 className="font-display text-3xl font-black tracking-tight text-ink-900 max-md:hidden">{t('title')}</h1>
+      <p className="mt-1 font-body text-sm text-ink-400 max-md:mt-0">{t('subtitle')}</p>
 
       {/* Network → launchpad */}
       <div className="mt-5 flex gap-2" role="radiogroup" aria-label={t('network')}>
@@ -177,7 +177,7 @@ export function LaunchPad() {
             onClick={() => setLaunchpad(l.id)}
             className={cn(
               'kamby-glass flex flex-1 flex-col items-start gap-1 rounded-2xl px-3 py-2.5 text-left transition-colors',
-              launchpad === l.id ? 'ring-1 ring-accent' : 'opacity-80',
+              launchpad === l.id ? '!border !border-accent' : 'border border-transparent opacity-80',
               !l.live && 'opacity-40',
             )}
           >
