@@ -36,11 +36,11 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-const CHAIN_BADGE: Record<string, 'solana' | 'base' | 'bnb'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb' };
+const CHAIN_BADGE: Record<string, 'solana' | 'base' | 'bnb' | 'robinhood'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb', 'eip155:4663': 'robinhood' };
 /** What the launch itself costs on-chain, shown before the real figure: Pump.fun's create is about
  *  0.03 SOL (its accounts + fees); on Base the smallest swap ($1) covers the deploy's gas. */
-const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 3.5, 'eip155:8453': 1, 'eip155:56': 1 };
-const BRIDGE_TARGET: Record<string, 'solana' | 'base' | 'bnb'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb' };
+const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 3.5, 'eip155:8453': 1, 'eip155:56': 1, 'eip155:4663': 1 };
+const BRIDGE_TARGET: Record<string, 'solana' | 'base' | 'bnb' | 'robinhood'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb', 'eip155:4663': 'robinhood' };
 
 /**
  * Kamby's LaunchPad (2026-10-14): create a coin in a minute, paid in USDC. Pick the network, add a
@@ -129,7 +129,7 @@ export function LaunchPad() {
     }
     const txHashes: string[] = [];
     for (const tx of step.evmTransactions ?? ([] as LaunchEvmTx[])) {
-      const chainId = tx.chainId as 8453 | 56;
+      const chainId = tx.chainId as 8453 | 56 | 4663;
       if (getAccount(wagmiConfig).chainId !== chainId) await switchChain(wagmiConfig, { chainId });
       const hash = await sendTransaction(wagmiConfig, { to: tx.to as `0x${string}`, data: tx.data as `0x${string}`, value: BigInt(tx.value), chainId });
       await waitForTransactionReceipt(wagmiConfig, { hash, chainId, timeout: 90_000 });
@@ -210,7 +210,7 @@ export function LaunchPad() {
       <p className="mt-1 font-body text-sm text-ink-400 max-md:mt-0">{t('subtitle')}</p>
 
       {/* Network → launchpad */}
-      <div className="mt-5 flex gap-2" role="radiogroup" aria-label={t('network')}>
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label={t('network')}>
         {(config?.launchpads ?? []).map((l) => (
           <button
             key={l.id}
@@ -220,7 +220,7 @@ export function LaunchPad() {
             disabled={!l.live || busy}
             onClick={() => setLaunchpad(l.id)}
             className={cn(
-              'kamby-glass flex flex-1 flex-col items-start gap-1 rounded-2xl px-3 py-2.5 text-left transition-colors',
+              'kamby-glass flex flex-col items-start gap-1 rounded-2xl px-3 py-2.5 text-left transition-colors',
               launchpad === l.id ? '!border !border-accent' : 'border border-transparent opacity-80',
               !l.live && 'opacity-40',
             )}

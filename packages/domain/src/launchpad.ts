@@ -10,6 +10,8 @@ export const LAUNCHPADS = [
   { id: 'pumpfun', chainIdentifier: 'solana', chainName: 'Solana', name: 'Pump.fun', live: true },
   { id: 'clanker', chainIdentifier: 'eip155:8453', chainName: 'Base', name: 'Clanker', live: true },
   { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BNB Chain', name: 'Four.meme', live: true },
+  // Robinhood Chain (2026-10-15): Clanker deploys there too (its SDK has the factory); Kyber routes its pools.
+  { id: 'clanker-rh', chainIdentifier: 'eip155:4663', chainName: 'Robinhood', name: 'Clanker', live: true },
 ] as const;
 export type LaunchpadId = (typeof LAUNCHPADS)[number]['id'];
 
@@ -33,7 +35,7 @@ const optionalUrl = z
   .or(z.literal('').transform(() => undefined));
 
 export const LaunchInputSchema = z.object({
-  launchpad: z.enum(['pumpfun', 'clanker', 'fourmeme']),
+  launchpad: z.enum(['pumpfun', 'clanker', 'fourmeme', 'clanker-rh']),
   walletAddress: z.string().min(32).max(64),
   name: z.string().trim().min(1).max(LAUNCH_LIMITS.nameMax),
   symbol: z
@@ -56,7 +58,7 @@ export type LaunchStatus = z.infer<typeof LaunchStatusSchema>;
 
 export const LaunchSchema = z.object({
   id: z.string(),
-  launchpad: z.enum(['pumpfun', 'clanker', 'fourmeme']),
+  launchpad: z.enum(['pumpfun', 'clanker', 'fourmeme', 'clanker-rh']),
   chainIdentifier: z.string(),
   name: z.string(),
   symbol: z.string(),

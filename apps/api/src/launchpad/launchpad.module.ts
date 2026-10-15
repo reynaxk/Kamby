@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { SolanaModule } from '../solana/solana.module';
 import { TradingModule } from '../trading/trading.module';
-import { ClankerAdapter } from './adapters/clanker.adapter';
+import { ClankerAdapter, ClankerRobinhoodAdapter } from './adapters/clanker.adapter';
 import { FourMemeAdapter } from './adapters/fourmeme.adapter';
 import { PumpFunAdapter } from './adapters/pumpfun.adapter';
 import { LaunchpadController } from './launchpad.controller';
@@ -12,6 +12,6 @@ import { LaunchpadService } from './launchpad.service';
 @Module({
   imports: [IdentityModule, SolanaModule, TradingModule],
   controllers: [LaunchpadController],
-  providers: [LaunchpadService, PumpFunAdapter, ClankerAdapter, FourMemeAdapter],
+  providers: [LaunchpadService, PumpFunAdapter, ClankerAdapter, ClankerRobinhoodAdapter, FourMemeAdapter],
 })
 export class LaunchpadModule {}

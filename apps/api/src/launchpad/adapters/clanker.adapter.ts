@@ -11,8 +11,7 @@ import { SWAP_ROUTER } from '../../trading/router/swap-router.token';
 import { buildEvmFunding, devBuyWei, verifyEvmTxs, type EvmLaunchChain } from './evm-launch';
 import type { LaunchAdapter, LaunchMetadata, PreparedStep } from './launch-adapter';
 
-const BASE_CHAIN_ID = 8453;
-/** ETH kept for the create transaction's own gas (a Clanker deploy is ~6M gas; Base gas is cheap). */
+/** ETH kept for the create transaction's own gas (a Clanker deploy is ~6M gas; L2 gas is cheap). */
 const DEPLOY_GAS_RESERVE_WEI = 200_000_000_000_000n; // 0.0002 ETH
 /** Kamby's share of the coin's trading rewards (owner, 2026-10-15: 2%, the creator keeps 98% — down from 10%). */
 const KAMBY_REWARD_BPS = 200;
@@ -39,33 +38,35 @@ export function evmChain(id: number, name: string, symbol: string, rpcUrl: strin
 }
 
 /**
- * Clanker on Base (Kamby's LaunchPad, 2026-10-15). Funding: see buildEvmFunding (fee + USDC → ETH).
+ * Clanker (Kamby's LaunchPad, 2026-10-15) — on Base, and on Robinhood Chain (ClankerRobinhoodAdapter).
+ * Each chain's own USDC-like dollar (Robinhood: USDG) pays the fee and buys the ETH. Funding: see buildEvmFunding (fee + USDC → ETH).
  * Create: Clanker's v4 deployToken (built with their SDK), the first buy inside it, rewards split
  * 98% creator / 2% Kamby. Every hash that comes back is checked against exactly what was handed out.
  */
-@Injectable()
-export class ClankerAdapter implements LaunchAdapter {
-  readonly id = 'clanker' as const;
-  readonly chainIdentifier = `eip155:${BASE_CHAIN_ID}`;
+export abstract class ClankerAdapterBase implements LaunchAdapter {
+  abstract readonly id: 'clanker' | 'clanker-rh';
+  readonly chainIdentifier: string;
   private readonly client: PublicClient | null;
   private readonly feeRecipient: `0x${string}` | null;
 
-  constructor(
+  protected constructor(
+    private readonly chainId: number,
+    private readonly chainName: string,
     config: ConfigService<Env, true>,
-    @Inject(SWAP_ROUTER) private readonly router: SwapRouter,
+    private readonly router: SwapRouter,
     private readonly gas: EvmGasTopupService,
-    private readonly logger: PinoLogger,
+    protected readonly logger: PinoLogger,
   ) {
-    const chain = getConfiguredChains((key) => config.get(key, { infer: true })).find((c) => c.chainId === BASE_CHAIN_ID);
-    this.client = chain ? (createPublicClient({ chain: evmChain(BASE_CHAIN_ID, 'Base', 'ETH', chain.rpcUrl), transport: http(chain.rpcUrl) }) as PublicClient) : null;
+    this.chainIdentifier = `eip155:${chainId}`;
+    const chain = getConfiguredChains((key) => config.get(key, { infer: true })).find((c) => c.chainId === chainId);
+    this.client = chain ? (createPublicClient({ chain: evmChain(chainId, chainName, 'ETH', chain.rpcUrl), transport: http(chain.rpcUrl) }) as PublicClient) : null;
     this.feeRecipient = (config.get('PLATFORM_FEE_RECIPIENT_ADDRESS', { infer: true }) as `0x${string}` | undefined) ?? null;
-    this.logger.setContext('ClankerAdapter');
   }
 
   private chain(): EvmLaunchChain {
-    const usdc = EVM_USDC_BY_CHAIN_ID[BASE_CHAIN_ID];
-    if (!this.client || !this.feeRecipient || !usdc) throw new UnprocessableEntityException('Launching on Base is not available right now');
-    return { chainId: BASE_CHAIN_ID, client: this.client, router: this.router, gas: this.gas, usdc, feeRecipient: this.feeRecipient, gasReserveWei: DEPLOY_GAS_RESERVE_WEI };
+    const usdc = EVM_USDC_BY_CHAIN_ID[this.chainId];
+    if (!this.client || !this.feeRecipient || !usdc) throw new UnprocessableEntityException(`Launching on ${this.chainName} is not available right now`);
+    return { chainId: this.chainId, client: this.client, router: this.router, gas: this.gas, usdc, feeRecipient: this.feeRecipient, gasReserveWei: DEPLOY_GAS_RESERVE_WEI };
   }
 
   async buildFunding(launch: TokenLaunch, feeUsd: number): Promise<PreparedStep> {
@@ -92,7 +93,7 @@ export class ClankerAdapter implements LaunchAdapter {
       name: metadata.name,
       symbol: metadata.symbol,
       image: metadata.imageUrl,
-      chainId: BASE_CHAIN_ID,
+      chainId: this.chainId,
       tokenAdmin: wallet,
       metadata: { description: metadata.description || undefined, socialMediaUrls: socials },
       context: { interface: 'Kamby', platform: 'kambesh.com' },
@@ -107,7 +108,7 @@ export class ClankerAdapter implements LaunchAdapter {
     if (!deploy.expectedAddress) throw new UnprocessableEntityException("Couldn't prepare the coin's address — try again");
     const data = (encodeFunctionData as unknown as (p: { abi: unknown; functionName: string; args: unknown }) => Hex)({ abi: deploy.abi, functionName: deploy.functionName, args: deploy.args });
     return {
-      evmTransactions: [{ chainId: BASE_CHAIN_ID, to: deploy.address, data, value: String(deploy.value ?? 0n) }],
+      evmTransactions: [{ chainId: this.chainId, to: deploy.address, data, value: String(deploy.value ?? 0n) }],
       tokenAddress: deploy.expectedAddress,
     };
   }
@@ -125,5 +126,26 @@ export class ClankerAdapter implements LaunchAdapter {
   /** The Clanker SDK (separate so tests can stand in for it). */
   protected loadSdk(): Promise<ClankerV4> {
     return importEsm('clanker-sdk/v4');
+  }
+}
+
+@Injectable()
+export class ClankerAdapter extends ClankerAdapterBase {
+  readonly id = 'clanker' as const;
+
+  constructor(config: ConfigService<Env, true>, @Inject(SWAP_ROUTER) router: SwapRouter, gas: EvmGasTopupService, logger: PinoLogger) {
+    super(8453, 'Base', config, router, gas, logger);
+    this.logger.setContext('ClankerAdapter');
+  }
+}
+
+/** Clanker on Robinhood Chain (2026-10-15) — same factory API, its own deployment (in the SDK). */
+@Injectable()
+export class ClankerRobinhoodAdapter extends ClankerAdapterBase {
+  readonly id = 'clanker-rh' as const;
+
+  constructor(config: ConfigService<Env, true>, @Inject(SWAP_ROUTER) router: SwapRouter, gas: EvmGasTopupService, logger: PinoLogger) {
+    super(4663, 'Robinhood Chain', config, router, gas, logger);
+    this.logger.setContext('ClankerRobinhoodAdapter');
   }
 }

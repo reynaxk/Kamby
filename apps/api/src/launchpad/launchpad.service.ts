@@ -9,7 +9,7 @@ import { FAMOUS_TICKERS } from '../market/lookalike-filter';
 import { announceTradeInChat } from '../pulse/token-chat.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { LaunchAdapter, LaunchMetadata } from './adapters/launch-adapter';
-import { ClankerAdapter } from './adapters/clanker.adapter';
+import { ClankerAdapter, ClankerRobinhoodAdapter } from './adapters/clanker.adapter';
 import { FourMemeAdapter } from './adapters/fourmeme.adapter';
 import { PumpFunAdapter } from './adapters/pumpfun.adapter';
 
@@ -67,6 +67,7 @@ export class LaunchpadService {
     config: ConfigService<Env, true>,
     pumpFun: PumpFunAdapter,
     clanker: ClankerAdapter,
+    clankerRobinhood: ClankerRobinhoodAdapter,
     fourMeme: FourMemeAdapter,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly logger: PinoLogger,
@@ -74,6 +75,7 @@ export class LaunchpadService {
     this.adapters = new Map<string, LaunchAdapter>([
       [pumpFun.id, pumpFun],
       [clanker.id, clanker],
+      [clankerRobinhood.id, clankerRobinhood],
       [fourMeme.id, fourMeme],
     ]);
     this.feeUsd = config.get('LAUNCH_FEE_USD', { infer: true }) ?? LAUNCH_LIMITS.defaultFeeUsd;

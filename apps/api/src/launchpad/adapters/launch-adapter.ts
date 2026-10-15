@@ -32,7 +32,7 @@ export interface PreparedStep {
  * hands out; LaunchpadService checks that what comes back signed is that transaction.
  */
 export interface LaunchAdapter {
-  readonly id: 'pumpfun' | 'clanker' | 'fourmeme';
+  readonly id: 'pumpfun' | 'clanker' | 'fourmeme' | 'clanker-rh';
   readonly chainIdentifier: string;
   buildFunding(launch: TokenLaunch, feeUsd: number): Promise<PreparedStep>;
   /** Checks (and on Solana broadcasts) the funding step and waits for it; returns its signature or hash. */
