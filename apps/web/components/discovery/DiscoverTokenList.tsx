@@ -38,16 +38,22 @@ const TOKEN_TABS: { id: MarketFeedTab; label: string }[] = [
 export function TerminalPrimaryNav({
   activeTab,
   onChange,
+  roomy = false,
 }: {
   activeTab: PrimaryTab;
   onChange: (tab: PrimaryTab) => void;
+  /** The app look on desktop too (desktop Home, 2026-10-15) — the terminal keeps its compact tabs. */
+  roomy?: boolean;
 }) {
   const tU = useTranslations('ui');
   const tLists = useTranslations('lists');
   return (
     <nav
       aria-label={tU('terminalNavigation_312e')}
-      className="flex items-center gap-4 overflow-x-auto border-b border-line px-1 pb-2 max-md:gap-0 max-md:border-white/10 max-md:px-0 max-md:pb-0"
+      className={cn(
+        'flex items-center gap-4 overflow-x-auto border-b border-line px-1 pb-2 max-md:gap-0 max-md:border-white/10 max-md:px-0 max-md:pb-0',
+        roomy && 'md:gap-0 md:border-white/10 md:px-2 md:pb-0',
+      )}
     >
       {PRIMARY_TABS.map((tab) => (
         <button
@@ -55,7 +61,8 @@ export function TerminalPrimaryNav({
           type="button"
           onClick={() => onChange(tab.id)}
           className={cn(
-            'relative shrink-0 font-display text-sm font-semibold transition-colors max-md:flex-1 max-md:py-3 md:font-mono md:text-[0.62rem] md:font-medium md:uppercase md:tracking-tight',
+            'relative shrink-0 font-display text-sm font-semibold transition-colors max-md:flex-1 max-md:py-3',
+            roomy ? 'md:px-5 md:py-3.5' : 'md:font-mono md:text-[0.62rem] md:font-medium md:uppercase md:tracking-tight',
             activeTab === tab.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-900',
             // Alerts aren't built yet — not worth a tab on the phone app.
             tab.id === 'alerts' && 'max-md:hidden',
@@ -64,7 +71,7 @@ export function TerminalPrimaryNav({
           )}
         >
           {tLists(tab.id)}
-          {activeTab === tab.id && <span aria-hidden className="absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent md:hidden" />}
+          {activeTab === tab.id && <span aria-hidden className={cn('absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent', !roomy && 'md:hidden')} />}
         </button>
       ))}
     </nav>
@@ -131,7 +138,7 @@ export function DiscoverTokenList({
   const [chainFilter, setChainFilter] = useChainFilter();
   const solanaShown = chainFilter === 'all' || chainFilter === 'solana';
   const tokenChips = (
-          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className="flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2">
+          <div role="tablist" aria-label={tU('marketFeeds_b66a')} className={cn('flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2', pageScroll && 'md:px-3 md:pt-3')}>
             {TOKEN_TABS.map((t) => (
               <button
                 key={t.id}
@@ -144,8 +151,11 @@ export function DiscoverTokenList({
                 }}
                 className={cn(
                   // Phones: tappable chips (2026-10-09 app redesign); desktop keeps the compact tabs.
-                  'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
-                  tokenTab === t.id ? 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/30 md:bg-transparent md:text-ink-900 md:ring-0' : 'text-ink-400 hover:text-ink-600',
+                  'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors',
+                  !pageScroll && 'md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
+                  tokenTab === t.id
+                    ? cn('bg-accent/10 text-accent ring-1 ring-inset ring-accent/30', !pageScroll && 'md:bg-transparent md:text-ink-900 md:ring-0')
+                    : 'text-ink-400 hover:text-ink-600',
                 )}
               >
                 {tLists(t.id)}
@@ -236,9 +246,9 @@ export function DiscoverTokenList({
           rest of the screen (its composer was ending up behind the tab bar, 2026-10-13). */}
       {pageScroll && <div ref={tabsAnchorRef} aria-hidden className="max-md:scroll-mt-[calc(env(safe-area-inset-top)+3rem)]" />}
       <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
-      {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} />}
+      {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} roomy={pageScroll} />}
       {primaryTab === 'tokens' && pageScroll && tokenChips}
-      {primaryTab === 'tokens' && pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} className="pt-1.5" />}
+      {primaryTab === 'tokens' && pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} className="pt-1.5 md:px-3 md:pb-1" />}
       </div>
 
       <div className={cn('flex min-h-0 flex-1 flex-col gap-1.5', pageScroll && 'max-md:flex-none')}>

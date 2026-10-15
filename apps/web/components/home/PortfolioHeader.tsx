@@ -43,7 +43,7 @@ export function PortfolioHeader() {
     return (
       <>
       <ScrolledBar />
-      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:px-1">
+      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:mt-6 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#05070A] md:px-7 md:py-6">
         <div>
           <p className="font-display text-2xl font-bold text-ink-900">{t('welcome')}</p>
           <p className="font-body text-sm text-ink-600">{t('welcomeSub')}</p>
@@ -72,9 +72,11 @@ export function PortfolioHeader() {
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
       <AppBell />
     </div>
-    <section className="kamby-rise kamby-rise-2 kamby-glass relative mt-3 overflow-hidden rounded-3xl px-4 py-4 md:px-1">
+    {/* Desktop (2026-10-15): the same midnight card as the phone — balance left, the three money
+        buttons right, LaunchPad across the bottom — instead of a bare number over small buttons. */}
+    <section className="kamby-rise kamby-rise-2 kamby-glass relative mt-3 overflow-hidden rounded-3xl px-4 py-4 md:mt-6 md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-center md:gap-x-8 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#05070A] md:px-7 md:py-7">
       {/* The faint neon K of the PnL cards (2026-10-15), Kamby's mark on its own balance. */}
-      <svg className="pointer-events-none absolute -right-5 -top-5 md:hidden" width="150" height="150" viewBox="0 0 512 512" aria-hidden="true">
+      <svg className="pointer-events-none absolute -right-5 -top-5 h-[150px] w-[150px] md:-right-10 md:-top-16 md:h-[300px] md:w-[300px]" width="150" height="150" viewBox="0 0 512 512" aria-hidden="true">
         <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
           <path d="M186 140 V372" />
           <path d="M200 268 L338 140" />
@@ -82,20 +84,20 @@ export function PortfolioHeader() {
         </g>
       </svg>
       <div className={cn('relative min-w-0', hidden && 'select-none blur-md')}>
-        <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />
+        <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900 md:text-5xl" />
         <p className={cn('mt-1 font-mono text-xs', openPnl >= 0 ? 'text-up' : 'text-down')}>
           {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : t('noPositions')}
         </p>
       </div>
       {/* Deposit + Withdraw side by side, like a wallet app's quick actions. */}
-      <div className="relative mt-4 grid grid-cols-3 gap-2 md:flex">
+      <div className="relative mt-4 grid grid-cols-3 gap-2 md:mt-0">
         <FundButton variant="stacked" />
         <SendButton variant="stacked" />
         {/* Send to another Kamby user by their @name (2026-10-15). */}
         <SendButton variant="stacked" toUser />
       </div>
       {/* Kamby's LaunchPad (2026-10-14). */}
-      <Link href="/launch" className="relative mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08]">
+      <Link href="/launch" className="relative mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:col-span-2 md:mt-6 md:hover:bg-white/[0.07]">
         <span>
           <span className="block font-display text-sm font-bold text-ink-900">Kamby&apos;s LaunchPad</span>
           <span className="block font-body text-xs text-ink-400">{tLp('homeCard')}</span>
