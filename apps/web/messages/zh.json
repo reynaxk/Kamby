@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "排行榜",
     "signIn": "登录",
-    "chains": "链：solana • base • bnb",
+    "chains": "网络: solana • base • bnb • robinhood",
     "tagline": "发现。交易。重复。",
     "gasFree": "（对，还免 Gas）",
     "goTrade": "去交易",
@@ -145,10 +145,18 @@
     "f1Body": "无需持有 ETH、BNB 或 SOL 即可交易 — 每条链的网络费都由 Kamby 支付。",
     "f2Title": "实时模拟",
     "f2Body": "每笔兑换发送前都会先模拟，代币上线前都会做貔貅检测。",
-    "f3Title": "一键成交",
-    "f3Body": "无需确认页面，为高频快速剥头皮而生。",
+    "f3Title": "一个 USDC，所有网络",
+    "f3Body": "Solana、Base、BNB 和 Robinhood 共用一个余额 — 交易时 Kamby 自动转到对应网络。",
     "loading": "加载中…",
-    "openTerminal": "打开终端"
+    "openTerminal": "打开终端",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "一分钟在 Pump.fun、Clanker 或 Four.meme 上创建你的币 — 用 USDC 支付，含首次买入。",
+    "f5Title": "每个币都有实时聊天",
+    "f5Body": "聊天、互动、实时看真实交易 — 带无法伪造的 🐳、⚡ 和 👑 徽章。",
+    "f6Title": "晒出你的盈亏",
+    "f6Body": "带邀请链接的精美分享卡 — 每次盈利都带来新交易者。",
+    "showcaseTitle": "晒出每一次盈利。",
+    "showcaseBody": "一键把交易变成适合 X、Instagram 和 TikTok 的卡片 — 真实数字、你的名字、你的链接。"
   },
   "coin": {
     "price": "价格",

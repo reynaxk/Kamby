@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Xếp hạng",
     "signIn": "Đăng nhập",
-    "chains": "mạng: solana • base • bnb",
+    "chains": "mạng: solana • base • bnb • robinhood",
     "tagline": "Tìm. Giao dịch. Lặp lại.",
     "gasFree": "(và đúng vậy... miễn phí gas)",
     "goTrade": "Giao dịch ngay",
@@ -145,10 +145,18 @@
     "f1Body": "Giao dịch mà không cần ETH, BNB hay SOL — Kamby trả phí mạng trên mọi chuỗi.",
     "f2Title": "Mô phỏng thời gian thực",
     "f2Body": "Mỗi lệnh swap đều được mô phỏng trước khi gửi, coin được kiểm tra honeypot trước khi niêm yết.",
-    "f3Title": "Khớp lệnh một chạm",
-    "f3Body": "Không có màn hình xác nhận. Thiết kế cho lướt sóng nhanh, tần suất cao.",
+    "f3Title": "Một USDC, mọi mạng",
+    "f3Body": "Một số dư cho Solana, Base, BNB và Robinhood — Kamby chuyển sang đúng mạng khi bạn giao dịch.",
     "loading": "Đang tải…",
-    "openTerminal": "Mở terminal"
+    "openTerminal": "Mở terminal",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Tạo coin của bạn trong một phút trên Pump.fun, Clanker hoặc Four.meme — trả bằng USDC, gồm lần mua đầu.",
+    "f5Title": "Chat trực tiếp trên mọi coin",
+    "f5Body": "Trò chuyện, thả cảm xúc và xem giao dịch thật trực tiếp — với huy hiệu 🐳, ⚡ và 👑 không thể làm giả.",
+    "f6Title": "Khoe PnL của bạn",
+    "f6Body": "Thẻ chia sẻ đẹp có link mời của bạn — mỗi lần thắng mang về trader mới.",
+    "showcaseTitle": "Khoe mọi chiến thắng.",
+    "showcaseBody": "Một chạm biến giao dịch thành thẻ cho X, Instagram và TikTok — số thật, tên bạn, link của bạn."
   },
   "coin": {
     "price": "Giá",

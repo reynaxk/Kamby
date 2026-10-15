@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Peringkat",
     "signIn": "Masuk",
-    "chains": "jaringan: solana • base • bnb",
+    "chains": "jaringan: solana • base • bnb • robinhood",
     "tagline": "Temukan. Trading. Ulangi.",
     "gasFree": "(dan ya... tanpa gas)",
     "goTrade": "Mulai trading",
@@ -145,10 +145,18 @@
     "f1Body": "Trading tanpa memegang ETH, BNB atau SOL — Kamby membayar biaya jaringan di semua chain.",
     "f2Title": "Simulasi real-time",
     "f2Body": "Setiap swap disimulasikan sebelum dikirim, dan koin dicek honeypot sebelum terdaftar.",
-    "f3Title": "Eksekusi sekali ketuk",
-    "f3Body": "Tanpa layar konfirmasi. Dibuat untuk scalping cepat berfrekuensi tinggi.",
+    "f3Title": "Satu USDC, semua jaringan",
+    "f3Body": "Satu saldo untuk Solana, Base, BNB dan Robinhood — Kamby memindahkannya ke jaringan yang tepat saat kamu trading.",
     "loading": "Memuat…",
-    "openTerminal": "Buka terminal"
+    "openTerminal": "Buka terminal",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Buat koinmu dalam semenit di Pump.fun, Clanker atau Four.meme — bayar pakai USDC, pembelian pertama termasuk.",
+    "f5Title": "Chat langsung di setiap koin",
+    "f5Body": "Ngobrol, beri reaksi dan lihat trade asli secara langsung — dengan lencana 🐳, ⚡ dan 👑 yang tak bisa dipalsukan.",
+    "f6Title": "Pamerkan PnL-mu",
+    "f6Body": "Kartu cantik dengan link undanganmu — setiap profit mendatangkan trader baru.",
+    "showcaseTitle": "Pamerkan setiap profit.",
+    "showcaseBody": "Satu ketukan mengubah trade jadi kartu untuk X, Instagram dan TikTok — angka asli, namamu, link-mu."
   },
   "coin": {
     "price": "Harga",

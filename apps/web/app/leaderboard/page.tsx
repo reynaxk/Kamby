@@ -32,7 +32,7 @@ function isChainFilter(value: string | undefined): value is LeaderboardChainFilt
 function chainLabel(chain: LeaderboardChainFilter | null, all: string): string {
   if (chain === null) return all;
   if (chain === 'solana') return 'Solana';
-  return CHAIN_REGISTRY[chain].name;
+  return CHAIN_REGISTRY[chain].name.replace('Robinhood Chain', 'Robinhood');
 }
 
 /**
@@ -94,13 +94,13 @@ export default async function LeaderboardPage({
           </nav>
         </div>
 
-        <nav className="mt-4 flex flex-wrap gap-1.5">
+        <nav className="-mx-4 mt-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0">
           {CHAIN_FILTERS.map((c) => (
             <Link
               key={c ?? 'all'}
               href={`/leaderboard?window=${window}${c ? `&chain=${c}` : ''}`}
               className={cn(
-                'rounded-full px-3.5 py-1.5 font-body text-sm font-semibold transition-colors',
+                'shrink-0 rounded-full px-3.5 py-1.5 font-body text-sm font-semibold transition-colors',
                 c === chain ? 'bg-white/10 text-ink-900' : 'text-ink-400 hover:text-ink-900',
               )}
             >
@@ -112,7 +112,21 @@ export default async function LeaderboardPage({
         {leaderboard.entries.length < MIN_RANKED ? (
           // Too few traders to rank (2026-10-06: one test wallet at -$0.37 looked empty and off at
           // launch) — an invitation instead of a near-empty table.
-          <div className="kamby-glass mt-10 flex flex-col items-center rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+          <div className="kamby-glass relative mt-10 flex flex-col items-center overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+            {/* The PnL cards' faint neon K (2026-10-15). */}
+            <svg className="pointer-events-none absolute -right-16 -top-12" width="300" height="300" viewBox="0 0 512 512" aria-hidden="true">
+              <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
+                <path d="M186 140 V372" />
+                <path d="M200 268 L338 140" />
+                <path d="M232 246 L346 372" />
+              </g>
+            </svg>
+            <span className="relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#00FF87]/20 bg-[#00FF87]/[0.08] text-[#00FF87]" aria-hidden>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+                <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
+              </svg>
+            </span>
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-accent">{t('season')}</p>
             <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-white">{t('beFirst')}</h2>
             <p className="mt-2 max-w-sm font-body text-sm text-ink-400">{t('beFirstSub')}</p>

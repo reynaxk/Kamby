@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Leaderboard",
     "signIn": "Sign in",
-    "chains": "chains: solana • base • bnb",
+    "chains": "chains: solana • base • bnb • robinhood",
     "tagline": "Find. Trade. Repeat.",
     "gasFree": "(and yeah... it's gas-free)",
     "goTrade": "Go Trade",
@@ -145,10 +145,18 @@
     "f1Body": "Trade without ever holding ETH, BNB or SOL — Kamby pays the network fees on every chain.",
     "f2Title": "Real-Time Dry-Run",
     "f2Body": "Every swap is simulated before it’s sent, and coins are honeypot-checked before they’re listed.",
-    "f3Title": "One-Tap Execution",
-    "f3Body": "No review screens. Engineered for fast, high-frequency scalping.",
+    "f3Title": "One USDC, every chain",
+    "f3Body": "One balance across Solana, Base, BNB and Robinhood — Kamby moves it to the right chain when you trade.",
     "loading": "Loading…",
-    "openTerminal": "Open terminal"
+    "openTerminal": "Open terminal",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Create your own coin in a minute on Pump.fun, Clanker or Four.meme — paid in USDC, first buy included.",
+    "f5Title": "Live chat on every coin",
+    "f5Body": "Talk, react and see real trades stream in — with 🐳, ⚡ and 👑 badges that can’t be faked.",
+    "f6Title": "Flex your PnL",
+    "f6Body": "Beautiful share cards with your invite link on them — every win brings new traders.",
+    "showcaseTitle": "Flex every win.",
+    "showcaseBody": "One tap turns a trade into a card made for X, Instagram and TikTok — your real numbers, your name, your invite link."
   },
   "coin": {
     "price": "Price",

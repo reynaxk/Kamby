@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Ranking",
     "signIn": "Iniciar sesión",
-    "chains": "redes: solana • base • bnb",
+    "chains": "redes: solana • base • bnb • robinhood",
     "tagline": "Encuentra. Opera. Repite.",
     "gasFree": "(y sí... sin gas)",
     "goTrade": "Ir a operar",
@@ -145,10 +145,18 @@
     "f1Body": "Opera sin tener ETH, BNB ni SOL: Kamby paga las comisiones de red en todas las cadenas.",
     "f2Title": "Simulación en tiempo real",
     "f2Body": "Cada swap se simula antes de enviarse y cada moneda se revisa contra honeypots antes de listarse.",
-    "f3Title": "Ejecución con un toque",
-    "f3Body": "Sin pantallas de revisión. Diseñado para scalping rápido y de alta frecuencia.",
+    "f3Title": "Un USDC, todas las redes",
+    "f3Body": "Un saldo para Solana, Base, BNB y Robinhood — Kamby lo mueve a la red correcta cuando operas.",
     "loading": "Cargando…",
-    "openTerminal": "Abrir terminal"
+    "openTerminal": "Abrir terminal",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Crea tu moneda en un minuto en Pump.fun, Clanker o Four.meme — pagas en USDC, primera compra incluida.",
+    "f5Title": "Chat en vivo en cada moneda",
+    "f5Body": "Habla, reacciona y mira operaciones reales en vivo — con insignias 🐳, ⚡ y 👑 imposibles de falsificar.",
+    "f6Title": "Presume tu PnL",
+    "f6Body": "Tarjetas preciosas con tu enlace de invitación — cada ganancia trae nuevos traders.",
+    "showcaseTitle": "Presume cada ganancia.",
+    "showcaseBody": "Un toque convierte una operación en una tarjeta para X, Instagram y TikTok — tus números reales, tu nombre, tu enlace."
   },
   "coin": {
     "price": "Precio",

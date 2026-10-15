@@ -72,22 +72,30 @@ export function PortfolioHeader() {
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
       <AppBell />
     </div>
-    <section className="kamby-rise kamby-rise-2 kamby-glass mt-3 rounded-3xl px-4 py-4 md:px-1">
-      <div className={cn('min-w-0', hidden && 'select-none blur-md')}>
+    <section className="kamby-rise kamby-rise-2 kamby-glass relative mt-3 overflow-hidden rounded-3xl px-4 py-4 md:px-1">
+      {/* The faint neon K of the PnL cards (2026-10-15), Kamby's mark on its own balance. */}
+      <svg className="pointer-events-none absolute -right-12 -top-10 md:hidden" width="230" height="230" viewBox="0 0 512 512" aria-hidden="true">
+        <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
+          <path d="M186 140 V372" />
+          <path d="M200 268 L338 140" />
+          <path d="M232 246 L346 372" />
+        </g>
+      </svg>
+      <div className={cn('relative min-w-0', hidden && 'select-none blur-md')}>
         <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900" />
         <p className={cn('mt-1 font-mono text-xs', openPnl >= 0 ? 'text-up' : 'text-down')}>
           {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : t('noPositions')}
         </p>
       </div>
       {/* Deposit + Withdraw side by side, like a wallet app's quick actions. */}
-      <div className="mt-4 grid grid-cols-3 gap-2 md:flex">
+      <div className="relative mt-4 grid grid-cols-3 gap-2 md:flex">
         <FundButton variant="stacked" />
         <SendButton variant="stacked" />
         {/* Send to another Kamby user by their @name (2026-10-15). */}
         <SendButton variant="stacked" toUser />
       </div>
       {/* Kamby's LaunchPad (2026-10-14). */}
-      <Link href="/launch" className="mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08]">
+      <Link href="/launch" className="relative mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08]">
         <span>
           <span className="block font-display text-sm font-bold text-ink-900">Kamby&apos;s LaunchPad</span>
           <span className="block font-body text-xs text-ink-400">{tLp('homeCard')}</span>
@@ -117,7 +125,8 @@ function ScrolledBar({ children }: { children?: React.ReactNode }) {
     <div
       aria-hidden={!shown}
       className={cn(
-        'fixed inset-x-0 top-0 z-40 flex h-[calc(env(safe-area-inset-top)+3rem)] items-end justify-center bg-bg/95 pb-2.5 transition-opacity duration-200 md:hidden',
+        // Solid, not see-through: the coin list scrolling under it showed through as ghost text.
+        'fixed inset-x-0 top-0 z-40 flex h-[calc(env(safe-area-inset-top)+3rem)] items-end justify-center border-b border-white/[0.04] bg-[#06070C] pb-2.5 transition-opacity duration-200 md:hidden',
         shown ? 'opacity-100' : 'pointer-events-none opacity-0',
       )}
     >

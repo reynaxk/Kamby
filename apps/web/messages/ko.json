@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "리더보드",
     "signIn": "로그인",
-    "chains": "체인: solana • base • bnb",
+    "chains": "체인: solana • base • bnb • robinhood",
     "tagline": "찾고. 거래하고. 반복.",
     "gasFree": "(그리고... 가스비 무료)",
     "goTrade": "거래하기",
@@ -145,10 +145,18 @@
     "f1Body": "ETH, BNB, SOL 없이 거래 — 모든 체인의 네트워크 수수료는 Kamby가 냅니다.",
     "f2Title": "실시간 사전 시뮬레이션",
     "f2Body": "모든 스왑은 전송 전에 시뮬레이션되고, 코인은 상장 전 허니팟 검사를 거칩니다.",
-    "f3Title": "원탭 실행",
-    "f3Body": "확인 화면 없이. 빠른 고빈도 스캘핑을 위해 설계.",
+    "f3Title": "모든 체인에서 하나의 USDC",
+    "f3Body": "Solana, Base, BNB, Robinhood 잔액이 하나로 — 거래할 때 Kamby가 알맞은 체인으로 옮겨요.",
     "loading": "로딩 중…",
-    "openTerminal": "터미널 열기"
+    "openTerminal": "터미널 열기",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Pump.fun, Clanker, Four.meme에서 1분 만에 나만의 코인을 — USDC로 결제, 첫 매수 포함.",
+    "f5Title": "모든 코인에 라이브 채팅",
+    "f5Body": "대화하고 반응하고 실제 거래를 실시간으로 — 위조할 수 없는 🐳, ⚡, 👑 배지와 함께.",
+    "f6Title": "PnL 자랑하기",
+    "f6Body": "초대 링크가 담긴 멋진 공유 카드 — 수익마다 새로운 트레이더가 와요.",
+    "showcaseTitle": "모든 수익을 자랑하세요.",
+    "showcaseBody": "한 번 탭하면 거래가 X, 인스타그램, 틱톡용 카드로 — 진짜 숫자, 내 이름, 내 링크."
   },
   "coin": {
     "price": "가격",

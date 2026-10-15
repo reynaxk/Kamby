@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "ランキング",
     "signIn": "ログイン",
-    "chains": "チェーン：solana • base • bnb",
+    "chains": "チェーン: solana • base • bnb • robinhood",
     "tagline": "見つけて、取引して、繰り返す。",
     "gasFree": "（しかもガス代無料）",
     "goTrade": "取引する",
@@ -145,10 +145,18 @@
     "f1Body": "ETH・BNB・SOL を持たずに取引 — 全チェーンのネットワーク手数料を Kamby が負担。",
     "f2Title": "リアルタイム事前シミュレーション",
     "f2Body": "すべてのスワップは送信前にシミュレーションし、上場前にハニーポットを検査します。",
-    "f3Title": "ワンタップ実行",
-    "f3Body": "確認画面なし。高速・高頻度のスキャルピングのために設計。",
+    "f3Title": "すべてのチェーンで1つのUSDC",
+    "f3Body": "Solana・Base・BNB・Robinhoodで1つの残高 — 取引時にKambyが正しいチェーンへ移動します。",
     "loading": "読み込み中…",
-    "openTerminal": "ターミナルを開く"
+    "openTerminal": "ターミナルを開く",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Pump.fun・Clanker・Four.memeで1分で自分のコインを作成 — USDCで支払い、初回購入込み。",
+    "f5Title": "すべてのコインにライブチャット",
+    "f5Body": "話して、リアクションして、本物の取引をライブで — 偽造できない🐳・⚡・👑バッジ付き。",
+    "f6Title": "PnLを見せびらかそう",
+    "f6Body": "招待リンク入りの美しいシェアカード — 勝つたびに新しいトレーダーが集まります。",
+    "showcaseTitle": "すべての勝ちを見せよう。",
+    "showcaseBody": "ワンタップで取引がX・Instagram・TikTok用のカードに — 本物の数字、あなたの名前、あなたのリンク。"
   },
   "coin": {
     "price": "価格",

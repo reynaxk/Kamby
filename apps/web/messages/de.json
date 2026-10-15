@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Bestenliste",
     "signIn": "Anmelden",
-    "chains": "chains: solana • base • bnb",
+    "chains": "chains: solana • base • bnb • robinhood",
     "tagline": "Finden. Handeln. Wiederholen.",
     "gasFree": "(und ja... ohne Gasgebühren)",
     "goTrade": "Jetzt handeln",
@@ -145,10 +145,18 @@
     "f1Body": "Handle, ohne je ETH, BNB oder SOL zu halten — Kamby zahlt die Netzwerkgebühren auf jeder Chain.",
     "f2Title": "Echtzeit-Testlauf",
     "f2Body": "Jeder Swap wird vor dem Senden simuliert, und Coins werden vor dem Listing auf Honeypots geprüft.",
-    "f3Title": "Ausführung mit einem Tipp",
-    "f3Body": "Keine Prüfbildschirme. Gebaut für schnelles Hochfrequenz-Scalping.",
+    "f3Title": "Ein USDC, jede Chain",
+    "f3Body": "Ein Guthaben für Solana, Base, BNB und Robinhood — Kamby verschiebt es beim Traden auf die richtige Chain.",
     "loading": "Lädt…",
-    "openTerminal": "Terminal öffnen"
+    "openTerminal": "Terminal öffnen",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Erstelle deinen Coin in einer Minute auf Pump.fun, Clanker oder Four.meme — bezahlt mit USDC, erster Kauf inklusive.",
+    "f5Title": "Live-Chat bei jedem Coin",
+    "f5Body": "Schreiben, reagieren und echte Trades live sehen — mit 🐳-, ⚡- und 👑-Abzeichen, die man nicht fälschen kann.",
+    "f6Title": "Zeig deinen PnL",
+    "f6Body": "Schöne Share-Karten mit deinem Einladungslink — jeder Gewinn bringt neue Trader.",
+    "showcaseTitle": "Zeig jeden Gewinn.",
+    "showcaseBody": "Ein Tipp macht aus einem Trade eine Karte für X, Instagram und TikTok — echte Zahlen, dein Name, dein Link."
   },
   "coin": {
     "price": "Preis",

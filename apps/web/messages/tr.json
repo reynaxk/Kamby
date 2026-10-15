@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Liderlik",
     "signIn": "Giriş yap",
-    "chains": "ağlar: solana • base • bnb",
+    "chains": "ağlar: solana • base • bnb • robinhood",
     "tagline": "Bul. Al-sat. Tekrarla.",
     "gasFree": "(ve evet... gas ücreti yok)",
     "goTrade": "İşleme başla",
@@ -145,10 +145,18 @@
     "f1Body": "ETH, BNB ya da SOL tutmadan işlem yap — her ağda ağ ücretini Kamby öder.",
     "f2Title": "Gerçek zamanlı ön simülasyon",
     "f2Body": "Her swap gönderilmeden önce simüle edilir, coinler listelenmeden önce honeypot kontrolünden geçer.",
-    "f3Title": "Tek dokunuşla işlem",
-    "f3Body": "Onay ekranı yok. Hızlı, yüksek frekanslı scalping için tasarlandı.",
+    "f3Title": "Tek USDC, her ağ",
+    "f3Body": "Solana, Base, BNB ve Robinhood için tek bakiye — işlem yaptığında Kamby doğru ağa taşır.",
     "loading": "Yükleniyor…",
-    "openTerminal": "Terminali aç"
+    "openTerminal": "Terminali aç",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Pump.fun, Clanker veya Four.meme'de bir dakikada kendi coinini oluştur — USDC ile öde, ilk alım dahil.",
+    "f5Title": "Her coinde canlı sohbet",
+    "f5Body": "Konuş, tepki ver ve gerçek işlemleri canlı izle — taklit edilemeyen 🐳, ⚡ ve 👑 rozetleriyle.",
+    "f6Title": "PnL'ini göster",
+    "f6Body": "Davet linkinin olduğu şık paylaşım kartları — her kazanç yeni trader getirir.",
+    "showcaseTitle": "Her kazancı göster.",
+    "showcaseBody": "Tek dokunuşla işlem; X, Instagram ve TikTok için bir karta dönüşür — gerçek rakamlar, adın, linkin."
   },
   "coin": {
     "price": "Fiyat",

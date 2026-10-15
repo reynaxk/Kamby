@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Orbitron } from 'next/font/google';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { FeatureCards, type LandingFeature } from '@/components/landing/FeatureCards';
+import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { LandingCta } from '@/components/landing/LandingCta';
 import { RunnerCountdown } from '@/components/landing/RunnerCountdown';
 import { getTranslations } from 'next-intl/server';
@@ -47,9 +48,12 @@ const BEAMS = [
 export default async function LandingPage() {
   const t = await getTranslations('landing');
   const features: LandingFeature[] = [
-    { icon: '⚡', title: t('f1Title'), body: t('f1Body') },
-    { icon: '🛡️', title: t('f2Title'), body: t('f2Body') },
-    { icon: '🏎️', title: t('f3Title'), body: t('f3Body') },
+    { icon: 'gas', title: t('f1Title'), body: t('f1Body') },
+    { icon: 'dollar', title: t('f3Title'), body: t('f3Body') },
+    { icon: 'shield', title: t('f2Title'), body: t('f2Body') },
+    { icon: 'launch', title: t('f4Title'), body: t('f4Body') },
+    { icon: 'chat', title: t('f5Title'), body: t('f5Body') },
+    { icon: 'card', title: t('f6Title'), body: t('f6Body') },
   ];
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#05070A] text-white">
@@ -132,9 +136,14 @@ export default async function LandingPage() {
       </section>
 
       <main>
-        {/* Three features */}
+        {/* What Kamby does */}
         <section className="mx-auto max-w-5xl px-5 py-24">
           <FeatureCards features={features} />
+        </section>
+
+        {/* Flex every win — the PnL cards */}
+        <section className="mx-auto max-w-5xl px-5 pb-24">
+          <PnlShowcase title={t('showcaseTitle')} body={t('showcaseBody')} />
         </section>
 
         {/* Bottom action box */}

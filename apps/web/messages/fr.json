@@ -136,7 +136,7 @@
   "landing": {
     "leaderboard": "Classement",
     "signIn": "Se connecter",
-    "chains": "réseaux : solana • base • bnb",
+    "chains": "réseaux : solana • base • bnb • robinhood",
     "tagline": "Trouvez. Tradez. Recommencez.",
     "gasFree": "(et oui... sans frais de gas)",
     "goTrade": "Trader maintenant",
@@ -145,10 +145,18 @@
     "f1Body": "Tradez sans jamais détenir d’ETH, de BNB ou de SOL — Kamby paie les frais réseau sur chaque chaîne.",
     "f2Title": "Simulation en temps réel",
     "f2Body": "Chaque swap est simulé avant l’envoi, et chaque coin est vérifié contre les honeypots avant d’être listé.",
-    "f3Title": "Exécution en un toucher",
-    "f3Body": "Pas d’écran de confirmation. Conçu pour le scalping rapide à haute fréquence.",
+    "f3Title": "Un USDC, toutes les chaînes",
+    "f3Body": "Un solde pour Solana, Base, BNB et Robinhood — Kamby le déplace sur la bonne chaîne quand tu trades.",
     "loading": "Chargement…",
-    "openTerminal": "Ouvrir le terminal"
+    "openTerminal": "Ouvrir le terminal",
+    "f4Title": "Kamby's LaunchPad",
+    "f4Body": "Crée ton coin en une minute sur Pump.fun, Clanker ou Four.meme — payé en USDC, premier achat inclus.",
+    "f5Title": "Chat en direct sur chaque coin",
+    "f5Body": "Discute, réagis et vois les vrais trades en direct — avec des badges 🐳, ⚡ et 👑 infalsifiables.",
+    "f6Title": "Montre ton PnL",
+    "f6Body": "De belles cartes à partager avec ton lien d’invitation — chaque gain amène de nouveaux traders.",
+    "showcaseTitle": "Montre chaque gain.",
+    "showcaseBody": "Un tap transforme un trade en carte pour X, Instagram et TikTok — tes vrais chiffres, ton nom, ton lien."
   },
   "coin": {
     "price": "Prix",
