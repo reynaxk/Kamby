@@ -74,7 +74,7 @@ export function PortfolioHeader() {
     </div>
     <section className="kamby-rise kamby-rise-2 kamby-glass relative mt-3 overflow-hidden rounded-3xl px-4 py-4 md:px-1">
       {/* The faint neon K of the PnL cards (2026-10-15), Kamby's mark on its own balance. */}
-      <svg className="pointer-events-none absolute -right-12 -top-10 md:hidden" width="230" height="230" viewBox="0 0 512 512" aria-hidden="true">
+      <svg className="pointer-events-none absolute -right-5 -top-5 md:hidden" width="150" height="150" viewBox="0 0 512 512" aria-hidden="true">
         <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
           <path d="M186 140 V372" />
           <path d="M200 268 L338 140" />

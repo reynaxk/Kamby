@@ -42,13 +42,22 @@ export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: Pu
         <span className="shrink-0 rounded-full bg-up/15 px-1.5 py-0.5 font-mono text-[0.66rem] font-semibold uppercase text-up">{tU('trade_5f39')}</span>
       ) : (
         <span className="shrink-0 text-right" aria-label={`${token.graduationProgressPct.toFixed(0)}% of the way to graduating`}>
-          <span className={cn('block overflow-hidden rounded-full bg-surface-raised', emphasizeProgress ? 'h-2 w-20' : 'h-1.5 w-14')}>
+          {/* The curve, a bit louder (2026-10-15): a thicker bar filling cyan → neon, a tiny stub even
+              at 0% so it reads as a bar, and the % brighter the closer the coin is to graduating. */}
+          <span className={cn('block overflow-hidden rounded-full bg-white/[0.06]', emphasizeProgress ? 'h-2.5 w-20' : 'h-2 w-16')}>
             <span
-              className={cn('block h-full rounded-full transition-[width] duration-500', token.graduationProgressPct >= 80 ? 'bg-up' : 'bg-accent')}
-              style={{ width: `${token.graduationProgressPct}%` }}
+              className="block h-full rounded-full transition-[width] duration-500"
+              style={{ width: `${Math.max(4, token.graduationProgressPct)}%`, background: 'linear-gradient(90deg,#00E5FF,#00FF87)' }}
             />
           </span>
-          <span className="mt-0.5 block font-mono text-[0.7rem] tabular-nums text-ink-400">{token.graduationProgressPct.toFixed(0)}%</span>
+          <span
+            className={cn(
+              'mt-1 block font-display text-[0.72rem] font-bold tabular-nums',
+              token.graduationProgressPct >= 80 ? 'text-up' : token.graduationProgressPct >= 30 ? 'text-ink-900' : 'text-ink-400',
+            )}
+          >
+            {token.graduationProgressPct.toFixed(0)}%
+          </span>
         </span>
       )}
     </>

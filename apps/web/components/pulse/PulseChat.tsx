@@ -167,7 +167,15 @@ export function PulseChat({ className }: { className?: string }) {
         {messages === null ? (
           <p className="py-8 text-center font-body text-sm text-ink-400">…</p>
         ) : messages.length === 0 ? (
-          <p className="py-10 text-center font-body text-sm text-ink-400">{t('empty')}</p>
+<div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+            <span aria-hidden className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#00FF87]/20 bg-[#00FF87]/[0.08] text-[#00FF87]">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12Z" />
+                <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" />
+              </svg>
+            </span>
+            <p className="max-w-[16rem] font-body text-sm text-ink-400">{t('empty')}</p>
+          </div>
         ) : (
           <ul className="flex flex-col gap-3 py-2">
             {messages.map((m) => {
