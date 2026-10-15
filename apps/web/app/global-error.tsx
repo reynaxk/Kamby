@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { reloadIfStaleDeploy } from '@/lib/reload-on-stale-deploy';
 
 /**
  * The one error boundary `error.tsx` structurally cannot be — Next.js only invokes
@@ -18,13 +19,14 @@ import { useEffect } from 'react';
  */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
+    if (reloadIfStaleDeploy(error)) return;
     // eslint-disable-next-line no-console
     console.error('Unhandled root-layout error', { digest: error.digest, message: error.message });
   }, [error]);
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: '#080A0F', color: '#F3F5F8', fontFamily: 'system-ui, sans-serif' }}>
+      <body style={{ margin: 0, background: '#05070A', color: '#F3F5F8', fontFamily: 'system-ui, sans-serif' }}>
         <main
           style={{
             minHeight: '100vh',
@@ -37,7 +39,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
             textAlign: 'center',
           }}
         >
-          <div style={{ maxWidth: '28rem', width: '100%', border: '1px solid #1F2530', borderRadius: '1rem', padding: '2rem', background: '#0E1015' }}>
+          <div style={{ maxWidth: '28rem', width: '100%', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.5rem', padding: '2rem', background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#05070A 100%)' }}>
             <h1 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Something went wrong</h1>
             <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#9AA3B2' }}>
               Kamby hit an unexpected error loading this page. It&apos;s been logged — try again.
@@ -47,11 +49,11 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
               onClick={() => reset()}
               style={{
                 marginTop: '1.5rem',
-                background: '#22C55E',
-                color: '#04110A',
+                background: '#00FF87',
+                color: '#000000',
                 border: 'none',
-                borderRadius: '0.75rem',
-                padding: '0.625rem 1.25rem',
+                borderRadius: '1rem',
+                padding: '0.75rem 1.5rem',
                 fontWeight: 700,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
