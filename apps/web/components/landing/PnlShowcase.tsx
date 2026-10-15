@@ -29,7 +29,7 @@ function SampleCard({
   const neon = theme === 'neon';
   return (
     <div
-      className={`relative h-[350px] w-[280px] overflow-hidden rounded-[26px] border border-white/10 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.55)] ${className ?? ''}`}
+      className={`h-[350px] w-[280px] overflow-hidden rounded-[26px] border border-white/10 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.55)] ${className ?? ''}`}
       style={{ background: neon ? '#05070A' : 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#05070A 100%)' }}
     >
       <svg className="pointer-events-none absolute -right-14 -top-4" width="260" height="260" viewBox="0 0 512 512" aria-hidden="true">
