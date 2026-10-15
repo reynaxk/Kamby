@@ -90,8 +90,9 @@ function SelectableTokenRowView({
         </span>
       </span>
       {market.recentCloses && market.recentCloses.length >= 2 && (
-        <span className="terminal-token-sparkline max-md:hidden">
-          <Sparkline closes={market.recentCloses} width={40} height={20} />
+        // Phones too (2026-10-15, Robinhood-app feel) — only where there's real history to draw.
+        <span className="terminal-token-sparkline max-md:mr-1">
+          <Sparkline closes={market.recentCloses} width={44} height={22} />
         </span>
       )}
       <span className="flex shrink-0 flex-col items-end gap-0.5">

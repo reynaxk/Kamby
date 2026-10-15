@@ -68,20 +68,31 @@ export function AppProfileMenu() {
   const name = profile?.username ? `@${profile.username}` : tU('yourAccount_f2fc');
   return (
     <section className="md:hidden">
-      <div className="flex items-center gap-3 px-4 pb-2 pt-6">
-        {profile?.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-raised text-ink-400">
-            <User className="h-8 w-8" aria-hidden />
-          </span>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-xl font-bold text-ink-900">{name}</p>
-          <Link href="#profile" className="font-body text-sm font-semibold text-accent">
-            {t('menu_editProfile')}
-          </Link>
+      {/* Your card, in the PnL cards' "midnight" look (2026-10-15): faint K, neon-ringed avatar. */}
+      <div className="relative mx-4 mt-5 overflow-hidden rounded-3xl border border-white/10 p-5" style={{ background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 50%,#06070C 100%)' }}>
+        <svg className="pointer-events-none absolute -right-10 -top-8" width="190" height="190" viewBox="0 0 512 512" aria-hidden="true">
+          <g fill="none" stroke="#FFFFFF" strokeWidth="92" strokeLinecap="round" opacity="0.05">
+            <path d="M186 140 V372" />
+            <path d="M200 268 L338 140" />
+            <path d="M232 246 L346 372" />
+          </g>
+        </svg>
+        <div className="relative flex items-center gap-4">
+          {profile?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profile.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/70 ring-offset-2 ring-offset-[#0A0E26]" />
+          ) : (
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.06] text-ink-400 ring-2 ring-accent/70 ring-offset-2 ring-offset-[#0A0E26]">
+              <User className="h-8 w-8" aria-hidden />
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-display text-2xl font-black tracking-tight text-white">{name}</p>
+            <Link href="#profile" className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 font-body text-xs font-semibold text-white">
+              <Pencil className="h-3 w-3" aria-hidden />
+              {t('menu_editProfile')}
+            </Link>
+          </div>
         </div>
       </div>
       <MenuGroup>
@@ -93,7 +104,9 @@ export function AppProfileMenu() {
       </MenuGroup>
       <MenuGroup>
         <div className="flex items-center gap-3 px-4 py-3">
-          <Eye className="h-5 w-5 text-ink-400" aria-hidden />
+          <IconTile>
+            <Eye />
+          </IconTile>
           <span className="flex-1 font-body text-[0.95rem] text-ink-900">{t('menu_hideBalances')}</span>
           <BlurBalancesToggle />
         </div>
@@ -127,10 +140,8 @@ function MenuGroup({ children }: { children: ReactNode }) {
 
 function MenuLink({ href, icon, label }: { href: string; icon: ReactNode; label: string }) {
   return (
-    <Link href={href} className="flex items-center gap-3 px-4 py-3.5 active:bg-white/5">
-      <span className="text-ink-400 [&>svg]:h-5 [&>svg]:w-5" aria-hidden>
-        {icon}
-      </span>
+    <Link href={href} className="flex items-center gap-3 px-4 py-3 active:bg-white/5">
+      <IconTile>{icon}</IconTile>
       <span className="flex-1 font-body text-[0.95rem] text-ink-900">{label}</span>
       <ChevronRight className="h-4 w-4 text-ink-400" aria-hidden />
     </Link>
@@ -139,11 +150,18 @@ function MenuLink({ href, icon, label }: { href: string; icon: ReactNode; label:
 
 function MenuButton({ icon, label, onClick, danger = false }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) {
   return (
-    <button type="button" onClick={onClick} className="flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-white/5">
-      <span className={cn('[&>svg]:h-5 [&>svg]:w-5', danger ? 'text-down' : 'text-ink-400')} aria-hidden>
-        {icon}
-      </span>
+    <button type="button" onClick={onClick} className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-white/5">
+      <IconTile danger={danger}>{icon}</IconTile>
       <span className={cn('flex-1 font-body text-[0.95rem]', danger ? 'text-down' : 'text-ink-900')}>{label}</span>
     </button>
+  );
+}
+
+/** A menu row's icon in its own small tile (2026-10-15), neon — red for signing out. */
+function IconTile({ children, danger = false }: { children: ReactNode; danger?: boolean }) {
+  return (
+    <span aria-hidden className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl [&>svg]:h-[18px] [&>svg]:w-[18px]', danger ? 'bg-down/10 text-down' : 'bg-accent/[0.08] text-accent')}>
+      {children}
+    </span>
   );
 }
