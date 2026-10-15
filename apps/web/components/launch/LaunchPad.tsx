@@ -220,8 +220,8 @@ export function LaunchPad() {
             disabled={!l.live || busy}
             onClick={() => setLaunchpad(l.id)}
             className={cn(
-              'kamby-glass flex flex-col items-start gap-1 rounded-2xl px-3 py-2.5 text-left transition-colors',
-              launchpad === l.id ? '!border !border-accent' : 'border border-transparent opacity-80',
+              'kamby-glass relative flex flex-col items-start gap-1 rounded-2xl px-3 py-2.5 text-left transition-colors',
+              launchpad === l.id ? '!border !border-accent !bg-accent/[0.06]' : 'border border-transparent opacity-80',
               !l.live && 'opacity-40',
             )}
           >
@@ -232,6 +232,13 @@ export function LaunchPad() {
               {l.chainName}
             </span>
             <span className="font-body text-[0.7rem] text-ink-400">{l.live ? l.name : `${l.name} · ${t('soon')}`}</span>
+            {launchpad === l.id && (
+              <span className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-black" aria-hidden>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m5 12.5 4.5 4.5L19 7.5" />
+                </svg>
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -335,13 +342,14 @@ export function LaunchPad() {
         </div>
       </div>
 
-      {/* What it costs */}
-      <dl className="mt-4 space-y-1.5 px-2 font-body text-sm">
+      {/* What it costs — a receipt card, the total in neon (2026-10-15) */}
+      <dl className="mt-4 space-y-1.5 rounded-3xl border border-white/[0.06] bg-white/[0.02] px-4 py-3.5 font-body text-sm">
         <Row label={t('summaryFirstBuy')} value={`$${firstBuy.toFixed(2)}`} />
         <Row label={t('summaryNetwork')} value={`≈ $${networkCostUsd.toFixed(2)}`} />
         <Row label={t('summaryFee')} value={`$${feeUsd.toFixed(2)}`} />
-        <div className="border-t border-white/5 pt-1.5">
-          <Row label={t('summaryTotal')} value={`≈ $${totalUsd.toFixed(2)}`} strong />
+        <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-dashed border-white/10 pt-2.5">
+          <dt className="font-semibold text-ink-900">{t('summaryTotal')}</dt>
+          <dd className="font-display text-xl font-black tabular-nums text-accent">≈ ${totalUsd.toFixed(2)}</dd>
         </div>
       </dl>
 

@@ -8,7 +8,6 @@ import { formatCompactUsd, truncateAddress } from '@/lib/format';
 import { API_BASE } from '@/lib/session-client';
 import { useLivePrice } from '@/lib/use-live-price';
 import { useTranslations } from 'next-intl';
-import { TokenAvatar } from '@/components/market/TokenAvatar';
 
 const REFRESH_MS = 60_000; // the API caches holders for a minute
 
@@ -78,6 +77,8 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
     return <p className="p-4 text-ink-400">{tC('noHolders')}</p>;
   }
 
+  const topPercent = Math.max(0, ...data.holders.map((h) => h.percent));
+
   return (
     <div className="flex flex-col">
       {data.holderCount !== null && (
@@ -85,22 +86,37 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
           {tC('holdersTop', { count: data.holderCount.toLocaleString('en-US'), top: data.holders.length })}
         </p>
       )}
-      {/* Phones: an app list like fomo's holders tab, not a table (2026-10-10). */}
+      {/* Phones: an app list like fomo's holders tab, not a table (2026-10-10). 2026-10-15: a rank tile
+          (top 3 in neon) and a thin share bar per holder, scaled to the largest one so a 1% holder still
+          reads next to a 30% pool. */}
       <ul className="md:hidden">
-        {data.holders.map((h) => {
+        {data.holders.map((h, i) => {
           const valueUsd = price !== null ? h.balance * price : null;
           const tier = !h.isContract && valueUsd !== null ? holderTier(valueUsd) : null;
           const pct = `${h.percent < 0.01 ? '<0.01' : h.percent.toFixed(2)}%`;
+          const share = topPercent > 0 ? Math.max(4, (h.percent / topPercent) * 100) : 0;
           return (
             <li key={h.address}>
-              <a href={EXPLORER[chain](h.address)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3">
-                <TokenAvatar src={null} seed={h.address} label={h.tag ?? h.address.slice(-2)} className="h-10 w-10 shrink-0 text-xs" />
+              <a href={EXPLORER[chain](h.address)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-2.5 active:bg-white/[0.03]">
+                <span
+                  className={cn(
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-display text-sm font-bold tabular-nums',
+                    i < 3 ? 'border-accent/25 bg-accent/[0.08] text-accent' : 'border-white/[0.06] bg-white/[0.03] text-ink-400',
+                  )}
+                >
+                  {i + 1}
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 truncate font-display text-[0.95rem] font-semibold text-ink-900">
                     {h.tag ? tagLabel(h.tag) : truncateAddress(h.address)}
                     {tier && <span aria-label={tL(`tier_${tier}`)}>{TIER_STYLE[tier].icon}</span>}
                   </span>
-                  <span className="block font-body text-xs text-ink-400">{tL('ofSupply', { pct })}</span>
+                  <span className="mt-1 flex items-center gap-2">
+                    <span className="h-1 w-20 overflow-hidden rounded-full bg-white/[0.06]">
+                      <span className={cn('block h-full rounded-full', h.isContract ? 'bg-ink-400/60' : 'bg-gradient-to-r from-accent to-[#00B4D8]')} style={{ width: `${share}%` }} />
+                    </span>
+                    <span className="font-body text-xs tabular-nums text-ink-400">{tL('ofSupply', { pct })}</span>
+                  </span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="block font-body text-[0.95rem] font-semibold tabular-nums text-ink-900">{valueUsd !== null ? formatCompactUsd(valueUsd) : '—'}</span>

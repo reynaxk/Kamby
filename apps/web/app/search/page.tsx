@@ -27,7 +27,14 @@ export default async function SearchPage() {
       <RecentSearches />
       {trending.length > 0 && (
         <section className="mt-5">
-          <h2 className="px-4 pb-1 font-display text-sm font-semibold text-ink-400">{tU('trending_3752')}</h2>
+          <h2 className="flex items-center gap-2 px-4 pb-1 font-display text-sm font-bold text-ink-900">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3c.5 3.5 4.5 5.5 4.5 10a4.5 4.5 0 0 1-9 0c0-2 1-3.5 2-4.5.3 1.6 1.2 2.6 2.2 2.8C11 8.7 11.3 5.6 12 3Z" />
+              </svg>
+            </span>
+            {tU('trending_3752')}
+          </h2>
           <ul>
             {trending.map((m) => {
               const href = marketHref(m.chainIdentifier, m.tokenAddress);
