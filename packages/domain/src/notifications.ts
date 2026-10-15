@@ -19,6 +19,8 @@ export const NotificationTypeSchema = z.enum([
   'TRADE_FAILED',
   /** 2026-10-11 — a big price move on a coin you hold or watch. */
   'PRICE_MOVE',
+  /** 2026-10-15 — another Kamby user sent you USDC by your @username (checked on-chain). */
+  'USDC_RECEIVED',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -82,6 +84,7 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   TRADE_CONFIRMED: 'tradeUpdates',
   TRADE_FAILED: 'tradeUpdates',
   PRICE_MOVE: 'priceMoves',
+  USDC_RECEIVED: 'tradeUpdates',
 };
 
 /**
@@ -141,6 +144,10 @@ export function trendingTokenDedupeKey(tokenMarketId: string, transitionAtIso: s
 export function tradeOutcomeDedupeKey(chain: 'evm' | 'solana', tradeId: string): string {
   return `trade:${chain}:${tradeId}`;
 }
+/** One per incoming transfer (its transaction hash / signature). */
+export function usdcReceivedDedupeKey(txRef: string): string {
+  return `transfer:${txRef}`;
+}
 /** At most one PRICE_MOVE per coin, direction and window bucket (e.g. one "up" per hour). */
 export function priceMoveDedupeKey(tokenKey: string, direction: 'up' | 'down', bucketStartIso: string): string {
   return `move:${tokenKey}:${direction}:${bucketStartIso}`;
@@ -180,6 +187,8 @@ export function notificationDeepLink(
     case 'WATCHED_TOKEN_ACTIVITY':
     case 'PRICE_MOVE':
       return ctx.tokenAddress ? tokenDeepLink(ctx.chainIdentifier, ctx.tokenAddress) : null;
+    case 'USDC_RECEIVED':
+      return '/';
   }
 }
 

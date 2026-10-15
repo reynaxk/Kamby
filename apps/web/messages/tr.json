@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} son bir saatte {pct} yükseldi",
     "PRICE_MOVE_DOWN": "{token} son bir saatte {pct} düştü",
     "someone": "Biri",
-    "aToken": "bir token"
+    "aToken": "bir token",
+    "kind_USDC_RECEIVED": "Alındı",
+    "USDC_RECEIVED": "{actor} sana {amount} gönderdi"
   },
   "pulse": {
     "live": "Canlı — dünyanın dört bir yanından trader’lar",

@@ -15,6 +15,7 @@ const KIND_COLOR: Record<NotificationDto['type'], string> = {
   TRADE_CONFIRMED: 'text-up',
   TRADE_FAILED: 'text-down',
   PRICE_MOVE: 'text-accent',
+  USDC_RECEIVED: 'text-up',
 };
 
 /**

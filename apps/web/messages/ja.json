@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} が直近1時間で {pct} 上昇",
     "PRICE_MOVE_DOWN": "{token} が直近1時間で {pct} 下落",
     "someone": "誰か",
-    "aToken": "トークン"
+    "aToken": "トークン",
+    "kind_USDC_RECEIVED": "受け取り",
+    "USDC_RECEIVED": "{actor} から {amount} が届きました"
   },
   "pulse": {
     "live": "ライブ — 世界中のトレーダー",

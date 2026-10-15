@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} се качи с {pct} за последния час",
     "PRICE_MOVE_DOWN": "{token} падна с {pct} за последния час",
     "someone": "Някой",
-    "aToken": "монета"
+    "aToken": "монета",
+    "kind_USDC_RECEIVED": "Получени",
+    "USDC_RECEIVED": "{actor} ти прати {amount}"
   },
   "pulse": {
     "live": "На живо — трейдъри от цял свят",

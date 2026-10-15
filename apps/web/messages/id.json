@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} naik {pct} dalam satu jam terakhir",
     "PRICE_MOVE_DOWN": "{token} turun {pct} dalam satu jam terakhir",
     "someone": "Seseorang",
-    "aToken": "sebuah token"
+    "aToken": "sebuah token",
+    "kind_USDC_RECEIVED": "Diterima",
+    "USDC_RECEIVED": "{actor} mengirimimu {amount}"
   },
   "pulse": {
     "live": "Live — trader dari seluruh dunia",

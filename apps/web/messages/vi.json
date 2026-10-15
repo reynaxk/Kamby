@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} tăng {pct} trong 1 giờ qua",
     "PRICE_MOVE_DOWN": "{token} giảm {pct} trong 1 giờ qua",
     "someone": "Ai đó",
-    "aToken": "một token"
+    "aToken": "một token",
+    "kind_USDC_RECEIVED": "Đã nhận",
+    "USDC_RECEIVED": "{actor} đã gửi bạn {amount}"
   },
   "pulse": {
     "live": "Trực tiếp — trader toàn thế giới",

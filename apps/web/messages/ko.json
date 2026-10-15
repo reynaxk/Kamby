@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} 지난 1시간 {pct} 상승",
     "PRICE_MOVE_DOWN": "{token} 지난 1시간 {pct} 하락",
     "someone": "누군가",
-    "aToken": "토큰"
+    "aToken": "토큰",
+    "kind_USDC_RECEIVED": "받음",
+    "USDC_RECEIVED": "{actor}님이 {amount}를 보냈어요"
   },
   "pulse": {
     "live": "실시간 — 전 세계 트레이더",

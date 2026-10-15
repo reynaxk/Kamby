@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} 过去一小时上涨 {pct}",
     "PRICE_MOVE_DOWN": "{token} 过去一小时下跌 {pct}",
     "someone": "某人",
-    "aToken": "某代币"
+    "aToken": "某代币",
+    "kind_USDC_RECEIVED": "已收到",
+    "USDC_RECEIVED": "{actor} 给你发了 {amount}"
   },
   "pulse": {
     "live": "实时 — 全球交易者",

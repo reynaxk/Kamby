@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} is up {pct} in the last hour",
     "PRICE_MOVE_DOWN": "{token} is down {pct} in the last hour",
     "someone": "Someone",
-    "aToken": "a token"
+    "aToken": "a token",
+    "kind_USDC_RECEIVED": "Received",
+    "USDC_RECEIVED": "{actor} sent you {amount}"
   },
   "pulse": {
     "live": "Live — traders worldwide",

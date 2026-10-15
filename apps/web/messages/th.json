@@ -639,7 +639,9 @@
     "PRICE_MOVE_UP": "{token} ขึ้น {pct} ในชั่วโมงที่ผ่านมา",
     "PRICE_MOVE_DOWN": "{token} ลง {pct} ในชั่วโมงที่ผ่านมา",
     "someone": "ใครบางคน",
-    "aToken": "โทเคน"
+    "aToken": "โทเคน",
+    "kind_USDC_RECEIVED": "ได้รับ",
+    "USDC_RECEIVED": "{actor} ส่ง {amount} ให้คุณ"
   },
   "pulse": {
     "live": "สด — เทรดเดอร์ทั่วโลก",

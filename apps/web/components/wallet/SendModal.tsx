@@ -349,6 +349,14 @@ export function SendModal({ open, onClose, toUser = false }: { open: boolean; on
       }
       setTxResult(result);
       setStep('confirmed');
+      // Tell them (2026-10-15): the API checks the transfer on-chain, then notifies @name.
+      if (toUser && recipient) {
+        void authedFetch('/transfers/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: recipient.username, chain: chain.slug, txRef: result }),
+        }).catch(() => undefined);
+      }
     } catch (err) {
       setFlowError(friendlyError(err));
       setStep('failed');
