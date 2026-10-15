@@ -124,7 +124,8 @@
     "amountOf": "Jumlah ({symbol})",
     "balanceN": "Saldo: {n}",
     "invalidAddressFor": "Itu bukan alamat {chain} yang valid.",
-    "viewOn": "Lihat di {explorer} →"
+    "viewOn": "Lihat di {explorer} →",
+    "send": "Kirim"
   },
   "account": {
     "title": "Profilmu",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Trading kamu sudah dikirim ke jaringan, tapi kami gagal mencatatnya.",
     "withdrawIrreversible": "Ini mengirim dana sungguhan langsung dari dompetmu dan tidak bisa dibatalkan. Periksa lagi alamatnya.",
     "confirmAndSend": "Konfirmasi & kirim",
-    "toLabel": "Ke"
+    "toLabel": "Ke",
+    "sendTo": "Ke (username Kamby)",
+    "usernamePlaceholder": "username",
+    "noSuchUser": "Tidak ada pengguna Kamby dengan nama itu.",
+    "noWalletOnNetwork": "Belum ada dompet di {chain} — pilih jaringan lain",
+    "sentToUser": "Terkirim ke @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

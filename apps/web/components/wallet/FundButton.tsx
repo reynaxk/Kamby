@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
  * ConnectWalletButton for its EVM wrong-network gate, so nesting the trigger inside FundModal
  * itself would be a circular import.
  */
-export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' | 'stacked' }) {
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
@@ -28,6 +28,8 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
+            : variant === 'stacked'
+              ? 'flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-accent px-2 py-3 font-display text-xs font-bold text-black transition-transform active:scale-[0.97]'
             // shrink-0 here too, not just on the icon variant above — without it, the button
             // could shrink below "Fund wallet"'s natural width in a tight flex row (e.g. next
             // to Send on /account), wrapping the two-word label onto two lines.
@@ -37,7 +39,7 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        {variant === 'labeled' ? (
+        {variant !== 'icon' ? (
           <>
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/15">
               <FundIcon />

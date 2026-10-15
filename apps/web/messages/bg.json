@@ -124,7 +124,8 @@
     "amountOf": "Сума ({symbol})",
     "balanceN": "Баланс: {n}",
     "invalidAddressFor": "Това не прилича на валиден адрес в {chain}.",
-    "viewOn": "Виж в {explorer} →"
+    "viewOn": "Виж в {explorer} →",
+    "send": "Изпрати"
   },
   "account": {
     "title": "Твоят профил",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Сделката ти е изпратена в мрежата, но не успяхме да я запишем.",
     "withdrawIrreversible": "Това праща истински пари директно от портфейла ти и не може да се върне. Провери адреса два пъти.",
     "confirmAndSend": "Потвърди и изпрати",
-    "toLabel": "До"
+    "toLabel": "До",
+    "sendTo": "До (потребител в Kamby)",
+    "usernamePlaceholder": "потребител",
+    "noSuchUser": "Няма потребител в Kamby с това име.",
+    "noWalletOnNetwork": "Още няма портфейл в {chain} — избери друга мрежа",
+    "sentToUser": "Изпратено до @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Последване",

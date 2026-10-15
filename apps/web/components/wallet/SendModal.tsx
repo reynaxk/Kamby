@@ -35,6 +35,8 @@ import { friendlyError } from '@/lib/friendly-error';
 import { Check } from 'lucide-react';
 import { TradeModal } from '../trading/TradeModal';
 import { ModalHeader, WithdrawGlyph } from './ModalHeader';
+import { authedFetch } from '@/lib/session-client';
+import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { MoveNote } from '../trading/CrossChainMove';
 import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 import type { BridgeChain } from '@/lib/bridge-client';
@@ -140,7 +142,22 @@ function useSolanaNativeBalance(solanaAddress: string | undefined): bigint | nul
  * reserve subtracted from "Max" so a 100%-balance native send can never leave the wallet
  * unable to pay for its own transaction.
  */
-export function SendModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export interface SendRecipient {
+  username: string;
+  avatarUrl: string | null;
+  evmAddress: string | null;
+  solanaAddress: string | null;
+}
+
+/** Kamby users can send each other USDC by name; the smallest such send. */
+const MIN_USER_SEND_USD = 1;
+
+/**
+ * Withdraw to any address, or — `toUser` (2026-10-15, owner: "send to other users by typing their
+ * username") — send to another Kamby user by @name: the API resolves their verified wallet for the
+ * chosen network, the review shows who they are before anything is signed.
+ */
+export function SendModal({ open, onClose, toUser = false }: { open: boolean; onClose: () => void; toUser?: boolean }) {
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
@@ -159,6 +176,10 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   const [amountDisplay, setAmountDisplay] = useState('');
   const [destination, setDestination] = useState('');
+  const [username, setUsername] = useState('');
+  const [recipient, setRecipient] = useState<SendRecipient | null>(null);
+  const [recipientError, setRecipientError] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
   const [step, setStep] = useState<Step>('form');
   const [flowError, setFlowError] = useState<string | null>(null);
   const [txResult, setTxResult] = useState<string | null>(null);
@@ -209,12 +230,38 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
     }
   }, [amountDisplay, tokenDecimals]);
 
+  // @name → their wallet on this network (looked up as they type).
+  useEffect(() => {
+    if (!toUser) return;
+    const name = username.trim().replace(/^@/, '').toLowerCase();
+    setRecipient(null);
+    setRecipientError(null);
+    if (name.length < 3) return;
+    setLookingUp(true);
+    const timer = setTimeout(() => {
+      authedFetch(`/identity/users/${encodeURIComponent(name)}/recipient`)
+        .then(async (res) => {
+          if (res.ok) return setRecipient((await res.json()) as SendRecipient);
+          const body = (await res.json().catch(() => null)) as { message?: string } | null;
+          setRecipientError(body?.message ?? tL('noSuchUser'));
+        })
+        .catch(() => setRecipientError(tL('noSuchUser')))
+        .finally(() => setLookingUp(false));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [toUser, username, tL]);
+  useEffect(() => {
+    if (!toUser) return;
+    setDestination((chain.kind === 'evm' ? recipient?.evmAddress : recipient?.solanaAddress) ?? '');
+  }, [toUser, recipient, chain.kind]);
+
   const destinationValid = destination.trim().length > 0 && isValidDestination(chain.kind, destination);
   // USDC withdrawals: at least $10, or the whole balance when it's less (owner rule 2026-10-07 —
   // every withdrawal's gas is Kamby's cost, and small balances must never be stuck).
   const isUsdc = asset.symbol.toUpperCase() === 'USDC';
+  const minimumUsd = toUser ? MIN_USER_SEND_USD : Number(MIN_USDC_WITHDRAWAL);
   const belowMinimum =
-    isUsdc && amountRaw !== null && tokenDecimals !== null && amountRaw < MIN_USDC_WITHDRAWAL * 10n ** BigInt(tokenDecimals) && amountRaw !== balance;
+    isUsdc && amountRaw !== null && tokenDecimals !== null && amountRaw < BigInt(minimumUsd) * 10n ** BigInt(tokenDecimals) && amountRaw !== balance;
   // One USDC (2026-10-13): withdrawing more than this network holds moves the rest over first.
   const amountUsd = amountRaw !== null && tokenDecimals !== null ? Number(formatUnits(amountRaw, tokenDecimals)) : null;
   const funding = useCrossChainFunding(chain.slug as BridgeChain, isUsdc ? amountUsd : null);
@@ -229,6 +276,8 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
     setTxResult(null);
     setAmountDisplay('');
     setDestination('');
+    setUsername('');
+    setRecipient(null);
   }
 
   function close() {
@@ -311,7 +360,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <TradeModal open={open} onClose={close}>
-      <ModalHeader icon={<WithdrawGlyph />} title={tW('withdraw')} onClose={close} closeLabel={tU('close_d3d2')} />
+      <ModalHeader icon={<WithdrawGlyph />} title={toUser ? tW('send') : tW('withdraw')} onClose={close} closeLabel={tU('close_d3d2')} />
 
       {step === 'form' && (
         <div className="mt-4 flex flex-col gap-4">
@@ -407,12 +456,44 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                     {amountRaw === null
                       ? tW('invalidAmount')
                       : belowMinimum
-                        ? tW('minimumWithdrawal', { amount: MIN_USDC_WITHDRAWAL.toString() })
+                        ? tW('minimumWithdrawal', { amount: String(minimumUsd) })
                         : tW('exceedsBalance')}
                   </p>
                 )}
               </div>
 
+              {toUser ? (
+                <div>
+                  <div className="font-body text-xs text-ink-600">{tL('sendTo')}</div>
+                  <span className="relative mt-1 block">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-display text-sm font-bold text-accent">@</span>
+                    <input
+                      type="text"
+                      placeholder={tL('usernamePlaceholder')}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.replace(/\s/g, '').slice(0, 21))}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      className="w-full rounded-xl border border-line bg-bg py-2.5 pl-7 pr-3 font-body text-sm text-ink-900 focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                  </span>
+                  {recipient ? (
+                    <div className="mt-2 flex items-center gap-2.5 rounded-xl bg-accent/10 px-3 py-2">
+                      <TokenAvatar src={recipient.avatarUrl} seed={recipient.evmAddress ?? recipient.username} label={recipient.username} className="h-8 w-8 shrink-0 text-xs" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-display text-sm font-bold text-ink-900">@{recipient.username}</span>
+                        <span className="block truncate font-mono text-[0.65rem] text-ink-400">{destination ? `${destination.slice(0, 6)}…${destination.slice(-4)}` : tL('noWalletOnNetwork', { chain: chain.name })}</span>
+                      </span>
+                      <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                    </div>
+                  ) : recipientError ? (
+                    <p className="mt-1 font-body text-xs text-down">{recipientError}</p>
+                  ) : lookingUp ? (
+                    <p className="mt-1 font-body text-xs text-ink-400">…</p>
+                  ) : null}
+                </div>
+              ) : (
               <div>
                 <div className="font-body text-xs text-ink-600">
                   Destination address ({chain.kind === 'evm' ? '0x…' : 'base58'})
@@ -428,6 +509,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
                   <p className="mt-1 font-body text-xs text-down">{tW('invalidAddressFor', { chain: chain.name })}</p>
                 )}
               </div>
+              )}
 
               {(needsMove || funding.stage === 'error') && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}
               <Button type="button" className="w-full" disabled={!canReview} onClick={() => setStep('review')}>
@@ -444,7 +526,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
             <Row label={tU('network_eec8')} value={chain.name} />
             <Row label={tU('asset_26e9')} value={asset.symbol} />
             <Row label={tU('amount_b2f4')} value={`${formatUnits(amountRaw, tokenDecimals)} ${asset.symbol}`} />
-            <Row label={tL('toLabel')} value={destination.trim()} mono />
+            <Row label={tL('toLabel')} value={toUser && recipient ? `@${recipient.username} · ${destination.trim().slice(0, 6)}…${destination.trim().slice(-4)}` : destination.trim()} mono={!toUser} />
           </div>
           {needsMove && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}
           <p className="font-body text-xs text-down">
@@ -472,7 +554,7 @@ export function SendModal({ open, onClose }: { open: boolean; onClose: () => voi
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-black">
             <Check className="h-8 w-8" strokeWidth={3} aria-hidden />
           </span>
-          <p className="font-display text-lg font-bold text-ink-900">{tU('sent_7f8c')}</p>
+          <p className="font-display text-lg font-bold text-ink-900">{toUser && recipient ? tL('sentToUser', { username: recipient.username }) : tU('sent_7f8c')}</p>
           <a
             href={chain.txExplorerUrl(txResult)}
             target="_blank"

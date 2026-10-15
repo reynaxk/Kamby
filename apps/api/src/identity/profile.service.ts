@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Prisma, prisma } from '@kamby/db';
 import { isValidUsername, normalizeUsername } from '@kamby/domain';
 import { R2StorageService, type UploadableFile } from '../media/r2-storage.service';
@@ -36,6 +36,28 @@ export class ProfileService {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { username: true, avatarUrl: true } });
     if (!user) throw new UnauthorizedException('Session user no longer exists.');
     return user;
+  }
+
+  /**
+   * "Send to a Kamby user" (2026-10-15): who @username is and where their money goes — their
+   * verified EVM wallet (Base, BNB, Robinhood) and Solana wallet. Only for signed-in users; never
+   * yourself (that's a withdrawal).
+   */
+  async recipient(requesterId: string, rawUsername: string): Promise<{ username: string; avatarUrl: string | null; evmAddress: string | null; solanaAddress: string | null }> {
+    const username = normalizeUsername(rawUsername.replace(/^@/, ''));
+    if (!isValidUsername(username)) throw new NotFoundException('No Kamby user with that name.');
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true, username: true, avatarUrl: true, wallets: { where: { verifiedAt: { not: null } }, orderBy: { lastUsedAt: 'desc' }, select: { address: true, chain: true } } },
+    });
+    if (!user?.username) throw new NotFoundException('No Kamby user with that name.');
+    if (user.id === requesterId) throw new BadRequestException("That's you — pick someone else.");
+    return {
+      username: user.username,
+      avatarUrl: user.avatarUrl,
+      evmAddress: user.wallets.find((w) => w.chain === 'EVM')?.address ?? null,
+      solanaAddress: user.wallets.find((w) => w.chain === 'SOLANA')?.address ?? null,
+    };
   }
 
   async updateProfile(userId: string, rawUsername: string): Promise<ProfileDto> {

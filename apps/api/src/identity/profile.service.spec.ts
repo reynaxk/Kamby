@@ -123,4 +123,27 @@ describe('ProfileService', () => {
       expect(mockedPrisma.user.update).not.toHaveBeenCalled();
     });
   });
+
+  describe('recipient (send to a Kamby user)', () => {
+    it("finds @username's verified wallets, one per chain", async () => {
+      (mockedPrisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: 'u2',
+        username: 'tati',
+        avatarUrl: null,
+        wallets: [
+          { address: '0xabc', chain: 'EVM' },
+          { address: 'So1Tati', chain: 'SOLANA' },
+        ],
+      });
+      await expect(service.recipient('u1', '@Tati')).resolves.toEqual({ username: 'tati', avatarUrl: null, evmAddress: '0xabc', solanaAddress: 'So1Tati' });
+    });
+
+    it('refuses unknown names and yourself', async () => {
+      (mockedPrisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      await expect(service.recipient('u1', 'nobody')).rejects.toThrow(/No Kamby user/);
+      (mockedPrisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', username: 'myself', avatarUrl: null, wallets: [] });
+      await expect(service.recipient('u1', 'myself')).rejects.toThrow(/That's you/);
+    });
+  });
 });
+

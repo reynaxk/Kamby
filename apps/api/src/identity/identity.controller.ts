@@ -107,6 +107,15 @@ export class IdentityController {
     return this.profile.getProfile(user.id);
   }
 
+  /** "Send to a Kamby user" (2026-10-15): @username → their verified wallets. */
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @UseGuards(JwtAuthGuard)
+  @Get('users/:username/recipient')
+  recipient(@Param('username') username: string, @CurrentUser() user: SessionUser) {
+    if (username.length > 40) throw new BadRequestException('No Kamby user with that name.');
+    return this.profile.recipient(user.id, username);
+  }
+
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)

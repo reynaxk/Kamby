@@ -124,7 +124,8 @@
     "amountOf": "金额（{symbol}）",
     "balanceN": "余额：{n}",
     "invalidAddressFor": "这看起来不是有效的 {chain} 地址。",
-    "viewOn": "在 {explorer} 查看 →"
+    "viewOn": "在 {explorer} 查看 →",
+    "send": "发送"
   },
   "account": {
     "title": "我的资料",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "你的交易已发送到网络，但我们没能记录下来。",
     "withdrawIrreversible": "这会直接从你的钱包转出真实资金，且无法撤回。请再次核对地址。",
     "confirmAndSend": "确认并发送",
-    "toLabel": "至"
+    "toLabel": "至",
+    "sendTo": "发给（Kamby 用户名）",
+    "usernamePlaceholder": "用户名",
+    "noSuchUser": "没有这个名字的 Kamby 用户。",
+    "noWalletOnNetwork": "在 {chain} 上还没有钱包 — 换个网络",
+    "sentToUser": "已发送给 @{username}"
   },
   "notif": {
     "kind_FOLLOW": "关注",

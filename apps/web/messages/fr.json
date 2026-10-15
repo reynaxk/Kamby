@@ -124,7 +124,8 @@
     "amountOf": "Montant ({symbol})",
     "balanceN": "Solde : {n}",
     "invalidAddressFor": "Ce n’est pas une adresse {chain} valide.",
-    "viewOn": "Voir sur {explorer} →"
+    "viewOn": "Voir sur {explorer} →",
+    "send": "Envoyer"
   },
   "account": {
     "title": "Votre profil",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Ton trade a été envoyé au réseau, mais on n’a pas pu l’enregistrer.",
     "withdrawIrreversible": "Cela envoie de vrais fonds depuis ton portefeuille et c’est irréversible. Vérifie bien l’adresse.",
     "confirmAndSend": "Confirmer et envoyer",
-    "toLabel": "À"
+    "toLabel": "À",
+    "sendTo": "À (pseudo Kamby)",
+    "usernamePlaceholder": "pseudo",
+    "noSuchUser": "Aucun utilisateur Kamby avec ce nom.",
+    "noWalletOnNetwork": "Pas encore de wallet sur {chain} — choisis un autre réseau",
+    "sentToUser": "Envoyé à @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Abonné",

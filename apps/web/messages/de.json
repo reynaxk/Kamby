@@ -124,7 +124,8 @@
     "amountOf": "Betrag ({symbol})",
     "balanceN": "Guthaben: {n}",
     "invalidAddressFor": "Das sieht nicht nach einer gültigen {chain}-Adresse aus.",
-    "viewOn": "Auf {explorer} ansehen →"
+    "viewOn": "Auf {explorer} ansehen →",
+    "send": "Senden"
   },
   "account": {
     "title": "Dein Profil",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Dein Trade wurde gesendet, konnte aber nicht erfasst werden.",
     "withdrawIrreversible": "Das sendet echtes Geld direkt aus deiner Wallet und lässt sich nicht rückgängig machen. Prüfe die Adresse genau.",
     "confirmAndSend": "Bestätigen & senden",
-    "toLabel": "An"
+    "toLabel": "An",
+    "sendTo": "An (Kamby-Name)",
+    "usernamePlaceholder": "name",
+    "noSuchUser": "Kein Kamby-Nutzer mit diesem Namen.",
+    "noWalletOnNetwork": "Noch keine Wallet auf {chain} — wähle ein anderes Netzwerk",
+    "sentToUser": "An @{username} gesendet"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

@@ -124,7 +124,8 @@
     "amountOf": "Сумма ({symbol})",
     "balanceN": "Баланс: {n}",
     "invalidAddressFor": "Это не похоже на адрес {chain}.",
-    "viewOn": "Открыть в {explorer} →"
+    "viewOn": "Открыть в {explorer} →",
+    "send": "Отправить"
   },
   "account": {
     "title": "Ваш профиль",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Сделка отправлена в сеть, но записать её не удалось.",
     "withdrawIrreversible": "Это отправит настоящие деньги прямо из кошелька, отменить нельзя. Проверь адрес ещё раз.",
     "confirmAndSend": "Подтвердить и отправить",
-    "toLabel": "Кому"
+    "toLabel": "Кому",
+    "sendTo": "Кому (имя в Kamby)",
+    "usernamePlaceholder": "имя",
+    "noSuchUser": "В Kamby нет пользователя с таким именем.",
+    "noWalletOnNetwork": "Пока нет кошелька в {chain} — выбери другую сеть",
+    "sentToUser": "Отправлено @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

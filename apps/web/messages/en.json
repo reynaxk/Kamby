@@ -124,7 +124,8 @@
     "amountOf": "Amount ({symbol})",
     "balanceN": "Balance: {n}",
     "invalidAddressFor": "That doesn’t look like a valid {chain} address.",
-    "viewOn": "View on {explorer} →"
+    "viewOn": "View on {explorer} →",
+    "send": "Send"
   },
   "account": {
     "title": "Your profile",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Your trade was sent to the network, but we couldn’t record it.",
     "withdrawIrreversible": "This sends real funds directly from your wallet and can’t be reversed. Double-check the address.",
     "confirmAndSend": "Confirm & send",
-    "toLabel": "To"
+    "toLabel": "To",
+    "sendTo": "To (Kamby username)",
+    "usernamePlaceholder": "username",
+    "noSuchUser": "No Kamby user with that name.",
+    "noWalletOnNetwork": "No wallet on {chain} yet — pick another network",
+    "sentToUser": "Sent to @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

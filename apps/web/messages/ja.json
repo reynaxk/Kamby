@@ -124,7 +124,8 @@
     "amountOf": "金額（{symbol}）",
     "balanceN": "残高: {n}",
     "invalidAddressFor": "有効な{chain}アドレスではないようです。",
-    "viewOn": "{explorer}で見る →"
+    "viewOn": "{explorer}で見る →",
+    "send": "送る"
   },
   "account": {
     "title": "プロフィール",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "取引はネットワークに送信されましたが、記録できませんでした。",
     "withdrawIrreversible": "ウォレットから実際の資金を送金し、取り消せません。アドレスをよく確認してください。",
     "confirmAndSend": "確認して送金",
-    "toLabel": "宛先"
+    "toLabel": "宛先",
+    "sendTo": "宛先（Kambyユーザー名）",
+    "usernamePlaceholder": "ユーザー名",
+    "noSuchUser": "その名前のKambyユーザーはいません。",
+    "noWalletOnNetwork": "{chain} のウォレットはまだありません — 別のネットワークを選んでください",
+    "sentToUser": "@{username} に送りました"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

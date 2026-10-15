@@ -19,7 +19,7 @@ import { useTranslations } from 'next-intl';
  * your own balance, not buried in a header icon only. `variant="icon"` (default) is the
  * compact header form next to BlurBalancesToggle/ConnectWalletButton.
  */
-export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' }) {
+export function SendButton({ variant = 'icon', toUser = false }: { variant?: 'icon' | 'labeled' | 'stacked'; toUser?: boolean }) {
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
@@ -29,28 +29,32 @@ export function SendButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={tW('withdraw')}
-        title={tU('withdraw_9d5d')}
+        aria-label={toUser ? tW('send') : tW('withdraw')}
+        title={toUser ? tW('send') : tU('withdraw_9d5d')}
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
+            : variant === 'stacked'
+              ? 'flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-surface-raised px-2 py-3 font-display text-xs font-bold text-ink-900 transition-transform hover:border-accent/50 active:scale-[0.97]'
             // Withdraw is the glass one, its icon in a neon disc (see FundButton). No glow.
             : 'flex items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl border border-white/10 bg-surface-raised px-4 py-3 font-display text-sm font-bold text-ink-900 transition-transform hover:border-accent/50 active:scale-[0.97]',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        {variant === 'labeled' ? (
+        {variant !== 'icon' ? (
           <>
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
-              <WithdrawIcon />
+              {toUser ? <SendToUserIcon /> : <WithdrawIcon />}
             </span>
-            {tW('withdraw')}
+            {toUser ? tW('send') : tW('withdraw')}
           </>
+        ) : toUser ? (
+          <SendToUserIcon />
         ) : (
           <WithdrawIcon />
         )}
       </button>
-      <SendModal open={open} onClose={() => setOpen(false)} />
+      <SendModal open={open} onClose={() => setOpen(false)} toUser={toUser} />
     </>
   );
 }
@@ -61,6 +65,16 @@ function WithdrawIcon() {
       <path d="M12 15V4" />
       <path d="m7 9 5-5 5 5" />
       <path d="M5 20h14" />
+    </svg>
+  );
+}
+
+/** A paper plane — money to another Kamby user. */
+function SendToUserIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
     </svg>
   );
 }

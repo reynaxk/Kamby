@@ -80,9 +80,11 @@ export function PortfolioHeader() {
         </p>
       </div>
       {/* Deposit + Withdraw side by side, like a wallet app's quick actions. */}
-      <div className="mt-4 grid grid-cols-2 gap-2 md:flex">
-        <FundButton variant="labeled" />
-        <SendButton variant="labeled" />
+      <div className="mt-4 grid grid-cols-3 gap-2 md:flex">
+        <FundButton variant="stacked" />
+        <SendButton variant="stacked" />
+        {/* Send to another Kamby user by their @name (2026-10-15). */}
+        <SendButton variant="stacked" toUser />
       </div>
       {/* Kamby's LaunchPad (2026-10-14). */}
       <Link href="/launch" className="mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08]">

@@ -124,7 +124,8 @@
     "amountOf": "Số lượng ({symbol})",
     "balanceN": "Số dư: {n}",
     "invalidAddressFor": "Đó không giống địa chỉ {chain} hợp lệ.",
-    "viewOn": "Xem trên {explorer} →"
+    "viewOn": "Xem trên {explorer} →",
+    "send": "Gửi"
   },
   "account": {
     "title": "Hồ sơ của bạn",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Giao dịch đã gửi lên mạng, nhưng chúng tôi không ghi lại được.",
     "withdrawIrreversible": "Thao tác này gửi tiền thật từ ví của bạn và không thể hoàn tác. Kiểm tra kỹ địa chỉ.",
     "confirmAndSend": "Xác nhận & gửi",
-    "toLabel": "Đến"
+    "toLabel": "Đến",
+    "sendTo": "Đến (tên người dùng Kamby)",
+    "usernamePlaceholder": "tên người dùng",
+    "noSuchUser": "Không có người dùng Kamby nào tên đó.",
+    "noWalletOnNetwork": "Chưa có ví trên {chain} — chọn mạng khác",
+    "sentToUser": "Đã gửi đến @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

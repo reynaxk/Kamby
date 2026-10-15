@@ -124,7 +124,8 @@
     "amountOf": "จำนวน ({symbol})",
     "balanceN": "ยอดคงเหลือ: {n}",
     "invalidAddressFor": "ดูเหมือนไม่ใช่ที่อยู่ {chain} ที่ถูกต้อง",
-    "viewOn": "ดูบน {explorer} →"
+    "viewOn": "ดูบน {explorer} →",
+    "send": "ส่ง"
   },
   "account": {
     "title": "โปรไฟล์ของคุณ",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "ส่งการเทรดไปยังเครือข่ายแล้ว แต่เราบันทึกไม่ได้",
     "withdrawIrreversible": "การดำเนินการนี้ส่งเงินจริงจากกระเป๋าของคุณและยกเลิกไม่ได้ ตรวจสอบที่อยู่ให้ดี",
     "confirmAndSend": "ยืนยันและส่ง",
-    "toLabel": "ถึง"
+    "toLabel": "ถึง",
+    "sendTo": "ถึง (ชื่อผู้ใช้ Kamby)",
+    "usernamePlaceholder": "ชื่อผู้ใช้",
+    "noSuchUser": "ไม่มีผู้ใช้ Kamby ชื่อนี้",
+    "noWalletOnNetwork": "ยังไม่มีกระเป๋าบน {chain} — เลือกเครือข่ายอื่น",
+    "sentToUser": "ส่งถึง @{username} แล้ว"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

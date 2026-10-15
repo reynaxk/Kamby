@@ -124,7 +124,8 @@
     "amountOf": "Valor ({symbol})",
     "balanceN": "Saldo: {n}",
     "invalidAddressFor": "Isso não parece um endereço {chain} válido.",
-    "viewOn": "Ver no {explorer} →"
+    "viewOn": "Ver no {explorer} →",
+    "send": "Enviar"
   },
   "account": {
     "title": "Seu perfil",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "Sua negociação foi enviada à rede, mas não conseguimos registrá-la.",
     "withdrawIrreversible": "Isso envia fundos reais direto da sua carteira e não pode ser desfeito. Confira o endereço.",
     "confirmAndSend": "Confirmar e enviar",
-    "toLabel": "Para"
+    "toLabel": "Para",
+    "sendTo": "Para (usuário da Kamby)",
+    "usernamePlaceholder": "usuário",
+    "noSuchUser": "Nenhum usuário da Kamby com esse nome.",
+    "noWalletOnNetwork": "Ainda sem carteira na {chain} — escolha outra rede",
+    "sentToUser": "Enviado para @{username}"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",

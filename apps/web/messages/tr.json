@@ -124,7 +124,8 @@
     "amountOf": "Tutar ({symbol})",
     "balanceN": "Bakiye: {n}",
     "invalidAddressFor": "Bu geçerli bir {chain} adresine benzemiyor.",
-    "viewOn": "{explorer} üzerinde gör →"
+    "viewOn": "{explorer} üzerinde gör →",
+    "send": "Gönder"
   },
   "account": {
     "title": "Profilin",
@@ -606,7 +607,12 @@
     "tradeNotRecorded": "İşlemin ağa gönderildi ama kaydedemedik.",
     "withdrawIrreversible": "Bu, cüzdanından gerçek parayı doğrudan gönderir ve geri alınamaz. Adresi iki kez kontrol et.",
     "confirmAndSend": "Onayla ve gönder",
-    "toLabel": "Alıcı"
+    "toLabel": "Alıcı",
+    "sendTo": "Kime (Kamby kullanıcı adı)",
+    "usernamePlaceholder": "kullanıcı adı",
+    "noSuchUser": "Bu isimde bir Kamby kullanıcısı yok.",
+    "noWalletOnNetwork": "{chain} üzerinde henüz cüzdan yok — başka bir ağ seç",
+    "sentToUser": "@{username} kullanıcısına gönderildi"
   },
   "notif": {
     "kind_FOLLOW": "Takip",
