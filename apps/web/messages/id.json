@@ -721,5 +721,23 @@
     "imageTooBig": "Logo lebih dari 1 MB — pakai gambar yang lebih kecil.",
     "notEnough": "Kamu butuh sekitar ${amount} USDC untuk peluncuran ini.",
     "risk": "Koin baru sangat berisiko. Luncurkan dan beli hanya yang sanggup kamu relakan."
+  },
+  "curve": {
+    "onCurve": "Di Four.meme — ke PancakeSwap di 100%",
+    "buy": "Beli",
+    "sell": "Jual",
+    "amount": "Jumlah dalam USD",
+    "confirmInWallet": "Konfirmasi di dompetmu…",
+    "confirmStep": "Konfirmasi {n} dari {of} di dompetmu…",
+    "working": "Memproses…",
+    "bought": "Membeli {amount} {symbol}",
+    "sold": "Terjual ${amount}",
+    "failed": "Transaksi gagal — coba lagi.",
+    "graduated": "Koin ini pindah ke PancakeSwap — muat ulang halaman untuk trading.",
+    "youHold": "Kamu memegang {amount} {symbol}",
+    "settingUp": "Menyiapkan dompetmu…",
+    "buyButton": "Beli ${symbol} seharga ${amount}",
+    "sellButton": "Jual {pct}% ${symbol}",
+    "note": "Bayar dengan USDC. Beberapa konfirmasi dompet — koin masih di kurva peluncurannya."
   }
 }

@@ -721,5 +721,23 @@
     "imageTooBig": "Das Logo ist über 1 MB — nimm ein kleineres Bild.",
     "notEnough": "Du brauchst etwa ${amount} in USDC für diesen Start.",
     "risk": "Neue Coins sind sehr riskant. Starte und kaufe nur, was du verlieren kannst."
+  },
+  "curve": {
+    "onCurve": "Auf Four.meme — zu PancakeSwap bei 100%",
+    "buy": "Kaufen",
+    "sell": "Verkaufen",
+    "amount": "Betrag in USD",
+    "confirmInWallet": "Im Wallet bestätigen…",
+    "confirmStep": "{n} von {of} im Wallet bestätigen…",
+    "working": "Wird ausgeführt…",
+    "bought": "{amount} {symbol} gekauft",
+    "sold": "Für ${amount} verkauft",
+    "failed": "Der Trade ist fehlgeschlagen — versuch es erneut.",
+    "graduated": "Dieser Coin ist zu PancakeSwap gewechselt — lade die Seite neu.",
+    "youHold": "Du hältst {amount} {symbol}",
+    "settingUp": "Wallet wird eingerichtet…",
+    "buyButton": "${symbol} für ${amount} kaufen",
+    "sellButton": "{pct}% von ${symbol} verkaufen",
+    "note": "Bezahlt mit USDC. Ein paar Wallet-Bestätigungen — der Coin ist noch auf seiner Startkurve."
   }
 }

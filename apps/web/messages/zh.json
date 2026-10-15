@@ -721,5 +721,23 @@
     "imageTooBig": "图标超过 1 MB — 请用更小的图片。",
     "notEnough": "这次发射大约需要 ${amount} USDC。",
     "risk": "新币风险很高。只发射和买入你能承受损失的金额。"
+  },
+  "curve": {
+    "onCurve": "在 Four.meme 上 — 达到 100% 后上 PancakeSwap",
+    "buy": "买入",
+    "sell": "卖出",
+    "amount": "金额（USD）",
+    "confirmInWallet": "请在钱包中确认…",
+    "confirmStep": "请在钱包中确认 {n}/{of}…",
+    "working": "处理中…",
+    "bought": "已买入 {amount} {symbol}",
+    "sold": "已卖出 ${amount}",
+    "failed": "交易失败 — 请重试。",
+    "graduated": "该币已转到 PancakeSwap — 刷新页面后交易。",
+    "youHold": "你持有 {amount} {symbol}",
+    "settingUp": "正在设置钱包…",
+    "buyButton": "用 ${amount} 买入 ${symbol}",
+    "sellButton": "卖出 {pct}% 的 ${symbol}",
+    "note": "用 USDC 支付。需要在钱包确认几次 — 该币仍在发射曲线上。"
   }
 }

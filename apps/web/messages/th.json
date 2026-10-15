@@ -721,5 +721,23 @@
     "imageTooBig": "โลโก้ใหญ่เกิน 1 MB — ใช้รูปที่เล็กกว่า",
     "notEnough": "คุณต้องใช้ประมาณ ${amount} USDC สำหรับการเปิดตัวนี้",
     "risk": "เหรียญใหม่มีความเสี่ยงสูง เปิดตัวและซื้อเท่าที่เสียได้เท่านั้น"
+  },
+  "curve": {
+    "onCurve": "อยู่บน Four.meme — ไป PancakeSwap ที่ 100%",
+    "buy": "ซื้อ",
+    "sell": "ขาย",
+    "amount": "จำนวน (USD)",
+    "confirmInWallet": "ยืนยันในกระเป๋าของคุณ…",
+    "confirmStep": "ยืนยัน {n} จาก {of} ในกระเป๋า…",
+    "working": "กำลังดำเนินการ…",
+    "bought": "ซื้อ {amount} {symbol} แล้ว",
+    "sold": "ขายได้ ${amount}",
+    "failed": "การเทรดล้มเหลว — ลองอีกครั้ง",
+    "graduated": "เหรียญนี้ย้ายไป PancakeSwap แล้ว — รีเฟรชหน้าเพื่อเทรด",
+    "youHold": "คุณถือ {amount} {symbol}",
+    "settingUp": "กำลังตั้งค่ากระเป๋า…",
+    "buyButton": "ซื้อ ${symbol} ${amount}",
+    "sellButton": "ขาย {pct}% ของ ${symbol}",
+    "note": "จ่ายด้วย USDC ยืนยันในกระเป๋าไม่กี่ครั้ง — เหรียญยังอยู่บนเคิร์ฟเปิดตัว"
   }
 }

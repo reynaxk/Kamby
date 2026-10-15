@@ -1,4 +1,5 @@
 import { parseEnv, SEED_MARKETS_BY_CHAIN_IDENTIFIER } from '@kamby/domain';
+import { FourMemeCurvePrices } from './market/fourmeme-curve-prices';
 import { EvmChainDataProvider, PUBLIC_EVM_RPC_URLS, startRpcUsageReporter } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
 import { Connection } from '@solana/web3.js';
@@ -231,6 +232,27 @@ async function main(): Promise<void> {
     void runDiscoveryTick();
     poolDiscoveryTicker = setInterval(() => void runDiscoveryTick(), env.POOL_DISCOVERY_INTERVAL_SECONDS * 1000);
     poolDiscoveryTicker.unref();
+  }
+
+  // Four.meme coins from Kamby's LaunchPad, still on their curve: price them, and hand graduates to
+  // the aggregator path (BNB workers only — see fourmeme-curve-prices.ts).
+  if (env.CHAIN_IDENTIFIER === 'eip155:56') {
+    const curvePrices = new FourMemeCurvePrices(env.CHAIN_RPC_URL, logger);
+    let curvePricesRunning = false;
+    const runCurvePrices = async (): Promise<void> => {
+      if (curvePricesRunning) return;
+      curvePricesRunning = true;
+      try {
+        const result = await curvePrices.refresh();
+        if (result.priced + result.graduated > 0) logger.info(result, 'Four.meme curve prices refreshed');
+      } catch (error) {
+        logger.error({ err: error }, 'Four.meme curve price refresh failed — will retry next tick');
+      } finally {
+        curvePricesRunning = false;
+      }
+    };
+    void runCurvePrices();
+    setInterval(() => void runCurvePrices(), 60_000).unref();
   }
 
   // The real numeric EVM chain id (e.g. 8453) that TradeTransaction.chainId is stored

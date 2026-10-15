@@ -75,9 +75,16 @@ export class LaunchpadController {
 
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Get('launches/:id/create-params')
+  createParams(@Param('id', new ParseUUIDPipe()) id: string, @CurrentUser() user: SessionUser) {
+    return this.launchpad.createParams(user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('launches/:id/create')
-  create(@Param('id', new ParseUUIDPipe()) id: string, @CurrentUser() user: SessionUser) {
-    return this.launchpad.create(user.id, id);
+  create(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: unknown, @CurrentUser() user: SessionUser) {
+    return this.launchpad.create(user.id, id, body);
   }
 
   @UseGuards(JwtAuthGuard)

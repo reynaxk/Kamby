@@ -37,6 +37,7 @@ export async function uploadLaunchImage(file: File): Promise<{ imageId: string; 
 
 export const prepareLaunch = async (input: LaunchInput) => ok<LaunchStep>(await post('/launchpad/launches', input));
 export const fundLaunch = async (id: string, proof: LaunchProof) => ok<Launch>(await post(`/launchpad/launches/${id}/fund`, proof));
-export const buildLaunchCreate = async (id: string) => ok<LaunchStep>(await post(`/launchpad/launches/${id}/create`));
+export const buildLaunchCreate = async (id: string, input?: Record<string, string>) => ok<LaunchStep>(await post(`/launchpad/launches/${id}/create`, input ?? {}));
+export const fetchLaunchCreateParams = async (id: string) => ok<Record<string, string>>(await authedFetch(`/launchpad/launches/${id}/create-params`));
 export const submitLaunch = async (id: string, proof: LaunchProof) => ok<Launch>(await post(`/launchpad/launches/${id}/submit`, proof));
 export const fetchMyLaunches = async () => ok<Launch[]>(await authedFetch('/launchpad/launches/mine'));

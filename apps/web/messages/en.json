@@ -721,5 +721,23 @@
     "imageTooBig": "The logo is over 1 MB — use a smaller image.",
     "notEnough": "You need about ${amount} in USDC for this launch.",
     "risk": "New coins are high risk. Only launch and buy what you can afford to lose."
+  },
+  "curve": {
+    "onCurve": "On Four.meme — to PancakeSwap at 100%",
+    "buy": "Buy",
+    "sell": "Sell",
+    "amount": "Amount in USD",
+    "confirmInWallet": "Confirm in your wallet…",
+    "confirmStep": "Confirm {n} of {of} in your wallet…",
+    "working": "Working…",
+    "bought": "Bought {amount} {symbol}",
+    "sold": "Sold for ${amount}",
+    "failed": "The trade failed — try again.",
+    "graduated": "This coin moved to PancakeSwap — refresh the page to trade it.",
+    "youHold": "You hold {amount} {symbol}",
+    "settingUp": "Setting up your wallet…",
+    "buyButton": "Buy ${symbol} for ${amount}",
+    "sellButton": "Sell {pct}% of ${symbol}",
+    "note": "Paid in USDC. A few wallet confirmations — the coin is still on its launch curve."
   }
 }

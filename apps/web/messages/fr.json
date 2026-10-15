@@ -721,5 +721,23 @@
     "imageTooBig": "Le logo dépasse 1 Mo — utilise une image plus petite.",
     "notEnough": "Il te faut environ ${amount} en USDC pour ce lancement.",
     "risk": "Les nouveaux coins sont très risqués. Ne lance et n’achète que ce que tu peux perdre."
+  },
+  "curve": {
+    "onCurve": "Sur Four.meme — vers PancakeSwap à 100%",
+    "buy": "Acheter",
+    "sell": "Vendre",
+    "amount": "Montant en USD",
+    "confirmInWallet": "Confirme dans ton wallet…",
+    "confirmStep": "Confirme {n} sur {of} dans ton wallet…",
+    "working": "En cours…",
+    "bought": "{amount} {symbol} achetés",
+    "sold": "Vendu pour ${amount}",
+    "failed": "L'échange a échoué — réessaie.",
+    "graduated": "Ce coin est passé sur PancakeSwap — recharge la page pour le trader.",
+    "youHold": "Tu détiens {amount} {symbol}",
+    "settingUp": "Préparation de ton wallet…",
+    "buyButton": "Acheter ${symbol} pour ${amount}",
+    "sellButton": "Vendre {pct}% de ${symbol}",
+    "note": "Payé en USDC. Quelques confirmations dans le wallet — le coin est encore sur sa courbe de lancement."
   }
 }

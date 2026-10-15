@@ -9,7 +9,7 @@ import { z } from 'zod';
 export const LAUNCHPADS = [
   { id: 'pumpfun', chainIdentifier: 'solana', chainName: 'Solana', name: 'Pump.fun', live: true },
   { id: 'clanker', chainIdentifier: 'eip155:8453', chainName: 'Base', name: 'Clanker', live: true },
-  { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BNB Chain', name: 'Four.meme', live: false },
+  { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BNB Chain', name: 'Four.meme', live: true },
 ] as const;
 export type LaunchpadId = (typeof LAUNCHPADS)[number]['id'];
 

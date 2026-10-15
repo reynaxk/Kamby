@@ -14,7 +14,8 @@ import { ChainBadge } from '@/components/market/ChainBadge';
 import { MoveNote, isMoveBusy } from '@/components/trading/CrossChainMove';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
-import { buildLaunchCreate, fetchLaunchpadConfig, fundLaunch, prepareLaunch, submitLaunch, uploadLaunchImage, type LaunchpadConfig } from '@/lib/launchpad-client';
+import { buildLaunchCreate, fetchLaunchCreateParams, fetchLaunchpadConfig, fundLaunch, prepareLaunch, submitLaunch, uploadLaunchImage, type LaunchpadConfig } from '@/lib/launchpad-client';
+import { fourMemeCreatePayload } from '@/lib/fourmeme-client';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
 import { marketHref } from '@/lib/solana-links';
 import { wagmiConfig } from '@/lib/wagmi-config';
@@ -38,7 +39,7 @@ function bytesToBase64(bytes: Uint8Array): string {
 const CHAIN_BADGE: Record<string, 'solana' | 'base' | 'bnb'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb' };
 /** What the launch itself costs on-chain, shown before the real figure: Pump.fun's create is about
  *  0.03 SOL (its accounts + fees); on Base the smallest swap ($1) covers the deploy's gas. */
-const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 3.5, 'eip155:8453': 1 };
+const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 3.5, 'eip155:8453': 1, 'eip155:56': 1 };
 const BRIDGE_TARGET: Record<string, 'solana' | 'base' | 'bnb'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb' };
 
 /**
@@ -166,7 +167,22 @@ export function LaunchPad() {
         setFundedId(id);
       }
       setStage('sign2');
-      const create = await buildLaunchCreate(id);
+      // Four.meme signs its own launches: the creator's browser asks it (through kambesh.com) first.
+      const input =
+        launchpad === 'fourmeme' && walletAddress && image
+          ? await fourMemeCreatePayload({
+              address: walletAddress,
+              name: name.trim(),
+              symbol: ticker,
+              description: description.trim() || undefined,
+              imageUrl: image.url,
+              website: links.website || undefined,
+              twitter: links.twitter || undefined,
+              telegram: links.telegram || undefined,
+              preSale: (await fetchLaunchCreateParams(id)).preSale ?? '0',
+            })
+          : undefined;
+      const create = await buildLaunchCreate(id, input);
       const signedCreate = await sign(create);
       setStage('creating');
       const live = await submitLaunch(id, signedCreate);

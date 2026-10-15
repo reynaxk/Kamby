@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
 import { MobileCoinScreen } from '@/components/market/MobileCoinScreen';
 import { HoldersPanel } from './HoldersPanel';
 import { LiveTradesPanel } from './LiveTradesPanel';
+import { CurveTradePanel } from '@/components/trading/CurveTradePanel';
 import { TokenStreamChatLazy } from '@/components/chat/TokenStreamChatLazy';
 import { WatchButton } from '@/components/market/WatchButton';
 
@@ -95,7 +96,13 @@ export function KambyTerminal({
     [chain, market.tokenAddress, chainId],
   );
 
-  const tradePanel = canTrade ? (
+  // Four.meme coins still on their bonding curve (dex 'fourmeme' until the workers see them graduate).
+  const onCurve = market.dex === 'fourmeme';
+  const tradePanel = onCurve ? (
+    <Surface className="p-4">
+      <CurveTradePanel tokenAddress={market.tokenAddress} tokenSymbol={market.symbol} />
+    </Surface>
+  ) : canTrade ? (
     <TradePanelCard
       chainId={chainId}
       tokenAddress={market.tokenAddress}
@@ -154,8 +161,12 @@ export function KambyTerminal({
             ),
           },
         ]}
-        canTrade={canTrade}
-        renderTrade={(side) => (
+        canTrade={canTrade || onCurve}
+        renderTrade={(side) => onCurve ? (
+          <div className="px-1 pb-2">
+            <CurveTradePanel key={side} tokenAddress={market.tokenAddress} tokenSymbol={market.symbol} initialSide={side} />
+          </div>
+        ) : (
           <TradePanelCard
             key={side}
             sheet

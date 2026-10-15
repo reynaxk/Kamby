@@ -721,5 +721,23 @@
     "imageTooBig": "로고가 1MB를 넘어요 — 더 작은 이미지를 쓰세요.",
     "notEnough": "이번 출시에 약 ${amount} USDC가 필요해요.",
     "risk": "새 코인은 고위험입니다. 잃어도 되는 만큼만 출시하고 매수하세요."
+  },
+  "curve": {
+    "onCurve": "Four.meme — 100%가 되면 PancakeSwap으로",
+    "buy": "매수",
+    "sell": "매도",
+    "amount": "USD 금액",
+    "confirmInWallet": "지갑에서 확인하세요…",
+    "confirmStep": "지갑에서 {n}/{of} 확인…",
+    "working": "처리 중…",
+    "bought": "{amount} {symbol} 매수 완료",
+    "sold": "${amount}에 매도 완료",
+    "failed": "거래 실패 — 다시 시도하세요.",
+    "graduated": "이 코인은 PancakeSwap으로 이동했어요 — 페이지를 새로고침하세요.",
+    "youHold": "{amount} {symbol} 보유 중",
+    "settingUp": "지갑 준비 중…",
+    "buyButton": "${symbol} ${amount} 매수",
+    "sellButton": "${symbol} {pct}% 매도",
+    "note": "USDC로 결제. 지갑 확인이 몇 번 필요해요 — 코인이 아직 런치 커브에 있어요."
   }
 }

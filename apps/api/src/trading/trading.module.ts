@@ -1,4 +1,6 @@
 import { EvmGasTopupService } from './evm-gas-topup.service';
+import { FourMemeCurveController } from './fourmeme/fourmeme-curve.controller';
+import { FourMemeCurveService } from './fourmeme/fourmeme-curve.service';
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { KyberSwapRouter } from './router/kyberswap-router.service';
@@ -29,9 +31,10 @@ import { TransactionService } from './transaction.service';
  */
 @Module({
   imports: [IdentityModule],
-  controllers: [TradingController],
+  controllers: [TradingController, FourMemeCurveController],
   providers: [
     EvmGasTopupService,
+    FourMemeCurveService,
     QuoteService,
     SafetyService,
     TransactionService,

@@ -37,8 +37,11 @@ export interface LaunchAdapter {
   buildFunding(launch: TokenLaunch, feeUsd: number): Promise<PreparedStep>;
   /** Checks (and on Solana broadcasts) the funding step and waits for it; returns its signature or hash. */
   submitFunding(launch: TokenLaunch, proof: LaunchProof): Promise<string>;
-  buildCreate(launch: TokenLaunch, metadata: LaunchMetadata): Promise<PreparedStep>;
+  /** Anything the creator's browser needs before asking the launchpad itself (Four.meme: the first buy in BNB). */
+  createParams?(launch: TokenLaunch): Promise<Record<string, string>>;
+  /** `input`: what the creator's browser got from the launchpad, when it has to ask it directly (Four.meme). */
+  buildCreate(launch: TokenLaunch, metadata: LaunchMetadata, input?: unknown): Promise<PreparedStep>;
   /** Broadcasts the signed create transaction and waits for it; returns its signature and what
    *  the first buy got (raw token units, null when there was none or it couldn't be read). */
-  submitCreate(launch: TokenLaunch, proof: LaunchProof): Promise<{ signature: string; tokensRaw: string | null }>;
+  submitCreate(launch: TokenLaunch, proof: LaunchProof): Promise<{ signature: string; tokensRaw: string | null; tokenAddress?: string }>;
 }

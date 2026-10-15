@@ -721,5 +721,23 @@
     "imageTooBig": "Logo lớn hơn 1 MB — dùng ảnh nhỏ hơn.",
     "notEnough": "Bạn cần khoảng ${amount} USDC cho lần ra mắt này.",
     "risk": "Coin mới rủi ro cao. Chỉ ra mắt và mua số tiền bạn chấp nhận mất."
+  },
+  "curve": {
+    "onCurve": "Trên Four.meme — sang PancakeSwap khi đạt 100%",
+    "buy": "Mua",
+    "sell": "Bán",
+    "amount": "Số tiền (USD)",
+    "confirmInWallet": "Xác nhận trong ví…",
+    "confirmStep": "Xác nhận {n}/{of} trong ví…",
+    "working": "Đang xử lý…",
+    "bought": "Đã mua {amount} {symbol}",
+    "sold": "Đã bán được ${amount}",
+    "failed": "Giao dịch thất bại — thử lại.",
+    "graduated": "Coin này đã chuyển sang PancakeSwap — tải lại trang để giao dịch.",
+    "youHold": "Bạn đang giữ {amount} {symbol}",
+    "settingUp": "Đang thiết lập ví…",
+    "buyButton": "Mua ${symbol} với ${amount}",
+    "sellButton": "Bán {pct}% ${symbol}",
+    "note": "Trả bằng USDC. Vài lần xác nhận trong ví — coin vẫn đang trên đường cong ra mắt."
   }
 }

@@ -721,5 +721,23 @@
     "imageTooBig": "ロゴが1MBを超えています — 小さい画像を使ってください。",
     "notEnough": "このローンチには約${amount}のUSDCが必要です。",
     "risk": "新しいコインは高リスクです。失っても良い額だけでローンチ・購入してください。"
+  },
+  "curve": {
+    "onCurve": "Four.meme上 — 100%でPancakeSwapへ",
+    "buy": "購入",
+    "sell": "売却",
+    "amount": "金額（USD）",
+    "confirmInWallet": "ウォレットで確認してください…",
+    "confirmStep": "ウォレットで {n}/{of} を確認…",
+    "working": "処理中…",
+    "bought": "{amount} {symbol} を購入しました",
+    "sold": "${amount} で売却しました",
+    "failed": "取引に失敗しました — もう一度お試しください。",
+    "graduated": "このコインはPancakeSwapに移りました — ページを再読み込みしてください。",
+    "youHold": "{amount} {symbol} 保有中",
+    "settingUp": "ウォレットを準備中…",
+    "buyButton": "${symbol} を ${amount} で購入",
+    "sellButton": "${symbol} の {pct}% を売却",
+    "note": "USDCで支払い。ウォレットで数回確認 — コインはまだローンチカーブ上です。"
   }
 }

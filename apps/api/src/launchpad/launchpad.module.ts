@@ -3,6 +3,7 @@ import { IdentityModule } from '../identity/identity.module';
 import { SolanaModule } from '../solana/solana.module';
 import { TradingModule } from '../trading/trading.module';
 import { ClankerAdapter } from './adapters/clanker.adapter';
+import { FourMemeAdapter } from './adapters/fourmeme.adapter';
 import { PumpFunAdapter } from './adapters/pumpfun.adapter';
 import { LaunchpadController } from './launchpad.controller';
 import { LaunchpadService } from './launchpad.service';
@@ -11,6 +12,6 @@ import { LaunchpadService } from './launchpad.service';
 @Module({
   imports: [IdentityModule, SolanaModule, TradingModule],
   controllers: [LaunchpadController],
-  providers: [LaunchpadService, PumpFunAdapter, ClankerAdapter],
+  providers: [LaunchpadService, PumpFunAdapter, ClankerAdapter, FourMemeAdapter],
 })
 export class LaunchpadModule {}

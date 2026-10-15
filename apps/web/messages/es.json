@@ -721,5 +721,23 @@
     "imageTooBig": "El logo pesa más de 1 MB — usa una imagen más pequeña.",
     "notEnough": "Necesitas unos ${amount} en USDC para este lanzamiento.",
     "risk": "Las monedas nuevas son de alto riesgo. Lanza y compra solo lo que puedas perder."
+  },
+  "curve": {
+    "onCurve": "En Four.meme — a PancakeSwap al 100%",
+    "buy": "Comprar",
+    "sell": "Vender",
+    "amount": "Monto en USD",
+    "confirmInWallet": "Confirma en tu billetera…",
+    "confirmStep": "Confirma {n} de {of} en tu billetera…",
+    "working": "Procesando…",
+    "bought": "Compraste {amount} {symbol}",
+    "sold": "Vendido por ${amount}",
+    "failed": "La operación falló — inténtalo de nuevo.",
+    "graduated": "Esta moneda pasó a PancakeSwap — recarga la página para operarla.",
+    "youHold": "Tienes {amount} {symbol}",
+    "settingUp": "Preparando tu billetera…",
+    "buyButton": "Comprar ${symbol} por ${amount}",
+    "sellButton": "Vender {pct}% de ${symbol}",
+    "note": "Pagas en USDC. Unas confirmaciones en la billetera — la moneda sigue en su curva de lanzamiento."
   }
 }

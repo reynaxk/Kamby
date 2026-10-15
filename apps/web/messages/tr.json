@@ -721,5 +721,23 @@
     "imageTooBig": "Logo 1 MB’tan büyük — daha küçük bir görsel kullan.",
     "notEnough": "Bu başlatma için yaklaşık ${amount} USDC gerekiyor.",
     "risk": "Yeni coinler yüksek risklidir. Sadece kaybedebileceğin kadarını başlat ve al."
+  },
+  "curve": {
+    "onCurve": "Four.meme'de — %100'de PancakeSwap'e",
+    "buy": "Al",
+    "sell": "Sat",
+    "amount": "USD tutarı",
+    "confirmInWallet": "Cüzdanında onayla…",
+    "confirmStep": "Cüzdanında {n}/{of} onayla…",
+    "working": "İşleniyor…",
+    "bought": "{amount} {symbol} alındı",
+    "sold": "${amount} karşılığında satıldı",
+    "failed": "İşlem başarısız — tekrar dene.",
+    "graduated": "Bu coin PancakeSwap'e geçti — işlem için sayfayı yenile.",
+    "youHold": "{amount} {symbol} tutuyorsun",
+    "settingUp": "Cüzdanın hazırlanıyor…",
+    "buyButton": "${symbol}'u ${amount} ile al",
+    "sellButton": "${symbol}'un %{pct}'ini sat",
+    "note": "USDC ile ödenir. Birkaç cüzdan onayı — coin hâlâ başlangıç eğrisinde."
   }
 }

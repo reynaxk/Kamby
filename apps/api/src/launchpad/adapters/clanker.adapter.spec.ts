@@ -16,7 +16,7 @@ const hash = (n: number) => `0x${String(n).padStart(64, '0')}`;
 
 describe('ClankerAdapter', () => {
   let adapter: ClankerAdapter;
-  let client: Record<string, jest.Mock>;
+  let client: { getBalance: jest.Mock; waitForTransactionReceipt: jest.Mock; getTransaction: jest.Mock; getCode: jest.Mock; readContract: jest.Mock };
   let gas: { ensureGas: jest.Mock };
   let deployedWith: Record<string, unknown> | null;
 

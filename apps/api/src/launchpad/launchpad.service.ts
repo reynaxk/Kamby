@@ -10,6 +10,7 @@ import { announceTradeInChat } from '../pulse/token-chat.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { LaunchAdapter, LaunchMetadata } from './adapters/launch-adapter';
 import { ClankerAdapter } from './adapters/clanker.adapter';
+import { FourMemeAdapter } from './adapters/fourmeme.adapter';
 import { PumpFunAdapter } from './adapters/pumpfun.adapter';
 
 const IMAGE_TYPES: Record<string, (b: Buffer) => boolean> = {
@@ -66,12 +67,14 @@ export class LaunchpadService {
     config: ConfigService<Env, true>,
     pumpFun: PumpFunAdapter,
     clanker: ClankerAdapter,
+    fourMeme: FourMemeAdapter,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly logger: PinoLogger,
   ) {
     this.adapters = new Map<string, LaunchAdapter>([
       [pumpFun.id, pumpFun],
       [clanker.id, clanker],
+      [fourMeme.id, fourMeme],
     ]);
     this.feeUsd = config.get('LAUNCH_FEE_USD', { infer: true }) ?? LAUNCH_LIMITS.defaultFeeUsd;
     this.assetBase = (config.get('LAUNCH_ASSET_BASE_URL', { infer: true }) ?? 'https://kambesh.com/launch-assets').replace(/\/$/, '');
@@ -204,11 +207,19 @@ export class LaunchpadService {
     }
   }
 
-  /** Step 3 — build the create transaction (with the first buy) for the creator to sign. */
-  async create(userId: string, id: string): Promise<LaunchStep> {
+  /** Between steps 2 and 3, for launchpads the creator's browser must ask itself (Four.meme). */
+  async createParams(userId: string, id: string): Promise<Record<string, string>> {
     const row = await this.own(userId, id);
     if (row.status !== 'FUNDED' && row.status !== 'CREATING') throw new ConflictException('This launch is not ready to create.');
-    const step = await this.adapter(row).buildCreate(row, this.metadataOf(row));
+    const adapter = this.adapter(row);
+    return adapter.createParams ? adapter.createParams(row) : {};
+  }
+
+  /** Step 3 — build the create transaction (with the first buy) for the creator to sign. */
+  async create(userId: string, id: string, input?: unknown): Promise<LaunchStep> {
+    const row = await this.own(userId, id);
+    if (row.status !== 'FUNDED' && row.status !== 'CREATING') throw new ConflictException('This launch is not ready to create.');
+    const step = await this.adapter(row).buildCreate(row, this.metadataOf(row), input);
     const updated = await prisma.tokenLaunch.update({ where: { id }, data: { status: 'CREATING', createTx: storedTx(step), tokenAddress: step.tokenAddress ?? null } });
     return { launch: toDto(updated, this.assetBase), transactionBase64: step.transactionBase64, evmTransactions: step.evmTransactions };
   }
@@ -222,8 +233,11 @@ export class LaunchpadService {
     if (row.status !== 'CREATING') throw new ConflictException('This launch is not ready to submit.');
     const lock = await this.lock(id);
     try {
-      const { signature, tokensRaw } = await this.adapter(row).submitCreate(row, proof);
-      const updated = await prisma.tokenLaunch.update({ where: { id }, data: { status: 'LIVE', createSignature: signature, liveAt: new Date(), failureReason: null } });
+      const { signature, tokensRaw, tokenAddress } = await this.adapter(row).submitCreate(row, proof);
+      const updated = await prisma.tokenLaunch.update({
+        where: { id },
+        data: { status: 'LIVE', createSignature: signature, liveAt: new Date(), failureReason: null, ...(tokenAddress ? { tokenAddress } : {}) },
+      });
       await this.recordFirstBuy(updated, signature, tokensRaw);
       return toDto(updated, this.assetBase);
     } catch (error) {
@@ -303,7 +317,7 @@ export class LaunchpadService {
       });
       const market =
         (await prisma.tokenMarket.findFirst({ where: { chainId: chain.id, tokenId: token.id } })) ??
-        (await prisma.tokenMarket.create({ data: { chainId: chain.id, tokenId: token.id, quoteTokenId: usdc.id, dex: `agg:${row.launchpad}`, pairAddress: row.tokenAddress.toLowerCase() } }));
+        (await prisma.tokenMarket.create({ data: { chainId: chain.id, tokenId: token.id, quoteTokenId: usdc.id, dex: row.launchpad === 'fourmeme' ? 'fourmeme' : `agg:${row.launchpad}`, pairAddress: row.tokenAddress.toLowerCase() } }));
       const devBuyRaw = Math.round(Number(row.devBuyUsd) * 10 ** usdcInfo.decimals).toString();
       if (!tokensRaw || tokensRaw === '0' || devBuyRaw === '0') return;
       const now = new Date();
