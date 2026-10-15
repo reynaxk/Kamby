@@ -14,8 +14,8 @@ import type { LaunchAdapter, LaunchMetadata, PreparedStep } from './launch-adapt
 const BASE_CHAIN_ID = 8453;
 /** ETH kept for the create transaction's own gas (a Clanker deploy is ~6M gas; Base gas is cheap). */
 const DEPLOY_GAS_RESERVE_WEI = 200_000_000_000_000n; // 0.0002 ETH
-/** Kamby's share of the coin's trading rewards (owner, 2026-10-15: 10%, the creator keeps 90%). */
-const KAMBY_REWARD_BPS = 1_000;
+/** Kamby's share of the coin's trading rewards (owner, 2026-10-15: 2%, the creator keeps 98% — down from 10%). */
+const KAMBY_REWARD_BPS = 200;
 
 interface ClankerDeployTx {
   address: `0x${string}`;
@@ -41,7 +41,7 @@ export function evmChain(id: number, name: string, symbol: string, rpcUrl: strin
 /**
  * Clanker on Base (Kamby's LaunchPad, 2026-10-15). Funding: see buildEvmFunding (fee + USDC → ETH).
  * Create: Clanker's v4 deployToken (built with their SDK), the first buy inside it, rewards split
- * 90% creator / 10% Kamby. Every hash that comes back is checked against exactly what was handed out.
+ * 98% creator / 2% Kamby. Every hash that comes back is checked against exactly what was handed out.
  */
 @Injectable()
 export class ClankerAdapter implements LaunchAdapter {

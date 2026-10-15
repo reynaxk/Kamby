@@ -56,14 +56,14 @@ describe('ClankerAdapter', () => {
     await expect(adapter.buildFunding(launch, 5)).rejects.toThrow(/getting ready/);
   });
 
-  it('create: the first buy goes to the creator, rewards 90% creator / 10% Kamby', async () => {
+  it('create: the first buy goes to the creator, rewards 98% creator / 2% Kamby', async () => {
     client.getBalance.mockResolvedValue(5_000_000_000_000_000n);
     const step = await adapter.buildCreate(launch, metadata);
     expect(step.tokenAddress).toBe(TOKEN);
     expect(deployedWith).toMatchObject({ tokenAdmin: WALLET, devBuy: { recipient: WALLET }, context: { interface: 'Kamby' } });
     expect((deployedWith!.rewards as { recipients: { recipient: string; bps: number }[] }).recipients).toEqual([
-      expect.objectContaining({ recipient: WALLET, bps: 9000 }),
-      expect.objectContaining({ recipient: TREASURY, bps: 1000 }),
+      expect.objectContaining({ recipient: WALLET, bps: 9800 }),
+      expect.objectContaining({ recipient: TREASURY, bps: 200 }),
     ]);
   });
 
