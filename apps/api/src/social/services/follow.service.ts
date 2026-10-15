@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, prisma } from '@kamby/db';
-import { normalizeEvmAddress } from '@kamby/domain';
+import { normalizeTraderAddress } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { NotificationService } from '../../notifications/notification.service';
 
@@ -20,7 +20,7 @@ export class FollowService {
   }
 
   async follow(userId: string, address: string): Promise<void> {
-    const walletAddress = normalizeEvmAddress(address);
+    const walletAddress = normalizeTraderAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: walletAddress } });
     if (!wallet) {
       throw new NotFoundException(`No tracked trader for wallet "${address}" — it has never been observed trading`);
@@ -48,7 +48,7 @@ export class FollowService {
 
   /** Idempotent by construction: deleting zero matching rows is not an error. */
   async unfollow(userId: string, address: string): Promise<void> {
-    const walletAddress = normalizeEvmAddress(address);
+    const walletAddress = normalizeTraderAddress(address);
     await prisma.follow.deleteMany({ where: { userId, walletAddress } });
   }
 
@@ -56,7 +56,7 @@ export class FollowService {
    *  `false`, see the isFollowedByMe comment on TraderProfileSchema. */
   async isFollowing(userId: string | null, address: string): Promise<boolean | null> {
     if (!userId) return null;
-    const walletAddress = normalizeEvmAddress(address);
+    const walletAddress = normalizeTraderAddress(address);
     const existing = await prisma.follow.findUnique({
       where: { userId_walletAddress: { userId, walletAddress } },
       select: { id: true },

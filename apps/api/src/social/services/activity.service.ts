@@ -7,6 +7,7 @@ import {
   encodeActivityCursor,
   identifierForChainId,
   normalizeEvmAddress,
+  normalizeTraderAddress,
   type SocialActivity,
 } from '@kamby/domain';
 import { toSocialActivity, type ActivityRow } from '../social.mapper';
@@ -75,7 +76,7 @@ export class ActivityService {
     limit: number;
     viewerUserId: string | null;
   }): Promise<ActivityPage> {
-    const normalized = normalizeEvmAddress(params.address);
+    const normalized = normalizeTraderAddress(params.address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${params.address}"`);
 

@@ -14,6 +14,7 @@ jest.mock('@kamby/db', () => ({
 }));
 jest.mock('@kamby/domain', () => ({
   normalizeEvmAddress: (a: string) => a.toLowerCase(),
+  normalizeTraderAddress: (a: string) => (a.startsWith('0x') ? a.toLowerCase() : a),
   PNL_WINDOW_MS: { '24h': 0, '7d': 0, '30d': 0 },
   MIN_TRADES_FOR_TRADER_RANKING: 5,
   toPnlWindowStats: jest.fn(),

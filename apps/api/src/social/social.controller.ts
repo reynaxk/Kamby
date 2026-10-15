@@ -20,7 +20,7 @@ import { OptionalAuthGuard } from '../identity/guards/optional-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { WatchlistService } from '../market/watchlist.service';
 import { SolanaTransactionService } from '../solana/solana-transaction.service';
-import { AddressParamDto } from './dto/address-param.dto';
+import { TraderAddressParamDto } from './dto/address-param.dto';
 import { ActivityQueryDto } from './dto/activity-query.dto';
 import { CursorQueryDto } from './dto/cursor-query.dto';
 import { LeaderboardQueryDto } from './dto/leaderboard-query.dto';
@@ -177,14 +177,14 @@ export class SocialController {
 
   @UseGuards(OptionalAuthGuard)
   @Get('traders/:address')
-  getTraderProfile(@Param() params: AddressParamDto, @CurrentUser() user: SessionUser | null) {
+  getTraderProfile(@Param() params: TraderAddressParamDto, @CurrentUser() user: SessionUser | null) {
     return this.traders.getProfile(params.address, user?.id ?? null);
   }
 
   @UseGuards(OptionalAuthGuard)
   @Get('traders/:address/activity')
   getTraderActivity(
-    @Param() params: AddressParamDto,
+    @Param() params: TraderAddressParamDto,
     @Query() query: CursorQueryDto,
     @CurrentUser() user: SessionUser | null,
   ) {
@@ -197,12 +197,12 @@ export class SocialController {
   }
 
   @Get('traders/:address/followers')
-  getTraderFollowers(@Param() params: AddressParamDto, @Query() query: CursorQueryDto) {
+  getTraderFollowers(@Param() params: TraderAddressParamDto, @Query() query: CursorQueryDto) {
     return this.traders.getFollowers(params.address, query.cursor, query.limit);
   }
 
   @Get('traders/:address/following')
-  getTraderFollowing(@Param() params: AddressParamDto, @Query() query: CursorQueryDto) {
+  getTraderFollowing(@Param() params: TraderAddressParamDto, @Query() query: CursorQueryDto) {
     return this.traders.getFollowing(params.address, query.cursor, query.limit);
   }
 
@@ -210,7 +210,7 @@ export class SocialController {
    *  trader's own most-significant tokens), not an infinite feed — no cursor, same
    *  convention as getTopTraders/getTrending. */
   @Get('traders/:address/tokens')
-  getTraderTokens(@Param() params: AddressParamDto, @Query('limit') limit?: string) {
+  getTraderTokens(@Param() params: TraderAddressParamDto, @Query('limit') limit?: string) {
     const parsed = limit ? Number.parseInt(limit, 10) : 20;
     const bounded = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 50) : 20;
     return this.traders.getTraderTokens(params.address, bounded);
@@ -220,7 +220,7 @@ export class SocialController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('traders/:address/follow')
-  async follow(@Param() params: AddressParamDto, @CurrentUser() user: SessionUser) {
+  async follow(@Param() params: TraderAddressParamDto, @CurrentUser() user: SessionUser) {
     await this.follows.follow(user.id, params.address);
     return { following: true };
   }
@@ -229,7 +229,7 @@ export class SocialController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Delete('traders/:address/follow')
-  async unfollow(@Param() params: AddressParamDto, @CurrentUser() user: SessionUser) {
+  async unfollow(@Param() params: TraderAddressParamDto, @CurrentUser() user: SessionUser) {
     await this.follows.unfollow(user.id, params.address);
     return { following: false };
   }

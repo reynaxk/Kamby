@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { prisma } from '@kamby/db';
 import {
   MIN_TRADES_FOR_TRADER_RANKING,
-  normalizeEvmAddress,
+  normalizeTraderAddress,
   PNL_WINDOW_MS,
   toPnlWindowStats,
   type PnlWindow,
@@ -34,7 +34,7 @@ export class TraderService {
   constructor(private readonly follows: FollowService) {}
 
   async getProfile(address: string, viewerUserId: string | null): Promise<TraderProfile> {
-    const normalized = normalizeEvmAddress(address);
+    const normalized = normalizeTraderAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, include: { user: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
 
@@ -123,7 +123,7 @@ export class TraderService {
    * tokens first), matching getTopTraders' own "rank by real measured activity" convention.
    */
   async getTraderTokens(address: string, limit: number): Promise<TraderTokenStat[]> {
-    const normalized = normalizeEvmAddress(address);
+    const normalized = normalizeTraderAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, select: { address: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
 
@@ -156,7 +156,7 @@ export class TraderService {
    *  docs/SOCIAL.md#authentication for why, and the follow-count on the profile for the
    *  number most UI needs. */
   async getFollowers(address: string, rawCursor: string | undefined, limit: number): Promise<CursorPage<{ userId: string; followedAt: string }>> {
-    const normalized = normalizeEvmAddress(address);
+    const normalized = normalizeTraderAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, select: { address: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
 
@@ -187,7 +187,7 @@ export class TraderService {
     rawCursor: string | undefined,
     limit: number,
   ): Promise<CursorPage<{ address: string; username: string | null; avatarUrl: string | null }>> {
-    const normalized = normalizeEvmAddress(address);
+    const normalized = normalizeTraderAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, select: { userId: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
 

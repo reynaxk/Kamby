@@ -7,7 +7,7 @@ import type {
   TraderProfile,
   TrendingToken,
 } from '@kamby/domain';
-import { apiGet } from './market-api';
+import { apiGet, MarketApiError } from './market-api';
 
 /**
  * Server-side reads for the social layer — same convention as market-api.ts (always
@@ -42,7 +42,11 @@ export async function fetchTrending(limit = 12): Promise<TrendingToken[]> {
 /** Returns null only when the wallet genuinely has never traded — callers render a "not
  *  found" state, not a backend error (that throws instead). Same contract as fetchToken. */
 export async function fetchTraderProfile(address: string): Promise<TraderProfile | null> {
-  return apiGet<TraderProfile>(`/social/traders/${encodeURIComponent(address)}`, 15);
+  // A malformed address (400) is "no such trader", not a crashed page.
+  return apiGet<TraderProfile>(`/social/traders/${encodeURIComponent(address)}`, 15).catch((err: unknown) => {
+    if (err instanceof MarketApiError && err.status === 400) return null;
+    throw err;
+  });
 }
 
 export async function fetchTraderActivity(address: string, params: { cursor?: string; limit?: number } = {}): Promise<ActivityPage> {

@@ -7,7 +7,7 @@ import { env } from './env';
  * (Server Components / Route Handlers), so `API_BASE_URL` never reaches the browser.
  */
 
-class MarketApiError extends Error {
+export class MarketApiError extends Error {
   constructor(
     message: string,
     readonly status: number,

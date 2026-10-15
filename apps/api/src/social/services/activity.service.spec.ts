@@ -13,6 +13,7 @@ jest.mock('@kamby/db', () => ({
 jest.mock('@kamby/domain', () => ({
   DISCOVERY_RANKING: { minLiquidityUsd: 10_000 },
   normalizeEvmAddress: (a: string) => a.toLowerCase(),
+  normalizeTraderAddress: (a: string) => (a.startsWith('0x') ? a.toLowerCase() : a),
   decodeActivityCursor: jest.fn((raw: string) => (raw === 'bad' ? null : JSON.parse(raw))),
   encodeActivityCursor: jest.fn((c: unknown) => JSON.stringify(c)),
   identifierForChainId: (chainId: number) => (chainId === 8453 ? 'eip155:8453' : null),

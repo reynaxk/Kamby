@@ -27,6 +27,13 @@ export function isSolanaAddress(address: string): boolean {
   return SOLANA_ADDRESS_PATTERN.test(address);
 }
 
+/** A trader's wallet in its canonical form, whichever chain it is on (2026-10-15: Solana
+ *  traders' profiles 400'd — the social routes only knew EVM): EVM lowercased like
+ *  normalizeEvmAddress, Solana base58 untouched (lowercasing would corrupt it). */
+export function normalizeTraderAddress(address: string): string {
+  return isEvmAddress(address) ? normalizeEvmAddress(address) : address;
+}
+
 /**
  * A wallet's public trading identity. Rows are created lazily by the ingestion worker the
  * first time an address is observed as a swap's trader — never by a user action. Not a

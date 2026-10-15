@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isEvmAddress, isValidUsername, normalizeEvmAddress, normalizeUsername } from './wallet';
+import { isEvmAddress, isValidUsername, normalizeEvmAddress, normalizeTraderAddress, normalizeUsername } from './wallet';
 
 describe('isEvmAddress', () => {
   it('accepts a well-formed 0x + 40 hex char address', () => {
@@ -87,5 +87,12 @@ describe('isValidUsername', () => {
 
   it('rejects an empty string', () => {
     expect(isValidUsername('')).toBe(false);
+  });
+});
+
+describe('normalizeTraderAddress', () => {
+  it('lowercases an EVM address and leaves a Solana address exactly as it is', () => {
+    expect(normalizeTraderAddress('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913')).toBe('0x833589fcd6edb6e08f4c7c32d4f71b54bda02913');
+    expect(normalizeTraderAddress('4yfpxGxomEDKudTxkeW7ND42h1yiRpvxu2T5nqhDvh8u')).toBe('4yfpxGxomEDKudTxkeW7ND42h1yiRpvxu2T5nqhDvh8u');
   });
 });
