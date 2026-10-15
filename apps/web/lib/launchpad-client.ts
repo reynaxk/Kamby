@@ -1,6 +1,6 @@
 'use client';
 
-import type { Launch, LaunchInput, LaunchStep } from '@kamby/domain';
+import type { Launch, LaunchInput, LaunchProof, LaunchStep } from '@kamby/domain';
 import { API_BASE, authedFetch } from './session-client';
 
 export interface LaunchpadConfig {
@@ -36,7 +36,7 @@ export async function uploadLaunchImage(file: File): Promise<{ imageId: string; 
 }
 
 export const prepareLaunch = async (input: LaunchInput) => ok<LaunchStep>(await post('/launchpad/launches', input));
-export const fundLaunch = async (id: string, signedTxBase64: string) => ok<Launch>(await post(`/launchpad/launches/${id}/fund`, { signedTxBase64 }));
+export const fundLaunch = async (id: string, proof: LaunchProof) => ok<Launch>(await post(`/launchpad/launches/${id}/fund`, proof));
 export const buildLaunchCreate = async (id: string) => ok<LaunchStep>(await post(`/launchpad/launches/${id}/create`));
-export const submitLaunch = async (id: string, signedTxBase64: string) => ok<Launch>(await post(`/launchpad/launches/${id}/submit`, { signedTxBase64 }));
+export const submitLaunch = async (id: string, proof: LaunchProof) => ok<Launch>(await post(`/launchpad/launches/${id}/submit`, proof));
 export const fetchMyLaunches = async () => ok<Launch[]>(await authedFetch('/launchpad/launches/mine'));

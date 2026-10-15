@@ -45,7 +45,7 @@ describe('PumpFunAdapter — the create transaction it hands out', () => {
 
   it('signs a normal create with the new mint and returns its address', async () => {
     const step = await adapter.buildCreate(launch, metadata);
-    const tx = VersionedTransaction.deserialize(Buffer.from(step.transactionBase64, 'base64'));
+    const tx = VersionedTransaction.deserialize(Buffer.from(step.transactionBase64!, 'base64'));
     const mintIndex = tx.message.staticAccountKeys.findIndex((k) => k.toBase58() === step.tokenAddress);
     expect(mintIndex).toBeGreaterThan(0);
     expect(tx.signatures[mintIndex]!.some((b) => b !== 0)).toBe(true);

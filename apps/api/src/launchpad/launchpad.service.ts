@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, prisma, type TokenLaunch } from '@kamby/db';
-import { LAUNCH_LIMITS, LAUNCHPADS, LaunchInputSchema, SOLANA_USDC_MINT, type Launch, type LaunchStep } from '@kamby/domain';
+import { EVM_USDC_BY_CHAIN_ID, LAUNCH_LIMITS, LAUNCHPADS, LaunchInputSchema, LaunchProofSchema, SOLANA_USDC_MINT, type Launch, type LaunchProof, type LaunchStep } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
@@ -9,6 +9,7 @@ import { FAMOUS_TICKERS } from '../market/lookalike-filter';
 import { announceTradeInChat } from '../pulse/token-chat.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { LaunchAdapter, LaunchMetadata } from './adapters/launch-adapter';
+import { ClankerAdapter } from './adapters/clanker.adapter';
 import { PumpFunAdapter } from './adapters/pumpfun.adapter';
 
 const IMAGE_TYPES: Record<string, (b: Buffer) => boolean> = {
@@ -17,6 +18,17 @@ const IMAGE_TYPES: Record<string, (b: Buffer) => boolean> = {
   'image/gif': (b) => b.subarray(0, 4).toString('ascii') === 'GIF8',
   'image/webp': (b) => b.subarray(0, 4).toString('ascii') === 'RIFF' && b.subarray(8, 12).toString('ascii') === 'WEBP',
 };
+
+/** What a step handed out, as stored on the launch: Solana base64, or the EVM transactions as JSON. */
+function storedTx(step: { transactionBase64?: string; evmTransactions?: unknown[] }): string {
+  return step.transactionBase64 ?? JSON.stringify(step.evmTransactions ?? []);
+}
+
+function parseProof(raw: unknown): LaunchProof {
+  const parsed = LaunchProofSchema.safeParse(raw);
+  if (!parsed.success) throw new BadRequestException(parsed.error.issues[0]?.message ?? 'Send the signed transaction');
+  return parsed.data;
+}
 
 function toDto(row: TokenLaunch, assetBase: string): Launch {
   return {
@@ -53,10 +65,14 @@ export class LaunchpadService {
   constructor(
     config: ConfigService<Env, true>,
     pumpFun: PumpFunAdapter,
+    clanker: ClankerAdapter,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly logger: PinoLogger,
   ) {
-    this.adapters = new Map<string, LaunchAdapter>([[pumpFun.id, pumpFun]]);
+    this.adapters = new Map<string, LaunchAdapter>([
+      [pumpFun.id, pumpFun],
+      [clanker.id, clanker],
+    ]);
     this.feeUsd = config.get('LAUNCH_FEE_USD', { infer: true }) ?? LAUNCH_LIMITS.defaultFeeUsd;
     this.assetBase = (config.get('LAUNCH_ASSET_BASE_URL', { infer: true }) ?? 'https://kambesh.com/launch-assets').replace(/\/$/, '');
     this.logger.setContext('LaunchpadService');
@@ -165,18 +181,19 @@ export class LaunchpadService {
     const step = await adapter.buildFunding(row, this.feeUsd);
     row = await prisma.tokenLaunch.update({
       where: { id: row.id },
-      data: { fundTx: step.transactionBase64, fundUsdcRaw: step.fundUsdcRaw ?? null, networkCostUsd: step.networkCostUsd ?? 0, metadataUri: `${this.assetBase}/${row.id}.json` },
+      data: { fundTx: storedTx(step), fundUsdcRaw: step.fundUsdcRaw ?? null, networkCostUsd: step.networkCostUsd ?? 0, metadataUri: `${this.assetBase}/${row.id}.json` },
     });
-    return { launch: toDto(row, this.assetBase), transactionBase64: step.transactionBase64 };
+    return { launch: toDto(row, this.assetBase), transactionBase64: step.transactionBase64, evmTransactions: step.evmTransactions };
   }
 
   /** Step 2 — the creator signed the funding transaction; relay it and wait for it. */
-  async fund(userId: string, id: string, signedTxBase64: string): Promise<Launch> {
+  async fund(userId: string, id: string, rawProof: unknown): Promise<Launch> {
+    const proof = parseProof(rawProof);
     const row = await this.own(userId, id);
     if (row.status !== 'PREPARED') return toDto(row, this.assetBase);
     const lock = await this.lock(id);
     try {
-      const signature = await this.adapter(row).submitFunding(row, signedTxBase64);
+      const signature = await this.adapter(row).submitFunding(row, proof);
       const updated = await prisma.tokenLaunch.update({ where: { id }, data: { status: 'FUNDED', fundSignature: signature } });
       return toDto(updated, this.assetBase);
     } catch (error) {
@@ -192,19 +209,20 @@ export class LaunchpadService {
     const row = await this.own(userId, id);
     if (row.status !== 'FUNDED' && row.status !== 'CREATING') throw new ConflictException('This launch is not ready to create.');
     const step = await this.adapter(row).buildCreate(row, this.metadataOf(row));
-    const updated = await prisma.tokenLaunch.update({ where: { id }, data: { status: 'CREATING', createTx: step.transactionBase64, tokenAddress: step.tokenAddress ?? null } });
-    return { launch: toDto(updated, this.assetBase), transactionBase64: step.transactionBase64 };
+    const updated = await prisma.tokenLaunch.update({ where: { id }, data: { status: 'CREATING', createTx: storedTx(step), tokenAddress: step.tokenAddress ?? null } });
+    return { launch: toDto(updated, this.assetBase), transactionBase64: step.transactionBase64, evmTransactions: step.evmTransactions };
   }
 
   /** Step 4 — send the signed create; on success the coin is live (and its first buy is on the
    *  creator's books like any Kamby buy, so it shows in their coins with its PnL). */
-  async submit(userId: string, id: string, signedTxBase64: string): Promise<Launch> {
+  async submit(userId: string, id: string, rawProof: unknown): Promise<Launch> {
+    const proof = parseProof(rawProof);
     const row = await this.own(userId, id);
     if (row.status === 'LIVE') return toDto(row, this.assetBase);
     if (row.status !== 'CREATING') throw new ConflictException('This launch is not ready to submit.');
     const lock = await this.lock(id);
     try {
-      const { signature, tokensRaw } = await this.adapter(row).submitCreate(row, signedTxBase64);
+      const { signature, tokensRaw } = await this.adapter(row).submitCreate(row, proof);
       const updated = await prisma.tokenLaunch.update({ where: { id }, data: { status: 'LIVE', createSignature: signature, liveAt: new Date(), failureReason: null } });
       await this.recordFirstBuy(updated, signature, tokensRaw);
       return toDto(updated, this.assetBase);
@@ -217,6 +235,7 @@ export class LaunchpadService {
   }
 
   private async recordFirstBuy(row: TokenLaunch, signature: string, tokensRaw: string | null): Promise<void> {
+    if (row.chainIdentifier !== 'solana') return this.recordEvmLaunch(row, signature, tokensRaw);
     const devBuyRaw = Math.round(Number(row.devBuyUsd) * 1e6).toString();
     if (row.chainIdentifier !== 'solana' || !row.tokenAddress || !tokensRaw || tokensRaw === '0' || devBuyRaw === '0') return;
     try {
@@ -259,6 +278,77 @@ export class LaunchpadService {
     } catch (error) {
       if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
         this.logger.error({ err: error, launchId: row.id }, 'launch is live but its first buy could not be recorded');
+      }
+    }
+  }
+
+  /**
+   * An EVM coin is only tradable in Kamby once it's a tracked market (its page, quotes, chart):
+   * listed here the moment it's live — priced through the aggregators like Kamby's other
+   * `agg:` markets (the workers keep its price fresh) — then the first buy goes on the creator's
+   * books like any Kamby buy.
+   */
+  private async recordEvmLaunch(row: TokenLaunch, txHash: string, tokensRaw: string | null): Promise<void> {
+    const chainId = Number(row.chainIdentifier.split(':')[1]);
+    const usdcInfo = EVM_USDC_BY_CHAIN_ID[chainId];
+    if (!row.tokenAddress || !usdcInfo) return;
+    try {
+      const chain = await prisma.chain.findUnique({ where: { identifier: row.chainIdentifier } });
+      const usdc = chain ? await prisma.token.findFirst({ where: { chainId: chain.id, contractAddress: { equals: usdcInfo.address, mode: 'insensitive' } } }) : null;
+      if (!chain || !usdc) return;
+      const token = await prisma.token.upsert({
+        where: { chainId_contractAddress: { chainId: chain.id, contractAddress: row.tokenAddress } },
+        update: {},
+        create: { chainId: chain.id, contractAddress: row.tokenAddress, symbol: row.symbol, name: row.name, decimals: 18, logoUrl: row.imageId ? `${this.assetBase}/${row.imageId}` : null },
+      });
+      const market =
+        (await prisma.tokenMarket.findFirst({ where: { chainId: chain.id, tokenId: token.id } })) ??
+        (await prisma.tokenMarket.create({ data: { chainId: chain.id, tokenId: token.id, quoteTokenId: usdc.id, dex: `agg:${row.launchpad}`, pairAddress: row.tokenAddress.toLowerCase() } }));
+      const devBuyRaw = Math.round(Number(row.devBuyUsd) * 10 ** usdcInfo.decimals).toString();
+      if (!tokensRaw || tokensRaw === '0' || devBuyRaw === '0') return;
+      const now = new Date();
+      const quote = await prisma.tradeQuote.create({
+        data: {
+          userId: row.userId,
+          walletAddress: row.walletAddress,
+          chainId,
+          side: 'BUY',
+          tokenMarketId: market.id,
+          inputToken: usdcInfo.address,
+          outputToken: row.tokenAddress,
+          inputAmount: devBuyRaw,
+          expectedOutputAmount: tokensRaw,
+          minOutputAmount: tokensRaw,
+          slippageBps: 0,
+          platformFeeBps: 0,
+          platformFeeAmount: '0',
+          provider: row.launchpad,
+          unsignedTx: { launchId: row.id },
+          expiresAt: now,
+        },
+      });
+      const trade = await prisma.tradeTransaction.create({
+        data: {
+          userId: row.userId,
+          walletAddress: row.walletAddress,
+          quoteId: quote.id,
+          chainId,
+          txHash,
+          tokenMarketId: market.id,
+          side: 'BUY',
+          inputToken: usdcInfo.address,
+          outputToken: row.tokenAddress,
+          inputAmount: devBuyRaw,
+          expectedOutputAmount: tokensRaw,
+          platformFeeAmount: '0',
+          status: 'CONFIRMED',
+          confirmedAt: now,
+        },
+      });
+      void announceTradeInChat(this.redis, { id: trade.id, userId: row.userId, chainIdentifier: row.chainIdentifier, tokenAddress: row.tokenAddress, side: 'BUY', usd: Number(row.devBuyUsd) });
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+        this.logger.error({ err: error, launchId: row.id }, 'EVM launch is live but its market or first buy could not be recorded');
       }
     }
   }

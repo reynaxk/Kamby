@@ -1,7 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Header, Param, ParseUUIDPipe, Post, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
-import { IsString, MaxLength } from 'class-validator';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
 import { LAUNCH_LIMITS } from '@kamby/domain';
@@ -10,11 +9,6 @@ import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { LaunchpadService } from './launchpad.service';
 
-class SignedTxDto {
-  @IsString()
-  @MaxLength(20_000)
-  signedTxBase64!: string;
-}
 
 /** Kamby's LaunchPad. The logo and metadata reads are public (the coin's on-chain `uri`). */
 @Controller('launchpad')
@@ -75,8 +69,8 @@ export class LaunchpadController {
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('launches/:id/fund')
-  fund(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: SignedTxDto, @CurrentUser() user: SessionUser) {
-    return this.launchpad.fund(user.id, id, body.signedTxBase64);
+  fund(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: unknown, @CurrentUser() user: SessionUser) {
+    return this.launchpad.fund(user.id, id, body);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -89,7 +83,7 @@ export class LaunchpadController {
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('launches/:id/submit')
-  submit(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: SignedTxDto, @CurrentUser() user: SessionUser) {
-    return this.launchpad.submit(user.id, id, body.signedTxBase64);
+  submit(@Param('id', new ParseUUIDPipe()) id: string, @Body() body: unknown, @CurrentUser() user: SessionUser) {
+    return this.launchpad.submit(user.id, id, body);
   }
 }

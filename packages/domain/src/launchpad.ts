@@ -8,7 +8,7 @@ import { z } from 'zod';
  */
 export const LAUNCHPADS = [
   { id: 'pumpfun', chainIdentifier: 'solana', chainName: 'Solana', name: 'Pump.fun', live: true },
-  { id: 'clanker', chainIdentifier: 'eip155:8453', chainName: 'Base', name: 'Clanker', live: false },
+  { id: 'clanker', chainIdentifier: 'eip155:8453', chainName: 'Base', name: 'Clanker', live: true },
   { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BNB Chain', name: 'Four.meme', live: false },
 ] as const;
 export type LaunchpadId = (typeof LAUNCHPADS)[number]['id'];
@@ -72,6 +72,30 @@ export const LaunchSchema = z.object({
 });
 export type Launch = z.infer<typeof LaunchSchema>;
 
-/** A step the creator signs: the launch, and the transaction for this step (base64). */
-export const LaunchStepSchema = z.object({ launch: LaunchSchema, transactionBase64: z.string() });
+/** One EVM transaction the creator sends from their own wallet, in order. */
+export const LaunchEvmTxSchema = z.object({
+  chainId: z.number().int(),
+  to: z.string(),
+  data: z.string(),
+  /** Wei, as a decimal string. */
+  value: z.string(),
+});
+export type LaunchEvmTx = z.infer<typeof LaunchEvmTxSchema>;
+
+/** A step the creator signs: on Solana one transaction (base64, Kamby co-signs and sends it);
+ *  on EVM chains the transactions to send from their wallet, in order. */
+export const LaunchStepSchema = z.object({
+  launch: LaunchSchema,
+  transactionBase64: z.string().optional(),
+  evmTransactions: z.array(LaunchEvmTxSchema).optional(),
+});
 export type LaunchStep = z.infer<typeof LaunchStepSchema>;
+
+/** What comes back for a step: the signed Solana transaction, or the EVM transaction hashes. */
+export const LaunchProofSchema = z
+  .object({
+    signedTxBase64: z.string().max(20_000).optional(),
+    txHashes: z.array(z.string().regex(/^0x[0-9a-fA-F]{64}$/)).max(4).optional(),
+  })
+  .refine((p) => Boolean(p.signedTxBase64) !== Boolean(p.txHashes?.length), 'Send the signed transaction or the transaction hashes');
+export type LaunchProof = z.infer<typeof LaunchProofSchema>;

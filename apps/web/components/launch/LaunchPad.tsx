@@ -4,16 +4,20 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { useSignTransaction, useWallets } from '@privy-io/react-auth/solana';
+import { useAccount } from 'wagmi';
+import { getAccount, sendTransaction, switchChain, waitForTransactionReceipt } from 'wagmi/actions';
 import { useTranslations } from 'next-intl';
 import { Check, ImagePlus, Loader2 } from 'lucide-react';
-import { LAUNCH_LIMITS, type LaunchInput } from '@kamby/domain';
+import { LAUNCH_LIMITS, type LaunchEvmTx, type LaunchInput, type LaunchProof, type LaunchStep } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { ChainBadge } from '@/components/market/ChainBadge';
 import { MoveNote, isMoveBusy } from '@/components/trading/CrossChainMove';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
+import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { buildLaunchCreate, fetchLaunchpadConfig, fundLaunch, prepareLaunch, submitLaunch, uploadLaunchImage, type LaunchpadConfig } from '@/lib/launchpad-client';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
-import { solanaMarketHref } from '@/lib/solana-links';
+import { marketHref } from '@/lib/solana-links';
+import { wagmiConfig } from '@/lib/wagmi-config';
 import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 
 type Stage = 'form' | 'preparing' | 'sign1' | 'funding' | 'sign2' | 'creating' | 'done';
@@ -32,8 +36,10 @@ function bytesToBase64(bytes: Uint8Array): string {
 }
 
 const CHAIN_BADGE: Record<string, 'solana' | 'base' | 'bnb'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb' };
-/** Pump.fun's create costs about 0.03 SOL (its accounts + fees) — shown before the real figure. */
-const SOLANA_NETWORK_COST_ESTIMATE_USD = 3.5;
+/** What the launch itself costs on-chain, shown before the real figure: Pump.fun's create is about
+ *  0.03 SOL (its accounts + fees); on Base the smallest swap ($1) covers the deploy's gas. */
+const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 3.5, 'eip155:8453': 1 };
+const BRIDGE_TARGET: Record<string, 'solana' | 'base' | 'bnb'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb' };
 
 /**
  * Kamby's LaunchPad (2026-10-14): create a coin in a minute, paid in USDC. Pick the network, add a
@@ -47,8 +53,10 @@ export function LaunchPad() {
   const router = useRouter();
   const { ready, authenticated, login } = usePrivy();
   const { wallets } = useWallets();
-  const wallet = wallets[0];
-  const verification = useSolanaWalletVerification();
+  const solanaWallet = wallets[0];
+  const { address: evmAddress } = useAccount();
+  const solanaVerification = useSolanaWalletVerification();
+  const evmVerification = useWalletVerification();
   const { signTransaction } = useSignTransaction();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -74,14 +82,20 @@ export function LaunchPad() {
       .catch(() => setConfig(null));
   }, []);
 
-  const feeUsd = config?.feeUsd ?? LAUNCH_LIMITS.defaultFeeUsd;
-  const firstBuy = customBuy !== '' ? Math.max(0, Math.min(LAUNCH_LIMITS.maxDevBuyUsd, Number(customBuy) || 0)) : devBuy;
-  const totalUsd = firstBuy + SOLANA_NETWORK_COST_ESTIMATE_USD + feeUsd;
-  const funding = useCrossChainFunding('solana', stage === 'form' ? totalUsd : null);
-  const solanaUsdc = funding.balances.solana;
-  const short = solanaUsdc !== null && solanaUsdc < totalUsd;
-  const needsMove = short && funding.canCover && funding.stage !== 'done';
   const pad = config?.launchpads.find((l) => l.id === launchpad);
+  const chainIdentifier = pad?.chainIdentifier ?? 'solana';
+  const onSolana = chainIdentifier === 'solana';
+  const walletAddress = onSolana ? solanaWallet?.address : evmAddress;
+  const verified = (onSolana ? solanaVerification.status : evmVerification.status) === 'verified';
+  const feeUsd = config?.feeUsd ?? LAUNCH_LIMITS.defaultFeeUsd;
+  const networkCostUsd = NETWORK_COST_ESTIMATE_USD[chainIdentifier] ?? 1;
+  const firstBuy = customBuy !== '' ? Math.max(0, Math.min(LAUNCH_LIMITS.maxDevBuyUsd, Number(customBuy) || 0)) : devBuy;
+  const totalUsd = firstBuy + networkCostUsd + feeUsd;
+  const target = BRIDGE_TARGET[chainIdentifier] ?? 'solana';
+  const funding = useCrossChainFunding(target, stage === 'form' ? totalUsd : null);
+  const chainUsdc = funding.balances[target];
+  const short = chainUsdc !== null && chainUsdc < totalUsd;
+  const needsMove = short && funding.canCover && funding.stage !== 'done';
   const ticker = symbol.toUpperCase();
   const formReady = Boolean(image && name.trim() && /^[A-Za-z0-9]{1,10}$/.test(symbol) && pad?.live);
   const busy = stage !== 'form' && stage !== 'done';
@@ -104,15 +118,28 @@ export function LaunchPad() {
     }
   }
 
-  async function sign(base64: string): Promise<string> {
-    if (!wallet) throw new Error(t('settingUp'));
-    const { signedTransaction } = await signTransaction({ transaction: base64ToBytes(base64), wallet });
-    return bytesToBase64(signedTransaction);
+  /** One step, signed: on Solana the one transaction (Kamby co-signs and sends it), on EVM each
+   *  transaction sent from the wallet in order, waiting for each before the next. */
+  async function sign(step: LaunchStep): Promise<LaunchProof> {
+    if (step.transactionBase64) {
+      if (!solanaWallet) throw new Error(t('settingUp'));
+      const { signedTransaction } = await signTransaction({ transaction: base64ToBytes(step.transactionBase64), wallet: solanaWallet });
+      return { signedTxBase64: bytesToBase64(signedTransaction) };
+    }
+    const txHashes: string[] = [];
+    for (const tx of step.evmTransactions ?? ([] as LaunchEvmTx[])) {
+      const chainId = tx.chainId as 8453 | 56;
+      if (getAccount(wagmiConfig).chainId !== chainId) await switchChain(wagmiConfig, { chainId });
+      const hash = await sendTransaction(wagmiConfig, { to: tx.to as `0x${string}`, data: tx.data as `0x${string}`, value: BigInt(tx.value), chainId });
+      await waitForTransactionReceipt(wagmiConfig, { hash, chainId, timeout: 90_000 });
+      txHashes.push(hash);
+    }
+    return { txHashes };
   }
 
   /** Runs the launch from wherever it stopped (a retry after a failed step picks up there). */
   async function launch() {
-    if (!wallet || !image) return;
+    if (!walletAddress || !image) return;
     setError(null);
     try {
       let id = fundedId;
@@ -121,7 +148,7 @@ export function LaunchPad() {
         setStage('preparing');
         const prepared = await prepareLaunch({
           launchpad,
-          walletAddress: wallet.address,
+          walletAddress,
           name: name.trim(),
           symbol: ticker,
           description: description.trim() || undefined,
@@ -132,7 +159,7 @@ export function LaunchPad() {
           devBuyUsd: firstBuy,
         });
         setStage('sign1');
-        const signed = await sign(prepared.transactionBase64);
+        const signed = await sign(prepared);
         setStage('funding');
         await fundLaunch(prepared.launch.id, signed);
         id = prepared.launch.id;
@@ -140,12 +167,13 @@ export function LaunchPad() {
       }
       setStage('sign2');
       const create = await buildLaunchCreate(id);
-      const signedCreate = await sign(create.transactionBase64);
+      const signedCreate = await sign(create);
       setStage('creating');
       const live = await submitLaunch(id, signedCreate);
       setStage('done');
       notifyTradeConfirmed();
-      if (live.tokenAddress) router.push(solanaMarketHref(live.tokenAddress));
+      const href = live.tokenAddress ? marketHref(live.chainIdentifier, live.tokenAddress) : null;
+      if (href) router.push(href);
     } catch (e) {
       setError((e as Error).message || t('failed'));
       setStage('form');
@@ -294,14 +322,14 @@ export function LaunchPad() {
       {/* What it costs */}
       <dl className="mt-4 space-y-1.5 px-2 font-body text-sm">
         <Row label={t('summaryFirstBuy')} value={`$${firstBuy.toFixed(2)}`} />
-        <Row label={t('summaryNetwork')} value={`≈ $${SOLANA_NETWORK_COST_ESTIMATE_USD.toFixed(2)}`} />
+        <Row label={t('summaryNetwork')} value={`≈ $${networkCostUsd.toFixed(2)}`} />
         <Row label={t('summaryFee')} value={`$${feeUsd.toFixed(2)}`} />
         <div className="border-t border-white/5 pt-1.5">
           <Row label={t('summaryTotal')} value={`≈ $${totalUsd.toFixed(2)}`} strong />
         </div>
       </dl>
 
-      {needsMove && <div className="mt-2">{<MoveNote funding={funding} target="solana" />}</div>}
+      {needsMove && <div className="mt-2">{<MoveNote funding={funding} target={target} />}</div>}
       {error && <p className="mt-3 text-center font-body text-xs font-semibold text-down">{error}</p>}
 
       {/* The action, or where the launch is */}
@@ -310,7 +338,7 @@ export function LaunchPad() {
           <button type="button" onClick={() => login()} className="h-12 w-full rounded-2xl bg-accent font-display text-base font-bold text-black">
             {tAuth('signIn')} — {t('toLaunch')}
           </button>
-        ) : !wallet || verification.status !== 'verified' ? (
+        ) : !walletAddress || !verified ? (
           <p className="text-center font-body text-sm text-ink-400" role="status">
             {t('settingUp')}
           </p>

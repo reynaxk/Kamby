@@ -1,4 +1,5 @@
 import type { TokenLaunch } from '@kamby/db';
+import type { LaunchEvmTx, LaunchProof } from '@kamby/domain';
 
 /** A launch's public metadata (name, logo, links) as every launchpad reads it. */
 export interface LaunchMetadata {
@@ -14,7 +15,10 @@ export interface LaunchMetadata {
 
 /** What a step hands back: the transaction to sign (base64) and what to store on the launch. */
 export interface PreparedStep {
-  transactionBase64: string;
+  /** Solana: the one transaction to sign (Kamby co-signs and sends it). */
+  transactionBase64?: string;
+  /** EVM: the transactions the creator sends from their wallet, in order. */
+  evmTransactions?: LaunchEvmTx[];
   networkCostUsd?: number;
   fundUsdcRaw?: string;
   /** The coin's address, when the step already knows it (Solana: the new mint). */
@@ -31,10 +35,10 @@ export interface LaunchAdapter {
   readonly id: 'pumpfun' | 'clanker' | 'fourmeme';
   readonly chainIdentifier: string;
   buildFunding(launch: TokenLaunch, feeUsd: number): Promise<PreparedStep>;
-  /** Broadcasts the signed funding transaction and waits for it; returns its signature. */
-  submitFunding(launch: TokenLaunch, signedTxBase64: string): Promise<string>;
+  /** Checks (and on Solana broadcasts) the funding step and waits for it; returns its signature or hash. */
+  submitFunding(launch: TokenLaunch, proof: LaunchProof): Promise<string>;
   buildCreate(launch: TokenLaunch, metadata: LaunchMetadata): Promise<PreparedStep>;
   /** Broadcasts the signed create transaction and waits for it; returns its signature and what
    *  the first buy got (raw token units, null when there was none or it couldn't be read). */
-  submitCreate(launch: TokenLaunch, signedTxBase64: string): Promise<{ signature: string; tokensRaw: string | null }>;
+  submitCreate(launch: TokenLaunch, proof: LaunchProof): Promise<{ signature: string; tokensRaw: string | null }>;
 }

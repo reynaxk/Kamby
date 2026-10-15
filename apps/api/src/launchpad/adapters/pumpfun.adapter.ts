@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { TokenLaunch } from '@kamby/db';
-import { SOLANA_NATIVE_MINT, SOLANA_USDC_MINT } from '@kamby/domain';
+import { SOLANA_NATIVE_MINT, SOLANA_USDC_MINT, type LaunchProof } from '@kamby/domain';
 import { ComputeBudgetProgram, Keypair, PublicKey, SystemProgram, VersionedTransaction, type Connection } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { PinoLogger } from 'nestjs-pino';
@@ -111,8 +111,9 @@ export class PumpFunAdapter implements LaunchAdapter {
     };
   }
 
-  async submitFunding(launch: TokenLaunch, signedTxBase64: string): Promise<string> {
+  async submitFunding(launch: TokenLaunch, proof: LaunchProof): Promise<string> {
     const connection = this.connection();
+    const signedTxBase64 = requireSigned(proof);
     if (!launch.fundTx) throw new UnprocessableEntityException('This launch has no funding step to sign');
     const signature = await this.relayer.submitSponsoredLaunchFunding({
       userId: launch.userId,
@@ -194,8 +195,9 @@ export class PumpFunAdapter implements LaunchAdapter {
     }
   }
 
-  async submitCreate(launch: TokenLaunch, signedTxBase64: string): Promise<{ signature: string; tokensRaw: string | null }> {
+  async submitCreate(launch: TokenLaunch, proof: LaunchProof): Promise<{ signature: string; tokensRaw: string | null }> {
     const connection = this.connection();
+    const signedTxBase64 = requireSigned(proof);
     if (!launch.createTx || !launch.tokenAddress) throw new UnprocessableEntityException('This launch has no create step to sign');
     let transaction: VersionedTransaction;
     try {
@@ -210,6 +212,11 @@ export class PumpFunAdapter implements LaunchAdapter {
     await waitForConfirmation(connection, signature);
     return { signature, tokensRaw: await tokensReceived(connection, signature, launch.walletAddress, launch.tokenAddress) };
   }
+}
+
+function requireSigned(proof: LaunchProof): string {
+  if (!proof.signedTxBase64) throw new UnprocessableEntityException('Send the signed transaction');
+  return proof.signedTxBase64;
 }
 
 /** Waits up to ~45s for a signature to confirm; throws if it failed or never landed. */
