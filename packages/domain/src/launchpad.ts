@@ -16,7 +16,8 @@ export const LAUNCHPADS = [
 export type LaunchpadId = (typeof LAUNCHPADS)[number]['id'];
 
 export const LAUNCH_LIMITS = {
-  defaultFeeUsd: 5,
+  /** Kamby's launch fee in USDC (owner 2026-10-16: $5 → $3). LAUNCH_FEE_USD on the api overrides it. */
+  defaultFeeUsd: 3,
   devBuyPresetsUsd: [10, 50, 100] as const,
   maxDevBuyUsd: 1_000,
   nameMax: 32,
