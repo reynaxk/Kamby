@@ -26,6 +26,7 @@ import { findPrimaryMarket } from './primary-market';
 import { toMarketSummary, toSolanaMarketSummary, type MarketRow } from './market.mapper';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { candlesOrThrow, fetchPoolCandles, GECKO_NETWORK_BY_CHAIN_ID, GECKO_OHLCV_TTL_SECONDS } from './gecko-ohlcv';
+import { TokenLookupService } from './token-lookup.service';
 import { WatchlistService } from './watchlist.service';
 
 /** Prices refresh roughly every 60s (workers' ingestion tick), so 10s staleness is invisible —
@@ -95,6 +96,8 @@ export class MarketService {
     // Optional so unit tests that don't care about caching can omit it; Nest always
     // injects the global REDIS_CLIENT in the running app.
     @Optional() @Inject(REDIS_CLIENT) private readonly redis?: Redis,
+    // Optional for the same reason — unit tests of search() by name don't need it.
+    @Optional() private readonly lookup?: TokenLookupService,
   ) {}
 
   /** Cache-aside over Redis with stale-while-revalidate — same origin as
@@ -558,7 +561,15 @@ export class MarketService {
     // A name search gets the same bar as Discover: no lookalikes, and nothing below
     // Discover's liquidity minimum (a pool holding a few dollars isn't a tradeable market).
     const isAddressLookup = EVM_ADDRESS_PATTERN.test(query.q) || SOLANA_MINT_PATTERN.test(query.q);
-    if (isAddressLookup) return summaries.slice(0, query.limit);
+    if (isAddressLookup) {
+      if (summaries.length > 0 || !this.lookup) return summaries.slice(0, query.limit);
+      // Not in Kamby's lists yet — find it by its address (TokenLookupService).
+      const found = await this.lookup.lookup(query.q);
+      if (!found) return [];
+      if ('solana' in found) return [found.solana];
+      const row = await prisma.tokenMarket.findUnique({ where: { id: found.evmMarketId }, include: MARKET_INCLUDE });
+      return row ? [toMarketSummary(row)] : [];
+    }
     const liquid = summaries.filter((m) => m.liquidityUsd !== null && m.liquidityUsd >= DISCOVERY_RANKING.minLiquidityUsd);
     return hideLookalikes(liquid).slice(0, query.limit);
   }

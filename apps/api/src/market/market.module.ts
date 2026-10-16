@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { MarketController } from './market.controller';
 import { MarketService } from './market.service';
+import { TokenLookupService } from './token-lookup.service';
 import { WatchlistService } from './watchlist.service';
 
 /**
@@ -20,7 +21,7 @@ import { WatchlistService } from './watchlist.service';
 @Module({
   imports: [IdentityModule],
   controllers: [MarketController],
-  providers: [MarketService, WatchlistService],
+  providers: [MarketService, WatchlistService, TokenLookupService],
   exports: [WatchlistService, MarketService],
 })
 export class MarketModule {}
