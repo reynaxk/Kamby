@@ -738,7 +738,9 @@
     "failed": "发射失败 — 没有额外花费。请重试。",
     "imageTooBig": "图标超过 1 MB — 请用更小的图片。",
     "notEnough": "这次发射大约需要 ${amount} USDC。",
-    "risk": "新币风险很高。只发射和买入你能承受损失的金额。"
+    "risk": "新币风险很高。只发射和买入你能承受损失的金额。",
+    "rewardsTitle": "你获得 98% 的奖励",
+    "rewardsBody": "你的代币在任何地方的每笔交易都会产生奖励 — 98% 永久归你（2% 归 Kamby）。"
   },
   "curve": {
     "onCurve": "在 Four.meme 上 — 达到 100% 后上 PancakeSwap",

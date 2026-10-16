@@ -738,7 +738,9 @@
     "failed": "Le lancement a échoué — rien d'autre n'a été dépensé. Réessaie.",
     "imageTooBig": "Le logo dépasse 1 Mo — utilise une image plus petite.",
     "notEnough": "Il te faut environ ${amount} en USDC pour ce lancement.",
-    "risk": "Les nouveaux coins sont très risqués. Ne lance et n’achète que ce que tu peux perdre."
+    "risk": "Les nouveaux coins sont très risqués. Ne lance et n’achète que ce que tu peux perdre.",
+    "rewardsTitle": "Tu gardes 98 % des récompenses",
+    "rewardsBody": "Chaque trade de ta coin, partout, rapporte des récompenses — 98 % pour toi, pour toujours (2 % pour Kamby)."
   },
   "curve": {
     "onCurve": "Sur Four.meme — vers PancakeSwap à 100%",

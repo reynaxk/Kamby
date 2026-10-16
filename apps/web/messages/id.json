@@ -738,7 +738,9 @@
     "failed": "Peluncuran gagal — tidak ada lagi yang terpakai. Coba lagi.",
     "imageTooBig": "Logo lebih dari 1 MB — pakai gambar yang lebih kecil.",
     "notEnough": "Kamu butuh sekitar ${amount} USDC untuk peluncuran ini.",
-    "risk": "Koin baru sangat berisiko. Luncurkan dan beli hanya yang sanggup kamu relakan."
+    "risk": "Koin baru sangat berisiko. Luncurkan dan beli hanya yang sanggup kamu relakan.",
+    "rewardsTitle": "Kamu dapat 98% hadiah",
+    "rewardsBody": "Setiap trade koinmu, di mana pun, menghasilkan hadiah — 98% untukmu, selamanya (2% untuk Kamby)."
   },
   "curve": {
     "onCurve": "Di Four.meme — ke PancakeSwap di 100%",

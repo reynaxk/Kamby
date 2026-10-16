@@ -738,7 +738,9 @@
     "failed": "Start fehlgeschlagen — nichts weiter ausgegeben. Versuch es erneut.",
     "imageTooBig": "Das Logo ist über 1 MB — nimm ein kleineres Bild.",
     "notEnough": "Du brauchst etwa ${amount} in USDC für diesen Start.",
-    "risk": "Neue Coins sind sehr riskant. Starte und kaufe nur, was du verlieren kannst."
+    "risk": "Neue Coins sind sehr riskant. Starte und kaufe nur, was du verlieren kannst.",
+    "rewardsTitle": "Du behältst 98 % der Belohnungen",
+    "rewardsBody": "Jeder Trade deines Coins, überall, bringt Belohnungen — 98 % gehen an dich, für immer (2 % an Kamby)."
   },
   "curve": {
     "onCurve": "Auf Four.meme — zu PancakeSwap bei 100%",

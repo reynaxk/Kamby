@@ -738,7 +738,9 @@
     "failed": "Başlatma başarısız — başka bir şey harcanmadı. Tekrar dene.",
     "imageTooBig": "Logo 1 MB’tan büyük — daha küçük bir görsel kullan.",
     "notEnough": "Bu başlatma için yaklaşık ${amount} USDC gerekiyor.",
-    "risk": "Yeni coinler yüksek risklidir. Sadece kaybedebileceğin kadarını başlat ve al."
+    "risk": "Yeni coinler yüksek risklidir. Sadece kaybedebileceğin kadarını başlat ve al.",
+    "rewardsTitle": "Ödüllerin %98i senin",
+    "rewardsBody": "Coinin nerede işlem görürse görsün ödül kazandırır — %98i sonsuza dek senin (%2si Kamby için)."
   },
   "curve": {
     "onCurve": "Four.meme'de — %100'de PancakeSwap'e",

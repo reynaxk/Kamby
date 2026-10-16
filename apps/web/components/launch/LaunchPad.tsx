@@ -354,6 +354,21 @@ export function LaunchPad() {
         </div>
       </dl>
 
+      {/* Clanker coins share their trading rewards (2026-10-16: said up front, not found later). */}
+      {(launchpad === 'clanker' || launchpad === 'clanker-rh') && (
+        <div className="mt-2 flex items-center gap-3 rounded-2xl border border-accent/15 bg-accent/[0.05] px-4 py-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v18M16.5 7.5c-.6-1.3-2.2-2-4.5-2-2.6 0-4 1.2-4 2.8 0 4 9 2 9 6 0 1.7-1.6 3-4.5 3-2.3 0-4-.8-4.7-2.3" />
+            </svg>
+          </span>
+          <span className="min-w-0">
+            <span className="block font-display text-sm font-bold text-ink-900">{t('rewardsTitle')}</span>
+            <span className="block font-body text-xs text-ink-400">{t('rewardsBody')}</span>
+          </span>
+        </div>
+      )}
+
       {needsMove && <div className="mt-2">{<MoveNote funding={funding} target={target} />}</div>}
       {error && <p className="mt-3 text-center font-body text-xs font-semibold text-down">{error}</p>}
 

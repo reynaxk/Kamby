@@ -738,7 +738,9 @@
     "failed": "Ra mắt thất bại — không tốn thêm gì. Thử lại.",
     "imageTooBig": "Logo lớn hơn 1 MB — dùng ảnh nhỏ hơn.",
     "notEnough": "Bạn cần khoảng ${amount} USDC cho lần ra mắt này.",
-    "risk": "Coin mới rủi ro cao. Chỉ ra mắt và mua số tiền bạn chấp nhận mất."
+    "risk": "Coin mới rủi ro cao. Chỉ ra mắt và mua số tiền bạn chấp nhận mất.",
+    "rewardsTitle": "Bạn giữ 98% phần thưởng",
+    "rewardsBody": "Mỗi giao dịch coin của bạn, ở bất kỳ đâu, đều tạo phần thưởng — 98% là của bạn, mãi mãi (2% cho Kamby)."
   },
   "curve": {
     "onCurve": "Trên Four.meme — sang PancakeSwap khi đạt 100%",

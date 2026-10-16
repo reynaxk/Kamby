@@ -738,7 +738,9 @@
     "failed": "The launch failed — nothing more was spent. Try again.",
     "imageTooBig": "The logo is over 1 MB — use a smaller image.",
     "notEnough": "You need about ${amount} in USDC for this launch.",
-    "risk": "New coins are high risk. Only launch and buy what you can afford to lose."
+    "risk": "New coins are high risk. Only launch and buy what you can afford to lose.",
+    "rewardsTitle": "You keep 98% of the rewards",
+    "rewardsBody": "Every trade of your coin, anywhere, earns trading rewards — 98% go to you, forever (2% to Kamby)."
   },
   "curve": {
     "onCurve": "On Four.meme — to PancakeSwap at 100%",

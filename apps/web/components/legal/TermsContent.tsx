@@ -46,6 +46,12 @@ export function TermsContent() {
           transaction fails. Referral rewards are paid out of our own fee, never added on top of yours, and
           are paid manually at our discretion.
         </p>
+        <p>
+          Creating a coin with Kamby&apos;s LaunchPad costs a fixed launch fee, shown before you confirm,
+          plus the network&apos;s own costs. For coins created on Clanker (Base and Robinhood Chain), the
+          coin&apos;s trading rewards are split 98% to you as its creator and 2% to Kamby. The split is set
+          when the coin is created and is visible on-chain.
+        </p>
       </section>
 
       <section>

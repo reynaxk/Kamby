@@ -738,7 +738,9 @@
     "failed": "El lanzamiento falló — no se gastó nada más. Inténtalo de nuevo.",
     "imageTooBig": "El logo pesa más de 1 MB — usa una imagen más pequeña.",
     "notEnough": "Necesitas unos ${amount} en USDC para este lanzamiento.",
-    "risk": "Las monedas nuevas son de alto riesgo. Lanza y compra solo lo que puedas perder."
+    "risk": "Las monedas nuevas son de alto riesgo. Lanza y compra solo lo que puedas perder.",
+    "rewardsTitle": "Te quedas con el 98% de las recompensas",
+    "rewardsBody": "Cada operación de tu moneda, en cualquier lugar, genera recompensas: el 98% es tuyo, para siempre (2% para Kamby)."
   },
   "curve": {
     "onCurve": "En Four.meme — a PancakeSwap al 100%",
