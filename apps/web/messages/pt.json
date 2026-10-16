@@ -740,7 +740,7 @@
     "notEnough": "Você precisa de cerca de ${amount} em USDC para este lançamento.",
     "risk": "Moedas novas são de alto risco. Lance e compre só o que pode perder.",
     "rewardsTitle": "Você fica com 98% das recompensas",
-    "rewardsBody": "Cada negociação da sua moeda, em qualquer lugar, gera recompensas — 98% são suas."
+    "rewardsBody": "Cada negociação da sua moeda, em qualquer lugar, gera recompensas — 98% para você · 2% taxa de plataforma da Kamby."
   },
   "curve": {
     "onCurve": "No Four.meme — para a PancakeSwap em 100%",

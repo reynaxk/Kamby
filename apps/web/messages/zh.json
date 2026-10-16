@@ -740,7 +740,7 @@
     "notEnough": "这次发射大约需要 ${amount} USDC。",
     "risk": "新币风险很高。只发射和买入你能承受损失的金额。",
     "rewardsTitle": "你获得 98% 的奖励",
-    "rewardsBody": "你的代币在任何地方的每笔交易都会产生奖励 — 98% 归你。"
+    "rewardsBody": "你的代币在任何地方的每笔交易都会产生奖励 — 98% 归你 · 2% 为 Kamby 平台费。"
   },
   "curve": {
     "onCurve": "在 Four.meme 上 — 达到 100% 后上 PancakeSwap",

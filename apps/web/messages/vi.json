@@ -740,7 +740,7 @@
     "notEnough": "Bạn cần khoảng ${amount} USDC cho lần ra mắt này.",
     "risk": "Coin mới rủi ro cao. Chỉ ra mắt và mua số tiền bạn chấp nhận mất.",
     "rewardsTitle": "Bạn giữ 98% phần thưởng",
-    "rewardsBody": "Mỗi giao dịch coin của bạn, ở bất kỳ đâu, đều tạo phần thưởng — 98% là của bạn."
+    "rewardsBody": "Mỗi giao dịch coin của bạn, ở bất kỳ đâu, đều tạo phần thưởng — 98% cho bạn · 2% phí nền tảng Kamby."
   },
   "curve": {
     "onCurve": "Trên Four.meme — sang PancakeSwap khi đạt 100%",

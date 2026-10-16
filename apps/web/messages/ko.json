@@ -740,7 +740,7 @@
     "notEnough": "이번 출시에 약 ${amount} USDC가 필요해요.",
     "risk": "새 코인은 고위험입니다. 잃어도 되는 만큼만 출시하고 매수하세요.",
     "rewardsTitle": "보상의 98%를 받으세요",
-    "rewardsBody": "어디서든 코인이 거래될 때마다 보상이 쌓여요 — 98%는 당신의 것."
+    "rewardsBody": "어디서든 코인이 거래될 때마다 보상이 쌓여요 — 98%는 당신에게 · 2%는 Kamby 플랫폼 수수료."
   },
   "curve": {
     "onCurve": "Four.meme — 100%가 되면 PancakeSwap으로",

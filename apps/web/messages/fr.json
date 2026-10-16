@@ -740,7 +740,7 @@
     "notEnough": "Il te faut environ ${amount} en USDC pour ce lancement.",
     "risk": "Les nouveaux coins sont très risqués. Ne lance et n’achète que ce que tu peux perdre.",
     "rewardsTitle": "Tu gardes 98 % des récompenses",
-    "rewardsBody": "Chaque trade de ta coin, partout, rapporte des récompenses — 98 % pour toi."
+    "rewardsBody": "Chaque trade de ta coin, partout, rapporte des récompenses — 98 % pour toi · 2 % de frais de plateforme Kamby."
   },
   "curve": {
     "onCurve": "Sur Four.meme — vers PancakeSwap à 100%",
