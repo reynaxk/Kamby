@@ -103,8 +103,10 @@ export class TokenLookupService {
     const pairs = ((await res.json()) as { pairs?: DexScreenerPair[] | null }).pairs ?? [];
     if (address.startsWith('0x')) return this.listEvm(address, pairs);
 
+    // A coin still on its Pump.fun curve has no liquidity figure on DexScreener — a real
+    // price is enough here; the coin's page loads everything else live.
     const pair = bestOwnPair(pairs, address, (c) => c === 'solana');
-    if (!pair || (pair.liquidity?.usd ?? 0) <= 0) return null;
+    if (!pair || !(Number(pair.priceUsd) > 0)) return null;
     return {
       solana: {
         chainIdentifier: 'solana',
