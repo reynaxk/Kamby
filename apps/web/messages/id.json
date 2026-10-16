@@ -740,7 +740,7 @@
     "notEnough": "Kamu butuh sekitar ${amount} USDC untuk peluncuran ini.",
     "risk": "Koin baru sangat berisiko. Luncurkan dan beli hanya yang sanggup kamu relakan.",
     "rewardsTitle": "Kamu dapat 98% hadiah",
-    "rewardsBody": "Setiap trade koinmu, di mana pun, menghasilkan hadiah — 98% untukmu, selamanya (2% untuk Kamby)."
+    "rewardsBody": "Setiap trade koinmu, di mana pun, menghasilkan hadiah — 98% untukmu."
   },
   "curve": {
     "onCurve": "Di Four.meme — ke PancakeSwap di 100%",

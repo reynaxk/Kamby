@@ -740,7 +740,7 @@
     "notEnough": "Du brauchst etwa ${amount} in USDC für diesen Start.",
     "risk": "Neue Coins sind sehr riskant. Starte und kaufe nur, was du verlieren kannst.",
     "rewardsTitle": "Du behältst 98 % der Belohnungen",
-    "rewardsBody": "Jeder Trade deines Coins, überall, bringt Belohnungen — 98 % gehen an dich, für immer (2 % an Kamby)."
+    "rewardsBody": "Jeder Trade deines Coins, überall, bringt Belohnungen — 98 % gehen an dich."
   },
   "curve": {
     "onCurve": "Auf Four.meme — zu PancakeSwap bei 100%",
