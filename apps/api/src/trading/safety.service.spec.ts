@@ -67,14 +67,18 @@ describe('SafetyService', () => {
     ).rejects.toThrow(UnprocessableEntityException);
   });
 
-  it('rejects a market below the minimum liquidity gate', async () => {
-    (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(
-      baseMarket({ liquidityUsd: DISCOVERY_RANKING.minLiquidityUsd - 1 }),
-    );
+  it('rejects a market whose pool is empty', async () => {
+    (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(baseMarket({ liquidityUsd: 0 }));
 
     await expect(
       safety.assertTradable('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 8453),
     ).rejects.toThrow(UnprocessableEntityException);
+  });
+
+  it('trades a small market under the lists minimum of $10K (found by its address)', async () => {
+    (mockedPrisma.tokenMarket.findFirst as jest.Mock).mockResolvedValue(baseMarket({ liquidityUsd: 2_500 }));
+
+    await expect(safety.assertTradable('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 8453)).resolves.toBeDefined();
   });
 
   it('rejects a market with a stale price snapshot', async () => {

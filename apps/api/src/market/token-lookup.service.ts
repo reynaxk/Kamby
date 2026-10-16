@@ -9,9 +9,9 @@ import { getConfiguredChains, type Env } from '../config/env';
 /** DexScreener's chain ids for the chains Kamby trades on. */
 const DEXSCREENER_EVM: Record<string, number> = { base: 8453, bsc: 56, robinhood: 4663 };
 const GOPLUS_CHAIN: Record<number, string> = { 8453: '8453', 56: '56', 4663: '4663' };
-/** Same bars the automatic listing uses (apps/workers aggregator-markets.ts), so a pasted
- *  address can't list a coin the lists would have refused. */
-const MIN_LIQUIDITY_USD = 10_000;
+/** No liquidity floor for a pasted address (owner 2026-10-16: "not able to see under 10K is
+ *  not good") — the person asked for this exact coin. The public lists still hide anything
+ *  under Discover's $10K minimum, and the honeypot/tax check below still applies. */
 const MAX_TAX = 0.1;
 /** price_change_24h_pct is Decimal(12, 4) — a launch-price "change" can overflow it (see the workers' clampPct). */
 function clampPct(value: number | undefined): number | null {
@@ -64,7 +64,7 @@ export function unsafe(r: GoPlusResult | undefined): boolean {
  *  - Solana: the coin is returned as-is — its page already loads any mint live.
  *  - Base / BNB / Robinhood: the coin is listed the same way the automatic discovery lists
  *    coins (an aggregator-priced market, re-priced by the workers every minute) — but only
- *    if it passes the same liquidity floor and GoPlus honeypot/tax check.
+ *    if it passes the GoPlus honeypot/tax check (any liquidity; the lists hide < $10K).
  */
 @Injectable()
 export class TokenLookupService {
@@ -133,7 +133,7 @@ export class TokenLookupService {
 
   private async listEvm(address: string, pairs: DexScreenerPair[]): Promise<{ evmMarketId: string } | null> {
     const pair = bestOwnPair(pairs, address, (c) => c in DEXSCREENER_EVM);
-    if (!pair?.chainId || !pair.pairAddress || (pair.liquidity?.usd ?? 0) < MIN_LIQUIDITY_USD) return null;
+    if (!pair?.chainId || !pair.pairAddress || !(Number(pair.priceUsd) > 0)) return null;
     const chainId = DEXSCREENER_EVM[pair.chainId]!;
     const client = this.clients.get(chainId);
     const usdc = EVM_USDC_BY_CHAIN_ID[chainId];

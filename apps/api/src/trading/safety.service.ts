@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { prisma } from '@kamby/db';
 import type { Prisma } from '@kamby/db';
-import { DISCOVERY_RANKING, identifierForChainId, isPriceStale, normalizeEvmAddress } from '@kamby/domain';
+import { identifierForChainId, isPriceStale, normalizeEvmAddress } from '@kamby/domain';
 import { findPrimaryMarket } from '../market/primary-market';
 
 export type TradableMarket = Prisma.TokenMarketGetPayload<{
@@ -13,8 +13,7 @@ export type TradableMarket = Prisma.TokenMarketGetPayload<{
  * docs/TRADING.md#token-safety and #chain-scope. Trading is scoped to markets Kamby already
  * tracks (a token page only exists for one of these), so "does this token exist / have a
  * route / have liquidity" reduces to "is it one of our tracked markets, in good standing" —
- * reusing Phase 1's own discovery gates (`DISCOVERY_RANKING.minLiquidityUsd`,
- * `isPriceStale`) rather than inventing a parallel safety system. Never claims a token is
+ * reusing Phase 1's own gates (real liquidity, `isPriceStale`) rather than inventing a parallel safety system. Never claims a token is
  * "safe" — see `SAFETY_DISCLAIMER` in packages/domain/src/trading.ts.
  */
 @Injectable()
@@ -44,8 +43,11 @@ export class SafetyService {
     if (market.token.decimals === null || market.quoteToken.decimals === null) {
       throw new UnprocessableEntityException(`Token decimals unknown for "${tokenAddress}" — cannot trade it yet`);
     }
-    if (market.liquidityUsd === null || Number(market.liquidityUsd) < DISCOVERY_RANKING.minLiquidityUsd) {
-      throw new UnprocessableEntityException('This market does not have enough tracked liquidity to trade safely');
+    // Any real liquidity trades (owner 2026-10-16: coins under $10K must be reachable — they
+    // come from an exact-address search; the public lists still hide them). An empty or
+    // unknown pool still can't be traded; the quote's own slippage limit guards the fill.
+    if (market.liquidityUsd === null || !(Number(market.liquidityUsd) > 0)) {
+      throw new UnprocessableEntityException('This market has no tracked liquidity to trade');
     }
     if (isPriceStale(market.lastPriceUpdateAt)) {
       throw new UnprocessableEntityException('Price data for this market is stale — try again shortly');
