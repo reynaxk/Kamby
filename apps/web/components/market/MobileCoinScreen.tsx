@@ -212,12 +212,13 @@ export function MobileCoinScreen({
         </>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 bg-gradient-to-t from-bg via-bg/95 to-bg/0 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-6">
+      {/* Buy / Sell float in a frosted capsule, like the tab bar on the other screens (2026-10-16). */}
+      <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex gap-1.5 rounded-[1.4rem] p-1.5 kamby-glass-solid kamby-glass-dense shadow-[0_10px_36px_rgba(0,0,0,0.6)]">
         <button
           type="button"
           disabled={!canTrade}
           onClick={() => setSide('BUY')}
-          className="h-14 flex-[2] rounded-2xl bg-accent font-display text-base font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-40"
+          className="h-12 flex-[2] rounded-2xl bg-accent font-display text-base font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-40"
         >
           {tT('buy')}
         </button>
@@ -225,7 +226,7 @@ export function MobileCoinScreen({
           type="button"
           disabled={!canTrade}
           onClick={() => setSide('SELL')}
-          className="h-14 flex-1 rounded-2xl border border-down/40 bg-surface font-display text-base font-bold text-down transition-transform active:scale-[0.98] disabled:opacity-40"
+          className="h-12 flex-1 rounded-2xl border border-down/30 bg-down/[0.08] font-display text-base font-bold text-down transition-transform active:scale-[0.98] disabled:opacity-40"
         >
           {tT('sell')}
         </button>

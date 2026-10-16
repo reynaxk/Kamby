@@ -80,7 +80,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed inset-x-4 top-4 z-50 flex flex-col items-stretch gap-2 sm:inset-x-auto sm:right-4 sm:w-96">
+      <div className="pointer-events-none fixed inset-x-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[60] flex flex-col items-stretch gap-2 sm:inset-x-auto sm:right-4 sm:w-96">
         {toasts.map((toast) => (
           <ToastCard key={toast.id} toast={toast} onDismiss={() => dismiss(toast.id)} />
         ))}
@@ -105,8 +105,11 @@ function ToastCard({ toast, onDismiss }: { toast: TerminalToast; onDismiss: () =
   const tU = useTranslations('ui');
   const { icon: Icon, accent } = VARIANT_STYLES[toast.variant];
   return (
-    <div className="pointer-events-auto flex items-start gap-2.5 rounded-xl border border-line bg-surface p-3 shadow-lg shadow-black/40">
-      <Icon className={cn('mt-0.5 h-4 w-4 shrink-0', accent, toast.variant === 'pending' && 'animate-pulse')} />
+    // Frosted glass, the icon in its own tile, sliding down into place (2026-10-16).
+    <div className="kamby-glass-solid kamby-toast-in pointer-events-auto flex items-start gap-3 rounded-2xl p-3 shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+      <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]', accent)}>
+        <Icon className={cn('h-4 w-4', toast.variant === 'pending' && 'animate-pulse')} />
+      </span>
       <div className="min-w-0 flex-1">
         <p className="font-display text-sm font-semibold text-ink-900">{toast.title}</p>
         {toast.description && <p className="mt-0.5 font-body text-xs text-ink-600">{toast.description}</p>}

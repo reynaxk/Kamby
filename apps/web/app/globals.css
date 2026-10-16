@@ -590,6 +590,14 @@ body:has(.kamby-void) {
   .kamby-sheet-up { animation: none; }
 }
 
+/* A toast slides down into place — transform only, never invisible. */
+@keyframes kamby-toast-in {
+  from { transform: translateY(-14px) scale(0.98); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kamby-toast-in { animation: kamby-toast-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+}
+
 /* A new chat line rises into place (components/chat/TokenStreamChat.tsx) — transform only, the
    text is never invisible. */
 @keyframes kamby-chat-in {
