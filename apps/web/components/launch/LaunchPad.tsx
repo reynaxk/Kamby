@@ -39,7 +39,8 @@ function bytesToBase64(bytes: Uint8Array): string {
 const CHAIN_BADGE: Record<string, 'solana' | 'base' | 'bnb' | 'robinhood'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb', 'eip155:4663': 'robinhood' };
 /** What the launch itself costs on-chain, shown before the real figure: Pump.fun's create is about
  *  0.03 SOL (its accounts + fees); on Base the smallest swap ($1) covers the deploy's gas. */
-const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 3.5, 'eip155:8453': 1, 'eip155:56': 1, 'eip155:4663': 1 };
+// Solana: Pump.fun's create reserve (0.015 SOL, see the api's pumpfun.adapter) — ~$1.60.
+const NETWORK_COST_ESTIMATE_USD: Record<string, number> = { solana: 1.6, 'eip155:8453': 1, 'eip155:56': 1, 'eip155:4663': 1 };
 const BRIDGE_TARGET: Record<string, 'solana' | 'base' | 'bnb' | 'robinhood'> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bnb', 'eip155:4663': 'robinhood' };
 
 /**

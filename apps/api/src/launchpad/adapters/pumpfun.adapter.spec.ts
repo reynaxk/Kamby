@@ -29,7 +29,8 @@ describe('PumpFunAdapter — the create transaction it hands out', () => {
   beforeEach(() => {
     connection = {
       getBalance: jest.fn().mockResolvedValue(150_000_000), // 0.15 SOL
-      simulateTransaction: jest.fn().mockResolvedValue({ value: { err: null, accounts: [{ lamports: 150_000_000 - 90_000_000 }] } }),
+      // A real create with a $10 first buy: 0.066 SOL + its ~1.75% fees + ~0.0095 SOL of create costs (measured 2026-10-16).
+      simulateTransaction: jest.fn().mockResolvedValue({ value: { err: null, accounts: [{ lamports: 150_000_000 - 78_000_000 }] } }),
     };
     const relayer = { relayerConnection: connection, feePayerPublicKey: Keypair.generate().publicKey.toBase58() };
     const jupiter = { getEstimatedOutputRaw: jest.fn().mockResolvedValue('66000000') }; // $10 → 0.066 SOL

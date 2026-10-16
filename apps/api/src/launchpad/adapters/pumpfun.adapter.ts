@@ -17,9 +17,13 @@ const PUMPPORTAL_TRADE_LOCAL_URL = 'https://pumpportal.fun/api/trade-local';
 const PUMP_PROGRAM_ID = '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P';
 const PUMP_FEE_PROGRAM_ID = 'pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ';
 const METAPLEX_METADATA_PROGRAM_ID = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
-/** What a create costs besides the first buy: its accounts' rent (~0.02 SOL), PumpPortal's 0.5%,
- *  network and priority fees — kept back from the SOL the funding step buys. */
-const CREATE_RESERVE_LAMPORTS = 30_000_000;
+/** What a create costs besides the first buy — kept back from the SOL the funding step buys.
+ *  Measured on real Pump.fun creates (2026-10-16): new accounts' rent + bonding curve rent +
+ *  network/priority fees came to 0.0089–0.0103 SOL. 0.015 keeps ~50% headroom (it was 0.03,
+ *  which showed users ≈$3.50 for a ≈$1 cost; what isn't spent stays in their wallet). */
+const CREATE_RESERVE_LAMPORTS = 15_000_000;
+/** Fees taken on the first buy itself: Pump.fun's (~1.25%) and PumpPortal's 0.5%, with room. */
+const BUY_FEE_SHARE = 0.03;
 /** Funding buys a little more SOL than the target, so price movement can't leave it short. */
 const FUNDING_BUFFER = 1.03;
 /** The smallest swap the funding step does (Jupiter needs a real route; also covers the reserve). */
@@ -86,7 +90,7 @@ export class PumpFunAdapter implements LaunchAdapter {
     const devBuyLamports = Math.round(Number(launch.devBuyUsd) * perUsd);
     const balance = await connection.getBalance(new PublicKey(launch.walletAddress), 'confirmed');
     // SOL already in the wallet (say, from an earlier try) counts toward what's needed.
-    const shortLamports = Math.max(0, devBuyLamports + CREATE_RESERVE_LAMPORTS - balance);
+    const shortLamports = Math.max(0, Math.ceil(devBuyLamports * (1 + BUY_FEE_SHARE)) + CREATE_RESERVE_LAMPORTS - balance);
     const fundUsdcRaw = BigInt(Math.max(Number(MIN_FUNDING_USDC_RAW), Math.ceil((shortLamports / perUsd) * FUNDING_BUFFER * 1e6)));
     const feeRaw = BigInt(Math.round(feeUsd * 1e6));
 
@@ -132,7 +136,8 @@ export class PumpFunAdapter implements LaunchAdapter {
     const spendable = balance - CREATE_RESERVE_LAMPORTS;
     if (spendable < 0) throw new UnprocessableEntityException('Not enough SOL for the launch yet — the funding step may still be landing. Try again in a few seconds.');
     const target = Number(launch.devBuyUsd) > 0 ? Math.round(Number(launch.devBuyUsd) * (await this.lamportsPerUsd())) : 0;
-    const devBuyLamports = Math.min(target, spendable);
+    // The first buy's own fees come out of the same SOL, on top of the buy.
+    const devBuyLamports = Math.min(target, Math.floor(spendable / (1 + BUY_FEE_SHARE)));
 
     const mint = Keypair.generate();
     const response = await fetch(PUMPPORTAL_TRADE_LOCAL_URL, {
@@ -188,7 +193,7 @@ export class PumpFunAdapter implements LaunchAdapter {
       throw new UnprocessableEntityException('The launch would fail right now — nothing was sent. Try again in a moment.');
     }
     const after = simulation.value.accounts?.[0]?.lamports;
-    const maxSpend = devBuyLamports * 1.02 + CREATE_RESERVE_LAMPORTS;
+    const maxSpend = devBuyLamports * (1 + BUY_FEE_SHARE) + CREATE_RESERVE_LAMPORTS;
     if (after === undefined || before - after > maxSpend) {
       this.logger.warn({ spend: after === undefined ? null : before - after, maxSpend }, 'pump.fun create would spend more SOL than expected');
       throw new ForbiddenException('The launch transaction would spend more than expected — refusing to hand it out');
