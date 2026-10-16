@@ -459,16 +459,79 @@ body:has(.kamby-void) {
    (real backdrop blur stuttered on older Android). No glow. */
 @media (max-width: 767px) {
   .kamby-glass {
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02) 60%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.02) 60%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
   }
 }
-/* The same over a solid base — for bars and sheets that sit on top of moving content. */
+/* Desktop gets the same glass (2026-10-16) — except cards that paint their own md: background. */
+@media (min-width: 768px) {
+  .kamby-glass:not([class*='md:bg-']) {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015) 60%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+}
+/* Ambient backdrop (owner 2026-10-16: "more glassmorphism"): glass only reads as glass with
+   colour behind it, and the app's background was flat black. A deep indigo wash top-right and
+   a faint neon one top-left, painted once on the page background — static, no blur, no
+   animation, nothing per frame — so every translucent card on top picks up depth. */
+.kamby-void.min-h-screen.bg-bg,
+.kamby-void .min-h-screen.bg-bg {
+  background-image:
+    radial-gradient(54rem 32rem at 112% -6%, rgba(72, 88, 255, 0.12), transparent 62%),
+    radial-gradient(34rem 26rem at -14% 6%, rgba(0, 255, 135, 0.05), transparent 60%),
+    radial-gradient(44rem 30rem at 110% 62rem, rgba(72, 88, 255, 0.06), transparent 62%);
+  background-repeat: no-repeat;
+}
+/* Glass cards look like glass (owner 2026-10-16: "looking more like glass"): a light edge that
+   catches the light top-left and fades away, a bright top rim and a soft shadow underneath.
+   The edge is a 1px masked ring, so the card itself stays see-through. */
+.kamby-glass {
+  position: relative;
+}
+.kamby-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06) 34%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.12));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+@media (max-width: 767px) {
+  .kamby-glass {
+    border-color: transparent;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Frosted glass for what floats over moving content — the tab bar, bottom sheets, the trade
+   sheet, popovers: see-through, with what's behind softly blurred. Kept to these few floating
+   pieces (2026-10-12: blur on every card stuttered older Android); anything that can't blur, or
+   asks for less transparency, gets the solid version. */
 .kamby-glass-solid {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 60%), rgb(var(--kamby-surface));
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03) 60%), rgba(14, 16, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kamby-glass-solid {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 60%), rgb(var(--kamby-surface));
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .kamby-glass-solid {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 60%), rgb(var(--kamby-surface));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* Glass everywhere on the phone app (owner 2026-10-12): every card, pill, field and sheet gets
