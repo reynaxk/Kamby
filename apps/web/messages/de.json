@@ -620,7 +620,9 @@
     "usernamePlaceholder": "name",
     "noSuchUser": "Kein Kamby-Nutzer mit diesem Namen.",
     "noWalletOnNetwork": "Noch keine Wallet auf {chain} — wähle ein anderes Netzwerk",
-    "sentToUser": "An @{username} gesendet"
+    "sentToUser": "An @{username} gesendet",
+    "sinceViewed": "seit du geschaut hast",
+    "removeRecent": "Aus Verlauf entfernen"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

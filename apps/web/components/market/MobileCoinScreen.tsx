@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
@@ -13,6 +13,7 @@ import { PositionChip } from '@/components/trading/PositionChip';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
 import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
+import { saveRecentSearch } from '@/lib/recent-searches';
 
 export interface MobileCoinTab {
   id: string;
@@ -86,6 +87,15 @@ export function MobileCoinScreen({
   const marketCap = initialMarketCapUsd !== null && initialPrice && price ? (initialMarketCapUsd * price) / initialPrice : initialMarketCapUsd;
   const up = (change ?? 0) >= 0;
   const chain = badgeChainFor(chainIdentifier);
+
+  // Every coin you open goes into Search's history, with the price you saw (2026-10-16) —
+  // once per visit, as soon as there's a price.
+  const recorded = useRef<string | null>(null);
+  useEffect(() => {
+    if (price === null || recorded.current === address) return;
+    recorded.current = address;
+    saveRecentSearch({ chainIdentifier, tokenAddress: address, symbol, name, logoUrl, priceUsd: price });
+  }, [address, price, chainIdentifier, symbol, name, logoUrl]);
   const label = symbol ?? name ?? address.slice(0, 6);
 
   async function share() {

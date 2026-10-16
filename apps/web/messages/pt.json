@@ -620,7 +620,9 @@
     "usernamePlaceholder": "usuário",
     "noSuchUser": "Nenhum usuário da Kamby com esse nome.",
     "noWalletOnNetwork": "Ainda sem carteira na {chain} — escolha outra rede",
-    "sentToUser": "Enviado para @{username}"
+    "sentToUser": "Enviado para @{username}",
+    "sinceViewed": "desde que você viu",
+    "removeRecent": "Remover dos recentes"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",

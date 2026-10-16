@@ -620,7 +620,9 @@
     "usernamePlaceholder": "用户名",
     "noSuchUser": "没有这个名字的 Kamby 用户。",
     "noWalletOnNetwork": "在 {chain} 上还没有钱包 — 换个网络",
-    "sentToUser": "已发送给 @{username}"
+    "sentToUser": "已发送给 @{username}",
+    "sinceViewed": "自你查看以来",
+    "removeRecent": "从最近记录中移除"
   },
   "notif": {
     "kind_FOLLOW": "关注",

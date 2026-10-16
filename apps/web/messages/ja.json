@@ -620,7 +620,9 @@
     "usernamePlaceholder": "ユーザー名",
     "noSuchUser": "その名前のKambyユーザーはいません。",
     "noWalletOnNetwork": "{chain} のウォレットはまだありません — 別のネットワークを選んでください",
-    "sentToUser": "@{username} に送りました"
+    "sentToUser": "@{username} に送りました",
+    "sinceViewed": "閲覧時から",
+    "removeRecent": "履歴から削除"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

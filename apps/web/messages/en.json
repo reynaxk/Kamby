@@ -620,7 +620,9 @@
     "usernamePlaceholder": "username",
     "noSuchUser": "No Kamby user with that name.",
     "noWalletOnNetwork": "No wallet on {chain} yet — pick another network",
-    "sentToUser": "Sent to @{username}"
+    "sentToUser": "Sent to @{username}",
+    "sinceViewed": "since you looked",
+    "removeRecent": "Remove from recent"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

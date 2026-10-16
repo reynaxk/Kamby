@@ -620,7 +620,9 @@
     "usernamePlaceholder": "kullanıcı adı",
     "noSuchUser": "Bu isimde bir Kamby kullanıcısı yok.",
     "noWalletOnNetwork": "{chain} üzerinde henüz cüzdan yok — başka bir ağ seç",
-    "sentToUser": "@{username} kullanıcısına gönderildi"
+    "sentToUser": "@{username} kullanıcısına gönderildi",
+    "sinceViewed": "baktığından beri",
+    "removeRecent": "Son aramalardan kaldır"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

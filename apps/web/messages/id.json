@@ -620,7 +620,9 @@
     "usernamePlaceholder": "username",
     "noSuchUser": "Tidak ada pengguna Kamby dengan nama itu.",
     "noWalletOnNetwork": "Belum ada dompet di {chain} — pilih jaringan lain",
-    "sentToUser": "Terkirim ke @{username}"
+    "sentToUser": "Terkirim ke @{username}",
+    "sinceViewed": "sejak kamu lihat",
+    "removeRecent": "Hapus dari terbaru"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

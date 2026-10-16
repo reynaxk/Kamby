@@ -620,7 +620,9 @@
     "usernamePlaceholder": "имя",
     "noSuchUser": "В Kamby нет пользователя с таким именем.",
     "noWalletOnNetwork": "Пока нет кошелька в {chain} — выбери другую сеть",
-    "sentToUser": "Отправлено @{username}"
+    "sentToUser": "Отправлено @{username}",
+    "sinceViewed": "с вашего просмотра",
+    "removeRecent": "Убрать из недавних"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

@@ -620,7 +620,9 @@
     "usernamePlaceholder": "tên người dùng",
     "noSuchUser": "Không có người dùng Kamby nào tên đó.",
     "noWalletOnNetwork": "Chưa có ví trên {chain} — chọn mạng khác",
-    "sentToUser": "Đã gửi đến @{username}"
+    "sentToUser": "Đã gửi đến @{username}",
+    "sinceViewed": "kể từ khi bạn xem",
+    "removeRecent": "Xóa khỏi gần đây"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

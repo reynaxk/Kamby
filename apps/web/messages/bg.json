@@ -620,7 +620,9 @@
     "usernamePlaceholder": "потребител",
     "noSuchUser": "Няма потребител в Kamby с това име.",
     "noWalletOnNetwork": "Още няма портфейл в {chain} — избери друга мрежа",
-    "sentToUser": "Изпратено до @{username}"
+    "sentToUser": "Изпратено до @{username}",
+    "sinceViewed": "откакто гледа",
+    "removeRecent": "Премахни от скорошни"
   },
   "notif": {
     "kind_FOLLOW": "Последване",
