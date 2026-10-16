@@ -128,7 +128,7 @@ export function LivePriceChart({
     try {
       chart = createChart(container, {
         layout: {
-          background: { type: ColorType.Solid, color: readRgba('--kamby-bg', container, 1) },
+          background: { type: ColorType.Solid, color: 'rgba(0, 0, 0, 0)' },
           textColor: readRgba('--kamby-ink-600', container, 1),
           fontFamily: chartFontFamily(container),
           attributionLogo: false,

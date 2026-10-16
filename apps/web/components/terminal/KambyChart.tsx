@@ -326,7 +326,8 @@ export function KambyChart({
     try {
       chart = createChart(container, {
         layout: {
-          background: { type: ColorType.Solid, color: bg },
+          // Transparent, so the page's backdrop runs under the chart with no seam (2026-10-16).
+          background: { type: ColorType.Solid, color: 'rgba(0, 0, 0, 0)' },
           textColor: ink,
           fontFamily: chartFontFamily(container),
           attributionLogo: false,
