@@ -98,12 +98,14 @@ export function RecentSearches() {
                   <PriceText value={now ?? then} />
                 </span>
                 {moved !== null ? (
-                  <span className={cn('mt-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-body text-[0.62rem] font-semibold tabular-nums', up ? 'bg-up/10 text-up' : 'bg-down/10 text-down')}>
-                    {up ? '▲' : '▼'} {formatPercent(moved).replace(/^[+-]/, '')}
-                    <span className="font-medium opacity-70">{t('sinceViewed')}</span>
+                  <span className="mt-1.5 block">
+                    <span className={cn('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-body text-xs font-bold tabular-nums', up ? 'bg-up/10 text-up' : 'bg-down/10 text-down')}>
+                      {up ? '▲' : '▼'} {formatPercent(moved).replace(/^[+-]/, '')}
+                    </span>
+                    <span className="mt-1 block truncate font-body text-[0.62rem] text-ink-400">{t('sinceViewed')}</span>
                   </span>
                 ) : (
-                  <span className="mt-1 block h-[1.125rem]" aria-hidden />
+                  <span className="mt-1.5 block h-[2.4rem]" aria-hidden />
                 )}
               </Link>
               <button
