@@ -60,7 +60,7 @@ function SelectableTokenRowView({
       }
       className={cn(
         'terminal-token-row relative flex w-full items-center gap-2.5 border-b border-line/60 px-2.5 py-2.5 text-left transition-all max-md:gap-3 max-md:border-0 max-md:px-4 max-md:py-3',
-        selected ? 'bg-surface-raised' : 'hover:bg-surface-raised',
+        selected ? 'bg-surface-raised' : 'hover:bg-surface-raised max-md:active:bg-white/[0.05]',
         disabled && !selected && 'cursor-not-allowed opacity-50',
       )}
     >

@@ -87,13 +87,13 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
       <label htmlFor="market-search" className="sr-only">
         {tU('searchTokensBySymbolName_383c')}
       </label>
-      <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 transition-colors focus-within:border-accent max-md:rounded-2xl max-md:py-3">
+      <div className="group flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 transition-colors focus-within:border-accent max-md:rounded-2xl max-md:py-3">
         <svg
           aria-hidden
           width="15"
           height="15"
           viewBox="0 0 15 15"
-          className="shrink-0 text-ink-400"
+          className="shrink-0 text-ink-400 transition-colors group-focus-within:text-accent"
         >
           <circle cx="6.5" cy="6.5" r="5" fill="none" stroke="currentColor" strokeWidth="1.4" />
           <line
@@ -125,7 +125,7 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
       {showDropdown && (
         <div
           aria-label={tU('searchResults_eb6b')}
-          className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-lg"
+          className="kamby-glass-solid absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-2xl shadow-[0_18px_44px_rgba(0,0,0,0.55)]"
         >
           {results.map((market) => {
             const chainSlug = slugForIdentifier(market.chainIdentifier);

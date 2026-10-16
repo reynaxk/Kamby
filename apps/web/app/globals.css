@@ -521,6 +521,23 @@ body:has(.kamby-void) {
   -webkit-backdrop-filter: blur(20px) saturate(170%);
   backdrop-filter: blur(20px) saturate(170%);
 }
+/* Denser frost for what sits over text you still need to read past (the tab bar, sticky tabs). */
+.kamby-glass-solid.kamby-glass-dense {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025) 60%), rgba(10, 12, 20, 0.8);
+}
+/* Phones: the sticky list tabs on Home, frosted over the coins scrolling under them. */
+@media (max-width: 767px) {
+  .kamby-frost-bar-phone {
+    background: rgba(6, 7, 12, 0.78);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .kamby-frost-bar-phone {
+      background: rgb(var(--kamby-bg));
+    }
+  }
+}
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .kamby-glass-solid {
     background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 60%), rgb(var(--kamby-surface));

@@ -245,7 +245,7 @@ export function DiscoverTokenList({
       {/* Phones: opening Pulse scrolls here so the tabs stick at the top and the chat fills the
           rest of the screen (its composer was ending up behind the tab bar, 2026-10-13). */}
       {pageScroll && <div ref={tabsAnchorRef} aria-hidden className="max-md:scroll-mt-[calc(env(safe-area-inset-top)+3rem)]" />}
-      <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:bg-bg max-md:pb-1')}>
+      <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 kamby-frost-bar-phone max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:pb-1')}>
       {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} roomy={pageScroll} />}
       {primaryTab === 'tokens' && pageScroll && tokenChips}
       {primaryTab === 'tokens' && pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} className="pt-1.5 md:px-3 md:pb-1" />}

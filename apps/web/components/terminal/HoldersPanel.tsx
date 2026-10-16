@@ -72,7 +72,23 @@ export function HoldersPanel({ source, onCount }: { source: ChartSource; onCount
     };
   }, [chain, address]);
 
-  if (status === 'loading') return <p className="p-4 text-ink-400">{tC('loadingHolders')}</p>;
+  if (status === 'loading') {
+    // Rows shaped like the real list while it loads (2026-10-16) — the text stays for screen readers.
+    return (
+      <div className="flex flex-col gap-1 px-4 py-3" role="status" aria-label={tC('loadingHolders')}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-3 py-1.5">
+            <span className="h-9 w-9 shrink-0 animate-pulse rounded-xl bg-white/[0.05]" />
+            <span className="flex-1 space-y-1.5">
+              <span className="block h-3 w-28 animate-pulse rounded-full bg-white/[0.06]" />
+              <span className="block h-2 w-20 animate-pulse rounded-full bg-white/[0.04]" />
+            </span>
+            <span className="h-3 w-14 animate-pulse rounded-full bg-white/[0.06]" />
+          </div>
+        ))}
+      </div>
+    );
+  }
   if (status === 'error' || !data || data.holders.length === 0) {
     return <p className="p-4 text-ink-400">{tC('noHolders')}</p>;
   }
