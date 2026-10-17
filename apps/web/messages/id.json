@@ -892,5 +892,15 @@
     "share": "Bagikan layar",
     "stopShare": "Berhenti berbagi",
     "hangUp": "Tutup"
+  },
+  "stories": {
+    "title": "Profit hari ini",
+    "close": "Tutup",
+    "realized": "Profit terealisasi",
+    "invested": "Modal {amount}",
+    "previous": "Sebelumnya",
+    "next": "Berikutnya",
+    "buy": "Beli {symbol}",
+    "profile": "Profil"
   }
 }

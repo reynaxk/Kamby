@@ -1,3 +1,4 @@
+import { StoriesController, StoriesService } from './stories';
 import { MarketFeedsModule } from '../market-feeds/market-feeds.module';
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
@@ -39,7 +40,7 @@ import { SocialController } from './social.controller';
  */
 @Module({
   imports: [IdentityModule, RealtimeModule, NotificationsModule, MarketModule, SolanaModule, MarketFeedsModule],
-  controllers: [SocialController],
+  controllers: [SocialController, StoriesController],
   providers: [
     ActivityService,
     FollowService,
@@ -49,6 +50,7 @@ import { SocialController } from './social.controller';
     ThesisService,
     TraderService,
     TrendingService,
+    StoriesService,
   ],
   exports: [ActivityService, PositionService, LeaderboardService],
 })

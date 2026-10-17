@@ -892,5 +892,15 @@
     "share": "共享屏幕",
     "stopShare": "停止共享",
     "hangUp": "挂断"
+  },
+  "stories": {
+    "title": "今日盈利",
+    "close": "关闭",
+    "realized": "已实现盈利",
+    "invested": "投入 {amount}",
+    "previous": "上一个",
+    "next": "下一个",
+    "buy": "买入 {symbol}",
+    "profile": "主页"
   }
 }

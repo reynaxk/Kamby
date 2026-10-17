@@ -892,5 +892,15 @@
     "share": "Partager l’écran",
     "stopShare": "Arrêter le partage",
     "hangUp": "Raccrocher"
+  },
+  "stories": {
+    "title": "Gains du jour",
+    "close": "Fermer",
+    "realized": "Gain réalisé",
+    "invested": "Mis {amount}",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "buy": "Acheter {symbol}",
+    "profile": "Profil"
   }
 }

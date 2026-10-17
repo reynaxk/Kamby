@@ -892,5 +892,15 @@
     "share": "画面を共有",
     "stopShare": "共有を停止",
     "hangUp": "終了"
+  },
+  "stories": {
+    "title": "今日の勝ち",
+    "close": "閉じる",
+    "realized": "確定利益",
+    "invested": "投資額 {amount}",
+    "previous": "前へ",
+    "next": "次へ",
+    "buy": "{symbol}を買う",
+    "profile": "プロフィール"
   }
 }

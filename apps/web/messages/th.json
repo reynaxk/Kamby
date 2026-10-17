@@ -892,5 +892,15 @@
     "share": "แชร์หน้าจอ",
     "stopShare": "หยุดแชร์",
     "hangUp": "วางสาย"
+  },
+  "stories": {
+    "title": "กำไรวันนี้",
+    "close": "ปิด",
+    "realized": "กำไรที่รับรู้แล้ว",
+    "invested": "ลงทุน {amount}",
+    "previous": "ก่อนหน้า",
+    "next": "ถัดไป",
+    "buy": "ซื้อ {symbol}",
+    "profile": "โปรไฟล์"
   }
 }

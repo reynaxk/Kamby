@@ -892,5 +892,15 @@
     "share": "화면 공유",
     "stopShare": "공유 중지",
     "hangUp": "끊기"
+  },
+  "stories": {
+    "title": "오늘의 수익",
+    "close": "닫기",
+    "realized": "실현 수익",
+    "invested": "투자 {amount}",
+    "previous": "이전",
+    "next": "다음",
+    "buy": "{symbol} 매수",
+    "profile": "프로필"
   }
 }

@@ -4,17 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
+import { useDmUnread } from '@/lib/dm-client';
 
 const TABS = [
   { href: '/home', label: 'home', match: ['/home'], icon: HomeIcon },
   { href: '/search', label: 'search', match: ['/search'], icon: SearchIcon },
+  // Private messages, Instagram-style, one tap away (2026-10-17).
+  { href: '/messages', label: 'messages', match: ['/messages'], icon: ChatIcon },
   { href: '/leaderboard', label: 'leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },
   { href: '/account', label: 'profile', match: ['/account', '/trades', '/notifications', '/referrals', '/watchlist'], icon: UserIcon },
 ] as const;
 
 /**
  * Phone navigation (2026-10-09 app redesign): a floating glass pill under the thumb — Home,
- * Search, Leaders, Profile — the active one a neon capsule with its name, the rest icons (the
+ * Search, Messages, Leaders, Profile — the active one a neon capsule with its name, the rest icons (the
  * centre Trade button was removed 2026-10-12: confusing). Phones only (the
  * price ticker keeps the desktop bottom edge); hidden on the landing page.
  */
@@ -22,6 +25,10 @@ export function MobileTabBar() {
   const tU = useTranslations('ui');
   const pathname = usePathname() ?? '/';
   const t = useTranslations('nav');
+  const tDm = useTranslations('dm');
+  const unread = useDmUnread();
+  const unreadCount = (unread?.messages ?? 0) + (unread?.requests ?? 0);
+  const label = (key: string) => (key === 'messages' ? tDm('title') : t(key));
   // The landing page has none; a coin's screen has its own Buy/Sell bar there instead (like fomo).
   // A private chat has its own composer at the bottom (2026-10-17).
   if (pathname === '/' || pathname.startsWith('/solana') || pathname.startsWith('/market/') || pathname.startsWith('/messages/')) return null;
@@ -35,16 +42,21 @@ export function MobileTabBar() {
             <li key={tab.href}>
               <Link
                 href={tab.href}
-                aria-label={t(tab.label)}
+                aria-label={label(tab.label)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   // The active tab is a solid neon capsule with its name; the rest are icons
                   // (2026-10-12, owner: the bar looked boring). Flat — no glow.
-                  'flex h-11 min-w-11 items-center justify-center rounded-full transition-[background-color,color,padding] duration-300 ease-out active:scale-95',
+                  'relative flex h-11 min-w-11 items-center justify-center rounded-full transition-[background-color,color,padding] duration-300 ease-out active:scale-95',
                   active ? 'bg-accent pl-3.5 pr-4 text-black' : 'px-2.5 text-ink-400',
                 )}
               >
                 <Icon active={active} />
+                {tab.label === 'messages' && unreadCount > 0 && !active && (
+                  <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 font-body text-[0.58rem] font-bold text-black ring-2 ring-[#0A0C14]">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
                 <span
                   className={cn(
                     'overflow-hidden whitespace-nowrap font-display text-sm font-bold transition-[max-width,opacity,margin] duration-300 ease-out',
@@ -52,7 +64,7 @@ export function MobileTabBar() {
                   )}
                   aria-hidden
                 >
-                  {t(tab.label)}
+                  {label(tab.label)}
                 </span>
               </Link>
             </li>
@@ -78,6 +90,9 @@ function SearchIcon({ active = false }: { active?: boolean }) {
 }
 function TrophyIcon({ active = false }: { active?: boolean }) {
   return svg(<><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></>, active);
+}
+function ChatIcon({ active = false }: { active?: boolean }) {
+  return svg(<path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z" />, active);
 }
 function UserIcon({ active = false }: { active?: boolean }) {
   return svg(<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>, active);

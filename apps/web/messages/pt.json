@@ -892,5 +892,15 @@
     "share": "Compartilhar tela",
     "stopShare": "Parar de compartilhar",
     "hangUp": "Desligar"
+  },
+  "stories": {
+    "title": "Ganhos de hoje",
+    "close": "Fechar",
+    "realized": "Ganho realizado",
+    "invested": "Investiu {amount}",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "buy": "Comprar {symbol}",
+    "profile": "Perfil"
   }
 }

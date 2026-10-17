@@ -892,5 +892,15 @@
     "share": "Compartir pantalla",
     "stopShare": "Dejar de compartir",
     "hangUp": "Colgar"
+  },
+  "stories": {
+    "title": "Ganancias de hoy",
+    "close": "Cerrar",
+    "realized": "Ganancia realizada",
+    "invested": "Invirtió {amount}",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "buy": "Comprar {symbol}",
+    "profile": "Perfil"
   }
 }

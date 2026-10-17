@@ -892,5 +892,15 @@
     "share": "Share screen",
     "stopShare": "Stop sharing",
     "hangUp": "Hang up"
+  },
+  "stories": {
+    "title": "Wins today",
+    "close": "Close",
+    "realized": "Realized win",
+    "invested": "Put in {amount}",
+    "previous": "Previous",
+    "next": "Next",
+    "buy": "Buy {symbol}",
+    "profile": "Profile"
   }
 }

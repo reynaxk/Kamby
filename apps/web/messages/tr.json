@@ -892,5 +892,15 @@
     "share": "Ekranı paylaş",
     "stopShare": "Paylaşımı durdur",
     "hangUp": "Kapat"
+  },
+  "stories": {
+    "title": "Bugünün kazançları",
+    "close": "Kapat",
+    "realized": "Gerçekleşen kazanç",
+    "invested": "Yatırılan {amount}",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "buy": "{symbol} al",
+    "profile": "Profil"
   }
 }

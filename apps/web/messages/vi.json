@@ -892,5 +892,15 @@
     "share": "Chia sẻ màn hình",
     "stopShare": "Dừng chia sẻ",
     "hangUp": "Kết thúc"
+  },
+  "stories": {
+    "title": "Lãi hôm nay",
+    "close": "Đóng",
+    "realized": "Lãi đã chốt",
+    "invested": "Đã bỏ vào {amount}",
+    "previous": "Trước",
+    "next": "Tiếp",
+    "buy": "Mua {symbol}",
+    "profile": "Hồ sơ"
   }
 }

@@ -7,7 +7,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
 import { AppBell } from '@/components/notifications/AppBell';
-import { MessagesButton } from '@/components/dm/MessagesButton';
+import { StoriesRow } from '@/components/stories/Stories';
 import { markAppReady } from '@/components/pwa/AppSplash';
 import { useAccount } from 'wagmi';
 import { cn } from '@kamby/ui';
@@ -71,11 +71,10 @@ export function PortfolioHeader() {
     <div className="kamby-rise -mb-2 flex items-center justify-between pt-1 md:hidden">
       {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
-      <span className="flex items-center">
-        <MessagesButton screen="phone" />
-        <AppBell />
-      </span>
+      <AppBell />
     </div>
+    {/* Today's wins as stories, Instagram-style (2026-10-17). */}
+    <StoriesRow />
     {/* Desktop (2026-10-15): the same midnight card as the phone — balance left, the three money
         buttons right, LaunchPad across the bottom — instead of a bare number over small buttons. */}
     <section className="kamby-rise kamby-rise-2 kamby-glass relative mt-3 overflow-hidden rounded-3xl px-4 py-4 md:mt-6 md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-center md:gap-x-8 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#05070A] md:px-7 md:py-7">
