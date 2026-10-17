@@ -142,7 +142,7 @@ export function DmInbox() {
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] font-display text-lg font-black text-accent" aria-hidden>
               #
             </span>
-            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('newCommunity')}</span>
+            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('communityBadge')}</span>
           </button>
         </div>
       )}

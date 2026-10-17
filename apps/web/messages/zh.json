@@ -889,7 +889,9 @@
     "communityInfo": "社区信息",
     "channelWelcome": "这是 {title} 中此频道的开始。",
     "channelPlaceholderSay": "在 #{channel} 发消息",
-    "communityBadge": "社区"
+    "communityBadge": "社区",
+    "sysCreatedCommunity": "{actor} 创建了社区",
+    "sysJoined": "{actor} 加入了"
   },
   "calls": {
     "failed": "通话未接通",

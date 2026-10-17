@@ -889,7 +889,9 @@
     "communityInfo": "커뮤니티 정보",
     "channelWelcome": "{title}의 이 채널이 시작됐어요.",
     "channelPlaceholderSay": "#{channel}에 메시지",
-    "communityBadge": "커뮤니티"
+    "communityBadge": "커뮤니티",
+    "sysCreatedCommunity": "{actor}님이 커뮤니티를 만들었어요",
+    "sysJoined": "{actor}님이 참여했어요"
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",

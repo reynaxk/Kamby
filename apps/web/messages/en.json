@@ -889,7 +889,9 @@
     "communityInfo": "Community info",
     "channelWelcome": "This is the start of the channel in {title}.",
     "channelPlaceholderSay": "Message #{channel}",
-    "communityBadge": "Community"
+    "communityBadge": "Community",
+    "sysCreatedCommunity": "{actor} created the community",
+    "sysJoined": "{actor} joined"
   },
   "calls": {
     "failed": "Call didn’t connect",

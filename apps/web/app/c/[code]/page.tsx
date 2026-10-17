@@ -9,9 +9,11 @@ export const dynamic = 'force-dynamic';
 export default function CommunityInvitePage({ params }: { params: { code: string } }) {
   if (!/^[a-z0-9]{6,16}$/i.test(params.code)) notFound();
   return (
-    <div className="kamby-void min-h-screen bg-bg px-4 pb-28">
+    <div className="kamby-void min-h-screen bg-bg pb-28">
       <AppBackBar title="" fallback="/messages" />
-      <InviteJoin code={params.code.toLowerCase()} />
+      <div className="px-4">
+        <InviteJoin code={params.code.toLowerCase()} />
+      </div>
     </div>
   );
 }

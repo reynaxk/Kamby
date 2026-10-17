@@ -94,9 +94,26 @@ export function ChannelBar({
   const t = useTranslations('dm');
   const voice = channels.find((c) => c.kind === 'voice');
   const people = lounge?.participants.length ?? 0;
+  const loungeChip = voice && (
+    <button
+      type="button"
+      onClick={onLounge}
+      disabled={inLounge}
+      className={cn(
+        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 font-display text-[0.8rem] font-bold transition-colors',
+        people > 0 ? 'border-accent/30 bg-accent/10 text-accent' : 'border-white/[0.06] bg-white/[0.04] text-ink-600 active:bg-white/[0.08]',
+      )}
+    >
+      {people > 0 ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> : <SpeakerIcon />}
+      {voice.name}
+      {people > 0 && <span className="rounded-full bg-accent px-1.5 font-body text-[0.62rem] text-black">{people}</span>}
+      {inLounge && <span className="font-body text-[0.65rem] font-semibold">· {t('youreIn')}</span>}
+    </button>
+  );
   return (
     <nav className="kamby-frost-bar-phone sticky top-[calc(env(safe-area-inset-top)+3.6rem)] z-20 border-b border-white/[0.05] md:bg-bg/90" aria-label={t('channels')}>
       <div className="mx-auto flex max-w-2xl gap-1.5 overflow-x-auto px-3 py-2 [scrollbar-width:none]">
+        {people > 0 && loungeChip}
         {channels
           .filter((c) => c.kind === 'text')
           .map((c) => (
@@ -114,22 +131,7 @@ export function ChannelBar({
               {c.name}
             </button>
           ))}
-        {voice && (
-          <button
-            type="button"
-            onClick={onLounge}
-            disabled={inLounge}
-            className={cn(
-              'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 font-display text-[0.8rem] font-bold transition-colors',
-              people > 0 ? 'border-accent/30 bg-accent/10 text-accent' : 'border-white/[0.06] bg-white/[0.04] text-ink-600 active:bg-white/[0.08]',
-            )}
-          >
-            <SpeakerIcon />
-            {voice.name}
-            {people > 0 && <span className="rounded-full bg-accent px-1.5 font-body text-[0.62rem] text-black">{people}</span>}
-            {inLounge && <span className="font-body text-[0.65rem] font-semibold">· {t('youreIn')}</span>}
-          </button>
-        )}
+        {people === 0 && loungeChip}
         {canAdd && (
           <button type="button" onClick={onAdd} aria-label={t('addChannel')} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.04] text-ink-400 active:bg-white/[0.08]">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
@@ -278,13 +280,13 @@ export function InviteJoin({ code }: { code: string }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!ready) return;
     fetchInvite(code)
       .then(setInvite)
       .catch((err: unknown) => setError(friendlyError(err)));
-  }, [code, ready, authenticated]);
+  }, [code, authenticated]);
 
   async function join() {
+    if (!ready) return;
     if (!authenticated) {
       login();
       return;
@@ -319,7 +321,7 @@ export function InviteJoin({ code }: { code: string }) {
             </button>
           ) : (
             <button type="button" disabled={busy} onClick={() => void join()} className="mt-6 w-full rounded-2xl bg-accent py-3.5 font-display text-base font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-40">
-              {busy ? '…' : authenticated ? t('joinCommunity') : t('signInToJoin')}
+              {busy ? '…' : authenticated || !ready ? t('joinCommunity') : t('signInToJoin')}
             </button>
           )}
         </>

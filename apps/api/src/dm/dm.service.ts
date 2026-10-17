@@ -65,6 +65,10 @@ export function systemText(s: DmSystem): string {
   switch (s.event) {
     case 'created':
       return `${actor} created the group`;
+    case 'createdCommunity':
+      return `${actor} created the community`;
+    case 'joined':
+      return `${actor} joined`;
     case 'added':
       return `${actor} added ${who(s.targets)}`;
     case 'removed':
@@ -506,7 +510,7 @@ export class DmService {
         },
       },
     });
-    await this.system(row.id, { event: 'created', actor: myName, targets: [] });
+    await this.system(row.id, { event: 'createdCommunity', actor: myName, targets: [] });
     return this.conversation(me, row.id);
   }
 
@@ -562,7 +566,7 @@ export class DmService {
     const count = await prisma.dmMember.count({ where: { conversationId: row.id, status: 'active' } });
     if (count >= DM_LIMITS.communityMaxMembers) throw new ForbiddenException('This community is full.');
     await prisma.dmMember.create({ data: { conversationId: row.id, userId: me, role: 'member', status: 'active', readAt: new Date() } });
-    await this.system(row.id, { event: 'added', actor: myName, targets: [myName] });
+    await this.system(row.id, { event: 'joined', actor: myName, targets: [] });
     return this.conversation(me, row.id);
   }
 

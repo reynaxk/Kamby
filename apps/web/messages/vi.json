@@ -889,7 +889,9 @@
     "communityInfo": "Thông tin cộng đồng",
     "channelWelcome": "Đây là khởi đầu của kênh trong {title}.",
     "channelPlaceholderSay": "Nhắn trong #{channel}",
-    "communityBadge": "Cộng đồng"
+    "communityBadge": "Cộng đồng",
+    "sysCreatedCommunity": "{actor} đã tạo cộng đồng",
+    "sysJoined": "{actor} đã tham gia"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",

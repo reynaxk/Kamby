@@ -32,8 +32,12 @@ export function useSystemText(): (s: DmSystem) => string {
     switch (s.event) {
       case 'created':
         return t('sysCreated', { actor });
+      case 'createdCommunity':
+        return t('sysCreatedCommunity', { actor });
       case 'added':
         return t('sysAdded', { actor, targets });
+      case 'joined':
+        return t('sysJoined', { actor });
       case 'removed':
         return t('sysRemoved', { actor, targets });
       case 'left':

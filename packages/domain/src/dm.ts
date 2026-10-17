@@ -42,7 +42,7 @@ export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'system';
 
 export interface DmSystem {
   /** 'call' = a call ended (durationSec) or was missed (durationSec 0). */
-  event: 'created' | 'added' | 'removed' | 'left' | 'renamed' | 'call';
+  event: 'created' | 'createdCommunity' | 'added' | 'joined' | 'removed' | 'left' | 'renamed' | 'call';
   actor: string | null;
   targets: string[];
   title?: string;

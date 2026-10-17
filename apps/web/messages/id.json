@@ -889,7 +889,9 @@
     "communityInfo": "Info komunitas",
     "channelWelcome": "Ini awal kanal di {title}.",
     "channelPlaceholderSay": "Kirim pesan ke #{channel}",
-    "communityBadge": "Komunitas"
+    "communityBadge": "Komunitas",
+    "sysCreatedCommunity": "{actor} membuat komunitas",
+    "sysJoined": "{actor} bergabung"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

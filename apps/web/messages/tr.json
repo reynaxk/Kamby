@@ -889,7 +889,9 @@
     "communityInfo": "Topluluk bilgisi",
     "channelWelcome": "{title} içinde bu kanalın başlangıcı.",
     "channelPlaceholderSay": "#{channel} kanalına yaz",
-    "communityBadge": "Topluluk"
+    "communityBadge": "Topluluk",
+    "sysCreatedCommunity": "{actor} topluluğu oluşturdu",
+    "sysJoined": "{actor} katıldı"
   },
   "calls": {
     "failed": "Arama bağlanamadı",

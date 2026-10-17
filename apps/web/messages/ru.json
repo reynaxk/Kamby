@@ -889,7 +889,9 @@
     "communityInfo": "О сообществе",
     "channelWelcome": "Это начало канала в {title}.",
     "channelPlaceholderSay": "Написать в #{channel}",
-    "communityBadge": "Сообщество"
+    "communityBadge": "Сообщество",
+    "sysCreatedCommunity": "{actor} создал(а) сообщество",
+    "sysJoined": "{actor} вступил(а)"
   },
   "calls": {
     "failed": "Звонок не соединился",

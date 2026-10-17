@@ -889,7 +889,9 @@
     "communityInfo": "ข้อมูลชุมชน",
     "channelWelcome": "นี่คือจุดเริ่มต้นของช่องใน {title}",
     "channelPlaceholderSay": "ส่งข้อความใน #{channel}",
-    "communityBadge": "ชุมชน"
+    "communityBadge": "ชุมชน",
+    "sysCreatedCommunity": "{actor} สร้างชุมชน",
+    "sysJoined": "{actor} เข้าร่วมแล้ว"
   },
   "calls": {
     "failed": "การโทรเชื่อมต่อไม่ได้",

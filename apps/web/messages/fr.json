@@ -889,7 +889,9 @@
     "communityInfo": "Infos de la communauté",
     "channelWelcome": "C’est le début du salon dans {title}.",
     "channelPlaceholderSay": "Message dans #{channel}",
-    "communityBadge": "Communauté"
+    "communityBadge": "Communauté",
+    "sysCreatedCommunity": "{actor} a créé la communauté",
+    "sysJoined": "{actor} a rejoint"
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",

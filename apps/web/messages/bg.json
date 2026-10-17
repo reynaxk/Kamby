@@ -889,7 +889,9 @@
     "communityInfo": "За общността",
     "channelWelcome": "Това е началото на канала в {title}.",
     "channelPlaceholderSay": "Пиши в #{channel}",
-    "communityBadge": "Общност"
+    "communityBadge": "Общност",
+    "sysCreatedCommunity": "{actor} създаде общността",
+    "sysJoined": "{actor} влезе"
   },
   "calls": {
     "failed": "Разговорът не се свърза",

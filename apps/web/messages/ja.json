@@ -889,7 +889,9 @@
     "communityInfo": "コミュニティ情報",
     "channelWelcome": "{title} のこのチャンネルの始まりです。",
     "channelPlaceholderSay": "#{channel} にメッセージ",
-    "communityBadge": "コミュニティ"
+    "communityBadge": "コミュニティ",
+    "sysCreatedCommunity": "{actor} がコミュニティを作成しました",
+    "sysJoined": "{actor} が参加しました"
   },
   "calls": {
     "failed": "通話に接続できませんでした",
