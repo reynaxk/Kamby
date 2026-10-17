@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "#{channel}에 메시지",
     "communityBadge": "커뮤니티",
     "sysCreatedCommunity": "{actor}님이 커뮤니티를 만들었어요",
-    "sysJoined": "{actor}님이 참여했어요"
+    "sysJoined": "{actor}님이 참여했어요",
+    "talkingNow": "{count}명 대화 중",
+    "membersButton": "멤버",
+    "textChannels": "텍스트 채널",
+    "voiceSection": "음성",
+    "joinVoice": "참여",
+    "loungeEmpty": "아직 아무도 없어요 — 들어가면 다른 사람들이 볼 수 있어요.",
+    "leaveCommunity": "커뮤니티 나가기",
+    "yourCommunities": "내 커뮤니티",
+    "newShort": "새로 만들기",
+    "newMessages": "새 메시지",
+    "newBelow": "{count, plural, other {새 메시지 #개}}",
+    "latest": "최신으로"
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",

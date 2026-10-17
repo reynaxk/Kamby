@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "Пиши в #{channel}",
     "communityBadge": "Общност",
     "sysCreatedCommunity": "{actor} създаде общността",
-    "sysJoined": "{actor} влезе"
+    "sysJoined": "{actor} влезе",
+    "talkingNow": "{count} говорят",
+    "membersButton": "Членове",
+    "textChannels": "Текстови канали",
+    "voiceSection": "Глас",
+    "joinVoice": "Влез",
+    "loungeEmpty": "Още няма никой — влез и другите ще го видят.",
+    "leaveCommunity": "Напусни общността",
+    "yourCommunities": "Твоите общности",
+    "newShort": "Нова",
+    "newMessages": "Нови съобщения",
+    "newBelow": "{count, plural, one {# ново съобщение} other {# нови съобщения}}",
+    "latest": "Към последните"
   },
   "calls": {
     "failed": "Разговорът не се свърза",

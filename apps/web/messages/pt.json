@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "Mensagem em #{channel}",
     "communityBadge": "Comunidade",
     "sysCreatedCommunity": "{actor} criou a comunidade",
-    "sysJoined": "{actor} entrou"
+    "sysJoined": "{actor} entrou",
+    "talkingNow": "{count} falando",
+    "membersButton": "Membros",
+    "textChannels": "Canais de texto",
+    "voiceSection": "Voz",
+    "joinVoice": "Entrar",
+    "loungeEmpty": "Ninguém aqui ainda — entre e os outros vão ver.",
+    "leaveCommunity": "Sair da comunidade",
+    "yourCommunities": "Suas comunidades",
+    "newShort": "Nova",
+    "newMessages": "Novas mensagens",
+    "newBelow": "{count, plural, one {# nova mensagem} other {# novas mensagens}}",
+    "latest": "Mais recentes"
   },
   "calls": {
     "failed": "A chamada não conectou",

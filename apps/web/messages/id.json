@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "Kirim pesan ke #{channel}",
     "communityBadge": "Komunitas",
     "sysCreatedCommunity": "{actor} membuat komunitas",
-    "sysJoined": "{actor} bergabung"
+    "sysJoined": "{actor} bergabung",
+    "talkingNow": "{count} sedang bicara",
+    "membersButton": "Anggota",
+    "textChannels": "Kanal teks",
+    "voiceSection": "Suara",
+    "joinVoice": "Gabung",
+    "loungeEmpty": "Belum ada siapa-siapa — masuk dan yang lain akan melihatnya.",
+    "leaveCommunity": "Keluar dari komunitas",
+    "yourCommunities": "Komunitasmu",
+    "newShort": "Baru",
+    "newMessages": "Pesan baru",
+    "newBelow": "{count, plural, other {# pesan baru}}",
+    "latest": "Terbaru"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "在 #{channel} 发消息",
     "communityBadge": "社区",
     "sysCreatedCommunity": "{actor} 创建了社区",
-    "sysJoined": "{actor} 加入了"
+    "sysJoined": "{actor} 加入了",
+    "talkingNow": "{count} 人在说话",
+    "membersButton": "成员",
+    "textChannels": "文字频道",
+    "voiceSection": "语音",
+    "joinVoice": "加入",
+    "loungeEmpty": "还没有人——你先进去，大家就能看到。",
+    "leaveCommunity": "退出社区",
+    "yourCommunities": "你的社区",
+    "newShort": "新建",
+    "newMessages": "新消息",
+    "newBelow": "{count, plural, other {# 条新消息}}",
+    "latest": "最新"
   },
   "calls": {
     "failed": "通话未接通",

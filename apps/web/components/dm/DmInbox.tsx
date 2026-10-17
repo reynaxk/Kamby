@@ -13,7 +13,7 @@ import { friendlyError } from '@/lib/friendly-error';
 import { formatRelativeTime } from '@/lib/format';
 import { DmAvatar } from './DmAvatar';
 import { GroupAvatar, NewGroupDrawer } from './GroupBits';
-import { CommunityAvatar, NewCommunityDrawer } from './CommunityBits';
+import { CommunityAvatar, CommunityRail, NewCommunityDrawer } from './CommunityBits';
 
 /**
  * The Messages screen (2026-10-17): your chats, newest first, and a Requests tab for first
@@ -149,6 +149,10 @@ export function DmInbox() {
       <NewGroupDrawer open={groupOpen} onClose={() => setGroupOpen(false)} />
       <NewCommunityDrawer open={communityOpen} onClose={() => setCommunityOpen(false)} />
       {openError && <p className="mt-2 px-1 font-body text-xs font-semibold text-down">{openError}</p>}
+
+      {box === 'chats' && items && items.some((c) => c.group?.community) && (
+        <CommunityRail items={items.filter((c) => c.group?.community)} onCreate={() => setCommunityOpen(true)} />
+      )}
 
       {/* Chats / Requests */}
       <div className="mt-5 flex gap-1 rounded-full bg-white/[0.04] p-1" role="tablist">

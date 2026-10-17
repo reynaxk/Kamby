@@ -17,6 +17,24 @@ import { useSystemText } from './GroupBits';
 
 const K_PATHS = ['M186 140 V372', 'M200 268 L338 140', 'M232 246 L346 372'];
 
+/** Names in groups get their own colour (like Discord roles) so you can tell people apart at a
+ *  glance — picked from the person's id, the same on every screen. */
+const NAME_COLORS = ['#7DD3FC', '#F9A8D4', '#FCD34D', '#A5B4FC', '#86EFAC', '#FDBA74', '#C4B5FD', '#5EEAD4', '#FDA4AF', '#BEF264'];
+export function nameColor(userId: string): string {
+  let h = 0;
+  for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0;
+  return NAME_COLORS[Math.abs(h) % NAME_COLORS.length]!;
+}
+
+/** A tiny tap on phones that support it — reactions and sends feel physical. */
+export function haptic(ms = 8): void {
+  try {
+    navigator.vibrate?.(ms);
+  } catch {
+    // not supported
+  }
+}
+
 /** Coin cards share one price look-up per coin for a short while — a chat full of the same
  *  coin asks once, not once per card (2026-10-17). */
 const PRICE_TTL_MS = 30_000;
@@ -145,6 +163,7 @@ export const DmMessageView = memo(function DmMessageView({
   const t = useTranslations('dm');
   const systemText = useSystemText();
   const [picking, setPicking] = useState(false);
+  const [burst, setBurst] = useState(false);
   if (m.kind === 'system' && m.system) {
     return (
       <p className="my-3 text-center">
@@ -158,7 +177,7 @@ export const DmMessageView = memo(function DmMessageView({
   return (
     <div className={cn('kamby-chat-in flex flex-col', mine ? 'items-end' : 'items-start', first ? 'mt-3' : 'mt-0.5', sender && !mine && 'pl-9')}>
       {sender && !mine && first && (
-        <span className="relative mb-1 ml-1 font-display text-[0.7rem] font-bold text-ink-400">
+        <span className="relative mb-1 ml-1 font-display text-[0.72rem] font-bold" style={{ color: nameColor(sender.userId) }}>
           <DmAvatar name={sender.username} src={sender.avatarUrl} className="absolute -left-9 top-0 h-7 w-7 text-[0.65rem]" />
           {sender.username ? `@${sender.username}` : t('someone')}
         </span>
@@ -170,6 +189,7 @@ export const DmMessageView = memo(function DmMessageView({
               key={e}
               type="button"
               onClick={() => {
+                haptic();
                 onReact(m.id, e);
                 setPicking(false);
               }}
@@ -180,7 +200,27 @@ export const DmMessageView = memo(function DmMessageView({
           ))}
         </div>
       )}
-      <button type="button" onClick={() => setPicking((p) => !p)} className="max-w-[80%] text-left" aria-label={t('react')}>
+      <button
+        type="button"
+        onClick={() => setPicking((p) => !p)}
+        onDoubleClick={() => {
+          // Double-tap = ❤️ (Instagram-style), with a little burst.
+          setPicking(false);
+          if (!(me && m.reactions['❤️']?.includes(me))) {
+            haptic(12);
+            onReact(m.id, '❤️');
+          }
+          setBurst(true);
+          setTimeout(() => setBurst(false), 650);
+        }}
+        className="relative max-w-[80%] touch-manipulation select-none text-left"
+        aria-label={t('react')}
+      >
+        {burst && (
+          <span className="kamby-heart-burst pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-4xl" aria-hidden>
+            ❤️
+          </span>
+        )}
         {m.kind === 'text' ? (
           <span
             className={cn(
@@ -206,9 +246,12 @@ export const DmMessageView = memo(function DmMessageView({
             <button
               key={emoji}
               type="button"
-              onClick={() => onReact(m.id, emoji)}
+              onClick={() => {
+                haptic();
+                onReact(m.id, emoji);
+              }}
               className={cn(
-                'flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs shadow-[0_4px_12px_rgba(0,0,0,0.4)]',
+                'kamby-pop flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs shadow-[0_4px_12px_rgba(0,0,0,0.4)] transition-transform active:scale-90',
                 me && who.includes(me) ? 'border-accent/40 bg-[#0B1A12]' : 'border-white/10 bg-[#11131C]',
               )}
             >

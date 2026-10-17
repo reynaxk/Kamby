@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "#{channel} にメッセージ",
     "communityBadge": "コミュニティ",
     "sysCreatedCommunity": "{actor} がコミュニティを作成しました",
-    "sysJoined": "{actor} が参加しました"
+    "sysJoined": "{actor} が参加しました",
+    "talkingNow": "{count}人が話し中",
+    "membersButton": "メンバー",
+    "textChannels": "テキストチャンネル",
+    "voiceSection": "ボイス",
+    "joinVoice": "参加",
+    "loungeEmpty": "まだ誰もいません — 入るとみんなに見えます。",
+    "leaveCommunity": "コミュニティを退出",
+    "yourCommunities": "あなたのコミュニティ",
+    "newShort": "新規",
+    "newMessages": "新着メッセージ",
+    "newBelow": "{count, plural, other {新着 # 件}}",
+    "latest": "最新へ"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

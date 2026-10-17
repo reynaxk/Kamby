@@ -679,6 +679,26 @@ body:has(.kamby-void) {
   .kamby-chat-in { animation: kamby-chat-in 0.22s ease-out; }
 }
 
+/* Chats (components/dm): a reaction pops in, a double-tap heart bursts, a switched channel
+   slides in, the "new messages" pill rises — transform only, nothing starts invisible. */
+@keyframes kamby-pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.12); }
+}
+@keyframes kamby-heart-burst {
+  0% { transform: scale(0.3); opacity: 1; }
+  40% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1.6) translateY(-14px); opacity: 0; }
+}
+@keyframes kamby-channel-in {
+  from { transform: translateX(10px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kamby-pop { animation: kamby-pop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .kamby-heart-burst { animation: kamby-heart-burst 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+  .kamby-channel-in { animation: kamby-channel-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+}
+
 /* Sign-in wall (components/auth/AuthGate.tsx): hidden unless html.kamby-locked, which the inline
    head script sets before first paint — then the app underneath isn't shown at all. */
 #kamby-gate {

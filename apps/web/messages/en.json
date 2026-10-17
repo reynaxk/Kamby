@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "Message #{channel}",
     "communityBadge": "Community",
     "sysCreatedCommunity": "{actor} created the community",
-    "sysJoined": "{actor} joined"
+    "sysJoined": "{actor} joined",
+    "talkingNow": "{count} talking",
+    "membersButton": "Members",
+    "textChannels": "Text channels",
+    "voiceSection": "Voice",
+    "joinVoice": "Join",
+    "loungeEmpty": "Nobody’s here yet — hop in and others will see it.",
+    "leaveCommunity": "Leave community",
+    "yourCommunities": "Your communities",
+    "newShort": "New",
+    "newMessages": "New messages",
+    "newBelow": "{count, plural, one {# new message} other {# new messages}}",
+    "latest": "Latest"
   },
   "calls": {
     "failed": "Call didn’t connect",

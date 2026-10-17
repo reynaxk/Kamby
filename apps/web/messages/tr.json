@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "#{channel} kanalına yaz",
     "communityBadge": "Topluluk",
     "sysCreatedCommunity": "{actor} topluluğu oluşturdu",
-    "sysJoined": "{actor} katıldı"
+    "sysJoined": "{actor} katıldı",
+    "talkingNow": "{count} kişi konuşuyor",
+    "membersButton": "Üyeler",
+    "textChannels": "Metin kanalları",
+    "voiceSection": "Ses",
+    "joinVoice": "Katıl",
+    "loungeEmpty": "Henüz kimse yok — gir, diğerleri görsün.",
+    "leaveCommunity": "Topluluktan ayrıl",
+    "yourCommunities": "Toplulukların",
+    "newShort": "Yeni",
+    "newMessages": "Yeni mesajlar",
+    "newBelow": "{count, plural, other {# yeni mesaj}}",
+    "latest": "En yeni"
   },
   "calls": {
     "failed": "Arama bağlanamadı",

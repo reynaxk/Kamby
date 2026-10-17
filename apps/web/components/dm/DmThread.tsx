@@ -36,7 +36,8 @@ import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
-import { ChannelBar, ChannelsDrawer, CommunityAvatar, InviteDrawer } from './CommunityBits';
+import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, InviteDrawer } from './CommunityBits';
+import { haptic } from './DmMessageView';
 import { useCalls } from '@/components/calls/CallProvider';
 import { fetchCall } from '@/lib/calls-client';
 import type { CallState } from '@kamby/domain';
@@ -92,6 +93,12 @@ export function DmThread({ id }: { id: string }) {
   const [channelsOpen, setChannelsOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const channelCache = useRef(new Map<string, { messages: DmMessage[]; nextBefore: string | null }>());
+  const [homeOpen, setHomeOpen] = useState(false);
+  // Where the unread lines start when you opened the chat ("New messages" divider), and how many
+  // arrived below while you were scrolled up (the jump pill).
+  const [firstUnreadId, setFirstUnreadId] = useState<string | null>(null);
+  const [scrolledUp, setScrolledUp] = useState(false);
+  const [newBelow, setNewBelow] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSent = useRef(0);
@@ -117,9 +124,14 @@ export function DmThread({ id }: { id: string }) {
         if (cancelled) return;
         setConv(c);
         setChannelId(c.group?.community?.channels.find((ch) => ch.kind === 'text')?.id ?? null);
-        setMessages([...page.items].reverse());
+        const list = [...page.items].reverse();
+        setMessages(list);
         setNextBefore(page.nextBefore);
-        if (c.unread > 0) void markDmRead(id).catch(() => undefined);
+        if (c.unread > 0) {
+          const theirs = list.filter((m) => m.senderId !== c.meId && m.kind !== 'system');
+          if (c.unread < theirs.length) setFirstUnreadId(theirs[theirs.length - c.unread]?.id ?? null);
+          void markDmRead(id).catch(() => undefined);
+        }
       })
       .catch((err: unknown) => !cancelled && setLoadError(friendlyError(err)));
     return () => {
@@ -137,6 +149,7 @@ export function DmThread({ id }: { id: string }) {
           const ch = e.message.channelId;
           if (ch && channelRef.current && ch !== channelRef.current) return;
           setMessages((list) => (list.some((m) => m.id === e.message.id) ? list : [...list, e.message]));
+          if (!stickToBottom.current && e.message.senderId !== me) setNewBelow((n) => n + 1);
           setTyping(null);
           if (e.message.senderId !== me && e.message.kind !== 'system' && document.visibilityState === 'visible') {
             if (readTimer) clearTimeout(readTimer);
@@ -167,6 +180,8 @@ export function DmThread({ id }: { id: string }) {
   useEffect(() => {
     const onScroll = () => {
       stickToBottom.current = window.innerHeight + window.scrollY >= document.body.scrollHeight - 160;
+      setScrolledUp(window.innerHeight + window.scrollY < document.body.scrollHeight - 600);
+      if (stickToBottom.current) setNewBelow(0);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -177,6 +192,8 @@ export function DmThread({ id }: { id: string }) {
 
   function pickChannel(next: string) {
     if (next === channelId) return;
+    haptic();
+    setFirstUnreadId(null);
     if (channelId) channelCache.current.set(channelId, { messages, nextBefore });
     const cached = channelCache.current.get(next);
     setChannelId(next);
@@ -190,6 +207,41 @@ export function DmThread({ id }: { id: string }) {
         setNextBefore(page.nextBefore);
       })
       .catch(() => undefined);
+  }
+
+  useEffect(() => {
+    if (!community) return;
+    // In iPhone Safari the left-edge swipe is "Back" — only take it over in the installed app.
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent) && !standalone) return;
+    let startX = -1;
+    let startY = 0;
+    const down = (e: TouchEvent) => {
+      const t0 = e.touches[0];
+      startX = t0 && t0.clientX < 28 ? t0.clientX : -1;
+      startY = t0?.clientY ?? 0;
+    };
+    const move = (e: TouchEvent) => {
+      const t0 = e.touches[0];
+      if (startX < 0 || !t0) return;
+      if (t0.clientX - startX > 60 && Math.abs(t0.clientY - startY) < 40) {
+        startX = -1;
+        haptic();
+        setHomeOpen(true);
+      }
+    };
+    window.addEventListener('touchstart', down, { passive: true });
+    window.addEventListener('touchmove', move, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', down);
+      window.removeEventListener('touchmove', move);
+    };
+  }, [community]);
+
+  function jumpToLatest() {
+    stickToBottom.current = true;
+    setNewBelow(0);
+    bottomRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
   }
 
   async function loadEarlier() {
@@ -222,6 +274,8 @@ export function DmThread({ id }: { id: string }) {
     e?.preventDefault();
     const body = text.trim();
     if (!body || sending) return;
+    haptic();
+    setFirstUnreadId(null);
     if (await run(() => sendDmText(id, body, channelId ?? undefined))) setText('');
   }
 
@@ -304,7 +358,7 @@ export function DmThread({ id }: { id: string }) {
           </svg>
         </button>
         {conv?.group ? (
-          <button type="button" onClick={() => setInfo(true)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+          <button type="button" onClick={() => (community ? setHomeOpen(true) : setInfo(true))} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
             {community ? <CommunityAvatar title={conv.group.title} className="h-9 w-9 text-sm" /> : <GroupAvatar members={conv.group.members} meId={conv.meId} className="h-9 w-9" />}
             <span className="min-w-0">
               <span className="block truncate font-display text-base font-bold text-ink-900">{name}</span>
@@ -428,6 +482,7 @@ export function DmThread({ id }: { id: string }) {
           onLounge={() => canCall && void calls.start(id, false)}
           canAdd={isOwner}
           onAdd={() => setChannelsOpen(true)}
+          personOf={(u) => memberBy.get(u)}
         />
       )}
 
@@ -447,7 +502,7 @@ export function DmThread({ id }: { id: string }) {
       )}
 
       {/* Messages */}
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-36 pt-3">
+      <main key={channelId ?? 'chat'} className={cn('mx-auto w-full max-w-2xl flex-1 px-3 pb-36 pt-3', community && 'kamby-channel-in')}>
         {nextBefore && (
           <button type="button" onClick={() => void loadEarlier()} className="mx-auto mb-2 block rounded-full bg-white/[0.05] px-4 py-1.5 font-body text-xs font-semibold text-ink-400">
             {t('loadEarlier')}
@@ -477,6 +532,13 @@ export function DmThread({ id }: { id: string }) {
           return (
             <div key={m.id}>
               {newDay && <p className="my-4 text-center font-body text-[0.68rem] font-semibold uppercase tracking-wider text-ink-400">{dayLabel(m.createdAt, t)}</p>}
+              {m.id === firstUnreadId && (
+                <div className="my-3 flex items-center gap-2" role="separator">
+                  <span className="h-px flex-1 bg-gradient-to-r from-transparent to-accent/60" />
+                  <span className="rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 font-body text-[0.62rem] font-bold uppercase tracking-wider text-accent">{t('newMessages')}</span>
+                  <span className="h-px flex-1 bg-gradient-to-l from-transparent to-accent/60" />
+                </div>
+              )}
               <DmMessageView
                 m={m}
                 mine={m.senderId === me}
@@ -505,6 +567,18 @@ export function DmThread({ id }: { id: string }) {
 
       {/* Bottom: request choice, blocked note, or the composer */}
       <div className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 md:mx-auto md:max-w-2xl">
+        {(scrolledUp || newBelow > 0) && (
+          <button
+            type="button"
+            onClick={jumpToLatest}
+            className="kamby-pop kamby-glass-solid absolute -top-11 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-xs font-bold text-ink-900 shadow-[0_10px_30px_rgba(0,0,0,0.55)]"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="text-accent" aria-hidden>
+              <path d="M12 5v14M5 12l7 7 7-7" />
+            </svg>
+            {newBelow > 0 ? t('newBelow', { count: newBelow }) : t('latest')}
+          </button>
+        )}
         {conv?.state === 'request' && !conv.blocked ? (
           <div className="kamby-glass-solid rounded-3xl p-4 text-center">
             <p className="font-display text-sm font-bold text-ink-900">{isGroup ? t('groupInviteTitle', { title: name }) : t('requestTitle', { name })}</p>
@@ -627,6 +701,32 @@ export function DmThread({ id }: { id: string }) {
           id={id}
           room={Math.min(31, (community ? DM_LIMITS.communityMaxMembers : DM_LIMITS.groupMaxMembers) - conv.group.members.length)}
           onDone={refreshConv}
+        />
+      )}
+      {community && conv && (
+        <CommunityHome
+          open={homeOpen}
+          onClose={() => setHomeOpen(false)}
+          conv={conv}
+          current={channelId}
+          onPick={pickChannel}
+          lounge={liveCall}
+          inLounge={inLiveCall}
+          onLounge={() => canCall && void calls.start(id, false)}
+          isOwner={isOwner}
+          onInvite={() => {
+            setHomeOpen(false);
+            setInviteOpen(true);
+          }}
+          onChannels={() => {
+            setHomeOpen(false);
+            setChannelsOpen(true);
+          }}
+          onMembers={() => {
+            setHomeOpen(false);
+            setInfo(true);
+          }}
+          onLeave={() => void leave()}
         />
       )}
       {community && (

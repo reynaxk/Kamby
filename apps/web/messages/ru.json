@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "Написать в #{channel}",
     "communityBadge": "Сообщество",
     "sysCreatedCommunity": "{actor} создал(а) сообщество",
-    "sysJoined": "{actor} вступил(а)"
+    "sysJoined": "{actor} вступил(а)",
+    "talkingNow": "{count} говорят",
+    "membersButton": "Участники",
+    "textChannels": "Текстовые каналы",
+    "voiceSection": "Голос",
+    "joinVoice": "Войти",
+    "loungeEmpty": "Пока никого — заходи, и другие это увидят.",
+    "leaveCommunity": "Покинуть сообщество",
+    "yourCommunities": "Твои сообщества",
+    "newShort": "Новое",
+    "newMessages": "Новые сообщения",
+    "newBelow": "{count, plural, one {# новое сообщение} few {# новых сообщения} other {# новых сообщений}}",
+    "latest": "К последним"
   },
   "calls": {
     "failed": "Звонок не соединился",

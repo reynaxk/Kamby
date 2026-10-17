@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
-import { DM_LIMITS, type CallState, type DmChannelInfo, type DmInvitePreview } from '@kamby/domain';
+import { DM_LIMITS, type CallState, type DmChannelInfo, type DmConversation, type DmInvitePreview, type DmPerson } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { createChannel, createCommunity, deleteChannel, fetchInvite, inviteUrl, joinInvite, resetInvite } from '@/lib/dm-client';
@@ -81,6 +81,7 @@ export function ChannelBar({
   onLounge,
   canAdd,
   onAdd,
+  personOf,
 }: {
   channels: DmChannelInfo[];
   current: string | null;
@@ -90,6 +91,7 @@ export function ChannelBar({
   onLounge: () => void;
   canAdd: boolean;
   onAdd: () => void;
+  personOf: (userId: string) => DmPerson | undefined;
 }) {
   const t = useTranslations('dm');
   const voice = channels.find((c) => c.kind === 'voice');
@@ -106,7 +108,15 @@ export function ChannelBar({
     >
       {people > 0 ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" aria-hidden /> : <SpeakerIcon />}
       {voice.name}
-      {people > 0 && <span className="rounded-full bg-accent px-1.5 font-body text-[0.62rem] text-black">{people}</span>}
+      {people > 0 && (
+        <span className="flex -space-x-1.5">
+          {lounge!.participants.slice(0, 3).map((p) => {
+            const who = personOf(p.userId);
+            return <DmAvatar key={p.userId} name={who?.username ?? null} src={who?.avatarUrl ?? null} className="h-5 w-5 text-[0.5rem] ring-2 ring-[#0B1A14]" />;
+          })}
+          {people > 3 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 font-body text-[0.55rem] font-bold text-black ring-2 ring-[#0B1A14]">+{people - 3}</span>}
+        </span>
+      )}
       {inLounge && <span className="font-body text-[0.65rem] font-semibold">· {t('youreIn')}</span>}
     </button>
   );
@@ -359,6 +369,205 @@ export function CommunityAvatar({ title, className }: { title: string; className
     >
       <span className="text-[0.95em] tracking-tight">{initials}</span>
     </span>
+  );
+}
+
+/**
+ * A community's home (tap its name, or swipe in from the left edge) — Discord's server panel in
+ * Kamby's glass: banner, invite, # text channels, the voice lounge with who's talking, members.
+ */
+export function CommunityHome({
+  open,
+  onClose,
+  conv,
+  current,
+  onPick,
+  lounge,
+  inLounge,
+  onLounge,
+  isOwner,
+  onInvite,
+  onChannels,
+  onMembers,
+  onLeave,
+}: {
+  open: boolean;
+  onClose: () => void;
+  conv: DmConversation;
+  current: string | null;
+  onPick: (id: string) => void;
+  lounge: CallState | null;
+  inLounge: boolean;
+  onLounge: () => void;
+  isOwner: boolean;
+  onInvite: () => void;
+  onChannels: () => void;
+  onMembers: () => void;
+  onLeave: () => void;
+}) {
+  const t = useTranslations('dm');
+  const group = conv.group!;
+  const channels = group.community?.channels ?? [];
+  const voice = channels.find((c) => c.kind === 'voice');
+  const byId = new Map(group.members.map((p) => [p.userId, p]));
+  const inside = lounge?.participants ?? [];
+  const row = 'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors active:bg-white/[0.08]';
+  return (
+    <MobileDrawer open={open} onClose={onClose} title={group.title} desktop>
+      {/* Banner */}
+      <div className="relative -mt-1 overflow-hidden rounded-3xl border border-white/[0.07] p-4" style={{ background: 'linear-gradient(150deg,rgb(var(--kamby-accent)/0.16) 0%,#0E1430 45%,#090C1A 100%)' }}>
+        <svg className="pointer-events-none absolute -right-8 -top-8" width="150" height="150" viewBox="0 0 512 512" aria-hidden>
+          <g fill="none" stroke="#FFFFFF" strokeWidth="92" strokeLinecap="round" opacity="0.05">
+            <path d="M186 140 V372" />
+            <path d="M200 268 L338 140" />
+            <path d="M232 246 L346 372" />
+          </g>
+        </svg>
+        <div className="relative flex items-center gap-3">
+          <CommunityAvatar title={group.title} className="h-14 w-14 text-lg" />
+          <div className="min-w-0">
+            <p className="truncate font-display text-xl font-black tracking-tight text-ink-900">{group.title}</p>
+            <p className="font-body text-xs text-ink-400">
+              {t('members', { count: group.members.length })}
+              {inside.length > 0 && <span className="text-accent"> · {t('talkingNow', { count: inside.length })}</span>}
+            </p>
+          </div>
+        </div>
+        <div className="relative mt-4 grid grid-cols-2 gap-2">
+          <button type="button" onClick={onInvite} className="rounded-2xl bg-accent py-2.5 font-display text-sm font-bold text-black transition-transform active:scale-[0.98]">
+            {t('inviteTitle')}
+          </button>
+          <button type="button" onClick={onMembers} className="rounded-2xl bg-white/[0.08] py-2.5 font-display text-sm font-bold text-ink-900 transition-transform active:scale-[0.98]">
+            {t('membersButton')}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 max-h-[48vh] overflow-y-auto pb-1">
+        {/* Text channels */}
+        <div className="flex items-center justify-between px-1">
+          <p className="font-body text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink-400">{t('textChannels')}</p>
+          {isOwner && (
+            <button type="button" onClick={onChannels} aria-label={t('addChannel')} className="flex h-6 w-6 items-center justify-center rounded-full text-ink-400 active:bg-white/10">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          )}
+        </div>
+        <ul className="mt-1 space-y-0.5">
+          {channels
+            .filter((c) => c.kind === 'text')
+            .map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPick(c.id);
+                    onClose();
+                  }}
+                  className={cn(row, 'relative', current === c.id ? 'bg-white/[0.08] text-ink-900' : 'text-ink-600')}
+                >
+                  {current === c.id && <span className="absolute -left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-accent" aria-hidden />}
+                  <span className={cn('font-display text-lg font-bold leading-none', current === c.id ? 'text-accent' : 'text-ink-400')}>#</span>
+                  <span className="truncate font-display text-[0.95rem] font-bold">{c.name}</span>
+                </button>
+              </li>
+            ))}
+        </ul>
+
+        {/* Voice */}
+        {voice && (
+          <>
+            <p className="mt-4 px-1 font-body text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink-400">{t('voiceSection')}</p>
+            <div className={cn('mt-1 rounded-2xl border p-2', inside.length > 0 ? 'border-accent/25 bg-accent/[0.06]' : 'border-white/[0.06] bg-white/[0.02]')}>
+              <button
+                type="button"
+                onClick={() => {
+                  onLounge();
+                  onClose();
+                }}
+                disabled={inLounge}
+                className={cn(row, 'text-ink-900')}
+              >
+                <SpeakerIcon className={inside.length > 0 ? 'text-accent' : 'text-ink-400'} />
+                <span className="min-w-0 flex-1 truncate font-display text-[0.95rem] font-bold">{voice.name}</span>
+                <span className={cn('rounded-full px-3 py-1 font-display text-xs font-bold', inLounge ? 'bg-white/10 text-ink-600' : 'bg-accent text-black')}>
+                  {inLounge ? t('youreIn') : t('joinVoice')}
+                </span>
+              </button>
+              {inside.length > 0 ? (
+                <ul className="mt-1 space-y-1 pb-1 pl-9">
+                  {inside.slice(0, 12).map((p) => {
+                    const who = byId.get(p.userId);
+                    return (
+                      <li key={p.userId} className="flex items-center gap-2">
+                        <DmAvatar name={who?.username ?? null} src={who?.avatarUrl ?? null} className={cn('h-6 w-6 text-[0.6rem]', !p.muted && 'ring-2 ring-accent/70')} />
+                        <span className="truncate font-body text-sm text-ink-600">{who?.username ? `@${who.username}` : t('someone')}</span>
+                        {p.muted && <span className="font-body text-[0.65rem] text-ink-400">🔇</span>}
+                        {p.tracks.some((tr) => tr.kind === 'screen') && <span className="rounded bg-down/80 px-1 font-body text-[0.55rem] font-bold text-white">LIVE</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="px-3 pb-1.5 font-body text-xs text-ink-400">{t('loungeEmpty')}</p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Members preview */}
+        <button type="button" onClick={onMembers} className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-3 text-left active:bg-white/[0.06]">
+          <span className="flex -space-x-2">
+            {group.members.slice(0, 5).map((p) => (
+              <DmAvatar key={p.userId} name={p.username} src={p.avatarUrl} className="h-8 w-8 text-[0.65rem] ring-2 ring-bg" />
+            ))}
+          </span>
+          <span className="min-w-0 flex-1 truncate font-body text-sm text-ink-600">{t('members', { count: group.members.length })}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-400" aria-hidden>
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+        <button type="button" onClick={onLeave} className="mt-3 w-full rounded-2xl py-2.5 font-display text-sm font-bold text-down active:bg-down/10">
+          {t('leaveCommunity')}
+        </button>
+      </div>
+    </MobileDrawer>
+  );
+}
+
+/** Your communities as a rail of tiles on top of Messages (Discord's server list, sideways). */
+export function CommunityRail({ items, onCreate }: { items: DmConversation[]; onCreate: () => void }) {
+  const t = useTranslations('dm');
+  const router = useRouter();
+  return (
+    <div className="mt-5">
+      <p className="px-1 font-body text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink-400">{t('yourCommunities')}</p>
+      <div className="-mx-4 mt-2 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        {items.map((c) => (
+          <button key={c.id} type="button" onClick={() => router.push(`/messages/${c.id}`)} className="flex w-16 shrink-0 flex-col items-center gap-1.5 transition-transform active:scale-95">
+            <span className="relative">
+              <CommunityAvatar title={c.group!.title} className={cn('h-14 w-14 text-base', c.unread > 0 && 'border-accent/60')} />
+              {c.unread > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-bg bg-accent px-1 font-body text-[0.58rem] font-bold text-black">
+                  {c.unread > 99 ? '99+' : c.unread}
+                </span>
+              )}
+            </span>
+            <span className={cn('w-full truncate text-center font-body text-[0.68rem]', c.unread > 0 ? 'font-semibold text-ink-900' : 'text-ink-400')}>{c.group!.title}</span>
+          </button>
+        ))}
+        <button type="button" onClick={onCreate} className="flex w-16 shrink-0 flex-col items-center gap-1.5 transition-transform active:scale-95">
+          <span className="flex h-14 w-14 items-center justify-center rounded-[30%] border border-dashed border-white/15 bg-white/[0.03] text-ink-400">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </span>
+          <span className="w-full truncate text-center font-body text-[0.68rem] text-ink-400">{t('newShort')}</span>
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -891,7 +891,19 @@
     "channelPlaceholderSay": "ส่งข้อความใน #{channel}",
     "communityBadge": "ชุมชน",
     "sysCreatedCommunity": "{actor} สร้างชุมชน",
-    "sysJoined": "{actor} เข้าร่วมแล้ว"
+    "sysJoined": "{actor} เข้าร่วมแล้ว",
+    "talkingNow": "{count} คนกำลังคุย",
+    "membersButton": "สมาชิก",
+    "textChannels": "ช่องข้อความ",
+    "voiceSection": "เสียง",
+    "joinVoice": "เข้าร่วม",
+    "loungeEmpty": "ยังไม่มีใคร — เข้าไปก่อน แล้วคนอื่นจะเห็น",
+    "leaveCommunity": "ออกจากชุมชน",
+    "yourCommunities": "ชุมชนของคุณ",
+    "newShort": "ใหม่",
+    "newMessages": "ข้อความใหม่",
+    "newBelow": "{count, plural, other {ข้อความใหม่ # ข้อความ}}",
+    "latest": "ล่าสุด"
   },
   "calls": {
     "failed": "การโทรเชื่อมต่อไม่ได้",
