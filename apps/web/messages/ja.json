@@ -915,7 +915,16 @@
     "openChat": "開く",
     "activeNow": "オンライン",
     "onlineCount": "{count}人がオンライン",
-    "mentionSomeone": "メンションする"
+    "mentionSomeone": "メンションする",
+    "muteNotifications": "通知をミュート",
+    "unmute": "ミュート解除",
+    "muted": "ミュート中",
+    "muteForever": "オンに戻すまで",
+    "muteHours": "{count, plural, other {# 時間}}",
+    "muteWeek": "1 週間",
+    "mutedUntil": "{time} までミュート",
+    "mutedForever": "オンに戻すまでミュート",
+    "muteNote": "このチャットの通知とバナーを止めます。@メンションと返信は届きます。"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

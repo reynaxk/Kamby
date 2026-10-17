@@ -61,6 +61,9 @@ export const sendDmTyping = (id: string) => fire(`/dm/conversations/${id}/typing
 export const hideConversation = (id: string) => fire(`/dm/conversations/${id}/hide`);
 export const reportConversation = (id: string, reason?: string) => fire(`/dm/conversations/${id}/report`, { reason });
 export const leaveGroup = (id: string) => fire(`/dm/conversations/${id}/leave`);
+/** Mute a chat's notifications: minutes, null = until unmuted, 0 = unmute. */
+export const muteConversation = (id: string, minutes: number | null) =>
+  json<DmConversation>(`/dm/conversations/${id}/mute`, post(minutes === null ? { forever: true } : { minutes }), 'mute the chat');
 /** "Kamby is open (on this chat)" — the green dot, and no push for the chat on screen. Never throws. */
 export function sendPresence(viewing?: string): Promise<void> {
   return fire('/dm/presence', viewing ? { viewing } : {}).catch(() => undefined);

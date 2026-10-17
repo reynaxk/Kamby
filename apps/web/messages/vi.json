@@ -915,7 +915,16 @@
     "openChat": "Mở",
     "activeNow": "Đang hoạt động",
     "onlineCount": "{count} đang online",
-    "mentionSomeone": "Nhắc ai đó"
+    "mentionSomeone": "Nhắc ai đó",
+    "muteNotifications": "Tắt thông báo",
+    "unmute": "Bật thông báo",
+    "muted": "Đã tắt",
+    "muteForever": "Cho đến khi tôi bật lại",
+    "muteHours": "{count, plural, other {Trong # giờ}}",
+    "muteWeek": "Trong 1 tuần",
+    "mutedUntil": "Tắt đến {time}",
+    "mutedForever": "Tắt cho đến khi bạn bật lại",
+    "muteNote": "Không có thông báo hay banner từ chat này. @nhắc đến và trả lời bạn vẫn đến."
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",

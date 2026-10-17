@@ -915,7 +915,16 @@
     "openChat": "Отвори",
     "activeNow": "На линия",
     "onlineCount": "{count} на линия",
-    "mentionSomeone": "Спомени някого"
+    "mentionSomeone": "Спомени някого",
+    "muteNotifications": "Заглуши известията",
+    "unmute": "Включи известията",
+    "muted": "Заглушен",
+    "muteForever": "Докато не го включа",
+    "muteHours": "{count, plural, one {За 1 час} other {За # часа}}",
+    "muteWeek": "За 1 седмица",
+    "mutedUntil": "Заглушен до {time}",
+    "mutedForever": "Заглушен, докато не го включиш",
+    "muteNote": "Без пушове и банери от този чат. @споменаванията и отговорите към теб пак идват."
   },
   "calls": {
     "failed": "Разговорът не се свърза",

@@ -735,13 +735,25 @@ export class DmService {
   /** One DM_MESSAGE push per person, with the chat, its name and the line — skipping anyone who
    *  has this chat open right now (they see it arrive). */
   private async notifyChat(
-    targets: string[],
+    targetsIn: string[],
     me: string,
     row: DmConversationRow,
     extra: { dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted'; preview?: string; emoji?: string },
     dedupe: (userId: string) => string,
   ): Promise<void> {
+    let targets = targetsIn;
     if (targets.length === 0) return;
+    if (extra.dmKind !== 'mention' && extra.dmKind !== 'reply') {
+      const muted = await prisma.dmMute.findMany({
+        where: { conversationId: row.id, userId: { in: targets }, OR: [{ until: null }, { until: { gt: new Date() } }] },
+        select: { userId: true },
+      });
+      if (muted.length) {
+        const off = new Set(muted.map((m) => m.userId));
+        targets = targets.filter((u) => !off.has(u));
+        if (targets.length === 0) return;
+      }
+    }
     const viewing = await this.redis.mget(...targets.map((u) => `kamby:dm:viewing:${u}`)).catch(() => targets.map(() => null));
     const chatTitle = row.isGroup ? (row.title ?? null) : null;
     await Promise.all(
@@ -759,6 +771,22 @@ export class DmService {
             .catch((error: unknown) => this.logger.warn({ err: error }, 'DM push notification failed')),
         ),
     );
+  }
+
+  /** Mute this chat's pushes for `minutes` (null = until unmuted, 0 = unmute). */
+  async mute(me: string, id: string, minutes: number | null): Promise<DmConversation> {
+    await this.access(me, id);
+    if (minutes === 0) {
+      await prisma.dmMute.deleteMany({ where: { userId: me, conversationId: id } });
+    } else {
+      const until = minutes === null ? null : new Date(Date.now() + minutes * 60_000);
+      await prisma.dmMute.upsert({
+        where: { userId_conversationId: { userId: me, conversationId: id } },
+        create: { userId: me, conversationId: id, until },
+        update: { until },
+      });
+    }
+    return this.conversation(me, id);
   }
 
   /** Kamby is open on this device (and maybe this chat) — the green dot, and no push for the
@@ -906,6 +934,9 @@ export class DmService {
       }),
       prisma.userBlock.findMany({ where: { blockerId: me, blockedId: { in: otherIds } }, select: { blockedId: true } }),
     ]);
+    const mutes = await prisma.dmMute.findMany({ where: { userId: me, conversationId: { in: ids } }, select: { conversationId: true, until: true } });
+    const now = Date.now();
+    const muteBy = new Map(mutes.filter((m) => !m.until || m.until.getTime() > now).map((m) => [m.conversationId, { until: m.until ? m.until.toISOString() : null }]));
     const onlineFlags = personIds.length ? await this.redis.mget(...personIds.map((u) => `kamby:online:${u}`)).catch(() => personIds.map(() => null)) : [];
     const online = new Set(personIds.filter((_, i) => onlineFlags[i]));
     const lastBy = new Map(lasts.map((m) => [m.conversationId, m]));
@@ -942,6 +973,7 @@ export class DmService {
           otherReadAt: null,
           blocked: false,
           onlineIds: rowMembers.filter((m) => m.status === 'active' && m.userId !== me && online.has(m.userId)).map((m) => m.userId),
+          mute: muteBy.get(r.id) ?? null,
         };
       }
       const otherId = (r.userAId === me ? r.userBId : r.userAId) ?? '';
@@ -957,6 +989,7 @@ export class DmService {
         otherReadAt: otherReadAt ? otherReadAt.toISOString() : null,
         blocked: blocked.has(otherId),
         onlineIds: online.has(otherId) && !blocked.has(otherId) ? [otherId] : [],
+        mute: muteBy.get(r.id) ?? null,
       };
     });
   }

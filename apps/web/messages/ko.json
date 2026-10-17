@@ -915,7 +915,16 @@
     "openChat": "열기",
     "activeNow": "지금 활동 중",
     "onlineCount": "{count}명 온라인",
-    "mentionSomeone": "멘션하기"
+    "mentionSomeone": "멘션하기",
+    "muteNotifications": "알림 끄기",
+    "unmute": "알림 켜기",
+    "muted": "알림 꺼짐",
+    "muteForever": "다시 켤 때까지",
+    "muteHours": "{count, plural, other {#시간 동안}}",
+    "muteWeek": "1주일 동안",
+    "mutedUntil": "{time}까지 알림 꺼짐",
+    "mutedForever": "다시 켤 때까지 알림 꺼짐",
+    "muteNote": "이 채팅의 푸시와 배너가 오지 않아요. @멘션과 내게 온 답장은 계속 와요."
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",

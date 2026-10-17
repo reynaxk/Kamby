@@ -915,7 +915,16 @@
     "openChat": "Buka",
     "activeNow": "Aktif sekarang",
     "onlineCount": "{count} online",
-    "mentionSomeone": "Sebut seseorang"
+    "mentionSomeone": "Sebut seseorang",
+    "muteNotifications": "Bisukan notifikasi",
+    "unmute": "Bunyikan",
+    "muted": "Dibisukan",
+    "muteForever": "Sampai saya nyalakan lagi",
+    "muteHours": "{count, plural, other {Selama # jam}}",
+    "muteWeek": "Selama 1 minggu",
+    "mutedUntil": "Dibisukan sampai {time}",
+    "mutedForever": "Dibisukan sampai kamu menyalakannya",
+    "muteNote": "Tanpa notifikasi atau banner dari chat ini. @sebutan dan balasan untukmu tetap masuk."
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

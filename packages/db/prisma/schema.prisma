@@ -1361,6 +1361,7 @@ model DmConversation {
   messages DmMessage[]
   reports  DmReport[]
   members  DmMember[]
+  mutes    DmMute[]
   channels DmChannel[]
 
   @@unique([userAId, userBId])
@@ -1433,6 +1434,21 @@ model DmMember {
   /// A user's groups.
   @@index([userId])
   @@map("dm_members")
+}
+
+/// 2026-10-17 — someone muted a chat's phone notifications (any chat: 1:1, group, community).
+/// `until` null = until they unmute. @mentions and replies still come through (Discord-style).
+model DmMute {
+  userId         String    @map("user_id")
+  conversationId String    @map("conversation_id")
+  until          DateTime?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  conversation DmConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, conversationId])
+  @@index([conversationId])
+  @@map("dm_mutes")
 }
 
 /// One user blocking another — they can't message the blocker (2026-10-17).

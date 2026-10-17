@@ -915,7 +915,16 @@
     "openChat": "Ouvrir",
     "activeNow": "En ligne",
     "onlineCount": "{count} en ligne",
-    "mentionSomeone": "Mentionner quelqu’un"
+    "mentionSomeone": "Mentionner quelqu’un",
+    "muteNotifications": "Couper les notifications",
+    "unmute": "Réactiver",
+    "muted": "En sourdine",
+    "muteForever": "Jusqu’à ce que je le réactive",
+    "muteHours": "{count, plural, one {Pendant 1 heure} other {Pendant # heures}}",
+    "muteWeek": "Pendant 1 semaine",
+    "mutedUntil": "En sourdine jusqu’à {time}",
+    "mutedForever": "En sourdine jusqu’à réactivation",
+    "muteNote": "Plus de notifications ni de bannières de ce chat. Les @mentions et réponses te parviennent toujours."
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",

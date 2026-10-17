@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min } from 'class-validator';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
@@ -53,6 +53,19 @@ class CoinDto {
   @IsOptional()
   @IsUUID()
   channelId?: string;
+}
+
+class MuteDto {
+  /** Minutes to mute (0 = unmute); leave out with `forever: true` to mute until unmuted. */
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(60 * 24 * 365)
+  minutes?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  forever?: boolean;
 }
 
 class PresenceDto {
@@ -193,6 +206,12 @@ export class DmController {
   @Post('conversations/:id/rename')
   rename(@Param('id', ParseUUIDPipe) id: string, @Body() body: RenameDto, @CurrentUser() user: SessionUser) {
     return this.dm.rename(user.id, id, body.title);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('conversations/:id/mute')
+  mute(@Param('id', ParseUUIDPipe) id: string, @Body() body: MuteDto, @CurrentUser() user: SessionUser) {
+    return this.dm.mute(user.id, id, body.forever ? null : (body.minutes ?? 0));
   }
 
   /** Kamby is open (every ~30 s while visible) — and which chat, if one is on screen. */

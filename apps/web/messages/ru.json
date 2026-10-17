@@ -915,7 +915,16 @@
     "openChat": "Открыть",
     "activeNow": "В сети",
     "onlineCount": "{count} в сети",
-    "mentionSomeone": "Упомянуть"
+    "mentionSomeone": "Упомянуть",
+    "muteNotifications": "Отключить уведомления",
+    "unmute": "Включить уведомления",
+    "muted": "Без звука",
+    "muteForever": "Пока не включу",
+    "muteHours": "{count, plural, one {На # час} few {На # часа} other {На # часов}}",
+    "muteWeek": "На неделю",
+    "mutedUntil": "Без звука до {time}",
+    "mutedForever": "Без звука, пока не включишь",
+    "muteNote": "Никаких пушей и баннеров из этого чата. @упоминания и ответы тебе всё равно придут."
   },
   "calls": {
     "failed": "Звонок не соединился",

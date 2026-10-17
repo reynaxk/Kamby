@@ -915,7 +915,16 @@
     "openChat": "Aç",
     "activeNow": "Şu an aktif",
     "onlineCount": "{count} çevrimiçi",
-    "mentionSomeone": "Birinden bahset"
+    "mentionSomeone": "Birinden bahset",
+    "muteNotifications": "Bildirimleri sessize al",
+    "unmute": "Sesi aç",
+    "muted": "Sessizde",
+    "muteForever": "Ben açana kadar",
+    "muteHours": "{count, plural, other {# saat}}",
+    "muteWeek": "1 hafta",
+    "mutedUntil": "{time} saatine kadar sessizde",
+    "mutedForever": "Sen açana kadar sessizde",
+    "muteNote": "Bu sohbetten bildirim veya banner gelmez. @bahsetmeler ve sana yanıtlar yine gelir."
   },
   "calls": {
     "failed": "Arama bağlanamadı",

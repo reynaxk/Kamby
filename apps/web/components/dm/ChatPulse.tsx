@@ -70,6 +70,7 @@ export function ChatPulse() {
         convCache.current.set(m.conversationId, conv);
       }
       if (m.senderId === conv.meId || conv.state !== 'active') return;
+      if (conv.mute && !(m.kind === 'text' && /@/.test(m.body))) return; // muted (an @mention still shows)
       const sender = conv.group ? conv.group.members.find((p) => p.userId === m.senderId) : conv.other;
       const who = sender?.username ? `@${sender.username}` : t('someone');
       const what = m.kind === 'text' ? m.body : m.kind === 'coin' ? `$${m.coin?.symbol ?? ''}` : m.kind === 'pnl' ? `PnL · $${m.pnl?.symbol ?? ''}` : m.kind === 'usdc' ? `$${m.usdc?.amountUsd.toFixed(2)} USDC` : '';

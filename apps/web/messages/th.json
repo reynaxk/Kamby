@@ -915,7 +915,16 @@
     "openChat": "เปิด",
     "activeNow": "ออนไลน์อยู่",
     "onlineCount": "ออนไลน์ {count} คน",
-    "mentionSomeone": "พูดถึงใครสักคน"
+    "mentionSomeone": "พูดถึงใครสักคน",
+    "muteNotifications": "ปิดการแจ้งเตือน",
+    "unmute": "เปิดการแจ้งเตือน",
+    "muted": "ปิดเสียงแล้ว",
+    "muteForever": "จนกว่าจะเปิดเอง",
+    "muteHours": "{count, plural, other {# ชั่วโมง}}",
+    "muteWeek": "1 สัปดาห์",
+    "mutedUntil": "ปิดเสียงถึง {time}",
+    "mutedForever": "ปิดเสียงจนกว่าคุณจะเปิด",
+    "muteNote": "ไม่มีการแจ้งเตือนหรือแบนเนอร์จากแชทนี้ แต่ @การพูดถึงและการตอบกลับถึงคุณยังเข้ามา"
   },
   "calls": {
     "failed": "การโทรเชื่อมต่อไม่ได้",

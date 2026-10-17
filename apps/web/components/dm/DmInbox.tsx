@@ -218,6 +218,11 @@ export function DmInbox() {
                   <span className="flex items-center gap-2">
                     <span className={cn('truncate font-display text-[0.95rem] text-ink-900', c.unread > 0 ? 'font-black' : 'font-bold')}>{name}</span>
                     {c.group?.community && <span className="shrink-0 rounded-full border border-accent/20 bg-accent/[0.08] px-2 py-0.5 font-body text-[0.6rem] font-bold text-accent">{t('communityBadge')}</span>}
+                    {c.mute && (
+                      <span className="shrink-0 text-xs text-ink-400" aria-label={t('muted')}>
+                        🔕
+                      </span>
+                    )}
                     {c.state === 'pending' && <span className="shrink-0 rounded-full bg-white/[0.07] px-2 py-0.5 font-body text-[0.6rem] font-semibold text-ink-400">{t('pending')}</span>}
                     {c.blocked && <span className="shrink-0 rounded-full bg-down/10 px-2 py-0.5 font-body text-[0.6rem] font-semibold text-down">{t('blocked')}</span>}
                   </span>

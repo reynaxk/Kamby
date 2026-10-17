@@ -36,6 +36,7 @@ import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
+import { MuteDrawer } from './MuteDrawer';
 import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer } from './CommunityBits';
 import { haptic, nameColor } from './DmMessageView';
 import { useCalls } from '@/components/calls/CallProvider';
@@ -94,6 +95,7 @@ export function DmThread({ id }: { id: string }) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const channelCache = useRef(new Map<string, { messages: DmMessage[]; nextBefore: string | null }>());
   const [homeOpen, setHomeOpen] = useState(false);
+  const [muteOpen, setMuteOpen] = useState(false);
   const [replyTo, setReplyTo] = useState<DmMessage | null>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   // Where the unread lines start when you opened the chat ("New messages" divider), and how many
@@ -473,7 +475,18 @@ export function DmThread({ id }: { id: string }) {
             </svg>
           </button>
           {menu && (
-            <div className="kamby-glass-solid absolute right-0 top-11 z-40 w-48 overflow-hidden rounded-2xl py-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]" role="menu">
+            <div className="kamby-glass-solid absolute right-0 top-11 z-40 w-52 overflow-hidden rounded-2xl py-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]" role="menu">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenu(false);
+                  setMuteOpen(true);
+                }}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10"
+              >
+                <span aria-hidden>{conv?.mute ? '🔔' : '🔕'}</span>
+                {conv?.mute ? t('unmute') : t('muteNotifications')}
+              </button>
               {isGroup ? (
                 <>
                   <button
@@ -853,6 +866,8 @@ export function DmThread({ id }: { id: string }) {
           {isOwner && <ChannelsDrawer open={channelsOpen} onClose={() => setChannelsOpen(false)} id={id} channels={community.channels} onDone={refreshConv} />}
         </>
       )}
+
+      {conv && <MuteDrawer open={muteOpen} onClose={() => setMuteOpen(false)} conv={conv} onDone={setConv} />}
 
       {/* + menu */}
       <MobileDrawer open={attach === 'menu'} onClose={() => setAttach(null)} title={t('attachTitle')} desktop>

@@ -915,7 +915,16 @@
     "openChat": "打开",
     "activeNow": "在线",
     "onlineCount": "{count} 人在线",
-    "mentionSomeone": "提及某人"
+    "mentionSomeone": "提及某人",
+    "muteNotifications": "关闭通知",
+    "unmute": "开启通知",
+    "muted": "已静音",
+    "muteForever": "直到我重新开启",
+    "muteHours": "{count, plural, other {# 小时}}",
+    "muteWeek": "1 周",
+    "mutedUntil": "静音至 {time}",
+    "mutedForever": "静音，直到你重新开启",
+    "muteNote": "这个聊天不再推送通知和横幅。@提及和回复你的消息仍会提醒。"
   },
   "calls": {
     "failed": "通话未接通",

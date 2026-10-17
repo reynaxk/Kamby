@@ -168,7 +168,12 @@ export interface DmConversation {
   blocked: boolean;
   /** People in this chat (not you) who have Kamby open right now — the green dot, "Active now". */
   onlineIds: string[];
+  /** You muted this chat's notifications — until when (null = until you unmute). */
+  mute: { until: string | null } | null;
 }
+
+/** Mute choices in minutes (null = until you turn it back on). */
+export const DM_MUTE_OPTIONS = [60, 8 * 60, 7 * 24 * 60, null] as const;
 
 /** Kamby open in a tab / the app checks in this often; quiet for onlineTtlSec = offline. */
 export const DM_PRESENCE = { heartbeatMs: 30_000, onlineTtlSec: 75, viewingTtlSec: 40 } as const;

@@ -915,7 +915,16 @@
     "openChat": "Open",
     "activeNow": "Active now",
     "onlineCount": "{count} online",
-    "mentionSomeone": "Mention someone"
+    "mentionSomeone": "Mention someone",
+    "muteNotifications": "Mute notifications",
+    "unmute": "Unmute",
+    "muted": "Muted",
+    "muteForever": "Until I turn it back on",
+    "muteHours": "{count, plural, one {For 1 hour} other {For # hours}}",
+    "muteWeek": "For 1 week",
+    "mutedUntil": "Muted until {time}",
+    "mutedForever": "Muted until you turn it back on",
+    "muteNote": "No pushes or banners from this chat. @mentions and replies to you still come through."
   },
   "calls": {
     "failed": "Call didn’t connect",

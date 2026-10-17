@@ -915,7 +915,16 @@
     "openChat": "Abrir",
     "activeNow": "Ativo agora",
     "onlineCount": "{count} online",
-    "mentionSomeone": "Mencionar alguém"
+    "mentionSomeone": "Mencionar alguém",
+    "muteNotifications": "Silenciar notificações",
+    "unmute": "Reativar",
+    "muted": "Silenciado",
+    "muteForever": "Até eu reativar",
+    "muteHours": "{count, plural, one {Por 1 hora} other {Por # horas}}",
+    "muteWeek": "Por 1 semana",
+    "mutedUntil": "Silenciado até {time}",
+    "mutedForever": "Silenciado até você reativar",
+    "muteNote": "Sem notificações ou banners deste chat. @menções e respostas a você continuam chegando."
   },
   "calls": {
     "failed": "A chamada não conectou",
