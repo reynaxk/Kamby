@@ -37,6 +37,8 @@ import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 import { useCalls } from '@/components/calls/CallProvider';
+import { fetchCall } from '@/lib/calls-client';
+import type { CallState } from '@kamby/domain';
 
 /** The API's chain words for a coin's chain. */
 function chainSlug(chainIdentifier: string): string | null {
@@ -72,6 +74,13 @@ export function DmThread({ id }: { id: string }) {
   const [info, setInfo] = useState(false);
   const [adding, setAdding] = useState(false);
   const calls = useCalls();
+  // A call already going when this chat opened (e.g. you came in from the ring push).
+  const [serverCall, setServerCall] = useState<CallState | null>(null);
+  useEffect(() => {
+    fetchCall(id)
+      .then(setServerCall)
+      .catch(() => undefined);
+  }, [id]);
   const [menu, setMenu] = useState(false);
   const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | null>(null);
   const [usdcOpen, setUsdcOpen] = useState(false);
@@ -130,6 +139,8 @@ export function DmThread({ id }: { id: string }) {
           setMessages((list) => list.map((m) => (m.id === e.messageId ? { ...m, reactions: e.reactions } : m)));
         } else if (e.type === 'state') {
           refreshConv();
+        } else if (e.type === 'call') {
+          setServerCall(e.call);
         }
       },
     });
@@ -244,7 +255,7 @@ export function DmThread({ id }: { id: string }) {
   const isOwner = Boolean(conv?.group && conv.group.ownerId === me);
   // Calls only in accepted chats (owner's rule 2026-10-17).
   const canCall = Boolean(conv && !conv.blocked && conv.state === 'active' && !calls.inCall);
-  const liveCall = calls.liveIn(id);
+  const liveCall = serverCall;
   const inLiveCall = Boolean(liveCall && me && liveCall.participants.some((p) => p.userId === me));
   const typingName = typing ? (isGroup ? `@${memberBy.get(typing)?.username ?? '…'}` : name) : null;
 
