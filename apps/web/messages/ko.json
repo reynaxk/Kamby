@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "받음",
     "USDC_RECEIVED": "{actor}님이 {amount}를 보냈어요",
     "kind_DM_MESSAGE": "메시지",
-    "DM_MESSAGE": "{actor}님이 메시지를 보냈어요"
+    "DM_MESSAGE": "{actor}님이 메시지를 보냈어요",
+    "kind_CALL_INCOMING": "통화",
+    "CALL_INCOMING": "{actor}님이 전화하고 있어요"
   },
   "pulse": {
     "live": "실시간 — 전 세계 트레이더",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor}님이 {targets}님을 추가했어요",
     "sysRemoved": "{actor}님이 {targets}님을 내보냈어요",
     "sysLeft": "{actor}님이 나갔어요",
-    "sysRenamed": "{actor}님이 그룹 이름을 “{title}”(으)로 바꿨어요"
+    "sysRenamed": "{actor}님이 그룹 이름을 “{title}”(으)로 바꿨어요",
+    "callVoice": "음성 통화",
+    "callVideo": "영상 통화",
+    "callOn": "통화 중 · {count}명",
+    "joinCall": "참여",
+    "sysMissedCall": "부재중 전화",
+    "sysMissedVideo": "부재중 영상 통화",
+    "sysCall": "통화 · {length}",
+    "sysVideoCall": "영상 통화 · {length}",
+    "minutes": "{m}분",
+    "seconds": "{s}초"
+  },
+  "calls": {
+    "failed": "통화가 연결되지 않았어요",
+    "ok": "확인",
+    "someone": "누군가",
+    "incoming": "수신 전화",
+    "incomingVideo": "영상 통화…",
+    "incomingVoice": "전화 거는 중…",
+    "startedBy": "{name}님이 시작",
+    "decline": "거절",
+    "accept": "받기",
+    "acceptVideo": "영상",
+    "muted": "음소거됨",
+    "inCall": "통화",
+    "ringing": "연결음…",
+    "connecting": "연결 중…",
+    "report": "신고",
+    "reportConfirm": "이 채팅을 신고할까요? 통화에서 나가고 저희가 검토할게요.",
+    "sharing": "{name}님이 화면 공유 중",
+    "unmute": "음소거 해제",
+    "mute": "음소거",
+    "cameraOn": "카메라 켜기",
+    "cameraOff": "카메라 끄기",
+    "flip": "카메라 전환",
+    "share": "화면 공유",
+    "stopShare": "공유 중지",
+    "hangUp": "끊기"
   }
 }

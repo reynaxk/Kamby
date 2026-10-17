@@ -40,6 +40,12 @@ export function useSystemText(): (s: DmSystem) => string {
         return t('sysLeft', { actor });
       case 'renamed':
         return t('sysRenamed', { actor, title: s.title ?? '' });
+      case 'call': {
+        if (!s.durationSec) return s.video ? t('sysMissedVideo') : t('sysMissedCall');
+        const m = Math.floor(s.durationSec / 60);
+        const length = m > 0 ? t('minutes', { m }) : t('seconds', { s: s.durationSec });
+        return s.video ? t('sysVideoCall', { length }) : t('sysCall', { length });
+      }
     }
   };
 }

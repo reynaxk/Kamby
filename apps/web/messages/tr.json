@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Alındı",
     "USDC_RECEIVED": "{actor} sana {amount} gönderdi",
     "kind_DM_MESSAGE": "Mesaj",
-    "DM_MESSAGE": "{actor} sana mesaj gönderdi"
+    "DM_MESSAGE": "{actor} sana mesaj gönderdi",
+    "kind_CALL_INCOMING": "Arama",
+    "CALL_INCOMING": "{actor} seni arıyor"
   },
   "pulse": {
     "live": "Canlı — dünyanın dört bir yanından trader’lar",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor}, {targets} kişisini ekledi",
     "sysRemoved": "{actor}, {targets} kişisini çıkardı",
     "sysLeft": "{actor} ayrıldı",
-    "sysRenamed": "{actor} grubun adını “{title}” yaptı"
+    "sysRenamed": "{actor} grubun adını “{title}” yaptı",
+    "callVoice": "Sesli arama",
+    "callVideo": "Görüntülü arama",
+    "callOn": "Arama sürüyor · {count} kişi",
+    "joinCall": "Katıl",
+    "sysMissedCall": "Cevapsız arama",
+    "sysMissedVideo": "Cevapsız görüntülü arama",
+    "sysCall": "Arama · {length}",
+    "sysVideoCall": "Görüntülü arama · {length}",
+    "minutes": "{m} dk",
+    "seconds": "{s} sn"
+  },
+  "calls": {
+    "failed": "Arama bağlanamadı",
+    "ok": "Tamam",
+    "someone": "Biri",
+    "incoming": "Gelen arama",
+    "incomingVideo": "Görüntülü arama…",
+    "incomingVoice": "Aranıyor…",
+    "startedBy": "{name} başlattı",
+    "decline": "Reddet",
+    "accept": "Kabul et",
+    "acceptVideo": "Video",
+    "muted": "Sessiz",
+    "inCall": "Arama",
+    "ringing": "Çalıyor…",
+    "connecting": "Bağlanıyor…",
+    "report": "Şikayet et",
+    "reportConfirm": "Bu sohbeti şikayet etmek istiyor musun? Aramadan çıkacaksın ve inceleyeceğiz.",
+    "sharing": "{name} ekran paylaşıyor",
+    "unmute": "Sesi aç",
+    "mute": "Sessize al",
+    "cameraOn": "Kamerayı aç",
+    "cameraOff": "Kamerayı kapat",
+    "flip": "Kamerayı çevir",
+    "share": "Ekranı paylaş",
+    "stopShare": "Paylaşımı durdur",
+    "hangUp": "Kapat"
   }
 }

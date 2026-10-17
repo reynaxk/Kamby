@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Recibido",
     "USDC_RECEIVED": "{actor} te envió {amount}",
     "kind_DM_MESSAGE": "Mensaje",
-    "DM_MESSAGE": "{actor} te envió un mensaje"
+    "DM_MESSAGE": "{actor} te envió un mensaje",
+    "kind_CALL_INCOMING": "Llamada",
+    "CALL_INCOMING": "{actor} te está llamando"
   },
   "pulse": {
     "live": "En vivo — traders de todo el mundo",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} añadió a {targets}",
     "sysRemoved": "{actor} quitó a {targets}",
     "sysLeft": "{actor} salió",
-    "sysRenamed": "{actor} cambió el nombre del grupo a “{title}”"
+    "sysRenamed": "{actor} cambió el nombre del grupo a “{title}”",
+    "callVoice": "Llamada de voz",
+    "callVideo": "Videollamada",
+    "callOn": "{count, plural, one {Llamada en curso · # persona} other {Llamada en curso · # personas}}",
+    "joinCall": "Unirse",
+    "sysMissedCall": "Llamada perdida",
+    "sysMissedVideo": "Videollamada perdida",
+    "sysCall": "Llamada · {length}",
+    "sysVideoCall": "Videollamada · {length}",
+    "minutes": "{m} min",
+    "seconds": "{s} s"
+  },
+  "calls": {
+    "failed": "La llamada no conectó",
+    "ok": "OK",
+    "someone": "Alguien",
+    "incoming": "Llamada entrante",
+    "incomingVideo": "Videollamada…",
+    "incomingVoice": "Llamando…",
+    "startedBy": "Iniciada por {name}",
+    "decline": "Rechazar",
+    "accept": "Aceptar",
+    "acceptVideo": "Video",
+    "muted": "Silenciado",
+    "inCall": "Llamada",
+    "ringing": "Sonando…",
+    "connecting": "Conectando…",
+    "report": "Reportar",
+    "reportConfirm": "¿Reportar este chat? Saldrás de la llamada y lo revisaremos.",
+    "sharing": "{name} está compartiendo",
+    "unmute": "Activar micro",
+    "mute": "Silenciar",
+    "cameraOn": "Encender cámara",
+    "cameraOff": "Apagar cámara",
+    "flip": "Girar cámara",
+    "share": "Compartir pantalla",
+    "stopShare": "Dejar de compartir",
+    "hangUp": "Colgar"
   }
 }

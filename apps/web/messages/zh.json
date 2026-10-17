@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "已收到",
     "USDC_RECEIVED": "{actor} 给你发了 {amount}",
     "kind_DM_MESSAGE": "私信",
-    "DM_MESSAGE": "{actor} 给你发了私信"
+    "DM_MESSAGE": "{actor} 给你发了私信",
+    "kind_CALL_INCOMING": "来电",
+    "CALL_INCOMING": "{actor} 正在呼叫你"
   },
   "pulse": {
     "live": "实时 — 全球交易者",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} 添加了 {targets}",
     "sysRemoved": "{actor} 移除了 {targets}",
     "sysLeft": "{actor} 退出了群组",
-    "sysRenamed": "{actor} 将群组重命名为“{title}”"
+    "sysRenamed": "{actor} 将群组重命名为“{title}”",
+    "callVoice": "语音通话",
+    "callVideo": "视频通话",
+    "callOn": "通话中 · {count} 人",
+    "joinCall": "加入",
+    "sysMissedCall": "未接来电",
+    "sysMissedVideo": "未接视频通话",
+    "sysCall": "通话 · {length}",
+    "sysVideoCall": "视频通话 · {length}",
+    "minutes": "{m} 分钟",
+    "seconds": "{s} 秒"
+  },
+  "calls": {
+    "failed": "通话未接通",
+    "ok": "好",
+    "someone": "某人",
+    "incoming": "来电",
+    "incomingVideo": "视频通话…",
+    "incomingVoice": "正在呼叫…",
+    "startedBy": "由 {name} 发起",
+    "decline": "拒绝",
+    "accept": "接听",
+    "acceptVideo": "视频",
+    "muted": "已静音",
+    "inCall": "通话",
+    "ringing": "响铃中…",
+    "connecting": "连接中…",
+    "report": "举报",
+    "reportConfirm": "举报这个聊天？你将离开通话，我们会进行审核。",
+    "sharing": "{name} 正在共享屏幕",
+    "unmute": "取消静音",
+    "mute": "静音",
+    "cameraOn": "打开摄像头",
+    "cameraOff": "关闭摄像头",
+    "flip": "切换摄像头",
+    "share": "共享屏幕",
+    "stopShare": "停止共享",
+    "hangUp": "挂断"
   }
 }

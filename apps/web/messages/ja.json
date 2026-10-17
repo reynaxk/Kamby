@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "受け取り",
     "USDC_RECEIVED": "{actor} から {amount} が届きました",
     "kind_DM_MESSAGE": "メッセージ",
-    "DM_MESSAGE": "{actor}からメッセージが届きました"
+    "DM_MESSAGE": "{actor}からメッセージが届きました",
+    "kind_CALL_INCOMING": "通話",
+    "CALL_INCOMING": "{actor}から着信"
   },
   "pulse": {
     "live": "ライブ — 世界中のトレーダー",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor}が{targets}を追加しました",
     "sysRemoved": "{actor}が{targets}を削除しました",
     "sysLeft": "{actor}が退出しました",
-    "sysRenamed": "{actor}がグループ名を「{title}」に変更しました"
+    "sysRenamed": "{actor}がグループ名を「{title}」に変更しました",
+    "callVoice": "音声通話",
+    "callVideo": "ビデオ通話",
+    "callOn": "通話中 · {count}人",
+    "joinCall": "参加",
+    "sysMissedCall": "不在着信",
+    "sysMissedVideo": "ビデオ通話の不在着信",
+    "sysCall": "通話 · {length}",
+    "sysVideoCall": "ビデオ通話 · {length}",
+    "minutes": "{m}分",
+    "seconds": "{s}秒"
+  },
+  "calls": {
+    "failed": "通話に接続できませんでした",
+    "ok": "OK",
+    "someone": "誰か",
+    "incoming": "着信",
+    "incomingVideo": "ビデオ通話…",
+    "incomingVoice": "発信中…",
+    "startedBy": "{name}が開始",
+    "decline": "拒否",
+    "accept": "応答",
+    "acceptVideo": "ビデオ",
+    "muted": "ミュート中",
+    "inCall": "通話",
+    "ringing": "呼び出し中…",
+    "connecting": "接続中…",
+    "report": "報告",
+    "reportConfirm": "このチャットを報告しますか？通話から退出し、内容を確認します。",
+    "sharing": "{name}が画面共有中",
+    "unmute": "ミュート解除",
+    "mute": "ミュート",
+    "cameraOn": "カメラをオン",
+    "cameraOff": "カメラをオフ",
+    "flip": "カメラ切替",
+    "share": "画面を共有",
+    "stopShare": "共有を停止",
+    "hangUp": "終了"
   }
 }

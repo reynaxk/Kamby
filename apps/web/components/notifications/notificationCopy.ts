@@ -35,6 +35,8 @@ export function notificationCopy(n: NotificationDto, t: Translate): string {
       return t('USDC_RECEIVED', values);
     case 'DM_MESSAGE':
       return t('DM_MESSAGE', values);
+    case 'CALL_INCOMING':
+      return t('CALL_INCOMING', values);
   }
 }
 

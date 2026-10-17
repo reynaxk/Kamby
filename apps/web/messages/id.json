@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Diterima",
     "USDC_RECEIVED": "{actor} mengirimimu {amount}",
     "kind_DM_MESSAGE": "Pesan",
-    "DM_MESSAGE": "{actor} mengirimimu pesan"
+    "DM_MESSAGE": "{actor} mengirimimu pesan",
+    "kind_CALL_INCOMING": "Panggilan",
+    "CALL_INCOMING": "{actor} meneleponmu"
   },
   "pulse": {
     "live": "Live — trader dari seluruh dunia",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} menambahkan {targets}",
     "sysRemoved": "{actor} menghapus {targets}",
     "sysLeft": "{actor} keluar",
-    "sysRenamed": "{actor} mengganti nama grup menjadi “{title}”"
+    "sysRenamed": "{actor} mengganti nama grup menjadi “{title}”",
+    "callVoice": "Panggilan suara",
+    "callVideo": "Panggilan video",
+    "callOn": "Panggilan berlangsung · {count} orang",
+    "joinCall": "Gabung",
+    "sysMissedCall": "Panggilan tak terjawab",
+    "sysMissedVideo": "Panggilan video tak terjawab",
+    "sysCall": "Panggilan · {length}",
+    "sysVideoCall": "Panggilan video · {length}",
+    "minutes": "{m} mnt",
+    "seconds": "{s} dtk"
+  },
+  "calls": {
+    "failed": "Panggilan gagal tersambung",
+    "ok": "OK",
+    "someone": "Seseorang",
+    "incoming": "Panggilan masuk",
+    "incomingVideo": "Panggilan video…",
+    "incomingVoice": "Memanggil…",
+    "startedBy": "Dimulai oleh {name}",
+    "decline": "Tolak",
+    "accept": "Terima",
+    "acceptVideo": "Video",
+    "muted": "Bisu",
+    "inCall": "Panggilan",
+    "ringing": "Berdering…",
+    "connecting": "Menyambungkan…",
+    "report": "Laporkan",
+    "reportConfirm": "Laporkan chat ini? Kamu akan keluar dari panggilan dan kami akan meninjaunya.",
+    "sharing": "{name} sedang berbagi layar",
+    "unmute": "Nyalakan suara",
+    "mute": "Bisukan",
+    "cameraOn": "Nyalakan kamera",
+    "cameraOff": "Matikan kamera",
+    "flip": "Balik kamera",
+    "share": "Bagikan layar",
+    "stopShare": "Berhenti berbagi",
+    "hangUp": "Tutup"
   }
 }

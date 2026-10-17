@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Erhalten",
     "USDC_RECEIVED": "{actor} hat dir {amount} geschickt",
     "kind_DM_MESSAGE": "Nachricht",
-    "DM_MESSAGE": "{actor} hat dir geschrieben"
+    "DM_MESSAGE": "{actor} hat dir geschrieben",
+    "kind_CALL_INCOMING": "Anruf",
+    "CALL_INCOMING": "{actor} ruft dich an"
   },
   "pulse": {
     "live": "Live — Trader aus aller Welt",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} hat {targets} hinzugefügt",
     "sysRemoved": "{actor} hat {targets} entfernt",
     "sysLeft": "{actor} hat die Gruppe verlassen",
-    "sysRenamed": "{actor} hat die Gruppe in „{title}“ umbenannt"
+    "sysRenamed": "{actor} hat die Gruppe in „{title}“ umbenannt",
+    "callVoice": "Sprachanruf",
+    "callVideo": "Videoanruf",
+    "callOn": "{count, plural, one {Anruf läuft · # Person} other {Anruf läuft · # Personen}}",
+    "joinCall": "Beitreten",
+    "sysMissedCall": "Verpasster Anruf",
+    "sysMissedVideo": "Verpasster Videoanruf",
+    "sysCall": "Anruf · {length}",
+    "sysVideoCall": "Videoanruf · {length}",
+    "minutes": "{m} Min",
+    "seconds": "{s} s"
+  },
+  "calls": {
+    "failed": "Anruf nicht verbunden",
+    "ok": "OK",
+    "someone": "Jemand",
+    "incoming": "Eingehender Anruf",
+    "incomingVideo": "Videoanruf…",
+    "incomingVoice": "Ruft an…",
+    "startedBy": "Gestartet von {name}",
+    "decline": "Ablehnen",
+    "accept": "Annehmen",
+    "acceptVideo": "Video",
+    "muted": "Stumm",
+    "inCall": "Anruf",
+    "ringing": "Klingelt…",
+    "connecting": "Verbinde…",
+    "report": "Melden",
+    "reportConfirm": "Diesen Chat melden? Du verlässt den Anruf und wir prüfen ihn.",
+    "sharing": "{name} teilt den Bildschirm",
+    "unmute": "Ton an",
+    "mute": "Stumm",
+    "cameraOn": "Kamera an",
+    "cameraOff": "Kamera aus",
+    "flip": "Kamera wechseln",
+    "share": "Bildschirm teilen",
+    "stopShare": "Teilen beenden",
+    "hangUp": "Auflegen"
   }
 }

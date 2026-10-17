@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Получени",
     "USDC_RECEIVED": "{actor} ти прати {amount}",
     "kind_DM_MESSAGE": "Съобщение",
-    "DM_MESSAGE": "{actor} ти писа"
+    "DM_MESSAGE": "{actor} ти писа",
+    "kind_CALL_INCOMING": "Обаждане",
+    "CALL_INCOMING": "{actor} ти звъни"
   },
   "pulse": {
     "live": "На живо — трейдъри от цял свят",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} добави {targets}",
     "sysRemoved": "{actor} премахна {targets}",
     "sysLeft": "{actor} напусна",
-    "sysRenamed": "{actor} преименува групата на „{title}“"
+    "sysRenamed": "{actor} преименува групата на „{title}“",
+    "callVoice": "Гласов разговор",
+    "callVideo": "Видео разговор",
+    "callOn": "{count, plural, one {Разговор · # човек} other {Разговор · # души}}",
+    "joinCall": "Влез",
+    "sysMissedCall": "Пропуснато обаждане",
+    "sysMissedVideo": "Пропуснат видео разговор",
+    "sysCall": "Разговор · {length}",
+    "sysVideoCall": "Видео разговор · {length}",
+    "minutes": "{m} мин",
+    "seconds": "{s} сек"
+  },
+  "calls": {
+    "failed": "Разговорът не се свърза",
+    "ok": "OK",
+    "someone": "Някой",
+    "incoming": "Входящо обаждане",
+    "incomingVideo": "Видео разговор…",
+    "incomingVoice": "Звъни…",
+    "startedBy": "Започнат от {name}",
+    "decline": "Откажи",
+    "accept": "Приеми",
+    "acceptVideo": "Видео",
+    "muted": "Без звук",
+    "inCall": "Разговор",
+    "ringing": "Звъни…",
+    "connecting": "Свързване…",
+    "report": "Докладвай",
+    "reportConfirm": "Да докладваме ли този чат? Ще излезеш от разговора, а ние ще го прегледаме.",
+    "sharing": "{name} споделя екрана",
+    "unmute": "Включи звука",
+    "mute": "Изключи звука",
+    "cameraOn": "Включи камерата",
+    "cameraOff": "Изключи камерата",
+    "flip": "Обърни камерата",
+    "share": "Сподели екрана",
+    "stopShare": "Спри споделянето",
+    "hangUp": "Затвори"
   }
 }

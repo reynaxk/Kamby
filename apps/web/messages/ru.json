@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Получено",
     "USDC_RECEIVED": "{actor} отправил тебе {amount}",
     "kind_DM_MESSAGE": "Сообщение",
-    "DM_MESSAGE": "{actor} написал тебе"
+    "DM_MESSAGE": "{actor} написал тебе",
+    "kind_CALL_INCOMING": "Звонок",
+    "CALL_INCOMING": "{actor} звонит тебе"
   },
   "pulse": {
     "live": "Онлайн — трейдеры со всего мира",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} добавил {targets}",
     "sysRemoved": "{actor} удалил {targets}",
     "sysLeft": "{actor} покинул группу",
-    "sysRenamed": "{actor} переименовал группу в «{title}»"
+    "sysRenamed": "{actor} переименовал группу в «{title}»",
+    "callVoice": "Голосовой звонок",
+    "callVideo": "Видеозвонок",
+    "callOn": "{count, plural, one {Идёт звонок · # человек} few {Идёт звонок · # человека} many {Идёт звонок · # человек} other {Идёт звонок · # человека}}",
+    "joinCall": "Присоединиться",
+    "sysMissedCall": "Пропущенный звонок",
+    "sysMissedVideo": "Пропущенный видеозвонок",
+    "sysCall": "Звонок · {length}",
+    "sysVideoCall": "Видеозвонок · {length}",
+    "minutes": "{m} мин",
+    "seconds": "{s} с"
+  },
+  "calls": {
+    "failed": "Звонок не соединился",
+    "ok": "OK",
+    "someone": "Кто-то",
+    "incoming": "Входящий звонок",
+    "incomingVideo": "Видеозвонок…",
+    "incomingVoice": "Звоним…",
+    "startedBy": "Начал {name}",
+    "decline": "Отклонить",
+    "accept": "Принять",
+    "acceptVideo": "Видео",
+    "muted": "Без звука",
+    "inCall": "Звонок",
+    "ringing": "Вызов…",
+    "connecting": "Соединение…",
+    "report": "Пожаловаться",
+    "reportConfirm": "Пожаловаться на чат? Ты выйдешь из звонка, а мы проверим его.",
+    "sharing": "{name} показывает экран",
+    "unmute": "Включить звук",
+    "mute": "Выключить звук",
+    "cameraOn": "Включить камеру",
+    "cameraOff": "Выключить камеру",
+    "flip": "Сменить камеру",
+    "share": "Показать экран",
+    "stopShare": "Остановить показ",
+    "hangUp": "Завершить"
   }
 }

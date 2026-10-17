@@ -36,6 +36,7 @@ import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
+import { useCalls } from '@/components/calls/CallProvider';
 
 /** The API's chain words for a coin's chain. */
 function chainSlug(chainIdentifier: string): string | null {
@@ -70,6 +71,7 @@ export function DmThread({ id }: { id: string }) {
   const [typing, setTyping] = useState<string | null>(null);
   const [info, setInfo] = useState(false);
   const [adding, setAdding] = useState(false);
+  const calls = useCalls();
   const [menu, setMenu] = useState(false);
   const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | null>(null);
   const [usdcOpen, setUsdcOpen] = useState(false);
@@ -240,6 +242,10 @@ export function DmThread({ id }: { id: string }) {
   const seen = !isGroup && lastMine && conv?.otherReadAt && new Date(conv.otherReadAt) >= new Date(lastMine.createdAt);
   const canWrite = conv && !conv.blocked && conv.state !== 'request';
   const isOwner = Boolean(conv?.group && conv.group.ownerId === me);
+  // Calls only in accepted chats (owner's rule 2026-10-17).
+  const canCall = Boolean(conv && !conv.blocked && conv.state === 'active' && !calls.inCall);
+  const liveCall = calls.liveIn(id);
+  const inLiveCall = Boolean(liveCall && me && liveCall.participants.some((p) => p.userId === me));
   const typingName = typing ? (isGroup ? `@${memberBy.get(typing)?.username ?? '…'}` : name) : null;
 
   return (
@@ -274,6 +280,21 @@ export function DmThread({ id }: { id: string }) {
             <DmAvatar name={conv?.other?.username ?? null} src={conv?.other?.avatarUrl ?? null} className="h-9 w-9 text-sm" />
             <span className="truncate font-display text-base font-bold text-ink-900">{name}</span>
           </span>
+        )}
+        {canCall && (
+          <>
+            <button type="button" aria-label={t('callVoice')} onClick={() => void calls.start(id, false)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z" />
+              </svg>
+            </button>
+            <button type="button" aria-label={t('callVideo')} onClick={() => void calls.start(id, true)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="m22 8-6 4 6 4V8Z" />
+                <rect x="2" y="6" width="14" height="12" rx="2" />
+              </svg>
+            </button>
+          </>
         )}
         <span className="relative">
           <button type="button" aria-label={t('more')} onClick={() => setMenu((m) => !m)} className="flex h-10 w-10 items-center justify-center rounded-full text-ink-600 active:bg-white/10">
@@ -333,6 +354,21 @@ export function DmThread({ id }: { id: string }) {
           )}
         </span>
       </header>
+
+      {/* A call is on in this chat — join it */}
+      {liveCall && !inLiveCall && liveCall.participants.length > 0 && canCall && (
+        <button
+          type="button"
+          onClick={() => void calls.start(id, false)}
+          className="sticky top-[calc(env(safe-area-inset-top)+3.6rem)] z-20 mx-3 mt-2 flex items-center justify-between gap-3 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-2.5 text-left"
+        >
+          <span className="flex items-center gap-2 font-display text-sm font-bold text-accent">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+            {t('callOn', { count: liveCall.participants.length })}
+          </span>
+          <span className="rounded-full bg-accent px-3 py-1 font-display text-xs font-bold text-black">{t('joinCall')}</span>
+        </button>
+      )}
 
       {/* Messages */}
       <main className="mx-auto w-full max-w-2xl flex-1 px-3 pb-36 pt-3">

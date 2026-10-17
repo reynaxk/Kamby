@@ -17,6 +17,7 @@ const KIND_COLOR: Record<NotificationDto['type'], string> = {
   PRICE_MOVE: 'text-accent',
   USDC_RECEIVED: 'text-up',
   DM_MESSAGE: 'text-accent',
+  CALL_INCOMING: 'text-accent',
 };
 
 /** Each kind's own line icon (2026-10-15, the landing page's icon style) and its tint. */
@@ -32,6 +33,7 @@ const KIND_ICON: Record<NotificationDto['type'], { path: string; tile: string }>
   PRICE_MOVE: { path: 'M3 17l6-6 4 4 8-8M15 7h6v6', tile: 'bg-accent/10 text-accent border-accent/20' },
   USDC_RECEIVED: { path: 'm22 2-7 20-4-9-9-4ZM22 2 11 13', tile: 'bg-up/10 text-up border-up/20' },
   DM_MESSAGE: { path: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12Z', tile: 'bg-accent/10 text-accent border-accent/20' },
+  CALL_INCOMING: { path: 'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z', tile: 'bg-accent/10 text-accent border-accent/20' },
 };
 
 function KindIcon({ type, size = 18 }: { type: NotificationDto['type']; size?: number }) {

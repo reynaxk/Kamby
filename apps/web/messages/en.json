@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Received",
     "USDC_RECEIVED": "{actor} sent you {amount}",
     "kind_DM_MESSAGE": "Message",
-    "DM_MESSAGE": "{actor} sent you a message"
+    "DM_MESSAGE": "{actor} sent you a message",
+    "kind_CALL_INCOMING": "Call",
+    "CALL_INCOMING": "{actor} is calling you"
   },
   "pulse": {
     "live": "Live — traders worldwide",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} added {targets}",
     "sysRemoved": "{actor} removed {targets}",
     "sysLeft": "{actor} left",
-    "sysRenamed": "{actor} renamed the group to “{title}”"
+    "sysRenamed": "{actor} renamed the group to “{title}”",
+    "callVoice": "Voice call",
+    "callVideo": "Video call",
+    "callOn": "{count, plural, one {Call on · # person} other {Call on · # people}}",
+    "joinCall": "Join",
+    "sysMissedCall": "Missed call",
+    "sysMissedVideo": "Missed video call",
+    "sysCall": "Call · {length}",
+    "sysVideoCall": "Video call · {length}",
+    "minutes": "{m} min",
+    "seconds": "{s}s"
+  },
+  "calls": {
+    "failed": "Call didn’t connect",
+    "ok": "OK",
+    "someone": "Someone",
+    "incoming": "Incoming call",
+    "incomingVideo": "Video call…",
+    "incomingVoice": "Calling…",
+    "startedBy": "Started by {name}",
+    "decline": "Decline",
+    "accept": "Accept",
+    "acceptVideo": "Video",
+    "muted": "Muted",
+    "inCall": "Call",
+    "ringing": "Ringing…",
+    "connecting": "Connecting…",
+    "report": "Report",
+    "reportConfirm": "Report this chat? You’ll leave the call and we’ll review it.",
+    "sharing": "{name} is sharing",
+    "unmute": "Unmute",
+    "mute": "Mute",
+    "cameraOn": "Turn camera on",
+    "cameraOff": "Turn camera off",
+    "flip": "Flip camera",
+    "share": "Share screen",
+    "stopShare": "Stop sharing",
+    "hangUp": "Hang up"
   }
 }

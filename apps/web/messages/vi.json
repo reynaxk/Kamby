@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "Đã nhận",
     "USDC_RECEIVED": "{actor} đã gửi bạn {amount}",
     "kind_DM_MESSAGE": "Tin nhắn",
-    "DM_MESSAGE": "{actor} đã nhắn tin cho bạn"
+    "DM_MESSAGE": "{actor} đã nhắn tin cho bạn",
+    "kind_CALL_INCOMING": "Cuộc gọi",
+    "CALL_INCOMING": "{actor} đang gọi cho bạn"
   },
   "pulse": {
     "live": "Trực tiếp — trader toàn thế giới",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} đã thêm {targets}",
     "sysRemoved": "{actor} đã xóa {targets}",
     "sysLeft": "{actor} đã rời nhóm",
-    "sysRenamed": "{actor} đã đổi tên nhóm thành “{title}”"
+    "sysRenamed": "{actor} đã đổi tên nhóm thành “{title}”",
+    "callVoice": "Gọi thoại",
+    "callVideo": "Gọi video",
+    "callOn": "Đang gọi · {count} người",
+    "joinCall": "Tham gia",
+    "sysMissedCall": "Cuộc gọi nhỡ",
+    "sysMissedVideo": "Cuộc gọi video nhỡ",
+    "sysCall": "Cuộc gọi · {length}",
+    "sysVideoCall": "Gọi video · {length}",
+    "minutes": "{m} phút",
+    "seconds": "{s} giây"
+  },
+  "calls": {
+    "failed": "Cuộc gọi không kết nối được",
+    "ok": "OK",
+    "someone": "Ai đó",
+    "incoming": "Cuộc gọi đến",
+    "incomingVideo": "Gọi video…",
+    "incomingVoice": "Đang gọi…",
+    "startedBy": "Bắt đầu bởi {name}",
+    "decline": "Từ chối",
+    "accept": "Nghe",
+    "acceptVideo": "Video",
+    "muted": "Đã tắt tiếng",
+    "inCall": "Cuộc gọi",
+    "ringing": "Đang đổ chuông…",
+    "connecting": "Đang kết nối…",
+    "report": "Báo cáo",
+    "reportConfirm": "Báo cáo đoạn chat này? Bạn sẽ rời cuộc gọi và chúng tôi sẽ xem xét.",
+    "sharing": "{name} đang chia sẻ màn hình",
+    "unmute": "Bật tiếng",
+    "mute": "Tắt tiếng",
+    "cameraOn": "Bật camera",
+    "cameraOff": "Tắt camera",
+    "flip": "Đổi camera",
+    "share": "Chia sẻ màn hình",
+    "stopShare": "Dừng chia sẻ",
+    "hangUp": "Kết thúc"
   }
 }

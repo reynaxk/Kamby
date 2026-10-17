@@ -10,6 +10,7 @@ import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
+import { CallProvider } from '@/components/calls/CallProvider';
 import { LandingOnlyOnPhones } from '@/components/layout/LandingOnlyOnPhones';
 import { LaunchOnHome } from '@/components/pwa/LaunchOnHome';
 import { AppSplash, SPLASH_GATE_SCRIPT } from '@/components/pwa/AppSplash';
@@ -78,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AppSplash />
         <NextIntlClientProvider locale={locale} messages={messages}>
         <Providers>
+          <CallProvider>
           <div id="kamby-app">
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
               the TickerBar (h-8) from md up — so neither covers the end of the page. */}
@@ -90,6 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <TickerBar />
           <MobileTabBar />
           </div>
+          </CallProvider>
           <AuthGate />
         </Providers>
         <InstallApp />

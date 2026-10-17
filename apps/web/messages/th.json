@@ -665,7 +665,9 @@
     "kind_USDC_RECEIVED": "ได้รับ",
     "USDC_RECEIVED": "{actor} ส่ง {amount} ให้คุณ",
     "kind_DM_MESSAGE": "ข้อความ",
-    "DM_MESSAGE": "{actor} ส่งข้อความถึงคุณ"
+    "DM_MESSAGE": "{actor} ส่งข้อความถึงคุณ",
+    "kind_CALL_INCOMING": "การโทร",
+    "CALL_INCOMING": "{actor} กำลังโทรหาคุณ"
   },
   "pulse": {
     "live": "สด — เทรดเดอร์ทั่วโลก",
@@ -852,6 +854,43 @@
     "sysAdded": "{actor} เพิ่ม {targets}",
     "sysRemoved": "{actor} นำ {targets} ออก",
     "sysLeft": "{actor} ออกจากกลุ่ม",
-    "sysRenamed": "{actor} เปลี่ยนชื่อกลุ่มเป็น “{title}”"
+    "sysRenamed": "{actor} เปลี่ยนชื่อกลุ่มเป็น “{title}”",
+    "callVoice": "โทรด้วยเสียง",
+    "callVideo": "วิดีโอคอล",
+    "callOn": "กำลังคุยอยู่ · {count} คน",
+    "joinCall": "เข้าร่วม",
+    "sysMissedCall": "สายที่ไม่ได้รับ",
+    "sysMissedVideo": "วิดีโอคอลที่ไม่ได้รับ",
+    "sysCall": "การโทร · {length}",
+    "sysVideoCall": "วิดีโอคอล · {length}",
+    "minutes": "{m} นาที",
+    "seconds": "{s} วินาที"
+  },
+  "calls": {
+    "failed": "การโทรเชื่อมต่อไม่ได้",
+    "ok": "ตกลง",
+    "someone": "ใครบางคน",
+    "incoming": "สายเรียกเข้า",
+    "incomingVideo": "วิดีโอคอล…",
+    "incomingVoice": "กำลังโทร…",
+    "startedBy": "เริ่มโดย {name}",
+    "decline": "ปฏิเสธ",
+    "accept": "รับสาย",
+    "acceptVideo": "วิดีโอ",
+    "muted": "ปิดเสียงอยู่",
+    "inCall": "การโทร",
+    "ringing": "กำลังเรียก…",
+    "connecting": "กำลังเชื่อมต่อ…",
+    "report": "รายงาน",
+    "reportConfirm": "รายงานแชทนี้ใช่ไหม? คุณจะออกจากสายและเราจะตรวจสอบ",
+    "sharing": "{name} กำลังแชร์หน้าจอ",
+    "unmute": "เปิดเสียง",
+    "mute": "ปิดเสียง",
+    "cameraOn": "เปิดกล้อง",
+    "cameraOff": "ปิดกล้อง",
+    "flip": "สลับกล้อง",
+    "share": "แชร์หน้าจอ",
+    "stopShare": "หยุดแชร์",
+    "hangUp": "วางสาย"
   }
 }
