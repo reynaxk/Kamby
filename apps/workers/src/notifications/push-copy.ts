@@ -32,11 +32,13 @@ const EN: Copy = {
   USDC_RECEIVED: { title: '💸 {amount} received', body: '@{actor} sent you {amount}' },
   DM_MESSAGE: { title: "💬 @{actor}", body: "sent you a message" },
   CALL_INCOMING: { title: "📞 @{actor}", body: "is calling you" },
+  LIVE_STARTED: { title: '🔴 @{actor} is live', body: 'Tap to watch and chat' },
 };
 
 const COPY: Record<string, Partial<Copy>> = {
   en: EN,
   bg: {
+    LIVE_STARTED: { title: '🔴 @{actor} е на живо', body: 'Докосни, за да гледаш и пишеш' },
     USDC_RECEIVED: { title: "💸 Получи {amount}", body: "@{actor} ти прати {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ти писа" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "ти звъни" },
@@ -52,6 +54,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} се промени с {pct} за последния час' },
   },
   zh: {
+    LIVE_STARTED: { title: '🔴 @{actor} 正在直播', body: '点击观看并聊天' },
     USDC_RECEIVED: { title: "💸 收到 {amount}", body: "@{actor} 给你发了 {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "给你发了一条消息" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "正在呼叫你" },
@@ -67,6 +70,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} 过去一小时变动 {pct}' },
   },
   ko: {
+    LIVE_STARTED: { title: '🔴 @{actor}님이 라이브 중', body: '눌러서 시청하고 채팅하세요' },
     USDC_RECEIVED: { title: "💸 {amount} 받았어요", body: "@{actor}님이 {amount}를 보냈어요" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "님이 메시지를 보냈어요" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "님이 전화하고 있어요" },
@@ -82,6 +86,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token}이(가) 지난 1시간 동안 {pct} 변동' },
   },
   ja: {
+    LIVE_STARTED: { title: '🔴 @{actor} がライブ中', body: 'タップして視聴・チャット' },
     USDC_RECEIVED: { title: "💸 {amount} 受け取りました", body: "@{actor} から {amount} が届きました" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "からメッセージが届きました" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "から着信中" },
@@ -97,6 +102,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} が直近1時間で {pct} 変動' },
   },
   tr: {
+    LIVE_STARTED: { title: '🔴 @{actor} canlı yayında', body: 'İzlemek ve yazmak için dokun' },
     USDC_RECEIVED: { title: "💸 {amount} geldi", body: "@{actor} sana {amount} gönderdi" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "sana mesaj gönderdi" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "seni arıyor" },
@@ -112,6 +118,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} son bir saatte {pct} hareket etti' },
   },
   ru: {
+    LIVE_STARTED: { title: '🔴 @{actor} в эфире', body: 'Нажми, чтобы смотреть и писать' },
     USDC_RECEIVED: { title: "💸 Получено {amount}", body: "@{actor} отправил тебе {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "написал тебе" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "звонит тебе" },
@@ -127,6 +134,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} изменился на {pct} за последний час' },
   },
   es: {
+    LIVE_STARTED: { title: '🔴 @{actor} está en directo', body: 'Toca para ver y chatear' },
     USDC_RECEIVED: { title: "💸 Recibiste {amount}", body: "@{actor} te envió {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te envió un mensaje" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "te está llamando" },
@@ -142,6 +150,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} se movió {pct} en la última hora' },
   },
   pt: {
+    LIVE_STARTED: { title: '🔴 @{actor} está ao vivo', body: 'Toque para assistir e conversar' },
     USDC_RECEIVED: { title: "💸 {amount} recebidos", body: "@{actor} te enviou {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te enviou uma mensagem" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "está te ligando" },
@@ -157,6 +166,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} variou {pct} na última hora' },
   },
   vi: {
+    LIVE_STARTED: { title: '🔴 @{actor} đang phát live', body: 'Chạm để xem và chat' },
     USDC_RECEIVED: { title: "💸 Đã nhận {amount}", body: "@{actor} đã gửi bạn {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "đã nhắn tin cho bạn" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "đang gọi cho bạn" },
@@ -172,6 +182,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} biến động {pct} trong 1 giờ qua' },
   },
   id: {
+    LIVE_STARTED: { title: '🔴 @{actor} sedang live', body: 'Ketuk untuk menonton & chat' },
     USDC_RECEIVED: { title: "💸 {amount} diterima", body: "@{actor} mengirimimu {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "mengirimimu pesan" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "sedang meneleponmu" },
@@ -187,6 +198,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} bergerak {pct} dalam satu jam terakhir' },
   },
   th: {
+    LIVE_STARTED: { title: '🔴 @{actor} กำลังไลฟ์', body: 'แตะเพื่อดูและแชท' },
     USDC_RECEIVED: { title: "💸 ได้รับ {amount}", body: "@{actor} ส่ง {amount} ให้คุณ" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ส่งข้อความถึงคุณ" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "กำลังโทรหาคุณ" },
@@ -202,6 +214,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} เปลี่ยนแปลง {pct} ในชั่วโมงที่ผ่านมา' },
   },
   de: {
+    LIVE_STARTED: { title: '🔴 @{actor} ist live', body: 'Tippe zum Zuschauen & Chatten' },
     USDC_RECEIVED: { title: "💸 {amount} erhalten", body: "@{actor} hat dir {amount} geschickt" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "hat dir geschrieben" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "ruft dich an" },
@@ -217,6 +230,7 @@ const COPY: Record<string, Partial<Copy>> = {
     PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} hat sich in der letzten Stunde um {pct} bewegt' },
   },
   fr: {
+    LIVE_STARTED: { title: '🔴 @{actor} est en live', body: 'Touche pour regarder et chatter' },
     USDC_RECEIVED: { title: "💸 {amount} reçus", body: "@{actor} t'a envoyé {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "t'a envoyé un message" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "t'appelle" },
@@ -247,4 +261,52 @@ export function pushCopy(locale: string, type: NotificationType, facts: PushFact
       .replaceAll('{arrow}', facts.arrow ?? '')
       .trim();
   return { title: fill(entry.title), body: fill(entry.body) };
+}
+
+/** What a chat push is about (2026-10-17) — from the notification's payload. */
+export interface DmPushFacts {
+  actor: string;
+  dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted';
+  chatTitle: string | null;
+  preview: string;
+  emoji: string;
+}
+
+const DM_EXTRA: Record<string, { mention: string; reply: string; reaction: string; added: string; accepted: string }> = {
+  en: { mention: '@{actor} mentioned you: {preview}', reply: '@{actor} replied: {preview}', reaction: '@{actor} reacted {emoji} to “{preview}”', added: '@{actor} added you to {chat}', accepted: '@{actor} accepted your message request' },
+  bg: { mention: '@{actor} те спомена: {preview}', reply: '@{actor} ти отговори: {preview}', reaction: '@{actor} реагира с {emoji} на „{preview}“', added: '@{actor} те добави в {chat}', accepted: '@{actor} прие заявката ти за съобщения' },
+  zh: { mention: '@{actor} 提到了你：{preview}', reply: '@{actor} 回复了你：{preview}', reaction: '@{actor} 对“{preview}”回应了 {emoji}', added: '@{actor} 把你加入了 {chat}', accepted: '@{actor} 接受了你的消息请求' },
+  ko: { mention: '@{actor}님이 언급했어요: {preview}', reply: '@{actor}님이 답장했어요: {preview}', reaction: '@{actor}님이 “{preview}”에 {emoji} 반응했어요', added: '@{actor}님이 {chat}에 추가했어요', accepted: '@{actor}님이 메시지 요청을 수락했어요' },
+  ja: { mention: '@{actor} があなたをメンション：{preview}', reply: '@{actor} が返信：{preview}', reaction: '@{actor} が「{preview}」に {emoji}', added: '@{actor} があなたを {chat} に追加しました', accepted: '@{actor} がメッセージリクエストを承認しました' },
+  tr: { mention: '@{actor} senden bahsetti: {preview}', reply: '@{actor} yanıtladı: {preview}', reaction: '@{actor} “{preview}” mesajına {emoji} bıraktı', added: '@{actor} seni {chat} grubuna ekledi', accepted: '@{actor} mesaj isteğini kabul etti' },
+  ru: { mention: '@{actor} упомянул(а) тебя: {preview}', reply: '@{actor} ответил(а): {preview}', reaction: '@{actor} отреагировал(а) {emoji} на «{preview}»', added: '@{actor} добавил(а) тебя в {chat}', accepted: '@{actor} принял(а) твой запрос на переписку' },
+  es: { mention: '@{actor} te mencionó: {preview}', reply: '@{actor} respondió: {preview}', reaction: '@{actor} reaccionó {emoji} a “{preview}”', added: '@{actor} te añadió a {chat}', accepted: '@{actor} aceptó tu solicitud de mensaje' },
+  pt: { mention: '@{actor} mencionou você: {preview}', reply: '@{actor} respondeu: {preview}', reaction: '@{actor} reagiu {emoji} a “{preview}”', added: '@{actor} adicionou você a {chat}', accepted: '@{actor} aceitou sua solicitação de mensagem' },
+  vi: { mention: '@{actor} đã nhắc bạn: {preview}', reply: '@{actor} đã trả lời: {preview}', reaction: '@{actor} đã thả {emoji} vào “{preview}”', added: '@{actor} đã thêm bạn vào {chat}', accepted: '@{actor} đã chấp nhận yêu cầu nhắn tin' },
+  id: { mention: '@{actor} menyebutmu: {preview}', reply: '@{actor} membalas: {preview}', reaction: '@{actor} bereaksi {emoji} ke “{preview}”', added: '@{actor} menambahkanmu ke {chat}', accepted: '@{actor} menerima permintaan pesanmu' },
+  th: { mention: '@{actor} พูดถึงคุณ: {preview}', reply: '@{actor} ตอบกลับ: {preview}', reaction: '@{actor} แสดงความรู้สึก {emoji} ต่อ “{preview}”', added: '@{actor} เพิ่มคุณเข้า {chat}', accepted: '@{actor} ยอมรับคำขอข้อความของคุณ' },
+  de: { mention: '@{actor} hat dich erwähnt: {preview}', reply: '@{actor} hat geantwortet: {preview}', reaction: '@{actor} hat mit {emoji} auf „{preview}“ reagiert', added: '@{actor} hat dich zu {chat} hinzugefügt', accepted: '@{actor} hat deine Nachrichtenanfrage angenommen' },
+  fr: { mention: '@{actor} t’a mentionné : {preview}', reply: '@{actor} a répondu : {preview}', reaction: '@{actor} a réagi {emoji} à « {preview} »', added: '@{actor} t’a ajouté à {chat}', accepted: '@{actor} a accepté ta demande de message' },
+};
+
+/**
+ * A chat push that reads like Instagram's (2026-10-17): the chat's name as the title (a group /
+ * community) or "💬 @name" for a private chat, and the line itself as the body — "@tati: gm",
+ * "@tati mentioned you: …", "@tati reacted 🔥 to …".
+ */
+export function dmPushCopy(locale: string, f: DmPushFacts): { title: string; body: string } {
+  const extra = DM_EXTRA[locale] ?? DM_EXTRA.en!;
+  const fill = (text: string) =>
+    text.replaceAll('{actor}', f.actor).replaceAll('{preview}', f.preview).replaceAll('{emoji}', f.emoji).replaceAll('{chat}', f.chatTitle ?? '').trim();
+  const title = f.chatTitle ? `💬 ${f.chatTitle}` : `💬 @${f.actor}`;
+  switch (f.dmKind) {
+    case 'mention':
+    case 'reply':
+    case 'reaction':
+    case 'added':
+    case 'accepted':
+      return { title, body: fill(extra[f.dmKind]) };
+    default:
+      return { title, body: f.chatTitle ? `@${f.actor}: ${f.preview}` : f.preview };
+  }
 }

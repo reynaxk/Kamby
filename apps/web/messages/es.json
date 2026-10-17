@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Mensaje",
     "DM_MESSAGE": "{actor} te envió un mensaje",
     "kind_CALL_INCOMING": "Llamada",
-    "CALL_INCOMING": "{actor} te está llamando"
+    "CALL_INCOMING": "{actor} te está llamando",
+    "kind_LIVE_STARTED": "Directo",
+    "LIVE_STARTED": "{actor} está en directo — toca para verlo"
   },
   "pulse": {
     "live": "En vivo — traders de todo el mundo",
@@ -909,7 +911,11 @@
     "replyingTo": "Respondiendo a {name}",
     "cancelReply": "Cancelar respuesta",
     "pickTitle": "Elige un chat",
-    "pickBody": "Tus chats, grupos y comunidades están a la izquierda. Empieza uno con Nuevo mensaje."
+    "pickBody": "Tus chats, grupos y comunidades están a la izquierda. Empieza uno con Nuevo mensaje.",
+    "openChat": "Abrir",
+    "activeNow": "Activo ahora",
+    "onlineCount": "{count} en línea",
+    "mentionSomeone": "Mencionar a alguien"
   },
   "calls": {
     "failed": "La llamada no conectó",

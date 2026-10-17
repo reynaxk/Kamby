@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Съобщение",
     "DM_MESSAGE": "{actor} ти писа",
     "kind_CALL_INCOMING": "Обаждане",
-    "CALL_INCOMING": "{actor} ти звъни"
+    "CALL_INCOMING": "{actor} ти звъни",
+    "kind_LIVE_STARTED": "Live",
+    "LIVE_STARTED": "{actor} е на живо — докосни, за да гледаш"
   },
   "pulse": {
     "live": "На живо — трейдъри от цял свят",
@@ -909,7 +911,11 @@
     "replyingTo": "Отговаряш на {name}",
     "cancelReply": "Откажи отговора",
     "pickTitle": "Избери чат",
-    "pickBody": "Чатовете, групите и общностите ти са вляво. Започни нов с „Ново съобщение“."
+    "pickBody": "Чатовете, групите и общностите ти са вляво. Започни нов с „Ново съобщение“.",
+    "openChat": "Отвори",
+    "activeNow": "На линия",
+    "onlineCount": "{count} на линия",
+    "mentionSomeone": "Спомени някого"
   },
   "calls": {
     "failed": "Разговорът не се свърза",

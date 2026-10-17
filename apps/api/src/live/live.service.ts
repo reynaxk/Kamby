@@ -15,6 +15,7 @@ import {
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { CloudflareRealtimeClient, type RealtimeTracksResponse, type SessionDescription } from '../calls/cloudflare-realtime.client';
+import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
 /** What Redis keeps for a room that's on air (the app sees LiveRoom). */
@@ -46,8 +47,29 @@ export class LiveService {
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly realtime: CloudflareRealtimeClient,
     private readonly logger: PinoLogger,
+    private readonly notifications: NotificationService,
   ) {
     this.logger.setContext('LiveService');
+  }
+
+  /** "🔴 @you is live" to everyone who follows one of your wallets (2026-10-17) — at most once
+   *  an hour per host, so going live twice in a row doesn't buzz people twice. */
+  private async tellFollowers(me: string, roomId: string, title: string): Promise<void> {
+    const ok = await this.redis.set(`kamby:live:told:${me}`, '1', 'EX', 3600, 'NX').catch(() => 'OK');
+    if (ok !== 'OK') return;
+    const wallets = await prisma.wallet.findMany({ where: { userId: me }, select: { address: true } });
+    if (wallets.length === 0) return;
+    const followers = await prisma.follow.findMany({
+      where: { walletAddress: { in: wallets.map((w) => w.address) }, userId: { not: me } },
+      select: { userId: true },
+      distinct: ['userId'],
+      take: 5000,
+    });
+    for (const f of followers) {
+      await this.notifications
+        .create({ userId: f.userId, type: 'LIVE_STARTED', dedupeKey: `live:${roomId}`, actorUserId: me, payload: { liveRoomId: roomId, liveTitle: title } })
+        .catch(() => undefined);
+    }
   }
 
   // --- reading -----------------------------------------------------------------------------
@@ -104,6 +126,7 @@ export class LiveService {
     await this.hostSeen(row.id);
     const room = await this.toRoom(state);
     await this.publish({ type: 'room', roomId: row.id, room });
+    void this.tellFollowers(me, row.id, title).catch((error: unknown) => this.logger.warn({ err: error }, 'Live follower push failed'));
     return { room, sessionId, iceServers };
   }
 

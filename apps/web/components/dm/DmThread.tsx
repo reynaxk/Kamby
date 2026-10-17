@@ -37,7 +37,7 @@ import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer } from './CommunityBits';
-import { haptic } from './DmMessageView';
+import { haptic, nameColor } from './DmMessageView';
 import { useCalls } from '@/components/calls/CallProvider';
 import { fetchCall } from '@/lib/calls-client';
 import type { CallState } from '@kamby/domain';
@@ -356,6 +356,21 @@ export function DmThread({ id }: { id: string }) {
   const canCall = Boolean(conv && !conv.blocked && conv.state === 'active' && !calls.inCall);
   const liveCall = serverCall;
   const inLiveCall = Boolean(liveCall && me && liveCall.participants.some((p) => p.userId === me));
+  const otherOnline = Boolean(conv && !conv.group && (conv.onlineIds?.length ?? 0) > 0);
+  // @mention picker: typing "@ta" in a group offers its people (Discord / Telegram).
+  const mentionQuery = isGroup ? (/(?:^|\s)@([a-z0-9_.]{0,21})$/i.exec(text)?.[1] ?? null) : null;
+  const mentionPeople =
+    mentionQuery === null
+      ? []
+      : (conv?.group?.members ?? [])
+          .filter((p) => p.userId !== me && p.username && p.username.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+          .sort((a, b) => Number(conv?.onlineIds?.includes(b.userId)) - Number(conv?.onlineIds?.includes(a.userId)))
+          .slice(0, 6);
+  function pickMention(username: string) {
+    setText((v) => v.replace(/@([a-z0-9_.]{0,21})$/i, `@${username} `));
+    haptic();
+    textRef.current?.focus();
+  }
   const typingName = typing ? (isGroup ? `@${memberBy.get(typing)?.username ?? '…'}` : name) : null;
 
   return (
@@ -400,18 +415,31 @@ export function DmThread({ id }: { id: string }) {
               <span className="block truncate font-body text-[0.68rem] text-ink-400">
                 {channelName && <span className="font-semibold text-accent">#{channelName} · </span>}
                 {t('members', { count: conv.group.members.length })}
+                {(conv.onlineIds?.length ?? 0) > 0 && <span className="text-up"> · {t('onlineCount', { count: conv.onlineIds.length })}</span>}
               </span>
             </span>
           </button>
         ) : conv?.other?.walletAddress ? (
           <Link href={`/trader/${conv.other.walletAddress}`} className="flex min-w-0 flex-1 items-center gap-2.5">
-            <DmAvatar name={conv.other.username} src={conv.other.avatarUrl} className="h-9 w-9 text-sm" />
-            <span className="truncate font-display text-base font-bold text-ink-900">{name}</span>
+            <span className="relative shrink-0">
+              <DmAvatar name={conv.other.username} src={conv.other.avatarUrl} className="h-9 w-9 text-sm" />
+              {otherOnline && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-bg bg-up" aria-label={t('activeNow')} />}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate font-display text-base font-bold text-ink-900">{name}</span>
+              {otherOnline && <span className="block font-body text-[0.68rem] text-up">{t('activeNow')}</span>}
+            </span>
           </Link>
         ) : (
           <span className="flex min-w-0 flex-1 items-center gap-2.5">
-            <DmAvatar name={conv?.other?.username ?? null} src={conv?.other?.avatarUrl ?? null} className="h-9 w-9 text-sm" />
-            <span className="truncate font-display text-base font-bold text-ink-900">{name}</span>
+            <span className="relative shrink-0">
+              <DmAvatar name={conv?.other?.username ?? null} src={conv?.other?.avatarUrl ?? null} className="h-9 w-9 text-sm" />
+              {otherOnline && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-bg bg-up" aria-label={t('activeNow')} />}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate font-display text-base font-bold text-ink-900">{name}</span>
+              {otherOnline && <span className="block font-body text-[0.68rem] text-up">{t('activeNow')}</span>}
+            </span>
           </span>
         )}
         {community && (
@@ -650,6 +678,28 @@ export function DmThread({ id }: { id: string }) {
           <>
             {conv?.state === 'pending' && <p className="mb-2 px-2 text-center font-body text-[0.7rem] text-ink-400">{t('pendingNote', { max: DM_LIMITS.requestMessagesMax })}</p>}
             {sendError && <p className="mb-2 px-2 text-center font-body text-xs font-semibold text-down">{sendError}</p>}
+            {mentionPeople.length > 0 && (
+              <ul className="kamby-pop kamby-glass-solid mb-1.5 overflow-hidden rounded-2xl py-1" role="listbox" aria-label={t('mentionSomeone')}>
+                {mentionPeople.map((p) => (
+                  <li key={p.userId}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => pickMention(p.username!)}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-white/[0.06] active:bg-white/[0.1]"
+                    >
+                      <span className="relative shrink-0">
+                        <DmAvatar name={p.username} src={p.avatarUrl} className="h-7 w-7 text-[0.6rem]" />
+                        {conv?.onlineIds?.includes(p.userId) && <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0B0F18] bg-up" aria-hidden />}
+                      </span>
+                      <span className="font-display text-sm font-bold" style={{ color: nameColor(p.userId) }}>
+                        @{p.username}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             {replyTo && (
               <div className="kamby-pop kamby-glass-solid mb-1.5 flex items-center gap-2.5 rounded-2xl py-2 pl-3 pr-1.5">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent" aria-hidden>
@@ -685,6 +735,11 @@ export function DmThread({ id }: { id: string }) {
                 value={text}
                 onChange={(e) => onType(e.target.value)}
                 onKeyDown={(e) => {
+                  if (mentionPeople.length > 0 && (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey))) {
+                    e.preventDefault();
+                    pickMention(mentionPeople[0]!.username!);
+                    return;
+                  }
                   if (e.key === 'Escape' && replyTo) setReplyTo(null);
                   if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && window.matchMedia('(pointer: fine)').matches) {
                     e.preventDefault();

@@ -74,6 +74,8 @@ export function toNotificationDto(row: NotificationRow): NotificationDto {
       tokenAddress: token?.address ?? null,
       chainIdentifier,
       tradeId: payload?.tradeId ?? null,
+      conversationId: payload?.conversationId ?? null,
+      liveRoomId: payload?.liveRoomId ?? null,
     }),
   };
 }

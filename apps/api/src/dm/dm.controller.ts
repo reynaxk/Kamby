@@ -55,6 +55,12 @@ class CoinDto {
   channelId?: string;
 }
 
+class PresenceDto {
+  @IsOptional()
+  @IsUUID()
+  viewing?: string;
+}
+
 class CommunityDto {
   @IsString()
   @MaxLength(60)
@@ -187,6 +193,14 @@ export class DmController {
   @Post('conversations/:id/rename')
   rename(@Param('id', ParseUUIDPipe) id: string, @Body() body: RenameDto, @CurrentUser() user: SessionUser) {
     return this.dm.rename(user.id, id, body.title);
+  }
+
+  /** Kamby is open (every ~30 s while visible) — and which chat, if one is on screen. */
+  @Throttle({ default: { limit: 12, ttl: 60_000 } })
+  @HttpCode(204)
+  @Post('presence')
+  async presence(@Body() body: PresenceDto, @CurrentUser() user: SessionUser) {
+    await this.dm.presence(user.id, body.viewing);
   }
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })

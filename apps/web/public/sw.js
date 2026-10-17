@@ -44,6 +44,9 @@ self.addEventListener('push', (event) => {
       icon: '/brand/kamby-app-icon-192.png',
       badge: '/brand/kamby-badge-96.png',
       tag: data.tag,
+      // A newer line from the same chat replaces the old banner but still buzzes (2026-10-17).
+      renotify: Boolean(data.renotify && data.tag),
+      vibrate: [60, 40, 60],
       data: { url: data.url || '/notifications' },
     }),
   );

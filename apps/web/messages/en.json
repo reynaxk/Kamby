@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Message",
     "DM_MESSAGE": "{actor} sent you a message",
     "kind_CALL_INCOMING": "Call",
-    "CALL_INCOMING": "{actor} is calling you"
+    "CALL_INCOMING": "{actor} is calling you",
+    "kind_LIVE_STARTED": "Live",
+    "LIVE_STARTED": "{actor} went live — tap to watch"
   },
   "pulse": {
     "live": "Live — traders worldwide",
@@ -909,7 +911,11 @@
     "replyingTo": "Replying to {name}",
     "cancelReply": "Cancel reply",
     "pickTitle": "Pick a chat",
-    "pickBody": "Your chats, groups and communities are on the left. Start one with New message."
+    "pickBody": "Your chats, groups and communities are on the left. Start one with New message.",
+    "openChat": "Open",
+    "activeNow": "Active now",
+    "onlineCount": "{count} online",
+    "mentionSomeone": "Mention someone"
   },
   "calls": {
     "failed": "Call didn’t connect",

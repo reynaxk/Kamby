@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pushCopy } from './push-copy';
+import { dmPushCopy, pushCopy } from './push-copy';
 
 const facts = { actor: '@sam', token: '$WIF', amount: '$1.2K', pct: '+18%', side: 'BUY' as const };
 
@@ -11,5 +11,16 @@ describe('pushCopy', () => {
 
   it('falls back to English for an unknown language', () => {
     expect(pushCopy('xx', 'FOLLOW', facts).body).toBe('@sam started following you');
+  });
+});
+
+describe('dmPushCopy', () => {
+  it('reads like a chat app: the line in a private chat, "@name: line" in a group', () => {
+    expect(dmPushCopy('en', { actor: 'tati', dmKind: 'message', chatTitle: null, preview: 'gm', emoji: '' })).toEqual({ title: '💬 @tati', body: 'gm' });
+    expect(dmPushCopy('en', { actor: 'tati', dmKind: 'message', chatTitle: 'Kamby Whales', preview: 'gm', emoji: '' })).toEqual({ title: '💬 Kamby Whales', body: '@tati: gm' });
+  });
+  it('says what happened for mentions and reactions, in the phone language', () => {
+    expect(dmPushCopy('bg', { actor: 'tati', dmKind: 'mention', chatTitle: 'Whales', preview: 'yo @sandy', emoji: '' }).body).toBe('@tati те спомена: yo @sandy');
+    expect(dmPushCopy('xx', { actor: 'tati', dmKind: 'reaction', chatTitle: null, preview: 'gm', emoji: '🔥' }).body).toBe('@tati reacted 🔥 to “gm”');
   });
 });

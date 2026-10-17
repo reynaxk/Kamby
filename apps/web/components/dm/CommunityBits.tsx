@@ -432,6 +432,7 @@ export function CommunityPanel({
             <p className="truncate font-display text-xl font-black tracking-tight text-ink-900">{group.title}</p>
             <p className="font-body text-xs text-ink-400">
               {t('members', { count: group.members.length })}
+              {(conv.onlineIds?.length ?? 0) > 0 && <span className="text-up"> · {t('onlineCount', { count: conv.onlineIds.length })}</span>}
               {inside.length > 0 && <span className="text-accent"> · {t('talkingNow', { count: inside.length })}</span>}
             </p>
           </div>

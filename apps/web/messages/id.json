@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Pesan",
     "DM_MESSAGE": "{actor} mengirimimu pesan",
     "kind_CALL_INCOMING": "Panggilan",
-    "CALL_INCOMING": "{actor} meneleponmu"
+    "CALL_INCOMING": "{actor} meneleponmu",
+    "kind_LIVE_STARTED": "Live",
+    "LIVE_STARTED": "{actor} sedang live — ketuk untuk menonton"
   },
   "pulse": {
     "live": "Live — trader dari seluruh dunia",
@@ -909,7 +911,11 @@
     "replyingTo": "Membalas {name}",
     "cancelReply": "Batalkan balasan",
     "pickTitle": "Pilih chat",
-    "pickBody": "Chat, grup, dan komunitasmu ada di kiri. Mulai dengan Pesan baru."
+    "pickBody": "Chat, grup, dan komunitasmu ada di kiri. Mulai dengan Pesan baru.",
+    "openChat": "Buka",
+    "activeNow": "Aktif sekarang",
+    "onlineCount": "{count} online",
+    "mentionSomeone": "Sebut seseorang"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

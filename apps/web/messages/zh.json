@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "私信",
     "DM_MESSAGE": "{actor} 给你发了私信",
     "kind_CALL_INCOMING": "来电",
-    "CALL_INCOMING": "{actor} 正在呼叫你"
+    "CALL_INCOMING": "{actor} 正在呼叫你",
+    "kind_LIVE_STARTED": "直播",
+    "LIVE_STARTED": "{actor} 正在直播——点击观看"
   },
   "pulse": {
     "live": "实时 — 全球交易者",
@@ -909,7 +911,11 @@
     "replyingTo": "回复 {name}",
     "cancelReply": "取消回复",
     "pickTitle": "选择一个聊天",
-    "pickBody": "你的聊天、群组和社区在左侧。点“新消息”开始聊天。"
+    "pickBody": "你的聊天、群组和社区在左侧。点“新消息”开始聊天。",
+    "openChat": "打开",
+    "activeNow": "在线",
+    "onlineCount": "{count} 人在线",
+    "mentionSomeone": "提及某人"
   },
   "calls": {
     "failed": "通话未接通",

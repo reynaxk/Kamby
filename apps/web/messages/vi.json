@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Tin nhắn",
     "DM_MESSAGE": "{actor} đã nhắn tin cho bạn",
     "kind_CALL_INCOMING": "Cuộc gọi",
-    "CALL_INCOMING": "{actor} đang gọi cho bạn"
+    "CALL_INCOMING": "{actor} đang gọi cho bạn",
+    "kind_LIVE_STARTED": "Live",
+    "LIVE_STARTED": "{actor} đang live — chạm để xem"
   },
   "pulse": {
     "live": "Trực tiếp — trader toàn thế giới",
@@ -909,7 +911,11 @@
     "replyingTo": "Đang trả lời {name}",
     "cancelReply": "Hủy trả lời",
     "pickTitle": "Chọn một cuộc trò chuyện",
-    "pickBody": "Cuộc trò chuyện, nhóm và cộng đồng nằm bên trái. Bắt đầu bằng Tin nhắn mới."
+    "pickBody": "Cuộc trò chuyện, nhóm và cộng đồng nằm bên trái. Bắt đầu bằng Tin nhắn mới.",
+    "openChat": "Mở",
+    "activeNow": "Đang hoạt động",
+    "onlineCount": "{count} đang online",
+    "mentionSomeone": "Nhắc ai đó"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",

@@ -84,7 +84,7 @@ export class CallsService {
       const call: CallRecord = created;
       for (const userId of call.ringing) {
         await this.notifications
-          .create({ userId, type: 'CALL_INCOMING', dedupeKey: `call:${call.id}:${userId}`, actorUserId: me })
+          .create({ userId, type: 'CALL_INCOMING', dedupeKey: `call:${call.id}:${userId}`, actorUserId: me, payload: { conversationId } })
           .catch((error: unknown) => this.logger.warn({ err: error }, 'Call push failed'));
       }
     }

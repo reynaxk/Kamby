@@ -61,6 +61,10 @@ export const sendDmTyping = (id: string) => fire(`/dm/conversations/${id}/typing
 export const hideConversation = (id: string) => fire(`/dm/conversations/${id}/hide`);
 export const reportConversation = (id: string, reason?: string) => fire(`/dm/conversations/${id}/report`, { reason });
 export const leaveGroup = (id: string) => fire(`/dm/conversations/${id}/leave`);
+/** "Kamby is open (on this chat)" — the green dot, and no push for the chat on screen. Never throws. */
+export function sendPresence(viewing?: string): Promise<void> {
+  return fire('/dm/presence', viewing ? { viewing } : {}).catch(() => undefined);
+}
 
 /** Unread private messages + waiting requests, kept fresh by the private stream. */
 export function useDmUnread(): DmUnread | null {

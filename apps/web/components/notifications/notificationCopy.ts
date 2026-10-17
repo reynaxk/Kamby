@@ -37,6 +37,8 @@ export function notificationCopy(n: NotificationDto, t: Translate): string {
       return t('DM_MESSAGE', values);
     case 'CALL_INCOMING':
       return t('CALL_INCOMING', values);
+    case 'LIVE_STARTED':
+      return t('LIVE_STARTED', values);
   }
 }
 

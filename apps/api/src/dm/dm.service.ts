@@ -11,6 +11,7 @@ import {
   type DmInvitePreview,
   type DmReplyRef,
   dmMentions,
+  DM_PRESENCE,
   type DmEvent,
   type DmMessage,
   type DmMessageKind,
@@ -287,6 +288,7 @@ export class DmService {
       },
     });
     await this.system(row.id, { event: 'created', actor: myName, targets: invitees.map((u) => u.username) });
+    await this.notifyChat(invitees.map((u) => u.id), me, row, { dmKind: 'added' }, () => `added:${row.id}`);
     const [summary] = await this.summaries(me, [row]);
     return summary!;
   }
@@ -306,6 +308,7 @@ export class DmService {
       skipDuplicates: true,
     });
     await this.system(id, { event: 'added', actor: myName, targets: invitees.map((u) => u.username) });
+    await this.notifyChat(invitees.map((u) => u.id), me, a.row, { dmKind: 'added' }, () => `added:${id}`);
     return this.conversation(me, id);
   }
 
@@ -440,6 +443,9 @@ export class DmService {
     else delete reactions[emoji];
     await prisma.dmMessage.update({ where: { id: messageId }, data: { reactions } });
     await this.publish({ type: 'reaction', userIds: a.participants, conversationId: a.row.id, messageId, reactions });
+    if (who.has(me) && message.senderId !== me && a.participants.includes(message.senderId)) {
+      await this.notifyChat([message.senderId], me, a.row, { dmKind: 'reaction', preview: preview(message), emoji }, () => `react:${messageId}:${me}:${emoji}`);
+    }
     return reactions;
   }
 
@@ -453,6 +459,7 @@ export class DmService {
     } else if (!a.isGroup && a.row.status === 'request' && a.row.requesterId !== me) {
       await prisma.dmConversation.update({ where: { id }, data: { status: 'active' } });
       await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
+      if (a.row.requesterId) await this.notifyChat([a.row.requesterId], me, a.row, { dmKind: 'accepted' }, () => `accepted:${id}`);
     }
     return this.conversation(me, id);
   }
@@ -684,43 +691,82 @@ export class DmService {
     const dto = toMessage(created);
     await this.publish({ type: 'message', userIds: a.participants, conversationId: id, message: dto });
     if (status !== a.row.status) await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
-    // Communities don't buzz phones for every line (up to 250 people) — only when someone
-    // @mentions you or replies to you (Discord-style).
-    if (!opts.skipPush && a.row.isCommunity && message.kind === 'text') {
-      const names = dmMentions(message.body);
-      const replyTarget = (message.data as { replyTo?: DmReplyRef } | null)?.replyTo?.senderId ?? null;
-      const mentioned = names.length
-        ? await prisma.user.findMany({ where: { id: { in: a.participants }, username: { in: names, mode: 'insensitive' } }, select: { id: true } })
-        : [];
-      const targets = [...new Set([...mentioned.map((u) => u.id), ...(replyTarget && a.participants.includes(replyTarget) ? [replyTarget] : [])])].filter((u) => u !== me);
-      const bucket = Math.floor(at.getTime() / (DM_LIMITS.pushBucketMinutes * 60_000));
-      await Promise.all(
-        targets.map((userId) =>
-          this.notifications
-            .create({ userId, type: 'DM_MESSAGE', dedupeKey: `dm:${id}:${userId}:${bucket}`, actorUserId: me })
-            .catch((error: unknown) => this.logger.warn({ err: error }, 'Mention push failed')),
-        ),
-      );
-    }
-    if (!opts.skipPush && !a.row.isCommunity) {
-      const bucket = Math.floor(at.getTime() / (DM_LIMITS.pushBucketMinutes * 60_000));
-      // One push per person per chat per bucket — checked in Redis first, so a busy group
-      // doesn't hit the database once per member for every line (2026-10-17).
-      const others = a.participants.filter((u) => u !== me);
-      const fresh = await Promise.all(
-        others.map((userId) => this.redis.set(`kamby:dm:push:${id}:${userId}:${bucket}`, '1', 'EX', DM_LIMITS.pushBucketMinutes * 60 + 60, 'NX').catch(() => 'OK')),
-      );
-      await Promise.all(
-        others
-          .filter((_, i) => fresh[i] === 'OK')
-          .map((userId) =>
-            this.notifications
-              .create({ userId, type: 'DM_MESSAGE', dedupeKey: `dm:${id}:${userId}:${bucket}`, actorUserId: me })
-              .catch((error: unknown) => this.logger.warn({ err: error }, 'DM push notification failed')),
-          ),
-      );
-    }
+    // Pushes go out after the reply to the sender — sending never waits on them.
+    if (!opts.skipPush) void this.pushForMessage(me, a, created).catch((error: unknown) => this.logger.warn({ err: error }, 'DM push failed'));
     return dto;
+  }
+
+  /**
+   * Phone pushes for a new line (2026-10-17, "notifications from anything"):
+   * - @mentions and replies always buzz the person they're for;
+   * - a private chat buzzes for every line (at most one per 15 s, so a burst is one buzz);
+   * - a group at most once a minute per person, a community once every 10 minutes;
+   * - nobody is buzzed for the chat they're looking at right now.
+   */
+  private async pushForMessage(me: string, a: Access, created: DmMessageRow): Promise<void> {
+    const others = a.participants.filter((u) => u !== me);
+    if (others.length === 0) return;
+    const text = created.kind === 'text' ? created.body : '';
+    const data = (created.data ?? null) as { replyTo?: DmReplyRef } | null;
+    const replyTarget = data?.replyTo?.senderId ?? null;
+    const names = text ? dmMentions(text) : [];
+    const mentioned = names.length
+      ? await prisma.user.findMany({ where: { id: { in: others }, username: { in: names, mode: 'insensitive' } }, select: { id: true } })
+      : [];
+    const pinged = new Set(mentioned.map((u) => u.id));
+    if (replyTarget && others.includes(replyTarget)) pinged.add(replyTarget);
+    const line = preview(created);
+    for (const userId of pinged) {
+      const kind = mentioned.some((u) => u.id === userId) ? 'mention' : 'reply';
+      await this.notifyChat([userId], me, a.row, { dmKind: kind, preview: line }, () => `ping:${created.id}`);
+    }
+    const rest = others.filter((u) => !pinged.has(u));
+    const windowMs = a.row.isCommunity ? 10 * 60_000 : a.isGroup ? 60_000 : 15_000;
+    const fresh = await Promise.all(rest.map((u) => this.redis.set(`kamby:dm:push:${a.row.id}:${u}`, '1', 'PX', windowMs, 'NX').catch(() => 'OK')));
+    await this.notifyChat(
+      rest.filter((_, i) => fresh[i] === 'OK'),
+      me,
+      a.row,
+      { dmKind: 'message', preview: line },
+      () => `msg:${created.id}`,
+    );
+  }
+
+  /** One DM_MESSAGE push per person, with the chat, its name and the line — skipping anyone who
+   *  has this chat open right now (they see it arrive). */
+  private async notifyChat(
+    targets: string[],
+    me: string,
+    row: DmConversationRow,
+    extra: { dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted'; preview?: string; emoji?: string },
+    dedupe: (userId: string) => string,
+  ): Promise<void> {
+    if (targets.length === 0) return;
+    const viewing = await this.redis.mget(...targets.map((u) => `kamby:dm:viewing:${u}`)).catch(() => targets.map(() => null));
+    const chatTitle = row.isGroup ? (row.title ?? null) : null;
+    await Promise.all(
+      targets
+        .filter((_, i) => viewing[i] !== row.id)
+        .map((userId) =>
+          this.notifications
+            .create({
+              userId,
+              type: 'DM_MESSAGE',
+              dedupeKey: dedupe(userId),
+              actorUserId: me,
+              payload: { conversationId: row.id, chatTitle, preview: (extra.preview ?? '').slice(0, 120), dmKind: extra.dmKind, ...(extra.emoji ? { emoji: extra.emoji } : {}) },
+            })
+            .catch((error: unknown) => this.logger.warn({ err: error }, 'DM push notification failed')),
+        ),
+    );
+  }
+
+  /** Kamby is open on this device (and maybe this chat) — the green dot, and no push for the
+   *  chat you're reading. */
+  async presence(me: string, viewing?: string): Promise<void> {
+    await this.redis.set(`kamby:online:${me}`, '1', 'EX', DM_PRESENCE.onlineTtlSec).catch(() => undefined);
+    if (viewing) await this.redis.set(`kamby:dm:viewing:${me}`, viewing, 'EX', DM_PRESENCE.viewingTtlSec).catch(() => undefined);
+    else await this.redis.del(`kamby:dm:viewing:${me}`).catch(() => undefined);
   }
 
   /** A group event line, written by the server (no cooldown, no push). */
@@ -860,6 +906,8 @@ export class DmService {
       }),
       prisma.userBlock.findMany({ where: { blockerId: me, blockedId: { in: otherIds } }, select: { blockedId: true } }),
     ]);
+    const onlineFlags = personIds.length ? await this.redis.mget(...personIds.map((u) => `kamby:online:${u}`)).catch(() => personIds.map(() => null)) : [];
+    const online = new Set(personIds.filter((_, i) => onlineFlags[i]));
     const lastBy = new Map(lasts.map((m) => [m.conversationId, m]));
     const unreadBy = new Map([...pairUnread, ...groupUnread].map((u) => [u.id, Number(u.n)]));
     const personBy = new Map<string, DmPerson>(
@@ -893,6 +941,7 @@ export class DmService {
           unread: unreadBy.get(r.id) ?? 0,
           otherReadAt: null,
           blocked: false,
+          onlineIds: rowMembers.filter((m) => m.status === 'active' && m.userId !== me && online.has(m.userId)).map((m) => m.userId),
         };
       }
       const otherId = (r.userAId === me ? r.userBId : r.userAId) ?? '';
@@ -907,6 +956,7 @@ export class DmService {
         unread: unreadBy.get(r.id) ?? 0,
         otherReadAt: otherReadAt ? otherReadAt.toISOString() : null,
         blocked: blocked.has(otherId),
+        onlineIds: online.has(otherId) && !blocked.has(otherId) ? [otherId] : [],
       };
     });
   }

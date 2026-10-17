@@ -940,6 +940,8 @@ enum NotificationType {
   DM_MESSAGE
   /// 2026-10-17 — someone is calling the recipient (phone push only, like DM_MESSAGE).
   CALL_INCOMING
+  /// 2026-10-17 — someone the recipient follows went live.
+  LIVE_STARTED
 }
 
 /// One notification for `user` (the recipient — always resolved from the authenticated

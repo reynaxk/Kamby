@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "メッセージ",
     "DM_MESSAGE": "{actor}からメッセージが届きました",
     "kind_CALL_INCOMING": "通話",
-    "CALL_INCOMING": "{actor}から着信"
+    "CALL_INCOMING": "{actor}から着信",
+    "kind_LIVE_STARTED": "ライブ",
+    "LIVE_STARTED": "{actor} がライブ中 — タップで視聴"
   },
   "pulse": {
     "live": "ライブ — 世界中のトレーダー",
@@ -909,7 +911,11 @@
     "replyingTo": "{name} に返信",
     "cancelReply": "返信をキャンセル",
     "pickTitle": "チャットを選択",
-    "pickBody": "チャット・グループ・コミュニティは左側にあります。「新しいメッセージ」から始めましょう。"
+    "pickBody": "チャット・グループ・コミュニティは左側にあります。「新しいメッセージ」から始めましょう。",
+    "openChat": "開く",
+    "activeNow": "オンライン",
+    "onlineCount": "{count}人がオンライン",
+    "mentionSomeone": "メンションする"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

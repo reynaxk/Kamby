@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Message",
     "DM_MESSAGE": "{actor} t’a envoyé un message",
     "kind_CALL_INCOMING": "Appel",
-    "CALL_INCOMING": "{actor} t’appelle"
+    "CALL_INCOMING": "{actor} t’appelle",
+    "kind_LIVE_STARTED": "Live",
+    "LIVE_STARTED": "{actor} est en live — touche pour regarder"
   },
   "pulse": {
     "live": "En direct — traders du monde entier",
@@ -909,7 +911,11 @@
     "replyingTo": "Réponse à {name}",
     "cancelReply": "Annuler la réponse",
     "pickTitle": "Choisis une discussion",
-    "pickBody": "Tes discussions, groupes et communautés sont à gauche. Commence-en une avec Nouveau message."
+    "pickBody": "Tes discussions, groupes et communautés sont à gauche. Commence-en une avec Nouveau message.",
+    "openChat": "Ouvrir",
+    "activeNow": "En ligne",
+    "onlineCount": "{count} en ligne",
+    "mentionSomeone": "Mentionner quelqu’un"
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",

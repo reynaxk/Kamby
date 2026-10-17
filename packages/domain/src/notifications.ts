@@ -23,6 +23,8 @@ export const NotificationTypeSchema = z.enum([
   'USDC_RECEIVED',
   /** 2026-10-17 — a private message (phone push only; never listed with the notifications). */
   'DM_MESSAGE',
+  /** 2026-10-17 — someone you follow went live (voice / screen room). */
+  'LIVE_STARTED',
   /** 2026-10-17 — someone is calling you in a chat (phone push only). */
   'CALL_INCOMING',
 ]);
@@ -94,6 +96,7 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   USDC_RECEIVED: 'tradeUpdates',
   DM_MESSAGE: 'messages',
   CALL_INCOMING: 'messages',
+  LIVE_STARTED: 'follows',
 };
 
 /**
@@ -113,6 +116,17 @@ export const NotificationPayloadSchema = z.object({
   /** PRICE_MOVE: the % move and the window it happened in. */
   pct: z.number().optional(),
   windowMinutes: z.number().optional(),
+  /** DM_MESSAGE / CALL_INCOMING (2026-10-17): which chat, its name (groups / communities), a
+   *  short preview of the line, and what happened — so the push reads like Instagram's
+   *  ("@tati: gm") and opens that chat. */
+  conversationId: z.string().optional(),
+  chatTitle: z.string().nullable().optional(),
+  preview: z.string().optional(),
+  dmKind: z.enum(['message', 'mention', 'reply', 'reaction', 'added', 'accepted']).optional(),
+  emoji: z.string().optional(),
+  /** LIVE_STARTED: the room to open and its title. */
+  liveRoomId: z.string().optional(),
+  liveTitle: z.string().optional(),
 });
 export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
 
@@ -180,7 +194,14 @@ export function tokenDeepLink(chainIdentifier: string | null | undefined, tokenA
  */
 export function notificationDeepLink(
   type: NotificationType,
-  ctx: { actorWalletAddress: string | null; tokenAddress: string | null; chainIdentifier?: string | null; tradeId?: string | null },
+  ctx: {
+    actorWalletAddress: string | null;
+    tokenAddress: string | null;
+    chainIdentifier?: string | null;
+    tradeId?: string | null;
+    conversationId?: string | null;
+    liveRoomId?: string | null;
+  },
 ): string | null {
   switch (type) {
     case 'FOLLOW':
@@ -200,7 +221,9 @@ export function notificationDeepLink(
       return '/';
     case 'DM_MESSAGE':
     case 'CALL_INCOMING':
-      return '/messages';
+      return ctx.conversationId ? `/messages/${ctx.conversationId}` : '/messages';
+    case 'LIVE_STARTED':
+      return ctx.liveRoomId ? `/live/${ctx.liveRoomId}` : '/home';
   }
 }
 

@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "ข้อความ",
     "DM_MESSAGE": "{actor} ส่งข้อความถึงคุณ",
     "kind_CALL_INCOMING": "การโทร",
-    "CALL_INCOMING": "{actor} กำลังโทรหาคุณ"
+    "CALL_INCOMING": "{actor} กำลังโทรหาคุณ",
+    "kind_LIVE_STARTED": "ไลฟ์",
+    "LIVE_STARTED": "{actor} กำลังไลฟ์ — แตะเพื่อดู"
   },
   "pulse": {
     "live": "สด — เทรดเดอร์ทั่วโลก",
@@ -909,7 +911,11 @@
     "replyingTo": "กำลังตอบ {name}",
     "cancelReply": "ยกเลิกการตอบ",
     "pickTitle": "เลือกแชท",
-    "pickBody": "แชท กลุ่ม และชุมชนของคุณอยู่ทางซ้าย เริ่มใหม่ด้วยข้อความใหม่"
+    "pickBody": "แชท กลุ่ม และชุมชนของคุณอยู่ทางซ้าย เริ่มใหม่ด้วยข้อความใหม่",
+    "openChat": "เปิด",
+    "activeNow": "ออนไลน์อยู่",
+    "onlineCount": "ออนไลน์ {count} คน",
+    "mentionSomeone": "พูดถึงใครสักคน"
   },
   "calls": {
     "failed": "การโทรเชื่อมต่อไม่ได้",

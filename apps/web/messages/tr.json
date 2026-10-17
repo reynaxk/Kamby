@@ -667,7 +667,9 @@
     "kind_DM_MESSAGE": "Mesaj",
     "DM_MESSAGE": "{actor} sana mesaj gönderdi",
     "kind_CALL_INCOMING": "Arama",
-    "CALL_INCOMING": "{actor} seni arıyor"
+    "CALL_INCOMING": "{actor} seni arıyor",
+    "kind_LIVE_STARTED": "Canlı",
+    "LIVE_STARTED": "{actor} canlı yayında — izlemek için dokun"
   },
   "pulse": {
     "live": "Canlı — dünyanın dört bir yanından trader’lar",
@@ -909,7 +911,11 @@
     "replyingTo": "{name} kişisine yanıt",
     "cancelReply": "Yanıtı iptal et",
     "pickTitle": "Bir sohbet seç",
-    "pickBody": "Sohbetlerin, grupların ve toplulukların solda. Yeni mesaj ile başla."
+    "pickBody": "Sohbetlerin, grupların ve toplulukların solda. Yeni mesaj ile başla.",
+    "openChat": "Aç",
+    "activeNow": "Şu an aktif",
+    "onlineCount": "{count} çevrimiçi",
+    "mentionSomeone": "Birinden bahset"
   },
   "calls": {
     "failed": "Arama bağlanamadı",

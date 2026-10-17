@@ -212,6 +212,7 @@ export function DmInbox() {
                 <span className="relative">
                   {c.group?.community ? <CommunityAvatar title={c.group.title} /> : c.group ? <GroupAvatar members={c.group.members} meId={c.meId} /> : <DmAvatar name={c.other?.username ?? null} src={c.other?.avatarUrl ?? null} />}
                   {c.unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" aria-hidden />}
+                  {!c.group && (c.onlineIds?.length ?? 0) > 0 && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-up" aria-label={t('activeNow')} />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">

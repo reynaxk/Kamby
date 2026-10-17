@@ -166,7 +166,12 @@ export interface DmConversation {
   otherReadAt: string | null;
   /** You blocked them (you can still see the history; they can't write). */
   blocked: boolean;
+  /** People in this chat (not you) who have Kamby open right now — the green dot, "Active now". */
+  onlineIds: string[];
 }
+
+/** Kamby open in a tab / the app checks in this often; quiet for onlineTtlSec = offline. */
+export const DM_PRESENCE = { heartbeatMs: 30_000, onlineTtlSec: 75, viewingTtlSec: 40 } as const;
 
 export interface DmUnread {
   /** Unread messages across your accepted chats. */
