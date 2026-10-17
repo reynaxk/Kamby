@@ -603,7 +603,7 @@ export function DmThread({ id }: { id: string }) {
             </span>
           </div>
         )}
-        <div ref={bottomRef} />
+        <div ref={bottomRef} className="scroll-mb-36 md:scroll-mb-44" />
       </main>
 
       {/* Bottom: request choice, blocked note, or the composer */}
