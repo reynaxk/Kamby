@@ -73,6 +73,13 @@ export class IdentityService {
     return { token, userId: user.id };
   }
 
+  /** A session for an account that already exists — only after a wallet signature proved it
+   *  is theirs (see account-adoption.ts). */
+  async issueSession(userId: string): Promise<string> {
+    const payload: SessionPayload = { sub: userId };
+    return this.jwt.signAsync(payload);
+  }
+
   /**
    * Verifies a bearer token and confirms the user it names still exists. Never throws —
    * an invalid, expired, or stale token is simply "no user," same as no token at all. The

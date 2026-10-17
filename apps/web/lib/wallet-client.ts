@@ -1,7 +1,7 @@
 'use client';
 
 import type { LinkedWallet, WalletChallenge } from '@kamby/domain';
-import { authedFetch, expectOk } from './session-client';
+import { authedFetch, expectOk, resumeSession } from './session-client';
 
 /**
  * Browser-side calls for Phase 3 wallet ownership — see docs/TRADING.md#wallet-ownership.
@@ -27,7 +27,10 @@ export async function verifyWalletChallenge(nonce: string, signature: string): P
     body: JSON.stringify({ nonce, signature }),
   });
   await expectOk(res, 'verify wallet ownership');
-  return res.json();
+  const body = (await res.json()) as LinkedWallet & { sessionToken?: string };
+  // This wallet already had a Kamby account and this browser's was empty: become that account.
+  if (body.sessionToken) resumeSession(body.sessionToken);
+  return body;
 }
 
 export async function listLinkedWallets(): Promise<LinkedWallet[]> {

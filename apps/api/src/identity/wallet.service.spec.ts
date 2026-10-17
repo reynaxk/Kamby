@@ -5,6 +5,9 @@ import { prisma } from '@kamby/db';
 import type { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
 import { WalletService } from './wallet.service';
+import { accountToResume } from './account-adoption';
+
+jest.mock('./account-adoption', () => ({ accountToResume: jest.fn().mockResolvedValue(null) }));
 
 jest.mock('@kamby/db', () => ({
   prisma: {
@@ -15,6 +18,7 @@ jest.mock('@kamby/db', () => ({
     },
     wallet: {
       upsert: jest.fn(),
+      update: jest.fn(),
       findMany: jest.fn(),
       updateMany: jest.fn(),
     },
@@ -93,6 +97,19 @@ describe('WalletService', () => {
       expect(mockedPrisma.wallet.upsert).toHaveBeenCalledWith(
         expect.objectContaining({ update: expect.objectContaining({ userId: 'user-1' }) }),
       );
+    });
+
+    it('resumes the account that already owns the wallet instead of moving it into an empty new one', async () => {
+      const { challenge } = await issuedChallenge('new-empty-user');
+      const signature = await TEST_ACCOUNT.signMessage({ message: challenge.message });
+      (mockedPrisma.walletChallenge.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+      (accountToResume as jest.Mock).mockResolvedValueOnce('existing-user');
+      (mockedPrisma.wallet.update as jest.Mock).mockResolvedValue({ address: TEST_ACCOUNT.address.toLowerCase(), verifiedAt: new Date(), lastUsedAt: new Date() });
+
+      const linked = await service.verifyChallenge('new-empty-user', challenge.nonce, signature);
+
+      expect(linked.resumeUserId).toBe('existing-user');
+      expect(mockedPrisma.wallet.upsert).not.toHaveBeenCalled();
     });
 
     it('rejects a signature from a different account than the one challenged', async () => {

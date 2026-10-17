@@ -7,6 +7,8 @@ import type { PinoLogger } from 'nestjs-pino';
 import type { Env } from '../config/env';
 import { SolanaWalletService } from './solana-wallet.service';
 
+jest.mock('./account-adoption', () => ({ accountToResume: jest.fn().mockResolvedValue(null) }));
+
 jest.mock('@kamby/db', () => ({
   prisma: {
     solanaWalletChallenge: {
@@ -16,6 +18,7 @@ jest.mock('@kamby/db', () => ({
     },
     wallet: {
       upsert: jest.fn(),
+      update: jest.fn(),
       findMany: jest.fn(),
       updateMany: jest.fn(),
     },

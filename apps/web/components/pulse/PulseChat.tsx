@@ -9,10 +9,9 @@ import { containsLink, PULSE_LIMITS, type PulseMessage } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { ChatUsernameSetup } from '@/components/chat/ChatUsernameSetup';
-import { fetchMyProfile } from '@/lib/profile-client';
 import { fetchPulse, postPulse, PULSE_STREAM_URL } from '@/lib/pulse-client';
 import { openResilientEventSource } from '@/lib/resilient-event-source';
-import { hasStoredSession } from '@/lib/session-client';
+import { useMyUsername } from '@/lib/use-my-username';
 import type { RealtimeStatus } from '@/lib/social-client';
 
 function ago(iso: string, now: number): string {
@@ -53,7 +52,8 @@ export function PulseChat({ className }: { className?: string }) {
   const [messages, setMessages] = useState<PulseMessage[] | null>(null);
   const [older, setOlder] = useState<string | null>(null);
   const [status, setStatus] = useState<RealtimeStatus>('connecting');
-  const [username, setUsername] = useState<string | null | undefined>(undefined);
+  // Your @name — only "none" once the server says so (see useMyUsername).
+  const [username, setUsername] = useMyUsername(authenticated);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,15 +94,7 @@ export function PulseChat({ className }: { className?: string }) {
   }, []);
 
   // Who's writing (a username is needed to post).
-  useEffect(() => {
-    if (!authenticated || !hasStoredSession()) {
-      setUsername(null);
-      return;
-    }
-    fetchMyProfile()
-      .then((p) => setUsername(p.username))
-      .catch(() => setUsername(null));
-  }, [authenticated]);
+
 
   // Keep the view on the newest message unless the reader scrolled up to read history.
   useEffect(() => {

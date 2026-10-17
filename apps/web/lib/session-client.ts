@@ -22,12 +22,33 @@ function readStoredToken(): string | null {
   }
 }
 
+/** Fired when this browser's session token appears or changes (2026-10-17) — screens that
+ *  waited for a session (the chats' "who am I") check again instead of guessing. */
+export const SESSION_CHANGED_EVENT = 'kamby:session-changed';
+
 function storeToken(token: string): void {
   try {
     window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
   } catch {
     // Nothing to persist to — the session still works for this page load, just won't
     // survive a refresh. Not worth surfacing as an error to the user.
+  }
+  try {
+    window.dispatchEvent(new Event(SESSION_CHANGED_EVENT));
+  } catch {
+    // no window events (tests) — fine
+  }
+}
+
+/** Switch this browser to an account that already exists — the API hands one back when a
+ *  wallet signature proves it's yours (a new phone, the home-screen app, a cleared browser),
+ *  then everything reloads as that account (2026-10-17). */
+export function resumeSession(token: string): void {
+  storeToken(token);
+  try {
+    window.location.reload();
+  } catch {
+    // no window (tests)
   }
 }
 

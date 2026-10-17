@@ -12,8 +12,8 @@ const { fetchPulse, postPulse, privy, fetchMyProfile } = vi.hoisted(() => ({
 
 vi.mock('@/lib/pulse-client', () => ({ fetchPulse, postPulse, PULSE_STREAM_URL: 'http://x/stream' }));
 vi.mock('@/lib/resilient-event-source', () => ({ openResilientEventSource: () => () => {} }));
-vi.mock('@/lib/profile-client', () => ({ fetchMyProfile }));
-vi.mock('@/lib/session-client', () => ({ hasStoredSession: () => true }));
+vi.mock('@/lib/profile-client', () => ({ fetchMyProfile, fetchMyProfileShared: fetchMyProfile }));
+vi.mock('@/lib/session-client', () => ({ hasStoredSession: () => true, SESSION_CHANGED_EVENT: 'kamby:session-changed' }));
 vi.mock('@privy-io/react-auth', () => ({ usePrivy: () => privy }));
 
 const message = (id: string, body: string) => ({ id, body, createdAt: new Date().toISOString(), author: { username: 'sam', avatarUrl: null, address: '0xabc' } });

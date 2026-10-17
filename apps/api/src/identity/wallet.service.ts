@@ -3,6 +3,7 @@ import { BadRequestException, Injectable, NotFoundException, UnauthorizedExcepti
 import { ConfigService } from '@nestjs/config';
 import { verifyEvmSignature } from '@kamby/chain-adapters';
 import { prisma } from '@kamby/db';
+import { accountToResume } from './account-adoption';
 import {
   buildSiweMessage,
   DEFAULT_CHAIN_ID,
@@ -70,7 +71,7 @@ export class WalletService {
    * moves the link — proving control of the private key is the only thing that matters,
    * not which session asked first. See docs/TRADING.md#wallet-ownership.
    */
-  async verifyChallenge(userId: string, nonce: string, signature: string): Promise<LinkedWallet> {
+  async verifyChallenge(userId: string, nonce: string, signature: string): Promise<LinkedWallet & { resumeUserId?: string }> {
     const challenge = await prisma.walletChallenge.findUnique({ where: { nonce } });
     if (!challenge || challenge.userId !== userId) {
       throw new BadRequestException('Unknown challenge');
@@ -101,6 +102,14 @@ export class WalletService {
     }
 
     const now = new Date();
+    // This wallet is already someone's and this session's account is still empty: resume
+    // that account instead of moving the wallet into the empty one (see account-adoption.ts).
+    const resumeUserId = await accountToResume(userId, challenge.address);
+    if (resumeUserId) {
+      const kept = await prisma.wallet.update({ where: { address: challenge.address }, data: { lastUsedAt: now } });
+      this.logger.info({ address: kept.address }, 'wallet verified — resuming its existing account');
+      return { address: kept.address, verifiedAt: kept.verifiedAt!.toISOString(), lastUsedAt: kept.lastUsedAt?.toISOString() ?? null, resumeUserId };
+    }
     const wallet = await prisma.wallet.upsert({
       where: { address: challenge.address },
       update: { userId, verifiedAt: now, lastUsedAt: now },

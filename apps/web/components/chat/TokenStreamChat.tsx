@@ -19,8 +19,7 @@ import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { ChatUsernameSetup } from './ChatUsernameSetup';
 import { useMyPosition } from '@/lib/my-positions';
-import { fetchMyProfileShared } from '@/lib/profile-client';
-import { hasStoredSession } from '@/lib/session-client';
+import { useMyUsername } from '@/lib/use-my-username';
 import { postTokenMessage, postTokenPnl, reportMessage, sendReaction, useTokenChat } from '@/lib/token-chat-client';
 
 const BADGE_ICON: Record<TokenChatBadge, string> = { whale: '🐳', top: '⚡', dev: '👑' };
@@ -142,7 +141,8 @@ export function TokenStreamChat({
   const tokenKey = chatTokenKey(chainIdentifier, address);
   const { ready, authenticated, login } = usePrivy();
   const position = useMyPosition(address);
-  const [username, setUsername] = useState<string | null | undefined>(undefined);
+  // Your @name — only "none" once the server says so (see useMyUsername).
+  const [username, setUsername] = useMyUsername(authenticated);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -177,15 +177,7 @@ export function TokenStreamChat({
 
   const { items, status, add, remove } = useTokenChat(tokenKey, onReaction);
 
-  useEffect(() => {
-    if (!authenticated || !hasStoredSession()) {
-      setUsername(null);
-      return;
-    }
-    fetchMyProfileShared()
-      .then((p) => setUsername(p.username))
-      .catch(() => setUsername(null));
-  }, [authenticated]);
+
 
   // Follow the newest message — unless the reader scrolled up, then count what's new.
   useLayoutEffect(() => {

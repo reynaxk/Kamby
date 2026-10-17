@@ -48,8 +48,8 @@ export class IdentityController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('wallet/verify')
-  verifyWalletChallenge(@Body() body: WalletVerifyDto, @CurrentUser() user: SessionUser) {
-    return this.wallets.verifyChallenge(user.id, body.nonce, body.signature);
+  async verifyWalletChallenge(@Body() body: WalletVerifyDto, @CurrentUser() user: SessionUser) {
+    return this.withResumedSession(await this.wallets.verifyChallenge(user.id, body.nonce, body.signature));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -80,8 +80,15 @@ export class IdentityController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('solana-wallet/verify')
-  verifySolanaWalletChallenge(@Body() body: WalletVerifyDto, @CurrentUser() user: SessionUser) {
-    return this.solanaWallets.verifyChallenge(user.id, body.nonce, body.signature);
+  async verifySolanaWalletChallenge(@Body() body: WalletVerifyDto, @CurrentUser() user: SessionUser) {
+    return this.withResumedSession(await this.solanaWallets.verifyChallenge(user.id, body.nonce, body.signature));
+  }
+
+  /** A verified wallet that already had an account hands back a session for that account
+   *  (`sessionToken`) — the app switches to it, so a new device is the same you. */
+  private async withResumedSession<T extends { resumeUserId?: string }>(result: T): Promise<Omit<T, 'resumeUserId'> & { sessionToken?: string }> {
+    const { resumeUserId, ...wallet } = result;
+    return resumeUserId ? { ...wallet, sessionToken: await this.identity.issueSession(resumeUserId) } : wallet;
   }
 
   @UseGuards(JwtAuthGuard)

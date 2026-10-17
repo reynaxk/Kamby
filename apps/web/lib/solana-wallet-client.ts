@@ -1,7 +1,7 @@
 'use client';
 
 import type { LinkedWallet, WalletChallenge } from '@kamby/domain';
-import { authedFetch, expectOk } from './session-client';
+import { authedFetch, expectOk, resumeSession } from './session-client';
 
 /**
  * Solana's counterpart to wallet-client.ts — see that file's own doc comment for the
@@ -26,7 +26,10 @@ export async function verifySolanaWalletChallenge(nonce: string, signature: stri
     body: JSON.stringify({ nonce, signature }),
   });
   await expectOk(res, 'verify wallet ownership');
-  return res.json();
+  const body = (await res.json()) as LinkedWallet & { sessionToken?: string };
+  // This wallet already had a Kamby account and this browser's was empty: become that account.
+  if (body.sessionToken) resumeSession(body.sessionToken);
+  return body;
 }
 
 export async function listLinkedSolanaWallets(): Promise<LinkedWallet[]> {
