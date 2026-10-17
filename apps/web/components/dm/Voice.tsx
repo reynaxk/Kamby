@@ -141,7 +141,7 @@ export function VoiceRecorderButton({ onSend, disabled }: { onSend: (blob: Blob,
   return (
     <>
       {state !== 'idle' && (
-        <div className={cn('pointer-events-none absolute inset-y-1.5 left-1.5 right-14 z-10 flex items-center gap-2.5 rounded-[1.3rem] px-3', state === 'cancel' ? 'bg-down/15' : 'bg-[#0B0F18]')}>
+        <div className={cn('pointer-events-none absolute inset-y-1.5 left-1.5 right-14 z-10 flex items-center gap-2.5 rounded-[1.3rem] px-3', state === 'cancel' ? 'bg-[#2A0E18]' : 'bg-[#0B0F18]')}>
           <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', state === 'cancel' ? 'bg-down' : 'animate-pulse bg-down')} aria-hidden />
           <span className="shrink-0 font-display text-sm font-bold tabular-nums text-ink-900">{fmt(elapsed)}</span>
           <span className="flex h-6 min-w-0 flex-1 items-center gap-[2px] overflow-hidden" aria-hidden>
