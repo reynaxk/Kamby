@@ -690,6 +690,11 @@ body:has(.kamby-void) {
   40% { transform: scale(1.25); opacity: 1; }
   100% { transform: scale(1.6) translateY(-14px); opacity: 0; }
 }
+@keyframes kamby-flash {
+  0%, 55% { box-shadow: 0 0 0 2px rgb(var(--kamby-accent) / 0.65); background: rgb(var(--kamby-accent) / 0.06); }
+  100% { box-shadow: 0 0 0 2px transparent; background: transparent; }
+}
+.kamby-flash { animation: kamby-flash 1.4s ease-out; }
 @keyframes kamby-channel-in {
   from { transform: translateX(10px); }
 }

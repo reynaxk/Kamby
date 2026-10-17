@@ -1,4 +1,4 @@
-import { looksLikeScamBait } from '@kamby/domain';
+import { dmMentions, looksLikeScamBait } from '@kamby/domain';
 import { normalizeDmBody, orderedPair, systemText, toMessage } from './dm.service';
 
 describe('DmService helpers', () => {
@@ -39,5 +39,10 @@ describe('DmService helpers', () => {
   it('writes group events as one readable line', () => {
     expect(systemText({ event: 'added', actor: 'sandy', targets: ['tati', 'moonboi'] })).toBe('@sandy added @tati, @moonboi');
     expect(systemText({ event: 'renamed', actor: 'sandy', targets: [], title: 'Degens' })).toBe('@sandy renamed the group to “Degens”');
+  });
+
+  it('finds @mentions (not emails), lowercase and unique', () => {
+    expect(dmMentions('yo @Tati and @moonboi, @tati again — mail me@x.com')).toEqual(['tati', 'moonboi']);
+    expect(dmMentions('@ab is too short')).toEqual([]);
   });
 });

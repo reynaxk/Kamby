@@ -903,7 +903,13 @@
     "newShort": "Nouveau",
     "newMessages": "Nouveaux messages",
     "newBelow": "{count, plural, one {# nouveau message} other {# nouveaux messages}}",
-    "latest": "Plus récents"
+    "latest": "Plus récents",
+    "reply": "Répondre",
+    "copy": "Copier",
+    "replyingTo": "Réponse à {name}",
+    "cancelReply": "Annuler la réponse",
+    "pickTitle": "Choisis une discussion",
+    "pickBody": "Tes discussions, groupes et communautés sont à gauche. Commence-en une avec Nouveau message."
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",

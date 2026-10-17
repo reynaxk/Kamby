@@ -1,9 +1,9 @@
 'use client';
 
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { DM_REACTIONS, looksLikeScamBait, type DmMessage, type DmPerson } from '@kamby/domain';
+import { DM_REACTIONS, dmMentions, looksLikeScamBait, type DmMessage, type DmPerson } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
@@ -24,6 +24,36 @@ export function nameColor(userId: string): string {
   let h = 0;
   for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0;
   return NAME_COLORS[Math.abs(h) % NAME_COLORS.length]!;
+}
+
+/** A text with its @names picked out (bold, in the accent — or underlined on your own neon bubble). */
+function BodyText({ body, mine }: { body: string; mine: boolean }) {
+  // No regex look-behind (older iPhones can't parse it): an @name counts unless it's glued to a
+  // word before it, like an email.
+  const parts = body.split(/(@[a-z0-9_.]{3,21})/gi);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 && !/[a-z0-9_.]$/i.test(parts[i - 1] ?? '') ? (
+          <span key={i} className={cn('font-bold', mine ? 'underline decoration-black/40 underline-offset-2' : 'rounded bg-accent/[0.12] px-0.5 text-accent')}>
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
+/** Jump to the line a reply quotes, with a short ring so the eye finds it. */
+function jumpTo(id: string) {
+  const el = document.getElementById(`dm-${id}`);
+  if (!el) return;
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  el.classList.remove('kamby-flash');
+  void el.offsetWidth;
+  el.classList.add('kamby-flash');
 }
 
 /** A tiny tap on phones that support it — reactions and sends feel physical. */
@@ -149,6 +179,8 @@ export const DmMessageView = memo(function DmMessageView({
   first,
   last,
   onReact,
+  onReply,
+  meName = null,
   sender = null,
 }: {
   m: DmMessage;
@@ -157,6 +189,10 @@ export const DmMessageView = memo(function DmMessageView({
   first: boolean;
   last: boolean;
   onReact: (messageId: string, emoji: string) => void;
+  /** Swipe right (phones) or the ↩ in the reaction bar — answer this line. */
+  onReply?: (m: DmMessage) => void;
+  /** Your @name, so lines that mention you stand out. */
+  meName?: string | null;
   /** In a group: who wrote it (shown above their first line). */
   sender?: DmPerson | null;
 }) {
@@ -164,6 +200,10 @@ export const DmMessageView = memo(function DmMessageView({
   const systemText = useSystemText();
   const [picking, setPicking] = useState(false);
   const [burst, setBurst] = useState(false);
+  const [copied, setCopied] = useState(false);
+  // Swipe-to-reply: the line follows your thumb a little, a ↩ fades in, let go past the mark.
+  const [dx, setDx] = useState(0);
+  const swipe = useRef<{ x: number; y: number; on: boolean } | null>(null);
   if (m.kind === 'system' && m.system) {
     return (
       <p className="my-3 text-center">
@@ -173,9 +213,58 @@ export const DmMessageView = memo(function DmMessageView({
   }
   const reactions = Object.entries(m.reactions).filter(([, who]) => who.length > 0);
   const bait = !mine && m.kind === 'text' && looksLikeScamBait(m.body);
+  const mentionsMe = !mine && m.kind === 'text' && Boolean(meName) && dmMentions(m.body).includes(meName!.toLowerCase());
+  const replyMark = 56;
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (!onReply) return;
+    const t0 = e.touches[0]!;
+    if (t0.clientX < 30) return; // the left edge belongs to the community swipe
+    swipe.current = { x: t0.clientX, y: t0.clientY, on: false };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    const s = swipe.current;
+    if (!s) return;
+    const t0 = e.touches[0]!;
+    const ddx = t0.clientX - s.x;
+    if (!s.on) {
+      if (Math.abs(t0.clientY - s.y) > 12) {
+        swipe.current = null;
+        return;
+      }
+      if (ddx > 10) s.on = true;
+    }
+    if (s.on) {
+      const next = Math.max(0, Math.min(80, ddx * 0.7));
+      if (next >= replyMark && dx < replyMark) haptic(6);
+      setDx(next);
+    }
+  };
+  const onTouchEnd = () => {
+    if (swipe.current?.on && dx >= replyMark) onReply?.(m);
+    swipe.current = null;
+    setDx(0);
+  };
 
   return (
-    <div className={cn('kamby-chat-in flex flex-col', mine ? 'items-end' : 'items-start', first ? 'mt-3' : 'mt-0.5', sender && !mine && 'pl-9')}>
+    <div
+      id={`dm-${m.id}`}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchEnd}
+      className={cn('kamby-chat-in relative flex flex-col rounded-2xl', mine ? 'items-end' : 'items-start', first ? 'mt-3' : 'mt-0.5', sender && !mine && 'pl-9')}
+    >
+      {dx > 0 && (
+        <span
+          className="pointer-events-none absolute left-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-accent/15 text-accent"
+          style={{ opacity: Math.min(1, dx / replyMark), transform: `translateY(-50%) scale(${dx >= replyMark ? 1.1 : 0.8})` }}
+          aria-hidden
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-1" />
+          </svg>
+        </span>
+      )}
       {sender && !mine && first && (
         <span className="relative mb-1 ml-1 font-display text-[0.72rem] font-bold" style={{ color: nameColor(sender.userId) }}>
           <DmAvatar name={sender.username} src={sender.avatarUrl} className="absolute -left-9 top-0 h-7 w-7 text-[0.65rem]" />
@@ -198,7 +287,65 @@ export const DmMessageView = memo(function DmMessageView({
               {e}
             </button>
           ))}
+          {onReply && (
+            <>
+              <span className="mx-0.5 my-1.5 w-px bg-white/10" aria-hidden />
+              <button
+                type="button"
+                aria-label={t('reply')}
+                onClick={() => {
+                  setPicking(false);
+                  onReply(m);
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-ink-600 transition-transform hover:scale-110 active:scale-90"
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-1" />
+                </svg>
+              </button>
+            </>
+          )}
+          {m.kind === 'text' && (
+            <button
+              type="button"
+              aria-label={t('copy')}
+              onClick={() => {
+                void navigator.clipboard?.writeText(m.body).catch(() => undefined);
+                setCopied(true);
+                setTimeout(() => {
+                  setCopied(false);
+                  setPicking(false);
+                }, 700);
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-600 transition-transform hover:scale-110 active:scale-90"
+            >
+              {copied ? (
+                <span className="text-sm text-accent">✓</span>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                  <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
+      )}
+      {m.replyTo && (
+        <button
+          type="button"
+          onClick={() => jumpTo(m.replyTo!.id)}
+          className={cn('mb-0.5 flex max-w-[75%] items-stretch gap-2 rounded-2xl bg-white/[0.04] py-1.5 pl-2 pr-3 text-left transition-colors active:bg-white/[0.08]', mine ? 'mr-1' : 'ml-1')}
+          style={{ transform: dx ? `translateX(${dx}px)` : undefined }}
+        >
+          <span className="w-0.5 shrink-0 rounded-full" style={{ background: nameColor(m.replyTo.senderId) }} aria-hidden />
+          <span className="min-w-0">
+            <span className="block truncate font-display text-[0.68rem] font-bold" style={{ color: nameColor(m.replyTo.senderId) }}>
+              {m.replyTo.senderId === me ? t('you') : m.replyTo.username ? `@${m.replyTo.username}` : t('someone')}
+            </span>
+            <span className="block truncate font-body text-xs text-ink-400">{m.replyTo.preview}</span>
+          </span>
+        </button>
       )}
       <button
         type="button"
@@ -213,7 +360,8 @@ export const DmMessageView = memo(function DmMessageView({
           setBurst(true);
           setTimeout(() => setBurst(false), 650);
         }}
-        className="relative max-w-[80%] touch-manipulation select-none text-left"
+        className={cn('relative max-w-[80%] touch-manipulation select-none text-left', !dx && 'transition-transform duration-200')}
+        style={{ transform: dx ? `translateX(${dx}px)` : undefined }}
         aria-label={t('react')}
       >
         {burst && (
@@ -227,10 +375,15 @@ export const DmMessageView = memo(function DmMessageView({
               'block whitespace-pre-wrap break-words px-4 py-2.5 font-body text-[0.95rem] leading-snug',
               mine
                 ? cn('bg-accent text-black', 'rounded-3xl', !first && 'rounded-tr-lg', !last && 'rounded-br-lg')
-                : cn('kamby-glass text-ink-900', 'rounded-3xl', !first && 'rounded-tl-lg', !last && 'rounded-bl-lg'),
+                : cn(
+                    mentionsMe ? 'border border-accent/40 bg-accent/[0.1] text-ink-900' : 'kamby-glass text-ink-900',
+                    'rounded-3xl',
+                    !first && 'rounded-tl-lg',
+                    !last && 'rounded-bl-lg',
+                  ),
             )}
           >
-            {m.body}
+            <BodyText body={m.body} mine={mine} />
           </span>
         ) : m.kind === 'coin' && m.coin ? (
           <CoinCard m={m} mine={mine} />

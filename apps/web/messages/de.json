@@ -903,7 +903,13 @@
     "newShort": "Neu",
     "newMessages": "Neue Nachrichten",
     "newBelow": "{count, plural, one {# neue Nachricht} other {# neue Nachrichten}}",
-    "latest": "Zum Neuesten"
+    "latest": "Zum Neuesten",
+    "reply": "Antworten",
+    "copy": "Kopieren",
+    "replyingTo": "Antwort an {name}",
+    "cancelReply": "Antwort abbrechen",
+    "pickTitle": "Wähle einen Chat",
+    "pickBody": "Deine Chats, Gruppen und Communities sind links. Starte einen mit „Neue Nachricht“."
   },
   "calls": {
     "failed": "Anruf nicht verbunden",

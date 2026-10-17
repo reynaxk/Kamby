@@ -9,6 +9,8 @@ import {
   type DmChannelInfo,
   type DmConversation,
   type DmInvitePreview,
+  type DmReplyRef,
+  dmMentions,
   type DmEvent,
   type DmMessage,
   type DmMessageKind,
@@ -48,6 +50,7 @@ export function toMessage(row: DmMessageRow): DmMessage {
     usdc: kind === 'usdc' ? (data as unknown as DmUsdc) : null,
     system: kind === 'system' ? (data as unknown as DmSystem) : null,
     channelId: row.channelId ?? null,
+    replyTo: kind === 'text' && data && typeof data === 'object' && 'replyTo' in data ? (data.replyTo as DmReplyRef) : null,
     reactions: (row.reactions ?? {}) as Record<string, string[]>,
     createdAt: row.createdAt.toISOString(),
   };
@@ -345,12 +348,22 @@ export class DmService {
 
   // --- writing -----------------------------------------------------------------------------
 
-  async sendText(me: string, id: string, rawBody: string, channelId?: string): Promise<DmMessage> {
+  async sendText(me: string, id: string, rawBody: string, channelId?: string, replyToId?: string): Promise<DmMessage> {
     const body = normalizeDmBody(rawBody ?? '');
     if (body.length === 0) throw new BadRequestException('Write something first.');
     if (body.length > DM_LIMITS.maxLength) throw new BadRequestException(`Keep it under ${DM_LIMITS.maxLength} characters.`);
     if (containsLink(body)) throw new BadRequestException("Links aren't allowed in messages — share a coin with the + button instead.");
-    return this.write(me, id, { kind: 'text', body, data: null, channelId });
+    // A reply keeps a small quote of the line it answers (so it still reads right if that line
+    // scrolls far away) — only lines from this same chat.
+    let replyTo: DmReplyRef | null = null;
+    if (replyToId) {
+      const original = await prisma.dmMessage.findFirst({ where: { id: replyToId, conversationId: id, kind: { not: 'system' } } });
+      if (original) {
+        const sender = await prisma.user.findUnique({ where: { id: original.senderId }, select: { username: true } });
+        replyTo = { id: original.id, senderId: original.senderId, username: sender?.username ?? null, preview: preview(original).slice(0, 90) };
+      }
+    }
+    return this.write(me, id, { kind: 'text', body, data: replyTo ? { replyTo } : null, channelId });
   }
 
   async sendCoin(me: string, id: string, chain: string, tokenAddress: string, channelId?: string): Promise<DmMessage> {
@@ -671,7 +684,24 @@ export class DmService {
     const dto = toMessage(created);
     await this.publish({ type: 'message', userIds: a.participants, conversationId: id, message: dto });
     if (status !== a.row.status) await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
-    // Communities don't buzz phones for every line (up to 250 people) — unread shows in the app.
+    // Communities don't buzz phones for every line (up to 250 people) — only when someone
+    // @mentions you or replies to you (Discord-style).
+    if (!opts.skipPush && a.row.isCommunity && message.kind === 'text') {
+      const names = dmMentions(message.body);
+      const replyTarget = (message.data as { replyTo?: DmReplyRef } | null)?.replyTo?.senderId ?? null;
+      const mentioned = names.length
+        ? await prisma.user.findMany({ where: { id: { in: a.participants }, username: { in: names, mode: 'insensitive' } }, select: { id: true } })
+        : [];
+      const targets = [...new Set([...mentioned.map((u) => u.id), ...(replyTarget && a.participants.includes(replyTarget) ? [replyTarget] : [])])].filter((u) => u !== me);
+      const bucket = Math.floor(at.getTime() / (DM_LIMITS.pushBucketMinutes * 60_000));
+      await Promise.all(
+        targets.map((userId) =>
+          this.notifications
+            .create({ userId, type: 'DM_MESSAGE', dedupeKey: `dm:${id}:${userId}:${bucket}`, actorUserId: me })
+            .catch((error: unknown) => this.logger.warn({ err: error }, 'Mention push failed')),
+        ),
+      );
+    }
     if (!opts.skipPush && !a.row.isCommunity) {
       const bucket = Math.floor(at.getTime() / (DM_LIMITS.pushBucketMinutes * 60_000));
       // One push per person per chat per bucket — checked in Redis first, so a busy group

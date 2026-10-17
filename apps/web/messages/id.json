@@ -903,7 +903,13 @@
     "newShort": "Baru",
     "newMessages": "Pesan baru",
     "newBelow": "{count, plural, other {# pesan baru}}",
-    "latest": "Terbaru"
+    "latest": "Terbaru",
+    "reply": "Balas",
+    "copy": "Salin",
+    "replyingTo": "Membalas {name}",
+    "cancelReply": "Batalkan balasan",
+    "pickTitle": "Pilih chat",
+    "pickBody": "Chat, grup, dan komunitasmu ada di kiri. Mulai dengan Pesan baru."
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

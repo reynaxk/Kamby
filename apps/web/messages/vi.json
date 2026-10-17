@@ -903,7 +903,13 @@
     "newShort": "Mới",
     "newMessages": "Tin nhắn mới",
     "newBelow": "{count, plural, other {# tin nhắn mới}}",
-    "latest": "Mới nhất"
+    "latest": "Mới nhất",
+    "reply": "Trả lời",
+    "copy": "Sao chép",
+    "replyingTo": "Đang trả lời {name}",
+    "cancelReply": "Hủy trả lời",
+    "pickTitle": "Chọn một cuộc trò chuyện",
+    "pickBody": "Cuộc trò chuyện, nhóm và cộng đồng nằm bên trái. Bắt đầu bằng Tin nhắn mới."
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",

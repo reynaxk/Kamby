@@ -37,6 +37,10 @@ class TextDto {
   @IsOptional()
   @IsUUID()
   channelId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  replyToId?: string;
 }
 
 class CoinDto {
@@ -236,7 +240,7 @@ export class DmController {
   @Throttle({ default: { limit: 40, ttl: 60_000 } })
   @Post('conversations/:id/messages')
   sendText(@Param('id', ParseUUIDPipe) id: string, @Body() body: TextDto, @CurrentUser() user: SessionUser) {
-    return this.dm.sendText(user.id, id, body.body, body.channelId);
+    return this.dm.sendText(user.id, id, body.body, body.channelId, body.replyToId);
   }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })

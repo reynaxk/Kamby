@@ -28,7 +28,8 @@ export const fetchDmMessages = (id: string, before?: string, channelId?: string)
   return json<{ items: DmMessage[]; nextBefore: string | null }>(`/dm/conversations/${id}/messages${qs ? `?${qs}` : ''}`);
 };
 export const openConversation = (username: string) => json<DmConversation>('/dm/open', post({ username }), 'open the chat');
-export const sendDmText = (id: string, body: string, channelId?: string) => json<DmMessage>(`/dm/conversations/${id}/messages`, post({ body, channelId }), 'send the message');
+export const sendDmText = (id: string, body: string, channelId?: string, replyToId?: string) =>
+  json<DmMessage>(`/dm/conversations/${id}/messages`, post({ body, channelId, replyToId }), 'send the message');
 export const sendDmCoin = (id: string, chain: string, tokenAddress: string, channelId?: string) =>
   json<DmMessage>(`/dm/conversations/${id}/coin`, post({ chain, tokenAddress, channelId }), 'share the coin');
 export const sendDmPnl = (id: string, chain: string, tokenAddress: string, channelId?: string) =>

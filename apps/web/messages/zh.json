@@ -903,7 +903,13 @@
     "newShort": "新建",
     "newMessages": "新消息",
     "newBelow": "{count, plural, other {# 条新消息}}",
-    "latest": "最新"
+    "latest": "最新",
+    "reply": "回复",
+    "copy": "复制",
+    "replyingTo": "回复 {name}",
+    "cancelReply": "取消回复",
+    "pickTitle": "选择一个聊天",
+    "pickBody": "你的聊天、群组和社区在左侧。点“新消息”开始聊天。"
   },
   "calls": {
     "failed": "通话未接通",

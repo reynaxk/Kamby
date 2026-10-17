@@ -376,8 +376,7 @@ export function CommunityAvatar({ title, className }: { title: string; className
  * A community's home (tap its name, or swipe in from the left edge) — Discord's server panel in
  * Kamby's glass: banner, invite, # text channels, the voice lounge with who's talking, members.
  */
-export function CommunityHome({
-  open,
+export function CommunityPanel({
   onClose,
   conv,
   current,
@@ -390,8 +389,8 @@ export function CommunityHome({
   onChannels,
   onMembers,
   onLeave,
+  tall = false,
 }: {
-  open: boolean;
   onClose: () => void;
   conv: DmConversation;
   current: string | null;
@@ -404,6 +403,8 @@ export function CommunityHome({
   onChannels: () => void;
   onMembers: () => void;
   onLeave: () => void;
+  /** On the desktop side panel the list isn't capped — the panel scrolls. */
+  tall?: boolean;
 }) {
   const t = useTranslations('dm');
   const group = conv.group!;
@@ -413,7 +414,7 @@ export function CommunityHome({
   const inside = lounge?.participants ?? [];
   const row = 'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-colors active:bg-white/[0.08]';
   return (
-    <MobileDrawer open={open} onClose={onClose} title={group.title} desktop>
+    <div>
       {/* Banner */}
       <div className="relative -mt-1 overflow-hidden rounded-3xl border border-white/[0.07] p-4" style={{ background: 'linear-gradient(150deg,rgb(var(--kamby-accent)/0.16) 0%,#0E1430 45%,#090C1A 100%)' }}>
         <svg className="pointer-events-none absolute -right-8 -top-8" width="150" height="150" viewBox="0 0 512 512" aria-hidden>
@@ -443,7 +444,7 @@ export function CommunityHome({
         </div>
       </div>
 
-      <div className="mt-4 max-h-[48vh] overflow-y-auto pb-1">
+      <div className={cn(tall ? '' : 'max-h-[48vh] overflow-y-auto', 'mt-4 pb-1')}>
         {/* Text channels */}
         <div className="flex items-center justify-between px-1">
           <p className="font-body text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink-400">{t('textChannels')}</p>
@@ -533,6 +534,15 @@ export function CommunityHome({
           {t('leaveCommunity')}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** The community home as a sheet (phones; or tap the name on a small screen). */
+export function CommunityHome({ open, ...props }: Parameters<typeof CommunityPanel>[0] & { open: boolean }) {
+  return (
+    <MobileDrawer open={open} onClose={props.onClose} title={props.conv.group!.title} desktop>
+      <CommunityPanel {...props} />
     </MobileDrawer>
   );
 }

@@ -903,7 +903,13 @@
     "newShort": "New",
     "newMessages": "New messages",
     "newBelow": "{count, plural, one {# new message} other {# new messages}}",
-    "latest": "Latest"
+    "latest": "Latest",
+    "reply": "Reply",
+    "copy": "Copy",
+    "replyingTo": "Replying to {name}",
+    "cancelReply": "Cancel reply",
+    "pickTitle": "Pick a chat",
+    "pickBody": "Your chats, groups and communities are on the left. Start one with New message."
   },
   "calls": {
     "failed": "Call didn’t connect",

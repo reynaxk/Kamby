@@ -36,7 +36,7 @@ import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
-import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, InviteDrawer } from './CommunityBits';
+import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer } from './CommunityBits';
 import { haptic } from './DmMessageView';
 import { useCalls } from '@/components/calls/CallProvider';
 import { fetchCall } from '@/lib/calls-client';
@@ -94,6 +94,8 @@ export function DmThread({ id }: { id: string }) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const channelCache = useRef(new Map<string, { messages: DmMessage[]; nextBefore: string | null }>());
   const [homeOpen, setHomeOpen] = useState(false);
+  const [replyTo, setReplyTo] = useState<DmMessage | null>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
   // Where the unread lines start when you opened the chat ("New messages" divider), and how many
   // arrived below while you were scrolled up (the jump pill).
   const [firstUnreadId, setFirstUnreadId] = useState<string | null>(null);
@@ -194,6 +196,7 @@ export function DmThread({ id }: { id: string }) {
     if (next === channelId) return;
     haptic();
     setFirstUnreadId(null);
+    setReplyTo(null);
     if (channelId) channelCache.current.set(channelId, { messages, nextBefore });
     const cached = channelCache.current.get(next);
     setChannelId(next);
@@ -276,7 +279,11 @@ export function DmThread({ id }: { id: string }) {
     if (!body || sending) return;
     haptic();
     setFirstUnreadId(null);
-    if (await run(() => sendDmText(id, body, channelId ?? undefined))) setText('');
+    const answering = replyTo?.id;
+    if (await run(() => sendDmText(id, body, channelId ?? undefined, answering))) {
+      setText('');
+      setReplyTo(null);
+    }
   }
 
   function onType(value: string) {
@@ -344,14 +351,34 @@ export function DmThread({ id }: { id: string }) {
   const typingName = typing ? (isGroup ? `@${memberBy.get(typing)?.username ?? '…'}` : name) : null;
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:600px] xl:[--dm-left:640px]')}>
+      {/* Desktop: the community's channels stay open on the left (Discord) */}
+      {community && conv && (
+        <aside className="fixed bottom-0 top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#070A12]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
+          <CommunityPanel
+            tall
+            onClose={() => undefined}
+            conv={conv}
+            current={channelId}
+            onPick={pickChannel}
+            lounge={liveCall}
+            inLounge={inLiveCall}
+            onLounge={() => canCall && void calls.start(id, false)}
+            isOwner={isOwner}
+            onInvite={() => setInviteOpen(true)}
+            onChannels={() => setChannelsOpen(true)}
+            onMembers={() => setInfo(true)}
+            onLeave={() => void leave()}
+          />
+        </aside>
+      )}
       {/* Header */}
       <header className="kamby-frost-bar-phone sticky top-0 z-30 flex items-center gap-2 border-b border-white/[0.05] px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:bg-bg/90">
         <button
           type="button"
           aria-label={t('back')}
           onClick={() => (window.history.length > 1 ? router.back() : router.push('/messages'))}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10 md:hidden"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="m15 18-6-6 6-6" />
@@ -473,6 +500,7 @@ export function DmThread({ id }: { id: string }) {
       </header>
 
       {community && (
+        <div className="lg:hidden">
         <ChannelBar
           channels={community.channels}
           current={channelId}
@@ -484,6 +512,7 @@ export function DmThread({ id }: { id: string }) {
           onAdd={() => setChannelsOpen(true)}
           personOf={(u) => memberBy.get(u)}
         />
+        </div>
       )}
 
       {/* A call is on in this chat — join it */}
@@ -547,6 +576,11 @@ export function DmThread({ id }: { id: string }) {
                 last={last}
                 sender={isGroup ? (memberBy.get(m.senderId) ?? { userId: m.senderId, username: null, avatarUrl: null, walletAddress: null }) : null}
                 onReact={(mid, e) => void react(mid, e)}
+                onReply={canWrite ? (msg) => {
+                  setReplyTo(msg);
+                  textRef.current?.focus();
+                } : undefined}
+                meName={me ? (memberBy.get(me)?.username ?? null) : null}
               />
             </div>
           );
@@ -566,7 +600,8 @@ export function DmThread({ id }: { id: string }) {
       </main>
 
       {/* Bottom: request choice, blocked note, or the composer */}
-      <div className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 md:mx-auto md:max-w-2xl">
+      <div className="fixed bottom-0 right-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 [left:var(--dm-left,0px)] md:px-6">
+        <div className="relative mx-auto max-w-2xl">
         {(scrolledUp || newBelow > 0) && (
           <button
             type="button"
@@ -608,6 +643,24 @@ export function DmThread({ id }: { id: string }) {
           <>
             {conv?.state === 'pending' && <p className="mb-2 px-2 text-center font-body text-[0.7rem] text-ink-400">{t('pendingNote', { max: DM_LIMITS.requestMessagesMax })}</p>}
             {sendError && <p className="mb-2 px-2 text-center font-body text-xs font-semibold text-down">{sendError}</p>}
+            {replyTo && (
+              <div className="kamby-pop kamby-glass-solid mb-1.5 flex items-center gap-2.5 rounded-2xl py-2 pl-3 pr-1.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent" aria-hidden>
+                  <path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-1" />
+                </svg>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-display text-[0.7rem] font-bold text-accent">
+                    {t('replyingTo', { name: replyTo.senderId === me ? t('you') : `@${memberBy.get(replyTo.senderId)?.username ?? conv?.other?.username ?? '…'}` })}
+                  </span>
+                  <span className="block truncate font-body text-xs text-ink-400">{replyTo.kind === 'text' ? replyTo.body : replyTo.coin?.symbol ? `$${replyTo.coin.symbol}` : replyTo.pnl?.symbol ? `PnL · $${replyTo.pnl.symbol}` : '…'}</span>
+                </span>
+                <button type="button" aria-label={t('cancelReply')} onClick={() => setReplyTo(null)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-400 active:bg-white/10">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
             <form onSubmit={(e) => void submit(e)} className="kamby-glass-solid kamby-glass-dense flex items-end gap-1.5 rounded-[1.6rem] p-1.5 shadow-[0_10px_36px_rgba(0,0,0,0.6)]">
               <button
                 type="button"
@@ -621,9 +674,11 @@ export function DmThread({ id }: { id: string }) {
                 </svg>
               </button>
               <textarea
+                ref={textRef}
                 value={text}
                 onChange={(e) => onType(e.target.value)}
                 onKeyDown={(e) => {
+                  if (e.key === 'Escape' && replyTo) setReplyTo(null);
                   if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && window.matchMedia('(pointer: fine)').matches) {
                     e.preventDefault();
                     void submit();
@@ -647,6 +702,7 @@ export function DmThread({ id }: { id: string }) {
             </form>
           </>
         )}
+        </div>
       </div>
 
       {/* Group info */}

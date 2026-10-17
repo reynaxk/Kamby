@@ -903,7 +903,13 @@
     "newShort": "新規",
     "newMessages": "新着メッセージ",
     "newBelow": "{count, plural, other {新着 # 件}}",
-    "latest": "最新へ"
+    "latest": "最新へ",
+    "reply": "返信",
+    "copy": "コピー",
+    "replyingTo": "{name} に返信",
+    "cancelReply": "返信をキャンセル",
+    "pickTitle": "チャットを選択",
+    "pickBody": "チャット・グループ・コミュニティは左側にあります。「新しいメッセージ」から始めましょう。"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

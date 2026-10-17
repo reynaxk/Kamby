@@ -903,7 +903,13 @@
     "newShort": "Nova",
     "newMessages": "Novas mensagens",
     "newBelow": "{count, plural, one {# nova mensagem} other {# novas mensagens}}",
-    "latest": "Mais recentes"
+    "latest": "Mais recentes",
+    "reply": "Responder",
+    "copy": "Copiar",
+    "replyingTo": "Respondendo a {name}",
+    "cancelReply": "Cancelar resposta",
+    "pickTitle": "Escolha uma conversa",
+    "pickBody": "Suas conversas, grupos e comunidades ficam à esquerda. Comece uma com Nova mensagem."
   },
   "calls": {
     "failed": "A chamada não conectou",

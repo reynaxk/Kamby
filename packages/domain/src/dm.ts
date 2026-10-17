@@ -87,9 +87,29 @@ export interface DmMessage {
   system: DmSystem | null;
   /** The community channel it was written in (null outside communities). */
   channelId: string | null;
+  /** The line this one answers (a quote of it, kept with the reply). */
+  replyTo: DmReplyRef | null;
   /** emoji → the users who reacted with it. */
   reactions: Record<string, string[]>;
   createdAt: string;
+}
+
+export interface DmReplyRef {
+  id: string;
+  senderId: string;
+  username: string | null;
+  /** A short preview of the quoted line ("$DOPE PnL card", the first words of a text…). */
+  preview: string;
+}
+
+/** @names in a text (lowercase, without the @), at most 10 — for highlights and mention pushes. */
+export function dmMentions(body: string): string[] {
+  const out = new Set<string>();
+  for (const m of body.matchAll(/(^|[^a-z0-9_.])@([a-z0-9_.]{3,21})/gi)) {
+    out.add(m[2]!.toLowerCase());
+    if (out.size >= 10) break;
+  }
+  return [...out];
 }
 
 export interface DmPerson {

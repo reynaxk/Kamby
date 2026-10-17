@@ -903,7 +903,13 @@
     "newShort": "Yeni",
     "newMessages": "Yeni mesajlar",
     "newBelow": "{count, plural, other {# yeni mesaj}}",
-    "latest": "En yeni"
+    "latest": "En yeni",
+    "reply": "Yanıtla",
+    "copy": "Kopyala",
+    "replyingTo": "{name} kişisine yanıt",
+    "cancelReply": "Yanıtı iptal et",
+    "pickTitle": "Bir sohbet seç",
+    "pickBody": "Sohbetlerin, grupların ve toplulukların solda. Yeni mesaj ile başla."
   },
   "calls": {
     "failed": "Arama bağlanamadı",

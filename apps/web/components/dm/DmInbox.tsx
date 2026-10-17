@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { DmConversation } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -23,6 +23,7 @@ import { CommunityAvatar, CommunityRail, NewCommunityDrawer } from './CommunityB
 export function DmInbox() {
   const t = useTranslations('dm');
   const router = useRouter();
+  const pathname = usePathname();
   const unread = useDmUnread();
   const [box, setBox] = useState<'chats' | 'requests'>('chats');
   const [items, setItems] = useState<DmConversation[] | null>(null);
@@ -204,7 +205,10 @@ export function DmInbox() {
           const sender = c.group && c.lastMessage && !mine && c.lastMessage.kind !== 'system' ? c.group.members.find((m) => m.userId === c.lastMessage!.senderId)?.username : null;
           return (
             <li key={c.id}>
-              <Link href={`/messages/${c.id}`} className="flex items-center gap-3 rounded-2xl px-1 py-2.5 transition-colors active:bg-white/[0.04]">
+              <Link
+                href={`/messages/${c.id}`}
+                className={cn('flex items-center gap-3 rounded-2xl px-1 py-2.5 transition-colors active:bg-white/[0.04] md:px-2 md:hover:bg-white/[0.04]', pathname === `/messages/${c.id}` && 'bg-white/[0.07] md:hover:bg-white/[0.07]')}
+              >
                 <span className="relative">
                   {c.group?.community ? <CommunityAvatar title={c.group.title} /> : c.group ? <GroupAvatar members={c.group.members} meId={c.meId} /> : <DmAvatar name={c.other?.username ?? null} src={c.other?.avatarUrl ?? null} />}
                   {c.unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" aria-hidden />}
