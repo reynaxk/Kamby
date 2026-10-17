@@ -69,6 +69,12 @@ export function systemText(s: DmSystem): string {
       return `${actor} left`;
     case 'renamed':
       return `${actor} renamed the group to “${s.title ?? ''}”`;
+    case 'call': {
+      const kind = s.video ? 'Video call' : 'Call';
+      if (!s.durationSec) return `Missed ${kind.toLowerCase()}`;
+      const m = Math.floor(s.durationSec / 60);
+      return `${kind} · ${m > 0 ? `${m} min` : `${s.durationSec}s`}`;
+    }
   }
 }
 
@@ -450,6 +456,32 @@ export class DmService {
     if (a.isGroup) await this.leave(me, id);
     else await this.block(me, id, true);
     this.logger.warn({ conversationId: id, reporterId: me, group: a.isGroup }, 'Private chat reported');
+  }
+
+  // --- for calls -------------------------------------------------------------------------
+
+  /** Who may be in a call in this chat — only accepted chats (owner's rule 2026-10-17): a 1:1
+   *  chat that's active and not blocked, or a group you're an active member of. */
+  async callAccess(me: string, id: string): Promise<{ isGroup: boolean; participants: string[] }> {
+    const a = await this.access(me, id);
+    if (a.isGroup) {
+      if (a.myStatus !== 'active') throw new ForbiddenException('Accept the invite first.');
+    } else {
+      if (a.row.status !== 'active') throw new ForbiddenException('You can call once they accept your message request.');
+      if (a.otherId && (await this.blockedEitherWay(me, a.otherId))) throw new ForbiddenException("You can't call this user.");
+    }
+    return { isGroup: a.isGroup, participants: a.participants };
+  }
+
+  /** A server-written line in a chat (a call that ended or was missed). */
+  async postSystem(id: string, event: DmSystem): Promise<void> {
+    const a = await prisma.dmConversation.findUnique({ where: { id }, select: { isGroup: true, userAId: true, userBId: true } });
+    if (!a) return;
+    await this.system(id, event, a.isGroup ? [] : [a.userAId!, a.userBId!]);
+  }
+
+  async publishEvent(event: DmEvent): Promise<void> {
+    await this.publish(event);
   }
 
   // --- internals ---------------------------------------------------------------------------

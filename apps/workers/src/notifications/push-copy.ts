@@ -31,6 +31,7 @@ const EN: Copy = {
   PRICE_MOVE: { title: '{arrow} {token} {pct}', body: '{token} moved {pct} in the last hour' },
   USDC_RECEIVED: { title: '💸 {amount} received', body: '@{actor} sent you {amount}' },
   DM_MESSAGE: { title: "💬 @{actor}", body: "sent you a message" },
+  CALL_INCOMING: { title: "📞 @{actor}", body: "is calling you" },
 };
 
 const COPY: Record<string, Partial<Copy>> = {
@@ -38,6 +39,7 @@ const COPY: Record<string, Partial<Copy>> = {
   bg: {
     USDC_RECEIVED: { title: "💸 Получи {amount}", body: "@{actor} ти прати {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ти писа" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "ти звъни" },
     bought: 'купи', sold: 'продаде',
     FOLLOW: { title: 'Нов последовател', body: '{actor} започна да те следва' },
     LIKE: { title: 'Ново харесване', body: '{actor} хареса твоя сделка' },
@@ -52,6 +54,7 @@ const COPY: Record<string, Partial<Copy>> = {
   zh: {
     USDC_RECEIVED: { title: "💸 收到 {amount}", body: "@{actor} 给你发了 {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "给你发了一条消息" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "正在呼叫你" },
     bought: '买入', sold: '卖出',
     FOLLOW: { title: '新粉丝', body: '{actor} 关注了你' },
     LIKE: { title: '新点赞', body: '{actor} 点赞了你的交易' },
@@ -66,6 +69,7 @@ const COPY: Record<string, Partial<Copy>> = {
   ko: {
     USDC_RECEIVED: { title: "💸 {amount} 받았어요", body: "@{actor}님이 {amount}를 보냈어요" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "님이 메시지를 보냈어요" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "님이 전화하고 있어요" },
     bought: '매수', sold: '매도',
     FOLLOW: { title: '새 팔로워', body: '{actor}님이 회원님을 팔로우합니다' },
     LIKE: { title: '새 좋아요', body: '{actor}님이 거래에 좋아요를 눌렀습니다' },
@@ -80,6 +84,7 @@ const COPY: Record<string, Partial<Copy>> = {
   ja: {
     USDC_RECEIVED: { title: "💸 {amount} 受け取りました", body: "@{actor} から {amount} が届きました" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "からメッセージが届きました" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "から着信中" },
     bought: '購入', sold: '売却',
     FOLLOW: { title: '新しいフォロワー', body: '{actor} があなたをフォローしました' },
     LIKE: { title: '新しいいいね', body: '{actor} があなたの取引にいいねしました' },
@@ -94,6 +99,7 @@ const COPY: Record<string, Partial<Copy>> = {
   tr: {
     USDC_RECEIVED: { title: "💸 {amount} geldi", body: "@{actor} sana {amount} gönderdi" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "sana mesaj gönderdi" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "seni arıyor" },
     bought: 'aldı', sold: 'sattı',
     FOLLOW: { title: 'Yeni takipçi', body: '{actor} seni takip etmeye başladı' },
     LIKE: { title: 'Yeni beğeni', body: '{actor} işlemini beğendi' },
@@ -108,6 +114,7 @@ const COPY: Record<string, Partial<Copy>> = {
   ru: {
     USDC_RECEIVED: { title: "💸 Получено {amount}", body: "@{actor} отправил тебе {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "написал тебе" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "звонит тебе" },
     bought: 'купил', sold: 'продал',
     FOLLOW: { title: 'Новый подписчик', body: '{actor} подписался на вас' },
     LIKE: { title: 'Новый лайк', body: '{actor} лайкнул вашу сделку' },
@@ -122,6 +129,7 @@ const COPY: Record<string, Partial<Copy>> = {
   es: {
     USDC_RECEIVED: { title: "💸 Recibiste {amount}", body: "@{actor} te envió {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te envió un mensaje" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "te está llamando" },
     bought: 'compró', sold: 'vendió',
     FOLLOW: { title: 'Nuevo seguidor', body: '{actor} empezó a seguirte' },
     LIKE: { title: 'Nuevo me gusta', body: 'A {actor} le gustó tu operación' },
@@ -136,6 +144,7 @@ const COPY: Record<string, Partial<Copy>> = {
   pt: {
     USDC_RECEIVED: { title: "💸 {amount} recebidos", body: "@{actor} te enviou {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te enviou uma mensagem" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "está te ligando" },
     bought: 'comprou', sold: 'vendeu',
     FOLLOW: { title: 'Novo seguidor', body: '{actor} começou a seguir você' },
     LIKE: { title: 'Nova curtida', body: '{actor} curtiu sua operação' },
@@ -150,6 +159,7 @@ const COPY: Record<string, Partial<Copy>> = {
   vi: {
     USDC_RECEIVED: { title: "💸 Đã nhận {amount}", body: "@{actor} đã gửi bạn {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "đã nhắn tin cho bạn" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "đang gọi cho bạn" },
     bought: 'mua', sold: 'bán',
     FOLLOW: { title: 'Người theo dõi mới', body: '{actor} đã theo dõi bạn' },
     LIKE: { title: 'Lượt thích mới', body: '{actor} đã thích giao dịch của bạn' },
@@ -164,6 +174,7 @@ const COPY: Record<string, Partial<Copy>> = {
   id: {
     USDC_RECEIVED: { title: "💸 {amount} diterima", body: "@{actor} mengirimimu {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "mengirimimu pesan" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "sedang meneleponmu" },
     bought: 'membeli', sold: 'menjual',
     FOLLOW: { title: 'Pengikut baru', body: '{actor} mulai mengikutimu' },
     LIKE: { title: 'Suka baru', body: '{actor} menyukai trade-mu' },
@@ -178,6 +189,7 @@ const COPY: Record<string, Partial<Copy>> = {
   th: {
     USDC_RECEIVED: { title: "💸 ได้รับ {amount}", body: "@{actor} ส่ง {amount} ให้คุณ" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ส่งข้อความถึงคุณ" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "กำลังโทรหาคุณ" },
     bought: 'ซื้อ', sold: 'ขาย',
     FOLLOW: { title: 'ผู้ติดตามใหม่', body: '{actor} เริ่มติดตามคุณ' },
     LIKE: { title: 'ถูกใจใหม่', body: '{actor} ถูกใจเทรดของคุณ' },
@@ -192,6 +204,7 @@ const COPY: Record<string, Partial<Copy>> = {
   de: {
     USDC_RECEIVED: { title: "💸 {amount} erhalten", body: "@{actor} hat dir {amount} geschickt" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "hat dir geschrieben" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "ruft dich an" },
     bought: 'kaufte', sold: 'verkaufte',
     FOLLOW: { title: 'Neuer Follower', body: '{actor} folgt dir jetzt' },
     LIKE: { title: 'Neues Like', body: '{actor} gefällt dein Trade' },
@@ -206,6 +219,7 @@ const COPY: Record<string, Partial<Copy>> = {
   fr: {
     USDC_RECEIVED: { title: "💸 {amount} reçus", body: "@{actor} t'a envoyé {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "t'a envoyé un message" },
+    CALL_INCOMING: { title: "📞 @{actor}", body: "t'appelle" },
     bought: 'a acheté', sold: 'a vendu',
     FOLLOW: { title: 'Nouvel abonné', body: '{actor} te suit maintenant' },
     LIKE: { title: 'Nouveau j’aime', body: '{actor} a aimé ton trade' },

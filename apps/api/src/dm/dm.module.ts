@@ -11,5 +11,6 @@ import { DmService } from './dm.service';
   imports: [IdentityModule, NotificationsModule, SocialModule, TransfersModule],
   controllers: [DmController],
   providers: [DmService],
+  exports: [DmService],
 })
 export class DmModule {}

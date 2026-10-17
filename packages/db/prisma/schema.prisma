@@ -938,6 +938,8 @@ enum NotificationType {
   USDC_RECEIVED
   /// 2026-10-17 — a private message (phone push only; never listed with the notifications).
   DM_MESSAGE
+  /// 2026-10-17 — someone is calling the recipient (phone push only, like DM_MESSAGE).
+  CALL_INCOMING
 }
 
 /// One notification for `user` (the recipient — always resolved from the authenticated

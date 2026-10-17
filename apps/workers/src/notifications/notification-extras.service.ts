@@ -361,7 +361,7 @@ export class NotificationExtrasService {
             .sendNotification(
               { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
               JSON.stringify({ title, body, url, tag: row.id }),
-              { TTL: 3600, urgency: row.type.startsWith('TRADE_') || row.type === 'PRICE_MOVE' || row.type === 'USDC_RECEIVED' || row.type === 'DM_MESSAGE' ? 'high' : 'normal' },
+              { TTL: row.type === 'CALL_INCOMING' ? 60 : 3600, urgency: row.type.startsWith('TRADE_') || row.type === 'PRICE_MOVE' || row.type === 'USDC_RECEIVED' || row.type === 'DM_MESSAGE' || row.type === 'CALL_INCOMING' ? 'high' : 'normal' },
             )
             .then(() => {
               sent += 1;

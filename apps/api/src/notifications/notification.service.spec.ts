@@ -305,7 +305,7 @@ describe('NotificationService', () => {
       await service.list(RECIPIENT_USER_ID, undefined, 10);
 
       expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, { type: { not: 'DM_MESSAGE' } }, {}] } }),
+        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, { type: { notIn: ['DM_MESSAGE', 'CALL_INCOMING'] } }, {}] } }),
       );
     });
 
@@ -329,7 +329,7 @@ describe('NotificationService', () => {
           where: {
             AND: [
               { userId: RECIPIENT_USER_ID },
-              { type: { not: 'DM_MESSAGE' } },
+              { type: { notIn: ['DM_MESSAGE', 'CALL_INCOMING'] } },
               {
                 OR: [
                   { createdAt: { lt: new Date('2026-01-02') } },
@@ -348,7 +348,7 @@ describe('NotificationService', () => {
       await service.list(RECIPIENT_USER_ID, 'not-real-base64url-json', 10);
 
       expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, { type: { not: 'DM_MESSAGE' } }, {}] } }),
+        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, { type: { notIn: ['DM_MESSAGE', 'CALL_INCOMING'] } }, {}] } }),
       );
     });
   });
@@ -361,7 +361,7 @@ describe('NotificationService', () => {
 
       expect(count).toBe(5);
       expect(mockedPrisma.notification.count).toHaveBeenCalledWith({
-        where: { userId: RECIPIENT_USER_ID, readAt: null, type: { not: 'DM_MESSAGE' } },
+        where: { userId: RECIPIENT_USER_ID, readAt: null, type: { notIn: ['DM_MESSAGE', 'CALL_INCOMING'] } },
       });
     });
   });

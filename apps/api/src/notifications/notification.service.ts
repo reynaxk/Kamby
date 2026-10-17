@@ -175,7 +175,7 @@ export class NotificationService {
 
     const rows = await prisma.notification.findMany({
       // Private messages have their own screen — their rows only drive the phone push.
-      where: { AND: [{ userId }, { type: { not: 'DM_MESSAGE' } }, cursorWhere] },
+      where: { AND: [{ userId }, { type: { notIn: ['DM_MESSAGE', 'CALL_INCOMING'] } }, cursorWhere] },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
       include: NOTIFICATION_INCLUDE,
@@ -193,7 +193,7 @@ export class NotificationService {
   }
 
   async unreadCount(userId: string): Promise<number> {
-    return prisma.notification.count({ where: { userId, readAt: null, type: { not: 'DM_MESSAGE' } } });
+    return prisma.notification.count({ where: { userId, readAt: null, type: { notIn: ['DM_MESSAGE', 'CALL_INCOMING'] } } });
   }
 
   /** Scoped to `userId` in the WHERE clause, not just the id — someone else's notification

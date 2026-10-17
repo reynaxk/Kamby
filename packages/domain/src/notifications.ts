@@ -23,6 +23,8 @@ export const NotificationTypeSchema = z.enum([
   'USDC_RECEIVED',
   /** 2026-10-17 — a private message (phone push only; never listed with the notifications). */
   'DM_MESSAGE',
+  /** 2026-10-17 — someone is calling you in a chat (phone push only). */
+  'CALL_INCOMING',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -91,6 +93,7 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   PRICE_MOVE: 'priceMoves',
   USDC_RECEIVED: 'tradeUpdates',
   DM_MESSAGE: 'messages',
+  CALL_INCOMING: 'messages',
 };
 
 /**
@@ -196,6 +199,7 @@ export function notificationDeepLink(
     case 'USDC_RECEIVED':
       return '/';
     case 'DM_MESSAGE':
+    case 'CALL_INCOMING':
       return '/messages';
   }
 }

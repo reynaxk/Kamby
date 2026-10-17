@@ -1,3 +1,5 @@
+import type { CallState } from './calls';
+
 /**
  * Private messages between two Kamby users (2026-10-17, owner: "chat with another user on their
  * private chat like instagram"). Owner's calls: anyone can write to anyone, but a first message
@@ -34,10 +36,13 @@ export function isDmReaction(value: string): boolean {
 export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'system';
 
 export interface DmSystem {
-  event: 'created' | 'added' | 'removed' | 'left' | 'renamed';
+  /** 'call' = a call ended (durationSec) or was missed (durationSec 0). */
+  event: 'created' | 'added' | 'removed' | 'left' | 'renamed' | 'call';
   actor: string | null;
   targets: string[];
   title?: string;
+  durationSec?: number;
+  video?: boolean;
 }
 
 export interface DmCoin {
@@ -133,7 +138,9 @@ export type DmEvent =
   | { type: 'read'; userIds: string[]; conversationId: string; userId: string; atIso: string }
   | { type: 'typing'; userIds: string[]; conversationId: string; userId: string }
   | { type: 'reaction'; userIds: string[]; conversationId: string; messageId: string; reactions: Record<string, string[]> }
-  | { type: 'state'; userIds: string[]; conversationId: string };
+  | { type: 'state'; userIds: string[]; conversationId: string }
+  /** A call in this chat started, changed or ended (call null = ended). */
+  | { type: 'call'; userIds: string[]; conversationId: string; call: CallState | null };
 
 const SCAM_BAIT = /\b(seed\s*phrase|secret\s*phrase|recovery\s*phrase|private\s*key|mnemonic|12\s*words|24\s*words|wallet\s*validat|kamby\s*(support|admin|team)|support\s*team|verify\s*your\s*wallet|airdrop\s*claim)\b/i;
 

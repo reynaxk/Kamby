@@ -322,6 +322,11 @@ export const EnvSchema = z.object({
   R2_PUBLIC_BASE_URL: z.string().url('R2_PUBLIC_BASE_URL must be a valid URL').optional(),
   /** Kamby's LaunchPad: Kamby's fixed fee per coin created, in USD (paid in USDC). */
   LAUNCH_FEE_USD: z.coerce.number().min(0).max(100).optional(),
+  /** Calls (2026-10-17): Cloudflare Realtime (SFU) app + its TURN key. Calls are off without them. */
+  CF_REALTIME_APP_ID: z.string().optional(),
+  CF_REALTIME_APP_TOKEN: z.string().optional(),
+  CF_TURN_KEY_ID: z.string().optional(),
+  CF_TURN_API_TOKEN: z.string().optional(),
   /** Where launch logos and metadata are served from (the coin's on-chain `uri` points here). */
   LAUNCH_ASSET_BASE_URL: z.string().url().optional(),
 });
