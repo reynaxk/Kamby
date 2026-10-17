@@ -1,17 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Orbitron } from 'next/font/google';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { FeatureCards, type LandingFeature } from '@/components/landing/FeatureCards';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { ChatShowcase } from '@/components/landing/ChatShowcase';
 import { TerminalMockup } from '@/components/landing/TerminalMockup';
 import { LandingCta } from '@/components/landing/LandingCta';
-import { RunnerCountdown } from '@/components/landing/RunnerCountdown';
 import { getTranslations } from 'next-intl/server';
-
-/** The countdown face — loaded only on the landing page (self-hosted by next/font). */
-const orbitron = Orbitron({ subsets: ['latin'], weight: ['700', '800', '900'], display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Kamby — Multi-Chain Meme Coin Terminal',
@@ -23,9 +18,9 @@ export const metadata: Metadata = {
  * The landing page (2026-10-17 rewrite, owner: "10/10 aesthetic, ultra-smooth"): an obsidian
  * hero over a neon 3D grid with a frosted preview of the terminal beside the pitch, the
  * features as a bento grid, the PnL cards drifting past in a marquee, both chats live-looking,
- * and one last call to action. New visitors see this, not the terminal — the buttons open Privy
- * sign-in, then the app. Server-rendered; the client code is the sign-in buttons, the bento
- * tiles' tilt and the countdown. All motion is transform/opacity. The risk notice lives in the
+ * and one last call to action (no countdown — owner 2026-10-17). New visitors see this, not the terminal — the buttons open Privy
+ * sign-in, then the app. Server-rendered; the client code is the sign-in buttons and the bento
+ * tiles' tilt. All motion is transform/opacity. The risk notice lives in the
  * site footer.
  */
 export default async function LandingPage() {
@@ -119,8 +114,10 @@ export default async function LandingPage() {
         <section className="mx-auto max-w-3xl px-5 pb-32 pt-8">
           <div className="relative flex flex-col items-center overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01)_60%)] px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:py-20">
             <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(0,255,102,0.18),transparent)]" />
-            <p className="relative font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('nextRunner')}</p>
-            <RunnerCountdown className={`${orbitron.className} relative mt-4 text-[clamp(3.6rem,14vw,7.5rem)] font-black leading-none text-white`} />
+            <p className="relative font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('chains')}</p>
+            <h2 className="relative mt-5 bg-[linear-gradient(100deg,#FFFFFF_0%,#B8FFE0_50%,#00FF87_100%)] bg-clip-text font-display text-[clamp(2.4rem,8vw,4.5rem)] font-black leading-none tracking-tight text-transparent">
+              {t('tagline')}
+            </h2>
             <LandingCta label={t('goTrade')} variant="neon" arrow className="kamby-cta-pulse relative mt-12 px-10 py-4 text-base" />
           </div>
         </section>
