@@ -901,6 +901,30 @@
     "previous": "Önceki",
     "next": "Sonraki",
     "buy": "{symbol} al",
-    "profile": "Profil"
+    "profile": "Profil",
+    "goLive": "Yayına başla"
+  },
+  "live": {
+    "back": "Geri",
+    "report": "Şikayet et",
+    "reportConfirm": "Bu yayını şikayet etmek istiyor musun? Üç şikayet yayını bitirir.",
+    "reported": "Teşekkürler — inceleyeceğiz.",
+    "ended": "Bu yayın bitti",
+    "backHome": "Ana sayfaya dön",
+    "hostMuted": "Yayıncı sessizde",
+    "voiceLive": "Sesli yayın",
+    "trade": "{symbol} işlem yap",
+    "signInToWatch": "İzlemek ve yazmak için giriş yap",
+    "say": "Bir şey yaz…",
+    "send": "Gönder",
+    "unmute": "Sesi aç",
+    "mute": "Sessize al",
+    "share": "Ekranı paylaş",
+    "end": "Bitir",
+    "goLive": "Yayına başla",
+    "titlePlaceholder": "Bugün ne trade ediyorsun?",
+    "ruleVoice": "Yayına başlayınca mikrofonun açık olur",
+    "ruleScreen": "Ekranını odadan paylaş (bilgisayar / Android)",
+    "ruleNoCamera": "Yayın odalarında kamera yok"
   }
 }

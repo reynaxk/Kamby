@@ -901,6 +901,30 @@
     "previous": "Назад",
     "next": "Напред",
     "buy": "Купи {symbol}",
-    "profile": "Профил"
+    "profile": "Профил",
+    "goLive": "Пусни live"
+  },
+  "live": {
+    "back": "Назад",
+    "report": "Докладвай",
+    "reportConfirm": "Да докладваме ли този live? При три доклада спира.",
+    "reported": "Благодарим — ще проверим.",
+    "ended": "Този live приключи",
+    "backHome": "Към началото",
+    "hostMuted": "Домакинът е без звук",
+    "voiceLive": "Гласов live",
+    "trade": "Търгувай {symbol}",
+    "signInToWatch": "Влез, за да гледаш и пишеш",
+    "say": "Напиши нещо…",
+    "send": "Изпрати",
+    "unmute": "Включи звука",
+    "mute": "Изключи звука",
+    "share": "Сподели екрана",
+    "end": "Край",
+    "goLive": "Пусни live",
+    "titlePlaceholder": "Какво търгуваш днес?",
+    "ruleVoice": "Микрофонът ти е включен, когато пуснеш live",
+    "ruleScreen": "Споделяш екрана си от стаята (компютър / Android)",
+    "ruleNoCamera": "Без камера в live стаите"
   }
 }

@@ -901,6 +901,30 @@
     "previous": "Anterior",
     "next": "Próximo",
     "buy": "Comprar {symbol}",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "goLive": "Entrar ao vivo"
+  },
+  "live": {
+    "back": "Voltar",
+    "report": "Denunciar",
+    "reportConfirm": "Denunciar esta live? Três denúncias encerram.",
+    "reported": "Obrigado — vamos verificar.",
+    "ended": "Esta live terminou",
+    "backHome": "Voltar ao início",
+    "hostMuted": "O host está mudo",
+    "voiceLive": "Live de voz",
+    "trade": "Negociar {symbol}",
+    "signInToWatch": "Entre para assistir e conversar",
+    "say": "Diga algo…",
+    "send": "Enviar",
+    "unmute": "Ativar som",
+    "mute": "Silenciar",
+    "share": "Compartilhar tela",
+    "end": "Encerrar",
+    "goLive": "Entrar ao vivo",
+    "titlePlaceholder": "O que você vai negociar hoje?",
+    "ruleVoice": "Seu microfone fica ligado ao entrar ao vivo",
+    "ruleScreen": "Compartilhe sua tela na sala (computador / Android)",
+    "ruleNoCamera": "Sem câmera nas lives"
   }
 }

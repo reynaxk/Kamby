@@ -901,6 +901,30 @@
     "previous": "上一个",
     "next": "下一个",
     "buy": "买入 {symbol}",
-    "profile": "主页"
+    "profile": "主页",
+    "goLive": "开始直播"
+  },
+  "live": {
+    "back": "返回",
+    "report": "举报",
+    "reportConfirm": "举报这场直播？三次举报会结束直播。",
+    "reported": "谢谢——我们会核查。",
+    "ended": "直播已结束",
+    "backHome": "回到首页",
+    "hostMuted": "主播已静音",
+    "voiceLive": "语音直播",
+    "trade": "交易 {symbol}",
+    "signInToWatch": "登录后观看和聊天",
+    "say": "说点什么…",
+    "send": "发送",
+    "unmute": "取消静音",
+    "mute": "静音",
+    "share": "共享屏幕",
+    "end": "结束",
+    "goLive": "开始直播",
+    "titlePlaceholder": "今天交易什么？",
+    "ruleVoice": "开播时麦克风开启",
+    "ruleScreen": "在房间里共享屏幕（电脑 / Android）",
+    "ruleNoCamera": "直播间不使用摄像头"
   }
 }

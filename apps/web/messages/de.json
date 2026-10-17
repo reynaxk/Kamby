@@ -901,6 +901,30 @@
     "previous": "Zurück",
     "next": "Weiter",
     "buy": "{symbol} kaufen",
-    "profile": "Profil"
+    "profile": "Profil",
+    "goLive": "Live gehen"
+  },
+  "live": {
+    "back": "Zurück",
+    "report": "Melden",
+    "reportConfirm": "Diesen Live melden? Drei Meldungen beenden ihn.",
+    "reported": "Danke — wir sehen es uns an.",
+    "ended": "Dieser Live ist vorbei",
+    "backHome": "Zur Startseite",
+    "hostMuted": "Der Host ist stumm",
+    "voiceLive": "Voice-Live",
+    "trade": "{symbol} traden",
+    "signInToWatch": "Melde dich an, um zuzusehen & zu chatten",
+    "say": "Schreib etwas…",
+    "send": "Senden",
+    "unmute": "Ton an",
+    "mute": "Stumm",
+    "share": "Bildschirm teilen",
+    "end": "Beenden",
+    "goLive": "Live gehen",
+    "titlePlaceholder": "Was tradest du heute?",
+    "ruleVoice": "Dein Mikro ist an, wenn du live gehst",
+    "ruleScreen": "Teile deinen Bildschirm im Raum (Computer / Android)",
+    "ruleNoCamera": "Keine Kamera in Live-Räumen"
   }
 }

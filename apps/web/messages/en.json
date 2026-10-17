@@ -901,6 +901,30 @@
     "previous": "Previous",
     "next": "Next",
     "buy": "Buy {symbol}",
-    "profile": "Profile"
+    "profile": "Profile",
+    "goLive": "Go live"
+  },
+  "live": {
+    "back": "Back",
+    "report": "Report",
+    "reportConfirm": "Report this live? Three reports end it.",
+    "reported": "Thanks — we’ll look into it.",
+    "ended": "This live has ended",
+    "backHome": "Back home",
+    "hostMuted": "The host is muted",
+    "voiceLive": "Voice live",
+    "trade": "Trade {symbol}",
+    "signInToWatch": "Sign in to watch & chat",
+    "say": "Say something…",
+    "send": "Send",
+    "unmute": "Unmute",
+    "mute": "Mute",
+    "share": "Share screen",
+    "end": "End",
+    "goLive": "Go live",
+    "titlePlaceholder": "What are you trading today?",
+    "ruleVoice": "Your mic is on when you go live",
+    "ruleScreen": "Share your screen from the room (computer / Android)",
+    "ruleNoCamera": "No camera in live rooms"
   }
 }

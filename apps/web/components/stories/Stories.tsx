@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { STORY_LIMITS, type StoryPerson } from '@kamby/domain';
+import { STORY_LIMITS, type LiveRoom, type StoryPerson } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { API_BASE, authedFetch, hasStoredSession } from '@/lib/session-client';
 import { marketHref } from '@/lib/solana-links';
@@ -12,6 +12,8 @@ import { cashtag, formatPercent, formatRelativeTime, formatSignedCompactUsd } fr
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from '@/components/dm/DmAvatar';
+import { GoLiveSheet } from '@/components/live/GoLive';
+import { fetchLiveRooms } from '@/lib/live-engine';
 
 const SEEN_KEY = 'kamby:stories-seen';
 const K_PATHS = ['M186 140 V372', 'M200 268 L338 140', 'M232 246 L346 372'];
@@ -50,22 +52,58 @@ export function StoriesRow() {
   const [stories, setStories] = useState<StoryPerson[]>([]);
   const [seen, setSeen] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<number | null>(null);
+  const [live, setLive] = useState<LiveRoom[]>([]);
+  const [signedIn, setSignedIn] = useState(false);
+  const [goLive, setGoLive] = useState(false);
 
   useEffect(() => {
     setSeen(readSeen());
+    setSignedIn(hasStoredSession());
     let cancelled = false;
     fetchStories()
       .then((s) => !cancelled && setStories(s))
       .catch(() => undefined);
+    // Who's live right now — refreshed every half minute while Home is open.
+    const loadLive = () =>
+      fetchLiveRooms()
+        .then((r) => !cancelled && setLive(r))
+        .catch(() => undefined);
+    void loadLive();
+    const timer = setInterval(() => document.visibilityState === 'visible' && void loadLive(), 30_000);
     return () => {
       cancelled = true;
+      clearInterval(timer);
     };
   }, []);
 
-  if (stories.length === 0) return null;
+  if (stories.length === 0 && live.length === 0 && !signedIn) return null;
   return (
     <>
       <div className="kamby-rise -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="list" aria-label={t('title')}>
+        {/* Go live (yours, first — like Instagram's "Your story") */}
+        {signedIn && (
+          <button type="button" role="listitem" onClick={() => setGoLive(true)} className="flex w-[4.4rem] shrink-0 flex-col items-center gap-1.5 active:scale-95">
+            <span className="relative flex h-[4.15rem] w-[4.15rem] items-center justify-center rounded-full border-2 border-dashed border-[#FF3B69]/60 bg-[#FF3B69]/[0.08] text-[#FF3B69]">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <circle cx="12" cy="12" r="2.5" />
+                <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5" />
+              </svg>
+            </span>
+            <span className="w-full truncate text-center font-body text-[0.68rem] font-semibold text-[#FF8FA8]">{t('goLive')}</span>
+          </button>
+        )}
+        {/* Who's live */}
+        {live.map((r) => (
+          <Link key={r.id} href={`/live/${r.id}`} role="listitem" className="flex w-[4.4rem] shrink-0 flex-col items-center gap-1.5 active:scale-95">
+            <span className="relative rounded-full bg-[conic-gradient(from_200deg,#FF3B69,#FF8A00,#FF3B69)] p-[2.5px]">
+              <span className="block rounded-full bg-bg p-[2px]">
+                <DmAvatar name={r.host.username} src={r.host.avatarUrl} className="h-14 w-14 text-lg" />
+              </span>
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md bg-[#FF3B69] px-1.5 py-px font-display text-[0.55rem] font-black tracking-wider text-white ring-2 ring-bg">LIVE</span>
+            </span>
+            <span className="w-full truncate text-center font-body text-[0.68rem] text-ink-600">{r.host.username}</span>
+          </Link>
+        ))}
         {stories.map((s, i) => {
           const fresh = s.cards.some((c) => !seen.has(c.id));
           return (
@@ -80,6 +118,7 @@ export function StoriesRow() {
           );
         })}
       </div>
+      <GoLiveSheet open={goLive} onClose={() => setGoLive(false)} />
       {open !== null && (
         <StoryViewer
           stories={stories}

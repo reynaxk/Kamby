@@ -901,6 +901,30 @@
     "previous": "Précédent",
     "next": "Suivant",
     "buy": "Acheter {symbol}",
-    "profile": "Profil"
+    "profile": "Profil",
+    "goLive": "Passer en live"
+  },
+  "live": {
+    "back": "Retour",
+    "report": "Signaler",
+    "reportConfirm": "Signaler ce live ? Trois signalements y mettent fin.",
+    "reported": "Merci, nous allons vérifier.",
+    "ended": "Ce live est terminé",
+    "backHome": "Accueil",
+    "hostMuted": "L’hôte est en muet",
+    "voiceLive": "Live vocal",
+    "trade": "Trader {symbol}",
+    "signInToWatch": "Connecte-toi pour regarder et chatter",
+    "say": "Dis quelque chose…",
+    "send": "Envoyer",
+    "unmute": "Réactiver le micro",
+    "mute": "Couper le micro",
+    "share": "Partager l’écran",
+    "end": "Terminer",
+    "goLive": "Passer en live",
+    "titlePlaceholder": "Tu trades quoi aujourd’hui ?",
+    "ruleVoice": "Ton micro est actif quand tu passes en live",
+    "ruleScreen": "Partage ton écran depuis la salle (ordinateur / Android)",
+    "ruleNoCamera": "Pas de caméra dans les lives"
   }
 }

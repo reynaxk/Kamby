@@ -901,6 +901,30 @@
     "previous": "Sebelumnya",
     "next": "Berikutnya",
     "buy": "Beli {symbol}",
-    "profile": "Profil"
+    "profile": "Profil",
+    "goLive": "Mulai live"
+  },
+  "live": {
+    "back": "Kembali",
+    "report": "Laporkan",
+    "reportConfirm": "Laporkan live ini? Tiga laporan menghentikannya.",
+    "reported": "Terima kasih — akan kami periksa.",
+    "ended": "Live ini sudah berakhir",
+    "backHome": "Ke beranda",
+    "hostMuted": "Host sedang bisu",
+    "voiceLive": "Live suara",
+    "trade": "Trading {symbol}",
+    "signInToWatch": "Masuk untuk menonton & chat",
+    "say": "Tulis sesuatu…",
+    "send": "Kirim",
+    "unmute": "Nyalakan suara",
+    "mute": "Bisukan",
+    "share": "Bagikan layar",
+    "end": "Akhiri",
+    "goLive": "Mulai live",
+    "titlePlaceholder": "Hari ini trading apa?",
+    "ruleVoice": "Mikrofonmu menyala saat kamu live",
+    "ruleScreen": "Bagikan layarmu dari ruangan (komputer / Android)",
+    "ruleNoCamera": "Tanpa kamera di ruang live"
   }
 }

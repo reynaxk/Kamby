@@ -901,6 +901,30 @@
     "previous": "Trước",
     "next": "Tiếp",
     "buy": "Mua {symbol}",
-    "profile": "Hồ sơ"
+    "profile": "Hồ sơ",
+    "goLive": "Phát live"
+  },
+  "live": {
+    "back": "Quay lại",
+    "report": "Báo cáo",
+    "reportConfirm": "Báo cáo buổi live này? Ba báo cáo sẽ kết thúc nó.",
+    "reported": "Cảm ơn — chúng tôi sẽ xem xét.",
+    "ended": "Buổi live đã kết thúc",
+    "backHome": "Về trang chủ",
+    "hostMuted": "Chủ phòng đang tắt tiếng",
+    "voiceLive": "Live giọng nói",
+    "trade": "Giao dịch {symbol}",
+    "signInToWatch": "Đăng nhập để xem và chat",
+    "say": "Nói gì đó…",
+    "send": "Gửi",
+    "unmute": "Bật tiếng",
+    "mute": "Tắt tiếng",
+    "share": "Chia sẻ màn hình",
+    "end": "Kết thúc",
+    "goLive": "Phát live",
+    "titlePlaceholder": "Hôm nay bạn trade gì?",
+    "ruleVoice": "Micro bật khi bạn phát live",
+    "ruleScreen": "Chia sẻ màn hình từ phòng (máy tính / Android)",
+    "ruleNoCamera": "Không dùng camera trong phòng live"
   }
 }

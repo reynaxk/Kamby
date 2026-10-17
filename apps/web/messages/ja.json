@@ -901,6 +901,30 @@
     "previous": "前へ",
     "next": "次へ",
     "buy": "{symbol}を買う",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "goLive": "ライブ開始"
+  },
+  "live": {
+    "back": "戻る",
+    "report": "報告",
+    "reportConfirm": "このライブを報告しますか？3件の報告で終了します。",
+    "reported": "ありがとうございます。確認します。",
+    "ended": "このライブは終了しました",
+    "backHome": "ホームへ",
+    "hostMuted": "ホストはミュート中",
+    "voiceLive": "音声ライブ",
+    "trade": "{symbol}を取引",
+    "signInToWatch": "ログインして視聴・チャット",
+    "say": "何か書く…",
+    "send": "送信",
+    "unmute": "ミュート解除",
+    "mute": "ミュート",
+    "share": "画面を共有",
+    "end": "終了",
+    "goLive": "ライブ開始",
+    "titlePlaceholder": "今日は何をトレードする？",
+    "ruleVoice": "ライブ中はマイクがオンになります",
+    "ruleScreen": "ルームから画面を共有（PC / Android）",
+    "ruleNoCamera": "ライブではカメラは使えません"
   }
 }

@@ -901,6 +901,30 @@
     "previous": "이전",
     "next": "다음",
     "buy": "{symbol} 매수",
-    "profile": "프로필"
+    "profile": "프로필",
+    "goLive": "라이브 시작"
+  },
+  "live": {
+    "back": "뒤로",
+    "report": "신고",
+    "reportConfirm": "이 라이브를 신고할까요? 신고 3건이면 종료돼요.",
+    "reported": "감사해요 — 확인할게요.",
+    "ended": "라이브가 끝났어요",
+    "backHome": "홈으로",
+    "hostMuted": "호스트가 음소거 중",
+    "voiceLive": "음성 라이브",
+    "trade": "{symbol} 거래",
+    "signInToWatch": "로그인하고 시청·채팅",
+    "say": "한마디…",
+    "send": "보내기",
+    "unmute": "음소거 해제",
+    "mute": "음소거",
+    "share": "화면 공유",
+    "end": "종료",
+    "goLive": "라이브 시작",
+    "titlePlaceholder": "오늘은 뭘 거래해요?",
+    "ruleVoice": "라이브를 시작하면 마이크가 켜져요",
+    "ruleScreen": "방에서 화면을 공유하세요 (컴퓨터 / Android)",
+    "ruleNoCamera": "라이브에서는 카메라 없음"
   }
 }

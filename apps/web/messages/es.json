@@ -901,6 +901,30 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "buy": "Comprar {symbol}",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "goLive": "Ir en directo"
+  },
+  "live": {
+    "back": "Atrás",
+    "report": "Reportar",
+    "reportConfirm": "¿Reportar este directo? Tres reportes lo terminan.",
+    "reported": "Gracias, lo revisaremos.",
+    "ended": "Este directo terminó",
+    "backHome": "Volver al inicio",
+    "hostMuted": "El anfitrión está silenciado",
+    "voiceLive": "Directo de voz",
+    "trade": "Operar {symbol}",
+    "signInToWatch": "Inicia sesión para ver y chatear",
+    "say": "Di algo…",
+    "send": "Enviar",
+    "unmute": "Activar micro",
+    "mute": "Silenciar",
+    "share": "Compartir pantalla",
+    "end": "Terminar",
+    "goLive": "Ir en directo",
+    "titlePlaceholder": "¿Qué operas hoy?",
+    "ruleVoice": "Tu micro está activo al ir en directo",
+    "ruleScreen": "Comparte tu pantalla desde la sala (ordenador / Android)",
+    "ruleNoCamera": "Sin cámara en las salas en directo"
   }
 }
