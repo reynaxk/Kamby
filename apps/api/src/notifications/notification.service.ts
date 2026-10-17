@@ -174,7 +174,8 @@ export class NotificationService {
       : {};
 
     const rows = await prisma.notification.findMany({
-      where: { AND: [{ userId }, cursorWhere] },
+      // Private messages have their own screen — their rows only drive the phone push.
+      where: { AND: [{ userId }, { type: { not: 'DM_MESSAGE' } }, cursorWhere] },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
       include: NOTIFICATION_INCLUDE,
@@ -192,7 +193,7 @@ export class NotificationService {
   }
 
   async unreadCount(userId: string): Promise<number> {
-    return prisma.notification.count({ where: { userId, readAt: null } });
+    return prisma.notification.count({ where: { userId, readAt: null, type: { not: 'DM_MESSAGE' } } });
   }
 
   /** Scoped to `userId` in the WHERE clause, not just the id — someone else's notification
@@ -303,6 +304,7 @@ function toPreferences(row: {
   watchedTokenActivity: boolean;
   tradeUpdates: boolean;
   priceMoves: boolean;
+  messages: boolean;
   pushEnabled: boolean;
 }): NotificationPreferences {
   return {
@@ -314,6 +316,7 @@ function toPreferences(row: {
     watchedTokenActivity: row.watchedTokenActivity,
     tradeUpdates: row.tradeUpdates,
     priceMoves: row.priceMoves,
+    messages: row.messages,
     pushEnabled: row.pushEnabled,
   };
 }

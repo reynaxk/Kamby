@@ -21,6 +21,8 @@ export const NotificationTypeSchema = z.enum([
   'PRICE_MOVE',
   /** 2026-10-15 — another Kamby user sent you USDC by your @username (checked on-chain). */
   'USDC_RECEIVED',
+  /** 2026-10-17 — a private message (phone push only; never listed with the notifications). */
+  'DM_MESSAGE',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -47,6 +49,7 @@ export const NOTIFICATION_DEFAULTS = {
     watchedTokenActivity: true,
     tradeUpdates: true,
     priceMoves: true,
+    messages: true,
     pushEnabled: true,
   },
   /** PRICE_MOVE fires when a held/watched coin moves at least this much within the window
@@ -64,6 +67,8 @@ export const NotificationPreferencesSchema = z.object({
   watchedTokenActivity: z.boolean(),
   tradeUpdates: z.boolean(),
   priceMoves: z.boolean(),
+  /** 2026-10-17 — private messages (DM_MESSAGE). */
+  messages: z.boolean(),
   /** Phone (Web Push) delivery at all — the per-type switches still apply on top. */
   pushEnabled: z.boolean(),
 });
@@ -85,6 +90,7 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   TRADE_FAILED: 'tradeUpdates',
   PRICE_MOVE: 'priceMoves',
   USDC_RECEIVED: 'tradeUpdates',
+  DM_MESSAGE: 'messages',
 };
 
 /**
@@ -189,6 +195,8 @@ export function notificationDeepLink(
       return ctx.tokenAddress ? tokenDeepLink(ctx.chainIdentifier, ctx.tokenAddress) : null;
     case 'USDC_RECEIVED':
       return '/';
+    case 'DM_MESSAGE':
+      return '/messages';
   }
 }
 

@@ -37,5 +37,9 @@ export class UpdatePreferencesDto {
 
   @IsOptional()
   @IsBoolean()
+  messages?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   pushEnabled?: boolean;
 }

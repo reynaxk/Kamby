@@ -10,5 +10,6 @@ import { TransfersController } from './transfers.controller';
   imports: [IdentityModule, NotificationsModule, SolanaModule],
   controllers: [TransfersController],
   providers: [TransferNotifyService],
+  exports: [TransferNotifyService],
 })
 export class TransfersModule {}

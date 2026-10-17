@@ -142,11 +142,17 @@ export class NotificationController {
       filter((ping: NotificationPing) => ping.userId === userId),
       map((ping: NotificationPing): MessageEvent => ({ type: 'notification', data: ping })),
     );
+    // Private messages ride the same private stream (2026-10-17) — one connection per app,
+    // and only events that name this user ever reach it.
+    const dm$ = this.realtime.dmEvents$.pipe(
+      filter((event) => event.userIds.includes(userId)),
+      map((event): MessageEvent => ({ type: 'dm', data: event })),
+    );
     // Same reasoning as the activity stream's heartbeat (see social.controller.ts): tells
     // "quietly live" apart from "actually disconnected" through idle-dropping proxies.
     const heartbeat$ = interval(20_000).pipe(
       map((): MessageEvent => ({ type: 'heartbeat', data: { atIso: new Date().toISOString() } })),
     );
-    return merge(notification$, heartbeat$);
+    return merge(notification$, dm$, heartbeat$);
   }
 }

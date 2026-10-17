@@ -35,7 +35,7 @@ describe('RealtimeService', () => {
     service = new RealtimeService(redis as unknown as Redis, logger as never);
   });
 
-  it('subscribes to all five real-time channels on module init', async () => {
+  it('subscribes to every real-time channel on module init', async () => {
     await service.onModuleInit();
 
     expect(subscriber.subscribe).toHaveBeenCalledWith(
@@ -44,6 +44,8 @@ describe('RealtimeService', () => {
       'kamby:solana-activity:new',
       'kamby:pumpfun:updates',
       'kamby:pulse:new',
+      'kamby:token-chat',
+      'kamby:dm',
     );
   });
 

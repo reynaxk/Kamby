@@ -418,6 +418,7 @@ export class NotificationFanoutService {
           watchedTokenActivity: row.watchedTokenActivity,
           tradeUpdates: row.tradeUpdates,
           priceMoves: row.priceMoves,
+          messages: row.messages,
           pushEnabled: row.pushEnabled,
         },
       ]),

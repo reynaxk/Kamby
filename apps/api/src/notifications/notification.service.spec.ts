@@ -208,6 +208,7 @@ describe('NotificationService', () => {
         watchedTokenActivity: true,
         tradeUpdates: true,
         priceMoves: true,
+        messages: true,
         pushEnabled: true,
       });
     });
@@ -224,6 +225,7 @@ describe('NotificationService', () => {
         watchedTokenActivity: true,
         tradeUpdates: true,
         priceMoves: true,
+        messages: true,
         pushEnabled: true,
       });
 
@@ -241,6 +243,7 @@ describe('NotificationService', () => {
           watchedTokenActivity: true,
           tradeUpdates: true,
           priceMoves: true,
+          messages: true,
           pushEnabled: true,
         },
         update: {
@@ -252,6 +255,7 @@ describe('NotificationService', () => {
           watchedTokenActivity: true,
           tradeUpdates: true,
           priceMoves: true,
+          messages: true,
           pushEnabled: true,
         },
       });
@@ -301,7 +305,7 @@ describe('NotificationService', () => {
       await service.list(RECIPIENT_USER_ID, undefined, 10);
 
       expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, {}] } }),
+        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, { type: { not: 'DM_MESSAGE' } }, {}] } }),
       );
     });
 
@@ -325,6 +329,7 @@ describe('NotificationService', () => {
           where: {
             AND: [
               { userId: RECIPIENT_USER_ID },
+              { type: { not: 'DM_MESSAGE' } },
               {
                 OR: [
                   { createdAt: { lt: new Date('2026-01-02') } },
@@ -343,7 +348,7 @@ describe('NotificationService', () => {
       await service.list(RECIPIENT_USER_ID, 'not-real-base64url-json', 10);
 
       expect(mockedPrisma.notification.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, {}] } }),
+        expect.objectContaining({ where: { AND: [{ userId: RECIPIENT_USER_ID }, { type: { not: 'DM_MESSAGE' } }, {}] } }),
       );
     });
   });
@@ -356,7 +361,7 @@ describe('NotificationService', () => {
 
       expect(count).toBe(5);
       expect(mockedPrisma.notification.count).toHaveBeenCalledWith({
-        where: { userId: RECIPIENT_USER_ID, readAt: null },
+        where: { userId: RECIPIENT_USER_ID, readAt: null, type: { not: 'DM_MESSAGE' } },
       });
     });
   });

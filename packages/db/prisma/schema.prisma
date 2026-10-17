@@ -936,6 +936,8 @@ enum NotificationType {
   PRICE_MOVE
   /// 2026-10-15 — another Kamby user sent the recipient USDC by @username (checked on-chain).
   USDC_RECEIVED
+  /// 2026-10-17 — a private message (phone push only; never listed with the notifications).
+  DM_MESSAGE
 }
 
 /// One notification for `user` (the recipient — always resolved from the authenticated
@@ -1020,6 +1022,8 @@ model NotificationPreference {
   tradeUpdates         Boolean  @default(true) @map("trade_updates")
   /// 2026-10-11 — PRICE_MOVE.
   priceMoves           Boolean  @default(true) @map("price_moves")
+  /// 2026-10-17 — DM_MESSAGE (private messages).
+  messages             Boolean  @default(true)
   /// 2026-10-11 — phone (Web Push) delivery at all; the per-type switches above still apply.
   pushEnabled          Boolean  @default(true) @map("push_enabled")
   updatedAt            DateTime @updatedAt @map("updated_at")
@@ -1320,4 +1324,83 @@ model LaunchAsset {
 
   @@index([userId, createdAt])
   @@map("launch_assets")
+}
+
+/// Private messages (2026-10-17) — see @kamby/domain dm.ts. One row per pair of users, stored
+/// with userAId < userBId (string order) so a pair is unique however the chat started. User ids
+/// are plain columns (no relation), like the rest of the social tables' secondary links.
+model DmConversation {
+  id            String    @id @default(uuid())
+  userAId       String    @map("user_a_id")
+  userBId       String    @map("user_b_id")
+  /// Who wrote first — the other side sees a request until they accept.
+  requesterId   String    @map("requester_id")
+  /// 'request' until accepted (or both already followed each other), then 'active'.
+  status        String    @default("request") @db.VarChar(8)
+  aReadAt       DateTime? @map("a_read_at")
+  bReadAt       DateTime? @map("b_read_at")
+  /// Hidden from that side's list (a declined request, a deleted chat) until a newer message.
+  aHiddenAt     DateTime? @map("a_hidden_at")
+  bHiddenAt     DateTime? @map("b_hidden_at")
+  lastMessageAt DateTime  @default(now()) @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  messages DmMessage[]
+  reports  DmReport[]
+
+  @@unique([userAId, userBId])
+  /// Each side's chat list, newest first.
+  @@index([userAId, lastMessageAt])
+  @@index([userBId, lastMessageAt])
+  /// "New chats started today" (the spam brake).
+  @@index([requesterId, createdAt])
+  @@map("dm_conversations")
+}
+
+model DmMessage {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  senderId       String   @map("sender_id")
+  /// 'text' | 'coin' | 'pnl' | 'usdc'
+  kind           String   @default("text") @db.VarChar(8)
+  body           String   @default("") @db.VarChar(1000)
+  /// The coin / PnL / USDC card behind a non-text message.
+  data           Json?
+  /// emoji → user ids
+  reactions      Json     @default("{}")
+  /// A USDC message's transaction — one message per transfer.
+  txRef          String?  @unique @map("tx_ref") @db.VarChar(100)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation DmConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  /// A sender's last message (cooldown).
+  @@index([senderId, createdAt])
+  @@map("dm_messages")
+}
+
+/// One user blocking another — they can't message the blocker (2026-10-17).
+model UserBlock {
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("user_blocks")
+}
+
+/// A reported private chat, kept for review.
+model DmReport {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  reporterId     String   @map("reporter_id")
+  reason         String?  @db.VarChar(200)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation DmConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, reporterId])
+  @@map("dm_reports")
 }
