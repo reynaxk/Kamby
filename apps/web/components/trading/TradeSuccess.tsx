@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { ShareTradeSheet, type ShareChain } from '@/components/social/ShareTradeSheet';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 
@@ -9,7 +11,9 @@ import { Check } from 'lucide-react';
  * pops in on a pulsing ring. A short buzz on phones that support it. (The "gas-free" line
  * under it was removed 2026-10-11 — owner: showing it off looked cheap.)
  */
-export function TradeSuccess({ title }: { title: string }) {
+export function TradeSuccess({ title, share }: { title: string; share?: { chain: ShareChain; tokenAddress: string } }) {
+  const t = useTranslations('snipe');
+  const [sharing, setSharing] = useState(false);
   useEffect(() => {
     try {
       navigator.vibrate?.(30);
@@ -31,6 +35,20 @@ export function TradeSuccess({ title }: { title: string }) {
         </motion.span>
       </div>
       <p className="font-display text-lg font-bold text-ink-900">{title}</p>
+      {share && (
+        <>
+          {/* Share your entry so friends can ⚡ Copy Snipe it — only if you want to. */}
+          <button
+            type="button"
+            onClick={() => setSharing(true)}
+            className="kamby-pop flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 font-display text-sm font-bold text-accent transition-transform active:scale-95"
+          >
+            <span aria-hidden>⚡</span>
+            {t('shareToChat')}
+          </button>
+          {sharing && <ShareTradeSheet open={sharing} onClose={() => setSharing(false)} chain={share.chain} tokenAddress={share.tokenAddress} />}
+        </>
+      )}
     </div>
   );
 }

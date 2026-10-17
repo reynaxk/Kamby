@@ -7,7 +7,10 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
 import type { LiveChatLine, LiveRoom } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, reportLive, sayInLive } from '@/lib/live-engine';
+import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, reportLive, sayInLive } from '@/lib/live-engine';
+import { slugForIdentifier } from '@kamby/domain';
+import { TradeCard } from '@/components/social/TradeCard';
+import { PositionPicker } from '@/components/social/PositionPicker';
 import { openResilientEventSource } from '@/lib/resilient-event-source';
 import { useMyUsername } from '@/lib/use-my-username';
 import { friendlyError } from '@/lib/friendly-error';
@@ -50,6 +53,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
   const { ready, authenticated, login } = usePrivy();
   const [username] = useMyUsername(authenticated);
   const [room, setRoom] = useState<LiveRoom | null>(null);
+  const [picking, setPicking] = useState(false);
   const [ended, setEnded] = useState(false);
   const [lines, setLines] = useState<LiveChatLine[]>([]);
   const [host, setHost] = useState<LiveHostEngine | null>(null);
@@ -145,6 +149,19 @@ export function LiveRoomScreen({ id }: { id: string }) {
     }
   }
 
+  async function pin(chain: string, tokenAddress: string) {
+    setPicking(false);
+    const r = await pinLiveTrade(id, { chain, tokenAddress }).catch((err: unknown) => {
+      setError(friendlyError(err));
+      return null;
+    });
+    if (r) setRoom(r);
+  }
+  async function unpin() {
+    const r = await pinLiveTrade(id, null).catch(() => null);
+    if (r) setRoom(r);
+  }
+
   async function report() {
     if (!window.confirm(t('reportConfirm'))) return;
     await reportLive(id).catch(() => undefined);
@@ -221,6 +238,18 @@ export function LiveRoomScreen({ id }: { id: string }) {
         )}
       </div>
 
+      {/* The host's pinned trade — viewers can ⚡ Copy Snipe it */}
+      {room?.trade && (
+        <div className="kamby-pop relative z-10 mx-3 mt-2">
+          <TradeCard compact trade={room.trade} mine={isHost} by={`@${room.host.username}`} />
+          {isHost && (
+            <button type="button" onClick={() => void unpin()} aria-label={t('unpin')} className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 text-xs text-white/70 ring-1 ring-white/15">
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Chat */}
       <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)]">
         <div className="flex min-h-full flex-col justify-end gap-1 py-2">
@@ -263,12 +292,26 @@ export function LiveRoomScreen({ id }: { id: string }) {
                 🖥️
               </button>
             )}
+            <button type="button" onClick={() => setPicking(true)} aria-label={t('pinTrade')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-white">
+              ⚡
+            </button>
             <button type="button" onClick={() => void host.stop()} className="h-11 shrink-0 rounded-full bg-[#FF3B69] px-4 font-display text-xs font-black" aria-label={t('end')}>
               {t('end')}
             </button>
           </>
         )}
       </div>
+      {isHost && (
+        <PositionPicker
+          open={picking}
+          title={t('pinTrade')}
+          onClose={() => setPicking(false)}
+          onPick={(p) => {
+            const slug = (p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : null)) === 'solana' ? 'solana' : slugForIdentifier(p.chainIdentifier ?? '');
+            if (slug) void pin(slug, p.tokenAddress);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -924,7 +924,9 @@
     "muteWeek": "Für 1 Woche",
     "mutedUntil": "Stumm bis {time}",
     "mutedForever": "Stumm, bis du es wieder einschaltest",
-    "muteNote": "Keine Pushes oder Banner aus diesem Chat. @Erwähnungen und Antworten an dich kommen trotzdem."
+    "muteNote": "Keine Pushes oder Banner aus diesem Chat. @Erwähnungen und Antworten an dich kommen trotzdem.",
+    "attachTrade": "Trade",
+    "attachTradeTitle": "Einen Trade teilen"
   },
   "calls": {
     "failed": "Anruf nicht verbunden",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "Was tradest du heute?",
     "ruleVoice": "Dein Mikro ist an, wenn du live gehst",
     "ruleScreen": "Teile deinen Bildschirm im Raum (Computer / Android)",
-    "ruleNoCamera": "Keine Kamera in Live-Räumen"
+    "ruleNoCamera": "Keine Kamera in Live-Räumen",
+    "pinTrade": "Trade anheften",
+    "unpin": "Lösen"
+  },
+  "snipe": {
+    "bought": "Gekauft",
+    "byTrader": "geteilt von {name}",
+    "entry": "Einstieg",
+    "now": "Jetzt",
+    "invested": "{amount} investiert",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Kopieren",
+    "copySnipeTitle": "{symbol} kopieren",
+    "theirEntry": "Einstieg von {name}",
+    "copyNote": "Dein eigener Kauf mit deinem USDC — Betrag wählen, Preis, Gebühr und Sicherheit prüfen, bestätigen.",
+    "cantTrade": "Dieser Coin kann gerade nicht auf Kamby gehandelt werden.",
+    "shareToChat": "Im Chat teilen",
+    "shareTitle": "Trade teilen",
+    "shareBody": "Freunde sehen deinen Einstieg und den Live-PnL — und können ihn ⚡ Copy Sniper.",
+    "noChats": "Noch keine Chats — starte einen in Nachrichten.",
+    "sent": "Gesendet",
+    "send": "Senden",
+    "openMessages": "Nachrichten öffnen"
   }
 }

@@ -12,6 +12,7 @@ import { fetchLivePrice } from '@/lib/chart-data';
 import { liveSourceFor } from '@/lib/use-live-price';
 import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatPercent, formatSignedCompactUsd } from '@/lib/format';
+import { TradeCard } from '@/components/social/TradeCard';
 import { DmAvatar } from './DmAvatar';
 import { useSystemText } from './GroupBits';
 
@@ -347,9 +348,17 @@ export const DmMessageView = memo(function DmMessageView({
           </span>
         </button>
       )}
-      <button
-        type="button"
+      {/* A div, not a button: cards inside it have their own buttons / links (no nesting). */}
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setPicking((p) => !p)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setPicking((p) => !p);
+          }
+        }}
         onDoubleClick={() => {
           // Double-tap = ❤️ (Instagram-style), with a little burst.
           setPicking(false);
@@ -360,7 +369,7 @@ export const DmMessageView = memo(function DmMessageView({
           setBurst(true);
           setTimeout(() => setBurst(false), 650);
         }}
-        className={cn('relative max-w-[80%] touch-manipulation select-none text-left', !dx && 'transition-transform duration-200')}
+        className={cn('relative max-w-[80%] cursor-pointer touch-manipulation select-none text-left outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-3xl', !dx && 'transition-transform duration-200')}
         style={{ transform: dx ? `translateX(${dx}px)` : undefined }}
         aria-label={t('react')}
       >
@@ -391,8 +400,10 @@ export const DmMessageView = memo(function DmMessageView({
           <PnlCard m={m} />
         ) : m.kind === 'usdc' && m.usdc ? (
           <UsdcCard m={m} mine={mine} />
+        ) : m.kind === 'trade' && m.trade ? (
+          <TradeCard trade={m.trade} mine={mine} by={sender?.username ? `@${sender.username}` : null} />
         ) : null}
-      </button>
+      </div>
       {reactions.length > 0 && (
         <div className={cn('-mt-1.5 flex gap-1', mine ? 'mr-2' : 'ml-2')}>
           {reactions.map(([emoji, who]) => (

@@ -42,6 +42,7 @@ export async function fetchLiveChat(id: string): Promise<LiveChatLine[]> {
 export const liveStreamUrl = (id: string) => `${API_BASE}/v1/live/${id}/stream`;
 export const startLive = (title: string, tokenKey?: string) => post<JoinResponse>('/live', { title, ...(tokenKey ? { tokenKey } : {}) }, 'go live');
 export const sayInLive = (id: string, body: string) => post<LiveChatLine>(`/live/${id}/chat`, { body }, 'send');
+export const pinLiveTrade = (id: string, coin: { chain: string; tokenAddress: string } | null) => post<LiveRoom>(`/live/${id}/trade`, coin ?? {}, 'pin the trade');
 export const reportLive = (id: string) => post<{ ended: boolean }>(`/live/${id}/report`, undefined, 'report');
 
 type Queue = { run: (job: () => Promise<void>) => Promise<void> };

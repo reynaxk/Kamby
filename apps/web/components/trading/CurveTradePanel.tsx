@@ -164,7 +164,7 @@ export function CurveTradePanel({ tokenAddress, tokenSymbol, initialSide = 'BUY'
 
       {needsMove && <MoveNote funding={funding} target="bnb" />}
       {error && <p className="text-center font-body text-xs font-semibold text-down">{error}</p>}
-      {done && <TradeSuccess title={done} />}
+      {done && <TradeSuccess title={done} share={side === 'BUY' ? { chain: 'bnb', tokenAddress } : undefined} />}
 
       {!ready ? null : !authenticated ? (
         <button type="button" onClick={() => login()} className="h-12 w-full rounded-2xl bg-accent font-display text-base font-bold text-black">

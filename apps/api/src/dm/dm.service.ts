@@ -9,6 +9,7 @@ import {
   type DmChannelInfo,
   type DmConversation,
   type DmInvitePreview,
+  type DmTrade,
   type DmReplyRef,
   dmMentions,
   DM_PRESENCE,
@@ -49,6 +50,7 @@ export function toMessage(row: DmMessageRow): DmMessage {
     coin: kind === 'coin' ? (data as unknown as DmCoin) : null,
     pnl: kind === 'pnl' ? (data as unknown as DmPnl) : null,
     usdc: kind === 'usdc' ? (data as unknown as DmUsdc) : null,
+    trade: kind === 'trade' ? (data as unknown as DmTrade) : null,
     system: kind === 'system' ? (data as unknown as DmSystem) : null,
     channelId: row.channelId ?? null,
     replyTo: kind === 'text' && data && typeof data === 'object' && 'replyTo' in data ? (data.replyTo as DmReplyRef) : null,
@@ -103,6 +105,7 @@ function preview(m: DmMessageRow): string {
   const data = (m.data ?? {}) as { symbol?: string | null; amountUsd?: number };
   if (m.kind === 'coin') return data.symbol ? `$${data.symbol}` : 'a coin';
   if (m.kind === 'pnl') return data.symbol ? `PnL · $${data.symbol}` : 'PnL card';
+  if (m.kind === 'trade') return data.symbol ? `⚡ Bought $${data.symbol}` : '⚡ Trade';
   if (m.kind === 'system') return systemText(m.data as unknown as DmSystem);
   return `$${(data.amountUsd ?? 0).toFixed(2)} USDC`;
 }
@@ -396,6 +399,35 @@ export class DmService {
       valueUsd: position.currentValueUsd,
     };
     return this.write(me, id, { kind: 'pnl', body: '', data: pnl, channelId });
+  }
+
+  /** A Trade Card from the sender's real open position (2026-10-17) — shared only when they
+   *  choose to; the entry price can't be typed in. */
+  async sendTrade(me: string, id: string, chain: string, tokenAddress: string, channelId?: string): Promise<DmMessage> {
+    const trade = await this.tradeCard(me, chain, tokenAddress);
+    return this.write(me, id, { kind: 'trade', body: '', data: trade, channelId });
+  }
+
+  /** The card for my open position on a coin (also used by live rooms). */
+  async tradeCard(me: string, chain: string, tokenAddress: string): Promise<DmTrade> {
+    const chainIdentifier = CHAIN_SLUG_TO_IDENTIFIER[chain] ?? chain;
+    const position = (await this.positions.getMine(me)).find(
+      (p) => (p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : null)) === chainIdentifier && p.tokenAddress.toLowerCase() === tokenAddress.toLowerCase(),
+    );
+    if (!position || !(position.quantity > 0) || !(position.costBasisUsd > 0)) {
+      throw new BadRequestException("You don't hold this coin right now — buy some to share the trade.");
+    }
+    const paid = Math.max(0, position.costBasisUsd - (position.feesUsd ?? 0));
+    return {
+      chainIdentifier,
+      tokenAddress: position.tokenAddress,
+      symbol: position.symbol,
+      name: position.name,
+      logoUrl: position.logoUrl,
+      entryPriceUsd: paid / position.quantity,
+      investedUsd: position.costBasisUsd,
+      sharedAt: new Date().toISOString(),
+    };
   }
 
   /** "Sent $5 USDC" — 1:1 only, and only once the transfer is found on-chain (TransferNotifyService

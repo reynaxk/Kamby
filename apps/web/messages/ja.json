@@ -924,7 +924,9 @@
     "muteWeek": "1 週間",
     "mutedUntil": "{time} までミュート",
     "mutedForever": "オンに戻すまでミュート",
-    "muteNote": "このチャットの通知とバナーを止めます。@メンションと返信は届きます。"
+    "muteNote": "このチャットの通知とバナーを止めます。@メンションと返信は届きます。",
+    "attachTrade": "トレード",
+    "attachTradeTitle": "トレードをシェア"
   },
   "calls": {
     "failed": "通話に接続できませんでした",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "今日は何をトレードする？",
     "ruleVoice": "ライブ中はマイクがオンになります",
     "ruleScreen": "ルームから画面を共有（PC / Android）",
-    "ruleNoCamera": "ライブではカメラは使えません"
+    "ruleNoCamera": "ライブではカメラは使えません",
+    "pinTrade": "トレードを固定",
+    "unpin": "外す"
+  },
+  "snipe": {
+    "bought": "購入",
+    "byTrader": "{name} がシェア",
+    "entry": "エントリー",
+    "now": "現在",
+    "invested": "投資額 {amount}",
+    "copySnipe": "COPY SNIPE",
+    "copy": "コピー",
+    "copySnipeTitle": "{symbol} をコピー",
+    "theirEntry": "{name} のエントリー",
+    "copyNote": "あなた自身の USDC での購入です — 金額を選び、価格・手数料・安全性を確認して確定。",
+    "cantTrade": "このコインは現在 Kamby で取引できません。",
+    "shareToChat": "チャットにシェア",
+    "shareTitle": "トレードをシェア",
+    "shareBody": "友達があなたのエントリーとライブ PnL を見て ⚡ Copy Snipe できます。",
+    "noChats": "まだチャットがありません — メッセージで始めましょう。",
+    "sent": "送信済み",
+    "send": "送信",
+    "openMessages": "メッセージを開く"
   }
 }

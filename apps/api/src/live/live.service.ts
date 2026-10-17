@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inj
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@kamby/db';
 import {
+  type DmTrade,
   containsLink,
   isChatTokenKey,
   LIVE_LIMITS,
@@ -15,6 +16,7 @@ import {
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { CloudflareRealtimeClient, type RealtimeTracksResponse, type SessionDescription } from '../calls/cloudflare-realtime.client';
+import { DmService } from '../dm/dm.service';
 import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
@@ -29,6 +31,7 @@ interface LiveState {
   tracks: { trackName: string; kind: LiveTrackKind }[];
   muted: boolean;
   peak: number;
+  trade?: DmTrade | null;
 }
 
 const KINDS: readonly LiveTrackKind[] = ['audio', 'screen'];
@@ -48,6 +51,7 @@ export class LiveService {
     private readonly realtime: CloudflareRealtimeClient,
     private readonly logger: PinoLogger,
     private readonly notifications: NotificationService,
+    private readonly dm: DmService,
   ) {
     this.logger.setContext('LiveService');
   }
@@ -242,6 +246,16 @@ export class LiveService {
     return line;
   }
 
+  /** The host pins one of their open positions as a Trade Card (null unpins). */
+  async pinTrade(me: string, id: string, coin: { chain: string; tokenAddress: string } | null): Promise<LiveRoom> {
+    const state = await this.hostState(me, id);
+    state.trade = coin ? await this.dm.tradeCard(me, coin.chain, coin.tokenAddress) : null;
+    await this.write(state);
+    const room = await this.toRoom(state);
+    await this.publish({ type: 'room', roomId: id, room });
+    return room;
+  }
+
   /** Three reports from different viewers end the room (kept for review). */
   async report(me: string, id: string): Promise<{ ended: boolean }> {
     const state = await this.read(id);
@@ -330,6 +344,7 @@ export class LiveService {
       hostSessionId: state.hostSessionId,
       tracks: state.tracks,
       muted: state.muted,
+      trade: state.trade ?? null,
     };
   }
 

@@ -924,7 +924,9 @@
     "muteWeek": "Por 1 semana",
     "mutedUntil": "Silenciado até {time}",
     "mutedForever": "Silenciado até você reativar",
-    "muteNote": "Sem notificações ou banners deste chat. @menções e respostas a você continuam chegando."
+    "muteNote": "Sem notificações ou banners deste chat. @menções e respostas a você continuam chegando.",
+    "attachTrade": "Trade",
+    "attachTradeTitle": "Compartilhar trade"
   },
   "calls": {
     "failed": "A chamada não conectou",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "O que você vai negociar hoje?",
     "ruleVoice": "Seu microfone fica ligado ao entrar ao vivo",
     "ruleScreen": "Compartilhe sua tela na sala (computador / Android)",
-    "ruleNoCamera": "Sem câmera nas lives"
+    "ruleNoCamera": "Sem câmera nas lives",
+    "pinTrade": "Fixar trade",
+    "unpin": "Desafixar"
+  },
+  "snipe": {
+    "bought": "Comprado",
+    "byTrader": "compartilhado por {name}",
+    "entry": "Entrada",
+    "now": "Agora",
+    "invested": "{amount} investidos",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Copiar",
+    "copySnipeTitle": "Copiar {symbol}",
+    "theirEntry": "entrada de {name}",
+    "copyNote": "Sua própria compra com seu USDC — escolha um valor, confira preço, taxa e segurança, e confirme.",
+    "cantTrade": "Esta moeda não pode ser negociada na Kamby agora.",
+    "shareToChat": "Compartilhar no chat",
+    "shareTitle": "Compartilhe seu trade",
+    "shareBody": "Amigos veem sua entrada e o PnL ao vivo — e podem dar ⚡ Copy Snipe.",
+    "noChats": "Ainda sem conversas — comece uma em Mensagens.",
+    "sent": "Enviado",
+    "send": "Enviar",
+    "openMessages": "Abrir Mensagens"
   }
 }

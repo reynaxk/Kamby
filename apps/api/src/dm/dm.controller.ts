@@ -289,6 +289,12 @@ export class DmController {
   }
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('conversations/:id/trade')
+  sendTrade(@Param('id', ParseUUIDPipe) id: string, @Body() body: CoinDto, @CurrentUser() user: SessionUser) {
+    return this.dm.sendTrade(user.id, id, body.chain, body.tokenAddress, body.channelId);
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('conversations/:id/usdc')
   sendUsdc(@Param('id', ParseUUIDPipe) id: string, @Body() body: UsdcDto, @CurrentUser() user: SessionUser) {
     return this.dm.sendUsdc(user.id, id, body.chain, body.txRef);

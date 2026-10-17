@@ -38,7 +38,7 @@ export function isDmReaction(value: string): boolean {
 }
 
 /** 'system' = a group event line ("@sandy added @tati"), written by the server. */
-export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'system';
+export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'trade' | 'system';
 
 export interface DmSystem {
   /** 'call' = a call ended (durationSec) or was missed (durationSec 0). */
@@ -69,6 +69,20 @@ export interface DmPnl {
   valueUsd: number;
 }
 
+/** A Trade Card (2026-10-17): a buy the trader chose to share — their real open position on the
+ *  coin (entry = what they paid per coin, Kamby's fee left out). The live PnL is worked out in
+ *  the app from the current price; anyone can ⚡ Copy Snipe it from the card. */
+export interface DmTrade {
+  chainIdentifier: string;
+  tokenAddress: string;
+  symbol: string | null;
+  name: string | null;
+  logoUrl: string | null;
+  entryPriceUsd: number;
+  investedUsd: number;
+  sharedAt: string;
+}
+
 export interface DmUsdc {
   amountUsd: number;
   chainIdentifier: string;
@@ -84,6 +98,7 @@ export interface DmMessage {
   coin: DmCoin | null;
   pnl: DmPnl | null;
   usdc: DmUsdc | null;
+  trade: DmTrade | null;
   system: DmSystem | null;
   /** The community channel it was written in (null outside communities). */
   channelId: string | null;

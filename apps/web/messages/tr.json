@@ -924,7 +924,9 @@
     "muteWeek": "1 hafta",
     "mutedUntil": "{time} saatine kadar sessizde",
     "mutedForever": "Sen açana kadar sessizde",
-    "muteNote": "Bu sohbetten bildirim veya banner gelmez. @bahsetmeler ve sana yanıtlar yine gelir."
+    "muteNote": "Bu sohbetten bildirim veya banner gelmez. @bahsetmeler ve sana yanıtlar yine gelir.",
+    "attachTrade": "İşlem",
+    "attachTradeTitle": "İşlem paylaş"
   },
   "calls": {
     "failed": "Arama bağlanamadı",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "Bugün ne trade ediyorsun?",
     "ruleVoice": "Yayına başlayınca mikrofonun açık olur",
     "ruleScreen": "Ekranını odadan paylaş (bilgisayar / Android)",
-    "ruleNoCamera": "Yayın odalarında kamera yok"
+    "ruleNoCamera": "Yayın odalarında kamera yok",
+    "pinTrade": "İşlemi sabitle",
+    "unpin": "Kaldır"
+  },
+  "snipe": {
+    "bought": "Alındı",
+    "byTrader": "{name} paylaştı",
+    "entry": "Giriş",
+    "now": "Şimdi",
+    "invested": "{amount} yatırıldı",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Kopyala",
+    "copySnipeTitle": "{symbol} kopyala",
+    "theirEntry": "{name} girişi",
+    "copyNote": "Kendi USDC’nle kendi alımın — tutar seç, fiyat, ücret ve güvenliği kontrol et, onayla.",
+    "cantTrade": "Bu coin şu an Kamby’de işlem göremiyor.",
+    "shareToChat": "Sohbette paylaş",
+    "shareTitle": "İşlemini paylaş",
+    "shareBody": "Arkadaşların girişini ve canlı PnL’ini görür — ve ⚡ Copy Snipe yapabilir.",
+    "noChats": "Henüz sohbet yok — Mesajlar’dan başla.",
+    "sent": "Gönderildi",
+    "send": "Gönder",
+    "openMessages": "Mesajları aç"
   }
 }

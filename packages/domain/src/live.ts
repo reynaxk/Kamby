@@ -1,3 +1,4 @@
+import type { DmTrade } from './dm';
 /**
  * Live rooms (2026-10-17, owner: "Live room like Twitch / Spaces"): a trader goes live with their
  * voice and their screen (the terminal, a chart), anyone signed in can watch and chat. Version 1
@@ -39,6 +40,8 @@ export interface LiveRoom {
   hostSessionId: string | null;
   tracks: { trackName: string; kind: LiveTrackKind }[];
   muted: boolean;
+  /** The host's pinned Trade Card (2026-10-17) — viewers can ⚡ Copy Snipe it. */
+  trade?: DmTrade | null;
 }
 
 export interface LiveChatLine {

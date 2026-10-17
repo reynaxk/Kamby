@@ -34,6 +34,8 @@ export const sendDmCoin = (id: string, chain: string, tokenAddress: string, chan
   json<DmMessage>(`/dm/conversations/${id}/coin`, post({ chain, tokenAddress, channelId }), 'share the coin');
 export const sendDmPnl = (id: string, chain: string, tokenAddress: string, channelId?: string) =>
   json<DmMessage>(`/dm/conversations/${id}/pnl`, post({ chain, tokenAddress, channelId }), 'share your PnL');
+export const sendDmTrade = (id: string, chain: string, tokenAddress: string, channelId?: string) =>
+  json<DmMessage>(`/dm/conversations/${id}/trade`, post({ chain, tokenAddress, channelId }), 'share the trade');
 export const sendDmUsdc = (id: string, chain: string, txRef: string) => json<DmMessage>(`/dm/conversations/${id}/usdc`, post({ chain, txRef }), 'post the transfer');
 export const reactToDm = (messageId: string, emoji: string) => json<Record<string, string[]>>(`/dm/messages/${messageId}/react`, post({ emoji }), 'react');
 export const acceptConversation = (id: string) => json<DmConversation>(`/dm/conversations/${id}/accept`, post(), 'accept the request');

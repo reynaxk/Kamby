@@ -1,5 +1,6 @@
 'use client';
 
+import type { ShareChain } from '@/components/social/ShareTradeSheet';
 import { USDC_BY_CHAIN_ID } from '@/lib/usdc';
 import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
@@ -723,7 +724,14 @@ export function TradePanel({
         : null;
     return (
       <Panel title={tU('trade_5f39')} onClose={onClose} animKey={step}>
-        <TradeStatusView step={step} transaction={transaction} chainId={chainId} onDone={resetToForm} share={sellShare} />
+        <TradeStatusView
+          step={step}
+          transaction={transaction}
+          chainId={chainId}
+          onDone={resetToForm}
+          share={sellShare}
+          tradeShare={side === 'BUY' ? { chain: chainId === 56 ? 'bnb' : chainId === 4663 ? 'robinhood' : 'base', tokenAddress } : undefined}
+        />
         {quote?.feeUnsignedTx && transaction && (transaction.status === 'CONFIRMED' || transaction.feeTxHash || transaction.sponsoredByRelayer) && (
           <FeeTransferSection
             transaction={transaction}
@@ -1007,12 +1015,15 @@ function TradeStatusView({
   chainId,
   onDone,
   share,
+  tradeShare,
 }: {
   step: Extract<Step, 'submitted' | 'pending' | 'confirmed' | 'failed'>;
   transaction: TradeTransactionDto | null;
   chainId: number;
   onDone: () => void;
   share?: PnlShare | null;
+  /** A buy: offer "⚡ Share to chat" (the Trade Card). */
+  tradeShare?: { chain: ShareChain; tokenAddress: string };
 }) {
   const tU = useTranslations('ui');
   const explorerUrl = transaction ? explorerTxUrl(chainId, transaction.txHash) : null;
@@ -1022,7 +1033,12 @@ function TradeStatusView({
       {step === 'submitted' && <p className="font-body text-sm text-ink-600">{tU('transactionSubmittedWaitingForIt_eba2')}</p>}
       {step === 'pending' && <p className="font-body text-sm text-ink-600">{tU('waitingForConfirmationOnChain_cb34')}</p>}
       {(step === 'submitted' || step === 'pending') && <SlowConfirmationNote />}
-      {step === 'confirmed' && <TradeSuccess title={tU('tradeConfirmed_132b')} />}
+      {step === 'confirmed' && (
+        <TradeSuccess
+          title={tU('tradeConfirmed_132b')}
+          share={tradeShare}
+        />
+      )}
       {share && <PnlShareButton share={share} variant="cta" />}
       {step === 'failed' && (
         <div className="flex items-center justify-center gap-2">

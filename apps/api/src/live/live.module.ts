@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CallsModule } from '../calls/calls.module';
+import { DmModule } from '../dm/dm.module';
 import { IdentityModule } from '../identity/identity.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RealtimeModule } from '../realtime/realtime.module';
@@ -8,7 +9,7 @@ import { LiveService } from './live.service';
 
 /** Live rooms (2026-10-17) — see LiveService. */
 @Module({
-  imports: [IdentityModule, RealtimeModule, CallsModule, NotificationsModule],
+  imports: [IdentityModule, RealtimeModule, CallsModule, NotificationsModule, DmModule],
   controllers: [LiveController],
   providers: [LiveService],
 })

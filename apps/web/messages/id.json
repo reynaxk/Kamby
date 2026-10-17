@@ -924,7 +924,9 @@
     "muteWeek": "Selama 1 minggu",
     "mutedUntil": "Dibisukan sampai {time}",
     "mutedForever": "Dibisukan sampai kamu menyalakannya",
-    "muteNote": "Tanpa notifikasi atau banner dari chat ini. @sebutan dan balasan untukmu tetap masuk."
+    "muteNote": "Tanpa notifikasi atau banner dari chat ini. @sebutan dan balasan untukmu tetap masuk.",
+    "attachTrade": "Trade",
+    "attachTradeTitle": "Bagikan trade"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "Hari ini trading apa?",
     "ruleVoice": "Mikrofonmu menyala saat kamu live",
     "ruleScreen": "Bagikan layarmu dari ruangan (komputer / Android)",
-    "ruleNoCamera": "Tanpa kamera di ruang live"
+    "ruleNoCamera": "Tanpa kamera di ruang live",
+    "pinTrade": "Sematkan trade",
+    "unpin": "Lepas"
+  },
+  "snipe": {
+    "bought": "Dibeli",
+    "byTrader": "dibagikan oleh {name}",
+    "entry": "Masuk",
+    "now": "Sekarang",
+    "invested": "{amount} masuk",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Salin",
+    "copySnipeTitle": "Salin {symbol}",
+    "theirEntry": "harga masuk {name}",
+    "copyNote": "Pembelianmu sendiri dari USDC-mu — pilih jumlah, cek harga, biaya dan keamanan, lalu konfirmasi.",
+    "cantTrade": "Koin ini belum bisa diperdagangkan di Kamby.",
+    "shareToChat": "Bagikan ke chat",
+    "shareTitle": "Bagikan trade-mu",
+    "shareBody": "Teman melihat harga masuk dan PnL live-mu — dan bisa ⚡ Copy Snipe.",
+    "noChats": "Belum ada chat — mulai di Pesan.",
+    "sent": "Terkirim",
+    "send": "Kirim",
+    "openMessages": "Buka Pesan"
   }
 }

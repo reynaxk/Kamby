@@ -1,5 +1,6 @@
 'use client';
 
+import type { ShareChain } from '@/components/social/ShareTradeSheet';
 import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
@@ -518,6 +519,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           transaction={transaction}
           signature={pendingSignature}
           onDone={resetToForm}
+          tradeShare={transaction?.side === 'BUY' ? { chain: 'solana', tokenAddress: tokenMint } : undefined}
           share={
             step === 'confirmed' && transaction?.side === 'SELL' && tokenDecimals !== null
               ? realizedShare(sellSnapshot, Number(transaction.inputAmount) / 10 ** tokenDecimals, Number(transaction.expectedOutputAmount) / 10 ** USDC_DECIMALS, tokenMint)
@@ -786,12 +788,15 @@ function SolanaTradeStatusView({
   signature,
   onDone,
   share,
+  tradeShare,
 }: {
   step: 'submitted' | 'pending' | 'confirmed' | 'failed';
   transaction: SolanaTradeTransactionDto | null;
   signature: string | null;
   onDone: () => void;
   share?: PnlShare | null;
+  /** A buy: offer "⚡ Share to chat" (the Trade Card). */
+  tradeShare?: { chain: ShareChain; tokenAddress: string };
 }) {
   const tU = useTranslations('ui');
   const sig = transaction?.signature ?? signature;
@@ -806,7 +811,7 @@ function SolanaTradeStatusView({
     <div className="space-y-3 text-center">
       {step === 'confirmed' ? (
         <>
-          <TradeSuccess title={label} />
+          <TradeSuccess title={label} share={tradeShare} />
           {share && <PnlShareButton share={share} variant="cta" />}
         </>
       ) : (

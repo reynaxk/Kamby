@@ -924,7 +924,9 @@
     "muteWeek": "1 周",
     "mutedUntil": "静音至 {time}",
     "mutedForever": "静音，直到你重新开启",
-    "muteNote": "这个聊天不再推送通知和横幅。@提及和回复你的消息仍会提醒。"
+    "muteNote": "这个聊天不再推送通知和横幅。@提及和回复你的消息仍会提醒。",
+    "attachTrade": "交易",
+    "attachTradeTitle": "分享交易"
   },
   "calls": {
     "failed": "通话未接通",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "今天交易什么？",
     "ruleVoice": "开播时麦克风开启",
     "ruleScreen": "在房间里共享屏幕（电脑 / Android）",
-    "ruleNoCamera": "直播间不使用摄像头"
+    "ruleNoCamera": "直播间不使用摄像头",
+    "pinTrade": "置顶交易",
+    "unpin": "取消置顶"
+  },
+  "snipe": {
+    "bought": "已买入",
+    "byTrader": "{name} 分享",
+    "entry": "入场价",
+    "now": "现价",
+    "invested": "投入 {amount}",
+    "copySnipe": "COPY SNIPE",
+    "copy": "跟单",
+    "copySnipeTitle": "跟单 {symbol}",
+    "theirEntry": "{name} 的入场价",
+    "copyNote": "这是你用自己的 USDC 自己买入——选金额，查看价格、手续费和安全检查，然后确认。",
+    "cantTrade": "这个币现在无法在 Kamby 交易。",
+    "shareToChat": "分享到聊天",
+    "shareTitle": "分享你的交易",
+    "shareBody": "好友能看到你的入场价和实时盈亏——并可 ⚡ Copy Snipe。",
+    "noChats": "还没有聊天——去消息里开始一个。",
+    "sent": "已发送",
+    "send": "发送",
+    "openMessages": "打开消息"
   }
 }

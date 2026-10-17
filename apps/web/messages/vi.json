@@ -924,7 +924,9 @@
     "muteWeek": "Trong 1 tuần",
     "mutedUntil": "Tắt đến {time}",
     "mutedForever": "Tắt cho đến khi bạn bật lại",
-    "muteNote": "Không có thông báo hay banner từ chat này. @nhắc đến và trả lời bạn vẫn đến."
+    "muteNote": "Không có thông báo hay banner từ chat này. @nhắc đến và trả lời bạn vẫn đến.",
+    "attachTrade": "Giao dịch",
+    "attachTradeTitle": "Chia sẻ giao dịch"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "Hôm nay bạn trade gì?",
     "ruleVoice": "Micro bật khi bạn phát live",
     "ruleScreen": "Chia sẻ màn hình từ phòng (máy tính / Android)",
-    "ruleNoCamera": "Không dùng camera trong phòng live"
+    "ruleNoCamera": "Không dùng camera trong phòng live",
+    "pinTrade": "Ghim giao dịch",
+    "unpin": "Bỏ ghim"
+  },
+  "snipe": {
+    "bought": "Đã mua",
+    "byTrader": "{name} chia sẻ",
+    "entry": "Giá vào",
+    "now": "Hiện tại",
+    "invested": "đã vào {amount}",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Sao chép",
+    "copySnipeTitle": "Sao chép {symbol}",
+    "theirEntry": "giá vào của {name}",
+    "copyNote": "Lệnh mua của chính bạn bằng USDC của bạn — chọn số tiền, xem giá, phí và kiểm tra an toàn rồi xác nhận.",
+    "cantTrade": "Đồng này hiện chưa giao dịch được trên Kamby.",
+    "shareToChat": "Chia sẻ vào chat",
+    "shareTitle": "Chia sẻ giao dịch",
+    "shareBody": "Bạn bè thấy giá vào và PnL trực tiếp — và có thể ⚡ Copy Snipe.",
+    "noChats": "Chưa có cuộc trò chuyện — bắt đầu trong Tin nhắn.",
+    "sent": "Đã gửi",
+    "send": "Gửi",
+    "openMessages": "Mở Tin nhắn"
   }
 }

@@ -18,6 +18,17 @@ class SdpDto {
   sdp!: string;
 }
 
+class PinTradeDto {
+  @IsOptional()
+  @IsIn(['solana', 'base', 'bnb', 'robinhood'])
+  chain?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  tokenAddress?: string;
+}
+
 class StartDto {
   @IsString()
   @MaxLength(80)
@@ -219,6 +230,14 @@ export class LiveController {
   @Post(':id/leave')
   async leave(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
     await this.live.leave(user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 40, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post(':id/trade')
+  pinTrade(@Param('id', ParseUUIDPipe) id: string, @Body() body: PinTradeDto, @CurrentUser() user: SessionUser) {
+    return this.live.pinTrade(user.id, id, body.chain && body.tokenAddress ? { chain: body.chain, tokenAddress: body.tokenAddress } : null);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -924,7 +924,9 @@
     "muteWeek": "For 1 week",
     "mutedUntil": "Muted until {time}",
     "mutedForever": "Muted until you turn it back on",
-    "muteNote": "No pushes or banners from this chat. @mentions and replies to you still come through."
+    "muteNote": "No pushes or banners from this chat. @mentions and replies to you still come through.",
+    "attachTrade": "Trade",
+    "attachTradeTitle": "Share a trade"
   },
   "calls": {
     "failed": "Call didn’t connect",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "What are you trading today?",
     "ruleVoice": "Your mic is on when you go live",
     "ruleScreen": "Share your screen from the room (computer / Android)",
-    "ruleNoCamera": "No camera in live rooms"
+    "ruleNoCamera": "No camera in live rooms",
+    "pinTrade": "Pin a trade",
+    "unpin": "Unpin"
+  },
+  "snipe": {
+    "bought": "Bought",
+    "byTrader": "shared by {name}",
+    "entry": "Entry",
+    "now": "Now",
+    "invested": "{amount} in",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Copy",
+    "copySnipeTitle": "Copy {symbol}",
+    "theirEntry": "{name} entry",
+    "copyNote": "Your own buy from your USDC — pick an amount, check the price, fee and safety, then confirm.",
+    "cantTrade": "This coin can't be traded on Kamby right now.",
+    "shareToChat": "Share to chat",
+    "shareTitle": "Share your trade",
+    "shareBody": "Friends see your entry and live PnL — and can ⚡ Copy Snipe it.",
+    "noChats": "No chats yet — start one in Messages.",
+    "sent": "Sent",
+    "send": "Send",
+    "openMessages": "Open Messages"
   }
 }

@@ -924,7 +924,9 @@
     "muteWeek": "Pendant 1 semaine",
     "mutedUntil": "En sourdine jusqu’à {time}",
     "mutedForever": "En sourdine jusqu’à réactivation",
-    "muteNote": "Plus de notifications ni de bannières de ce chat. Les @mentions et réponses te parviennent toujours."
+    "muteNote": "Plus de notifications ni de bannières de ce chat. Les @mentions et réponses te parviennent toujours.",
+    "attachTrade": "Trade",
+    "attachTradeTitle": "Partager un trade"
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "Tu trades quoi aujourd’hui ?",
     "ruleVoice": "Ton micro est actif quand tu passes en live",
     "ruleScreen": "Partage ton écran depuis la salle (ordinateur / Android)",
-    "ruleNoCamera": "Pas de caméra dans les lives"
+    "ruleNoCamera": "Pas de caméra dans les lives",
+    "pinTrade": "Épingler un trade",
+    "unpin": "Retirer"
+  },
+  "snipe": {
+    "bought": "Acheté",
+    "byTrader": "partagé par {name}",
+    "entry": "Entrée",
+    "now": "Maintenant",
+    "invested": "{amount} investis",
+    "copySnipe": "COPY SNIPE",
+    "copy": "Copier",
+    "copySnipeTitle": "Copier {symbol}",
+    "theirEntry": "entrée de {name}",
+    "copyNote": "Ton propre achat avec ton USDC — choisis un montant, vérifie prix, frais et sécurité, puis confirme.",
+    "cantTrade": "Ce coin ne peut pas être échangé sur Kamby pour le moment.",
+    "shareToChat": "Partager dans un chat",
+    "shareTitle": "Partage ton trade",
+    "shareBody": "Tes amis voient ton entrée et le PnL en direct — et peuvent faire ⚡ Copy Snipe.",
+    "noChats": "Pas encore de discussion — commence-en une dans Messages.",
+    "sent": "Envoyé",
+    "send": "Envoyer",
+    "openMessages": "Ouvrir Messages"
   }
 }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { DM_LIMITS, slugForIdentifier, type DmConversation, type DmMessage, type MarketSummary, type TokenPosition } from '@kamby/domain';
+import { DM_LIMITS, slugForIdentifier, type DmConversation, type DmMessage, type MarketSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import {
   acceptConversation,
@@ -20,6 +20,7 @@ import {
   reportConversation,
   sendDmCoin,
   sendDmPnl,
+  sendDmTrade,
   sendDmText,
   sendDmTyping,
   sendDmUsdc,
@@ -27,8 +28,7 @@ import {
 import { subscribePrivateStream } from '@/lib/private-stream';
 import { friendlyError } from '@/lib/friendly-error';
 import { fetchSearchResults } from '@/lib/market-client';
-import { fetchMyPositions } from '@/lib/discovery-client';
-import { cashtag, formatPercent } from '@/lib/format';
+import { cashtag } from '@/lib/format';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { SendModal } from '@/components/wallet/SendModal';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
@@ -39,6 +39,7 @@ import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 import { MuteDrawer } from './MuteDrawer';
 import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer } from './CommunityBits';
 import { haptic, nameColor } from './DmMessageView';
+import { PositionPicker } from '@/components/social/PositionPicker';
 import { useCalls } from '@/components/calls/CallProvider';
 import { fetchCall } from '@/lib/calls-client';
 import type { CallState } from '@kamby/domain';
@@ -85,7 +86,7 @@ export function DmThread({ id }: { id: string }) {
       .catch(() => undefined);
   }, [id]);
   const [menu, setMenu] = useState(false);
-  const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | null>(null);
+  const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | 'trade' | null>(null);
   const [usdcOpen, setUsdcOpen] = useState(false);
   // Communities: the text channel you're reading, and the owner's channel / invite sheets.
   const [channelId, setChannelId] = useState<string | null>(null);
@@ -871,9 +872,10 @@ export function DmThread({ id }: { id: string }) {
 
       {/* + menu */}
       <MobileDrawer open={attach === 'menu'} onClose={() => setAttach(null)} title={t('attachTitle')} desktop>
-        <div className="grid grid-cols-3 gap-2 pb-2">
+        <div className={cn('grid gap-2 pb-2', isGroup ? 'grid-cols-3' : 'grid-cols-4')}>
           {(
             [
+              ['trade', '⚡', t('attachTrade')],
               ['coin', '🪙', t('attachCoin')],
               ['pnl', '📈', t('attachPnl')],
               ['usdc', '💸', t('attachUsdc')],
@@ -909,13 +911,17 @@ export function DmThread({ id }: { id: string }) {
           if (slug) void run(() => sendDmCoin(id, slug, m.tokenAddress, channelId ?? undefined));
         }}
       />
-      <PnlPicker
-        open={attach === 'pnl'}
+      <PositionPicker
+        open={attach === 'pnl' || attach === 'trade'}
+        title={attach === 'trade' ? t('attachTradeTitle') : undefined}
         onClose={() => setAttach(null)}
         onPick={(p) => {
+          const kind = attach;
           setAttach(null);
           const slug = chainSlug(p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : ''));
-          if (slug) void run(() => sendDmPnl(id, slug, p.tokenAddress, channelId ?? undefined));
+          if (!slug) return;
+          if (kind === 'trade') void run(() => sendDmTrade(id, slug, p.tokenAddress, channelId ?? undefined));
+          else void run(() => sendDmPnl(id, slug, p.tokenAddress, channelId ?? undefined));
         }}
       />
       {conv?.other?.username && (
@@ -985,32 +991,3 @@ function CoinPicker({ open, onClose, onPick }: { open: boolean; onClose: () => v
   );
 }
 
-function PnlPicker({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick: (p: TokenPosition) => void }) {
-  const t = useTranslations('dm');
-  const [positions, setPositions] = useState<TokenPosition[] | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    fetchMyPositions()
-      .then((rows) => setPositions(rows.filter((p) => p.currentValueUsd !== null && p.costBasisUsd > 0)))
-      .catch(() => setPositions([]));
-  }, [open]);
-  return (
-    <MobileDrawer open={open} onClose={onClose} title={t('attachPnl')} desktop>
-      {positions?.length === 0 && <p className="py-6 text-center font-body text-sm text-ink-400">{t('noPositions')}</p>}
-      <ul className="max-h-[50vh] overflow-y-auto">
-        {positions?.map((p) => {
-          const up = (p.unrealizedPnlUsd ?? 0) >= 0;
-          return (
-            <li key={`${p.chainIdentifier ?? p.chain}:${p.tokenAddress}`}>
-              <button type="button" onClick={() => onPick(p)} className="flex w-full items-center gap-3 rounded-2xl px-2 py-2.5 text-left active:bg-white/[0.05]">
-                <TokenAvatar src={p.logoUrl} seed={p.tokenAddress} label={p.symbol ?? p.tokenAddress} className="h-9 w-9 text-xs" />
-                <span className="min-w-0 flex-1 truncate font-display text-sm font-bold text-ink-900">{cashtag(p.symbol ?? p.tokenAddress.slice(0, 6))}</span>
-                <span className={cn('font-display text-sm font-bold tabular-nums', up ? 'text-up' : 'text-down')}>{p.unrealizedPnlPct !== null ? formatPercent(p.unrealizedPnlPct) : '—'}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </MobileDrawer>
-  );
-}

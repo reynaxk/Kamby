@@ -924,7 +924,9 @@
     "muteWeek": "1주일 동안",
     "mutedUntil": "{time}까지 알림 꺼짐",
     "mutedForever": "다시 켤 때까지 알림 꺼짐",
-    "muteNote": "이 채팅의 푸시와 배너가 오지 않아요. @멘션과 내게 온 답장은 계속 와요."
+    "muteNote": "이 채팅의 푸시와 배너가 오지 않아요. @멘션과 내게 온 답장은 계속 와요.",
+    "attachTrade": "거래",
+    "attachTradeTitle": "거래 공유"
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",
@@ -985,6 +987,28 @@
     "titlePlaceholder": "오늘은 뭘 거래해요?",
     "ruleVoice": "라이브를 시작하면 마이크가 켜져요",
     "ruleScreen": "방에서 화면을 공유하세요 (컴퓨터 / Android)",
-    "ruleNoCamera": "라이브에서는 카메라 없음"
+    "ruleNoCamera": "라이브에서는 카메라 없음",
+    "pinTrade": "거래 고정",
+    "unpin": "해제"
+  },
+  "snipe": {
+    "bought": "매수",
+    "byTrader": "{name}님이 공유",
+    "entry": "진입가",
+    "now": "현재",
+    "invested": "{amount} 투자",
+    "copySnipe": "COPY SNIPE",
+    "copy": "복사",
+    "copySnipeTitle": "{symbol} 복사",
+    "theirEntry": "{name}님 진입가",
+    "copyNote": "내 USDC로 하는 내 매수예요 — 금액을 고르고 가격·수수료·안전 확인 후 확정하세요.",
+    "cantTrade": "이 코인은 지금 Kamby에서 거래할 수 없어요.",
+    "shareToChat": "채팅에 공유",
+    "shareTitle": "거래 공유",
+    "shareBody": "친구들이 진입가와 실시간 PnL을 보고 ⚡ Copy Snipe 할 수 있어요.",
+    "noChats": "아직 채팅이 없어요 — 메시지에서 시작하세요.",
+    "sent": "보냄",
+    "send": "보내기",
+    "openMessages": "메시지 열기"
   }
 }
