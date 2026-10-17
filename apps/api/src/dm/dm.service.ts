@@ -19,6 +19,7 @@ import {
   type DmUsdc,
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
+import { randomInt } from 'node:crypto';
 import { PinoLogger } from 'nestjs-pino';
 import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -85,7 +86,7 @@ export function systemText(s: DmSystem): string {
 function inviteCode(): string {
   const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
   let out = '';
-  for (let i = 0; i < 8; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  for (let i = 0; i < 8; i++) out += alphabet[randomInt(alphabet.length)];
   return out;
 }
 
@@ -558,7 +559,7 @@ export class DmService {
       if (existing.status !== 'active') await prisma.dmMember.update({ where: { conversationId_userId: { conversationId: row.id, userId: me } }, data: { status: 'active' } });
       return this.conversation(me, row.id);
     }
-    const count = await prisma.dmMember.count({ where: { conversationId: row.id } });
+    const count = await prisma.dmMember.count({ where: { conversationId: row.id, status: 'active' } });
     if (count >= DM_LIMITS.communityMaxMembers) throw new ForbiddenException('This community is full.');
     await prisma.dmMember.create({ data: { conversationId: row.id, userId: me, role: 'member', status: 'active', readAt: new Date() } });
     await this.system(row.id, { event: 'added', actor: myName, targets: [myName] });

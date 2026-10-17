@@ -338,6 +338,28 @@ export function InviteJoin({ code }: { code: string }) {
   );
 }
 
+/** A community's picture: its initials on a frosted neon tile (rounded square, not a face). */
+export function CommunityAvatar({ title, className }: { title: string; className?: string }) {
+  const initials =
+    title
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => Array.from(w)[0]?.toUpperCase() ?? '')
+      .join('') || '#';
+  return (
+    <span
+      className={cn(
+        'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[30%] border border-accent/25 bg-[linear-gradient(140deg,rgb(var(--kamby-accent)/0.22),rgba(14,20,48,0.9)_55%,rgba(124,92,255,0.25))] font-display font-black text-ink-900',
+        className,
+      )}
+      aria-hidden
+    >
+      <span className="text-[0.95em] tracking-tight">{initials}</span>
+    </span>
+  );
+}
+
 export function SpeakerIcon({ className }: { className?: string }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>

@@ -36,7 +36,7 @@ import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
-import { ChannelBar, ChannelsDrawer, InviteDrawer } from './CommunityBits';
+import { ChannelBar, ChannelsDrawer, CommunityAvatar, InviteDrawer } from './CommunityBits';
 import { useCalls } from '@/components/calls/CallProvider';
 import { fetchCall } from '@/lib/calls-client';
 import type { CallState } from '@kamby/domain';
@@ -91,6 +91,7 @@ export function DmThread({ id }: { id: string }) {
   channelRef.current = channelId;
   const [channelsOpen, setChannelsOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const channelCache = useRef(new Map<string, { messages: DmMessage[]; nextBefore: string | null }>());
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSent = useRef(0);
@@ -176,9 +177,11 @@ export function DmThread({ id }: { id: string }) {
 
   function pickChannel(next: string) {
     if (next === channelId) return;
+    if (channelId) channelCache.current.set(channelId, { messages, nextBefore });
+    const cached = channelCache.current.get(next);
     setChannelId(next);
-    setMessages([]);
-    setNextBefore(null);
+    setMessages(cached?.messages ?? []);
+    setNextBefore(cached?.nextBefore ?? null);
     stickToBottom.current = true;
     void fetchDmMessages(id, undefined, next)
       .then((page) => {
@@ -302,10 +305,13 @@ export function DmThread({ id }: { id: string }) {
         </button>
         {conv?.group ? (
           <button type="button" onClick={() => setInfo(true)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-            <GroupAvatar members={conv.group.members} meId={conv.meId} className="h-9 w-9" />
+            {community ? <CommunityAvatar title={conv.group.title} className="h-9 w-9 text-sm" /> : <GroupAvatar members={conv.group.members} meId={conv.meId} className="h-9 w-9" />}
             <span className="min-w-0">
               <span className="block truncate font-display text-base font-bold text-ink-900">{name}</span>
-              <span className="block font-body text-[0.68rem] text-ink-400">{t('members', { count: conv.group.members.length })}</span>
+              <span className="block truncate font-body text-[0.68rem] text-ink-400">
+                {channelName && <span className="font-semibold text-accent">#{channelName} · </span>}
+                {t('members', { count: conv.group.members.length })}
+              </span>
             </span>
           </button>
         ) : conv?.other?.walletAddress ? (
@@ -449,7 +455,11 @@ export function DmThread({ id }: { id: string }) {
         )}
         {conv && messages.length === 0 && (
           <div className="flex flex-col items-center px-6 py-14 text-center">
-            {conv.group ? (
+            {channelName ? (
+              <span className="flex h-20 w-20 items-center justify-center rounded-[30%] border border-accent/25 bg-accent/[0.08] font-display text-4xl font-black text-accent" aria-hidden>
+                #
+              </span>
+            ) : conv.group ? (
               <GroupAvatar members={conv.group.members} meId={conv.meId} className="h-20 w-20" />
             ) : (
               <DmAvatar name={conv.other?.username ?? null} src={conv.other?.avatarUrl ?? null} className="h-20 w-20 text-2xl" />

@@ -13,7 +13,7 @@ import { friendlyError } from '@/lib/friendly-error';
 import { formatRelativeTime } from '@/lib/format';
 import { DmAvatar } from './DmAvatar';
 import { GroupAvatar, NewGroupDrawer } from './GroupBits';
-import { NewCommunityDrawer } from './CommunityBits';
+import { CommunityAvatar, NewCommunityDrawer } from './CommunityBits';
 
 /**
  * The Messages screen (2026-10-17): your chats, newest first, and a Requests tab for first
@@ -202,7 +202,7 @@ export function DmInbox() {
             <li key={c.id}>
               <Link href={`/messages/${c.id}`} className="flex items-center gap-3 rounded-2xl px-1 py-2.5 transition-colors active:bg-white/[0.04]">
                 <span className="relative">
-                  {c.group ? <GroupAvatar members={c.group.members} meId={c.meId} /> : <DmAvatar name={c.other?.username ?? null} src={c.other?.avatarUrl ?? null} />}
+                  {c.group?.community ? <CommunityAvatar title={c.group.title} /> : c.group ? <GroupAvatar members={c.group.members} meId={c.meId} /> : <DmAvatar name={c.other?.username ?? null} src={c.other?.avatarUrl ?? null} />}
                   {c.unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" aria-hidden />}
                 </span>
                 <span className="min-w-0 flex-1">
