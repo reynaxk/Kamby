@@ -156,7 +156,18 @@
     "f6Title": "Khoe PnL của bạn",
     "f6Body": "Thẻ chia sẻ đẹp có link mời của bạn — mỗi lần thắng mang về trader mới.",
     "showcaseTitle": "Khoe mọi chiến thắng.",
-    "showcaseBody": "Một chạm biến giao dịch thành thẻ cho X, Instagram và TikTok — số thật, tên bạn, link của bạn."
+    "showcaseBody": "Một chạm biến giao dịch thành thẻ cho X, Instagram và TikTok — số thật, tên bạn, link của bạn.",
+    "heroTitleA": "Terminal",
+    "heroTitleB": "Meme Coin đa chuỗi",
+    "heroSub": "không cần gas gốc, thanh toán hoàn toàn bằng USDC.",
+    "heroCta": "Mở terminal",
+    "showcaseNote": "Thẻ ví dụ",
+    "chatTitle": "Đừng giao dịch một mình.",
+    "chatBody": "Chat toàn cầu cho mọi trader và chat trực tiếp trên từng coin — giao dịch thật chảy vào theo thời gian thực, huy hiệu không thể giả mạo.",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "Trực tiếp — trader khắp thế giới",
+    "chatCoin": "Chat trực tiếp",
+    "chatCoinSub": "Giao dịch đổ về trực tiếp"
   },
   "coin": {
     "price": "Giá",

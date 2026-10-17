@@ -357,6 +357,78 @@ body:has(.kamby-void) {
   .kamby-float-a, .kamby-float-b, .kamby-badge-pulse, .kamby-wordmark-pulse, .kamby-beam { animation: none; }
 }
 
+/* ── Landing (2026-10-17 rewrite). Every animation is transform or opacity — compositor only. ── */
+/* The neon 3D grid floor: lines on a plane tilted away from the viewer, fading into the distance. */
+.kamby-grid-floor {
+  background-image:
+    linear-gradient(rgba(0, 255, 135, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 135, 0.22) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(520px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 78%);
+  mask-image: linear-gradient(to top, #000 10%, transparent 78%);
+  opacity: 0.55;
+}
+/* The main button breathes: a glow ring behind it fades in and out (opacity only). */
+.kamby-cta-pulse {
+  position: relative;
+  isolation: isolate;
+}
+.kamby-cta-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 0 34px 6px rgba(0, 255, 135, 0.55);
+  opacity: 0.35;
+  pointer-events: none;
+}
+@keyframes kamby-cta-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+/* The terminal preview floats; its last candle breathes like a live one. */
+@keyframes kamby-mock-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes kamby-mock-candle {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.12); }
+}
+/* The PnL cards drift left forever (the track holds the cards twice, so -50% is a seamless loop). */
+@keyframes kamby-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.kamby-marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+/* The chat previews scroll up forever, same trick vertically. */
+@keyframes kamby-chat-loop {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+.kamby-chat-mask {
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kamby-cta-pulse::after { animation: kamby-cta-pulse 2.6s ease-in-out infinite; }
+  .kamby-mock-float { animation: kamby-mock-float 7s ease-in-out infinite; }
+  .kamby-mock-candle { animation: kamby-mock-candle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+  .kamby-marquee { animation: kamby-marquee 48s linear infinite; }
+  .kamby-marquee-mask:hover .kamby-marquee { animation-play-state: paused; }
+  .kamby-chat-loop { animation: kamby-chat-loop 26s linear infinite; }
+  .kamby-chat-loop.kamby-chat-loop-slow { animation-duration: 36s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kamby-marquee-mask { overflow-x: auto; }
+}
+
 /* Phones are app screens (2026-10-10, owner: "it's like a web copy"): one clean sans font for
    numbers too (tabular so prices don't jiggle), and no visible scrollbars — native apps have
    neither a "code" font nor scrollbar tracks. Desktop keeps the terminal's mono look. */

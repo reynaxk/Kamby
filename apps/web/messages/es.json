@@ -156,7 +156,18 @@
     "f6Title": "Presume tu PnL",
     "f6Body": "Tarjetas preciosas con tu enlace de invitación — cada ganancia trae nuevos traders.",
     "showcaseTitle": "Presume cada ganancia.",
-    "showcaseBody": "Un toque convierte una operación en una tarjeta para X, Instagram y TikTok — tus números reales, tu nombre, tu enlace."
+    "showcaseBody": "Un toque convierte una operación en una tarjeta para X, Instagram y TikTok — tus números reales, tu nombre, tu enlace.",
+    "heroTitleA": "Terminal multicadena",
+    "heroTitleB": "de memecoins",
+    "heroSub": "sin gas nativo, pagas todo en USDC.",
+    "heroCta": "Abrir terminal",
+    "showcaseNote": "Tarjetas de ejemplo",
+    "chatTitle": "Nunca operes solo.",
+    "chatBody": "Un chat mundial para todos los traders y un chat en vivo en cada moneda, con operaciones reales en tiempo real e insignias imposibles de falsificar.",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "En vivo — traders de todo el mundo",
+    "chatCoin": "Chat en vivo",
+    "chatCoinSub": "Las operaciones llegan en vivo"
   },
   "coin": {
     "price": "Precio",

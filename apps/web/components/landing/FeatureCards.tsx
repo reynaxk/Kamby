@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
+import type { PointerEvent } from 'react';
 
 export type LandingIcon = 'gas' | 'shield' | 'dollar' | 'launch' | 'chat' | 'card';
 
@@ -10,9 +11,9 @@ export interface LandingFeature {
   body: string;
 }
 
-/** Kamby's own line icons (2026-10-15, replacing emoji): neon strokes in a dark tile, no glow. */
-function Icon({ name }: { name: LandingIcon }) {
-  const common = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+/** Kamby's own line icons (2026-10-15, replacing emoji): neon strokes in a dark tile. */
+function Icon({ name, size = 22 }: { name: LandingIcon; size?: number }) {
+  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   switch (name) {
     case 'gas':
       return (
@@ -59,29 +60,77 @@ function Icon({ name }: { name: LandingIcon }) {
   }
 }
 
+/** Bento placement (lg): the first feature is the big 2×2 tile, the rest fill around it. */
+const SPAN = ['lg:col-span-2 lg:row-span-2', '', '', '', '', ''];
+
 /**
- * The landing page's features: crisp dark panels, each with a neon line icon in its own tile. They
- * rise into place on scroll — transform only, never hidden first (a slow phone must never show an
- * empty page).
+ * One bento tile: a frosted panel whose neon edge brightens on hover, with a soft light that
+ * follows the cursor and a gentle 3D tilt (mouse only — touch screens get none). Transform and
+ * a background gradient only, so it stays smooth.
  */
+function Tile({ f, index }: { f: LandingFeature; index: number }) {
+  const big = index === 0;
+  const rx = useSpring(useMotionValue(0), { stiffness: 220, damping: 22 });
+  const ry = useSpring(useMotionValue(0), { stiffness: 220, damping: 22 });
+  const mx = useMotionValue(50);
+  const my = useMotionValue(50);
+  const light = useMotionTemplate`radial-gradient(420px circle at ${mx}% ${my}%, rgba(0,255,135,0.13), transparent 60%)`;
+
+  function onMove(e: PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== 'mouse') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    mx.set(px * 100);
+    my.set(py * 100);
+    rx.set((0.5 - py) * (big ? 5 : 8));
+    ry.set((px - 0.5) * (big ? 5 : 8));
+  }
+  function onLeave() {
+    rx.set(0);
+    ry.set(0);
+  }
+
+  return (
+    <motion.div
+      initial={{ y: 18 }}
+      whileInView={{ y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, delay: (index % 3) * 0.06, ease: 'easeOut' }}
+      style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
+      className={`kamby-bento group relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_60%)] p-6 transition-[border-color,box-shadow] duration-300 hover:border-emerald-500/60 hover:shadow-[0_0_60px_-18px_rgba(0,255,135,0.45)] ${SPAN[index] ?? ''} ${big ? 'flex flex-col justify-between lg:p-9' : ''}`}
+    >
+      <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: light }} />
+      {big && (
+        <svg className="pointer-events-none absolute -bottom-16 -right-16 h-[300px] w-[300px]" viewBox="0 0 512 512" aria-hidden>
+          <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.07">
+            <path d="M186 140 V372" />
+            <path d="M200 268 L338 140" />
+            <path d="M232 246 L346 372" />
+          </g>
+        </svg>
+      )}
+      <span
+        className={`relative flex items-center justify-center rounded-2xl border border-[#00FF87]/20 bg-[#00FF87]/[0.08] text-[#00FF87] transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-[-6deg] group-hover:scale-110 ${big ? 'h-14 w-14' : 'h-11 w-11'}`}
+      >
+        <Icon name={f.icon} size={big ? 28 : 22} />
+      </span>
+      <div className="relative">
+        <h3 className={`font-display font-bold tracking-tight text-white ${big ? 'mt-10 text-3xl sm:text-4xl' : 'mt-5 text-[1.05rem]'}`}>{f.title}</h3>
+        <p className={`mt-2 font-body leading-[1.65] text-[#7C8798] ${big ? 'max-w-md text-base' : 'text-[0.86rem]'}`}>{f.body}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+/** The landing page's features as a bento grid (2026-10-17): one hero tile and five around it. */
 export function FeatureCards({ features }: { features: readonly LandingFeature[] }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[minmax(13rem,auto)]">
       {features.map((f, i) => (
-        <motion.div
-          key={f.title}
-          initial={{ y: 16 }}
-          whileInView={{ y: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.45, delay: (i % 3) * 0.06, ease: 'easeOut' }}
-          className="group rounded-3xl border border-white/[0.06] bg-gradient-to-b from-white/[0.035] to-white/[0.01] p-6 transition-colors duration-300 hover:border-[#00FF87]/30"
-        >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#00FF87]/20 bg-[#00FF87]/[0.08] text-[#00FF87]">
-            <Icon name={f.icon} />
-          </span>
-          <h3 className="mt-5 font-display text-[1.05rem] font-bold tracking-tight text-white">{f.title}</h3>
-          <p className="mt-1.5 font-body text-[0.86rem] leading-[1.65] text-[#7C8798]">{f.body}</p>
-        </motion.div>
+        <Tile key={f.title} f={f} index={i} />
       ))}
     </div>
   );

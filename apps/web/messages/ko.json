@@ -156,7 +156,18 @@
     "f6Title": "PnL 자랑하기",
     "f6Body": "초대 링크가 담긴 멋진 공유 카드 — 수익마다 새로운 트레이더가 와요.",
     "showcaseTitle": "모든 수익을 자랑하세요.",
-    "showcaseBody": "한 번 탭하면 거래가 X, 인스타그램, 틱톡용 카드로 — 진짜 숫자, 내 이름, 내 링크."
+    "showcaseBody": "한 번 탭하면 거래가 X, 인스타그램, 틱톡용 카드로 — 진짜 숫자, 내 이름, 내 링크.",
+    "heroTitleA": "멀티체인",
+    "heroTitleB": "밈코인 터미널",
+    "heroSub": "네이티브 가스 없이, 전부 USDC로 결제.",
+    "heroCta": "터미널 열기",
+    "showcaseNote": "예시 카드",
+    "chatTitle": "혼자 거래하지 마세요.",
+    "chatBody": "전 세계 트레이더를 위한 채팅과 모든 코인의 라이브 채팅 — 실제 거래가 실시간으로 흐르고, 위조할 수 없는 배지까지.",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "라이브 — 전 세계 트레이더",
+    "chatCoin": "라이브 채팅",
+    "chatCoinSub": "거래가 실시간으로 들어와요"
   },
   "coin": {
     "price": "가격",

@@ -156,7 +156,18 @@
     "f6Title": "Flex your PnL",
     "f6Body": "Beautiful share cards with your invite link on them — every win brings new traders.",
     "showcaseTitle": "Flex every win.",
-    "showcaseBody": "One tap turns a trade into a card made for X, Instagram and TikTok — your real numbers, your name, your invite link."
+    "showcaseBody": "One tap turns a trade into a card made for X, Instagram and TikTok — your real numbers, your name, your invite link.",
+    "heroTitleA": "Multi-Chain",
+    "heroTitleB": "Meme Coin Terminal",
+    "heroSub": "no native gas, you pay entirely in USDC.",
+    "heroCta": "Launch Terminal",
+    "showcaseNote": "Example cards",
+    "chatTitle": "Never trade alone.",
+    "chatBody": "A worldwide chat for every trader, and a live chat on every coin — with real trades streaming in and badges that can’t be faked.",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "Live — traders worldwide",
+    "chatCoin": "Live chat",
+    "chatCoinSub": "Trades stream in live"
   },
   "coin": {
     "price": "Price",

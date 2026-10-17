@@ -156,7 +156,18 @@
     "f6Title": "晒出你的盈亏",
     "f6Body": "带邀请链接的精美分享卡 — 每次盈利都带来新交易者。",
     "showcaseTitle": "晒出每一次盈利。",
-    "showcaseBody": "一键把交易变成适合 X、Instagram 和 TikTok 的卡片 — 真实数字、你的名字、你的链接。"
+    "showcaseBody": "一键把交易变成适合 X、Instagram 和 TikTok 的卡片 — 真实数字、你的名字、你的链接。",
+    "heroTitleA": "多链",
+    "heroTitleB": "Meme 币交易终端",
+    "heroSub": "无需原生 Gas，全部用 USDC 支付。",
+    "heroCta": "打开终端",
+    "showcaseNote": "示例卡片",
+    "chatTitle": "交易从不孤单。",
+    "chatBody": "面向所有交易者的全球聊天，以及每个代币的实时聊天 — 真实交易实时涌入，徽章无法伪造。",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "直播中 — 全球交易者",
+    "chatCoin": "实时聊天",
+    "chatCoinSub": "交易实时涌入"
   },
   "coin": {
     "price": "价格",

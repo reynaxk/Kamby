@@ -156,7 +156,18 @@
     "f6Title": "PnL'ini göster",
     "f6Body": "Davet linkinin olduğu şık paylaşım kartları — her kazanç yeni trader getirir.",
     "showcaseTitle": "Her kazancı göster.",
-    "showcaseBody": "Tek dokunuşla işlem; X, Instagram ve TikTok için bir karta dönüşür — gerçek rakamlar, adın, linkin."
+    "showcaseBody": "Tek dokunuşla işlem; X, Instagram ve TikTok için bir karta dönüşür — gerçek rakamlar, adın, linkin.",
+    "heroTitleA": "Çok Zincirli",
+    "heroTitleB": "Meme Coin Terminali",
+    "heroSub": "yerel gas yok, her şeyi USDC ile ödersin.",
+    "heroCta": "Terminali Aç",
+    "showcaseNote": "Örnek kartlar",
+    "chatTitle": "Asla yalnız trade yapma.",
+    "chatBody": "Tüm trader’lar için dünya çapında bir sohbet ve her coinde canlı sohbet — gerçek işlemler anlık akar, rozetler taklit edilemez.",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "Canlı — dünyanın dört bir yanından trader’lar",
+    "chatCoin": "Canlı sohbet",
+    "chatCoinSub": "İşlemler canlı akıyor"
   },
   "coin": {
     "price": "Fiyat",

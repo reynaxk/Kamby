@@ -4,46 +4,29 @@ import { Orbitron } from 'next/font/google';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { FeatureCards, type LandingFeature } from '@/components/landing/FeatureCards';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
+import { ChatShowcase } from '@/components/landing/ChatShowcase';
+import { TerminalMockup } from '@/components/landing/TerminalMockup';
 import { LandingCta } from '@/components/landing/LandingCta';
 import { RunnerCountdown } from '@/components/landing/RunnerCountdown';
 import { getTranslations } from 'next-intl/server';
 
-/** The wordmark and countdown face — loaded only on the landing page (self-hosted by next/font). */
+/** The countdown face — loaded only on the landing page (self-hosted by next/font). */
 const orbitron = Orbitron({ subsets: ['latin'], weight: ['700', '800', '900'], display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Kamby — Find. Trade. Repeat. Gas-free.',
+  title: 'Kamby — Multi-Chain Meme Coin Terminal',
   description:
-    'The high-performance multi-chain terminal built for raw execution. Trade meme coins on Solana, Base and BNB Chain with one USDC balance, sponsored gas and real-time dry-run simulation.',
+    'Find. Trade. Repeat. Trade meme coins on Solana, Base, BNB Chain and Robinhood Chain with just USDC — no native gas, simulated before every swap.',
 };
 
-const NEON = '#00FF87';
-const CYAN = '#00E5FF';
-const VIOLET = '#7C3AED';
-
-/** "Green candles": ultra-thin beams rising from the horizon. Fixed positions, so the server render is stable. */
-const BEAMS = [
-  { left: 8, height: 34, color: NEON, delay: 0 },
-  { left: 15, height: 52, color: CYAN, delay: 1.4 },
-  { left: 22, height: 28, color: NEON, delay: 2.6 },
-  { left: 29, height: 64, color: NEON, delay: 0.7 },
-  { left: 36, height: 40, color: VIOLET, delay: 3.1 },
-  { left: 43, height: 78, color: CYAN, delay: 1.9 },
-  { left: 50, height: 92, color: NEON, delay: 0.2 },
-  { left: 57, height: 70, color: CYAN, delay: 2.2 },
-  { left: 64, height: 46, color: NEON, delay: 3.6 },
-  { left: 71, height: 60, color: VIOLET, delay: 1.1 },
-  { left: 78, height: 30, color: NEON, delay: 2.9 },
-  { left: 85, height: 50, color: CYAN, delay: 0.5 },
-  { left: 92, height: 26, color: NEON, delay: 2.0 },
-];
-
 /**
- * The landing page ("cyberpunk sunrise" pass 2026-10-05): pitch-obsidian #05070A, a glowing
- * green/cyan/violet horizon with thin beams rising from it, a metallic KAMBY, one call to
- * action. New visitors see this, not the terminal — "Launch Terminal" opens Privy sign-in,
- * then /terminal. Static server render; the only client code is the sign-in buttons, the
- * feature entry animations and the countdown. The risk notice lives in the site footer.
+ * The landing page (2026-10-17 rewrite, owner: "10/10 aesthetic, ultra-smooth"): an obsidian
+ * hero over a neon 3D grid with a frosted preview of the terminal beside the pitch, the
+ * features as a bento grid, the PnL cards drifting past in a marquee, both chats live-looking,
+ * and one last call to action. New visitors see this, not the terminal — the buttons open Privy
+ * sign-in, then the app. Server-rendered; the client code is the sign-in buttons, the bento
+ * tiles' tilt and the countdown. All motion is transform/opacity. The risk notice lives in the
+ * site footer.
  */
 export default async function LandingPage() {
   const t = await getTranslations('landing');
@@ -56,106 +39,92 @@ export default async function LandingPage() {
     { icon: 'card', title: t('f6Title'), body: t('f6Body') },
   ];
   return (
-    <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#05070A] text-white">
-      {/* Hero — the sunrise sits behind it */}
-      <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+    <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#050608] text-white">
+      {/* Hero */}
+      <section className="relative isolate overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          {/* Beams rising from the horizon */}
-          {BEAMS.map((b) => (
-            <span
-              key={b.left}
-              className="kamby-beam absolute bottom-[26%] w-px"
-              style={{
-                left: `${b.left}%`,
-                height: `${b.height}%`,
-                background: `linear-gradient(to top, ${b.color}, ${b.color}55 40%, transparent)`,
-                animationDelay: `${b.delay}s`,
-              }}
-            />
-          ))}
-          {/* Sky glow above the horizon */}
-          <div className="absolute bottom-[18%] left-1/2 h-[46%] w-[120%] -translate-x-1/2 bg-[radial-gradient(ellipse_50%_60%_at_50%_100%,rgba(0,255,135,0.16),rgba(0,229,255,0.07)_45%,transparent_75%)]" />
-          {/* The horizon: three stacked arcs blend violet → cyan → green at the rim */}
-          <div
-            className="absolute left-1/2 top-[74%] h-[110vh] w-[190vw] -translate-x-1/2 rounded-[50%] bg-[#05070A] sm:w-[150vw]"
-            style={{ boxShadow: `0 -1px 0 0 ${VIOLET}aa, 0 -18px 90px 4px ${VIOLET}44` }}
-          />
-          <div
-            className="absolute left-1/2 top-[74.4%] h-[110vh] w-[180vw] -translate-x-1/2 rounded-[50%] bg-[#05070A] sm:w-[140vw]"
-            style={{ boxShadow: `0 -1px 0 0 ${CYAN}cc, 0 -14px 70px 2px ${CYAN}40` }}
-          />
-          <div
-            className="absolute left-1/2 top-[74.8%] h-[110vh] w-[170vw] -translate-x-1/2 rounded-[50%] bg-[#05070A] sm:w-[130vw]"
-            style={{ boxShadow: `0 -2px 0 0 ${NEON}, 0 -10px 60px 6px ${NEON}55, 0 -40px 160px 20px ${NEON}22` }}
-          />
+          {/* Ambient light: a neon wash from the top and a deep emerald pool behind the terminal */}
+          <div className="absolute left-1/2 top-[-18rem] h-[42rem] w-[70rem] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,255,102,0.16),transparent)]" />
+          <div className="absolute right-[-12rem] top-[18rem] h-[36rem] w-[44rem] bg-[radial-gradient(closest-side,rgba(16,185,129,0.12),transparent)]" />
+          {/* The neon 3D grid, receding into the distance */}
+          <div className="kamby-grid-floor absolute inset-x-[-25%] bottom-[-8rem] h-[34rem]" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#050608] to-transparent" />
         </div>
 
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-6">
+        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
           <div className="flex items-center gap-2">
             <KambyLogo />
           </div>
           <nav className="flex items-center gap-1">
-            <Link href="/leaderboard" className="rounded-lg px-3 py-2 font-mono text-xs uppercase tracking-wider text-[#64748B] transition-colors hover:text-white">
+            <Link href="/leaderboard" className="hidden rounded-lg px-3 py-2 font-mono text-xs uppercase tracking-wider text-[#64748B] transition-colors hover:text-white sm:block">
               {t('leaderboard')}
             </Link>
             <LandingCta label={t('signIn')} variant="ghost" className="px-4 py-2" />
           </nav>
         </header>
 
-        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center px-5 pb-[34vh] pt-[8vh] text-center">
-          <p className="font-mono text-[0.72rem] lowercase tracking-[0.2em] text-[#3D7A58]">{t('chains')}</p>
-
-          <h1 className={`${orbitron.className} relative mt-6 select-none font-black leading-none tracking-[0.06em]`}>
-            {/* Metallic green back-lighting */}
-            <span
-              aria-hidden
-              className="kamby-wordmark-pulse absolute inset-0 bg-clip-text text-[clamp(4rem,15.5vw,10.5rem)] text-transparent blur-2xl"
-              style={{ backgroundImage: `linear-gradient(90deg, ${NEON}, #34ffb0, ${NEON})` }}
-            >
-              KAMBY
-            </span>
-            <span
-              className="relative bg-clip-text text-[clamp(4rem,15.5vw,10.5rem)] text-transparent"
-              style={{
-                backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 45%), linear-gradient(100deg, ${NEON} 0%, #c8ffe6 38%, ${CYAN} 64%, ${NEON} 100%)`,
-              }}
-            >
-              KAMBY
-            </span>
-          </h1>
-
-          <h2 className="mt-8 font-display text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
-            {t('tagline')}{' '}
-            <span className="whitespace-nowrap align-middle font-mono text-xs font-medium tracking-normal sm:text-sm" style={{ color: NEON, textShadow: `0 0 12px ${NEON}88` }}>
-              {t('gasFree')}
-            </span>
-          </h2>
-
-          <LandingCta label={t('goTrade')} variant="neon" className="mt-12 px-10 py-4 text-base" />
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-32 lg:pt-16">
+          <div className="text-center lg:text-left">
+            <p className="kamby-gate-in inline-flex items-center gap-2 rounded-full border border-[#00FF87]/20 bg-[#00FF87]/[0.06] px-3 py-1 font-mono text-[0.68rem] lowercase tracking-[0.18em] text-[#5BE3A0]">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#00FF87]" />
+              {t('chains')}
+            </p>
+            <h1 className="kamby-gate-in kamby-gate-in-2 mt-6 font-display text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.02] tracking-tight">
+              <span className="bg-[linear-gradient(180deg,#FFFFFF_0%,rgba(255,255,255,0.72)_100%)] bg-clip-text text-transparent">{t('heroTitleA')} </span>
+              <span className="bg-[linear-gradient(100deg,#00FF87_0%,#B8FFE0_45%,#00E5FF_100%)] bg-clip-text text-transparent">{t('heroTitleB')}</span>
+            </h1>
+            <p className="kamby-gate-in kamby-gate-in-3 mx-auto mt-6 max-w-xl font-body text-lg leading-relaxed text-[#94A3B8] lg:mx-0">
+              <span className="font-semibold text-white">{t('tagline')}</span> — {t('heroSub')}
+            </p>
+            <div className="kamby-gate-in kamby-gate-in-4 mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+              <LandingCta label={t('heroCta')} variant="neon" arrow className="kamby-cta-pulse w-full px-9 py-4 text-base sm:w-auto" />
+              <Link
+                href="/leaderboard"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-center font-display text-sm font-bold text-white/80 transition-colors hover:border-white/25 hover:text-white sm:w-auto"
+              >
+                {t('leaderboard')}
+              </Link>
+            </div>
+          </div>
+          <div className="flex justify-center lg:justify-end">
+            <TerminalMockup />
+          </div>
         </div>
       </section>
 
       <main>
-        {/* What Kamby does */}
-        <section className="mx-auto max-w-5xl px-5 py-24">
+        {/* What Kamby does — bento */}
+        <section className="mx-auto max-w-6xl px-5 py-20">
           <FeatureCards features={features} />
         </section>
 
-        {/* Flex every win — the PnL cards */}
-        <section className="mx-auto max-w-5xl px-5 pb-24">
-          <PnlShowcase title={t('showcaseTitle')} body={t('showcaseBody')} />
+        {/* Flex every win — the PnL cards marquee */}
+        <section className="py-20">
+          <PnlShowcase title={t('showcaseTitle')} body={t('showcaseBody')} note={t('showcaseNote')} />
+        </section>
+
+        {/* The chats */}
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <ChatShowcase
+            title={t('chatTitle')}
+            body={t('chatBody')}
+            pulseTitle={t('chatPulse')}
+            pulseSub={t('chatPulseSub')}
+            coinTitle={t('chatCoin')}
+            coinSub={t('chatCoinSub')}
+          />
         </section>
 
         {/* Bottom action box */}
         <section className="mx-auto max-w-3xl px-5 pb-32 pt-8">
-          <div className="flex flex-col items-center rounded-[2rem] border border-white/5 bg-white/[0.015] px-6 py-16 text-center backdrop-blur-xl sm:py-20">
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('nextRunner')}</p>
-            <RunnerCountdown className={`${orbitron.className} mt-4 text-[clamp(3.6rem,14vw,7.5rem)] font-black leading-none text-white`} />
-            <LandingCta label={t('goTrade')} variant="neon" className="mt-12 px-10 py-4 text-base" />
+          <div className="relative flex flex-col items-center overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01)_60%)] px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:py-20">
+            <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(0,255,102,0.18),transparent)]" />
+            <p className="relative font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('nextRunner')}</p>
+            <RunnerCountdown className={`${orbitron.className} relative mt-4 text-[clamp(3.6rem,14vw,7.5rem)] font-black leading-none text-white`} />
+            <LandingCta label={t('goTrade')} variant="neon" arrow className="kamby-cta-pulse relative mt-12 px-10 py-4 text-base" />
           </div>
         </section>
       </main>
     </div>
   );
 }
-

@@ -156,7 +156,18 @@
     "f6Title": "PnLを見せびらかそう",
     "f6Body": "招待リンク入りの美しいシェアカード — 勝つたびに新しいトレーダーが集まります。",
     "showcaseTitle": "すべての勝ちを見せよう。",
-    "showcaseBody": "ワンタップで取引がX・Instagram・TikTok用のカードに — 本物の数字、あなたの名前、あなたのリンク。"
+    "showcaseBody": "ワンタップで取引がX・Instagram・TikTok用のカードに — 本物の数字、あなたの名前、あなたのリンク。",
+    "heroTitleA": "マルチチェーン",
+    "heroTitleB": "ミームコイン・ターミナル",
+    "heroSub": "ネイティブガス不要、支払いはすべてUSDC。",
+    "heroCta": "ターミナルを開く",
+    "showcaseNote": "サンプルカード",
+    "chatTitle": "ひとりで取引しない。",
+    "chatBody": "世界中のトレーダーとつながるチャットと、すべてのコインのライブチャット。リアルな取引がリアルタイムで流れ、偽造できないバッジ付き。",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "ライブ — 世界中のトレーダー",
+    "chatCoin": "ライブチャット",
+    "chatCoinSub": "取引がリアルタイムで届く"
   },
   "coin": {
     "price": "価格",

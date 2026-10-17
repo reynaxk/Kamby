@@ -11,7 +11,18 @@ import { useTranslations } from 'next-intl';
  * automatically) and goes to the terminal once signed in. Returning, already-signed-in users
  * are sent straight there.
  */
-export function LandingCta({ label: labelProp, variant = 'primary', className }: { label?: string; variant?: 'primary' | 'ghost' | 'neon'; className?: string }) {
+export function LandingCta({
+  label: labelProp,
+  variant = 'primary',
+  arrow = false,
+  className,
+}: {
+  label?: string;
+  variant?: 'primary' | 'ghost' | 'neon';
+  /** A trailing → that nudges right on hover (the landing's main buttons, 2026-10-17). */
+  arrow?: boolean;
+  className?: string;
+}) {
   const tU = useTranslations('ui');
   const tL = useTranslations('landing');
   const label = labelProp ?? tU('getStarted_be11');
@@ -27,7 +38,7 @@ export function LandingCta({ label: labelProp, variant = 'primary', className }:
       disabled={!ready}
       onClick={() => (authenticated ? router.push(signedInHome()) : login())}
       className={cn(
-        'rounded-xl px-6 py-3 font-display text-sm font-bold transition-all disabled:opacity-60',
+        'group rounded-xl px-6 py-3 font-display text-sm font-bold transition-all disabled:opacity-60',
         variant === 'neon'
           ? 'bg-[#00FF87] px-8 py-3.5 text-black ring-1 ring-[#00FF87]/60 shadow-[0_0_28px_rgba(0,255,135,0.45),0_0_70px_rgba(0,255,135,0.18)] hover:shadow-[0_0_44px_rgba(0,255,135,0.75),0_0_110px_rgba(0,255,135,0.35)] hover:brightness-105 active:scale-[0.98]'
           : variant === 'primary'
@@ -36,7 +47,14 @@ export function LandingCta({ label: labelProp, variant = 'primary', className }:
         className,
       )}
     >
-      {!ready ? tL('loading') : authenticated ? tL('openTerminal') : label}
+      <span className="inline-flex items-center justify-center gap-2">
+        {!ready ? tL('loading') : authenticated ? tL('openTerminal') : label}
+        {arrow && ready && (
+          <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
+            →
+          </span>
+        )}
+      </span>
     </button>
   );
 }

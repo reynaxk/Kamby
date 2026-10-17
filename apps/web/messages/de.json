@@ -156,7 +156,18 @@
     "f6Title": "Zeig deinen PnL",
     "f6Body": "Schöne Share-Karten mit deinem Einladungslink — jeder Gewinn bringt neue Trader.",
     "showcaseTitle": "Zeig jeden Gewinn.",
-    "showcaseBody": "Ein Tipp macht aus einem Trade eine Karte für X, Instagram und TikTok — echte Zahlen, dein Name, dein Link."
+    "showcaseBody": "Ein Tipp macht aus einem Trade eine Karte für X, Instagram und TikTok — echte Zahlen, dein Name, dein Link.",
+    "heroTitleA": "Multi-Chain",
+    "heroTitleB": "Meme-Coin-Terminal",
+    "heroSub": "kein natives Gas, du zahlst komplett in USDC.",
+    "heroCta": "Terminal starten",
+    "showcaseNote": "Beispielkarten",
+    "chatTitle": "Trade nie allein.",
+    "chatBody": "Ein weltweiter Chat für alle Trader und ein Live-Chat zu jedem Coin — mit echten Trades in Echtzeit und Badges, die man nicht fälschen kann.",
+    "chatPulse": "Pulse",
+    "chatPulseSub": "Live — Trader weltweit",
+    "chatCoin": "Live-Chat",
+    "chatCoinSub": "Trades kommen live rein"
   },
   "coin": {
     "price": "Preis",
