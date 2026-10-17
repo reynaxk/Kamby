@@ -11,6 +11,7 @@ import { Providers } from './providers';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { CallProvider } from '@/components/calls/CallProvider';
+import { SessionGuard } from '@/components/account/SessionGuard';
 import { LandingOnlyOnPhones } from '@/components/layout/LandingOnlyOnPhones';
 import { LaunchOnHome } from '@/components/pwa/LaunchOnHome';
 import { AppSplash, SPLASH_GATE_SCRIPT } from '@/components/pwa/AppSplash';
@@ -94,6 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
           </CallProvider>
           <AuthGate />
+          <SessionGuard />
         </Providers>
         <InstallApp />
         <LaunchOnHome />

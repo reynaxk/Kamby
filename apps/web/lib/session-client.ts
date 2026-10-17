@@ -12,6 +12,10 @@ import { getCapturedReferralCode } from './referral-capture';
  */
 
 const TOKEN_STORAGE_KEY = 'kamby:session-token';
+/** Which Privy sign-in this browser's Kamby session belongs to (2026-10-17). Without it, the
+ *  next person to sign in on the same phone carried on in the previous person's account —
+ *  their wallets were linked into it and they saw its positions and private chats. */
+const OWNER_STORAGE_KEY = 'kamby:session-owner';
 const API_BASE = clientEnv.NEXT_PUBLIC_API_BASE_URL;
 
 function readStoredToken(): string | null {
@@ -37,6 +41,38 @@ function storeToken(token: string): void {
     window.dispatchEvent(new Event(SESSION_CHANGED_EVENT));
   } catch {
     // no window events (tests) — fine
+  }
+}
+
+/** Forget this browser's Kamby session (sign-out, or a different person signed in). */
+export function endSession(): void {
+  try {
+    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    window.localStorage.removeItem(OWNER_STORAGE_KEY);
+  } catch {
+    // storage blocked — nothing stored to forget
+  }
+}
+
+/**
+ * Keeps the Kamby session with the person who's signed in: the first time a sign-in is seen it
+ * claims the session; if a *different* sign-in shows up later, the old session is dropped so
+ * this person starts fresh (their wallet signature then brings back their own account).
+ * Returns true when it dropped a session (the caller reloads).
+ */
+export function bindSessionTo(privyUserId: string): boolean {
+  try {
+    const owner = window.localStorage.getItem(OWNER_STORAGE_KEY);
+    if (owner === privyUserId) return false;
+    if (owner && readStoredToken()) {
+      endSession();
+      window.localStorage.setItem(OWNER_STORAGE_KEY, privyUserId);
+      return true;
+    }
+    window.localStorage.setItem(OWNER_STORAGE_KEY, privyUserId);
+    return false;
+  } catch {
+    return false;
   }
 }
 
