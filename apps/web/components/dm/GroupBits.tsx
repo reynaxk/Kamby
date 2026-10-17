@@ -38,6 +38,10 @@ export function useSystemText(): (s: DmSystem) => string {
         return t('sysAdded', { actor, targets });
       case 'joined':
         return t('sysJoined', { actor });
+      case 'duelWon':
+        return t('sysDuelWon', { actor, targets, score: s.title ?? '' });
+      case 'duelDraw':
+        return t('sysDuelDraw', { actor, targets, score: s.title ?? '' });
       case 'removed':
         return t('sysRemoved', { actor, targets });
       case 'left':

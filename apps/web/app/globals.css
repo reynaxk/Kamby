@@ -695,6 +695,13 @@ body:has(.kamby-void) {
   100% { box-shadow: 0 0 0 2px transparent; background: transparent; }
 }
 .kamby-flash { animation: kamby-flash 1.4s ease-out; }
+/* Duel cheers rise and fade from a corner (components/duels/DuelArena.tsx). */
+@keyframes kamby-cheer-float {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; transform: translateY(-12px) scale(1.15); }
+  100% { transform: translateY(-150px) scale(0.9); opacity: 0; }
+}
+.kamby-cheer-float { animation: kamby-cheer-float 1.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 @keyframes kamby-channel-in {
   from { transform: translateX(10px); }
 }

@@ -37,6 +37,7 @@ import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 import { MuteDrawer } from './MuteDrawer';
+import { ChallengeSheet } from '@/components/duels/ChallengeSheet';
 import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer, SquadSettingsDrawer } from './CommunityBits';
 import { haptic, nameColor } from './DmMessageView';
 import { PositionPicker } from '@/components/social/PositionPicker';
@@ -86,7 +87,7 @@ export function DmThread({ id }: { id: string }) {
       .catch(() => undefined);
   }, [id]);
   const [menu, setMenu] = useState(false);
-  const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | 'trade' | null>(null);
+  const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | 'trade' | 'duel' | null>(null);
   const [usdcOpen, setUsdcOpen] = useState(false);
   // Communities: the text channel you're reading, and the owner's channel / invite sheets.
   const [channelId, setChannelId] = useState<string | null>(null);
@@ -875,14 +876,16 @@ export function DmThread({ id }: { id: string }) {
       )}
 
       {community && conv && isOwner && <SquadSettingsDrawer open={squadOpen} onClose={() => setSquadOpen(false)} conv={conv} onDone={setConv} />}
+      {conv && attach === 'duel' && <ChallengeSheet open onClose={() => setAttach(null)} conv={conv} onSent={() => undefined} />}
       {conv && <MuteDrawer open={muteOpen} onClose={() => setMuteOpen(false)} conv={conv} onDone={setConv} />}
 
       {/* + menu */}
       <MobileDrawer open={attach === 'menu'} onClose={() => setAttach(null)} title={t('attachTitle')} desktop>
-        <div className={cn('grid gap-2 pb-2', isGroup ? 'grid-cols-3' : 'grid-cols-4')}>
+        <div className="grid grid-cols-3 gap-2 pb-2">
           {(
             [
               ['trade', '⚡', t('attachTrade')],
+              ['duel', '⚔️', t('attachDuel')],
               ['coin', '🪙', t('attachCoin')],
               ['pnl', '📈', t('attachPnl')],
               ['usdc', '💸', t('attachUsdc')],
