@@ -31,7 +31,7 @@ export function MessagesShell({ children, home = null }: { children: React.React
   if (!wide) return <div className="kamby-void min-h-screen bg-bg">{home ?? children}</div>;
   return (
     <div className="kamby-void min-h-screen bg-bg [--dm-left:340px] xl:[--dm-left:380px]">
-      <aside className="fixed inset-y-0 left-0 z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#05070A]/70 xl:w-[380px]">
+      <aside className="fixed bottom-8 left-0 top-0 z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#05070A]/70 xl:w-[380px]">
         <div className="flex items-center justify-between px-5 pb-2 pt-5">
           <Link href="/home" className="flex items-center gap-2" aria-label="Kamby">
             <KambyLogo size="sm" />

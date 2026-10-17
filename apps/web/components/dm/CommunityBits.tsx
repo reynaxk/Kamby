@@ -82,7 +82,9 @@ export function ChannelBar({
   canAdd,
   onAdd,
   personOf,
+  className,
 }: {
+  className?: string;
   channels: DmChannelInfo[];
   current: string | null;
   onPick: (id: string) => void;
@@ -121,7 +123,7 @@ export function ChannelBar({
     </button>
   );
   return (
-    <nav className="kamby-frost-bar-phone sticky top-[calc(env(safe-area-inset-top)+3.6rem)] z-20 border-b border-white/[0.05] md:bg-bg/90" aria-label={t('channels')}>
+    <nav className={cn('kamby-frost-bar-phone sticky top-[calc(env(safe-area-inset-top)+3.6rem)] z-20 border-b border-white/[0.05] md:bg-bg/90', className)} aria-label={t('channels')}>
       <div className="mx-auto flex max-w-2xl gap-1.5 overflow-x-auto px-3 py-2 [scrollbar-width:none]">
         {people > 0 && loungeChip}
         {channels

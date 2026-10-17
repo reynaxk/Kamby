@@ -191,6 +191,14 @@ export function DmThread({ id }: { id: string }) {
   useLayoutEffect(() => {
     if (stickToBottom.current) bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages.length, typing]);
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (stickToBottom.current) bottomRef.current?.scrollIntoView({ block: 'end' });
+    });
+    ro.observe(document.body);
+    return () => ro.disconnect();
+  }, []);
 
   function pickChannel(next: string) {
     if (next === channelId) return;
@@ -354,7 +362,7 @@ export function DmThread({ id }: { id: string }) {
     <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:600px] xl:[--dm-left:640px]')}>
       {/* Desktop: the community's channels stay open on the left (Discord) */}
       {community && conv && (
-        <aside className="fixed bottom-0 top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#070A12]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
+        <aside className="fixed bottom-8 top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#070A12]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
           <CommunityPanel
             tall
             onClose={() => undefined}
@@ -500,8 +508,8 @@ export function DmThread({ id }: { id: string }) {
       </header>
 
       {community && (
-        <div className="lg:hidden">
         <ChannelBar
+          className="lg:hidden"
           channels={community.channels}
           current={channelId}
           onPick={pickChannel}
@@ -512,7 +520,6 @@ export function DmThread({ id }: { id: string }) {
           onAdd={() => setChannelsOpen(true)}
           personOf={(u) => memberBy.get(u)}
         />
-        </div>
       )}
 
       {/* A call is on in this chat — join it */}
@@ -531,7 +538,7 @@ export function DmThread({ id }: { id: string }) {
       )}
 
       {/* Messages */}
-      <main key={channelId ?? 'chat'} className={cn('mx-auto w-full max-w-2xl flex-1 px-3 pb-36 pt-3', community && 'kamby-channel-in')}>
+      <main key={channelId ?? 'chat'} className={cn('mx-auto w-full max-w-2xl flex-1 px-3 pb-36 pt-3 md:pb-44', community && 'kamby-channel-in')}>
         {nextBefore && (
           <button type="button" onClick={() => void loadEarlier()} className="mx-auto mb-2 block rounded-full bg-white/[0.05] px-4 py-1.5 font-body text-xs font-semibold text-ink-400">
             {t('loadEarlier')}
@@ -600,7 +607,7 @@ export function DmThread({ id }: { id: string }) {
       </main>
 
       {/* Bottom: request choice, blocked note, or the composer */}
-      <div className="fixed bottom-0 right-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 [left:var(--dm-left,0px)] md:px-6">
+      <div className="fixed bottom-0 right-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 [left:var(--dm-left,0px)] md:bottom-8 md:px-6">
         <div className="relative mx-auto max-w-2xl">
         {(scrolledUp || newBelow > 0) && (
           <button
