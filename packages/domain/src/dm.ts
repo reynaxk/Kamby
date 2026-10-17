@@ -19,6 +19,9 @@ export const DM_LIMITS = {
   pushBucketMinutes: 5,
   /** A "typing…" signal lasts this long on the other side. */
   typingTtlMs: 4000,
+  /** Group chats (2026-10-17, owner: up to 32 people). */
+  groupMaxMembers: 32,
+  groupTitleMax: 40,
 } as const;
 
 /** Reactions on a private message — the same set as a coin's chat. */
@@ -27,7 +30,15 @@ export function isDmReaction(value: string): boolean {
   return (DM_REACTIONS as readonly string[]).includes(value);
 }
 
-export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc';
+/** 'system' = a group event line ("@sandy added @tati"), written by the server. */
+export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'system';
+
+export interface DmSystem {
+  event: 'created' | 'added' | 'removed' | 'left' | 'renamed';
+  actor: string | null;
+  targets: string[];
+  title?: string;
+}
 
 export interface DmCoin {
   chainIdentifier: string;
@@ -63,6 +74,7 @@ export interface DmMessage {
   coin: DmCoin | null;
   pnl: DmPnl | null;
   usdc: DmUsdc | null;
+  system: DmSystem | null;
   /** emoji → the users who reacted with it. */
   reactions: Record<string, string[]>;
   createdAt: string;
@@ -78,15 +90,27 @@ export interface DmPerson {
 
 /**
  * - `active`: a normal chat.
- * - `request`: someone you don't both follow wrote to you — accept it to reply.
- * - `pending`: you wrote first and they haven't accepted yet.
+ * - `request`: someone you don't both follow wrote to you (or added you to a group) — accept it to reply.
+ * - `pending`: you wrote first and they haven't accepted yet (1:1 only).
  */
 export type DmConversationState = 'active' | 'request' | 'pending';
 
+export interface DmGroup {
+  title: string;
+  ownerId: string;
+  /** Everyone active in the group (at most DM_LIMITS.groupMaxMembers), you included. */
+  members: DmPerson[];
+}
+
 export interface DmConversation {
   id: string;
+  /** Your own user id — tells your messages apart in a group. */
+  meId: string;
   state: DmConversationState;
-  other: DmPerson;
+  /** The other person in a 1:1 chat; null in a group. */
+  other: DmPerson | null;
+  /** Set for a group chat. */
+  group: DmGroup | null;
   lastMessage: { body: string; kind: DmMessageKind; senderId: string; createdAt: string } | null;
   unread: number;
   /** When the other side last read this chat — "Seen" under your last message. */

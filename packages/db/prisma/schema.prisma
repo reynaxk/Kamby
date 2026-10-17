@@ -1331,8 +1331,13 @@ model LaunchAsset {
 /// are plain columns (no relation), like the rest of the social tables' secondary links.
 model DmConversation {
   id            String    @id @default(uuid())
-  userAId       String    @map("user_a_id")
-  userBId       String    @map("user_b_id")
+  /// The pair, for a 1:1 chat (null for a group — its people are in dm_members).
+  userAId       String?   @map("user_a_id")
+  userBId       String?   @map("user_b_id")
+  /// Group chats (2026-10-17): a title, an owner (admin), members in dm_members.
+  isGroup       Boolean   @default(false) @map("is_group")
+  title         String?   @db.VarChar(40)
+  ownerId       String?   @map("owner_id")
   /// Who wrote first — the other side sees a request until they accept.
   requesterId   String    @map("requester_id")
   /// 'request' until accepted (or both already followed each other), then 'active'.
@@ -1347,6 +1352,7 @@ model DmConversation {
 
   messages DmMessage[]
   reports  DmReport[]
+  members  DmMember[]
 
   @@unique([userAId, userBId])
   /// Each side's chat list, newest first.
@@ -1378,6 +1384,27 @@ model DmMessage {
   /// A sender's last message (cooldown).
   @@index([senderId, createdAt])
   @@map("dm_messages")
+}
+
+/// Someone in a group chat (2026-10-17). `status` 'invited' = added by someone they don't
+/// follow, so it waits in their Requests; 'active' = in the group; left/removed rows are deleted.
+model DmMember {
+  conversationId String    @map("conversation_id")
+  userId         String    @map("user_id")
+  /// 'owner' | 'member'
+  role           String    @default("member") @db.VarChar(8)
+  /// 'active' | 'invited'
+  status         String    @default("active") @db.VarChar(8)
+  readAt         DateTime? @map("read_at")
+  hiddenAt       DateTime? @map("hidden_at")
+  joinedAt       DateTime  @default(now()) @map("joined_at")
+
+  conversation DmConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  /// A user's groups.
+  @@index([userId])
+  @@map("dm_members")
 }
 
 /// One user blocking another — they can't message the blocker (2026-10-17).

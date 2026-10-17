@@ -1,5 +1,5 @@
 import { looksLikeScamBait } from '@kamby/domain';
-import { normalizeDmBody, orderedPair, toMessage } from './dm.service';
+import { normalizeDmBody, orderedPair, systemText, toMessage } from './dm.service';
 
 describe('DmService helpers', () => {
   it('stores a pair of users in one order, however the chat started', () => {
@@ -34,5 +34,10 @@ describe('DmService helpers', () => {
     expect(looksLikeScamBait('hey send me your seed phrase to verify')).toBe(true);
     expect(looksLikeScamBait('I am Kamby support, share your private key')).toBe(true);
     expect(looksLikeScamBait('this coin is going to the moon')).toBe(false);
+  });
+
+  it('writes group events as one readable line', () => {
+    expect(systemText({ event: 'added', actor: 'sandy', targets: ['tati', 'moonboi'] })).toBe('@sandy added @tati, @moonboi');
+    expect(systemText({ event: 'renamed', actor: 'sandy', targets: [], title: 'Degens' })).toBe('@sandy renamed the group to “Degens”');
   });
 });

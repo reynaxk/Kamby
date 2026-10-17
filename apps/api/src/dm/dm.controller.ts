@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { IsBoolean, IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
@@ -59,6 +59,34 @@ class BlockDto {
   blocked!: boolean;
 }
 
+class GroupDto {
+  @IsString()
+  @MaxLength(60)
+  title!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(31)
+  @IsString({ each: true })
+  @MaxLength(32, { each: true })
+  usernames!: string[];
+}
+
+class MembersDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(31)
+  @IsString({ each: true })
+  @MaxLength(32, { each: true })
+  usernames!: string[];
+}
+
+class RenameDto {
+  @IsString()
+  @MaxLength(60)
+  title!: string;
+}
+
 class ReportDto {
   @IsOptional()
   @IsString()
@@ -92,6 +120,42 @@ export class DmController {
   @Post('open')
   open(@Body() body: OpenDto, @CurrentUser() user: SessionUser) {
     return this.dm.open(user.id, body.username);
+  }
+
+  // --- groups (2026-10-17) ---
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('groups')
+  createGroup(@Body() body: GroupDto, @CurrentUser() user: SessionUser) {
+    return this.dm.createGroup(user.id, body.title, body.usernames);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('conversations/:id/members')
+  addMembers(@Param('id', ParseUUIDPipe) id: string, @Body() body: MembersDto, @CurrentUser() user: SessionUser) {
+    return this.dm.addMembers(user.id, id, body.usernames);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('conversations/:id/members/:userId/remove')
+  removeMember(@Param('id', ParseUUIDPipe) id: string, @Param('userId', ParseUUIDPipe) userId: string, @CurrentUser() user: SessionUser) {
+    return this.dm.removeMember(user.id, id, userId);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(204)
+  @Post('conversations/:id/leave')
+  async leave(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
+    await this.dm.leave(user.id, id);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('conversations/:id/rename')
+  rename(@Param('id', ParseUUIDPipe) id: string, @Body() body: RenameDto, @CurrentUser() user: SessionUser) {
+    return this.dm.rename(user.id, id, body.title);
   }
 
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
