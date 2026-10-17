@@ -2,6 +2,7 @@
 
 import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
 import type { PointerEvent } from 'react';
+import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
 
 export type LandingIcon = 'gas' | 'shield' | 'dollar' | 'launch' | 'chat' | 'card';
 
@@ -59,6 +60,8 @@ function Icon({ name, size = 22 }: { name: LandingIcon; size?: number }) {
       );
   }
 }
+
+const GAS_CHAINS: [BadgeChain, string][] = [['solana', 'Solana'], ['base', 'Base'], ['bnb', 'BNB'], ['robinhood', 'Robinhood']];
 
 /** Bento placement (lg): the first feature is the big 2×2 tile, the rest fill around it. */
 const SPAN = ['lg:col-span-2 lg:row-span-2', '', '', '', '', ''];
@@ -120,6 +123,20 @@ function Tile({ f, index }: { f: LandingFeature; index: number }) {
       <div className="relative">
         <h3 className={`font-display font-bold tracking-tight text-white ${big ? 'mt-10 text-3xl sm:text-4xl' : 'mt-5 text-[1.05rem]'}`}>{f.title}</h3>
         <p className={`mt-2 font-body leading-[1.65] text-[#7C8798] ${big ? 'max-w-md text-base' : 'text-[0.86rem]'}`}>{f.body}</p>
+        {big && (
+          // The four chains, each with the gas a Kamby user pays on it: none.
+          <div className="mt-6 flex flex-wrap gap-2" aria-hidden>
+            {GAS_CHAINS.map(([chain, name]) => (
+              <span key={chain} className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-black/30 py-1.5 pl-1.5 pr-3">
+                <span className="relative h-5 w-5">
+                  <ChainBadge chain={chain} className="!static !h-5 !w-5 !ring-0" />
+                </span>
+                <span className="font-display text-xs font-bold text-white">{name}</span>
+                <span className="font-mono text-[0.65rem] font-semibold text-[#00FF87]">gas $0</span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -47,8 +47,8 @@ export default async function LandingPage() {
           <div className="absolute left-1/2 top-[-18rem] h-[42rem] w-[70rem] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,255,102,0.16),transparent)]" />
           <div className="absolute right-[-12rem] top-[18rem] h-[36rem] w-[44rem] bg-[radial-gradient(closest-side,rgba(16,185,129,0.12),transparent)]" />
           {/* The neon 3D grid, receding into the distance */}
-          <div className="kamby-grid-floor absolute inset-x-[-25%] bottom-[-8rem] h-[34rem]" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#050608] to-transparent" />
+          <div className="kamby-grid-floor absolute inset-x-[-25%] bottom-[-4rem] h-[46rem]" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050608] to-transparent" />
         </div>
 
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1.25rem)]">

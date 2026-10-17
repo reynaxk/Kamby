@@ -361,14 +361,14 @@ body:has(.kamby-void) {
 /* The neon 3D grid floor: lines on a plane tilted away from the viewer, fading into the distance. */
 .kamby-grid-floor {
   background-image:
-    linear-gradient(rgba(0, 255, 135, 0.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 135, 0.22) 1px, transparent 1px);
+    linear-gradient(rgba(0, 255, 135, 0.34) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 135, 0.34) 1px, transparent 1px);
   background-size: 64px 64px;
   transform: perspective(520px) rotateX(62deg);
   transform-origin: 50% 100%;
-  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 78%);
-  mask-image: linear-gradient(to top, #000 10%, transparent 78%);
-  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(to top, #000 18%, transparent 85%);
+  mask-image: linear-gradient(to top, #000 18%, transparent 85%);
+  opacity: 0.85;
 }
 /* The main button breathes: a glow ring behind it fades in and out (opacity only). */
 .kamby-cta-pulse {
