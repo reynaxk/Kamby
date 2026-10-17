@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { isCuratedMarket, type DmTrade, type MarketSummary } from '@kamby/domain';
 import { TradeModal } from '@/components/trading/TradeModal';
+import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 import { CurveTradePanel } from '@/components/trading/CurveTradePanel';
 import { TradePanelCard } from '@/components/terminal/TradePanelCard';
@@ -12,6 +13,7 @@ import { PriceText } from '@/components/market/PriceText';
 import { API_BASE } from '@/lib/session-client';
 import { cashtag, formatPercent } from '@/lib/format';
 import { cn } from '@kamby/ui';
+import { Bolt } from './Bolt';
 
 const EVM_CHAIN_ID: Record<string, number> = { 'eip155:8453': 8453, 'eip155:56': 56, 'eip155:4663': 4663 };
 
@@ -43,11 +45,13 @@ export function CopySnipeSheet({ open, onClose, trade, by, livePrice }: { open: 
 
   return (
     <TradeModal open={open} onClose={onClose}>
+      {/* The trade panels report through the terminal's toasts — chats don't have them. */}
+      <ToastProvider>
       <div className="mb-4 flex items-center gap-3">
         <TokenAvatar src={trade.logoUrl} seed={trade.tokenAddress} label={trade.symbol ?? trade.tokenAddress} className="h-11 w-11 text-sm" />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 font-display text-lg font-black text-ink-900">
-            <span aria-hidden>⚡</span>
+            <Bolt className="h-4 w-4 text-accent" />
             {t('copySnipeTitle', { symbol: cashtag(trade.symbol ?? trade.tokenAddress.slice(0, 6)) })}
           </p>
           <p className="truncate font-body text-xs text-ink-400">
@@ -86,6 +90,7 @@ export function CopySnipeSheet({ open, onClose, trade, by, livePrice }: { open: 
       ) : (
         <p className="py-6 text-center font-body text-sm text-ink-400">{t('cantTrade')}</p>
       )}
+      </ToastProvider>
     </TradeModal>
   );
 }

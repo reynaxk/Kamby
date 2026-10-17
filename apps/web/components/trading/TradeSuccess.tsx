@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ShareTradeSheet, type ShareChain } from '@/components/social/ShareTradeSheet';
+import { Bolt } from '@/components/social/Bolt';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 
@@ -43,7 +44,7 @@ export function TradeSuccess({ title, share }: { title: string; share?: { chain:
             onClick={() => setSharing(true)}
             className="kamby-pop flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 font-display text-sm font-bold text-accent transition-transform active:scale-95"
           >
-            <span aria-hidden>⚡</span>
+            <Bolt className="h-3.5 w-3.5" />
             {t('shareToChat')}
           </button>
           {sharing && <ShareTradeSheet open={sharing} onClose={() => setSharing(false)} chain={share.chain} tokenAddress={share.tokenAddress} />}
