@@ -3,6 +3,8 @@ import {
   ACTIVITY_REALTIME_CHANNEL,
   DM_REALTIME_CHANNEL,
   type DmEvent,
+  LIVE_REALTIME_CHANNEL,
+  type LiveEvent,
   NOTIFICATION_REALTIME_CHANNEL,
   PUMPFUN_REALTIME_CHANNEL,
   PULSE_REALTIME_CHANNEL,
@@ -53,6 +55,7 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly pulseSubject = new Subject<PulseMessage>();
   private readonly tokenChatSubject = new Subject<TokenChatEvent>();
   private readonly dmSubject = new Subject<DmEvent>();
+  private readonly liveSubject = new Subject<LiveEvent>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -81,13 +84,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.tokenChatSubject.next(JSON.parse(message) as TokenChatEvent);
         } else if (channel === DM_REALTIME_CHANNEL) {
           this.dmSubject.next(JSON.parse(message) as DmEvent);
+        } else if (channel === LIVE_REALTIME_CHANNEL) {
+          this.liveSubject.next(JSON.parse(message) as LiveEvent);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL, DM_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL, DM_REALTIME_CHANNEL, LIVE_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -132,5 +137,10 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
    *  notifications stream, which filters on them). */
   get dmEvents$() {
     return this.dmSubject.asObservable();
+  }
+
+  /** Live-room events (chat, track/viewer changes, the end) — each room's stream filters to it. */
+  get liveEvents$() {
+    return this.liveSubject.asObservable();
   }
 }

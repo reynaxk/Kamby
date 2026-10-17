@@ -18,6 +18,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PulseModule } from './pulse/pulse.module';
 import { DmModule } from './dm/dm.module';
 import { CallsModule } from './calls/calls.module';
+import { LiveModule } from './live/live.module';
 import { LaunchpadModule } from './launchpad/launchpad.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { BridgeModule } from './bridge/bridge.module';
@@ -85,6 +86,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     PulseModule,
     DmModule,
     CallsModule,
+    LiveModule,
     LaunchpadModule,
     TransfersModule,
     BridgeModule,

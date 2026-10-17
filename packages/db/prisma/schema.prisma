@@ -1433,3 +1433,36 @@ model DmReport {
   @@unique([conversationId, reporterId])
   @@map("dm_reports")
 }
+
+/// A live room (2026-10-17) — see @kamby/domain live.ts. Live state (who's watching, the host's
+/// tracks) is in Redis; this row is the room's record: who, what, when, how it ended.
+model LiveRoom {
+  id            String    @id @default(uuid())
+  hostId        String    @map("host_id")
+  title         String    @db.VarChar(60)
+  /// The coin it's about: `solana:<mint>` / `eip155:<id>:<0x…>` (same keys as coin chats), if any.
+  tokenKey      String?   @map("token_key") @db.VarChar(140)
+  startedAt     DateTime  @default(now()) @map("started_at")
+  endedAt       DateTime? @map("ended_at")
+  /// 'host' | 'dropped' | 'reports'
+  endedReason   String?   @map("ended_reason") @db.VarChar(10)
+  peakViewers   Int       @default(0) @map("peak_viewers")
+
+  reports LiveReport[]
+
+  @@index([endedAt, startedAt])
+  @@index([hostId, startedAt])
+  @@map("live_rooms")
+}
+
+model LiveReport {
+  id         String   @id @default(uuid())
+  roomId     String   @map("room_id")
+  reporterId String   @map("reporter_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  room LiveRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, reporterId])
+  @@map("live_reports")
+}

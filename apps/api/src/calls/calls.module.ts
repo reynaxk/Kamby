@@ -11,5 +11,6 @@ import { CloudflareRealtimeClient } from './cloudflare-realtime.client';
   imports: [IdentityModule, DmModule, NotificationsModule],
   controllers: [CallsController],
   providers: [CallsService, CloudflareRealtimeClient],
+  exports: [CloudflareRealtimeClient],
 })
 export class CallsModule {}

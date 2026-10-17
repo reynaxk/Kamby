@@ -46,6 +46,7 @@ describe('RealtimeService', () => {
       'kamby:pulse:new',
       'kamby:token-chat',
       'kamby:dm',
+      'kamby:live',
     );
   });
 
