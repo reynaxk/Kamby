@@ -7,6 +7,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
 import { AppBell } from '@/components/notifications/AppBell';
+import { MessagesButton } from '@/components/dm/MessagesButton';
 import { markAppReady } from '@/components/pwa/AppSplash';
 import { useAccount } from 'wagmi';
 import { cn } from '@kamby/ui';
@@ -70,7 +71,10 @@ export function PortfolioHeader() {
     <div className="kamby-rise -mb-2 flex items-center justify-between pt-1 md:hidden">
       {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
-      <AppBell />
+      <span className="flex items-center">
+        <MessagesButton />
+        <AppBell />
+      </span>
     </div>
     {/* Desktop (2026-10-15): the same midnight card as the phone — balance left, the three money
         buttons right, LaunchPad across the bottom — instead of a bare number over small buttons. */}

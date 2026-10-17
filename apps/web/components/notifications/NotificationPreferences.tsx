@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
 import { PushToggle } from './PushToggle';
 
 const FIELDS: { key: keyof NotificationPreferences; label: string; detail: string }[] = [
+  { key: 'messages', label: 'Messages', detail: 'When someone sends you a private message' },
   { key: 'follows', label: 'New followers', detail: 'When someone starts following you' },
   { key: 'likes', label: 'Likes', detail: 'When someone likes one of your trades' },
   {

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { ActivityFeed } from '@/components/social/ActivityFeed';
 import { CopyAddressButton } from '@/components/social/CopyAddressButton';
 import { TraderProfileActions } from '@/components/social/TraderProfileActions';
+import { MessageUserButton } from '@/components/dm/MessageUserButton';
 import { ShareButton } from '@/components/social/ShareButton';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { MarketHeader } from '@/components/market/MarketHeader';
@@ -93,6 +94,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <TraderProfileActions address={profile.address} initialFollowing={profile.isFollowedByMe} />
+              <MessageUserButton username={profile.username} />
               <ShareButton title={`${profile.username ?? truncateAddress(profile.address)} on Kamby`} path={`/trader/${profile.address}`} />
             </div>
           </div>

@@ -1,7 +1,8 @@
 'use client';
 
 import type { NotificationDto, NotificationPreferences } from '@kamby/domain';
-import { API_BASE, authedFetch, expectOk } from './session-client';
+import { authedFetch, expectOk } from './session-client';
+import { subscribePrivateStream, type NotificationPing, type RealtimeStatus } from './private-stream';
 
 /**
  * Browser-side client for the Phase 4 notification domain — same shape as
@@ -75,83 +76,16 @@ export async function updateNotificationPreferences(patch: Partial<NotificationP
   return res.json();
 }
 
-async function fetchStreamTicket(): Promise<string> {
-  const res = await authedFetch('/notifications/stream-ticket', { method: 'POST' });
-  await expectOk(res, 'start notification stream');
-  const body = (await res.json()) as { ticket: string };
-  return body.ticket;
-}
-
-export type RealtimeStatus = 'connecting' | 'live' | 'reconnecting';
-
-interface NotificationPing {
-  userId: string;
-  notificationId: string;
-  type: NotificationDto['type'];
-  atIso: string;
-}
+export type { RealtimeStatus } from './private-stream';
 
 /**
  * Subscribes to the private per-user notification stream — see
- * docs/NOTIFICATIONS.md#realtime-delivery. Unlike `subscribeToActivityStream`
- * (social-client.ts), this cannot simply let the browser's built-in `EventSource` retry
- * handle reconnection: the stream URL carries a single-use ticket, so a native retry
- * (which reuses the exact same URL) would always fail with 401 after the first connection.
- * Every reconnect here — after an error, or after a clean server-side close — fetches a
- * fresh ticket and opens a brand new EventSource instead.
+ * docs/NOTIFICATIONS.md#realtime-delivery. Since 2026-10-17 a thin listener on the shared
+ * private connection (lib/private-stream.ts), which private messages ride too.
  */
 export function subscribeToNotificationStream(
   onPing: (ping: NotificationPing) => void,
   onStatus: (status: RealtimeStatus) => void,
 ): () => void {
-  let source: EventSource | null = null;
-  let retryTimer: ReturnType<typeof setTimeout> | null = null;
-  let cancelled = false;
-
-  async function connect(): Promise<void> {
-    if (cancelled) return;
-    onStatus('connecting');
-    try {
-      const ticket = await fetchStreamTicket();
-      if (cancelled) return;
-
-      const es = new EventSource(`${API_BASE}/v1/notifications/stream?ticket=${encodeURIComponent(ticket)}`);
-      source = es;
-      es.addEventListener('notification', (event) => {
-        try {
-          onPing(JSON.parse((event as MessageEvent).data) as NotificationPing);
-        } catch {
-          // Malformed payload — ignore this one ping; the next successful list/unread-count
-          // fetch (triggered by the caller on any ping) still catches the client up.
-        }
-      });
-      es.addEventListener('heartbeat', () => onStatus('live'));
-      es.onopen = () => onStatus('live');
-      es.onerror = () => {
-        onStatus('reconnecting');
-        es.close();
-        if (source === es) source = null;
-        scheduleReconnect();
-      };
-    } catch {
-      onStatus('reconnecting');
-      scheduleReconnect();
-    }
-  }
-
-  function scheduleReconnect(): void {
-    if (cancelled || retryTimer) return;
-    retryTimer = setTimeout(() => {
-      retryTimer = null;
-      void connect();
-    }, 2000);
-  }
-
-  void connect();
-
-  return () => {
-    cancelled = true;
-    if (retryTimer) clearTimeout(retryTimer);
-    source?.close();
-  };
+  return subscribePrivateStream({ onNotification: onPing, onStatus });
 }

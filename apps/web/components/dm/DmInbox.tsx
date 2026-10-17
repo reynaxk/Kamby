@@ -1,0 +1,200 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import type { DmConversation } from '@kamby/domain';
+import { cn } from '@kamby/ui';
+import { fetchConversations, openConversation, useDmUnread } from '@/lib/dm-client';
+import { subscribePrivateStream } from '@/lib/private-stream';
+import { hasStoredSession } from '@/lib/session-client';
+import { friendlyError } from '@/lib/friendly-error';
+import { formatRelativeTime } from '@/lib/format';
+import { DmAvatar } from './DmAvatar';
+
+/**
+ * The Messages screen (2026-10-17): your chats, newest first, and a Requests tab for first
+ * messages from people you don't both follow (Instagram-style). A frosted "new message" field
+ * opens a chat by @username. Updates live from the private stream.
+ */
+export function DmInbox() {
+  const t = useTranslations('dm');
+  const router = useRouter();
+  const unread = useDmUnread();
+  const [box, setBox] = useState<'chats' | 'requests'>('chats');
+  const [items, setItems] = useState<DmConversation[] | null>(null);
+  const [error, setError] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [composing, setComposing] = useState(false);
+  const [username, setUsername] = useState('');
+  const [opening, setOpening] = useState(false);
+  const [openError, setOpenError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    fetchConversations(box)
+      .then((rows) => {
+        setItems(rows);
+        setError(false);
+      })
+      .catch(() => setError(true));
+  }, [box]);
+
+  useEffect(() => {
+    const ok = hasStoredSession();
+    setSignedIn(ok);
+    if (!ok) return;
+    setItems(null);
+    load();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = subscribePrivateStream({
+      onDm: (e) => {
+        if (e.type === 'typing') return;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(load, 300);
+      },
+    });
+    return () => {
+      if (timer) clearTimeout(timer);
+      unsubscribe();
+    };
+  }, [load]);
+
+  async function start(e: React.FormEvent) {
+    e.preventDefault();
+    const name = username.trim().replace(/^@/, '');
+    if (name.length < 3) return;
+    setOpening(true);
+    setOpenError(null);
+    try {
+      const chat = await openConversation(name);
+      router.push(`/messages/${chat.id}`);
+    } catch (err) {
+      setOpenError(friendlyError(err));
+      setOpening(false);
+    }
+  }
+
+  if (signedIn === false) {
+    return (
+      <div className="kamby-glass mt-6 rounded-3xl px-6 py-12 text-center">
+        <p className="font-display text-lg font-bold text-ink-900">{t('signInTitle')}</p>
+        <p className="mt-1 font-body text-sm text-ink-400">{t('signInBody')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* New message */}
+      {composing ? (
+        <form onSubmit={start} className="kamby-glass-solid flex items-center gap-2 rounded-2xl p-1.5 pl-4">
+          <span className="font-display text-base font-bold text-accent">@</span>
+          <input
+            autoFocus
+            value={username}
+            onChange={(e) => setUsername(e.target.value.replace(/\s/g, '').slice(0, 21))}
+            placeholder={t('toPlaceholder')}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            className="min-w-0 flex-1 bg-transparent py-2 font-body text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none"
+          />
+          <button type="submit" disabled={opening || username.trim().length < 3} className="rounded-xl bg-accent px-4 py-2 font-display text-sm font-bold text-black transition-transform active:scale-95 disabled:opacity-40">
+            {opening ? '…' : t('chat')}
+          </button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setComposing(true)}
+          className="kamby-glass flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-transform active:scale-[0.99]"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </span>
+          <span className="font-display text-sm font-bold text-ink-900">{t('newMessage')}</span>
+        </button>
+      )}
+      {openError && <p className="mt-2 px-1 font-body text-xs font-semibold text-down">{openError}</p>}
+
+      {/* Chats / Requests */}
+      <div className="mt-5 flex gap-1 rounded-full bg-white/[0.04] p-1" role="tablist">
+        {(['chats', 'requests'] as const).map((b) => (
+          <button
+            key={b}
+            type="button"
+            role="tab"
+            aria-selected={box === b}
+            onClick={() => setBox(b)}
+            className={cn('flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 font-display text-sm font-bold transition-colors', box === b ? 'bg-white/10 text-ink-900' : 'text-ink-400')}
+          >
+            {t(b)}
+            {b === 'requests' && (unread?.requests ?? 0) > 0 && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 font-body text-[0.6rem] font-bold text-black">{unread!.requests}</span>
+            )}
+          </button>
+        ))}
+      </div>
+      {box === 'requests' && <p className="mt-3 px-1 font-body text-xs text-ink-400">{t('requestsNote')}</p>}
+
+      <ul className="mt-3 flex flex-col">
+        {items === null && !error
+          ? [0, 1, 2, 3].map((i) => (
+              <li key={i} className="flex items-center gap-3 px-1 py-3">
+                <span className="h-12 w-12 animate-pulse rounded-full bg-white/[0.05]" />
+                <span className="flex-1 space-y-2">
+                  <span className="block h-3 w-28 animate-pulse rounded-full bg-white/[0.06]" />
+                  <span className="block h-2.5 w-44 animate-pulse rounded-full bg-white/[0.04]" />
+                </span>
+              </li>
+            ))
+          : null}
+        {error && <li className="px-1 py-6 text-center font-body text-sm text-ink-400">{t('loadError')}</li>}
+        {items?.length === 0 && (
+          <li className="kamby-glass mt-2 flex flex-col items-center rounded-3xl px-6 py-12 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z" />
+              </svg>
+            </span>
+            <p className="mt-4 font-display text-base font-bold text-ink-900">{box === 'chats' ? t('emptyChats') : t('emptyRequests')}</p>
+            <p className="mt-1 font-body text-sm text-ink-400">{box === 'chats' ? t('emptyChatsBody') : t('emptyRequestsBody')}</p>
+          </li>
+        )}
+        {items?.map((c) => {
+          const name = c.other.username ? `@${c.other.username}` : t('someone');
+          const mine = c.lastMessage?.senderId !== c.other.userId;
+          return (
+            <li key={c.id}>
+              <Link href={`/messages/${c.id}`} className="flex items-center gap-3 rounded-2xl px-1 py-2.5 transition-colors active:bg-white/[0.04]">
+                <span className="relative">
+                  <DmAvatar name={c.other.username} src={c.other.avatarUrl} />
+                  {c.unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" aria-hidden />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className={cn('truncate font-display text-[0.95rem] text-ink-900', c.unread > 0 ? 'font-black' : 'font-bold')}>{name}</span>
+                    {c.state === 'pending' && <span className="shrink-0 rounded-full bg-white/[0.07] px-2 py-0.5 font-body text-[0.6rem] font-semibold text-ink-400">{t('pending')}</span>}
+                    {c.blocked && <span className="shrink-0 rounded-full bg-down/10 px-2 py-0.5 font-body text-[0.6rem] font-semibold text-down">{t('blocked')}</span>}
+                  </span>
+                  <span className={cn('mt-0.5 block truncate font-body text-sm', c.unread > 0 ? 'font-semibold text-ink-900' : 'text-ink-400')}>
+                    {c.lastMessage ? `${mine ? `${t('you')}: ` : ''}${c.lastMessage.body}` : ''}
+                  </span>
+                </span>
+                <span className="flex shrink-0 flex-col items-end gap-1">
+                  {c.lastMessage && <span className="font-body text-[0.68rem] text-ink-400">{formatRelativeTime(c.lastMessage.createdAt)}</span>}
+                  {c.unread > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-body text-[0.65rem] font-bold text-black">{c.unread > 99 ? '99+' : c.unread}</span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

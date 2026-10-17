@@ -157,7 +157,22 @@ const MIN_USER_SEND_USD = 1;
  * username") — send to another Kamby user by @name: the API resolves their verified wallet for the
  * chosen network, the review shows who they are before anything is signed.
  */
-export function SendModal({ open, onClose, toUser = false }: { open: boolean; onClose: () => void; toUser?: boolean }) {
+export function SendModal({
+  open,
+  onClose,
+  toUser = false,
+  presetUsername,
+  onSent,
+}: {
+  open: boolean;
+  onClose: () => void;
+  toUser?: boolean;
+  /** Send to this @name, fixed (a private chat's Send USDC, 2026-10-17). */
+  presetUsername?: string;
+  /** Called with the transfer once it's confirmed — replaces the default recipient notice
+   *  (the chat posts the transfer as a message, which notifies them itself). */
+  onSent?: (txRef: string, chainSlug: string) => void;
+}) {
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
@@ -176,7 +191,7 @@ export function SendModal({ open, onClose, toUser = false }: { open: boolean; on
 
   const [amountDisplay, setAmountDisplay] = useState('');
   const [destination, setDestination] = useState('');
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(presetUsername ?? '');
   const [recipient, setRecipient] = useState<SendRecipient | null>(null);
   const [recipientError, setRecipientError] = useState<string | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
@@ -276,7 +291,7 @@ export function SendModal({ open, onClose, toUser = false }: { open: boolean; on
     setTxResult(null);
     setAmountDisplay('');
     setDestination('');
-    setUsername('');
+    setUsername(presetUsername ?? '');
     setRecipient(null);
   }
 
@@ -350,7 +365,9 @@ export function SendModal({ open, onClose, toUser = false }: { open: boolean; on
       setTxResult(result);
       setStep('confirmed');
       // Tell them (2026-10-15): the API checks the transfer on-chain, then notifies @name.
-      if (toUser && recipient) {
+      if (toUser && recipient && onSent) {
+        onSent(result, chain.slug);
+      } else if (toUser && recipient) {
         void authedFetch('/transfers/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -479,6 +496,7 @@ export function SendModal({ open, onClose, toUser = false }: { open: boolean; on
                       type="text"
                       placeholder={tL('usernamePlaceholder')}
                       value={username}
+                      readOnly={presetUsername !== undefined}
                       onChange={(e) => setUsername(e.target.value.replace(/\s/g, '').slice(0, 21))}
                       autoCapitalize="none"
                       autoCorrect="off"

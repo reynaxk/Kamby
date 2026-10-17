@@ -5,6 +5,7 @@ import { KambyLogo } from '@/components/layout/KambyLogo';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { UsdcBalancePill } from '@/components/wallet/UsdcBalancePill';
 import { SearchBar } from './SearchBar';
+import { MessagesButton } from '@/components/dm/MessagesButton';
 
 /**
  * No top-level text nav (Discover/Trades/Watchlist/Leaderboard/Referrals/Solana) as of
@@ -65,6 +66,7 @@ export function MarketHeader({
           <Link href="/launch" className="hidden rounded-full border border-accent/30 px-3 py-1.5 font-display text-xs font-bold text-accent transition-colors hover:bg-accent/10 lg:inline-flex">
             LaunchPad
           </Link>
+          <MessagesButton className="max-md:hidden" />
           <UsdcBalancePill />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} enforceChain={false} />
         </div>

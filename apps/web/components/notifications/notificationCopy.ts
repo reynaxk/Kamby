@@ -33,6 +33,8 @@ export function notificationCopy(n: NotificationDto, t: Translate): string {
       return t((n.pct ?? 0) >= 0 ? 'PRICE_MOVE_UP' : 'PRICE_MOVE_DOWN', values);
     case 'USDC_RECEIVED':
       return t('USDC_RECEIVED', values);
+    case 'DM_MESSAGE':
+      return t('DM_MESSAGE', values);
   }
 }
 
