@@ -1,5 +1,9 @@
-import { Body, Controller, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, NotFoundException, Param, StreamableFile, UploadedFile, UseInterceptors, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
+import { Type } from 'class-transformer';
+import { memoryStorage } from 'multer';
+import { MAX_VOICE_BYTES, type UploadableFile } from '../media/r2-storage.service';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min } from 'class-validator';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
@@ -77,6 +81,23 @@ class SquadSettingsDto {
   @IsString()
   @MaxLength(200)
   about?: string;
+}
+
+class VoiceDto {
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(70_000)
+  durationMs!: number;
+
+  /** 40 numbers 0–100, comma-separated (multipart fields are strings). */
+  @IsString()
+  @MaxLength(400)
+  waveform!: string;
+
+  @IsOptional()
+  @IsUUID()
+  channelId?: string;
 }
 
 class PresenceDto {
@@ -229,6 +250,30 @@ export class DmController {
   @Post('conversations/:id/mute')
   mute(@Param('id', ParseUUIDPipe) id: string, @Body() body: MuteDto, @CurrentUser() user: SessionUser) {
     return this.dm.mute(user.id, id, body.forever ? null : (body.minutes ?? 0));
+  }
+
+  /** What this deployment can do in chats (voice notes need storage switched on). */
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Get('capabilities')
+  capabilities() {
+    return this.dm.capabilities();
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('conversations/:id/voice')
+  @UseInterceptors(FileInterceptor('audio', { storage: memoryStorage(), limits: { fileSize: MAX_VOICE_BYTES } }))
+  sendVoice(@Param('id', ParseUUIDPipe) id: string, @UploadedFile() file: UploadableFile | undefined, @Body() body: VoiceDto, @CurrentUser() user: SessionUser) {
+    if (!file) throw new NotFoundException('No audio uploaded.');
+    const waveform = body.waveform.split(',').map((v) => Number(v));
+    return this.dm.sendVoice(user.id, id, file, body.durationMs, waveform, body.channelId);
+  }
+
+  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  @Header('Cache-Control', 'private, max-age=3600')
+  @Get('messages/:id/voice')
+  async voice(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
+    const file = await this.dm.voiceFile(user.id, id);
+    return new StreamableFile(Buffer.from(file.body), { type: file.contentType });
   }
 
   /** Kamby is open (every ~30 s while visible) — and which chat, if one is on screen. */

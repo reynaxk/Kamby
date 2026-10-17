@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'node:crypto';
 import type { Env } from '../config/env';
 
@@ -30,6 +30,17 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
  *  interceptor can reject an oversized upload before it's ever fully buffered into memory —
  *  the check here stays too, as a backstop in case that interceptor config ever drifts. */
 export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+
+/** Voice notes: what browsers record (WebM/Opus on Chrome & Android, MP4/AAC on iPhone). */
+const VOICE_MIME_TYPES: Record<string, string> = {
+  'audio/webm': 'webm',
+  'audio/ogg': 'ogg',
+  'audio/mp4': 'm4a',
+  'audio/aac': 'aac',
+  'audio/mpeg': 'mp3',
+};
+/** ~60 s of speech is ~250 KB at 32 kbps; this leaves room for higher bitrates. */
+export const MAX_VOICE_BYTES = 1_500_000;
 
 /**
  * Thin wrapper around Cloudflare R2's S3-compatible API — structured the same way
@@ -89,6 +100,41 @@ export class R2StorageService {
     );
 
     return new URL(key, publicBaseUrl).toString();
+  }
+
+  /** Voice notes need the endpoint + keys + a bucket (R2_VOICE_BUCKET_NAME, else R2_BUCKET_NAME). */
+  get voiceEnabled(): boolean {
+    return Boolean(
+      this.config.get('R2_ENDPOINT', { infer: true }) &&
+        this.config.get('R2_ACCESS_KEY_ID', { infer: true }) &&
+        this.config.get('R2_SECRET_ACCESS_KEY', { infer: true }) &&
+        this.voiceBucket(),
+    );
+  }
+
+  /** A 🎙️ voice note (2026-10-17): audio only, small, under a random key that is never shown to
+   *  anyone — the app plays it back through the API, which checks the listener is in the chat. */
+  async uploadVoice(conversationId: string, file: UploadableFile): Promise<string> {
+    const extension = VOICE_MIME_TYPES[file.mimetype.split(';')[0]!.trim()];
+    if (!extension) throw new BadRequestException(`Unsupported audio type "${file.mimetype}"`);
+    if (file.size === 0 || file.size > MAX_VOICE_BYTES) throw new BadRequestException('That voice note is too long.');
+    const bucket = this.voiceBucket();
+    if (!bucket) throw new ServiceUnavailableException('Voice notes are not switched on yet.');
+    const key = `voice/${conversationId}/${randomUUID()}.${extension}`;
+    await this.getClient().send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: file.buffer, ContentType: file.mimetype.split(';')[0]!.trim() }));
+    return key;
+  }
+
+  async getVoice(key: string): Promise<{ body: Uint8Array; contentType: string }> {
+    const bucket = this.voiceBucket();
+    if (!bucket) throw new ServiceUnavailableException('Voice notes are not switched on yet.');
+    const out = await this.getClient().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!out.Body) throw new NotFoundException('Voice note not found.');
+    return { body: await out.Body.transformToByteArray(), contentType: out.ContentType ?? 'audio/webm' };
+  }
+
+  private voiceBucket(): string | undefined {
+    return this.config.get('R2_VOICE_BUCKET_NAME', { infer: true }) || this.config.get('R2_BUCKET_NAME', { infer: true });
   }
 
   private getClient(): S3Client {

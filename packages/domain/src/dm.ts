@@ -38,7 +38,7 @@ export function isDmReaction(value: string): boolean {
 }
 
 /** 'system' = a group event line ("@sandy added @tati"), written by the server. */
-export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'trade' | 'duel' | 'system';
+export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'trade' | 'duel' | 'voice' | 'system';
 
 export interface DmSystem {
   /** 'call' = a call ended (durationSec) or was missed (durationSec 0). */
@@ -68,6 +68,14 @@ export interface DmPnl {
   investedUsd: number;
   valueUsd: number;
 }
+
+export interface DmVoice {
+  durationMs: number;
+  waveform: number[];
+  mime: string;
+}
+
+export const DM_VOICE = { maxSeconds: 60, maxBytes: 1_500_000, bars: 40 } as const;
 
 /** A Trade Card (2026-10-17): a buy the trader chose to share — their real open position on the
  *  coin (entry = what they paid per coin, Kamby's fee left out). The live PnL is worked out in
@@ -99,6 +107,9 @@ export interface DmMessage {
   pnl: DmPnl | null;
   usdc: DmUsdc | null;
   trade: DmTrade | null;
+  /** A 🎙️ voice note (2026-10-17): length, a 40-bar waveform (0–100), the audio's type. The audio
+   *  itself is fetched from the API by message id (only by people in the chat). */
+  voice: DmVoice | null;
   /** A ⚔️ duel challenge card — the app loads its live state by id. */
   duel: { duelId: string; minutes: number } | null;
   system: DmSystem | null;

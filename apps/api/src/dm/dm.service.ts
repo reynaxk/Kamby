@@ -13,6 +13,7 @@ import {
   type DmReplyRef,
   dmMentions,
   DM_PRESENCE,
+  DM_VOICE,
   SQUAD_LIMITS,
   type DmEvent,
   type DmMessage,
@@ -30,6 +31,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { PositionService } from '../social/services/position.service';
 import { TransferNotifyService } from '../transfers/transfer-notify.service';
+import { R2StorageService, type UploadableFile } from '../media/r2-storage.service';
 
 const CHAIN_SLUG_TO_IDENTIFIER: Record<string, string> = { solana: 'solana', base: 'eip155:8453', bnb: 'eip155:56', robinhood: 'eip155:4663' };
 
@@ -53,6 +55,7 @@ export function toMessage(row: DmMessageRow): DmMessage {
     usdc: kind === 'usdc' ? (data as unknown as DmUsdc) : null,
     trade: kind === 'trade' ? (data as unknown as DmTrade) : null,
     duel: kind === 'duel' ? (data as unknown as { duelId: string; minutes: number }) : null,
+    voice: kind === 'voice' && data ? { durationMs: Number(data.durationMs) || 0, waveform: Array.isArray(data.waveform) ? (data.waveform as number[]) : [], mime: String(data.mime ?? 'audio/webm') } : null,
     system: kind === 'system' ? (data as unknown as DmSystem) : null,
     channelId: row.channelId ?? null,
     replyTo: kind === 'text' && data && typeof data === 'object' && 'replyTo' in data ? (data.replyTo as DmReplyRef) : null,
@@ -112,6 +115,7 @@ function preview(m: DmMessageRow): string {
   if (m.kind === 'coin') return data.symbol ? `$${data.symbol}` : 'a coin';
   if (m.kind === 'pnl') return data.symbol ? `PnL · $${data.symbol}` : 'PnL card';
   if (m.kind === 'trade') return data.symbol ? `⚡ Bought $${data.symbol}` : '⚡ Trade';
+  if (m.kind === 'voice') return `🎙️ Voice note · ${Math.round(Number((m.data as { durationMs?: number } | null)?.durationMs ?? 0) / 1000)}s`;
   if (m.kind === 'duel') return `⚔️ Duel · ${(m.data as { minutes?: number } | null)?.minutes ?? 15} min`;
   if (m.kind === 'system') return systemText(m.data as unknown as DmSystem);
   return `$${(data.amountUsd ?? 0).toFixed(2)} USDC`;
@@ -146,6 +150,7 @@ export class DmService {
     private readonly positions: PositionService,
     private readonly transfers: TransferNotifyService,
     private readonly logger: PinoLogger,
+    private readonly r2: R2StorageService,
   ) {
     this.logger.setContext('DmService');
   }
@@ -710,6 +715,31 @@ export class DmService {
   }
 
   /** A server-written line in a chat (a call that ended or was missed). */
+  /** Can this deployment take voice notes (R2 configured)? */
+  capabilities(): { voice: boolean } {
+    return { voice: this.r2.voiceEnabled };
+  }
+
+  /** A 🎙️ voice note: stored privately in R2, played back only through `voiceFile`. */
+  async sendVoice(me: string, id: string, file: UploadableFile, durationMs: number, waveform: number[], channelId?: string): Promise<DmMessage> {
+    await this.access(me, id);
+    const ms = Math.round(durationMs);
+    if (!(ms >= 500 && ms <= DM_VOICE.maxSeconds * 1000 + 1500)) throw new BadRequestException(`Voice notes can be up to ${DM_VOICE.maxSeconds} seconds.`);
+    const bars = waveform.slice(0, DM_VOICE.bars).map((v) => Math.max(0, Math.min(100, Math.round(Number(v) || 0))));
+    const key = await this.r2.uploadVoice(id, file);
+    return this.write(me, id, { kind: 'voice', body: '', data: { key, durationMs: ms, waveform: bars, mime: file.mimetype.split(';')[0]!.trim() }, channelId });
+  }
+
+  /** The audio of a voice note — only for people in that chat. */
+  async voiceFile(me: string, messageId: string): Promise<{ body: Uint8Array; contentType: string }> {
+    const message = await prisma.dmMessage.findUnique({ where: { id: messageId } });
+    if (!message || message.kind !== 'voice') throw new NotFoundException('Voice note not found.');
+    await this.access(me, message.conversationId);
+    const key = String(((message.data ?? {}) as { key?: string }).key ?? '');
+    if (!key.startsWith(`voice/${message.conversationId}/`)) throw new NotFoundException('Voice note not found.');
+    return this.r2.getVoice(key);
+  }
+
   /** A ⚔️ duel card in a chat (DuelsService) — it buzzes the opponent like any new line. */
   async postDuel(me: string, id: string, duel: { duelId: string; minutes: number }): Promise<DmMessage> {
     return this.write(me, id, { kind: 'duel', body: '', data: duel });

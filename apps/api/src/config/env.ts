@@ -316,6 +316,8 @@ export const EnvSchema = z.object({
   R2_ACCESS_KEY_ID: z.string().min(1).optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
   R2_BUCKET_NAME: z.string().min(1).optional(),
+  /** Voice notes (2026-10-17) — a private bucket if set, else R2_BUCKET_NAME. */
+  R2_VOICE_BUCKET_NAME: z.string().min(1).optional(),
   /** The public URL prefix uploaded files are served from — either R2's own public bucket
    *  URL or a custom domain fronting it, never derived/guessed from R2_ENDPOINT (a
    *  private, account-scoped API endpoint, not a public asset host). */
