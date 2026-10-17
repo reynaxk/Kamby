@@ -940,7 +940,16 @@
     "save": "저장",
     "attachDuel": "결투",
     "sysDuelWon": "⚔️ {actor}님이 {targets}님과의 결투에서 승리 · {score}",
-    "sysDuelDraw": "⚔️ {actor} vs {targets} 무승부 · {score}"
+    "sysDuelDraw": "⚔️ {actor} vs {targets} 무승부 · {score}",
+    "micBlocked": "녹음하려면 마이크를 허용하세요",
+    "holdToRecord": "길게 눌러 녹음",
+    "releaseToCancel": "놓으면 취소",
+    "slideToCancel": "밀어서 취소",
+    "recordVoice": "길게 눌러 음성 메시지 녹음",
+    "pause": "일시정지",
+    "play": "재생",
+    "voiceNote": "음성 메시지",
+    "voiceFailed": "불러오지 못했어요"
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",

@@ -940,7 +940,16 @@
     "save": "保存",
     "attachDuel": "デュエル",
     "sysDuelWon": "⚔️ {actor} が {targets} とのデュエルに勝利 · {score}",
-    "sysDuelDraw": "⚔️ {actor} 対 {targets} は引き分け · {score}"
+    "sysDuelDraw": "⚔️ {actor} 対 {targets} は引き分け · {score}",
+    "micBlocked": "録音するにはマイクを許可してください",
+    "holdToRecord": "長押しで録音",
+    "releaseToCancel": "離すとキャンセル",
+    "slideToCancel": "スライドでキャンセル",
+    "recordVoice": "長押しでボイスメッセージ",
+    "pause": "一時停止",
+    "play": "再生",
+    "voiceNote": "ボイスメッセージ",
+    "voiceFailed": "読み込めませんでした"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

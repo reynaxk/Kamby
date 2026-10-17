@@ -14,6 +14,7 @@ import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatPercent, formatSignedCompactUsd } from '@/lib/format';
 import { TradeCard } from '@/components/social/TradeCard';
 import { DuelCard } from '@/components/duels/DuelCard';
+import { VoiceBubble } from './Voice';
 import { DmAvatar } from './DmAvatar';
 import { useSystemText } from './GroupBits';
 
@@ -401,6 +402,8 @@ export const DmMessageView = memo(function DmMessageView({
           <PnlCard m={m} />
         ) : m.kind === 'usdc' && m.usdc ? (
           <UsdcCard m={m} mine={mine} />
+        ) : m.kind === 'voice' && m.voice ? (
+          <VoiceBubble m={m} mine={mine} />
         ) : m.kind === 'duel' && m.duel ? (
           <DuelCard duelId={m.duel.duelId} minutes={m.duel.minutes} />
         ) : m.kind === 'trade' && m.trade ? (

@@ -940,7 +940,16 @@
     "save": "Speichern",
     "attachDuel": "Duell",
     "sysDuelWon": "⚔️ {actor} hat das Duell gegen {targets} gewonnen · {score}",
-    "sysDuelDraw": "⚔️ {actor} gegen {targets} endete unentschieden · {score}"
+    "sysDuelDraw": "⚔️ {actor} gegen {targets} endete unentschieden · {score}",
+    "micBlocked": "Erlaube das Mikrofon zum Aufnehmen",
+    "holdToRecord": "Zum Aufnehmen halten",
+    "releaseToCancel": "Loslassen zum Abbrechen",
+    "slideToCancel": "Zum Abbrechen wischen",
+    "recordVoice": "Halten für eine Sprachnachricht",
+    "pause": "Pause",
+    "play": "Abspielen",
+    "voiceNote": "Sprachnachricht",
+    "voiceFailed": "Laden fehlgeschlagen"
   },
   "calls": {
     "failed": "Anruf nicht verbunden",

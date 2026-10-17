@@ -940,7 +940,16 @@
     "save": "Сохранить",
     "attachDuel": "Дуэль",
     "sysDuelWon": "⚔️ {actor} выиграл(а) дуэль против {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} против {targets} — ничья · {score}"
+    "sysDuelDraw": "⚔️ {actor} против {targets} — ничья · {score}",
+    "micBlocked": "Разреши микрофон, чтобы записывать",
+    "holdToRecord": "Удерживай для записи",
+    "releaseToCancel": "Отпусти, чтобы отменить",
+    "slideToCancel": "Сдвинь, чтобы отменить",
+    "recordVoice": "Удерживай для голосового",
+    "pause": "Пауза",
+    "play": "Слушать",
+    "voiceNote": "Голосовое сообщение",
+    "voiceFailed": "Не загрузилось"
   },
   "calls": {
     "failed": "Звонок не соединился",

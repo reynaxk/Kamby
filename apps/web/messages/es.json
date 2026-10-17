@@ -940,7 +940,16 @@
     "save": "Guardar",
     "attachDuel": "Duelo",
     "sysDuelWon": "⚔️ {actor} ganó el duelo contra {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} vs {targets} terminó en empate · {score}"
+    "sysDuelDraw": "⚔️ {actor} vs {targets} terminó en empate · {score}",
+    "micBlocked": "Permite el micrófono para grabar",
+    "holdToRecord": "Mantén para grabar",
+    "releaseToCancel": "Suelta para cancelar",
+    "slideToCancel": "Desliza para cancelar",
+    "recordVoice": "Mantén para grabar un audio",
+    "pause": "Pausa",
+    "play": "Reproducir",
+    "voiceNote": "Nota de voz",
+    "voiceFailed": "No se pudo cargar"
   },
   "calls": {
     "failed": "La llamada no conectó",

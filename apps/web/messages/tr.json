@@ -940,7 +940,16 @@
     "save": "Kaydet",
     "attachDuel": "Düello",
     "sysDuelWon": "⚔️ {actor}, {targets} karşısında düelloyu kazandı · {score}",
-    "sysDuelDraw": "⚔️ {actor} – {targets} berabere bitti · {score}"
+    "sysDuelDraw": "⚔️ {actor} – {targets} berabere bitti · {score}",
+    "micBlocked": "Kayıt için mikrofona izin ver",
+    "holdToRecord": "Kaydetmek için basılı tut",
+    "releaseToCancel": "İptal için bırak",
+    "slideToCancel": "İptal için kaydır",
+    "recordVoice": "Sesli mesaj için basılı tut",
+    "pause": "Duraklat",
+    "play": "Oynat",
+    "voiceNote": "Sesli mesaj",
+    "voiceFailed": "Yüklenemedi"
   },
   "calls": {
     "failed": "Arama bağlanamadı",

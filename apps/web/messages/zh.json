@@ -940,7 +940,16 @@
     "save": "保存",
     "attachDuel": "对决",
     "sysDuelWon": "⚔️ {actor} 在对决中战胜 {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} 对 {targets} 打成平局 · {score}"
+    "sysDuelDraw": "⚔️ {actor} 对 {targets} 打成平局 · {score}",
+    "micBlocked": "请允许使用麦克风以录音",
+    "holdToRecord": "按住录音",
+    "releaseToCancel": "松开取消",
+    "slideToCancel": "滑动取消",
+    "recordVoice": "按住录制语音消息",
+    "pause": "暂停",
+    "play": "播放",
+    "voiceNote": "语音消息",
+    "voiceFailed": "加载失败"
   },
   "calls": {
     "failed": "通话未接通",

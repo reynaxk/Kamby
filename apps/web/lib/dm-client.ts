@@ -36,6 +36,22 @@ export const sendDmPnl = (id: string, chain: string, tokenAddress: string, chann
   json<DmMessage>(`/dm/conversations/${id}/pnl`, post({ chain, tokenAddress, channelId }), 'share your PnL');
 export const sendDmTrade = (id: string, chain: string, tokenAddress: string, channelId?: string) =>
   json<DmMessage>(`/dm/conversations/${id}/trade`, post({ chain, tokenAddress, channelId }), 'share the trade');
+/** What chats can do on this deployment (voice notes need storage) — asked once per page load. */
+let capabilities: Promise<{ voice: boolean }> | null = null;
+export function fetchDmCapabilities(): Promise<{ voice: boolean }> {
+  capabilities ??= json<{ voice: boolean }>('/dm/capabilities').catch(() => ({ voice: false }));
+  return capabilities;
+}
+/** A 🎙️ voice note: the recording + its length and 40-bar waveform. */
+export async function sendDmVoice(id: string, audio: Blob, durationMs: number, waveform: number[], channelId?: string): Promise<DmMessage> {
+  const form = new FormData();
+  const ext = audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
+  form.append('audio', audio, `voice.${ext}`);
+  form.append('durationMs', String(Math.round(durationMs)));
+  form.append('waveform', waveform.join(','));
+  if (channelId) form.append('channelId', channelId);
+  return json<DmMessage>(`/dm/conversations/${id}/voice`, { method: 'POST', body: form }, 'send the voice note');
+}
 export const sendDmUsdc = (id: string, chain: string, txRef: string) => json<DmMessage>(`/dm/conversations/${id}/usdc`, post({ chain, txRef }), 'post the transfer');
 export const reactToDm = (messageId: string, emoji: string) => json<Record<string, string[]>>(`/dm/messages/${messageId}/react`, post({ emoji }), 'react');
 export const acceptConversation = (id: string) => json<DmConversation>(`/dm/conversations/${id}/accept`, post(), 'accept the request');

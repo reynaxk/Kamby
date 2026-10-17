@@ -940,7 +940,16 @@
     "save": "Lưu",
     "attachDuel": "Đấu",
     "sysDuelWon": "⚔️ {actor} thắng trận đấu với {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} và {targets} hòa · {score}"
+    "sysDuelDraw": "⚔️ {actor} và {targets} hòa · {score}",
+    "micBlocked": "Cho phép micro để ghi âm",
+    "holdToRecord": "Giữ để ghi âm",
+    "releaseToCancel": "Thả để hủy",
+    "slideToCancel": "Trượt để hủy",
+    "recordVoice": "Giữ để ghi tin nhắn thoại",
+    "pause": "Tạm dừng",
+    "play": "Phát",
+    "voiceNote": "Tin nhắn thoại",
+    "voiceFailed": "Không tải được"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",

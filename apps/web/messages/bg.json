@@ -940,7 +940,16 @@
     "save": "Запази",
     "attachDuel": "Дуел",
     "sysDuelWon": "⚔️ {actor} спечели дуела срещу {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} срещу {targets} — равен · {score}"
+    "sysDuelDraw": "⚔️ {actor} срещу {targets} — равен · {score}",
+    "micBlocked": "Разреши микрофона, за да записваш",
+    "holdToRecord": "Задръж, за да записваш",
+    "releaseToCancel": "Пусни, за да откажеш",
+    "slideToCancel": "Плъзни, за да откажеш",
+    "recordVoice": "Задръж за гласово съобщение",
+    "pause": "Пауза",
+    "play": "Пусни",
+    "voiceNote": "Гласово съобщение",
+    "voiceFailed": "Не се зареди"
   },
   "calls": {
     "failed": "Разговорът не се свърза",

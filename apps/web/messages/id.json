@@ -940,7 +940,16 @@
     "save": "Simpan",
     "attachDuel": "Duel",
     "sysDuelWon": "⚔️ {actor} memenangkan duel melawan {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} vs {targets} berakhir seri · {score}"
+    "sysDuelDraw": "⚔️ {actor} vs {targets} berakhir seri · {score}",
+    "micBlocked": "Izinkan mikrofon untuk merekam",
+    "holdToRecord": "Tahan untuk merekam",
+    "releaseToCancel": "Lepas untuk batal",
+    "slideToCancel": "Geser untuk batal",
+    "recordVoice": "Tahan untuk rekam pesan suara",
+    "pause": "Jeda",
+    "play": "Putar",
+    "voiceNote": "Pesan suara",
+    "voiceFailed": "Gagal memuat"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

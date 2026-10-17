@@ -21,6 +21,8 @@ import {
   sendDmCoin,
   sendDmPnl,
   sendDmTrade,
+  sendDmVoice,
+  fetchDmCapabilities,
   sendDmText,
   sendDmTyping,
   sendDmUsdc,
@@ -37,6 +39,7 @@ import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 import { MuteDrawer } from './MuteDrawer';
+import { VoiceRecorderButton } from './Voice';
 import { ChallengeSheet } from '@/components/duels/ChallengeSheet';
 import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer, SquadSettingsDrawer } from './CommunityBits';
 import { haptic, nameColor } from './DmMessageView';
@@ -99,6 +102,11 @@ export function DmThread({ id }: { id: string }) {
   const [homeOpen, setHomeOpen] = useState(false);
   const [muteOpen, setMuteOpen] = useState(false);
   const [squadOpen, setSquadOpen] = useState(false);
+  // 🎙️ Voice notes show up once storage is switched on for this deployment.
+  const [voiceOn, setVoiceOn] = useState(false);
+  useEffect(() => {
+    void fetchDmCapabilities().then((c) => setVoiceOn(c.voice));
+  }, []);
   const [replyTo, setReplyTo] = useState<DmMessage | null>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   // Where the unread lines start when you opened the chat ("New messages" divider), and how many
@@ -735,7 +743,7 @@ export function DmThread({ id }: { id: string }) {
                 </button>
               </div>
             )}
-            <form onSubmit={(e) => void submit(e)} className="kamby-glass-solid kamby-glass-dense flex items-end gap-1.5 rounded-[1.6rem] p-1.5 shadow-[0_10px_36px_rgba(0,0,0,0.6)]">
+            <form onSubmit={(e) => void submit(e)} className="kamby-glass-solid kamby-glass-dense relative flex items-end gap-1.5 rounded-[1.6rem] p-1.5 shadow-[0_10px_36px_rgba(0,0,0,0.6)]">
               <button
                 type="button"
                 aria-label={t('attach')}
@@ -768,16 +776,27 @@ export function DmThread({ id }: { id: string }) {
                 placeholder={channelName ? t('channelPlaceholderSay', { channel: channelName }) : t('placeholder')}
                 className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2.5 font-body text-[0.95rem] leading-snug text-ink-900 placeholder:text-ink-400 focus:outline-none [field-sizing:content]"
               />
-              <button
-                type="submit"
-                aria-label={t('send')}
-                disabled={!canWrite || sending || !text.trim()}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-black transition-transform active:scale-90 disabled:opacity-30"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M12 19V5M5 12l7-7 7 7" />
-                </svg>
-              </button>
+              {/* Empty field + voice switched on → hold-to-record mic (WhatsApp); otherwise Send. */}
+              {voiceOn && !text.trim() ? (
+                <VoiceRecorderButton
+                  disabled={!canWrite || sending}
+                  onSend={(blob, ms, bars) => {
+                    setFirstUnreadId(null);
+                    void run(() => sendDmVoice(id, blob, ms, bars, channelId ?? undefined));
+                  }}
+                />
+              ) : (
+                <button
+                  type="submit"
+                  aria-label={t('send')}
+                  disabled={!canWrite || sending || !text.trim()}
+                  className="kamby-pop flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-black transition-transform active:scale-90 disabled:opacity-30"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M12 19V5M5 12l7-7 7 7" />
+                  </svg>
+                </button>
+              )}
             </form>
           </>
         )}

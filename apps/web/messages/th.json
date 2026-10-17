@@ -940,7 +940,16 @@
     "save": "บันทึก",
     "attachDuel": "ดวล",
     "sysDuelWon": "⚔️ {actor} ชนะการดวลกับ {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} กับ {targets} เสมอกัน · {score}"
+    "sysDuelDraw": "⚔️ {actor} กับ {targets} เสมอกัน · {score}",
+    "micBlocked": "อนุญาตไมโครโฟนเพื่ออัดเสียง",
+    "holdToRecord": "กดค้างเพื่ออัด",
+    "releaseToCancel": "ปล่อยเพื่อยกเลิก",
+    "slideToCancel": "เลื่อนเพื่อยกเลิก",
+    "recordVoice": "กดค้างเพื่ออัดข้อความเสียง",
+    "pause": "หยุดชั่วคราว",
+    "play": "เล่น",
+    "voiceNote": "ข้อความเสียง",
+    "voiceFailed": "โหลดไม่ได้"
   },
   "calls": {
     "failed": "การโทรเชื่อมต่อไม่ได้",

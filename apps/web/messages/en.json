@@ -940,7 +940,16 @@
     "save": "Save",
     "attachDuel": "Duel",
     "sysDuelWon": "⚔️ {actor} won the duel vs {targets} · {score}",
-    "sysDuelDraw": "⚔️ {actor} vs {targets} ended in a draw · {score}"
+    "sysDuelDraw": "⚔️ {actor} vs {targets} ended in a draw · {score}",
+    "micBlocked": "Allow the microphone to record",
+    "holdToRecord": "Hold to record",
+    "releaseToCancel": "Release to cancel",
+    "slideToCancel": "Slide to cancel",
+    "recordVoice": "Hold to record a voice note",
+    "pause": "Pause",
+    "play": "Play",
+    "voiceNote": "Voice note",
+    "voiceFailed": "Couldn't load"
   },
   "calls": {
     "failed": "Call didn’t connect",
