@@ -30,6 +30,11 @@ export const sendDmUsdc = (id: string, chain: string, txRef: string) => json<DmM
 export const reactToDm = (messageId: string, emoji: string) => json<Record<string, string[]>>(`/dm/messages/${messageId}/react`, post({ emoji }), 'react');
 export const acceptConversation = (id: string) => json<DmConversation>(`/dm/conversations/${id}/accept`, post(), 'accept the request');
 export const blockConversation = (id: string, blocked: boolean) => json<DmConversation>(`/dm/conversations/${id}/block`, post({ blocked }), 'block');
+// Groups (2026-10-17).
+export const createGroup = (title: string, usernames: string[]) => json<DmConversation>('/dm/groups', post({ title, usernames }), 'create the group');
+export const addGroupMembers = (id: string, usernames: string[]) => json<DmConversation>(`/dm/conversations/${id}/members`, post({ usernames }), 'add people');
+export const removeGroupMember = (id: string, userId: string) => json<DmConversation>(`/dm/conversations/${id}/members/${userId}/remove`, post(), 'remove them');
+export const renameGroup = (id: string, title: string) => json<DmConversation>(`/dm/conversations/${id}/rename`, post({ title }), 'rename the group');
 
 async function fire(path: string, body?: unknown): Promise<void> {
   const res = await authedFetch(path, post(body));
@@ -39,6 +44,7 @@ export const markDmRead = (id: string) => fire(`/dm/conversations/${id}/read`);
 export const sendDmTyping = (id: string) => fire(`/dm/conversations/${id}/typing`).catch(() => undefined);
 export const hideConversation = (id: string) => fire(`/dm/conversations/${id}/hide`);
 export const reportConversation = (id: string, reason?: string) => fire(`/dm/conversations/${id}/report`, { reason });
+export const leaveGroup = (id: string) => fire(`/dm/conversations/${id}/leave`);
 
 /** Unread private messages + waiting requests, kept fresh by the private stream. */
 export function useDmUnread(): DmUnread | null {

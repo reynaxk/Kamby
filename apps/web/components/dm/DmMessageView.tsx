@@ -3,7 +3,7 @@
 import { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { DM_REACTIONS, looksLikeScamBait, type DmMessage } from '@kamby/domain';
+import { DM_REACTIONS, looksLikeScamBait, type DmMessage, type DmPerson } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
@@ -12,6 +12,8 @@ import { fetchLivePrice } from '@/lib/chart-data';
 import { liveSourceFor } from '@/lib/use-live-price';
 import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatPercent, formatSignedCompactUsd } from '@/lib/format';
+import { DmAvatar } from './DmAvatar';
+import { useSystemText } from './GroupBits';
 
 const K_PATHS = ['M186 140 V372', 'M200 268 L338 140', 'M232 246 L346 372'];
 
@@ -117,6 +119,7 @@ export const DmMessageView = memo(function DmMessageView({
   first,
   last,
   onReact,
+  sender = null,
 }: {
   m: DmMessage;
   mine: boolean;
@@ -124,14 +127,30 @@ export const DmMessageView = memo(function DmMessageView({
   first: boolean;
   last: boolean;
   onReact: (messageId: string, emoji: string) => void;
+  /** In a group: who wrote it (shown above their first line). */
+  sender?: DmPerson | null;
 }) {
   const t = useTranslations('dm');
+  const systemText = useSystemText();
   const [picking, setPicking] = useState(false);
+  if (m.kind === 'system' && m.system) {
+    return (
+      <p className="my-3 text-center">
+        <span className="inline-block rounded-full bg-white/[0.05] px-3 py-1 font-body text-[0.7rem] text-ink-400">{systemText(m.system)}</span>
+      </p>
+    );
+  }
   const reactions = Object.entries(m.reactions).filter(([, who]) => who.length > 0);
   const bait = !mine && m.kind === 'text' && looksLikeScamBait(m.body);
 
   return (
-    <div className={cn('kamby-chat-in flex flex-col', mine ? 'items-end' : 'items-start', first ? 'mt-3' : 'mt-0.5')}>
+    <div className={cn('kamby-chat-in flex flex-col', mine ? 'items-end' : 'items-start', first ? 'mt-3' : 'mt-0.5', sender && !mine && 'pl-9')}>
+      {sender && !mine && first && (
+        <span className="relative mb-1 ml-1 font-display text-[0.7rem] font-bold text-ink-400">
+          <DmAvatar name={sender.username} src={sender.avatarUrl} className="absolute -left-9 top-0 h-7 w-7 text-[0.65rem]" />
+          {sender.username ? `@${sender.username}` : t('someone')}
+        </span>
+      )}
       {picking && (
         <div className="kamby-glass-solid mb-1 flex gap-1 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]" role="menu">
           {DM_REACTIONS.map((e) => (

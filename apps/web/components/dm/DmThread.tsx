@@ -12,6 +12,9 @@ import {
   fetchConversation,
   fetchDmMessages,
   hideConversation,
+  leaveGroup,
+  removeGroupMember,
+  renameGroup,
   markDmRead,
   reactToDm,
   reportConversation,
@@ -32,6 +35,7 @@ import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
+import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 
 /** The API's chain words for a coin's chain. */
 function chainSlug(chainIdentifier: string): string | null {
@@ -63,7 +67,9 @@ export function DmThread({ id }: { id: string }) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [typing, setTyping] = useState(false);
+  const [typing, setTyping] = useState<string | null>(null);
+  const [info, setInfo] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [menu, setMenu] = useState(false);
   const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | null>(null);
   const [usdcOpen, setUsdcOpen] = useState(false);
@@ -72,8 +78,9 @@ export function DmThread({ id }: { id: string }) {
   const lastTypingSent = useRef(0);
   const stickToBottom = useRef(true);
 
-  const otherId = conv?.other.userId ?? null;
-  const me = useMemo(() => messages.find((m) => m.senderId !== otherId)?.senderId ?? null, [messages, otherId]);
+  const me = conv?.meId ?? null;
+  const isGroup = Boolean(conv?.group);
+  const memberBy = useMemo(() => new Map((conv?.group?.members ?? []).map((p) => [p.userId, p])), [conv]);
 
   const refreshConv = useCallback(() => {
     fetchConversation(id)
@@ -106,17 +113,17 @@ export function DmThread({ id }: { id: string }) {
         if (e.conversationId !== id) return;
         if (e.type === 'message') {
           setMessages((list) => (list.some((m) => m.id === e.message.id) ? list : [...list, e.message]));
-          setTyping(false);
-          if (e.message.senderId === otherId && document.visibilityState === 'visible') {
+          setTyping(null);
+          if (e.message.senderId !== me && e.message.kind !== 'system' && document.visibilityState === 'visible') {
             if (readTimer) clearTimeout(readTimer);
             readTimer = setTimeout(() => void markDmRead(id).catch(() => undefined), 500);
           }
         } else if (e.type === 'typing') {
-          setTyping(true);
+          setTyping(e.userId);
           if (typingTimer.current) clearTimeout(typingTimer.current);
-          typingTimer.current = setTimeout(() => setTyping(false), DM_LIMITS.typingTtlMs);
+          typingTimer.current = setTimeout(() => setTyping(null), DM_LIMITS.typingTtlMs);
         } else if (e.type === 'read') {
-          if (e.userId === otherId) setConv((c) => (c ? { ...c, otherReadAt: e.atIso } : c));
+          if (e.userId !== me) setConv((c) => (c ? { ...c, otherReadAt: e.atIso } : c));
         } else if (e.type === 'reaction') {
           setMessages((list) => list.map((m) => (m.id === e.messageId ? { ...m, reactions: e.reactions } : m)));
         } else if (e.type === 'state') {
@@ -128,7 +135,7 @@ export function DmThread({ id }: { id: string }) {
       if (readTimer) clearTimeout(readTimer);
       unsubscribe();
     };
-  }, [id, otherId, refreshConv]);
+  }, [id, me, refreshConv]);
 
   // Stay at the bottom as lines arrive (unless you scrolled up to read).
   useEffect(() => {
@@ -196,6 +203,21 @@ export function DmThread({ id }: { id: string }) {
     await hideConversation(id).catch(() => undefined);
     router.push('/messages');
   }
+  async function leave() {
+    if (!window.confirm(t('leaveConfirm'))) return;
+    await leaveGroup(id).catch(() => undefined);
+    router.push('/messages');
+  }
+  async function kick(userId: string) {
+    const c = await removeGroupMember(id, userId).catch(() => null);
+    if (c) setConv(c);
+  }
+  async function rename() {
+    const title = window.prompt(t('rename'), conv?.group?.title ?? '');
+    if (!title?.trim()) return;
+    const c = await renameGroup(id, title.trim()).catch(() => null);
+    if (c) setConv(c);
+  }
   async function toggleBlock() {
     if (!conv) return;
     const c = await blockConversation(id, !conv.blocked).catch(() => null);
@@ -213,10 +235,12 @@ export function DmThread({ id }: { id: string }) {
     return <p className="px-4 py-16 text-center font-body text-sm text-ink-400">{loadError}</p>;
   }
 
-  const name = conv?.other.username ? `@${conv.other.username}` : '…';
-  const lastMine = [...messages].reverse().find((m) => m.senderId !== otherId);
-  const seen = lastMine && conv?.otherReadAt && new Date(conv.otherReadAt) >= new Date(lastMine.createdAt);
+  const name = conv?.group ? conv.group.title : conv?.other?.username ? `@${conv.other.username}` : '…';
+  const lastMine = [...messages].reverse().find((m) => m.senderId === me);
+  const seen = !isGroup && lastMine && conv?.otherReadAt && new Date(conv.otherReadAt) >= new Date(lastMine.createdAt);
   const canWrite = conv && !conv.blocked && conv.state !== 'request';
+  const isOwner = Boolean(conv?.group && conv.group.ownerId === me);
+  const typingName = typing ? (isGroup ? `@${memberBy.get(typing)?.username ?? '…'}` : name) : null;
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
@@ -232,14 +256,22 @@ export function DmThread({ id }: { id: string }) {
             <path d="m15 18-6-6 6-6" />
           </svg>
         </button>
-        {conv?.other.walletAddress ? (
+        {conv?.group ? (
+          <button type="button" onClick={() => setInfo(true)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+            <GroupAvatar members={conv.group.members} meId={conv.meId} className="h-9 w-9" />
+            <span className="min-w-0">
+              <span className="block truncate font-display text-base font-bold text-ink-900">{name}</span>
+              <span className="block font-body text-[0.68rem] text-ink-400">{t('members', { count: conv.group.members.length })}</span>
+            </span>
+          </button>
+        ) : conv?.other?.walletAddress ? (
           <Link href={`/trader/${conv.other.walletAddress}`} className="flex min-w-0 flex-1 items-center gap-2.5">
             <DmAvatar name={conv.other.username} src={conv.other.avatarUrl} className="h-9 w-9 text-sm" />
             <span className="truncate font-display text-base font-bold text-ink-900">{name}</span>
           </Link>
         ) : (
           <span className="flex min-w-0 flex-1 items-center gap-2.5">
-            <DmAvatar name={conv?.other.username ?? null} src={conv?.other.avatarUrl ?? null} className="h-9 w-9 text-sm" />
+            <DmAvatar name={conv?.other?.username ?? null} src={conv?.other?.avatarUrl ?? null} className="h-9 w-9 text-sm" />
             <span className="truncate font-display text-base font-bold text-ink-900">{name}</span>
           </span>
         )}
@@ -253,15 +285,50 @@ export function DmThread({ id }: { id: string }) {
           </button>
           {menu && (
             <div className="kamby-glass-solid absolute right-0 top-11 z-40 w-48 overflow-hidden rounded-2xl py-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]" role="menu">
-              <button type="button" onClick={() => void toggleBlock()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10">
-                {conv?.blocked ? t('unblock') : t('block')}
-              </button>
-              <button type="button" onClick={() => void report()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-down active:bg-white/10">
-                {t('report')}
-              </button>
-              <button type="button" onClick={() => void remove()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-600 active:bg-white/10">
-                {t('deleteChat')}
-              </button>
+              {isGroup ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenu(false);
+                      setInfo(true);
+                    }}
+                    className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10"
+                  >
+                    {t('groupInfo')}
+                  </button>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenu(false);
+                        setAdding(true);
+                      }}
+                      className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10"
+                    >
+                      {t('addPeople')}
+                    </button>
+                  )}
+                  <button type="button" onClick={() => void report()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-down active:bg-white/10">
+                    {t('report')}
+                  </button>
+                  <button type="button" onClick={() => void leave()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-600 active:bg-white/10">
+                    {t('leave')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" onClick={() => void toggleBlock()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10">
+                    {conv?.blocked ? t('unblock') : t('block')}
+                  </button>
+                  <button type="button" onClick={() => void report()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-down active:bg-white/10">
+                    {t('report')}
+                  </button>
+                  <button type="button" onClick={() => void remove()} className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-600 active:bg-white/10">
+                    {t('deleteChat')}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </span>
@@ -276,7 +343,11 @@ export function DmThread({ id }: { id: string }) {
         )}
         {conv && messages.length === 0 && (
           <div className="flex flex-col items-center px-6 py-14 text-center">
-            <DmAvatar name={conv.other.username} src={conv.other.avatarUrl} className="h-20 w-20 text-2xl" />
+            {conv.group ? (
+              <GroupAvatar members={conv.group.members} meId={conv.meId} className="h-20 w-20" />
+            ) : (
+              <DmAvatar name={conv.other?.username ?? null} src={conv.other?.avatarUrl ?? null} className="h-20 w-20 text-2xl" />
+            )}
             <p className="mt-3 font-display text-lg font-bold text-ink-900">{name}</p>
             <p className="mt-1 font-body text-sm text-ink-400">{t('sayHi')}</p>
           </div>
@@ -285,19 +356,28 @@ export function DmThread({ id }: { id: string }) {
           const prev = messages[i - 1];
           const next = messages[i + 1];
           const newDay = !prev || new Date(prev.createdAt).toDateString() !== new Date(m.createdAt).toDateString();
-          const first = newDay || prev?.senderId !== m.senderId || new Date(m.createdAt).getTime() - new Date(prev.createdAt).getTime() > 5 * 60_000;
+          const first = newDay || prev?.senderId !== m.senderId || prev?.kind === 'system' || new Date(m.createdAt).getTime() - new Date(prev.createdAt).getTime() > 5 * 60_000;
           const last = !next || next.senderId !== m.senderId || new Date(next.createdAt).getTime() - new Date(m.createdAt).getTime() > 5 * 60_000;
           return (
             <div key={m.id}>
               {newDay && <p className="my-4 text-center font-body text-[0.68rem] font-semibold uppercase tracking-wider text-ink-400">{dayLabel(m.createdAt, t)}</p>}
-              <DmMessageView m={m} mine={m.senderId !== otherId} me={me} first={first} last={last} onReact={(mid, e) => void react(mid, e)} />
+              <DmMessageView
+                m={m}
+                mine={m.senderId === me}
+                me={me}
+                first={first}
+                last={last}
+                sender={isGroup ? (memberBy.get(m.senderId) ?? { userId: m.senderId, username: null, avatarUrl: null, walletAddress: null }) : null}
+                onReact={(mid, e) => void react(mid, e)}
+              />
             </div>
           );
         })}
         {seen && <p className="mr-2 mt-1 text-right font-body text-[0.68rem] text-ink-400">{t('seen')}</p>}
-        {typing && (
+        {typingName && (
           <div className="mt-2 flex items-center gap-2">
-            <span className="kamby-glass flex items-center gap-1 rounded-3xl px-4 py-3" aria-label={t('typing', { name })}>
+            {isGroup && <span className="font-body text-[0.7rem] text-ink-400">{typingName}</span>}
+            <span className="kamby-glass flex items-center gap-1 rounded-3xl px-4 py-3" aria-label={t('typing', { name: typingName })}>
               {[0, 1, 2].map((d) => (
                 <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-400" style={{ animationDelay: `${d * 0.15}s` }} />
               ))}
@@ -311,12 +391,14 @@ export function DmThread({ id }: { id: string }) {
       <div className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 md:mx-auto md:max-w-2xl">
         {conv?.state === 'request' && !conv.blocked ? (
           <div className="kamby-glass-solid rounded-3xl p-4 text-center">
-            <p className="font-display text-sm font-bold text-ink-900">{t('requestTitle', { name })}</p>
-            <p className="mt-1 font-body text-xs text-ink-400">{t('requestBody')}</p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <button type="button" onClick={() => void toggleBlock()} className="rounded-2xl bg-down/10 py-2.5 font-display text-sm font-bold text-down">
-                {t('block')}
-              </button>
+            <p className="font-display text-sm font-bold text-ink-900">{isGroup ? t('groupInviteTitle', { title: name }) : t('requestTitle', { name })}</p>
+            <p className="mt-1 font-body text-xs text-ink-400">{isGroup ? t('groupInviteBody') : t('requestBody')}</p>
+            <div className={cn('mt-3 grid gap-2', isGroup ? 'grid-cols-2' : 'grid-cols-3')}>
+              {!isGroup && (
+                <button type="button" onClick={() => void toggleBlock()} className="rounded-2xl bg-down/10 py-2.5 font-display text-sm font-bold text-down">
+                  {t('block')}
+                </button>
+              )}
               <button type="button" onClick={() => void remove()} className="rounded-2xl bg-white/[0.06] py-2.5 font-display text-sm font-bold text-ink-900">
                 {t('delete')}
               </button>
@@ -377,6 +459,55 @@ export function DmThread({ id }: { id: string }) {
         )}
       </div>
 
+      {/* Group info */}
+      {conv?.group && (
+        <MobileDrawer open={info} onClose={() => setInfo(false)} title={conv.group.title} desktop>
+          <div className="flex items-center justify-between">
+            <p className="font-body text-xs font-semibold uppercase tracking-wider text-ink-400">{t('members', { count: conv.group.members.length })}</p>
+            {isOwner && (
+              <span className="flex gap-3">
+                <button type="button" onClick={() => void rename()} className="font-display text-xs font-bold text-accent">
+                  {t('rename')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInfo(false);
+                    setAdding(true);
+                  }}
+                  className="font-display text-xs font-bold text-accent"
+                >
+                  {t('addPeople')}
+                </button>
+              </span>
+            )}
+          </div>
+          <ul className="mt-2 max-h-[50vh] overflow-y-auto">
+            {conv.group.members.map((p) => (
+              <li key={p.userId} className="flex items-center gap-3 py-2">
+                <DmAvatar name={p.username} src={p.avatarUrl} className="h-10 w-10 text-sm" />
+                <span className="min-w-0 flex-1 truncate font-display text-sm font-bold text-ink-900">
+                  {p.username ? `@${p.username}` : t('someone')}
+                  {p.userId === me && <span className="ml-1.5 font-body text-xs font-normal text-ink-400">· {t('you')}</span>}
+                </span>
+                {p.userId === conv.group!.ownerId && <span className="rounded-full bg-accent/10 px-2 py-0.5 font-body text-[0.6rem] font-bold text-accent">{t('admin')}</span>}
+                {isOwner && p.userId !== me && (
+                  <button type="button" onClick={() => void kick(p.userId)} className="rounded-full bg-white/[0.06] px-2.5 py-1 font-body text-[0.65rem] font-semibold text-ink-600">
+                    {t('remove')}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={() => void leave()} className="mt-3 w-full rounded-2xl bg-down/10 py-3 font-display text-sm font-bold text-down">
+            {t('leave')}
+          </button>
+        </MobileDrawer>
+      )}
+      {conv?.group && isOwner && (
+        <AddPeopleDrawer open={adding} onClose={() => setAdding(false)} id={id} room={DM_LIMITS.groupMaxMembers - conv.group.members.length} onDone={refreshConv} />
+      )}
+
       {/* + menu */}
       <MobileDrawer open={attach === 'menu'} onClose={() => setAttach(null)} title={t('attachTitle')} desktop>
         <div className="grid grid-cols-3 gap-2 pb-2">
@@ -386,7 +517,9 @@ export function DmThread({ id }: { id: string }) {
               ['pnl', '📈', t('attachPnl')],
               ['usdc', '💸', t('attachUsdc')],
             ] as const
-          ).map(([key, icon, label]) => (
+          )
+            .filter(([key]) => !isGroup || key !== 'usdc')
+            .map(([key, icon, label]) => (
             <button
               key={key}
               type="button"
@@ -424,7 +557,7 @@ export function DmThread({ id }: { id: string }) {
           if (slug) void run(() => sendDmPnl(id, slug, p.tokenAddress));
         }}
       />
-      {conv?.other.username && (
+      {conv?.other?.username && (
         <SendModal
           open={usdcOpen}
           onClose={() => setUsdcOpen(false)}

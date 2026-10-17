@@ -12,6 +12,7 @@ import { hasStoredSession } from '@/lib/session-client';
 import { friendlyError } from '@/lib/friendly-error';
 import { formatRelativeTime } from '@/lib/format';
 import { DmAvatar } from './DmAvatar';
+import { GroupAvatar, NewGroupDrawer } from './GroupBits';
 
 /**
  * The Messages screen (2026-10-17): your chats, newest first, and a Requests tab for first
@@ -30,6 +31,7 @@ export function DmInbox() {
   const [username, setUsername] = useState('');
   const [opening, setOpening] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [groupOpen, setGroupOpen] = useState(false);
 
   const load = useCallback(() => {
     fetchConversations(box)
@@ -105,19 +107,34 @@ export function DmInbox() {
           </button>
         </form>
       ) : (
-        <button
-          type="button"
-          onClick={() => setComposing(true)}
-          className="kamby-glass flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-transform active:scale-[0.99]"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </span>
-          <span className="font-display text-sm font-bold text-ink-900">{t('newMessage')}</span>
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setComposing(true)}
+            className="kamby-glass flex items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-transform active:scale-[0.99]"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <span className="font-display text-sm font-bold text-ink-900">{t('newMessage')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setGroupOpen(true)}
+            className="kamby-glass flex items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-transform active:scale-[0.99]"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8" />
+              </svg>
+            </span>
+            <span className="font-display text-sm font-bold text-ink-900">{t('newGroup')}</span>
+          </button>
+        </div>
       )}
+      <NewGroupDrawer open={groupOpen} onClose={() => setGroupOpen(false)} />
       {openError && <p className="mt-2 px-1 font-body text-xs font-semibold text-down">{openError}</p>}
 
       {/* Chats / Requests */}
@@ -165,13 +182,14 @@ export function DmInbox() {
           </li>
         )}
         {items?.map((c) => {
-          const name = c.other.username ? `@${c.other.username}` : t('someone');
-          const mine = c.lastMessage?.senderId !== c.other.userId;
+          const name = c.group ? c.group.title : c.other?.username ? `@${c.other.username}` : t('someone');
+          const mine = c.lastMessage?.senderId === c.meId;
+          const sender = c.group && c.lastMessage && !mine && c.lastMessage.kind !== 'system' ? c.group.members.find((m) => m.userId === c.lastMessage!.senderId)?.username : null;
           return (
             <li key={c.id}>
               <Link href={`/messages/${c.id}`} className="flex items-center gap-3 rounded-2xl px-1 py-2.5 transition-colors active:bg-white/[0.04]">
                 <span className="relative">
-                  <DmAvatar name={c.other.username} src={c.other.avatarUrl} />
+                  {c.group ? <GroupAvatar members={c.group.members} meId={c.meId} /> : <DmAvatar name={c.other?.username ?? null} src={c.other?.avatarUrl ?? null} />}
                   {c.unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-accent" aria-hidden />}
                 </span>
                 <span className="min-w-0 flex-1">
@@ -181,7 +199,7 @@ export function DmInbox() {
                     {c.blocked && <span className="shrink-0 rounded-full bg-down/10 px-2 py-0.5 font-body text-[0.6rem] font-semibold text-down">{t('blocked')}</span>}
                   </span>
                   <span className={cn('mt-0.5 block truncate font-body text-sm', c.unread > 0 ? 'font-semibold text-ink-900' : 'text-ink-400')}>
-                    {c.lastMessage ? `${mine ? `${t('you')}: ` : ''}${c.lastMessage.body}` : ''}
+                    {c.lastMessage ? `${mine && c.lastMessage.kind !== 'system' ? `${t('you')}: ` : sender ? `${sender}: ` : ''}${c.lastMessage.body}` : ''}
                   </span>
                 </span>
                 <span className="flex shrink-0 flex-col items-end gap-1">
