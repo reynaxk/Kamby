@@ -26,3 +26,4 @@ export * from './dm';
 export * from './calls';
 export * from './stories';
 export * from './live';
+export * from './squads';

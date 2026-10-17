@@ -13,6 +13,7 @@ import {
   type DmReplyRef,
   dmMentions,
   DM_PRESENCE,
+  SQUAD_LIMITS,
   type DmEvent,
   type DmMessage,
   type DmMessageKind,
@@ -610,16 +611,62 @@ export class DmService {
     const myName = await this.requireUsername(me);
     const row = await prisma.dmConversation.findUnique({ where: { inviteCode: code }, select: { id: true, isCommunity: true } });
     if (!row?.isCommunity) throw new NotFoundException('This invite link is not valid.');
-    const existing = await prisma.dmMember.findUnique({ where: { conversationId_userId: { conversationId: row.id, userId: me } } });
+    return this.addToCommunity(me, myName, row.id);
+  }
+
+  private async addToCommunity(me: string, myName: string, id: string): Promise<DmConversation> {
+    const existing = await prisma.dmMember.findUnique({ where: { conversationId_userId: { conversationId: id, userId: me } } });
     if (existing) {
-      if (existing.status !== 'active') await prisma.dmMember.update({ where: { conversationId_userId: { conversationId: row.id, userId: me } }, data: { status: 'active' } });
-      return this.conversation(me, row.id);
+      if (existing.status !== 'active') await prisma.dmMember.update({ where: { conversationId_userId: { conversationId: id, userId: me } }, data: { status: 'active' } });
+      return this.conversation(me, id);
     }
-    const count = await prisma.dmMember.count({ where: { conversationId: row.id, status: 'active' } });
+    const count = await prisma.dmMember.count({ where: { conversationId: id, status: 'active' } });
     if (count >= DM_LIMITS.communityMaxMembers) throw new ForbiddenException('This community is full.');
-    await prisma.dmMember.create({ data: { conversationId: row.id, userId: me, role: 'member', status: 'active', readAt: new Date() } });
-    await this.system(row.id, { event: 'joined', actor: myName, targets: [] });
-    return this.conversation(me, row.id);
+    await prisma.dmMember.create({ data: { conversationId: id, userId: me, role: 'member', status: 'active', readAt: new Date() } });
+    await this.system(id, { event: 'joined', actor: myName, targets: [] });
+    return this.conversation(me, id);
+  }
+
+  // --- Squad Wars (2026-10-17) -------------------------------------------------------------
+
+  /** Owner: rank the community in Squad Wars ('gated' / 'public') or keep it 'private'. */
+  async squadSettings(me: string, id: string, settings: { visibility?: 'private' | 'gated' | 'public'; about?: string | null }): Promise<DmConversation> {
+    const a = await this.access(me, id);
+    this.requireOwner(a);
+    if (!a.row.isCommunity) throw new BadRequestException('Only communities can be squads.');
+    let about: string | null | undefined = undefined;
+    if (settings.about !== undefined) {
+      about = (settings.about ?? '').replace(/\s+/g, ' ').trim() || null;
+      if (about && containsLink(about)) throw new BadRequestException("Links aren't allowed here.");
+      if (about && about.length > SQUAD_LIMITS.aboutMax) throw new BadRequestException(`Keep it under ${SQUAD_LIMITS.aboutMax} characters.`);
+    }
+    await prisma.dmConversation.update({ where: { id }, data: { ...(settings.visibility ? { visibility: settings.visibility } : {}), ...(about !== undefined ? { about } : {}) } });
+    await this.redis.del(`kamby:squads:board:${new Date().toISOString().slice(0, 7)}`).catch(() => 0);
+    return this.conversation(me, id);
+  }
+
+  /** Join a public squad from Squad Wars (no invite link needed). */
+  async joinListedSquad(me: string, id: string): Promise<DmConversation> {
+    const myName = await this.requireUsername(me);
+    const row = await prisma.dmConversation.findUnique({ where: { id }, select: { isCommunity: true, visibility: true } });
+    if (!row?.isCommunity || row.visibility === 'private') throw new NotFoundException('Squad not found.');
+    if (row.visibility !== 'public') throw new ForbiddenException('This squad is invite-only — request an invite.');
+    return this.addToCommunity(me, myName, id);
+  }
+
+  /** Ask a gated squad's owner for an invite — a message request from you, once a day. */
+  async requestSquadInvite(me: string, id: string): Promise<{ status: 'requested' | 'member'; conversationId: string }> {
+    await this.requireUsername(me);
+    const row = await prisma.dmConversation.findUnique({ where: { id }, select: { isCommunity: true, visibility: true, title: true, ownerId: true } });
+    if (!row?.isCommunity || row.visibility === 'private' || !row.ownerId) throw new NotFoundException('Squad not found.');
+    const member = await prisma.dmMember.findUnique({ where: { conversationId_userId: { conversationId: id, userId: me } } });
+    if (member?.status === 'active') return { status: 'member', conversationId: id };
+    const owner = await prisma.user.findUnique({ where: { id: row.ownerId }, select: { username: true } });
+    if (!owner?.username) throw new NotFoundException('Squad not found.');
+    const ok = await this.redis.set(`kamby:squads:asked:${id}:${me}`, '1', 'EX', 86_400, 'NX').catch(() => 'OK');
+    const chat = await this.open(me, owner.username);
+    if (ok === 'OK') await this.sendText(me, chat.id, `👋 Hi! I'd like to join ${row.title ?? 'your squad'} — could you invite me?`);
+    return { status: 'requested', conversationId: chat.id };
   }
 
   /** A fresh invite link (the old one stops working). */
@@ -997,6 +1044,8 @@ export class DmService {
               ? {
                   inviteCode: r.inviteCode,
                   channels: channels.filter((c) => c.conversationId === r.id).map((c): DmChannelInfo => ({ id: c.id, name: c.name, kind: c.kind === 'voice' ? 'voice' : 'text' })),
+                  visibility: r.visibility === 'public' ? 'public' : r.visibility === 'gated' ? 'gated' : 'private',
+                  about: r.about,
                 }
               : null,
           },

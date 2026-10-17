@@ -68,6 +68,17 @@ class MuteDto {
   forever?: boolean;
 }
 
+class SquadSettingsDto {
+  @IsOptional()
+  @IsIn(['private', 'gated', 'public'])
+  visibility?: 'private' | 'gated' | 'public';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  about?: string;
+}
+
 class PresenceDto {
   @IsOptional()
   @IsUUID()
@@ -206,6 +217,12 @@ export class DmController {
   @Post('conversations/:id/rename')
   rename(@Param('id', ParseUUIDPipe) id: string, @Body() body: RenameDto, @CurrentUser() user: SessionUser) {
     return this.dm.rename(user.id, id, body.title);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('conversations/:id/squad')
+  squadSettings(@Param('id', ParseUUIDPipe) id: string, @Body() body: SquadSettingsDto, @CurrentUser() user: SessionUser) {
+    return this.dm.squadSettings(user.id, id, body);
   }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })

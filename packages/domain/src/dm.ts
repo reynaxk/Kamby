@@ -154,7 +154,7 @@ export interface DmGroup {
   /** Everyone active in the group (at most DM_LIMITS.groupMaxMembers), you included. */
   members: DmPerson[];
   /** Set for a community: its channels and invite code (the link is /c/<code>). */
-  community: { inviteCode: string | null; channels: DmChannelInfo[] } | null;
+  community: { inviteCode: string | null; channels: DmChannelInfo[]; visibility: 'private' | 'gated' | 'public'; about: string | null } | null;
 }
 
 /** What an invite link shows before you join. */

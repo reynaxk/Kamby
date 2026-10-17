@@ -1346,6 +1346,10 @@ model DmConversation {
   /// with an invite link (`inviteCode`).
   isCommunity   Boolean   @default(false) @map("is_community")
   inviteCode    String?   @unique @map("invite_code") @db.VarChar(16)
+  /// Squad Wars (2026-10-17): 'private' (not ranked), 'gated' (ranked, Request invite) or
+  /// 'public' (ranked, anyone can Join) — the owner's choice; and a one-line pitch.
+  visibility    String    @default("private") @db.VarChar(8)
+  about         String?   @db.VarChar(140)
   /// Who wrote first — the other side sees a request until they accept.
   requesterId   String    @map("requester_id")
   /// 'request' until accepted (or both already followed each other), then 'active'.
