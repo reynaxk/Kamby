@@ -38,11 +38,11 @@ export function isDmReaction(value: string): boolean {
 }
 
 /** 'system' = a group event line ("@sandy added @tati"), written by the server. */
-export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'trade' | 'system';
+export type DmMessageKind = 'text' | 'coin' | 'pnl' | 'usdc' | 'trade' | 'duel' | 'system';
 
 export interface DmSystem {
   /** 'call' = a call ended (durationSec) or was missed (durationSec 0). */
-  event: 'created' | 'createdCommunity' | 'added' | 'joined' | 'removed' | 'left' | 'renamed' | 'call';
+  event: 'created' | 'createdCommunity' | 'added' | 'joined' | 'removed' | 'left' | 'renamed' | 'call' | 'duelWon' | 'duelDraw';
   actor: string | null;
   targets: string[];
   title?: string;
@@ -99,6 +99,8 @@ export interface DmMessage {
   pnl: DmPnl | null;
   usdc: DmUsdc | null;
   trade: DmTrade | null;
+  /** A ⚔️ duel challenge card — the app loads its live state by id. */
+  duel: { duelId: string; minutes: number } | null;
   system: DmSystem | null;
   /** The community channel it was written in (null outside communities). */
   channelId: string | null;

@@ -263,10 +263,28 @@ export function pushCopy(locale: string, type: NotificationType, facts: PushFact
   return { title: fill(entry.title), body: fill(entry.body) };
 }
 
+/** "@x accepted your duel — it's on!" per phone language. */
+const DUEL_ON: Record<string, string> = {
+  en: 'accepted your duel — it’s on! Trade now',
+  bg: 'прие дуела — започва! Търгувай сега',
+  de: 'hat dein Duell angenommen — los geht’s! Jetzt traden',
+  es: 'aceptó tu duelo — ¡empieza! Opera ya',
+  fr: 'a accepté ton duel — c’est parti ! Trade maintenant',
+  id: 'menerima duelmu — mulai! Trading sekarang',
+  ja: 'がデュエルを承諾 — スタート！今すぐトレード',
+  ko: '님이 결투를 수락했어요 — 시작! 지금 거래하세요',
+  pt: 'aceitou seu duelo — começou! Negocie agora',
+  ru: 'принял(а) дуэль — поехали! Торгуй сейчас',
+  th: 'รับคำท้าดวลแล้ว — เริ่มเลย! เทรดตอนนี้',
+  tr: 'düellonu kabul etti — başladı! Şimdi işlem yap',
+  vi: 'đã nhận lời đấu — bắt đầu! Giao dịch ngay',
+  zh: '接受了你的对决——开始！马上交易',
+};
+
 /** What a chat push is about (2026-10-17) — from the notification's payload. */
 export interface DmPushFacts {
   actor: string;
-  dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted';
+  dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted' | 'duelAccepted' | 'duelResult';
   chatTitle: string | null;
   preview: string;
   emoji: string;
@@ -306,6 +324,10 @@ export function dmPushCopy(locale: string, f: DmPushFacts): { title: string; bod
     case 'added':
     case 'accepted':
       return { title, body: fill(extra[f.dmKind]) };
+    case 'duelAccepted':
+      return { title: `⚔️ @${f.actor}`, body: fill(DUEL_ON[locale] ?? DUEL_ON.en!) };
+    case 'duelResult':
+      return { title: '⚔️ Duel', body: f.preview };
     default:
       return { title, body: f.chatTitle ? `@${f.actor}: ${f.preview}` : f.preview };
   }

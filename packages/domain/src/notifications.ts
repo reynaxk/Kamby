@@ -122,7 +122,7 @@ export const NotificationPayloadSchema = z.object({
   conversationId: z.string().optional(),
   chatTitle: z.string().nullable().optional(),
   preview: z.string().optional(),
-  dmKind: z.enum(['message', 'mention', 'reply', 'reaction', 'added', 'accepted']).optional(),
+  dmKind: z.enum(['message', 'mention', 'reply', 'reaction', 'added', 'accepted', 'duelAccepted', 'duelResult']).optional(),
   emoji: z.string().optional(),
   /** LIVE_STARTED: the room to open and its title. */
   liveRoomId: z.string().optional(),

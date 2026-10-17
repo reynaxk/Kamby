@@ -20,6 +20,7 @@ import { DmModule } from './dm/dm.module';
 import { CallsModule } from './calls/calls.module';
 import { LiveModule } from './live/live.module';
 import { SquadsModule } from './squads/squads.module';
+import { DuelsModule } from './duels/duels.module';
 import { LaunchpadModule } from './launchpad/launchpad.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { BridgeModule } from './bridge/bridge.module';
@@ -89,6 +90,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     CallsModule,
     LiveModule,
     SquadsModule,
+    DuelsModule,
     LaunchpadModule,
     TransfersModule,
     BridgeModule,

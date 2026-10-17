@@ -52,6 +52,7 @@ export function toMessage(row: DmMessageRow): DmMessage {
     pnl: kind === 'pnl' ? (data as unknown as DmPnl) : null,
     usdc: kind === 'usdc' ? (data as unknown as DmUsdc) : null,
     trade: kind === 'trade' ? (data as unknown as DmTrade) : null,
+    duel: kind === 'duel' ? (data as unknown as { duelId: string; minutes: number }) : null,
     system: kind === 'system' ? (data as unknown as DmSystem) : null,
     channelId: row.channelId ?? null,
     replyTo: kind === 'text' && data && typeof data === 'object' && 'replyTo' in data ? (data.replyTo as DmReplyRef) : null,
@@ -74,6 +75,10 @@ export function systemText(s: DmSystem): string {
       return `${actor} created the group`;
     case 'createdCommunity':
       return `${actor} created the community`;
+    case 'duelWon':
+      return `⚔️ ${actor} won the duel vs ${who(s.targets)} · ${s.title ?? ''}`;
+    case 'duelDraw':
+      return `⚔️ Duel ${actor} vs ${who(s.targets)} ended in a draw · ${s.title ?? ''}`;
     case 'joined':
       return `${actor} joined`;
     case 'added':
@@ -107,6 +112,7 @@ function preview(m: DmMessageRow): string {
   if (m.kind === 'coin') return data.symbol ? `$${data.symbol}` : 'a coin';
   if (m.kind === 'pnl') return data.symbol ? `PnL · $${data.symbol}` : 'PnL card';
   if (m.kind === 'trade') return data.symbol ? `⚡ Bought $${data.symbol}` : '⚡ Trade';
+  if (m.kind === 'duel') return `⚔️ Duel · ${(m.data as { minutes?: number } | null)?.minutes ?? 15} min`;
   if (m.kind === 'system') return systemText(m.data as unknown as DmSystem);
   return `$${(data.amountUsd ?? 0).toFixed(2)} USDC`;
 }
@@ -704,6 +710,18 @@ export class DmService {
   }
 
   /** A server-written line in a chat (a call that ended or was missed). */
+  /** A ⚔️ duel card in a chat (DuelsService) — it buzzes the opponent like any new line. */
+  async postDuel(me: string, id: string, duel: { duelId: string; minutes: number }): Promise<DmMessage> {
+    return this.write(me, id, { kind: 'duel', body: '', data: duel });
+  }
+
+  /** A duel push (accepted / result) for people in a chat. */
+  async notifyDuel(me: string, id: string, targets: string[], dmKind: 'duelAccepted' | 'duelResult', preview: string, dedupe: string): Promise<void> {
+    const row = await prisma.dmConversation.findUnique({ where: { id } });
+    if (!row) return;
+    await this.notifyChat(targets, me, row, { dmKind, preview }, () => dedupe);
+  }
+
   async postSystem(id: string, event: DmSystem): Promise<void> {
     const a = await prisma.dmConversation.findUnique({ where: { id }, select: { isGroup: true, userAId: true, userBId: true } });
     if (!a) return;
@@ -817,7 +835,7 @@ export class DmService {
     targetsIn: string[],
     me: string,
     row: DmConversationRow,
-    extra: { dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted'; preview?: string; emoji?: string },
+    extra: { dmKind: 'message' | 'mention' | 'reply' | 'reaction' | 'added' | 'accepted' | 'duelAccepted' | 'duelResult'; preview?: string; emoji?: string },
     dedupe: (userId: string) => string,
   ): Promise<void> {
     let targets = targetsIn;

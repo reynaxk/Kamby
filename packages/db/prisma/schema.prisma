@@ -1512,3 +1512,30 @@ model LiveReport {
   @@unique([roomId, reporterId])
   @@map("live_reports")
 }
+
+/// A PvP trading duel (2026-10-17): two traders, a short window (5–60 min), scored on the % PnL
+/// of what each buys during it (sold parts at their real proceeds, the rest at the live price).
+/// No stakes — bragging rights, badges and win streaks only (owner's call).
+model Duel {
+  id             String    @id @default(uuid())
+  /// The chat it was thrown down in (its card lives there; the result line lands there).
+  conversationId String?   @map("conversation_id")
+  messageId      String?   @map("message_id")
+  challengerId   String    @map("challenger_id")
+  opponentId     String    @map("opponent_id")
+  minutes        Int
+  /// 'pending' | 'live' | 'done' | 'declined' | 'expired' | 'cancelled'
+  status         String    @default("pending") @db.VarChar(10)
+  startedAt      DateTime? @map("started_at")
+  endsAt         DateTime? @map("ends_at")
+  challengerPct  Float?    @map("challenger_pct")
+  opponentPct    Float?    @map("opponent_pct")
+  winnerId       String?   @map("winner_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([status, endsAt])
+  @@index([challengerId, createdAt])
+  @@index([opponentId, createdAt])
+  @@index([winnerId])
+  @@map("duels")
+}
