@@ -17,6 +17,20 @@ import { useSystemText } from './GroupBits';
 
 const K_PATHS = ['M186 140 V372', 'M200 268 L338 140', 'M232 246 L346 372'];
 
+/** Coin cards share one price look-up per coin for a short while — a chat full of the same
+ *  coin asks once, not once per card (2026-10-17). */
+const PRICE_TTL_MS = 30_000;
+const priceCache = new Map<string, { at: number; price: Promise<number | null> }>();
+function cachedPrice(source: Parameters<typeof fetchLivePrice>[0], key: string): Promise<number | null> {
+  const hit = priceCache.get(key);
+  if (hit && Date.now() - hit.at < PRICE_TTL_MS) return hit.price;
+  const price = fetchLivePrice(source)
+    .then((live) => live?.priceUsd ?? null)
+    .catch(() => null);
+  priceCache.set(key, { at: Date.now(), price });
+  return price;
+}
+
 function CoinCard({ m, mine }: { m: DmMessage; mine: boolean }) {
   const t = useTranslations('dm');
   const coin = m.coin!;
@@ -25,9 +39,7 @@ function CoinCard({ m, mine }: { m: DmMessage; mine: boolean }) {
     const source = liveSourceFor(coin);
     if (!source) return;
     let cancelled = false;
-    fetchLivePrice(source)
-      .then((live) => !cancelled && live && setPrice(live.priceUsd))
-      .catch(() => undefined);
+    void cachedPrice(source, `${coin.chainIdentifier}:${coin.tokenAddress}`).then((p) => !cancelled && p !== null && setPrice(p));
     return () => {
       cancelled = true;
     };

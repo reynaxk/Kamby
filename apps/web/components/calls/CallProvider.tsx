@@ -1,16 +1,20 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { CallState, DmConversation } from '@kamby/domain';
 import { useTranslations } from 'next-intl';
-import { CallEngine } from '@/lib/call-engine';
+import type { CallEngine } from '@/lib/call-engine';
 import { declineCall, joinCall, startCall as apiStartCall } from '@/lib/calls-client';
 import { fetchConversation } from '@/lib/dm-client';
 import { subscribePrivateStream } from '@/lib/private-stream';
 import { hasStoredSession } from '@/lib/session-client';
 import { friendlyError } from '@/lib/friendly-error';
-import { CallScreen } from './CallScreen';
-import { IncomingCall } from './IncomingCall';
+// The call screens and the WebRTC engine load only when a call actually happens — every page
+// carries this provider, so they stay out of every page's first download (2026-10-17).
+const CallScreen = dynamic(() => import('./CallScreen').then((m) => m.CallScreen), { ssr: false });
+const IncomingCall = dynamic(() => import('./IncomingCall').then((m) => m.IncomingCall), { ssr: false });
+const loadEngine = () => import('@/lib/call-engine').then((m) => m.CallEngine);
 
 interface CallsApi {
   /** Start (or join) the call in this chat. */
@@ -81,6 +85,15 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const engineRef = useRef<CallEngine | null>(null);
   engineRef.current = engine;
   const meRef = useRef<string | null>(null);
+  // Chats looked up for ringing, kept so call updates (mute, camera…) don't refetch them.
+  const convCache = useRef(new Map<string, DmConversation>());
+  const lookup = useCallback(async (id: string) => {
+    const hit = convCache.current.get(id);
+    if (hit) return hit;
+    const c = await fetchConversation(id);
+    convCache.current.set(id, c);
+    return c;
+  }, []);
 
   useRingtone(Boolean(incoming));
 
@@ -106,8 +119,13 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         const call = e.call;
+        // Only a call that's ringing someone (or one I'm being shown) needs a look-up.
+        if (call.ringing.length === 0) {
+          setIncoming((inc) => (inc?.call.conversationId === e.conversationId ? null : inc));
+          return;
+        }
         // Ringing me, and I'm not already in a call: show the incoming screen.
-        fetchConversation(e.conversationId)
+        lookup(e.conversationId)
           .then((c) => {
             meRef.current = c.meId;
             if (call.ringing.includes(c.meId) && !engineRef.current) setIncoming({ call, conv: c });
@@ -116,7 +134,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           .catch(() => undefined);
       },
     });
-  }, []);
+  }, [lookup]);
 
   const attach = useCallback((next: CallEngine, c: DmConversation) => {
     next.onChange = () => setTick((n) => n + 1);
@@ -133,9 +151,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       if (engineRef.current) return;
       setError(null);
       try {
-        const c = await fetchConversation(conversationId);
-        const join = await apiStartCall(conversationId, video);
-        const next = await CallEngine.connect(conversationId, c.meId, join, video);
+        const [c, join, Engine] = await Promise.all([fetchConversation(conversationId), apiStartCall(conversationId, video), loadEngine()]);
+        convCache.current.set(conversationId, c);
+        const next = await Engine.connect(conversationId, c.meId, join, video);
         attach(next, c);
       } catch (err) {
         setError(friendlyError(err));
@@ -150,8 +168,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     setIncoming(null);
     setError(null);
     try {
-      const join = await joinCall(call.conversationId);
-      const next = await CallEngine.connect(call.conversationId, c.meId, join, video);
+      const [join, Engine] = await Promise.all([joinCall(call.conversationId), loadEngine()]);
+      const next = await Engine.connect(call.conversationId, c.meId, join, video);
       attach(next, c);
     } catch (err) {
       setError(friendlyError(err));

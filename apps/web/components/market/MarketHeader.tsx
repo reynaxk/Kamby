@@ -66,7 +66,7 @@ export function MarketHeader({
           <Link href="/launch" className="hidden rounded-full border border-accent/30 px-3 py-1.5 font-display text-xs font-bold text-accent transition-colors hover:bg-accent/10 lg:inline-flex">
             LaunchPad
           </Link>
-          <MessagesButton className="max-md:hidden" />
+          <MessagesButton screen="desktop" />
           <UsdcBalancePill />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} enforceChain={false} />
         </div>

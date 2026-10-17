@@ -72,7 +72,7 @@ export function PortfolioHeader() {
       {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG */}
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
       <span className="flex items-center">
-        <MessagesButton />
+        <MessagesButton screen="phone" />
         <AppBell />
       </span>
     </div>

@@ -539,11 +539,21 @@ export class DmService {
     if (status !== a.row.status) await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
     if (!opts.skipPush) {
       const bucket = Math.floor(at.getTime() / (DM_LIMITS.pushBucketMinutes * 60_000));
-      for (const userId of a.participants.filter((u) => u !== me)) {
-        await this.notifications
-          .create({ userId, type: 'DM_MESSAGE', dedupeKey: `dm:${id}:${userId}:${bucket}`, actorUserId: me })
-          .catch((error: unknown) => this.logger.warn({ err: error }, 'DM push notification failed'));
-      }
+      // One push per person per chat per bucket — checked in Redis first, so a busy group
+      // doesn't hit the database once per member for every line (2026-10-17).
+      const others = a.participants.filter((u) => u !== me);
+      const fresh = await Promise.all(
+        others.map((userId) => this.redis.set(`kamby:dm:push:${id}:${userId}:${bucket}`, '1', 'EX', DM_LIMITS.pushBucketMinutes * 60 + 60, 'NX').catch(() => 'OK')),
+      );
+      await Promise.all(
+        others
+          .filter((_, i) => fresh[i] === 'OK')
+          .map((userId) =>
+            this.notifications
+              .create({ userId, type: 'DM_MESSAGE', dedupeKey: `dm:${id}:${userId}:${bucket}`, actorUserId: me })
+              .catch((error: unknown) => this.logger.warn({ err: error }, 'DM push notification failed')),
+          ),
+      );
     }
     return dto;
   }

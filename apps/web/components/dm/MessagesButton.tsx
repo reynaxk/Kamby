@@ -9,14 +9,22 @@ import { hasStoredSession } from '@/lib/session-client';
 
 /** The way into private messages (2026-10-17): a chat bubble beside the bell, with the count
  *  of unread messages (requests count too — someone is waiting). */
-export function MessagesButton({ className }: { className?: string }) {
+export function MessagesButton({ className, screen }: { className?: string; screen?: 'phone' | 'desktop' }) {
+  // Signed-in only, and only on the screen size it's placed for (the phone home row and the
+  // desktop header both carry one) — checked after mount so server and client renders match.
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const wide = window.matchMedia('(min-width: 768px)').matches;
+    setShow(hasStoredSession() && (!screen || (screen === 'desktop') === wide));
+  }, [screen]);
+  if (!show) return null;
+  return <MessagesLink className={className} />;
+}
+
+function MessagesLink({ className }: { className?: string }) {
   const t = useTranslations('dm');
   const unread = useDmUnread();
   const count = (unread?.messages ?? 0) + (unread?.requests ?? 0);
-  // Signed-in only — checked after mount so the server render and the first client render match.
-  const [signedIn, setSignedIn] = useState(false);
-  useEffect(() => setSignedIn(hasStoredSession()), []);
-  if (!signedIn) return null;
   return (
     <Link
       href="/messages"
