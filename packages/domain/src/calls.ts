@@ -43,6 +43,9 @@ export interface CallState {
   participants: CallParticipant[];
   /** People still being rung (not joined, not declined). */
   ringing: string[];
+  /** A community's voice lounge: nobody is rung, people drop in and out, it stays open while
+   *  anyone's in it (2026-10-17). */
+  lounge?: boolean;
 }
 
 export interface CallJoin {

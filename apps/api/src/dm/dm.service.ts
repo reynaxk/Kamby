@@ -6,7 +6,9 @@ import {
   DM_REALTIME_CHANNEL,
   isDmReaction,
   type DmCoin,
+  type DmChannelInfo,
   type DmConversation,
+  type DmInvitePreview,
   type DmEvent,
   type DmMessage,
   type DmMessageKind,
@@ -44,6 +46,7 @@ export function toMessage(row: DmMessageRow): DmMessage {
     pnl: kind === 'pnl' ? (data as unknown as DmPnl) : null,
     usdc: kind === 'usdc' ? (data as unknown as DmUsdc) : null,
     system: kind === 'system' ? (data as unknown as DmSystem) : null,
+    channelId: row.channelId ?? null,
     reactions: (row.reactions ?? {}) as Record<string, string[]>,
     createdAt: row.createdAt.toISOString(),
   };
@@ -76,6 +79,14 @@ export function systemText(s: DmSystem): string {
       return `${kind} · ${m > 0 ? `${m} min` : `${s.durationSec}s`}`;
     }
   }
+}
+
+/** An invite code: 8 characters people can read out (no 0/O/1/l). */
+function inviteCode(): string {
+  const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let out = '';
+  for (let i = 0; i < 8; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return out;
 }
 
 function preview(m: DmMessageRow): string {
@@ -193,12 +204,18 @@ export class DmService {
     return summary!;
   }
 
-  async messages(me: string, id: string, before?: string): Promise<{ items: DmMessage[]; nextBefore: string | null }> {
-    await this.access(me, id);
+  async messages(me: string, id: string, before?: string, channelId?: string): Promise<{ items: DmMessage[]; nextBefore: string | null }> {
+    const a = await this.access(me, id);
     const take = DM_LIMITS.pageSize;
     const beforeDate = before ? new Date(before) : null;
+    // A community shows one channel at a time (its event lines everywhere).
+    const channel = a.row.isCommunity ? await this.channelOf(id, channelId) : null;
     const rows = await prisma.dmMessage.findMany({
-      where: { conversationId: id, ...(beforeDate && !Number.isNaN(beforeDate.getTime()) ? { createdAt: { lt: beforeDate } } : {}) },
+      where: {
+        conversationId: id,
+        ...(channel ? { OR: [{ channelId: channel.id }, { kind: 'system' }] } : {}),
+        ...(beforeDate && !Number.isNaN(beforeDate.getTime()) ? { createdAt: { lt: beforeDate } } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: take + 1,
     });
@@ -273,7 +290,8 @@ export class DmService {
     const existing = await prisma.dmMember.findMany({ where: { conversationId: id }, select: { userId: true } });
     const invitees = (await this.resolveInvitees(me, usernames)).filter((u) => !existing.some((e) => e.userId === u.id));
     if (invitees.length === 0) throw new BadRequestException("They're already in the group.");
-    if (existing.length + invitees.length > DM_LIMITS.groupMaxMembers) throw new BadRequestException(`A group can have up to ${DM_LIMITS.groupMaxMembers} people.`);
+    const max = a.row.isCommunity ? DM_LIMITS.communityMaxMembers : DM_LIMITS.groupMaxMembers;
+    if (existing.length + invitees.length > max) throw new BadRequestException(`A group can have up to ${max} people.`);
     const followers = await this.followersOf(me, invitees.map((u) => u.id));
     await prisma.dmMember.createMany({
       data: invitees.map((u) => ({ conversationId: id, userId: u.id, role: 'member', status: followers.has(u.id) ? 'active' : 'invited' })),
@@ -322,22 +340,22 @@ export class DmService {
 
   // --- writing -----------------------------------------------------------------------------
 
-  async sendText(me: string, id: string, rawBody: string): Promise<DmMessage> {
+  async sendText(me: string, id: string, rawBody: string, channelId?: string): Promise<DmMessage> {
     const body = normalizeDmBody(rawBody ?? '');
     if (body.length === 0) throw new BadRequestException('Write something first.');
     if (body.length > DM_LIMITS.maxLength) throw new BadRequestException(`Keep it under ${DM_LIMITS.maxLength} characters.`);
     if (containsLink(body)) throw new BadRequestException("Links aren't allowed in messages — share a coin with the + button instead.");
-    return this.write(me, id, { kind: 'text', body, data: null });
+    return this.write(me, id, { kind: 'text', body, data: null, channelId });
   }
 
-  async sendCoin(me: string, id: string, chain: string, tokenAddress: string): Promise<DmMessage> {
+  async sendCoin(me: string, id: string, chain: string, tokenAddress: string, channelId?: string): Promise<DmMessage> {
     const coin = await this.resolveCoin(chain, tokenAddress);
     if (!coin) throw new BadRequestException("Kamby doesn't know this coin yet.");
-    return this.write(me, id, { kind: 'coin', body: '', data: coin });
+    return this.write(me, id, { kind: 'coin', body: '', data: coin, channelId });
   }
 
   /** A PnL card from the sender's real position — the numbers can't be typed in. */
-  async sendPnl(me: string, id: string, chain: string, tokenAddress: string): Promise<DmMessage> {
+  async sendPnl(me: string, id: string, chain: string, tokenAddress: string, channelId?: string): Promise<DmMessage> {
     const chainIdentifier = CHAIN_SLUG_TO_IDENTIFIER[chain] ?? chain;
     const position = (await this.positions.getMine(me)).find(
       (p) => (p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : null)) === chainIdentifier && p.tokenAddress.toLowerCase() === tokenAddress.toLowerCase(),
@@ -356,7 +374,7 @@ export class DmService {
       investedUsd: position.costBasisUsd,
       valueUsd: position.currentValueUsd,
     };
-    return this.write(me, id, { kind: 'pnl', body: '', data: pnl });
+    return this.write(me, id, { kind: 'pnl', body: '', data: pnl, channelId });
   }
 
   /** "Sent $5 USDC" — 1:1 only, and only once the transfer is found on-chain (TransferNotifyService
@@ -458,11 +476,119 @@ export class DmService {
     this.logger.warn({ conversationId: id, reporterId: me, group: a.isGroup }, 'Private chat reported');
   }
 
+  // --- communities (2026-10-17, Discord-style) ---------------------------------------------
+
+  /** A new community you own, with #general, #alpha and the 🔊 voice lounge, and an invite link. */
+  async createCommunity(me: string, rawTitle: string): Promise<DmConversation> {
+    const title = rawTitle.replace(/\s+/g, ' ').trim();
+    if (title.length === 0 || title.length > DM_LIMITS.groupTitleMax) throw new BadRequestException(`Give the community a name (up to ${DM_LIMITS.groupTitleMax} characters).`);
+    if (containsLink(title)) throw new BadRequestException("Links aren't allowed in a name.");
+    const myName = await this.requireUsername(me);
+    const startedToday = await prisma.dmConversation.count({ where: { requesterId: me, createdAt: { gte: new Date(Date.now() - 86_400_000) } } });
+    if (startedToday >= DM_LIMITS.newPerDay) throw new HttpException("You've started a lot of new chats today — try again tomorrow.", HttpStatus.TOO_MANY_REQUESTS);
+    const row = await prisma.dmConversation.create({
+      data: {
+        isGroup: true,
+        isCommunity: true,
+        title,
+        ownerId: me,
+        requesterId: me,
+        status: 'active',
+        inviteCode: inviteCode(),
+        members: { create: [{ userId: me, role: 'owner', status: 'active', readAt: new Date() }] },
+        channels: {
+          create: [
+            { name: 'general', kind: 'text', position: 0 },
+            { name: 'alpha', kind: 'text', position: 1 },
+            { name: 'Voice lounge', kind: 'voice', position: 2 },
+          ],
+        },
+      },
+    });
+    await this.system(row.id, { event: 'created', actor: myName, targets: [] });
+    return this.conversation(me, row.id);
+  }
+
+  async createChannel(me: string, id: string, rawName: string, kind: 'text' | 'voice'): Promise<DmConversation> {
+    const a = await this.access(me, id);
+    this.requireOwner(a);
+    if (!a.row.isCommunity) throw new BadRequestException('Channels are for communities.');
+    const name = rawName.trim().replace(/^#/, '').replace(/\s+/g, kind === 'text' ? '-' : ' ').toLowerCase().slice(0, DM_LIMITS.channelNameMax);
+    if (!name || containsLink(name)) throw new BadRequestException('Give the channel a name.');
+    if (kind === 'voice' && (await prisma.dmChannel.count({ where: { conversationId: id, kind: 'voice' } })) > 0) throw new BadRequestException('A community has one voice lounge.');
+    const count = await prisma.dmChannel.count({ where: { conversationId: id } });
+    if (count >= DM_LIMITS.maxChannels) throw new BadRequestException(`Up to ${DM_LIMITS.maxChannels} channels.`);
+    await prisma.dmChannel.create({ data: { conversationId: id, name, kind, position: count } });
+    await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
+    return this.conversation(me, id);
+  }
+
+  async deleteChannel(me: string, id: string, channelId: string): Promise<DmConversation> {
+    const a = await this.access(me, id);
+    this.requireOwner(a);
+    const channels = await prisma.dmChannel.findMany({ where: { conversationId: id, kind: 'text' }, orderBy: { position: 'asc' } });
+    if (channels[0]?.id === channelId) throw new BadRequestException("The first channel can't be deleted.");
+    await prisma.dmChannel.deleteMany({ where: { id: channelId, conversationId: id } });
+    await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
+    return this.conversation(me, id);
+  }
+
+  /** What an invite link shows: name, size, a few faces — and whether you're already in. */
+  async invitePreview(me: string, code: string): Promise<DmInvitePreview> {
+    const row = await prisma.dmConversation.findUnique({ where: { inviteCode: code }, select: { id: true, title: true, isCommunity: true } });
+    if (!row?.isCommunity) throw new NotFoundException('This invite link is not valid.');
+    const members = await prisma.dmMember.findMany({ where: { conversationId: row.id, status: 'active' }, orderBy: { joinedAt: 'asc' }, select: { userId: true } });
+    const faces = await prisma.user.findMany({ where: { id: { in: members.slice(0, 6).map((m) => m.userId) } }, select: { id: true, username: true, avatarUrl: true } });
+    return {
+      conversationId: row.id,
+      title: row.title ?? 'Community',
+      memberCount: members.length,
+      members: faces.map((f) => ({ userId: f.id, username: f.username, avatarUrl: f.avatarUrl, walletAddress: null })),
+      alreadyIn: members.some((m) => m.userId === me),
+    };
+  }
+
+  /** Join with an invite link — you chose to, so you're in right away. */
+  async joinByInvite(me: string, code: string): Promise<DmConversation> {
+    const myName = await this.requireUsername(me);
+    const row = await prisma.dmConversation.findUnique({ where: { inviteCode: code }, select: { id: true, isCommunity: true } });
+    if (!row?.isCommunity) throw new NotFoundException('This invite link is not valid.');
+    const existing = await prisma.dmMember.findUnique({ where: { conversationId_userId: { conversationId: row.id, userId: me } } });
+    if (existing) {
+      if (existing.status !== 'active') await prisma.dmMember.update({ where: { conversationId_userId: { conversationId: row.id, userId: me } }, data: { status: 'active' } });
+      return this.conversation(me, row.id);
+    }
+    const count = await prisma.dmMember.count({ where: { conversationId: row.id } });
+    if (count >= DM_LIMITS.communityMaxMembers) throw new ForbiddenException('This community is full.');
+    await prisma.dmMember.create({ data: { conversationId: row.id, userId: me, role: 'member', status: 'active', readAt: new Date() } });
+    await this.system(row.id, { event: 'added', actor: myName, targets: [myName] });
+    return this.conversation(me, row.id);
+  }
+
+  /** A fresh invite link (the old one stops working). */
+  async resetInvite(me: string, id: string): Promise<DmConversation> {
+    const a = await this.access(me, id);
+    this.requireOwner(a);
+    if (!a.row.isCommunity) throw new BadRequestException('Invite links are for communities.');
+    await prisma.dmConversation.update({ where: { id }, data: { inviteCode: inviteCode() } });
+    return this.conversation(me, id);
+  }
+
+  /** The channel a message belongs to: the one asked for, else the first text channel. */
+  private async channelOf(id: string, channelId?: string): Promise<{ id: string; kind: string } | null> {
+    if (channelId) {
+      const c = await prisma.dmChannel.findFirst({ where: { id: channelId, conversationId: id }, select: { id: true, kind: true } });
+      if (!c) throw new NotFoundException('Channel not found.');
+      return c;
+    }
+    return prisma.dmChannel.findFirst({ where: { conversationId: id, kind: 'text' }, orderBy: { position: 'asc' }, select: { id: true, kind: true } });
+  }
+
   // --- for calls -------------------------------------------------------------------------
 
   /** Who may be in a call in this chat — only accepted chats (owner's rule 2026-10-17): a 1:1
    *  chat that's active and not blocked, or a group you're an active member of. */
-  async callAccess(me: string, id: string): Promise<{ isGroup: boolean; participants: string[] }> {
+  async callAccess(me: string, id: string): Promise<{ isGroup: boolean; isCommunity: boolean; participants: string[] }> {
     const a = await this.access(me, id);
     if (a.isGroup) {
       if (a.myStatus !== 'active') throw new ForbiddenException('Accept the invite first.');
@@ -470,7 +596,7 @@ export class DmService {
       if (a.row.status !== 'active') throw new ForbiddenException('You can call once they accept your message request.');
       if (a.otherId && (await this.blockedEitherWay(me, a.otherId))) throw new ForbiddenException("You can't call this user.");
     }
-    return { isGroup: a.isGroup, participants: a.participants };
+    return { isGroup: a.isGroup, isCommunity: a.row.isCommunity, participants: a.participants };
   }
 
   /** A server-written line in a chat (a call that ended or was missed). */
@@ -489,10 +615,12 @@ export class DmService {
   private async write(
     me: string,
     id: string,
-    message: { kind: DmMessageKind; body: string; data: unknown; txRef?: string },
+    message: { kind: DmMessageKind; body: string; data: unknown; txRef?: string; channelId?: string },
     opts: { skipPush?: boolean } = {},
   ): Promise<DmMessage> {
     const a = await this.access(me, id);
+    const channel = a.row.isCommunity ? await this.channelOf(id, message.channelId) : null;
+    if (channel && channel.kind !== 'text') throw new BadRequestException('Write in a text channel.');
     if (a.isGroup && a.myStatus !== 'active') throw new ForbiddenException('Accept the invite to write in this group.');
     if (!a.isGroup && a.otherId && (await this.blockedEitherWay(me, a.otherId))) throw new ForbiddenException("You can't message this user.");
 
@@ -524,6 +652,7 @@ export class DmService {
         body: message.body,
         data: message.data === null ? Prisma.JsonNull : (message.data as Prisma.InputJsonValue),
         txRef: message.txRef ?? null,
+        channelId: channel?.id ?? null,
       },
     });
     if (a.isGroup) {
@@ -537,7 +666,8 @@ export class DmService {
     const dto = toMessage(created);
     await this.publish({ type: 'message', userIds: a.participants, conversationId: id, message: dto });
     if (status !== a.row.status) await this.publish({ type: 'state', userIds: a.participants, conversationId: id });
-    if (!opts.skipPush) {
+    // Communities don't buzz phones for every line (up to 250 people) — unread shows in the app.
+    if (!opts.skipPush && !a.row.isCommunity) {
       const bucket = Math.floor(at.getTime() / (DM_LIMITS.pushBucketMinutes * 60_000));
       // One push per person per chat per bucket — checked in Redis first, so a busy group
       // doesn't hit the database once per member for every line (2026-10-17).
@@ -682,6 +812,10 @@ export class DmService {
             GROUP BY dm.conversation_id`,
       groupIds.length === 0 ? Promise.resolve([]) : prisma.dmMember.findMany({ where: { conversationId: { in: groupIds } }, orderBy: { joinedAt: 'asc' } }),
     ]);
+    const communityIds = rows.filter((r) => r.isCommunity).map((r) => r.id);
+    const channels = communityIds.length
+      ? await prisma.dmChannel.findMany({ where: { conversationId: { in: communityIds } }, orderBy: { position: 'asc' }, select: { id: true, conversationId: true, name: true, kind: true } })
+      : [];
     const otherIds = pairRows.map((r) => (r.userAId === me ? r.userBId : r.userAId)).filter((x): x is string => Boolean(x));
     const personIds = [...new Set([...otherIds, ...members.map((m) => m.userId)])];
     const [people, blocks] = await Promise.all([
@@ -709,7 +843,17 @@ export class DmService {
           meId: me,
           state: mine?.status === 'invited' ? 'request' : 'active',
           other: null,
-          group: { title: r.title ?? 'Group', ownerId: r.ownerId ?? '', members: rowMembers.filter((m) => m.status === 'active').map((m) => person(m.userId)) },
+          group: {
+            title: r.title ?? 'Group',
+            ownerId: r.ownerId ?? '',
+            members: rowMembers.filter((m) => m.status === 'active').map((m) => person(m.userId)),
+            community: r.isCommunity
+              ? {
+                  inviteCode: r.inviteCode,
+                  channels: channels.filter((c) => c.conversationId === r.id).map((c): DmChannelInfo => ({ id: c.id, name: c.name, kind: c.kind === 'voice' ? 'voice' : 'text' })),
+                }
+              : null,
+          },
           lastMessage,
           unread: unreadBy.get(r.id) ?? 0,
           otherReadAt: null,

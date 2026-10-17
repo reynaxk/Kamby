@@ -62,7 +62,7 @@ export class CallsService {
   /** Start a call in this chat (or join the one already going). */
   async start(me: string, conversationId: string, video: boolean): Promise<CallJoin> {
     if (!this.realtime.enabled) throw new ServiceUnavailableException('Calls are not available right now.');
-    const { participants } = await this.dm.callAccess(me, conversationId);
+    const { participants, isCommunity } = await this.dm.callAccess(me, conversationId);
     let created: CallRecord | null = null;
     await this.mutate(conversationId, (call) => {
       if (call) return call;
@@ -73,8 +73,10 @@ export class CallsService {
         startedAt: new Date().toISOString(),
         video,
         participants: [],
-        ringing: participants.filter((u) => u !== me),
+        // A community's voice lounge rings nobody — people drop in when they see it's on.
+        ringing: isCommunity ? [] : participants.filter((u) => u !== me),
         answered: false,
+        ...(isCommunity ? { lounge: true } : {}),
       };
       return created;
     });
@@ -277,7 +279,7 @@ export class CallsService {
     const onlyCaller = call.participants.length === 1 && call.participants[0]!.userId === call.startedBy && call.ringing.length === 0 && !call.answered;
     // A 1:1 call is over as soon as one side hangs up.
     const pairHungUp = participants.length <= 2 && call.answered && call.participants.length < 2;
-    if (call.participants.length === 0 || onlyCaller || pairHungUp) {
+    if (call.participants.length === 0 || (!call.lounge && (onlyCaller || pairHungUp))) {
       await this.end(conversationId, participants, call);
       return true;
     }
@@ -287,6 +289,11 @@ export class CallsService {
 
   private async end(conversationId: string, participants: string[], call: CallRecord): Promise<void> {
     await this.redis.del(this.key(conversationId), this.seenKey(conversationId));
+    if (call.lounge) {
+      // Lounges come and go all day — no "Call · 12 min" lines in the channels.
+      await this.dm.publishEvent({ type: 'call', userIds: participants, conversationId, call: null });
+      return;
+    }
     const caller = await prisma.user.findUnique({ where: { id: call.startedBy }, select: { username: true } });
     const durationSec = call.answered ? Math.max(1, Math.round((Date.now() - Date.parse(call.startedAt)) / 1000)) : 0;
     await this.dm.postSystem(conversationId, { event: 'call', actor: caller?.username ?? null, targets: [], durationSec, video: call.video }).catch(() => undefined);

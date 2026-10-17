@@ -13,6 +13,7 @@ import { friendlyError } from '@/lib/friendly-error';
 import { formatRelativeTime } from '@/lib/format';
 import { DmAvatar } from './DmAvatar';
 import { GroupAvatar, NewGroupDrawer } from './GroupBits';
+import { NewCommunityDrawer } from './CommunityBits';
 
 /**
  * The Messages screen (2026-10-17): your chats, newest first, and a Requests tab for first
@@ -32,6 +33,7 @@ export function DmInbox() {
   const [opening, setOpening] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [groupOpen, setGroupOpen] = useState(false);
+  const [communityOpen, setCommunityOpen] = useState(false);
 
   const load = useCallback(() => {
     fetchConversations(box)
@@ -107,34 +109,45 @@ export function DmInbox() {
           </button>
         </form>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => setComposing(true)}
-            className="kamby-glass flex items-center gap-2.5 rounded-2xl px-3 py-3 text-left transition-transform active:scale-[0.99]"
+            className="kamby-glass flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition-transform active:scale-[0.98]"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </span>
-            <span className="truncate whitespace-nowrap font-display text-sm font-bold text-ink-900">{t('newMessage')}</span>
+            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('newMessage')}</span>
           </button>
           <button
             type="button"
             onClick={() => setGroupOpen(true)}
-            className="kamby-glass flex items-center gap-2.5 rounded-2xl px-3 py-3 text-left transition-transform active:scale-[0.99]"
+            className="kamby-glass flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition-transform active:scale-[0.98]"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8" />
               </svg>
             </span>
-            <span className="truncate whitespace-nowrap font-display text-sm font-bold text-ink-900">{t('newGroup')}</span>
+            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('newGroup')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCommunityOpen(true)}
+            className="kamby-glass flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] font-display text-lg font-black text-accent" aria-hidden>
+              #
+            </span>
+            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('newCommunity')}</span>
           </button>
         </div>
       )}
       <NewGroupDrawer open={groupOpen} onClose={() => setGroupOpen(false)} />
+      <NewCommunityDrawer open={communityOpen} onClose={() => setCommunityOpen(false)} />
       {openError && <p className="mt-2 px-1 font-body text-xs font-semibold text-down">{openError}</p>}
 
       {/* Chats / Requests */}
@@ -195,6 +208,7 @@ export function DmInbox() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className={cn('truncate font-display text-[0.95rem] text-ink-900', c.unread > 0 ? 'font-black' : 'font-bold')}>{name}</span>
+                    {c.group?.community && <span className="shrink-0 rounded-full border border-accent/20 bg-accent/[0.08] px-2 py-0.5 font-body text-[0.6rem] font-bold text-accent">{t('communityBadge')}</span>}
                     {c.state === 'pending' && <span className="shrink-0 rounded-full bg-white/[0.07] px-2 py-0.5 font-body text-[0.6rem] font-semibold text-ink-400">{t('pending')}</span>}
                     {c.blocked && <span className="shrink-0 rounded-full bg-down/10 px-2 py-0.5 font-body text-[0.6rem] font-semibold text-down">{t('blocked')}</span>}
                   </span>

@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
@@ -17,6 +17,10 @@ class PageQueryDto {
   @IsString()
   @MaxLength(40)
   before?: string;
+
+  @IsOptional()
+  @IsUUID()
+  channelId?: string;
 }
 
 class OpenDto {
@@ -29,6 +33,10 @@ class TextDto {
   @IsString()
   @MaxLength(1200)
   body!: string;
+
+  @IsOptional()
+  @IsUUID()
+  channelId?: string;
 }
 
 class CoinDto {
@@ -37,6 +45,25 @@ class CoinDto {
 
   @Matches(/^(0x[a-fA-F0-9]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})$/)
   tokenAddress!: string;
+
+  @IsOptional()
+  @IsUUID()
+  channelId?: string;
+}
+
+class CommunityDto {
+  @IsString()
+  @MaxLength(60)
+  title!: string;
+}
+
+class ChannelDto {
+  @IsString()
+  @MaxLength(40)
+  name!: string;
+
+  @IsIn(['text', 'voice'])
+  kind!: 'text' | 'voice';
 }
 
 class UsdcDto {
@@ -158,6 +185,42 @@ export class DmController {
     return this.dm.rename(user.id, id, body.title);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('communities')
+  createCommunity(@Body() body: CommunityDto, @CurrentUser() user: SessionUser) {
+    return this.dm.createCommunity(user.id, body.title);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('conversations/:id/channels')
+  createChannel(@Param('id', ParseUUIDPipe) id: string, @Body() body: ChannelDto, @CurrentUser() user: SessionUser) {
+    return this.dm.createChannel(user.id, id, body.name, body.kind);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('conversations/:id/channels/:channelId/delete')
+  deleteChannel(@Param('id', ParseUUIDPipe) id: string, @Param('channelId', ParseUUIDPipe) channelId: string, @CurrentUser() user: SessionUser) {
+    return this.dm.deleteChannel(user.id, id, channelId);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('conversations/:id/invite/reset')
+  resetInvite(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
+    return this.dm.resetInvite(user.id, id);
+  }
+
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Get('invite/:code')
+  invitePreview(@Param('code') code: string, @CurrentUser() user: SessionUser) {
+    return this.dm.invitePreview(user.id, inviteParam(code));
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('invite/:code/join')
+  joinByInvite(@Param('code') code: string, @CurrentUser() user: SessionUser) {
+    return this.dm.joinByInvite(user.id, inviteParam(code));
+  }
+
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @Get('conversations/:id')
   conversation(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
@@ -167,25 +230,25 @@ export class DmController {
   @Throttle({ default: { limit: 90, ttl: 60_000 } })
   @Get('conversations/:id/messages')
   messages(@Param('id', ParseUUIDPipe) id: string, @Query() query: PageQueryDto, @CurrentUser() user: SessionUser) {
-    return this.dm.messages(user.id, id, query.before);
+    return this.dm.messages(user.id, id, query.before, query.channelId);
   }
 
   @Throttle({ default: { limit: 40, ttl: 60_000 } })
   @Post('conversations/:id/messages')
   sendText(@Param('id', ParseUUIDPipe) id: string, @Body() body: TextDto, @CurrentUser() user: SessionUser) {
-    return this.dm.sendText(user.id, id, body.body);
+    return this.dm.sendText(user.id, id, body.body, body.channelId);
   }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('conversations/:id/coin')
   sendCoin(@Param('id', ParseUUIDPipe) id: string, @Body() body: CoinDto, @CurrentUser() user: SessionUser) {
-    return this.dm.sendCoin(user.id, id, body.chain, body.tokenAddress);
+    return this.dm.sendCoin(user.id, id, body.chain, body.tokenAddress, body.channelId);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('conversations/:id/pnl')
   sendPnl(@Param('id', ParseUUIDPipe) id: string, @Body() body: CoinDto, @CurrentUser() user: SessionUser) {
-    return this.dm.sendPnl(user.id, id, body.chain, body.tokenAddress);
+    return this.dm.sendPnl(user.id, id, body.chain, body.tokenAddress, body.channelId);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -242,4 +305,11 @@ export class DmController {
   async report(@Param('id', ParseUUIDPipe) id: string, @Body() body: ReportDto, @CurrentUser() user: SessionUser) {
     await this.dm.report(user.id, id, body.reason);
   }
+}
+
+/** Invite codes are 8 lowercase letters/digits; anything else is not a code. */
+function inviteParam(code: string): string {
+  const c = (code ?? '').trim().toLowerCase();
+  if (!/^[a-z0-9]{6,16}$/.test(c)) throw new NotFoundException('This invite link is not valid.');
+  return c;
 }

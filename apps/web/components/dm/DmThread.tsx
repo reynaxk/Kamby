@@ -36,6 +36,7 @@ import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
+import { ChannelBar, ChannelsDrawer, InviteDrawer } from './CommunityBits';
 import { useCalls } from '@/components/calls/CallProvider';
 import { fetchCall } from '@/lib/calls-client';
 import type { CallState } from '@kamby/domain';
@@ -84,6 +85,12 @@ export function DmThread({ id }: { id: string }) {
   const [menu, setMenu] = useState(false);
   const [attach, setAttach] = useState<'menu' | 'coin' | 'pnl' | null>(null);
   const [usdcOpen, setUsdcOpen] = useState(false);
+  // Communities: the text channel you're reading, and the owner's channel / invite sheets.
+  const [channelId, setChannelId] = useState<string | null>(null);
+  const channelRef = useRef<string | null>(null);
+  channelRef.current = channelId;
+  const [channelsOpen, setChannelsOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSent = useRef(0);
@@ -91,6 +98,8 @@ export function DmThread({ id }: { id: string }) {
 
   const me = conv?.meId ?? null;
   const isGroup = Boolean(conv?.group);
+  const community = conv?.group?.community ?? null;
+  const channelName = community?.channels.find((c) => c.id === channelId)?.name ?? null;
   const memberBy = useMemo(() => new Map((conv?.group?.members ?? []).map((p) => [p.userId, p])), [conv]);
 
   const refreshConv = useCallback(() => {
@@ -106,6 +115,7 @@ export function DmThread({ id }: { id: string }) {
       .then(([c, page]) => {
         if (cancelled) return;
         setConv(c);
+        setChannelId(c.group?.community?.channels.find((ch) => ch.kind === 'text')?.id ?? null);
         setMessages([...page.items].reverse());
         setNextBefore(page.nextBefore);
         if (c.unread > 0) void markDmRead(id).catch(() => undefined);
@@ -123,6 +133,8 @@ export function DmThread({ id }: { id: string }) {
       onDm: (e) => {
         if (e.conversationId !== id) return;
         if (e.type === 'message') {
+          const ch = e.message.channelId;
+          if (ch && channelRef.current && ch !== channelRef.current) return;
           setMessages((list) => (list.some((m) => m.id === e.message.id) ? list : [...list, e.message]));
           setTyping(null);
           if (e.message.senderId !== me && e.message.kind !== 'system' && document.visibilityState === 'visible') {
@@ -162,10 +174,25 @@ export function DmThread({ id }: { id: string }) {
     if (stickToBottom.current) bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages.length, typing]);
 
+  function pickChannel(next: string) {
+    if (next === channelId) return;
+    setChannelId(next);
+    setMessages([]);
+    setNextBefore(null);
+    stickToBottom.current = true;
+    void fetchDmMessages(id, undefined, next)
+      .then((page) => {
+        if (channelRef.current !== next) return;
+        setMessages([...page.items].reverse());
+        setNextBefore(page.nextBefore);
+      })
+      .catch(() => undefined);
+  }
+
   async function loadEarlier() {
     if (!nextBefore) return;
     stickToBottom.current = false;
-    const page = await fetchDmMessages(id, nextBefore).catch(() => null);
+    const page = await fetchDmMessages(id, nextBefore, channelId ?? undefined).catch(() => null);
     if (!page) return;
     setMessages((list) => [...[...page.items].reverse(), ...list]);
     setNextBefore(page.nextBefore);
@@ -192,7 +219,7 @@ export function DmThread({ id }: { id: string }) {
     e?.preventDefault();
     const body = text.trim();
     if (!body || sending) return;
-    if (await run(() => sendDmText(id, body))) setText('');
+    if (await run(() => sendDmText(id, body, channelId ?? undefined))) setText('');
   }
 
   function onType(value: string) {
@@ -292,7 +319,14 @@ export function DmThread({ id }: { id: string }) {
             <span className="truncate font-display text-base font-bold text-ink-900">{name}</span>
           </span>
         )}
-        {canCall && (
+        {community && (
+          <button type="button" aria-label={t('inviteTitle')} onClick={() => setInviteOpen(true)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6" />
+            </svg>
+          </button>
+        )}
+        {canCall && !community && (
           <>
             <button type="button" aria-label={t('callVoice')} onClick={() => void calls.start(id, false)} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -327,8 +361,20 @@ export function DmThread({ id }: { id: string }) {
                     }}
                     className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10"
                   >
-                    {t('groupInfo')}
+                    {community ? t('communityInfo') : t('groupInfo')}
                   </button>
+                  {isOwner && community && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenu(false);
+                        setChannelsOpen(true);
+                      }}
+                      className="block w-full px-4 py-2.5 text-left font-body text-sm text-ink-900 active:bg-white/10"
+                    >
+                      {t('channels')}
+                    </button>
+                  )}
                   {isOwner && (
                     <button
                       type="button"
@@ -366,8 +412,21 @@ export function DmThread({ id }: { id: string }) {
         </span>
       </header>
 
+      {community && (
+        <ChannelBar
+          channels={community.channels}
+          current={channelId}
+          onPick={pickChannel}
+          lounge={liveCall}
+          inLounge={inLiveCall}
+          onLounge={() => canCall && void calls.start(id, false)}
+          canAdd={isOwner}
+          onAdd={() => setChannelsOpen(true)}
+        />
+      )}
+
       {/* A call is on in this chat — join it */}
-      {liveCall && !inLiveCall && liveCall.participants.length > 0 && canCall && (
+      {liveCall && !community && !inLiveCall && liveCall.participants.length > 0 && canCall && (
         <button
           type="button"
           onClick={() => void calls.start(id, false)}
@@ -395,8 +454,8 @@ export function DmThread({ id }: { id: string }) {
             ) : (
               <DmAvatar name={conv.other?.username ?? null} src={conv.other?.avatarUrl ?? null} className="h-20 w-20 text-2xl" />
             )}
-            <p className="mt-3 font-display text-lg font-bold text-ink-900">{name}</p>
-            <p className="mt-1 font-body text-sm text-ink-400">{t('sayHi')}</p>
+            <p className="mt-3 font-display text-lg font-bold text-ink-900">{channelName ? `#${channelName}` : name}</p>
+            <p className="mt-1 font-body text-sm text-ink-400">{channelName ? t('channelWelcome', { title: name }) : t('sayHi')}</p>
           </div>
         )}
         {messages.map((m, i) => {
@@ -488,7 +547,7 @@ export function DmThread({ id }: { id: string }) {
                 }}
                 rows={1}
                 disabled={!canWrite}
-                placeholder={t('placeholder')}
+                placeholder={channelName ? t('channelPlaceholderSay', { channel: channelName }) : t('placeholder')}
                 className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2.5 font-body text-[0.95rem] leading-snug text-ink-900 placeholder:text-ink-400 focus:outline-none [field-sizing:content]"
               />
               <button
@@ -552,7 +611,19 @@ export function DmThread({ id }: { id: string }) {
         </MobileDrawer>
       )}
       {conv?.group && isOwner && (
-        <AddPeopleDrawer open={adding} onClose={() => setAdding(false)} id={id} room={DM_LIMITS.groupMaxMembers - conv.group.members.length} onDone={refreshConv} />
+        <AddPeopleDrawer
+          open={adding}
+          onClose={() => setAdding(false)}
+          id={id}
+          room={Math.min(31, (community ? DM_LIMITS.communityMaxMembers : DM_LIMITS.groupMaxMembers) - conv.group.members.length)}
+          onDone={refreshConv}
+        />
+      )}
+      {community && (
+        <>
+          <InviteDrawer open={inviteOpen} onClose={() => setInviteOpen(false)} id={id} code={community.inviteCode} isOwner={isOwner} onDone={refreshConv} />
+          {isOwner && <ChannelsDrawer open={channelsOpen} onClose={() => setChannelsOpen(false)} id={id} channels={community.channels} onDone={refreshConv} />}
+        </>
       )}
 
       {/* + menu */}
@@ -592,7 +663,7 @@ export function DmThread({ id }: { id: string }) {
         onPick={(m) => {
           setAttach(null);
           const slug = chainSlug(m.chainIdentifier);
-          if (slug) void run(() => sendDmCoin(id, slug, m.tokenAddress));
+          if (slug) void run(() => sendDmCoin(id, slug, m.tokenAddress, channelId ?? undefined));
         }}
       />
       <PnlPicker
@@ -601,7 +672,7 @@ export function DmThread({ id }: { id: string }) {
         onPick={(p) => {
           setAttach(null);
           const slug = chainSlug(p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : ''));
-          if (slug) void run(() => sendDmPnl(id, slug, p.tokenAddress));
+          if (slug) void run(() => sendDmPnl(id, slug, p.tokenAddress, channelId ?? undefined));
         }}
       />
       {conv?.other?.username && (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { DmConversation, DmMessage, DmUnread } from '@kamby/domain';
+import type { DmConversation, DmInvitePreview, DmMessage, DmUnread } from '@kamby/domain';
 import { authedFetch, expectOk, hasStoredSession } from './session-client';
 import { subscribePrivateStream } from './private-stream';
 
@@ -20,12 +20,19 @@ function post(body?: unknown): RequestInit {
 export const fetchConversations = (box: 'chats' | 'requests') => json<DmConversation[]>(`/dm/conversations?box=${box}`);
 export const fetchDmUnread = () => json<DmUnread>('/dm/unread');
 export const fetchConversation = (id: string) => json<DmConversation>(`/dm/conversations/${id}`);
-export const fetchDmMessages = (id: string, before?: string) =>
-  json<{ items: DmMessage[]; nextBefore: string | null }>(`/dm/conversations/${id}/messages${before ? `?before=${encodeURIComponent(before)}` : ''}`);
+export const fetchDmMessages = (id: string, before?: string, channelId?: string) => {
+  const q = new URLSearchParams();
+  if (before) q.set('before', before);
+  if (channelId) q.set('channelId', channelId);
+  const qs = q.toString();
+  return json<{ items: DmMessage[]; nextBefore: string | null }>(`/dm/conversations/${id}/messages${qs ? `?${qs}` : ''}`);
+};
 export const openConversation = (username: string) => json<DmConversation>('/dm/open', post({ username }), 'open the chat');
-export const sendDmText = (id: string, body: string) => json<DmMessage>(`/dm/conversations/${id}/messages`, post({ body }), 'send the message');
-export const sendDmCoin = (id: string, chain: string, tokenAddress: string) => json<DmMessage>(`/dm/conversations/${id}/coin`, post({ chain, tokenAddress }), 'share the coin');
-export const sendDmPnl = (id: string, chain: string, tokenAddress: string) => json<DmMessage>(`/dm/conversations/${id}/pnl`, post({ chain, tokenAddress }), 'share your PnL');
+export const sendDmText = (id: string, body: string, channelId?: string) => json<DmMessage>(`/dm/conversations/${id}/messages`, post({ body, channelId }), 'send the message');
+export const sendDmCoin = (id: string, chain: string, tokenAddress: string, channelId?: string) =>
+  json<DmMessage>(`/dm/conversations/${id}/coin`, post({ chain, tokenAddress, channelId }), 'share the coin');
+export const sendDmPnl = (id: string, chain: string, tokenAddress: string, channelId?: string) =>
+  json<DmMessage>(`/dm/conversations/${id}/pnl`, post({ chain, tokenAddress, channelId }), 'share your PnL');
 export const sendDmUsdc = (id: string, chain: string, txRef: string) => json<DmMessage>(`/dm/conversations/${id}/usdc`, post({ chain, txRef }), 'post the transfer');
 export const reactToDm = (messageId: string, emoji: string) => json<Record<string, string[]>>(`/dm/messages/${messageId}/react`, post({ emoji }), 'react');
 export const acceptConversation = (id: string) => json<DmConversation>(`/dm/conversations/${id}/accept`, post(), 'accept the request');
@@ -34,6 +41,14 @@ export const blockConversation = (id: string, blocked: boolean) => json<DmConver
 export const createGroup = (title: string, usernames: string[]) => json<DmConversation>('/dm/groups', post({ title, usernames }), 'create the group');
 export const addGroupMembers = (id: string, usernames: string[]) => json<DmConversation>(`/dm/conversations/${id}/members`, post({ usernames }), 'add people');
 export const removeGroupMember = (id: string, userId: string) => json<DmConversation>(`/dm/conversations/${id}/members/${userId}/remove`, post(), 'remove them');
+export const createCommunity = (title: string) => json<DmConversation>('/dm/communities', post({ title }), 'create the community');
+export const createChannel = (id: string, name: string, kind: 'text' | 'voice') => json<DmConversation>(`/dm/conversations/${id}/channels`, post({ name, kind }), 'add the channel');
+export const deleteChannel = (id: string, channelId: string) => json<DmConversation>(`/dm/conversations/${id}/channels/${channelId}/delete`, post(), 'delete the channel');
+export const resetInvite = (id: string) => json<DmConversation>(`/dm/conversations/${id}/invite/reset`, post(), 'reset the link');
+export const fetchInvite = (code: string) => json<DmInvitePreview>(`/dm/invite/${encodeURIComponent(code)}`, undefined, 'open the invite');
+export const joinInvite = (code: string) => json<DmConversation>(`/dm/invite/${encodeURIComponent(code)}/join`, post(), 'join');
+/** The link people share: kambesh.com/c/<code>. */
+export const inviteUrl = (code: string) => `${typeof window === 'undefined' ? 'https://kambesh.com' : window.location.origin}/c/${code}`;
 export const renameGroup = (id: string, title: string) => json<DmConversation>(`/dm/conversations/${id}/rename`, post({ title }), 'rename the group');
 
 async function fire(path: string, body?: unknown): Promise<void> {

@@ -24,6 +24,11 @@ export const DM_LIMITS = {
   /** Group chats (2026-10-17, owner: up to 32 people). */
   groupMaxMembers: 32,
   groupTitleMax: 40,
+  /** Communities (Discord-style, 2026-10-17): bigger, with channels; the voice lounge stays a
+   *  call (up to CALL_LIMITS.maxParticipants). */
+  communityMaxMembers: 250,
+  channelNameMax: 24,
+  maxChannels: 20,
 } as const;
 
 /** Reactions on a private message — the same set as a coin's chat. */
@@ -80,6 +85,8 @@ export interface DmMessage {
   pnl: DmPnl | null;
   usdc: DmUsdc | null;
   system: DmSystem | null;
+  /** The community channel it was written in (null outside communities). */
+  channelId: string | null;
   /** emoji → the users who reacted with it. */
   reactions: Record<string, string[]>;
   createdAt: string;
@@ -100,11 +107,28 @@ export interface DmPerson {
  */
 export type DmConversationState = 'active' | 'request' | 'pending';
 
+export interface DmChannelInfo {
+  id: string;
+  name: string;
+  kind: 'text' | 'voice';
+}
+
 export interface DmGroup {
   title: string;
   ownerId: string;
   /** Everyone active in the group (at most DM_LIMITS.groupMaxMembers), you included. */
   members: DmPerson[];
+  /** Set for a community: its channels and invite code (the link is /c/<code>). */
+  community: { inviteCode: string | null; channels: DmChannelInfo[] } | null;
+}
+
+/** What an invite link shows before you join. */
+export interface DmInvitePreview {
+  conversationId: string;
+  title: string;
+  memberCount: number;
+  members: DmPerson[];
+  alreadyIn: boolean;
 }
 
 export interface DmConversation {
