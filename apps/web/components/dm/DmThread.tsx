@@ -37,7 +37,7 @@ import { DmAvatar } from './DmAvatar';
 import { DmMessageView } from './DmMessageView';
 import { AddPeopleDrawer, GroupAvatar } from './GroupBits';
 import { MuteDrawer } from './MuteDrawer';
-import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer } from './CommunityBits';
+import { ChannelBar, ChannelsDrawer, CommunityAvatar, CommunityHome, CommunityPanel, InviteDrawer, SquadSettingsDrawer } from './CommunityBits';
 import { haptic, nameColor } from './DmMessageView';
 import { PositionPicker } from '@/components/social/PositionPicker';
 import { useCalls } from '@/components/calls/CallProvider';
@@ -97,6 +97,7 @@ export function DmThread({ id }: { id: string }) {
   const channelCache = useRef(new Map<string, { messages: DmMessage[]; nextBefore: string | null }>());
   const [homeOpen, setHomeOpen] = useState(false);
   const [muteOpen, setMuteOpen] = useState(false);
+  const [squadOpen, setSquadOpen] = useState(false);
   const [replyTo, setReplyTo] = useState<DmMessage | null>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   // Where the unread lines start when you opened the chat ("New messages" divider), and how many
@@ -395,6 +396,7 @@ export function DmThread({ id }: { id: string }) {
             onChannels={() => setChannelsOpen(true)}
             onMembers={() => setInfo(true)}
             onLeave={() => void leave()}
+            onSquad={() => setSquadOpen(true)}
           />
         </aside>
       )}
@@ -859,6 +861,10 @@ export function DmThread({ id }: { id: string }) {
             setInfo(true);
           }}
           onLeave={() => void leave()}
+          onSquad={() => {
+            setHomeOpen(false);
+            setSquadOpen(true);
+          }}
         />
       )}
       {community && (
@@ -868,6 +874,7 @@ export function DmThread({ id }: { id: string }) {
         </>
       )}
 
+      {community && conv && isOwner && <SquadSettingsDrawer open={squadOpen} onClose={() => setSquadOpen(false)} conv={conv} onDone={setConv} />}
       {conv && <MuteDrawer open={muteOpen} onClose={() => setMuteOpen(false)} conv={conv} onDone={setConv} />}
 
       {/* + menu */}

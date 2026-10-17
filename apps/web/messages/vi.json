@@ -926,7 +926,18 @@
     "mutedForever": "Tắt cho đến khi bạn bật lại",
     "muteNote": "Không có thông báo hay banner từ chat này. @nhắc đến và trả lời bạn vẫn đến.",
     "attachTrade": "Giao dịch",
-    "attachTradeTitle": "Chia sẻ giao dịch"
+    "attachTradeTitle": "Chia sẻ giao dịch",
+    "squadWars": "Squad Wars",
+    "squad_private": "Riêng tư",
+    "squad_gated": "Chỉ khi được mời",
+    "squad_public": "Công khai",
+    "squad_private_body": "Không lên bảng xếp hạng. Chỉ người có link mời mới vào được.",
+    "squad_gated_body": "Lên bảng xếp hạng. Mọi người có thể xin lời mời — đến dưới dạng yêu cầu nhắn tin.",
+    "squad_public_body": "Lên bảng xếp hạng. Ai cũng vào được chỉ với một chạm.",
+    "squadIntro": "Đưa cộng đồng vào Squad Wars — xếp hạng hằng tháng theo khối lượng và tỉ lệ thắng của thành viên trên Kamby.",
+    "squadAbout": "Giới thiệu một dòng",
+    "squadAboutPlaceholder": "Những degen snipe sớm các đợt ra mắt trên Base",
+    "save": "Lưu"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",
@@ -1010,5 +1021,26 @@
     "sent": "Đã gửi",
     "send": "Gửi",
     "openMessages": "Mở Tin nhắn"
+  },
+  "squads": {
+    "traders": "Trader",
+    "squads": "Squad",
+    "subtitle": "Xếp hạng cộng đồng theo hoạt động của trader trên Kamby tháng này.",
+    "season": "Mùa {month}",
+    "byVolume": "Khối lượng",
+    "byWinRate": "Tỉ lệ thắng",
+    "emptyTitle": "Chưa có squad nào tham chiến",
+    "emptyBody": "Có cộng đồng? Mở → tên cộng đồng → Squad Wars và chọn Chỉ khi được mời hoặc Công khai.",
+    "emptyCta": "Mở Tin nhắn",
+    "members": "{count, plural, other {# thành viên}}",
+    "volume": "khối lượng",
+    "winRate": "tỉ lệ thắng",
+    "open": "Mở",
+    "join": "Tham gia",
+    "asked": "Đã xin",
+    "requestInvite": "Xin lời mời",
+    "fullRanking": "Bảng xếp hạng đầy đủ",
+    "footnote": "Từ đầu tháng, theo giao dịch thật trên Kamby. Chỉ vì danh dự — không thưởng, không tiền.",
+    "inviteOnly": "Chỉ khi được mời"
   }
 }

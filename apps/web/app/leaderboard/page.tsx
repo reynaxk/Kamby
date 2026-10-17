@@ -7,6 +7,7 @@ import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { formatCompactUsd } from '@/lib/format';
 import { fetchLeaderboard } from '@/lib/social-api';
 import { getTranslations } from 'next-intl/server';
+import { LeaderTabs } from '@/components/squads/LeaderTabs';
 
 export const revalidate = 30;
 export const metadata = { title: 'Leaderboard — Kamby' };
@@ -64,6 +65,7 @@ export default async function LeaderboardPage({
   const leaderboard = await fetchLeaderboard(window, 25, chain);
   const t = await getTranslations('leaderboard');
   const tL = await getTranslations('labels');
+  const tS = await getTranslations('squads');
 
   return (
     <div className="kamby-void min-h-screen bg-bg">
@@ -93,6 +95,8 @@ export default async function LeaderboardPage({
             ))}
           </nav>
         </div>
+
+        <LeaderTabs active="traders" traders={tS('traders')} squads={tS('squads')} />
 
         <nav className="-mx-4 mt-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0">
           {CHAIN_FILTERS.map((c) => (

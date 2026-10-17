@@ -926,7 +926,18 @@
     "mutedForever": "オンに戻すまでミュート",
     "muteNote": "このチャットの通知とバナーを止めます。@メンションと返信は届きます。",
     "attachTrade": "トレード",
-    "attachTradeTitle": "トレードをシェア"
+    "attachTradeTitle": "トレードをシェア",
+    "squadWars": "Squad Wars",
+    "squad_private": "非公開",
+    "squad_gated": "招待制",
+    "squad_public": "公開",
+    "squad_private_body": "ランキング外。招待リンクを持つ人だけ参加できます。",
+    "squad_gated_body": "ランキングに参加。招待のリクエストがメッセージリクエストとして届きます。",
+    "squad_public_body": "ランキングに参加。誰でもワンタップで参加できます。",
+    "squadIntro": "コミュニティを Squad Wars に — メンバーの Kamby での出来高と勝率で毎月ランキング。",
+    "squadAbout": "ひとこと紹介",
+    "squadAboutPlaceholder": "Base の新規ローンチを早めにスナイプする degen たち",
+    "save": "保存"
   },
   "calls": {
     "failed": "通話に接続できませんでした",
@@ -1010,5 +1021,26 @@
     "sent": "送信済み",
     "send": "送信",
     "openMessages": "メッセージを開く"
+  },
+  "squads": {
+    "traders": "トレーダー",
+    "squads": "スクワッド",
+    "subtitle": "今月の Kamby でのトレードでコミュニティをランキング。",
+    "season": "{month} シーズン",
+    "byVolume": "出来高",
+    "byWinRate": "勝率",
+    "emptyTitle": "まだ参戦しているスクワッドはありません",
+    "emptyBody": "コミュニティをお持ちなら、開いて → 名前 → Squad Wars で「招待制」か「公開」を選んで参戦。",
+    "emptyCta": "メッセージを開く",
+    "members": "{count, plural, other {# 人}}",
+    "volume": "出来高",
+    "winRate": "勝率",
+    "open": "開く",
+    "join": "参加",
+    "asked": "申請済み",
+    "requestInvite": "招待をリクエスト",
+    "fullRanking": "全ランキング",
+    "footnote": "月初からの実際の Kamby トレードに基づきます。名誉のみ — 報酬もお金もありません。",
+    "inviteOnly": "招待制"
   }
 }

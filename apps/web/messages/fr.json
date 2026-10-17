@@ -926,7 +926,18 @@
     "mutedForever": "En sourdine jusqu’à réactivation",
     "muteNote": "Plus de notifications ni de bannières de ce chat. Les @mentions et réponses te parviennent toujours.",
     "attachTrade": "Trade",
-    "attachTradeTitle": "Partager un trade"
+    "attachTradeTitle": "Partager un trade",
+    "squadWars": "Squad Wars",
+    "squad_private": "Privée",
+    "squad_gated": "Sur invitation",
+    "squad_public": "Publique",
+    "squad_private_body": "Hors classement. Seules les personnes avec ton lien d’invitation peuvent rejoindre.",
+    "squad_gated_body": "Dans le classement. On peut te demander une invitation — elle arrive comme demande de message.",
+    "squad_public_body": "Dans le classement. Tout le monde rejoint en un geste.",
+    "squadIntro": "Inscris ta communauté aux Squad Wars — classée chaque mois selon le volume et la réussite de tes membres sur Kamby.",
+    "squadAbout": "Présentation en une ligne",
+    "squadAboutPlaceholder": "Des degens qui snipent les lancements Base tôt",
+    "save": "Enregistrer"
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",
@@ -1010,5 +1021,26 @@
     "sent": "Envoyé",
     "send": "Envoyer",
     "openMessages": "Ouvrir Messages"
+  },
+  "squads": {
+    "traders": "Traders",
+    "squads": "Squads",
+    "subtitle": "Les communautés classées selon ce que leurs traders font sur Kamby ce mois-ci.",
+    "season": "Saison de {month}",
+    "byVolume": "Volume",
+    "byWinRate": "Taux de réussite",
+    "emptyTitle": "Aucune squad dans la guerre pour l’instant",
+    "emptyBody": "Tu as une communauté ? Ouvre-la → son nom → Squad Wars, puis choisis Sur invitation ou Publique.",
+    "emptyCta": "Ouvrir Messages",
+    "members": "{count, plural, one {# membre} other {# membres}}",
+    "volume": "volume",
+    "winRate": "réussite",
+    "open": "Ouvrir",
+    "join": "Rejoindre",
+    "asked": "Demandé",
+    "requestInvite": "Demander une invitation",
+    "fullRanking": "Classement complet",
+    "footnote": "Depuis le début du mois, d’après de vrais trades Kamby. Pour la gloire seulement — ni récompense ni argent.",
+    "inviteOnly": "Sur invitation"
   }
 }

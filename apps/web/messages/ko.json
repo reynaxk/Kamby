@@ -926,7 +926,18 @@
     "mutedForever": "다시 켤 때까지 알림 꺼짐",
     "muteNote": "이 채팅의 푸시와 배너가 오지 않아요. @멘션과 내게 온 답장은 계속 와요.",
     "attachTrade": "거래",
-    "attachTradeTitle": "거래 공유"
+    "attachTradeTitle": "거래 공유",
+    "squadWars": "Squad Wars",
+    "squad_private": "비공개",
+    "squad_gated": "초대 전용",
+    "squad_public": "공개",
+    "squad_private_body": "순위에 없어요. 초대 링크가 있는 사람만 들어와요.",
+    "squad_gated_body": "순위에 올라가요. 사람들이 초대를 요청하면 메시지 요청으로 와요.",
+    "squad_public_body": "순위에 올라가요. 누구나 한 번에 참여해요.",
+    "squadIntro": "커뮤니티를 Squad Wars에 올리세요 — 멤버들의 Kamby 거래량과 승률로 매달 순위가 매겨져요.",
+    "squadAbout": "한 줄 소개",
+    "squadAboutPlaceholder": "Base 신규 런칭을 일찍 스나이핑하는 디젠들",
+    "save": "저장"
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",
@@ -1010,5 +1021,26 @@
     "sent": "보냄",
     "send": "보내기",
     "openMessages": "메시지 열기"
+  },
+  "squads": {
+    "traders": "트레이더",
+    "squads": "스쿼드",
+    "subtitle": "이번 달 Kamby에서의 트레이딩으로 커뮤니티 순위를 매겨요.",
+    "season": "{month} 시즌",
+    "byVolume": "거래량",
+    "byWinRate": "승률",
+    "emptyTitle": "아직 참전한 스쿼드가 없어요",
+    "emptyBody": "커뮤니티가 있나요? 열기 → 이름 → Squad Wars에서 초대 전용이나 공개를 선택하세요.",
+    "emptyCta": "메시지 열기",
+    "members": "{count, plural, other {멤버 #명}}",
+    "volume": "거래량",
+    "winRate": "승률",
+    "open": "열기",
+    "join": "참여",
+    "asked": "요청함",
+    "requestInvite": "초대 요청",
+    "fullRanking": "전체 순위",
+    "footnote": "월초부터의 실제 Kamby 거래 기준. 명예만 걸려 있어요 — 보상도 돈도 없어요.",
+    "inviteOnly": "초대 전용"
   }
 }

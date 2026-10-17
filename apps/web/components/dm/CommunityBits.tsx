@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { DM_LIMITS, type CallState, type DmChannelInfo, type DmConversation, type DmInvitePreview, type DmPerson } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
-import { createChannel, createCommunity, deleteChannel, fetchInvite, inviteUrl, joinInvite, resetInvite } from '@/lib/dm-client';
+import { createChannel, createCommunity, deleteChannel, fetchInvite, inviteUrl, joinInvite, resetInvite, updateSquad } from '@/lib/dm-client';
 import { friendlyError } from '@/lib/friendly-error';
 import { DmAvatar } from './DmAvatar';
 
@@ -391,6 +391,7 @@ export function CommunityPanel({
   onChannels,
   onMembers,
   onLeave,
+  onSquad,
   tall = false,
 }: {
   onClose: () => void;
@@ -405,6 +406,8 @@ export function CommunityPanel({
   onChannels: () => void;
   onMembers: () => void;
   onLeave: () => void;
+  /** Owner: Squad Wars settings. */
+  onSquad?: () => void;
   /** On the desktop side panel the list isn't capped — the panel scrolls. */
   tall?: boolean;
 }) {
@@ -521,6 +524,22 @@ export function CommunityPanel({
           </>
         )}
 
+        {/* Squad Wars (owner) */}
+        {isOwner && onSquad && (
+          <button type="button" onClick={onSquad} className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-3 text-left active:bg-white/[0.06]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(150deg,#FFF1B8,#F5C451_45%,#B07A1E)] text-base" aria-hidden>
+              ⚔️
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-sm font-bold text-ink-900">{t('squadWars')}</span>
+              <span className="block truncate font-body text-[0.7rem] text-ink-400">{t(`squad_${group.community?.visibility ?? 'private'}`)}</span>
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-400" aria-hidden>
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        )}
+
         {/* Members preview */}
         <button type="button" onClick={onMembers} className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-3 text-left active:bg-white/[0.06]">
           <span className="flex -space-x-2">
@@ -581,6 +600,84 @@ export function CommunityRail({ items, onCreate }: { items: DmConversation[]; on
         </button>
       </div>
     </div>
+  );
+}
+
+/** Owner: enter the community in Squad Wars — private (not ranked), invite-only (ranked, people
+ *  ask to join) or public (ranked, anyone joins) — and its one-line pitch. */
+export function SquadSettingsDrawer({ open, onClose, conv, onDone }: { open: boolean; onClose: () => void; conv: DmConversation; onDone: (c: DmConversation) => void }) {
+  const t = useTranslations('dm');
+  const current = conv.group?.community?.visibility ?? 'private';
+  const [visibility, setVisibility] = useState<'private' | 'gated' | 'public'>(current);
+  const [about, setAbout] = useState(conv.group?.community?.about ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    setVisibility(conv.group?.community?.visibility ?? 'private');
+    setAbout(conv.group?.community?.about ?? '');
+  }, [open, conv]);
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      onDone(await updateSquad(conv.id, { visibility, about: about.trim() }));
+      onClose();
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const options = [
+    { key: 'private', icon: '🔐' },
+    { key: 'gated', icon: '🔒' },
+    { key: 'public', icon: '🌐' },
+  ] as const;
+
+  return (
+    <MobileDrawer open={open} onClose={onClose} title={t('squadWars')} desktop>
+      <p className="font-body text-sm text-ink-400">{t('squadIntro')}</p>
+      <div className="mt-3 space-y-2" role="radiogroup">
+        {options.map((o) => (
+          <button
+            key={o.key}
+            type="button"
+            role="radio"
+            aria-checked={visibility === o.key}
+            onClick={() => setVisibility(o.key)}
+            className={cn(
+              'flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition-colors',
+              visibility === o.key ? 'border-accent/40 bg-accent/[0.07]' : 'border-white/[0.06] bg-white/[0.02] active:bg-white/[0.05]',
+            )}
+          >
+            <span className="text-lg" aria-hidden>
+              {o.icon}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-display text-sm font-bold text-ink-900">{t(`squad_${o.key}`)}</span>
+              <span className="block font-body text-[0.72rem] leading-snug text-ink-400">{t(`squad_${o.key}_body`)}</span>
+            </span>
+            <span className={cn('mt-1 h-4 w-4 shrink-0 rounded-full border-2', visibility === o.key ? 'border-accent bg-accent' : 'border-white/20')} aria-hidden />
+          </button>
+        ))}
+      </div>
+      <label className="mt-4 block font-body text-xs font-semibold text-ink-400">{t('squadAbout')}</label>
+      <textarea
+        value={about}
+        onChange={(e) => setAbout(e.target.value.slice(0, 140))}
+        rows={2}
+        placeholder={t('squadAboutPlaceholder')}
+        className="mt-1.5 w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 font-body text-sm text-ink-900 placeholder:text-ink-400 focus:border-accent focus:outline-none"
+      />
+      <p className="mt-1 text-right font-body text-[0.65rem] text-ink-400">{about.length}/140</p>
+      {error && <p className="mt-1 font-body text-xs font-semibold text-down">{error}</p>}
+      <button type="button" disabled={busy} onClick={() => void save()} className="mt-3 w-full rounded-2xl bg-accent py-3.5 font-display text-base font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-40">
+        {busy ? '…' : t('save')}
+      </button>
+    </MobileDrawer>
   );
 }
 

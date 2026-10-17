@@ -926,7 +926,18 @@
     "mutedForever": "Dibisukan sampai kamu menyalakannya",
     "muteNote": "Tanpa notifikasi atau banner dari chat ini. @sebutan dan balasan untukmu tetap masuk.",
     "attachTrade": "Trade",
-    "attachTradeTitle": "Bagikan trade"
+    "attachTradeTitle": "Bagikan trade",
+    "squadWars": "Squad Wars",
+    "squad_private": "Privat",
+    "squad_gated": "Hanya undangan",
+    "squad_public": "Publik",
+    "squad_private_body": "Tidak di peringkat. Hanya orang dengan tautan undanganmu yang bisa bergabung.",
+    "squad_gated_body": "Di peringkat. Orang bisa meminta undangan — masuk sebagai permintaan pesan.",
+    "squad_public_body": "Di peringkat. Siapa pun bisa bergabung sekali ketuk.",
+    "squadIntro": "Masukkan komunitasmu ke Squad Wars — diperingkat tiap bulan dari volume dan win rate anggotamu di Kamby.",
+    "squadAbout": "Deskripsi satu baris",
+    "squadAboutPlaceholder": "Degen yang snipe peluncuran Base lebih awal",
+    "save": "Simpan"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",
@@ -1010,5 +1021,26 @@
     "sent": "Terkirim",
     "send": "Kirim",
     "openMessages": "Buka Pesan"
+  },
+  "squads": {
+    "traders": "Trader",
+    "squads": "Squad",
+    "subtitle": "Komunitas diurutkan menurut aktivitas trader-nya di Kamby bulan ini.",
+    "season": "Musim {month}",
+    "byVolume": "Volume",
+    "byWinRate": "Win rate",
+    "emptyTitle": "Belum ada squad di arena",
+    "emptyBody": "Punya komunitas? Buka → namanya → Squad Wars, lalu pilih Hanya undangan atau Publik.",
+    "emptyCta": "Buka Pesan",
+    "members": "{count, plural, other {# anggota}}",
+    "volume": "volume",
+    "winRate": "win rate",
+    "open": "Buka",
+    "join": "Gabung",
+    "asked": "Diminta",
+    "requestInvite": "Minta undangan",
+    "fullRanking": "Peringkat lengkap",
+    "footnote": "Sejak awal bulan, dari trade nyata di Kamby. Hanya untuk gengsi — tanpa hadiah, tanpa uang.",
+    "inviteOnly": "Hanya undangan"
   }
 }

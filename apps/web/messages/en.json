@@ -926,7 +926,18 @@
     "mutedForever": "Muted until you turn it back on",
     "muteNote": "No pushes or banners from this chat. @mentions and replies to you still come through.",
     "attachTrade": "Trade",
-    "attachTradeTitle": "Share a trade"
+    "attachTradeTitle": "Share a trade",
+    "squadWars": "Squad Wars",
+    "squad_private": "Private",
+    "squad_gated": "Invite-only",
+    "squad_public": "Public",
+    "squad_private_body": "Not in the ranking. Only people with your invite link can join.",
+    "squad_gated_body": "In the ranking. People can ask you for an invite — it arrives as a message request.",
+    "squad_public_body": "In the ranking. Anyone can join in one tap.",
+    "squadIntro": "Put your community in Squad Wars — ranked each month by your members’ volume and win rate on Kamby.",
+    "squadAbout": "One-line pitch",
+    "squadAboutPlaceholder": "Degens who snipe Base launches early",
+    "save": "Save"
   },
   "calls": {
     "failed": "Call didn’t connect",
@@ -1010,5 +1021,26 @@
     "sent": "Sent",
     "send": "Send",
     "openMessages": "Open Messages"
+  },
+  "squads": {
+    "traders": "Traders",
+    "squads": "Squads",
+    "subtitle": "Communities ranked by what their traders do on Kamby this month.",
+    "season": "{month} season",
+    "byVolume": "Volume",
+    "byWinRate": "Win rate",
+    "emptyTitle": "No squads in the war yet",
+    "emptyBody": "Own a community? Open it → its name → Squad Wars, and choose Invite-only or Public to enter.",
+    "emptyCta": "Open Messages",
+    "members": "{count, plural, one {# member} other {# members}}",
+    "volume": "volume",
+    "winRate": "win rate",
+    "open": "Open",
+    "join": "Join",
+    "asked": "Asked",
+    "requestInvite": "Request invite",
+    "fullRanking": "Full ranking",
+    "footnote": "Month to date, from real Kamby trades. Bragging rights only — no rewards, no money.",
+    "inviteOnly": "Invite-only"
   }
 }

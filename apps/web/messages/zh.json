@@ -926,7 +926,18 @@
     "mutedForever": "静音，直到你重新开启",
     "muteNote": "这个聊天不再推送通知和横幅。@提及和回复你的消息仍会提醒。",
     "attachTrade": "交易",
-    "attachTradeTitle": "分享交易"
+    "attachTradeTitle": "分享交易",
+    "squadWars": "Squad Wars",
+    "squad_private": "私密",
+    "squad_gated": "仅限邀请",
+    "squad_public": "公开",
+    "squad_private_body": "不参与排名。只有持邀请链接的人能加入。",
+    "squad_gated_body": "参与排名。别人可以向你申请邀请——以消息请求的形式到达。",
+    "squad_public_body": "参与排名。任何人一键即可加入。",
+    "squadIntro": "让你的社区加入 Squad Wars——按成员在 Kamby 的交易量和胜率每月排名。",
+    "squadAbout": "一句话介绍",
+    "squadAboutPlaceholder": "早早狙击 Base 新币的 degen 们",
+    "save": "保存"
   },
   "calls": {
     "failed": "通话未接通",
@@ -1010,5 +1021,26 @@
     "sent": "已发送",
     "send": "发送",
     "openMessages": "打开消息"
+  },
+  "squads": {
+    "traders": "交易员",
+    "squads": "战队",
+    "subtitle": "按本月成员在 Kamby 的交易给社区排名。",
+    "season": "{month}赛季",
+    "byVolume": "交易量",
+    "byWinRate": "胜率",
+    "emptyTitle": "还没有战队参战",
+    "emptyBody": "你有社区吗？打开 → 点名称 → Squad Wars，选择“仅限邀请”或“公开”即可参战。",
+    "emptyCta": "打开消息",
+    "members": "{count, plural, other {# 名成员}}",
+    "volume": "交易量",
+    "winRate": "胜率",
+    "open": "打开",
+    "join": "加入",
+    "asked": "已申请",
+    "requestInvite": "申请邀请",
+    "fullRanking": "完整排名",
+    "footnote": "自本月初起，基于真实的 Kamby 交易。只为荣誉——没有奖励，也不涉及金钱。",
+    "inviteOnly": "仅限邀请"
   }
 }

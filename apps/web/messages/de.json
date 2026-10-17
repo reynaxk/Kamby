@@ -926,7 +926,18 @@
     "mutedForever": "Stumm, bis du es wieder einschaltest",
     "muteNote": "Keine Pushes oder Banner aus diesem Chat. @Erwähnungen und Antworten an dich kommen trotzdem.",
     "attachTrade": "Trade",
-    "attachTradeTitle": "Einen Trade teilen"
+    "attachTradeTitle": "Einen Trade teilen",
+    "squadWars": "Squad Wars",
+    "squad_private": "Privat",
+    "squad_gated": "Nur mit Einladung",
+    "squad_public": "Öffentlich",
+    "squad_private_body": "Nicht im Ranking. Nur Leute mit deinem Einladungslink können beitreten.",
+    "squad_gated_body": "Im Ranking. Leute können dich um eine Einladung bitten — sie kommt als Nachrichtenanfrage.",
+    "squad_public_body": "Im Ranking. Jeder kann mit einem Tipp beitreten.",
+    "squadIntro": "Bring deine Community in die Squad Wars — jeden Monat nach Volumen und Trefferquote deiner Mitglieder auf Kamby gerankt.",
+    "squadAbout": "Kurzbeschreibung",
+    "squadAboutPlaceholder": "Degens, die Base-Launches früh snipen",
+    "save": "Speichern"
   },
   "calls": {
     "failed": "Anruf nicht verbunden",
@@ -1010,5 +1021,26 @@
     "sent": "Gesendet",
     "send": "Senden",
     "openMessages": "Nachrichten öffnen"
+  },
+  "squads": {
+    "traders": "Trader",
+    "squads": "Squads",
+    "subtitle": "Communities nach dem, was ihre Trader diesen Monat auf Kamby machen.",
+    "season": "Saison {month}",
+    "byVolume": "Volumen",
+    "byWinRate": "Trefferquote",
+    "emptyTitle": "Noch keine Squads im Krieg",
+    "emptyBody": "Du hast eine Community? Öffne sie → Name → Squad Wars und wähle „Nur mit Einladung“ oder „Öffentlich“.",
+    "emptyCta": "Nachrichten öffnen",
+    "members": "{count, plural, one {# Mitglied} other {# Mitglieder}}",
+    "volume": "Volumen",
+    "winRate": "Trefferquote",
+    "open": "Öffnen",
+    "join": "Beitreten",
+    "asked": "Angefragt",
+    "requestInvite": "Einladung anfragen",
+    "fullRanking": "Gesamtranking",
+    "footnote": "Seit Monatsbeginn, aus echten Kamby-Trades. Nur für den Ruhm — keine Belohnungen, kein Geld.",
+    "inviteOnly": "Nur mit Einladung"
   }
 }

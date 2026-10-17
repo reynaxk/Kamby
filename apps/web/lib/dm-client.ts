@@ -47,6 +47,8 @@ export const removeGroupMember = (id: string, userId: string) => json<DmConversa
 export const createCommunity = (title: string) => json<DmConversation>('/dm/communities', post({ title }), 'create the community');
 export const createChannel = (id: string, name: string, kind: 'text' | 'voice') => json<DmConversation>(`/dm/conversations/${id}/channels`, post({ name, kind }), 'add the channel');
 export const deleteChannel = (id: string, channelId: string) => json<DmConversation>(`/dm/conversations/${id}/channels/${channelId}/delete`, post(), 'delete the channel');
+export const updateSquad = (id: string, settings: { visibility?: 'private' | 'gated' | 'public'; about?: string }) =>
+  json<DmConversation>(`/dm/conversations/${id}/squad`, post(settings), 'save the squad');
 export const resetInvite = (id: string) => json<DmConversation>(`/dm/conversations/${id}/invite/reset`, post(), 'reset the link');
 export const fetchInvite = (code: string) => json<DmInvitePreview>(`/dm/invite/${encodeURIComponent(code)}`, undefined, 'open the invite');
 export const joinInvite = (code: string) => json<DmConversation>(`/dm/invite/${encodeURIComponent(code)}/join`, post(), 'join');

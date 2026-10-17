@@ -926,7 +926,18 @@
     "mutedForever": "Silenciado hasta que lo actives",
     "muteNote": "Sin avisos ni banners de este chat. Las @menciones y respuestas a ti siguen llegando.",
     "attachTrade": "Operación",
-    "attachTradeTitle": "Compartir operación"
+    "attachTradeTitle": "Compartir operación",
+    "squadWars": "Squad Wars",
+    "squad_private": "Privada",
+    "squad_gated": "Solo con invitación",
+    "squad_public": "Pública",
+    "squad_private_body": "Fuera de la clasificación. Solo entra quien tenga tu enlace de invitación.",
+    "squad_gated_body": "En la clasificación. La gente puede pedirte una invitación: llega como solicitud de mensaje.",
+    "squad_public_body": "En la clasificación. Cualquiera entra con un toque.",
+    "squadIntro": "Mete tu comunidad en Squad Wars: clasificación mensual por volumen y aciertos de tus miembros en Kamby.",
+    "squadAbout": "Descripción en una línea",
+    "squadAboutPlaceholder": "Degens que snipean lanzamientos de Base temprano",
+    "save": "Guardar"
   },
   "calls": {
     "failed": "La llamada no conectó",
@@ -1010,5 +1021,26 @@
     "sent": "Enviado",
     "send": "Enviar",
     "openMessages": "Abrir Mensajes"
+  },
+  "squads": {
+    "traders": "Traders",
+    "squads": "Squads",
+    "subtitle": "Comunidades clasificadas por lo que hacen sus traders en Kamby este mes.",
+    "season": "Temporada de {month}",
+    "byVolume": "Volumen",
+    "byWinRate": "Tasa de acierto",
+    "emptyTitle": "Aún no hay squads en la guerra",
+    "emptyBody": "¿Tienes una comunidad? Ábrela → su nombre → Squad Wars y elige Solo con invitación o Pública.",
+    "emptyCta": "Abrir Mensajes",
+    "members": "{count, plural, one {# miembro} other {# miembros}}",
+    "volume": "volumen",
+    "winRate": "acierto",
+    "open": "Abrir",
+    "join": "Unirse",
+    "asked": "Pedido",
+    "requestInvite": "Pedir invitación",
+    "fullRanking": "Clasificación completa",
+    "footnote": "Desde inicio de mes, con operaciones reales en Kamby. Solo por orgullo: sin premios ni dinero.",
+    "inviteOnly": "Solo con invitación"
   }
 }

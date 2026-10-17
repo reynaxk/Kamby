@@ -926,7 +926,18 @@
     "mutedForever": "Sen açana kadar sessizde",
     "muteNote": "Bu sohbetten bildirim veya banner gelmez. @bahsetmeler ve sana yanıtlar yine gelir.",
     "attachTrade": "İşlem",
-    "attachTradeTitle": "İşlem paylaş"
+    "attachTradeTitle": "İşlem paylaş",
+    "squadWars": "Squad Wars",
+    "squad_private": "Gizli",
+    "squad_gated": "Davetle",
+    "squad_public": "Herkese açık",
+    "squad_private_body": "Sıralamada değil. Sadece davet linkin olanlar katılır.",
+    "squad_gated_body": "Sıralamada. İnsanlar davet isteyebilir — mesaj isteği olarak gelir.",
+    "squad_public_body": "Sıralamada. Herkes tek dokunuşla katılır.",
+    "squadIntro": "Topluluğunu Squad Wars’a sok — üyelerinin Kamby hacmi ve kazanma oranına göre her ay sıralanır.",
+    "squadAbout": "Tek satırlık tanıtım",
+    "squadAboutPlaceholder": "Base lansmanlarını erken snipe’layan degen’ler",
+    "save": "Kaydet"
   },
   "calls": {
     "failed": "Arama bağlanamadı",
@@ -1010,5 +1021,26 @@
     "sent": "Gönderildi",
     "send": "Gönder",
     "openMessages": "Mesajları aç"
+  },
+  "squads": {
+    "traders": "Trader’lar",
+    "squads": "Ekipler",
+    "subtitle": "Toplulukları bu ay Kamby’de yaptıklarına göre sıralar.",
+    "season": "{month} sezonu",
+    "byVolume": "Hacim",
+    "byWinRate": "Kazanma oranı",
+    "emptyTitle": "Savaşta henüz ekip yok",
+    "emptyBody": "Topluluğun mu var? Aç → adına dokun → Squad Wars, Davetle veya Herkese açık seç.",
+    "emptyCta": "Mesajları aç",
+    "members": "{count, plural, other {# üye}}",
+    "volume": "hacim",
+    "winRate": "kazanma",
+    "open": "Aç",
+    "join": "Katıl",
+    "asked": "İstendi",
+    "requestInvite": "Davet iste",
+    "fullRanking": "Tam sıralama",
+    "footnote": "Ay başından beri, gerçek Kamby işlemlerinden. Sadece şan için — ödül yok, para yok.",
+    "inviteOnly": "Davetle"
   }
 }

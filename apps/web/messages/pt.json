@@ -926,7 +926,18 @@
     "mutedForever": "Silenciado até você reativar",
     "muteNote": "Sem notificações ou banners deste chat. @menções e respostas a você continuam chegando.",
     "attachTrade": "Trade",
-    "attachTradeTitle": "Compartilhar trade"
+    "attachTradeTitle": "Compartilhar trade",
+    "squadWars": "Squad Wars",
+    "squad_private": "Privada",
+    "squad_gated": "Só com convite",
+    "squad_public": "Pública",
+    "squad_private_body": "Fora do ranking. Só entra quem tem seu link de convite.",
+    "squad_gated_body": "No ranking. As pessoas podem pedir convite — chega como solicitação de mensagem.",
+    "squad_public_body": "No ranking. Qualquer um entra com um toque.",
+    "squadIntro": "Coloque sua comunidade na Squad Wars — ranqueada todo mês pelo volume e acertos dos membros na Kamby.",
+    "squadAbout": "Descrição em uma linha",
+    "squadAboutPlaceholder": "Degens que dão snipe em lançamentos da Base cedo",
+    "save": "Salvar"
   },
   "calls": {
     "failed": "A chamada não conectou",
@@ -1010,5 +1021,26 @@
     "sent": "Enviado",
     "send": "Enviar",
     "openMessages": "Abrir Mensagens"
+  },
+  "squads": {
+    "traders": "Traders",
+    "squads": "Squads",
+    "subtitle": "Comunidades ranqueadas pelo que seus traders fazem na Kamby neste mês.",
+    "season": "Temporada de {month}",
+    "byVolume": "Volume",
+    "byWinRate": "Taxa de acerto",
+    "emptyTitle": "Ainda não há squads na guerra",
+    "emptyBody": "Tem uma comunidade? Abra → o nome → Squad Wars e escolha Só com convite ou Pública.",
+    "emptyCta": "Abrir Mensagens",
+    "members": "{count, plural, one {# membro} other {# membros}}",
+    "volume": "volume",
+    "winRate": "acerto",
+    "open": "Abrir",
+    "join": "Entrar",
+    "asked": "Pedido",
+    "requestInvite": "Pedir convite",
+    "fullRanking": "Ranking completo",
+    "footnote": "Desde o início do mês, com trades reais na Kamby. Só pela glória — sem prêmios, sem dinheiro.",
+    "inviteOnly": "Só com convite"
   }
 }
