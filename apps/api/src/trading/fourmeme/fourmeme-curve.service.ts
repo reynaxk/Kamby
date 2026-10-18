@@ -176,8 +176,7 @@ export class FourMemeCurveService {
     await this.checkTrader(userId, wallet, token);
     const { usdc } = this.ready();
     if ((await this.gas.ensureGas(BNB_CHAIN_ID, wallet, usdc)) === 'stranded') throw new UnprocessableEntityException('Trading on BNB Chain is getting ready — try again in a few minutes.');
-    const [, , funds] = await client.readContract({ address: HELPER_3, abi: HELPER_ABI, functionName: 'trySell', args: [token, amountRaw] });
-    if ((Number(funds) / 1e18) * (await this.bnbPriceUsd(wallet)) < MIN_TRADE_USD) throw new BadRequestException(MIN_TRADE_MESSAGE);
+    // No $2 minimum on a sell (2026-10-18): a position under $2 must still be sellable.
     const allowance = await client.readContract({ address: token, abi: erc20Abi, functionName: 'allowance', args: [wallet, TOKEN_MANAGER_2] });
     const txs: LaunchEvmTx[] = [];
     if (allowance < amountRaw) txs.push({ chainId: BNB_CHAIN_ID, to: token, data: encodeFunctionData({ abi: erc20Abi, functionName: 'approve', args: [TOKEN_MANAGER_2, amountRaw] }), value: '0' });

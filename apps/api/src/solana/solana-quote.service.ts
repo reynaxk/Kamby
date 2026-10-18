@@ -319,7 +319,7 @@ export class SolanaQuoteService {
   }
 
   private async resolveTierBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
-    // The $2 minimum rides on the same trade-size lookup (USDC in for a buy, USDC out for a sell).
+    // The $2 minimum (buys only) rides on the same trade-size lookup.
     if (side === 'BUY') {
       const tradeSizeUsd = Number(amount) / 10 ** 6;
       if (tradeSizeUsd < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
@@ -327,9 +327,8 @@ export class SolanaQuoteService {
     }
     const estimatedOutputRaw = await this.jupiter.getEstimatedOutputRaw({ inputMint, outputMint, amountRaw: amount, slippageBps });
     if (estimatedOutputRaw === null) return PLATFORM_FEE_FALLBACK_BPS;
-    const tradeSizeUsd = Number(estimatedOutputRaw) / 10 ** 6;
-    if (tradeSizeUsd < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
-    return resolveTierFeeBps(tradeSizeUsd);
+    // Sells have no minimum — a position that dipped under $2 must still be sellable (2026-10-18).
+    return resolveTierFeeBps(Number(estimatedOutputRaw) / 10 ** 6);
   }
 
   /** Same ownership contract as QuoteService#assertWalletOwnership — a client-supplied

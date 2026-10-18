@@ -243,9 +243,8 @@ export class QuoteService {
     // the gross USDC the swap actually produced, only known once the router has priced it.
     // Every other case already resolved its tier above, before this call.
     // A sell's size is the USDC it produces — only known now.
-    if (usesGuaranteedUsdcFee && params.side === 'SELL' && Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)) < MIN_TRADE_USD) {
-      throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
-    }
+    // No minimum on a sell (2026-10-18, real test): a $2 buy that dipped to $1.91 could never be
+    // sold — the $2 floor is for buys only; getting out must always work.
     const appliedFeeBps =
       usesGuaranteedUsdcFee && params.side === 'SELL'
         ? resolveTierFeeBps(Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)))
