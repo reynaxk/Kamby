@@ -20,7 +20,17 @@ export default async function SearchPage() {
   const feeds = await soft(fetchMarketFeeds(), null);
   const trending = (feeds?.trending.markets ?? []).slice(0, 15);
   return (
-    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+1rem)]">
+    <main className="kamby-void relative mx-auto min-h-screen max-w-2xl overflow-hidden bg-bg pt-[calc(env(safe-area-inset-top)+1rem)]">
+      {/* Kamby's midnight + a faint K behind the glass, so the frosted search has something to frost. */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[34rem]" style={{ background: 'linear-gradient(180deg, #0E1430 0%, #0A0E22 38%, rgba(5,7,10,0) 100%)' }} />
+      <svg aria-hidden className="pointer-events-none absolute -right-14 -top-8" width="260" height="260" viewBox="0 0 512 512">
+        <g fill="none" stroke="#FFFFFF" strokeWidth="92" strokeLinecap="round" opacity="0.05">
+          <path d="M186 140 V372" />
+          <path d="M200 268 L338 140" />
+          <path d="M232 246 L346 372" />
+        </g>
+      </svg>
+      <div className="relative">
       <SearchScreen>
       <RecentSearches />
       {trending.length > 0 && (
@@ -62,6 +72,7 @@ export default async function SearchPage() {
         </section>
       )}
       </SearchScreen>
+      </div>
     </main>
   );
 }

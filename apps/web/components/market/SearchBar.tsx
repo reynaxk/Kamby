@@ -155,13 +155,13 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
       aria-label={tU('searchResults_eb6b')}
       className={cn(
         screen
-          ? 'mt-3'
-          : // Solid (not see-through) and wider than the header field, so nothing underneath shows through.
-            'absolute right-0 z-[60] mt-2 max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-3xl border border-white/10 bg-[#0B0F18] p-2 shadow-[0_22px_54px_rgba(0,0,0,0.7)]',
+          ? 'kamby-frost kamby-pop mt-3 rounded-[1.75rem] p-2'
+          : // Dense frost and wider than the header field, so the page underneath never reads through.
+            'kamby-frost kamby-frost-strong kamby-pop absolute right-0 z-[60] mt-2 max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-[1.75rem] p-2',
       )}
     >
       {address && (
-        <p className="mx-1 mb-2 flex items-center gap-2 rounded-2xl border border-accent/20 bg-accent/[0.06] px-3 py-2 font-body text-[0.72rem] text-ink-600">
+        <p className="mx-1 mb-1 mt-1 flex items-center gap-2 rounded-2xl border border-accent/25 bg-[linear-gradient(135deg,rgb(var(--kamby-accent)/0.12),rgb(var(--kamby-accent)/0.03))] px-3 py-2 font-body text-[0.72rem] text-ink-600">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/15 text-accent" aria-hidden>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
@@ -186,7 +186,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
         </ul>
       ) : hits.length === 0 ? (
         <div className="flex flex-col items-center px-4 py-8 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.03] text-ink-400" aria-hidden>
+          <span className="kamby-frost flex h-12 w-12 items-center justify-center rounded-2xl text-ink-400" aria-hidden>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5M8.5 11h5" />
@@ -224,7 +224,13 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
                 </>
               );
               return (
-                <li key={`${m.chainIdentifier}:${m.tokenAddress}`} className={cn('flex items-center gap-1 rounded-2xl pr-1 transition-colors', i === active ? 'bg-white/[0.08]' : 'hover:bg-white/[0.05]')}>
+                <li
+                  key={`${m.chainIdentifier}:${m.tokenAddress}`}
+                  className={cn(
+                    'flex items-center gap-1 rounded-2xl border pr-1 transition-colors',
+                    i === active ? 'border-white/[0.1] bg-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]' : 'border-transparent hover:border-white/[0.06] hover:bg-white/[0.05]',
+                  )}
+                >
                   {hit.href ? (
                     <button type="button" onMouseEnter={() => setActive(i)} onClick={() => open(hit)} className="flex min-w-0 flex-1 items-center gap-3 px-2 py-2.5 text-left">
                       {row}
@@ -250,9 +256,12 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
                     type="button"
                     onMouseEnter={() => setActive(i)}
                     onClick={() => open(hit)}
-                    className={cn('flex w-full items-center gap-3 rounded-2xl px-2 py-2.5 text-left transition-colors', i === active ? 'bg-white/[0.08]' : 'hover:bg-white/[0.05]')}
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-2xl border px-2 py-2.5 text-left transition-colors',
+                      i === active ? 'border-white/[0.1] bg-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]' : 'border-transparent hover:border-white/[0.06] hover:bg-white/[0.05]',
+                    )}
                   >
-                    <DmAvatar name={p.username} src={p.avatarUrl} className="h-10 w-10 text-sm" />
+                    <DmAvatar name={p.username} src={p.avatarUrl} className="h-10 w-10 text-sm ring-1 ring-white/15" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-display text-[0.95rem] font-bold text-ink-900">{p.username ? `@${p.username}` : shortAddr(p.address)}</span>
                       <span className="block truncate font-body text-xs text-ink-400">{shortAddr(p.address)}</span>
@@ -287,9 +296,9 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
       </label>
       <div
         className={cn(
-          'group flex items-center gap-2.5 border transition-colors',
-          screen ? 'kamby-glass-solid h-14 rounded-[1.4rem] px-4' : 'h-10 rounded-2xl bg-white/[0.04] px-3',
-          'border-white/10 focus-within:border-accent/50 focus-within:bg-white/[0.06]',
+          'group flex items-center gap-2.5 transition-colors',
+          'kamby-frost',
+          screen ? 'h-14 rounded-[1.4rem] px-4' : 'h-10 rounded-2xl px-3',
         )}
       >
         <svg aria-hidden width={screen ? 18 : 15} height={screen ? 18 : 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" className="shrink-0 text-ink-400 transition-colors group-focus-within:text-accent">
@@ -325,7 +334,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
               setValue('');
               inputRef.current?.focus();
             }}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-ink-600 transition-colors hover:bg-white/15"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-ink-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-colors hover:bg-white/20"
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
               <path d="M18 6 6 18M6 6l12 12" />

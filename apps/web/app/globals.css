@@ -593,6 +593,46 @@ body:has(.kamby-void) {
   -webkit-backdrop-filter: blur(20px) saturate(170%);
   backdrop-filter: blur(20px) saturate(170%);
 }
+/* Frosted glass, deeper (2026-10-18, the search): stronger blur, a lit gradient edge (brighter
+   top-left), an inner top highlight and a soft drop — and the edge turns accent while you type
+   in it. `kamby-frost-strong` is for what floats over text (the results dropdown): denser, so the
+   page underneath never reads through. */
+.kamby-frost {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0.015) 72%), rgba(13, 17, 30, 0.58);
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 0 rgba(255, 255, 255, 0.03), 0 18px 48px -16px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(26px) saturate(175%);
+  backdrop-filter: blur(26px) saturate(175%);
+}
+.kamby-frost::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.03) 60%, rgba(255, 255, 255, 0.18));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.kamby-frost:focus-within::before {
+  background: linear-gradient(140deg, rgb(var(--kamby-accent) / 0.75), rgb(var(--kamby-accent) / 0.25) 35%, rgba(255, 255, 255, 0.05) 65%, rgb(var(--kamby-accent) / 0.35));
+}
+.kamby-frost.kamby-frost-strong {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03) 40%, rgba(255, 255, 255, 0.01) 72%), rgba(10, 13, 24, 0.84);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kamby-frost,
+  .kamby-frost.kamby-frost-strong {
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 60%), rgb(var(--kamby-surface));
+  }
+}
 /* Denser frost for what sits over text you still need to read past (the tab bar, sticky tabs). */
 .kamby-glass-solid.kamby-glass-dense {
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025) 60%), rgba(10, 12, 20, 0.8);
