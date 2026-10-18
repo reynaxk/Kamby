@@ -156,7 +156,8 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
       className={cn(
         screen
           ? 'mt-3'
-          : 'kamby-glass-solid absolute left-0 right-0 z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-3xl p-2 shadow-[0_22px_54px_rgba(0,0,0,0.6)]',
+          : // Solid (not see-through) and wider than the header field, so nothing underneath shows through.
+            'absolute right-0 z-[60] mt-2 max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-3xl border border-white/10 bg-[#0B0F18] p-2 shadow-[0_22px_54px_rgba(0,0,0,0.7)]',
       )}
     >
       {address && (
