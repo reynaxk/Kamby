@@ -25,7 +25,12 @@
     "tokens": "โทเค็น"
   },
   "language": {
-    "label": "ภาษา"
+    "label": "ภาษา",
+    "pickerHint": "{count} ภาษา — Kamby พูดภาษาของคุณ",
+    "search": "ค้นหาภาษา",
+    "close": "ปิด",
+    "current": "ภาษาปัจจุบัน",
+    "noMatch": "ไม่พบภาษาที่ตรงกัน"
   },
   "home": {
     "welcome": "ยินดีต้อนรับสู่ Kamby",

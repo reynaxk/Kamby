@@ -25,7 +25,12 @@
     "tokens": "Token"
   },
   "language": {
-    "label": "Ngôn ngữ"
+    "label": "Ngôn ngữ",
+    "pickerHint": "{count} ngôn ngữ — Kamby nói ngôn ngữ của bạn",
+    "search": "Tìm ngôn ngữ",
+    "close": "Đóng",
+    "current": "Ngôn ngữ hiện tại",
+    "noMatch": "Không có ngôn ngữ phù hợp"
   },
   "home": {
     "welcome": "Chào mừng đến Kamby",

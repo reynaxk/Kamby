@@ -25,7 +25,12 @@
     "tokens": "Tokenler"
   },
   "language": {
-    "label": "Dil"
+    "label": "Dil",
+    "pickerHint": "{count} dil — Kamby senin dilini konuşur",
+    "search": "Dil ara",
+    "close": "Kapat",
+    "current": "Mevcut dil",
+    "noMatch": "Eşleşen dil yok"
   },
   "home": {
     "welcome": "Kamby’ye hoş geldin",

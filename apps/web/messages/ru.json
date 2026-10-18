@@ -25,7 +25,12 @@
     "tokens": "Токены"
   },
   "language": {
-    "label": "Язык"
+    "label": "Язык",
+    "pickerHint": "{count} языков — Kamby говорит на твоём",
+    "search": "Найти язык",
+    "close": "Закрыть",
+    "current": "Текущий язык",
+    "noMatch": "Такого языка нет"
   },
   "home": {
     "welcome": "Добро пожаловать в Kamby",

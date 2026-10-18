@@ -25,7 +25,12 @@
     "tokens": "Token"
   },
   "language": {
-    "label": "Bahasa"
+    "label": "Bahasa",
+    "pickerHint": "{count} bahasa — Kamby bicara bahasamu",
+    "search": "Cari bahasa",
+    "close": "Tutup",
+    "current": "Bahasa saat ini",
+    "noMatch": "Tidak ada bahasa yang cocok"
   },
   "home": {
     "welcome": "Selamat datang di Kamby",

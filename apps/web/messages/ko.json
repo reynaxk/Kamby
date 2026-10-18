@@ -25,7 +25,12 @@
     "tokens": "토큰"
   },
   "language": {
-    "label": "언어"
+    "label": "언어",
+    "pickerHint": "{count}개 언어 — Kamby는 당신의 언어로",
+    "search": "언어 검색",
+    "close": "닫기",
+    "current": "현재 언어",
+    "noMatch": "일치하는 언어가 없어요"
   },
   "home": {
     "welcome": "Kamby에 오신 것을 환영합니다",

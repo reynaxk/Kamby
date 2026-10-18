@@ -25,7 +25,12 @@
     "tokens": "トークン"
   },
   "language": {
-    "label": "言語"
+    "label": "言語",
+    "pickerHint": "{count} 言語 — Kamby はあなたの言葉で",
+    "search": "言語を検索",
+    "close": "閉じる",
+    "current": "現在の言語",
+    "noMatch": "一致する言語がありません"
   },
   "home": {
     "welcome": "Kamby へようこそ",

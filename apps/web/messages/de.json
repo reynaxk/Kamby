@@ -25,7 +25,12 @@
     "tokens": "Token"
   },
   "language": {
-    "label": "Sprache"
+    "label": "Sprache",
+    "pickerHint": "{count} Sprachen — Kamby spricht deine",
+    "search": "Sprache suchen",
+    "close": "Schließen",
+    "current": "Aktuelle Sprache",
+    "noMatch": "Keine passende Sprache"
   },
   "home": {
     "welcome": "Willkommen bei Kamby",

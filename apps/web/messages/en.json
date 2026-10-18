@@ -25,7 +25,12 @@
     "tokens": "Tokens"
   },
   "language": {
-    "label": "Language"
+    "label": "Language",
+    "pickerHint": "{count} languages — Kamby speaks yours",
+    "search": "Search languages",
+    "close": "Close",
+    "current": "Current language",
+    "noMatch": "No language matches that"
   },
   "home": {
     "welcome": "Welcome to Kamby",

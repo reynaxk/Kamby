@@ -25,7 +25,12 @@
     "tokens": "代币"
   },
   "language": {
-    "label": "语言"
+    "label": "语言",
+    "pickerHint": "{count} 种语言——Kamby 说你的语言",
+    "search": "搜索语言",
+    "close": "关闭",
+    "current": "当前语言",
+    "noMatch": "没有匹配的语言"
   },
   "home": {
     "welcome": "欢迎来到 Kamby",

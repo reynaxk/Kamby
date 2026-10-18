@@ -25,7 +25,12 @@
     "tokens": "Tokens"
   },
   "language": {
-    "label": "Idioma"
+    "label": "Idioma",
+    "pickerHint": "{count} idiomas: Kamby habla el tuyo",
+    "search": "Buscar idioma",
+    "close": "Cerrar",
+    "current": "Idioma actual",
+    "noMatch": "Ningún idioma coincide"
   },
   "home": {
     "welcome": "Bienvenido a Kamby",
