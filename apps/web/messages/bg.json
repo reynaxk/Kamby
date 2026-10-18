@@ -649,7 +649,11 @@
     "pref_messages_detail": "Когато някой ти прати лично съобщение",
     "referStep1": "Сподели линка си",
     "referStep2": "Приятелите се регистрират и търгуват в Kamby",
-    "referStep3": "Получаваш дял от таксите им"
+    "referStep3": "Получаваш дял от таксите им",
+    "youOnlyHave": "Имаш само {amount} {symbol}",
+    "notEnoughToken": "Нямаш достатъчно {symbol}",
+    "youGet": "Получаваш",
+    "tradeFee": "Такса"
   },
   "notif": {
     "kind_FOLLOW": "Последване",

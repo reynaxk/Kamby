@@ -1,14 +1,10 @@
 import type { SolanaTradeQuoteDto } from '@kamby/domain';
-import { cn } from '@kamby/ui';
 import { GlowValue } from '@/components/market/GlowValue';
 import { formatTokenAmount } from '@/lib/solana-mint';
 import { useTranslations } from 'next-intl';
+import { tradeAmountLabel } from './QuoteSummary';
 
 const USDC_DECIMALS = 6;
-
-function usdcDisplay(raw: string): string {
-  return `$${(Number(raw) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function impactSeverity(bps: number | null): 'normal' | 'warn' | 'high' {
   if (bps === null) return 'normal';
@@ -16,12 +12,6 @@ function impactSeverity(bps: number | null): 'normal' | 'warn' | 'high' {
   if (bps >= 100) return 'warn';
   return 'normal';
 }
-
-const IMPACT_CLASS: Record<ReturnType<typeof impactSeverity>, string> = {
-  normal: 'text-ink-900',
-  warn: 'text-warn',
-  high: 'text-down',
-};
 
 /**
  * Solana's counterpart to QuoteSummary.tsx — deliberately a separate, simpler component,
@@ -43,95 +33,49 @@ function buyTotalRaw(quote: SolanaTradeQuoteDto): string {
 
 export function SolanaQuoteSummary({
   quote,
-  compact = false,
   tokenSymbol = null,
   tokenDecimals = null,
 }: {
   quote: SolanaTradeQuoteDto;
+  /** Kept for callers; the summary is the same three lines either way now. */
   compact?: boolean;
   tokenSymbol?: string | null;
   tokenDecimals?: number | null;
 }) {
-  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
-  const tokenDisplay = (raw: string) => formatTokenAmount(raw, tokenDecimals, tokenSymbol);
+  const tL = useTranslations('labels');
+  // Rounded for people (owner, 2026-10-18) — raw units only while the mint's decimals load.
+  const tokenDisplay = (raw: string) =>
+    tokenDecimals === null ? formatTokenAmount(raw, tokenDecimals, tokenSymbol) : tradeAmountLabel(Number(raw) / 10 ** tokenDecimals, tokenSymbol);
+  const usd = (raw: string) => tradeAmountLabel(Number(raw) / 10 ** USDC_DECIMALS, 'USDC');
   const isBuy = quote.side === 'BUY';
   const severity = impactSeverity(quote.priceImpactBps);
-  const impactLabel = quote.priceImpactBps === null ? '—' : `${(quote.priceImpactBps / 100).toFixed(2)}%`;
   // Every Solana trade is gas-sponsored, and a sponsored quote's fee is always USDC raw: on a
   // buy it's Kamby's own USDC transfer, on a sell Jupiter's fee on the USDC output (2026-10-04).
-  // (Jupiter's own buy fee was in the bought token — a $5 BONK buy once read "$2,662.18".)
-  // A buy's inputAmountRaw is only what's swapped — the user pays that plus the fee and any setup charge.
-  const feeDisplay = !quote.platformFeeAmountRaw || quote.platformFeeBps === 0 ? '—' : usdcDisplay(quote.platformFeeAmountRaw);
-
-  if (compact) {
-    return (
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-surface-raised px-3 py-2 font-mono text-xs text-ink-600">
-        <span className="text-ink-400">→</span>
-        {isBuy ? (
-          <GlowValue value={quote.outputAmountRaw} display={tokenDisplay(quote.outputAmountRaw)} className="font-semibold" />
-        ) : (
-          <GlowValue value={quote.outputAmountRaw} display={usdcDisplay(quote.outputAmountRaw)} className="font-semibold" />
-        )}
-        <span className="text-ink-400">•</span>
-        <span className={IMPACT_CLASS[severity]}>{impactLabel} impact</span>
-        <span className="text-ink-400">•</span>
-        <span>
-          {feeDisplay} fee
-        </span>
-        {quote.setupFeeAmountRaw && (
-          <>
-            <span className="text-ink-400">•</span>
-            <span title={tU('firstBuyOfThisCoin_c80e')}>+{usdcDisplay(quote.setupFeeAmountRaw)} new coin setup</span>
-          </>
-        )}
-      </div>
-    );
-  }
+  // A first buy of a coin also pays its token-account setup — counted in the one Fee line.
+  const feeRaw = BigInt(quote.platformFeeBps === 0 ? '0' : (quote.platformFeeAmountRaw ?? '0')) + BigInt(quote.setupFeeAmountRaw ?? '0');
 
   return (
-    <dl className="space-y-2 rounded-xl border border-line bg-surface-raised p-3 font-body text-sm">
-      <Row
-        label={tTrade('youPay')}
-        value={isBuy ? usdcDisplay(buyTotalRaw(quote)) : tokenDisplay(quote.inputAmountRaw)}
-        numericValue={quote.inputAmountRaw}
-      />
-      <Row
-        label={tTrade('youReceive')}
-        value={isBuy ? tokenDisplay(quote.outputAmountRaw) : usdcDisplay(quote.outputAmountRaw)}
-        numericValue={quote.outputAmountRaw}
-      />
-      <Row
-        label={tTrade('minReceived')}
-        value={isBuy ? tokenDisplay(quote.minOutputAmountRaw) : usdcDisplay(quote.minOutputAmountRaw)}
-        numericValue={quote.minOutputAmountRaw}
-      />
-      <Row label={tTrade('priceImpact')} value={impactLabel} valueClassName={IMPACT_CLASS[severity]} />
-      <Row label={tTrade('kambyFee')} value={feeDisplay} />
-      {quote.setupFeeAmountRaw && (
-        // Gasless first buy of a coin: the token account Kamby opens in the user's wallet.
-        <Row label={tTrade('newCoinSetup')} value={usdcDisplay(quote.setupFeeAmountRaw)} />
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-3">
+      <dl className="space-y-2 font-body text-sm">
+        <Row label={tTrade('youPay')} value={isBuy ? usd(buyTotalRaw(quote)) : tokenDisplay(quote.inputAmountRaw)} numericValue={quote.inputAmountRaw} />
+        <Row label={tL('youGet')} value={isBuy ? tokenDisplay(quote.outputAmountRaw) : usd(quote.outputAmountRaw)} numericValue={quote.outputAmountRaw} strong />
+        <Row label={tL('tradeFee')} value={feeRaw > 0n ? usd(feeRaw.toString()) : '—'} muted />
+      </dl>
+      {severity === 'high' && (
+        <p className="mt-2.5 rounded-lg bg-down/10 px-2.5 py-2 font-body text-xs text-down">
+          ⚠ High price impact — this trade may move the market by {((quote.priceImpactBps ?? 0) / 100).toFixed(1)}%.
+        </p>
       )}
-      <Row label={tTrade('provider')} value="Jupiter" />
-    </dl>
+    </div>
   );
 }
 
-function Row({
-  label,
-  value,
-  numericValue,
-  valueClassName,
-}: {
-  label: string;
-  value: string;
-  numericValue?: string;
-  valueClassName?: string;
-}) {
+function Row({ label, value, numericValue, strong = false, muted = false }: { label: string; value: string; numericValue?: string; strong?: boolean; muted?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <dt className="text-ink-600">{label}</dt>
-      <dd className={cn('font-mono', valueClassName ?? 'text-ink-900')}>
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-ink-400">{label}</dt>
+      <dd className={strong ? 'font-display text-base font-bold tabular-nums text-ink-900' : muted ? 'tabular-nums text-ink-600' : 'tabular-nums text-ink-900'}>
         {numericValue !== undefined ? <GlowValue value={numericValue} display={value} /> : value}
       </dd>
     </div>

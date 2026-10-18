@@ -649,7 +649,11 @@
     "pref_messages_detail": "Khi ai đó gửi tin nhắn riêng cho bạn",
     "referStep1": "Chia sẻ link của bạn",
     "referStep2": "Bạn bè đăng ký và giao dịch trên Kamby",
-    "referStep3": "Bạn nhận một phần phí của họ"
+    "referStep3": "Bạn nhận một phần phí của họ",
+    "youOnlyHave": "Bạn chỉ có {amount} {symbol}",
+    "notEnoughToken": "Không đủ {symbol}",
+    "youGet": "Bạn nhận",
+    "tradeFee": "Phí"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

@@ -60,7 +60,7 @@ describe('AmountInput', () => {
   it('shows the live balance once loaded, formatted in the input token, not raw units', () => {
     useBalanceMock.mockReturnValue({ data: { value: 1500000000000000000n } });
     render(<AmountInput {...defaultProps} />);
-    expect(screen.getByText('Balance: 1.5')).toBeInTheDocument();
+    expect(screen.getByText('Balance: 1.50')).toBeInTheDocument();
   });
 
   it('shows no balance and disables every preset while the balance is still loading', () => {

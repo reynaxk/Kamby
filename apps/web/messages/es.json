@@ -649,7 +649,11 @@
     "pref_messages_detail": "Cuando alguien te envía un mensaje privado",
     "referStep1": "Comparte tu enlace",
     "referStep2": "Tus amigos se registran y operan en Kamby",
-    "referStep3": "Ganas una parte de sus comisiones"
+    "referStep3": "Ganas una parte de sus comisiones",
+    "youOnlyHave": "Solo tienes {amount} {symbol}",
+    "notEnoughToken": "No tienes suficiente {symbol}",
+    "youGet": "Recibes",
+    "tradeFee": "Comisión"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",

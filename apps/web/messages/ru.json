@@ -649,7 +649,11 @@
     "pref_messages_detail": "Когда тебе присылают личное сообщение",
     "referStep1": "Поделись ссылкой",
     "referStep2": "Друзья регистрируются и торгуют в Kamby",
-    "referStep3": "Ты получаешь долю их комиссий"
+    "referStep3": "Ты получаешь долю их комиссий",
+    "youOnlyHave": "У вас только {amount} {symbol}",
+    "notEnoughToken": "Недостаточно {symbol}",
+    "youGet": "Вы получите",
+    "tradeFee": "Комиссия"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

@@ -649,7 +649,11 @@
     "pref_messages_detail": "누군가 비공개 메시지를 보냈을 때",
     "referStep1": "링크를 공유하세요",
     "referStep2": "친구가 가입하고 Kamby에서 거래해요",
-    "referStep3": "친구 수수료의 일부를 받아요"
+    "referStep3": "친구 수수료의 일부를 받아요",
+    "youOnlyHave": "{amount} {symbol}만 보유 중입니다",
+    "notEnoughToken": "{symbol}이(가) 부족합니다",
+    "youGet": "받는 금액",
+    "tradeFee": "수수료"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

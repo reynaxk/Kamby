@@ -43,6 +43,17 @@ export function formatTokenAmount(value: number): string {
   return value.toLocaleString('en-US', { maximumSignificantDigits: 4 });
 }
 
+/** A trade's amounts, rounded for people (owner, 2026-10-18: "650.163381321072902143 BRETT"
+ *  → 650.16): 2 decimals with thousands separators, M/B for huge counts, and 2 significant
+ *  digits only when 2 decimals would round a real amount down to 0.00. */
+export function formatTradeAmount(value: number): string {
+  if (!(value > 0)) return '0';
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (value >= 0.01) return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return value.toLocaleString('en-US', { maximumSignificantDigits: 2 });
+}
+
 /** "+12.34%" / "-5.67%" — the sign is always shown so a glance can tell direction. Memecoin
  *  moonshots stay readable: "+228.9%", "+3.6K%", "+446.5K%" (not "+446507.80%"). */
 export function formatPercent(value: number | null): string {

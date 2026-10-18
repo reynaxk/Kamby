@@ -9,11 +9,12 @@ import { Button, cn } from '@kamby/ui';
 import { MIN_TRADE_MESSAGE, MIN_TRADE_USD, CHAIN_REGISTRY, isQuoteExpired, slugForChainId, TRADING_DEFAULTS, type TradeQuoteDto, type TradeSide, type TradeTransactionDto } from '@kamby/domain';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, X, XCircle } from 'lucide-react';
-import { erc20Abi } from 'viem';
-import { useAccount } from 'wagmi';
+import { erc20Abi, formatUnits, parseUnits } from 'viem';
+import { useAccount, useBalance } from 'wagmi';
 import { call, getAccount, sendTransaction, switchChain, writeContract } from 'wagmi/actions';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
+import { formatTradeAmount } from '@/lib/format';
 import { explorerName, explorerTxUrl } from '@/lib/explorer';
 import { getQuote, getTransaction, relaySwap, submitFeeTransaction, submitTransaction } from '@/lib/trading-client';
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
@@ -221,6 +222,10 @@ export function TradePanel({
   const chainUsdc = funding.balances[moveTarget];
   const shortOnChain = buyUsd !== null && chainUsdc !== null && buyUsd > chainUsdc;
   const needsMove = shortOnChain && funding.canCover && funding.stage !== 'done';
+  // One balance line for a buy: all your USDC, and what one buy can reach (this chain plus the
+  // biggest other balance, which a single move can bring over, less a few cents for the move).
+  const otherBest = Math.max(0, ...(['base', 'bnb', 'robinhood', 'solana'] as const).filter((c) => c !== moveTarget).map((c) => (funding.balances[c] ?? 0) - 0.1));
+  const usdBalance = side === 'BUY' && funding.balances.total !== null ? { shown: funding.balances.total, spendable: (chainUsdc ?? 0) + otherBest } : null;
   const moveBusy = isMoveBusy(funding);
   const moveLabel = useMoveButtonLabel(funding, moveTarget);
   const [buyAfterMove, setBuyAfterMove] = useState(false);
@@ -264,12 +269,24 @@ export function TradePanel({
   const onCorrectChain = walletChainId === chainId;
   const canQuote = isConnected && onCorrectChain && walletVerification.status === 'verified';
 
+  // A sell can't be more than you hold (2026-10-18: typing 1000 BRETT with 650 still quoted and
+  // left Sell enabled). Same balance query AmountInput already runs, so no extra request.
+  const { data: sellBalance } = useBalance({ address, token: tokenAddress as `0x${string}`, chainId: chainId as 8453 | 56 | 4663, query: { enabled: side === 'SELL', refetchInterval: 15_000 } });
+  const overBalance = (() => {
+    if (side !== 'SELL' || !sellBalance || !amount) return false;
+    try {
+      return parseUnits(amount, tokenDecimals) > sellBalance.value;
+    } catch {
+      return false;
+    }
+  })();
+
   // Debounced quote fetch — never fires for an empty/invalid amount, so opening the panel
   // never itself triggers an API call (see docs/TRADING.md#quote-system).
   useEffect(() => {
     if (!canQuote || !address) return;
     const amountNum = Number.parseFloat(amount);
-    if (!amount || !Number.isFinite(amountNum) || amountNum <= 0) {
+    if (!amount || !Number.isFinite(amountNum) || amountNum <= 0 || overBalance) {
       setQuote(null);
       setQuoteStatus('idle');
       return;
@@ -304,7 +321,7 @@ export function TradePanel({
     }, silent ? 0 : 500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick, gasless]);
+  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick, gasless, overBalance]);
 
   // Quotes live 30s — keep the one on screen fresh while the user decides, so a tap never
   // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly
@@ -892,7 +909,7 @@ export function TradePanel({
                 // but saturated enough to still read at ~3.9:1.
                 className={cn(
                   'absolute inset-0 rounded-md',
-                  option === 'BUY' ? 'bg-up shadow-glow-up' : 'bg-down shadow-glow-down',
+                  option === 'BUY' ? 'bg-up' : 'bg-down',
                 )}
               />
             )}
@@ -911,8 +928,12 @@ export function TradePanel({
         inputTokenDecimals={inputTokenDecimals}
         className={dense ? 'trade-amount-compact' : undefined}
         hero={sheet}
+        usdBalance={usdBalance}
       />
-      {side === 'BUY' && <ChainUsdcLine chain={chainId === 56 ? 'bnb' : 'base'} amountUsd={Number.parseFloat(amount) || 0} />}
+      {/* Only when there isn't enough USDC anywhere — then it's the Deposit shortcut. */}
+      {side === 'BUY' && usdBalance && usdBalance.shown < Math.max(0.01, Number.parseFloat(amount) || 0) && (
+        <ChainUsdcLine chain={chainId === 56 ? 'bnb' : 'base'} amountUsd={Number.parseFloat(amount) || 0} />
+      )}
 
       <SlippageControl
         valueBps={slippageBps}
@@ -922,7 +943,7 @@ export function TradePanel({
         }}
         auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
         className={dense ? 'trade-slippage-compact' : undefined}
-        collapsible={sheet}
+        collapsible
       />
 
       {/* Rendered only once a real quote has confirmed sponsorship is actually available —
@@ -940,17 +961,23 @@ export function TradePanel({
         </p>
       )}
 
-      {quoteStatus === 'ready' && quote && <QuoteSummary quote={quote} />}
+      {overBalance && sellBalance && (
+        <p className="font-body text-xs text-down">
+          {tL('youOnlyHave', { amount: formatTradeAmount(Number(formatUnits(sellBalance.value, tokenDecimals))), symbol: tokenSymbol ?? '' })}
+        </p>
+      )}
+
+      {quoteStatus === 'ready' && quote && !overBalance && <QuoteSummary quote={quote} />}
 
       {isConnected ? (
         <Button
           type="button"
           variant={sheet ? (side === 'BUY' ? 'buy' : 'sell') : undefined}
-          disabled={moveBusy || buyAfterMove || (!needsMove && (quoteStatus !== 'ready' || !quote))}
+          disabled={overBalance || moveBusy || buyAfterMove || (!needsMove && (quoteStatus !== 'ready' || !quote))}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
           className={cn('w-full', sheet && 'h-14 rounded-2xl text-base font-bold')}
         >
-          {needsMove || moveBusy ? moveLabel : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
+          {overBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyToken' : 'sellToken', { symbol: tokenSymbol ?? '' }).trim()}
         </Button>
       ) : (
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —

@@ -649,7 +649,11 @@
     "pref_messages_detail": "Saat seseorang mengirimimu pesan pribadi",
     "referStep1": "Bagikan tautanmu",
     "referStep2": "Teman mendaftar dan trading di Kamby",
-    "referStep3": "Kamu dapat bagian dari biaya mereka"
+    "referStep3": "Kamu dapat bagian dari biaya mereka",
+    "youOnlyHave": "Kamu hanya punya {amount} {symbol}",
+    "notEnoughToken": "{symbol} tidak cukup",
+    "youGet": "Kamu dapat",
+    "tradeFee": "Biaya"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

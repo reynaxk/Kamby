@@ -29,6 +29,7 @@ import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { SlowConfirmationNote } from './SlowConfirmationNote';
 import { SolanaQuoteSummary } from './SolanaQuoteSummary';
 import { SplAmountInput } from './SplAmountInput';
+import { formatTradeAmount } from '@/lib/format';
 import { TradeSuccess } from './TradeSuccess';
 import { PnlShareButton, type PnlShare } from '@/components/share/PnlShareCard';
 import { realizedShare, useSellSnapshot } from '@/components/share/SellShare';
@@ -169,6 +170,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const dock = dockProp ?? !sheet;
   const [amount, setAmount] = useState('');
   const overBalance = side === 'BUY' && usdcBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > usdcBalanceRaw;
+  // A sell can't be more than you hold (2026-10-18, same fix as the EVM panel).
+  const [coinBalanceRaw, setCoinBalanceRaw] = useState<bigint | null>(null);
+  const sellOverBalance = side === 'SELL' && !isNativeSol && coinBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > coinBalanceRaw;
   // One USDC (2026-10-13): short on Solana but enough on Base/BNB → the buy moves it over first.
   const funding = useCrossChainFunding('solana', side === 'BUY' && /^\d+$/.test(amount) ? Number(amount) / 1e6 : null);
   const needsMove = overBalance && funding.canCover && funding.stage !== 'done';
@@ -208,7 +212,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const canQuote = walletVerification.status === 'verified' && Boolean(wallet);
 
   useEffect(() => {
-    if (!canQuote || !amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    if (!canQuote || !amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0 || sellOverBalance) {
       setQuote(null);
       setQuoteStatus('idle');
       return;
@@ -247,7 +251,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     }, silent ? 0 : 500);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, gasless, canQuote, refreshTick]);
+  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, gasless, canQuote, refreshTick, sellOverBalance]);
 
   // Quotes live 30s — keep the one on screen fresh while the user decides, so a tap never
   // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly
@@ -686,6 +690,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
               symbol={tokenSymbol}
               decimals={tokenDecimals}
               hero={sheet}
+              onBalance={setCoinBalanceRaw}
             />
           )
         )}
@@ -696,18 +701,23 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
             setManualSlippageBps(bps);
           }}
           auto={{ active: autoSlippage, onSelect: () => setAutoSlippage(true) }}
-          collapsible={sheet}
+          collapsible
         />
-        {quoteStatus === 'ready' && quote && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
+        {sellOverBalance && coinBalanceRaw !== null && (
+          <p className="font-body text-xs text-down">
+            {tL('youOnlyHave', { amount: tokenDecimals === null ? coinBalanceRaw.toString() : formatTradeAmount(Number(coinBalanceRaw) / 10 ** tokenDecimals), symbol: tokenSymbol ?? '' })}
+          </p>
+        )}
+        {quoteStatus === 'ready' && quote && !sellOverBalance && <SolanaQuoteSummary quote={quote} tokenSymbol={tokenSymbol} tokenDecimals={tokenDecimals} compact />}
         {quoteStatus === 'error' && quoteError && !belowMinimum && <p className="font-body text-xs text-down">{quoteError}</p>}
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className={cn('w-full text-base font-bold uppercase tracking-wide', sheet && 'h-14 rounded-2xl normal-case tracking-normal')}
-          disabled={quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
+          disabled={sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
         >
-          {needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
+          {sellOverBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
         </Button>
       </Panel>
 
@@ -737,10 +747,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className="mt-1.5 w-full text-sm font-bold uppercase tracking-wide"
-          disabled={quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
+          disabled={sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
         >
-          {needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
+          {sellOverBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
         </Button>
       </div>
       )}

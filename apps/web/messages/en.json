@@ -649,7 +649,11 @@
     "pref_messages_detail": "When someone sends you a private message",
     "referStep1": "Share your link",
     "referStep2": "Friends sign up and trade on Kamby",
-    "referStep3": "You earn a share of their fees"
+    "referStep3": "You earn a share of their fees",
+    "youOnlyHave": "You only have {amount} {symbol}",
+    "notEnoughToken": "Not enough {symbol}",
+    "youGet": "You get",
+    "tradeFee": "Fee"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

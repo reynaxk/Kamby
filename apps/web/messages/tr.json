@@ -649,7 +649,11 @@
     "pref_messages_detail": "Biri sana özel mesaj gönderdiğinde",
     "referStep1": "Linkini paylaş",
     "referStep2": "Arkadaşların kaydolup Kamby’de işlem yapar",
-    "referStep3": "Ücretlerinden pay kazanırsın"
+    "referStep3": "Ücretlerinden pay kazanırsın",
+    "youOnlyHave": "Sadece {amount} {symbol} var",
+    "notEnoughToken": "Yeterli {symbol} yok",
+    "youGet": "Alacağın",
+    "tradeFee": "Ücret"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

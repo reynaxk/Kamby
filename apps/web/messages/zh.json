@@ -649,7 +649,11 @@
     "pref_messages_detail": "有人给你发私信时",
     "referStep1": "分享你的链接",
     "referStep2": "朋友注册并在 Kamby 交易",
-    "referStep3": "你获得他们手续费的一部分"
+    "referStep3": "你获得他们手续费的一部分",
+    "youOnlyHave": "你只有 {amount} {symbol}",
+    "notEnoughToken": "{symbol} 不足",
+    "youGet": "你将获得",
+    "tradeFee": "手续费"
   },
   "notif": {
     "kind_FOLLOW": "关注",

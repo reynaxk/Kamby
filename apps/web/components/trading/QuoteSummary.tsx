@@ -1,72 +1,56 @@
 import { tradesInChainUsdc, type TradeQuoteDto } from '@kamby/domain';
-import { cn } from '@kamby/ui';
 import { useTranslations } from 'next-intl';
+import { formatTradeAmount } from '@/lib/format';
+
+/** "$3.00" for a dollar token, "650.16 BRETT" for a coin — always rounded for people. */
+export function tradeAmountLabel(amount: string | number, symbol: string | null): string {
+  const value = typeof amount === 'number' ? amount : Number(amount);
+  const rounded = formatTradeAmount(Number.isFinite(value) ? value : 0);
+  return symbol === 'USDC' || symbol === 'USDG' ? `$${rounded}` : `${rounded} ${symbol ?? ''}`.trim();
+}
 
 /**
- * Every figure here comes straight from the quote the API returned — see
- * docs/TRADING.md#fees and #price-impact. Nothing is recomputed or estimated client-side;
- * what's shown here is exactly what the wallet will be asked to sign.
+ * What a trade does, in three lines (owner, 2026-10-18: "only the most important info — amount,
+ * final amount, fee", rounded to 2 decimals): you pay, you get, Kamby's fee. Every figure comes
+ * straight from the API's quote — nothing is recomputed here. Only a high/extreme price impact
+ * adds a line, because that's the one thing that should stop someone.
  */
 export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
-  const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
-  const impactColor =
-    quote.priceImpactLevel === 'extreme' ? 'text-down' : quote.priceImpactLevel === 'high' ? 'text-down' : 'text-ink-900';
+  const tL = useTranslations('labels');
 
-  // The fee's currency — see docs/TRADING.md#guaranteed-usdc-fees. Under the guaranteed
-  // flow it's always quoteToken (confirmed USDC); otherwise it rides the aggregator's own
-  // cut, taken from whichever token the trade actually outputs (token for BUY, quoteToken
-  // for SELL) — never always quote.token, which would mislabel a SELL's fee currency.
-  // In USDC whenever the trade's dollar side is this chain's USDC — inside the swap or as its own transfer.
-  const feeInUsdc = Boolean(quote.feeUnsignedTx) || tradesInChainUsdc(quote.chainId, quote.side, quote.side === 'BUY' ? quote.quoteToken.address : null, quote.side === 'SELL' ? quote.quoteToken.address : null);
-  const feeTokenSymbol = feeInUsdc
-    ? quote.quoteToken.symbol
-    : quote.side === 'BUY'
-      ? quote.token.symbol
-      : quote.quoteToken.symbol;
+  const paySymbol = quote.side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol;
+  const getSymbol = quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol;
+  // The fee is USDC whenever the trade's dollar side is this chain's USDC (inside the swap or
+  // as its own transfer); a non-USDC market's aggregator cut lands in what the trade outputs.
+  const feeInUsdc =
+    Boolean(quote.feeUnsignedTx) ||
+    tradesInChainUsdc(quote.chainId, quote.side, quote.side === 'BUY' ? quote.quoteToken.address : null, quote.side === 'SELL' ? quote.quoteToken.address : null);
+  const feeSymbol = feeInUsdc ? quote.quoteToken.symbol : getSymbol;
 
   return (
-    <dl className="space-y-2 rounded-xl bg-surface-raised p-3 font-body text-sm">
-      <Row label={tTrade('youPay')} value={`${quote.inputAmountFormatted} ${quote.side === 'BUY' ? quote.quoteToken.symbol : quote.token.symbol}`} />
-      <Row label={tTrade('youReceive')} value={`${quote.expectedOutputAmountFormatted} ${quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol}`} />
-      <Row label={tTrade('minReceived')} value={`${quote.minOutputAmountFormatted} ${quote.side === 'BUY' ? quote.token.symbol : quote.quoteToken.symbol}`} />
-      <Row
-        label={tTrade('priceImpact')}
-        value={quote.priceImpactBps === null ? '—' : `${(quote.priceImpactBps / 100).toFixed(2)}%`}
-        valueClassName={impactColor}
-      />
-      <Row label={tTrade('slippage')} value={`${(quote.slippageBps / 100).toFixed(quote.slippageBps % 100 === 0 ? 0 : 1)}%`} />
-      <Row label={tTrade('kambyFee')} value={`${quote.platformFeeAmountFormatted} ${feeTokenSymbol}`} />
-      <Row label={tTrade('provider')} value={quote.provider} />
-      {quote.requiresApproval && <Row label={tU('tokenApproval_b41e')} value="Required before this trade" />}
-
-      {quote.feeUnsignedTx && (
-        <p className="!mt-3 rounded-lg bg-surface px-2.5 py-2 text-xs text-ink-600">
-          This trade needs two signatures — the swap itself, then a separate {feeTokenSymbol} transfer for Kamby&apos;s
-          fee, guaranteed to land in {feeTokenSymbol} rather than a mix of tokens.
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-3">
+      <dl className="space-y-2 font-body text-sm">
+        <Row label={tTrade('youPay')} value={tradeAmountLabel(quote.inputAmountFormatted, paySymbol)} />
+        <Row label={tL('youGet')} value={tradeAmountLabel(quote.expectedOutputAmountFormatted, getSymbol)} strong />
+        <Row label={tL('tradeFee')} value={tradeAmountLabel(quote.platformFeeAmountFormatted, feeSymbol)} muted />
+      </dl>
+      {(quote.priceImpactLevel === 'extreme' || quote.priceImpactLevel === 'high') && (
+        <p className="mt-2.5 rounded-lg bg-down/10 px-2.5 py-2 font-body text-xs text-down">
+          ⚠ {quote.priceImpactLevel === 'extreme' ? 'Extreme' : 'High'} price impact — this trade may move the market by{' '}
+          {((quote.priceImpactBps ?? 0) / 100).toFixed(1)}%.
+          {quote.priceImpactLevel === 'extreme' && ' Consider a smaller amount.'}
         </p>
       )}
-
-      {quote.priceImpactLevel === 'extreme' && (
-        <p className="!mt-3 rounded-lg bg-down/10 px-2.5 py-2 text-xs text-down">
-          ⚠ Extreme price impact — this trade may move the market by {((quote.priceImpactBps ?? 0) / 100).toFixed(1)}%. Consider a smaller amount.
-        </p>
-      )}
-      {quote.priceImpactLevel === 'high' && (
-        <p className="!mt-3 rounded-lg bg-down/10 px-2.5 py-2 text-xs text-down">
-          ⚠ High price impact — this trade may move the market by {((quote.priceImpactBps ?? 0) / 100).toFixed(1)}%.
-        </p>
-      )}
-      <p className="!mt-3 font-body text-xs text-ink-400">{quote.safetyNote}</p>
-    </dl>
+    </div>
   );
 }
 
-function Row({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
+function Row({ label, value, strong = false, muted = false }: { label: string; value: string; strong?: boolean; muted?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <dt className="text-ink-600">{label}</dt>
-      <dd className={cn('font-mono text-ink-900', valueClassName)}>{value}</dd>
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="text-ink-400">{label}</dt>
+      <dd className={strong ? 'font-display text-base font-bold tabular-nums text-ink-900' : muted ? 'tabular-nums text-ink-600' : 'tabular-nums text-ink-900'}>{value}</dd>
     </div>
   );
 }

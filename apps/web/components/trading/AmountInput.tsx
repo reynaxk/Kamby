@@ -4,6 +4,7 @@ import { cn } from '@kamby/ui';
 import { formatUnits } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
 import { useTranslations } from 'next-intl';
+import { formatTradeAmount } from '@/lib/format';
 
 const PRESET_FRACTIONS = [0.25, 0.5, 1] as const;
 
@@ -22,6 +23,7 @@ export function AmountInput({
   inputTokenDecimals,
   className,
   hero = false,
+  usdBalance = null,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -31,6 +33,9 @@ export function AmountInput({
   className?: string;
   /** Phone trade sheet (2026-10-10): the amount big and centred, like an app's keypad screen. */
   hero?: boolean;
+  /** A buy in dollars (2026-10-18, one balance line): `shown` is the whole USDC balance across
+   *  chains, `spendable` what one buy can reach (this chain + one move); the presets use it. */
+  usdBalance?: { shown: number; spendable: number } | null;
 }) {
   const tTrade = useTranslations('trade');
   const { address } = useAccount();
@@ -41,6 +46,10 @@ export function AmountInput({
   });
 
   const applyFraction = (fraction: number) => {
+    if (usdBalance) {
+      onChange((Math.floor(usdBalance.spendable * fraction * 100) / 100).toFixed(2));
+      return;
+    }
     if (!balance) return;
     const raw = (balance.value * BigInt(Math.round(fraction * 10_000))) / 10_000n;
     onChange(formatUnits(raw, inputTokenDecimals));
@@ -50,13 +59,19 @@ export function AmountInput({
     <div className={className}>
       <div className={cn('flex items-center font-body text-xs text-ink-600', hero ? 'justify-center' : 'justify-between')}>
         {!hero && <span>{tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}</span>}
-        {balance && (
+        {usdBalance ? (
           <span>
-            {tTrade('balance')}{' '}
-            {inputTokenSymbol === 'USDC'
-              ? `$${Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              : Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })}
+            {tTrade('balance')} ${usdBalance.shown.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
+        ) : (
+          balance && (
+            <span>
+              {tTrade('balance')}{' '}
+              {inputTokenSymbol === 'USDC'
+                ? `$${Number(formatUnits(balance.value, inputTokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : formatTradeAmount(Number(formatUnits(balance.value, inputTokenDecimals)))}
+            </span>
+          )
         )}
       </div>
       {hero && (
@@ -96,7 +111,7 @@ export function AmountInput({
           <button
             key={fraction}
             type="button"
-            disabled={!balance || balance.value === 0n}
+            disabled={usdBalance ? !(usdBalance.spendable > 0) : !balance || balance.value === 0n}
             onClick={() => applyFraction(fraction)}
             className={cn(
               'flex-1 rounded-lg bg-surface-raised px-2 py-1.5 font-body text-xs font-medium text-ink-600',

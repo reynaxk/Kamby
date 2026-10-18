@@ -28,6 +28,7 @@ export function SplAmountInput({
   symbol,
   decimals,
   hero = false,
+  onBalance,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -37,10 +38,13 @@ export function SplAmountInput({
   decimals: number | null;
   /** Phone trade sheet (2026-10-10): the amount big and centred. */
   hero?: boolean;
+  /** Reports the coin balance (raw) so the panel can stop a sell above it. */
+  onBalance?: (raw: bigint | null) => void;
 }) {
   const tTrade = useTranslations('trade');
   const [balanceRaw, setBalanceRaw] = useState<bigint | null>(null);
   const [text, setText] = useState('');
+  useEffect(() => onBalance?.(balanceRaw), [balanceRaw, onBalance]);
 
   useEffect(() => {
     setBalanceRaw(null);
