@@ -133,7 +133,8 @@
     "send": "发送",
     "sendingOn": "通过 {chain} 发送",
     "changeNetwork": "更改",
-    "networkMustMatch": "请选择与接收钱包或交易所相同的网络。"
+    "networkMustMatch": "请选择与接收钱包或交易所相同的网络。",
+    "recipientNoWallet": "@{name} 还没有钱包——需要先登录 Kamby"
   },
   "account": {
     "title": "我的资料",

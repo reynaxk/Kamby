@@ -133,7 +133,8 @@
     "send": "Gönder",
     "sendingOn": "{chain} üzerinden gönderiliyor",
     "changeNetwork": "Değiştir",
-    "networkMustMatch": "Gönderdiğin cüzdan veya borsayla aynı ağı seç."
+    "networkMustMatch": "Gönderdiğin cüzdan veya borsayla aynı ağı seç.",
+    "recipientNoWallet": "@{name} henüz cüzdan kurmadı — önce Kamby'ye giriş yapmalı"
   },
   "account": {
     "title": "Profilin",

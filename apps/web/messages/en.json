@@ -133,7 +133,8 @@
     "send": "Send",
     "sendingOn": "Sending on {chain}",
     "changeNetwork": "Change",
-    "networkMustMatch": "Use the same network as the wallet or exchange you're sending to."
+    "networkMustMatch": "Use the same network as the wallet or exchange you're sending to.",
+    "recipientNoWallet": "@{name} hasn't set up a wallet yet — they need to sign in to Kamby first"
   },
   "account": {
     "title": "Your profile",

@@ -133,7 +133,8 @@
     "send": "送る",
     "sendingOn": "{chain} で送金",
     "changeNetwork": "変更",
-    "networkMustMatch": "送金先のウォレットや取引所と同じネットワークを選んでください。"
+    "networkMustMatch": "送金先のウォレットや取引所と同じネットワークを選んでください。",
+    "recipientNoWallet": "@{name} はまだウォレットがありません。先に Kamby にサインインする必要があります"
   },
   "account": {
     "title": "プロフィール",

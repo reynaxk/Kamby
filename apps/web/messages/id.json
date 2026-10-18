@@ -133,7 +133,8 @@
     "send": "Kirim",
     "sendingOn": "Dikirim lewat {chain}",
     "changeNetwork": "Ubah",
-    "networkMustMatch": "Gunakan jaringan yang sama dengan wallet atau exchange tujuan."
+    "networkMustMatch": "Gunakan jaringan yang sama dengan wallet atau exchange tujuan.",
+    "recipientNoWallet": "@{name} belum punya wallet — harus masuk ke Kamby dulu"
   },
   "account": {
     "title": "Profilmu",

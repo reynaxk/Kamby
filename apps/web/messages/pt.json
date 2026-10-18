@@ -133,7 +133,8 @@
     "send": "Enviar",
     "sendingOn": "Enviando pela {chain}",
     "changeNetwork": "Trocar",
-    "networkMustMatch": "Use a mesma rede da carteira ou exchange de destino."
+    "networkMustMatch": "Use a mesma rede da carteira ou exchange de destino.",
+    "recipientNoWallet": "@{name} ainda não tem carteira — precisa entrar no Kamby primeiro"
   },
   "account": {
     "title": "Seu perfil",

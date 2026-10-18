@@ -541,7 +541,7 @@ export function SendModal({
                       <TokenAvatar src={recipient.avatarUrl} seed={recipient.evmAddress ?? recipient.username} label={recipient.username} className="h-8 w-8 shrink-0 text-xs" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-display text-sm font-bold text-ink-900">@{recipient.username}</span>
-                        <span className="block truncate font-mono text-[0.65rem] text-ink-400">{destination ? `${destination.slice(0, 6)}…${destination.slice(-4)}` : tL('noWalletOnNetwork', { chain: chain.name })}</span>
+                        <span className="block truncate font-mono text-[0.65rem] text-ink-400">{destination ? `${destination.slice(0, 6)}…${destination.slice(-4)}` : recipient.evmAddress || recipient.solanaAddress ? tL('noWalletOnNetwork', { chain: chain.name }) : tW('recipientNoWallet', { name: recipient.username })}</span>
                       </span>
                       <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                     </div>
