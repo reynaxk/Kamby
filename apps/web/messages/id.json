@@ -973,7 +973,8 @@
     "pause": "Jeda",
     "play": "Putar",
     "voiceNote": "Pesan suara",
-    "voiceFailed": "Gagal memuat"
+    "voiceFailed": "Gagal memuat",
+    "noPeople": "Belum ada yang bernama itu"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

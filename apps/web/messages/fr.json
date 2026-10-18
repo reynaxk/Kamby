@@ -973,7 +973,8 @@
     "pause": "Pause",
     "play": "Lire",
     "voiceNote": "Message vocal",
-    "voiceFailed": "Chargement impossible"
+    "voiceFailed": "Chargement impossible",
+    "noPeople": "Personne avec ce nom pour l’instant"
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",

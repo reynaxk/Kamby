@@ -11,6 +11,7 @@ import { subscribePrivateStream } from '@/lib/private-stream';
 import { hasStoredSession } from '@/lib/session-client';
 import { friendlyError } from '@/lib/friendly-error';
 import { formatRelativeTime } from '@/lib/format';
+import { fetchPeopleResults, type PersonResult } from '@/lib/market-client';
 import { DmAvatar } from './DmAvatar';
 import { GroupAvatar, NewGroupDrawer } from './GroupBits';
 import { CommunityAvatar, CommunityRail, NewCommunityDrawer } from './CommunityBits';
@@ -22,6 +23,7 @@ import { CommunityAvatar, CommunityRail, NewCommunityDrawer } from './CommunityB
  */
 export function DmInbox() {
   const t = useTranslations('dm');
+  const tU = useTranslations('ui');
   const router = useRouter();
   const pathname = usePathname();
   const unread = useDmUnread();
@@ -33,6 +35,30 @@ export function DmInbox() {
   const [username, setUsername] = useState('');
   const [opening, setOpening] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
+  // People as you type (2026-10-18: the field only worked if you knew the exact @name).
+  const [people, setPeople] = useState<PersonResult[] | null>(null);
+  useEffect(() => {
+    const q = username.trim().replace(/^@/, '');
+    if (!composing || q.length < 2) {
+      setPeople(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      void fetchPeopleResults(q, 6)
+        .then((rows) => {
+          if (cancelled) return;
+          // One row per name; only people with a Kamby name can be messaged.
+          const seen = new Set<string>();
+          setPeople(rows.filter((r) => r.username && !seen.has(r.username) && seen.add(r.username)));
+        })
+        .catch(() => !cancelled && setPeople([]));
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [username, composing]);
   const [groupOpen, setGroupOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
 
@@ -65,9 +91,9 @@ export function DmInbox() {
     };
   }, [load]);
 
-  async function start(e: React.FormEvent) {
-    e.preventDefault();
-    const name = username.trim().replace(/^@/, '');
+  async function start(e: React.FormEvent | null, pick?: string) {
+    e?.preventDefault();
+    const name = (pick ?? username).trim().replace(/^@/, '');
     if (name.length < 3) return;
     setOpening(true);
     setOpenError(null);
@@ -105,11 +131,64 @@ export function DmInbox() {
             spellCheck={false}
             className="min-w-0 flex-1 bg-transparent py-2 font-body text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none"
           />
-          <button type="submit" disabled={opening || username.trim().length < 3} className="rounded-xl bg-accent px-4 py-2 font-display text-sm font-bold text-black transition-transform active:scale-95 disabled:opacity-40">
-            {opening ? '…' : t('chat')}
+          {/* An arrow, not the word "Chat" (owner, 2026-10-18: it read like a label, not a button). */}
+          <button
+            type="submit"
+            aria-label={t('newMessage')}
+            disabled={opening || username.trim().length < 3}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-black transition-transform active:scale-95 disabled:opacity-30"
+          >
+            {opening ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" aria-hidden />
+            ) : (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            )}
+          </button>
+          <button
+            type="button"
+            aria-label={tU('close_d3d2')}
+            onClick={() => {
+              setComposing(false);
+              setUsername('');
+              setOpenError(null);
+            }}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ink-400 hover:text-ink-900"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
           </button>
         </form>
-      ) : (
+      ) : null}
+      {composing && people !== null && (
+        <div className="kamby-glass-solid mt-2 overflow-hidden rounded-2xl">
+          {people.length === 0 ? (
+            <p className="px-4 py-3 font-body text-sm text-ink-400">{t('noPeople')}</p>
+          ) : (
+            <ul className="divide-y divide-white/[0.05]">
+              {people.map((p) => (
+                <li key={p.username}>
+                  <button
+                    type="button"
+                    disabled={opening}
+                    onClick={() => void start(null, p.username!)}
+                    className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-white/[0.04] active:bg-white/[0.06] disabled:opacity-50"
+                  >
+                    <DmAvatar name={p.username} src={p.avatarUrl} className="h-9 w-9 text-sm" />
+                    <span className="min-w-0 flex-1 truncate font-display text-sm font-bold text-ink-900">@{p.username}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 text-ink-400">
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {composing ? null : (
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"

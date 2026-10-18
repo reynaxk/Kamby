@@ -973,7 +973,8 @@
     "pause": "Pause",
     "play": "Play",
     "voiceNote": "Voice note",
-    "voiceFailed": "Couldn't load"
+    "voiceFailed": "Couldn't load",
+    "noPeople": "No one by that name yet"
   },
   "calls": {
     "failed": "Call didn’t connect",

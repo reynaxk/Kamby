@@ -973,7 +973,8 @@
     "pause": "Duraklat",
     "play": "Oynat",
     "voiceNote": "Sesli mesaj",
-    "voiceFailed": "Yüklenemedi"
+    "voiceFailed": "Yüklenemedi",
+    "noPeople": "Bu isimde kimse yok"
   },
   "calls": {
     "failed": "Arama bağlanamadı",

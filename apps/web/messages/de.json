@@ -973,7 +973,8 @@
     "pause": "Pause",
     "play": "Abspielen",
     "voiceNote": "Sprachnachricht",
-    "voiceFailed": "Laden fehlgeschlagen"
+    "voiceFailed": "Laden fehlgeschlagen",
+    "noPeople": "Noch niemand mit diesem Namen"
   },
   "calls": {
     "failed": "Anruf nicht verbunden",

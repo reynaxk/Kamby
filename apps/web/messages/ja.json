@@ -973,7 +973,8 @@
     "pause": "一時停止",
     "play": "再生",
     "voiceNote": "ボイスメッセージ",
-    "voiceFailed": "読み込めませんでした"
+    "voiceFailed": "読み込めませんでした",
+    "noPeople": "その名前のユーザーはいません"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

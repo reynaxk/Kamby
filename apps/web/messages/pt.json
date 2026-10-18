@@ -973,7 +973,8 @@
     "pause": "Pausar",
     "play": "Tocar",
     "voiceNote": "Mensagem de voz",
-    "voiceFailed": "Não foi possível carregar"
+    "voiceFailed": "Não foi possível carregar",
+    "noPeople": "Ninguém com esse nome ainda"
   },
   "calls": {
     "failed": "A chamada não conectou",

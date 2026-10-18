@@ -973,7 +973,8 @@
     "pause": "Tạm dừng",
     "play": "Phát",
     "voiceNote": "Tin nhắn thoại",
-    "voiceFailed": "Không tải được"
+    "voiceFailed": "Không tải được",
+    "noPeople": "Chưa có ai tên như vậy"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",
