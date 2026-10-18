@@ -32,7 +32,7 @@ export function TradeModal({ open, onClose, children }: { open: boolean; onClose
       <div
         role="dialog"
         aria-modal="true"
-        className="kamby-glass-solid kamby-sheet-up relative max-h-[90vh] w-full overflow-y-auto rounded-t-3xl border-b-0 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] shadow-xl sm:max-w-md sm:rounded-3xl sm:border-b sm:pb-5"
+        className="kamby-glass-solid kamby-sheet-solid kamby-sheet-up relative max-h-[90vh] w-full overflow-y-auto rounded-t-3xl border-b-0 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] shadow-xl sm:max-w-md sm:rounded-3xl sm:border-b sm:pb-5"
       >
         {/* A grab handle, like a native sheet (phones). */}
         <div aria-hidden className="mx-auto -mt-2 mb-4 h-1 w-10 rounded-full bg-white/15 sm:hidden" />

@@ -88,7 +88,7 @@ export function PortfolioHeader() {
       </svg>
       <div className={cn('relative min-w-0', hidden && 'select-none blur-md')}>
         <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900 md:text-5xl" />
-        <p className={cn('mt-1 font-mono text-xs', openPnl >= 0 ? 'text-up' : 'text-down')}>
+        <p className={cn('mt-1 font-body text-sm font-semibold tabular-nums', !positions?.length ? 'text-ink-400' : openPnl >= 0 ? 'text-up' : 'text-down')}>
           {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : t('noPositions')}
         </p>
       </div>

@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { LEGAL_DETAILS_CONFIRMED, LEGAL_LAST_UPDATED } from '@/lib/legal';
+import { BackPill } from '@/components/layout/BackPill';
 
 /** Shared shell for /terms, /privacy and /risk — plain, readable long-form text. */
 export function LegalPage({ title, children }: { title: string; children: React.ReactNode }) {
@@ -8,9 +8,7 @@ export function LegalPage({ title, children }: { title: string; children: React.
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
       <main className="mx-auto max-w-2xl px-6 py-10">
-        <Link href="/" className="font-mono text-xs text-ink-400 hover:text-ink-900">
-          ← Back to Discover
-        </Link>
+        <BackPill href="/" />
         <h1 className="mt-4 font-display text-2xl font-bold tracking-tight text-ink-900">{title}</h1>
         <p className="mt-1 font-mono text-xs text-ink-400">Last updated {LEGAL_LAST_UPDATED}</p>
         {!LEGAL_DETAILS_CONFIRMED && (

@@ -110,7 +110,7 @@ export function UsdPresetAmountInput({
             placeholder="0"
             aria-label={tTrade('amountOf', { symbol: 'USDC' })}
             value={text}
-            size={Math.max(1, text.length)}
+            style={{ width: `${Math.max(1, text.length) + 0.15}ch` }}
             onChange={(event) => setText(event.target.value)}
             className="min-w-[1ch] max-w-full bg-transparent text-center font-display text-5xl font-bold tabular-nums text-ink-900 placeholder:text-ink-400 focus:outline-none"
           />

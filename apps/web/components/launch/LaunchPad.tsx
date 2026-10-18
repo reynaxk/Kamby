@@ -292,17 +292,28 @@ export function LaunchPad() {
         />
         {showLinks ? (
           <div className="mt-2 space-y-2">
+            {/* Each link with its mark in front (2026-10-18 audit: three bare URL boxes in a row). */}
             {(['twitter', 'telegram', 'website'] as const).map((key) => (
-              <input
-                key={key}
-                value={links[key]}
-                onChange={(e) => setLinks((prev) => ({ ...prev, [key]: e.target.value.trim() }))}
-                placeholder={t(`${key}Placeholder`)}
-                aria-label={t(key)}
-                inputMode="url"
-                disabled={busy}
-                className="h-10 w-full rounded-xl bg-surface-raised px-3 font-body text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-1 focus:ring-accent/60"
-              />
+              <label key={key} className="flex h-11 items-center gap-2.5 rounded-xl bg-surface-raised px-3 focus-within:ring-1 focus-within:ring-accent/60">
+                <span aria-hidden className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-lg', links[key] ? 'bg-accent/15 text-accent' : 'bg-white/[0.05] text-ink-400')}>
+                  {key === 'twitter' ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.8-6.3L6.4 22H3.3l7.3-8.3L1 2h6.3l4.4 5.8L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z" /></svg>
+                  ) : key === 'telegram' ? (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+                  ) : (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" /></svg>
+                  )}
+                </span>
+                <input
+                  value={links[key]}
+                  onChange={(e) => setLinks((prev) => ({ ...prev, [key]: e.target.value.trim() }))}
+                  placeholder={t(`${key}Placeholder`)}
+                  aria-label={t(key)}
+                  inputMode="url"
+                  disabled={busy}
+                  className="h-full min-w-0 flex-1 bg-transparent font-body text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none"
+                />
+              </label>
             ))}
           </div>
         ) : (

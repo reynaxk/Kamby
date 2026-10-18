@@ -68,7 +68,7 @@ export function AmountInput({
             placeholder="0"
             aria-label={tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}
             value={value}
-            size={Math.max(1, value.length)}
+            style={{ width: `${Math.max(1, value.length) + 0.15}ch` }}
             onChange={(event) => {
               const raw = event.target.value;
               if (raw === '' || /^\d*\.?\d*$/.test(raw)) onChange(raw);

@@ -8,6 +8,7 @@ import type { WatchedToken } from '@kamby/domain';
 import { fetchWatchlist, hasStoredSession } from '@/lib/watchlist-client';
 import { marketHref } from '@/lib/solana-links';
 import { SelectableTokenRow } from './SelectableTokenRow';
+import { ListSkeleton } from '@/components/market/ListSkeleton';
 
 /**
  * Home's Watchlist tab on phones (2026-10-10, like fomo — it's their first tab): the coins
@@ -49,7 +50,7 @@ export function WatchlistTokens() {
     );
   }
   if (failed) return <p className="p-4 font-body text-sm text-ink-400">{tU('couldnTLoadYourWatchlist_1f12')}</p>;
-  if (items === null) return <p className="p-4 font-body text-sm text-ink-400">{tU('loading_5f02')}</p>;
+  if (items === null) return <ListSkeleton label={tU('loading_5f02')} />;
   if (items.length === 0) return <p className="px-4 py-10 text-center font-body text-sm text-ink-400">{tL('watchlistEmpty')}</p>;
   return (
     <>

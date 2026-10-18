@@ -7,6 +7,7 @@ import { formatCompactUsd } from '@/lib/format';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { fetchTopTraders } from '@/lib/social-client';
 import { useTranslations } from 'next-intl';
+import { ListSkeleton } from '@/components/market/ListSkeleton';
 
 /**
  * A general trader directory for the terminal's left rail — volume-ranked (GET
@@ -43,7 +44,7 @@ export function TradersSidebar() {
         </span>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
+        {status === 'loading' && <ListSkeleton label={tU('loading_5f02')} />}
         {status === 'error' && <p className="p-3 font-body text-xs text-down">{tU('couldnTLoadTraders_67dd')}</p>}
         {status === 'ready' && traders?.length === 0 && (
           <p className="p-3 font-body text-xs text-ink-400">{tU('noTraderHasClearedThe_f752')}</p>

@@ -4,7 +4,7 @@ import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useMemo, useState } from 'react';
 import { useAddFunds, usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
-import { Button, cn } from '@kamby/ui';
+import { Button } from '@kamby/ui';
 import { CHAIN_REGISTRY, type EvmChainConfig } from '@kamby/domain';
 import QRCode from 'qrcode';
 import { useAccount } from 'wagmi';
@@ -13,6 +13,7 @@ import { assetsForChain, SEND_CHAINS, type SendChainOption, type SendChainSlug }
 import { TradeModal } from '../trading/TradeModal';
 import { ChevronRight, CreditCard } from 'lucide-react';
 import { ConnectWalletButton } from './ConnectWalletButton';
+import { NetworkPicker } from './NetworkPicker';
 import { DepositGlyph, ModalHeader } from './ModalHeader';
 import { useTranslations } from 'next-intl';
 
@@ -94,28 +95,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
     }
   }
 
-  const networkPicker = (
-    <div>
-      <div className="font-body text-xs text-ink-600">{tF('network')}</div>
-      <div className="mt-1.5 flex gap-1.5">
-        {SEND_CHAINS.map((c) => (
-          <button
-            key={c.slug}
-            type="button"
-            onClick={() => setChain(c)}
-            className={cn(
-              'flex-1 rounded-full border px-2 py-2 font-body text-xs font-semibold transition-colors active:scale-[0.97]',
-              chain.slug === c.slug
-                ? 'border-accent bg-accent/15 text-accent'
-                : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
-            )}
-          >
-            {c.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  const networkPicker = <NetworkPicker label={tF('network')} value={chain} onChange={setChain} />;
 
   const back = (
     <button type="button" onClick={() => setStep('choose')} className="font-body text-xs text-ink-400 hover:text-ink-900">
@@ -176,7 +156,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
           )}
           {!isConnectedForChain ? (
             chain.kind === 'evm' ? (
-              <ConnectWalletButton expectedChainId={chain.evmChainId} />
+              <ConnectWalletButton expectedChainId={chain.evmChainId} block />
             ) : (
               <p className="font-body text-sm text-ink-600">{tF('settingUpSolana')}</p>
             )

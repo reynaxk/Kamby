@@ -6,6 +6,7 @@ import { cn } from '@kamby/ui';
 import { fetchLivePrice, type ChartSource } from '@/lib/chart-data';
 import { fetchGeckoTrades, geckoNetworkFor, type GeckoTrade } from '@/lib/gecko-browser';
 import { formatCompactUsd, truncateAddress } from '@/lib/format';
+import { ListSkeleton } from '@/components/market/ListSkeleton';
 
 const POLL_MS = 15_000;
 const EXPLORER_TX: Record<string, (hash: string) => string> = {
@@ -74,7 +75,7 @@ export function LiveTradesPanel({ source }: { source: ChartSource }) {
 
   if (!network) return null;
   if (trades === null) {
-    return <p className="p-4 font-body text-sm text-ink-400">{failed ? tU('couldnTLoadActivity_bd85') : tU('loading_5f02')}</p>;
+    return failed ? <p className="p-4 font-body text-sm text-ink-400">{tU('couldnTLoadActivity_bd85')}</p> : <ListSkeleton label={tU('loading_5f02')} rows={6} avatar={false} />;
   }
   if (trades.length === 0) return <p className="p-4 font-body text-sm text-ink-400">{tU('noTradesYet_ceb3')}</p>;
 

@@ -8,6 +8,7 @@ import { formatCompactUsd, formatPercent, formatRelativeTime, truncateAddress, c
 import { fetchTrenches, isPumpFunCategory, type TrenchesCategory } from '@/lib/trenches-client';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { useTranslations } from 'next-intl';
+import { ListSkeleton } from '@/components/market/ListSkeleton';
 
 const TABS: { category: TrenchesCategory; label: string }[] = [
   { category: 'FRESH', label: 'Fresh' },
@@ -80,7 +81,7 @@ export function TrenchesPanel() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {status === 'loading' && <p className="p-3 font-body text-xs text-ink-400">{tU('loading_5f02')}</p>}
+        {status === 'loading' && <ListSkeleton label={tU('loading_5f02')} />}
         {status === 'error' && (
           <p className="p-3 font-body text-xs text-down">{tU('couldnTLoadThisTrench_9819')}</p>
         )}

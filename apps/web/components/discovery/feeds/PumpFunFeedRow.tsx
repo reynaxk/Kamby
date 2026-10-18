@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ChainBadge } from '@/components/market/ChainBadge';
 import type { PumpFunTokenSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { cashtag, formatRelativeTime, truncateAddress } from '@/lib/format';
+import { cashtag, formatAge, truncateAddress } from '@/lib/format';
 import { solanaMarketHref } from '@/lib/solana-links';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { useTranslations } from 'next-intl';
@@ -34,8 +34,8 @@ export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: Pu
         </span>
         <span className="block truncate font-mono text-[0.7rem] tabular-nums text-ink-400" suppressHydrationWarning>
           {token.complete
-            ? `Graduated ${token.graduatedAt ? formatRelativeTime(token.graduatedAt) : ''}`
-            : `${lamportsToSol(token.realSolReserves).toFixed(2)} SOL · ${formatRelativeTime(token.createdAt)}`}
+            ? `Graduated ${token.graduatedAt ? formatAge(token.graduatedAt) : ''}`
+            : `${solAmount(lamportsToSol(token.realSolReserves))} SOL · ${formatAge(token.createdAt)}`}
         </span>
       </span>
       {token.complete ? (
@@ -70,4 +70,9 @@ export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: Pu
       {content}
     </Link>
   );
+}
+
+/** "0.97" / "14.9K" — big reserves read at a glance in a tight row. */
+function solAmount(sol: number): string {
+  return sol >= 1000 ? `${(sol / 1000).toFixed(1)}K` : sol.toFixed(2);
 }

@@ -18,6 +18,7 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import type { Candle, SocialActivity } from '@kamby/domain';
+import { cn } from '@kamby/ui';
 import { EmptyState } from '@/components/market/EmptyState';
 import {
   computeAdx,
@@ -591,21 +592,30 @@ export function KambyChart({
           {activeIndicators.size > 0 && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent md:hidden" aria-hidden />}
         </button>
         {pickerOpen && (
-          <div className="absolute left-0 z-20 mt-1 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-lg">
-            {INDICATOR_ORDER.map((id) => (
-              <label
-                key={id}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-body text-xs text-ink-900 hover:bg-surface-raised"
-              >
-                <input
-                  type="checkbox"
-                  checked={activeIndicators.has(id)}
-                  onChange={() => toggleIndicator(id)}
-                  className="h-3 w-3 accent-accent"
-                />
-                {INDICATOR_LABELS[id]}
-              </label>
-            ))}
+          // A dark card with real switches (2026-10-18 audit: tiny native checkboxes looked unfinished).
+          <div className="absolute left-0 z-20 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 p-1.5 shadow-2xl" style={{ background: 'rgb(13, 15, 24)' }}>
+            <p className="px-2.5 pb-1.5 pt-1 font-display text-xs font-bold text-ink-400">{tL('indicators')}</p>
+            {INDICATOR_ORDER.map((id) => {
+              const on = activeIndicators.has(id);
+              return (
+                <label
+                  key={id}
+                  className={cn('flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 font-body text-sm transition-colors hover:bg-white/[0.04]', on ? 'text-ink-900' : 'text-ink-600')}
+                >
+                  <input type="checkbox" checked={on} onChange={() => toggleIndicator(id)} className="peer sr-only" />
+                  <span className="min-w-0 flex-1 truncate">{INDICATOR_LABELS[id]}</span>
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'relative h-5 w-9 shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-accent/60',
+                      on ? 'bg-accent' : 'bg-white/10',
+                    )}
+                  >
+                    <span className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white transition-[left]', on ? 'left-[18px]' : 'left-0.5')} />
+                  </span>
+                </label>
+              );
+            })}
           </div>
         )}
       </div>

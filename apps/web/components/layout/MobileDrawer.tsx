@@ -68,15 +68,17 @@ export function MobileDrawer({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 38 }}
-            className={`kamby-glass-solid fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-b-0 p-4 ${desktop ? 'lg:inset-0 lg:m-auto lg:h-fit lg:w-[440px] lg:rounded-3xl lg:border-b' : 'lg:hidden'}`}
+            className={`kamby-glass-solid kamby-sheet-solid fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-b-0 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] ${desktop ? 'lg:inset-0 lg:m-auto lg:h-fit lg:w-[440px] lg:rounded-3xl lg:border-b' : 'lg:hidden'}`}
           >
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-display text-sm font-bold uppercase tracking-wide text-ink-900">{title}</h2>
+            {/* A grab handle, like a native sheet (phones). */}
+            <div aria-hidden className={`mx-auto -mt-1 mb-3 h-1 w-10 rounded-full bg-white/15 ${desktop ? 'lg:hidden' : ''}`} />
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="min-w-0 truncate font-display text-lg font-bold text-ink-900">{title}</h2>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label={tU('close_d3d2')}
-                className="rounded-full p-1 text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 text-ink-400 transition-colors hover:text-ink-900 active:scale-95"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>

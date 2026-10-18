@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { cn } from '@kamby/ui';
-import Link from 'next/link';
 import { AppBackBar } from '@/components/layout/AppBackBar';
 import { notFound } from 'next/navigation';
 import { ActivityFeed } from '@/components/social/ActivityFeed';
@@ -16,6 +15,7 @@ import { fetchTraderActivity, fetchTraderProfile } from '@/lib/social-api';
 import { fetchTraderTokens } from '@/lib/discovery-api';
 import { settledOr } from '@/lib/settled-fetch';
 import { getTranslations } from 'next-intl/server';
+import { BackPill } from '@/components/layout/BackPill';
 
 export const revalidate = 15;
 
@@ -70,9 +70,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
       <MarketHeader className="max-md:hidden" />
       <AppBackBar fallback="/leaderboard" />
       <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-0">
-        <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900 max-md:hidden">
-          ← Back to Discover
-        </Link>
+        <BackPill href="/terminal" className="max-md:hidden" />
 
         {/* The trader's card (2026-10-15): the midnight PnL-card look — who, follow, and the
             realized PnL big in its own colour, with the faint neon K behind. */}

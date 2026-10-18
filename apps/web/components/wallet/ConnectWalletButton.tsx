@@ -3,7 +3,7 @@
 import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
 import { useCreateWallet, usePrivy, useWallets } from '@privy-io/react-auth';
-import { Button } from '@kamby/ui';
+import { Button, cn } from '@kamby/ui';
 import { CHAIN_REGISTRY, slugForChainId } from '@kamby/domain';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
@@ -88,8 +88,11 @@ import { useTranslations } from 'next-intl';
 export function ConnectWalletButton({
   expectedChainId = base.id,
   enforceChain = true,
+  block = false,
 }: {
   expectedChainId?: number;
+  /** Full width (inside a sheet or panel) instead of a compact header button. */
+  block?: boolean;
   /** false for the site header: it must never switch the wallet's network. Only a trade
    *  panel that's about to trade on a chain does — two instances with different chains
    *  (header = Base, home terminal's trade panel = BNB) kept switching the wallet back and
@@ -156,8 +159,8 @@ export function ConnectWalletButton({
 
   if (!ready || !authenticated || !isConnected) {
     return (
-      <div className="flex flex-col items-end gap-1">
-        <Button type="button" variant="primary" disabled={!ready || authenticated} onClick={() => login()}>
+      <div className={block ? 'flex flex-col items-stretch gap-1 text-center' : 'flex flex-col items-end gap-1'}>
+        <Button type="button" variant="primary" className={block ? 'w-full' : undefined} disabled={!ready || authenticated} onClick={() => login()}>
           {!ready ? tAuth('loading') : authenticated ? tAuth('settingUp') : tAuth('signIn')}
         </Button>
         {walletSetupError ? (
@@ -185,11 +188,11 @@ export function ConnectWalletButton({
 
   if (enforceChain && chainId !== expectedChainId) {
     return (
-      <div className="flex flex-col items-end gap-1">
+      <div className={block ? 'flex flex-col items-stretch gap-1 text-center' : 'flex flex-col items-end gap-1'}>
         <Button
           type="button"
           variant="secondary"
-          className="border border-down/40 text-down"
+          className={cn('border border-down/40 text-down', block && 'w-full')}
           onClick={() => {
             hasAttemptedSwitchRef.current = true;
             switchChain({ chainId: expectedChainId as 8453 | 56 });

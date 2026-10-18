@@ -32,7 +32,7 @@ import {
   type SendChainOption,
 } from '@/lib/send';
 import { friendlyError } from '@/lib/friendly-error';
-import { Check } from 'lucide-react';
+import { Check, Send } from 'lucide-react';
 import { TradeModal } from '../trading/TradeModal';
 import { ModalHeader, WithdrawGlyph } from './ModalHeader';
 import { authedFetch } from '@/lib/session-client';
@@ -41,6 +41,7 @@ import { MoveNote } from '../trading/CrossChainMove';
 import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 import type { BridgeChain } from '@/lib/bridge-client';
 import { ConnectWalletButton } from './ConnectWalletButton';
+import { NetworkPicker } from './NetworkPicker';
 import { useTranslations } from 'next-intl';
 
 type Step = 'form' | 'review' | 'signing' | 'confirmed' | 'failed';
@@ -385,30 +386,11 @@ export function SendModal({
 
   return (
     <TradeModal open={open} onClose={close}>
-      <ModalHeader icon={<WithdrawGlyph />} title={toUser ? tW('send') : tW('withdraw')} onClose={close} closeLabel={tU('close_d3d2')} />
+      <ModalHeader icon={toUser ? <Send className="h-5 w-5" aria-hidden /> : <WithdrawGlyph />} title={toUser ? tW('send') : tW('withdraw')} onClose={close} closeLabel={tU('close_d3d2')} />
 
       {step === 'form' && (
         <div className="mt-4 flex flex-col gap-4">
-          <div>
-            <div className="font-body text-xs text-ink-600">{tU('network_eec8')}</div>
-            <div className="mt-1.5 flex gap-1.5">
-              {SEND_CHAINS.map((c) => (
-                <button
-                  key={c.slug}
-                  type="button"
-                  onClick={() => setChain(c)}
-                  className={cn(
-                    'flex-1 rounded-full border px-2 py-2 font-body text-xs font-semibold transition-colors active:scale-[0.97]',
-                    chain.slug === c.slug
-                      ? 'border-accent bg-accent/15 text-accent'
-                      : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
-                  )}
-                >
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          </div>
+          <NetworkPicker label={tU('network_eec8')} value={chain} onChange={setChain} />
 
           {assets.length > 1 && (
           <div>
@@ -435,7 +417,7 @@ export function SendModal({
 
           {!isConnectedForChain ? (
             chain.kind === 'evm' ? (
-              <ConnectWalletButton expectedChainId={chain.evmChainId} />
+              <ConnectWalletButton expectedChainId={chain.evmChainId} block />
             ) : (
               <Button type="button" className="w-full" disabled={!ready || authenticated} onClick={() => login()}>
                 {!ready ? tAuth('loading') : authenticated ? tAuth('settingUp') : tAuth('signIn')}

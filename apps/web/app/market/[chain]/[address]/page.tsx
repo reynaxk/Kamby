@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { CHAIN_REGISTRY, isChainSlug, isCuratedMarket, TIMEFRAMES, type Timeframe } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AutoRefresh } from '@/components/market/AutoRefresh';
 import { MarketHeader } from '@/components/market/MarketHeader';
@@ -18,6 +17,7 @@ import { EMPTY_TRADERS, fetchTokenTraders } from '@/lib/discovery-api';
 import { soft } from '@/lib/soft';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { getTranslations } from 'next-intl/server';
+import { BackPill } from '@/components/layout/BackPill';
 
 export const revalidate = 15;
 
@@ -98,9 +98,7 @@ export default async function TokenDetailPage({
       <div className="mx-auto max-w-[1600px] px-3 pt-3 max-lg:hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link href="/terminal" className="font-mono text-xs text-ink-400 hover:text-ink-900">
-              ← Back to Discover
-            </Link>
+            <BackPill href="/terminal" />
             <TokenIdentity
               symbol={market.symbol}
               name={market.name}

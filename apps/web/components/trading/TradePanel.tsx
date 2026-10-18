@@ -681,7 +681,7 @@ export function TradePanel({
     return (
       <Panel title={tU('trade_5f39')} onClose={onClose} animKey="wrong-chain">
         <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade — it needs to be on {chainName}.</p>
-        <ConnectWalletButton expectedChainId={chainId} />
+        <ConnectWalletButton expectedChainId={chainId} block />
       </Panel>
     );
   }
@@ -947,7 +947,7 @@ export function TradePanel({
         // canQuote is false while disconnected, so quoteStatus never leaves 'idle' above —
         // side/amount are still freely settable, just inert until a wallet connects.
         <>
-          <ConnectWalletButton expectedChainId={chainId} />
+          <ConnectWalletButton expectedChainId={chainId} block />
           <LegalAgreementNote />
         </>
       )}

@@ -107,6 +107,14 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   return formatDateTime(iso);
 }
 
+/** formatRelativeTime for tight rows (a coin list line): past a week just "Oct 10" (plus the
+ *  year when it isn't this one) instead of the full date and time, which overflowed the row. */
+export function formatAge(iso: string, now: Date = new Date()): string {
+  const then = new Date(iso);
+  if (now.getTime() - then.getTime() < 7 * 24 * 60 * 60 * 1000) return formatRelativeTime(iso, now);
+  return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(then.getFullYear() !== now.getFullYear() && { year: 'numeric' }) });
+}
+
 /** "$SYMBOL" for display — some tokens' own symbols already start with "$" (Solana's
  *  "$WIF"), which a plain `$${symbol}` would render as "$$WIF". */
 export function cashtag(symbol: string): string {
