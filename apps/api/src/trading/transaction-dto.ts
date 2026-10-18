@@ -1,5 +1,5 @@
 import type { Prisma } from '@kamby/db';
-import type { TradeTransactionDto } from '@kamby/domain';
+import { tradesInChainUsdc, type TradeTransactionDto } from '@kamby/domain';
 import { formatUnits } from 'viem';
 
 /**
@@ -39,7 +39,8 @@ export function toDto(row: TransactionRow): TradeTransactionDto {
   // docs/TRADING.md#guaranteed-usdc-fees) — the quote's own feeUnsignedTx is the single
   // source of truth for this, set once at quote time and never re-derived from the side or
   // token addresses again here.
-  const usesGuaranteedUsdcFee = row.quote.feeUnsignedTx !== null;
+  // (…or rides inside the swap, still in USDC — since 2026-10-18.)
+  const usesGuaranteedUsdcFee = row.quote.feeUnsignedTx !== null || tradesInChainUsdc(row.chainId, row.side as 'BUY' | 'SELL', row.inputToken, row.outputToken);
   // Under the guaranteed flow the fee is always in market.quoteToken (USDC) — for a BUY
   // that's the *input* token, not the token.decimals the non-guaranteed convention below
   // uses for its output-side fee. Everywhere else, unchanged: fee formats with the output

@@ -398,9 +398,61 @@ describe('QuoteService', () => {
 
       await service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'BUY', amount: '10', slippageBps: 50 });
 
-      const call = (router.getQuote as jest.Mock).mock.calls[0][0];
+      // The first call asks for the fee inside the swap; this router can't embed it, so the
+      // fallback call must be fee-free (Kamby then takes it as a separate transfer).
+      const calls = (router.getQuote as jest.Mock).mock.calls;
+      const call = calls[calls.length - 1][0];
       expect(call.feeBps).toBe(0);
       expect(call.feeRecipient).toBeNull();
+    });
+  });
+
+  describe('fee inside the swap (2026-10-18)', () => {
+    function fakeUsdcMarket(): TradableMarket {
+      return { id: 'market-usdc', priceUsd: '2500', token: TOKEN, quoteToken: USDC_QUOTE_TOKEN } as unknown as TradableMarket;
+    }
+    const RECIPIENT = '0x111111111111111111111111111111111111111a';
+
+    it('BUY: one transaction — the router takes the fee from the USDC going in, no separate transfer', async () => {
+      const router = fakeRouter(routerQuote({ feeEmbedded: true }));
+      const service = buildService({ router, safety: fakeSafety(fakeUsdcMarket()) });
+      const fullInput = parseUnits('100', 6);
+      const bps = resolveTierFeeBps(100);
+
+      const quote = await service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'BUY', amount: '100', slippageBps: 50 });
+
+      expect(router.getQuote).toHaveBeenCalledTimes(1);
+      expect(router.getQuote).toHaveBeenCalledWith(
+        expect.objectContaining({ sellAmountRaw: fullInput.toString(), feeBps: bps, feeRecipient: RECIPIENT, feeChargedIn: 'input' }),
+      );
+      expect(quote.feeUnsignedTx).toBeNull();
+      expect(quote.platformFeeAmount).toBe(calculateFeeAmount(fullInput, bps).toString());
+      expect(quote.platformFeeBps).toBe(bps);
+      expect(quote.expectedOutputAmount).toBe(routerQuote().buyAmountRaw);
+    });
+
+    it('SELL: the fee comes out of the USDC received, and the fee amount is grossed back from the net output', async () => {
+      const bps = resolveTierFeeBps(2500);
+      const net = parseUnits('2475', 6);
+      const router = fakeRouter(routerQuote({ feeEmbedded: true, buyAmountRaw: net.toString(), minBuyAmountRaw: parseUnits('2462.625', 6).toString() }));
+      const service = buildService({ router, safety: fakeSafety(fakeUsdcMarket()) });
+
+      const quote = await service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'SELL', amount: '1', slippageBps: 50 });
+
+      expect(router.getQuote).toHaveBeenCalledWith(expect.objectContaining({ feeBps: bps, feeRecipient: RECIPIENT, feeChargedIn: 'output' }));
+      const gross = (net * 10_000n) / BigInt(10_000 - bps);
+      expect(quote.feeUnsignedTx).toBeNull();
+      expect(quote.expectedOutputAmount).toBe(net.toString());
+      expect(quote.platformFeeAmount).toBe((gross - net).toString());
+    });
+
+    it('SELL: keeps the hard $2 minimum', async () => {
+      const router = fakeRouter(routerQuote({ feeEmbedded: true, buyAmountRaw: parseUnits('1.5', 6).toString(), minBuyAmountRaw: parseUnits('1.49', 6).toString() }));
+      const service = buildService({ router, safety: fakeSafety({ ...fakeUsdcMarket(), priceUsd: '1.5' } as unknown as TradableMarket) });
+
+      await expect(
+        service.createQuote({ userId: USER_ID, walletAddress: WALLET, tokenAddress: TOKEN.contractAddress, chainId: 8453, side: 'SELL', amount: '1', slippageBps: 50 }),
+      ).rejects.toThrow('Minimum trade size is $2.00');
     });
   });
 });

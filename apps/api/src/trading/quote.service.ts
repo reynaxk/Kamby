@@ -196,90 +196,103 @@ export class QuoteService {
     //    the real router call below returns — resolved after it, further down.
     //  - aggregator (non-USDC-quoted market), either side: see
     //    resolveAggregatorTierFeeBps's own doc comment.
-    const preRouterFeeBps = usesGuaranteedUsdcFee
-      ? params.side === 'BUY'
-        ? resolveTierFeeBps(Number(formatUnits(inputAmountRaw, inputToken.decimals!)))
-        : 0 // unused for a guaranteed-USDC SELL — see appliedFeeBps below
-      : await this.resolveAggregatorTierFeeBps(params, market, inputToken, outputToken, inputAmountRaw);
-
-    // For a BUY, the fee comes off the USDC input *before* the swap is even quoted — the
-    // router is only ever asked to price the remaining balance, so its own quote already
-    // reflects exactly what the swap will produce.
-    const preSwapFeeAmountRaw =
-      usesGuaranteedUsdcFee && params.side === 'BUY' ? calculateFeeAmount(inputAmountRaw, preRouterFeeBps) : 0n;
-    const routerSellAmountRaw = inputAmountRaw - preSwapFeeAmountRaw;
-
-    const routerQuote = await this.router.getQuote({
-      chainId: params.chainId,
-      sellToken: inputToken.contractAddress,
-      buyToken: outputToken.contractAddress,
-      sellAmountRaw: routerSellAmountRaw.toString(),
-      taker: walletAddress,
-      slippageBps: params.slippageBps,
-      // The aggregator's own fee mechanism is only used when Kamby isn't already handling
-      // the fee itself as a separate, guaranteed-USDC transfer — asking for both would
-      // double-charge the user.
-      feeRecipient: usesGuaranteedUsdcFee ? null : this.feeRecipient,
-      feeBps: usesGuaranteedUsdcFee ? 0 : preRouterFeeBps,
-    });
-    if (!routerQuote) {
-      throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');
-    }
-
-    const grossBuyAmountRaw = BigInt(routerQuote.buyAmountRaw);
-    const providerMinBuyAmountRaw = BigInt(routerQuote.minBuyAmountRaw);
-    // Sanity-check the provider's own floor against ours — never trust it blindly. If it's
-    // looser than what the requested slippage demands, something is wrong upstream.
-    const ourMinOutputRaw = calculateMinOutputAmount(grossBuyAmountRaw, params.slippageBps);
-    if (providerMinBuyAmountRaw < ourMinOutputRaw) {
-      this.logger.warn(
-        { providerMinBuyAmountRaw: providerMinBuyAmountRaw.toString(), ourMinOutputRaw: ourMinOutputRaw.toString() },
-        'quote rejected: provider minBuyAmount looser than the requested slippage tolerance',
-      );
-      throw new UnprocessableEntityException('The quote returned did not honor the requested slippage tolerance');
-    }
-
-    // A guaranteed-USDC SELL's tier wasn't resolvable until now — the trade's USD size is
-    // the gross USDC the swap actually produced, only known once the router has priced it.
-    // Every other case already resolved its tier above, before this call.
-    // A sell's size is the USDC it produces — only known now.
-    // Hard $2 floor on sells too — owner's call (2026-10-18), knowing a position that dips under
-    // $2 can't be sold until it's back over $2.
-    if (usesGuaranteedUsdcFee && params.side === 'SELL' && Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)) < MIN_TRADE_USD) {
-      throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
-    }
-    const appliedFeeBps =
-      usesGuaranteedUsdcFee && params.side === 'SELL'
-        ? resolveTierFeeBps(Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)))
-        : preRouterFeeBps;
-
-    // For a SELL, the fee is a % of the (gross) USDC the swap is expected to produce —
-    // taken via a *separate* transfer after the swap, never reducing the swap's own
-    // on-chain output. Computed from the quoted amount, not a post-swap actual: the
-    // resulting few-atoms-of-precision gap against real slippage is economically
-    // meaningless and avoids a second backend round-trip to read the real receipt.
-    const postSwapFeeAmountRaw =
-      usesGuaranteedUsdcFee && params.side === 'SELL' ? calculateFeeAmount(grossBuyAmountRaw, appliedFeeBps) : 0n;
-
-    const platformFeeAmountRaw = usesGuaranteedUsdcFee
-      ? preSwapFeeAmountRaw + postSwapFeeAmountRaw // exactly one of these is nonzero, by side
-      : routerQuote.feeAmountRaw
-        ? BigInt(routerQuote.feeAmountRaw)
-        : calculateFeeAmount(grossBuyAmountRaw, appliedFeeBps);
-
-    // What the user actually ends up with net of Kamby's fee. For a BUY this is just the
-    // router's own output (the fee already came off the input side before the swap was
-    // quoted); for a guaranteed-USDC SELL it's the swap's gross output minus the separate
-    // fee transfer that follows it.
-    const isGuaranteedUsdcSell = usesGuaranteedUsdcFee && params.side === 'SELL';
-    const netBuyAmountRaw = isGuaranteedUsdcSell ? grossBuyAmountRaw - postSwapFeeAmountRaw : grossBuyAmountRaw;
-    const netMinOutputRaw = isGuaranteedUsdcSell
-      ? providerMinBuyAmountRaw - postSwapFeeAmountRaw
-      : providerMinBuyAmountRaw;
-
-    const feeUnsignedTx = usesGuaranteedUsdcFee
-      ? buildErc20TransferTx(market.quoteToken.contractAddress, this.feeRecipient, platformFeeAmountRaw)
+    // Kamby's fee inside the swap itself (owner, 2026-10-18): one signature, nothing to lose if
+    // the app closes between the swap and a second fee transfer (a real $2 test buy never paid
+    // its fee that way). Still USDC on both sides — taken from the USDC going in on a buy and
+    // from the USDC coming out on a sell. Falls back to the separate USDC transfer below only
+    // when the router can't build the fee in (no KyberSwap route; Velora covers that path).
+    const inSwap = usesGuaranteedUsdcFee && this.feeRecipient
+      ? await this.quoteWithFeeInSwap(params, market, inputToken, outputToken, inputAmountRaw, walletAddress)
       : null;
+
+    const separateFee = async () => {
+      const preRouterFeeBps = usesGuaranteedUsdcFee
+        ? params.side === 'BUY'
+          ? resolveTierFeeBps(Number(formatUnits(inputAmountRaw, inputToken.decimals!)))
+          : 0 // unused for a guaranteed-USDC SELL — see appliedFeeBps below
+        : await this.resolveAggregatorTierFeeBps(params, market, inputToken, outputToken, inputAmountRaw);
+
+      // For a BUY, the fee comes off the USDC input *before* the swap is even quoted — the
+      // router is only ever asked to price the remaining balance, so its own quote already
+      // reflects exactly what the swap will produce.
+      const preSwapFeeAmountRaw =
+        usesGuaranteedUsdcFee && params.side === 'BUY' ? calculateFeeAmount(inputAmountRaw, preRouterFeeBps) : 0n;
+      const routerSellAmountRaw = inputAmountRaw - preSwapFeeAmountRaw;
+
+      const routerQuote = await this.router.getQuote({
+        chainId: params.chainId,
+        sellToken: inputToken.contractAddress,
+        buyToken: outputToken.contractAddress,
+        sellAmountRaw: routerSellAmountRaw.toString(),
+        taker: walletAddress,
+        slippageBps: params.slippageBps,
+        // The aggregator's own fee mechanism is only used when Kamby isn't already handling
+        // the fee itself as a separate, guaranteed-USDC transfer — asking for both would
+        // double-charge the user.
+        feeRecipient: usesGuaranteedUsdcFee ? null : this.feeRecipient,
+        feeBps: usesGuaranteedUsdcFee ? 0 : preRouterFeeBps,
+      });
+      if (!routerQuote) {
+        throw new UnprocessableEntityException('No live quote is available for this trade right now — try again shortly');
+      }
+
+      const grossBuyAmountRaw = BigInt(routerQuote.buyAmountRaw);
+      const providerMinBuyAmountRaw = BigInt(routerQuote.minBuyAmountRaw);
+      // Sanity-check the provider's own floor against ours — never trust it blindly. If it's
+      // looser than what the requested slippage demands, something is wrong upstream.
+      const ourMinOutputRaw = calculateMinOutputAmount(grossBuyAmountRaw, params.slippageBps);
+      if (providerMinBuyAmountRaw < ourMinOutputRaw) {
+        this.logger.warn(
+          { providerMinBuyAmountRaw: providerMinBuyAmountRaw.toString(), ourMinOutputRaw: ourMinOutputRaw.toString() },
+          'quote rejected: provider minBuyAmount looser than the requested slippage tolerance',
+        );
+        throw new UnprocessableEntityException('The quote returned did not honor the requested slippage tolerance');
+      }
+
+      // A guaranteed-USDC SELL's tier wasn't resolvable until now — the trade's USD size is
+      // the gross USDC the swap actually produced, only known once the router has priced it.
+      // Every other case already resolved its tier above, before this call.
+      // A sell's size is the USDC it produces — only known now.
+      // Hard $2 floor on sells too — owner's call (2026-10-18), knowing a position that dips under
+      // $2 can't be sold until it's back over $2.
+      if (usesGuaranteedUsdcFee && params.side === 'SELL' && Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)) < MIN_TRADE_USD) {
+        throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
+      }
+      const appliedFeeBps =
+        usesGuaranteedUsdcFee && params.side === 'SELL'
+          ? resolveTierFeeBps(Number(formatUnits(grossBuyAmountRaw, market.quoteToken.decimals!)))
+          : preRouterFeeBps;
+
+      // For a SELL, the fee is a % of the (gross) USDC the swap is expected to produce —
+      // taken via a *separate* transfer after the swap, never reducing the swap's own
+      // on-chain output. Computed from the quoted amount, not a post-swap actual: the
+      // resulting few-atoms-of-precision gap against real slippage is economically
+      // meaningless and avoids a second backend round-trip to read the real receipt.
+      const postSwapFeeAmountRaw =
+        usesGuaranteedUsdcFee && params.side === 'SELL' ? calculateFeeAmount(grossBuyAmountRaw, appliedFeeBps) : 0n;
+
+      const platformFeeAmountRaw = usesGuaranteedUsdcFee
+        ? preSwapFeeAmountRaw + postSwapFeeAmountRaw // exactly one of these is nonzero, by side
+        : routerQuote.feeAmountRaw
+          ? BigInt(routerQuote.feeAmountRaw)
+          : calculateFeeAmount(grossBuyAmountRaw, appliedFeeBps);
+
+      // What the user actually ends up with net of Kamby's fee. For a BUY this is just the
+      // router's own output (the fee already came off the input side before the swap was
+      // quoted); for a guaranteed-USDC SELL it's the swap's gross output minus the separate
+      // fee transfer that follows it.
+      const isGuaranteedUsdcSell = usesGuaranteedUsdcFee && params.side === 'SELL';
+      const netBuyAmountRaw = isGuaranteedUsdcSell ? grossBuyAmountRaw - postSwapFeeAmountRaw : grossBuyAmountRaw;
+      const netMinOutputRaw = isGuaranteedUsdcSell
+        ? providerMinBuyAmountRaw - postSwapFeeAmountRaw
+        : providerMinBuyAmountRaw;
+
+      const feeUnsignedTx = usesGuaranteedUsdcFee
+        ? buildErc20TransferTx(market.quoteToken.contractAddress, this.feeRecipient, platformFeeAmountRaw)
+        : null;
+      return { routerQuote, appliedFeeBps, platformFeeAmountRaw, netBuyAmountRaw, netMinOutputRaw, feeUnsignedTx };
+    };
+    const { routerQuote, appliedFeeBps, platformFeeAmountRaw, netBuyAmountRaw, netMinOutputRaw, feeUnsignedTx } = inSwap ?? (await separateFee());
     // The fee always denominates in USDC (market.quoteToken) under the guaranteed flow —
     // for a BUY that's the input token, not the output being purchased, so it must be
     // formatted with the quote token's decimals, not the output token's.
@@ -348,6 +361,77 @@ export class QuoteService {
       // client; see that method's own doc comment for why it's split out rather than
       // computed here.
       sponsorshipAvailable: false,
+    };
+  }
+
+  /**
+   * A USDC trade with Kamby's fee built into the swap (see createQuote). The tier needs the
+   * trade's USD size: a buy's USDC input, or — for a sell — the market-price estimate first,
+   * re-quoted once if the real USDC out lands in a different tier. `null` = the router didn't
+   * embed the fee (caller falls back to the separate transfer).
+   */
+  private async quoteWithFeeInSwap(
+    params: CreateQuoteParams,
+    market: TradableMarket,
+    inputToken: { contractAddress: string; decimals: number | null },
+    outputToken: { contractAddress: string; decimals: number | null },
+    inputAmountRaw: bigint,
+    walletAddress: string,
+  ) {
+    const usdcDecimals = market.quoteToken.decimals!;
+    const ask = (feeBps: number) =>
+      this.router.getQuote({
+        chainId: params.chainId,
+        sellToken: inputToken.contractAddress,
+        buyToken: outputToken.contractAddress,
+        sellAmountRaw: inputAmountRaw.toString(),
+        taker: walletAddress,
+        slippageBps: params.slippageBps,
+        feeRecipient: this.feeRecipient,
+        feeBps,
+        feeChargedIn: params.side === 'BUY' ? 'input' : 'output',
+      });
+
+    if (params.side === 'BUY') {
+      const feeBps = resolveTierFeeBps(Number(formatUnits(inputAmountRaw, usdcDecimals)));
+      const routerQuote = await ask(feeBps);
+      if (!routerQuote?.feeEmbedded) return null;
+      const net = BigInt(routerQuote.buyAmountRaw);
+      return {
+        routerQuote,
+        appliedFeeBps: feeBps,
+        platformFeeAmountRaw: calculateFeeAmount(inputAmountRaw, feeBps),
+        netBuyAmountRaw: net,
+        netMinOutputRaw: BigInt(routerQuote.minBuyAmountRaw),
+        feeUnsignedTx: null,
+      };
+    }
+
+    const estimateUsd = market.priceUsd === null ? null : Number(formatUnits(inputAmountRaw, inputToken.decimals!)) * Number(market.priceUsd);
+    let feeBps = estimateUsd === null ? PLATFORM_FEE_FALLBACK_BPS : resolveTierFeeBps(estimateUsd);
+    let routerQuote = await ask(feeBps);
+    if (!routerQuote?.feeEmbedded) return null;
+    // The USDC out is net of the fee; gross it back up to size the trade.
+    const grossOf = (net: bigint, bps: number) => (net * 10_000n) / BigInt(10_000 - bps);
+    let gross = grossOf(BigInt(routerQuote.buyAmountRaw), feeBps);
+    const realBps = resolveTierFeeBps(Number(formatUnits(gross, usdcDecimals)));
+    if (realBps !== feeBps) {
+      const requote = await ask(realBps);
+      if (!requote?.feeEmbedded) return null;
+      routerQuote = requote;
+      feeBps = realBps;
+      gross = grossOf(BigInt(routerQuote.buyAmountRaw), feeBps);
+    }
+    // Hard $2 floor on sells too — owner's call (2026-10-18).
+    if (Number(formatUnits(gross, usdcDecimals)) < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
+    const net = BigInt(routerQuote.buyAmountRaw);
+    return {
+      routerQuote,
+      appliedFeeBps: feeBps,
+      platformFeeAmountRaw: gross - net,
+      netBuyAmountRaw: net,
+      netMinOutputRaw: BigInt(routerQuote.minBuyAmountRaw),
+      feeUnsignedTx: null,
     };
   }
 

@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { Prisma, prisma } from '@kamby/db';
+import { prisma } from '@kamby/db';
 import { REFERRAL_SHARE_BPS } from '@kamby/domain';
 import { parseUnits } from 'viem';
 import { ReferralsService } from './referrals.service';
@@ -49,13 +49,20 @@ describe('ReferralsService', () => {
     await service.getMySummary(USER_ID);
 
     expect(mockedPrisma.tradeTransaction.findMany).toHaveBeenCalledWith({
-      where: {
-        status: 'CONFIRMED',
-        user: { referredByUserId: USER_ID },
-        quote: { feeUnsignedTx: { not: Prisma.JsonNull } },
-      },
-      select: { platformFeeAmount: true },
+      where: { status: 'CONFIRMED', user: { referredByUserId: USER_ID } },
+      select: { platformFeeAmount: true, chainId: true, side: true, inputToken: true, outputToken: true, quote: { select: { feeUnsignedTx: true } } },
     });
+  });
+
+  it('counts a USDC fee that rode inside the swap (no fee transfer), but not an aggregator fee in another token', async () => {
+    (mockedPrisma.tradeTransaction.findMany as jest.Mock).mockResolvedValue([
+      { platformFeeAmount: parseUnits('1', 6).toString(), chainId: 8453, side: 'BUY', inputToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', outputToken: '0xcoin', quote: { feeUnsignedTx: null } },
+      { platformFeeAmount: parseUnits('5', 6).toString(), chainId: 8453, side: 'BUY', inputToken: '0xweth', outputToken: '0xcoin', quote: { feeUnsignedTx: null } },
+    ]);
+
+    const summary = await service.getMySummary(USER_ID);
+
+    expect(summary.earnedUsdcAmountRaw).toBe(((parseUnits('1', 6) * BigInt(REFERRAL_SHARE_BPS)) / 10_000n).toString());
   });
 
   it('is an honest zero, not an error, when there are no qualifying trades yet', async () => {
@@ -69,8 +76,8 @@ describe('ReferralsService', () => {
     const feeA = parseUnits('1', 6); // 1 USDC
     const feeB = parseUnits('2.5', 6); // 2.5 USDC
     (mockedPrisma.tradeTransaction.findMany as jest.Mock).mockResolvedValue([
-      { platformFeeAmount: feeA.toString() },
-      { platformFeeAmount: feeB.toString() },
+      { platformFeeAmount: feeA.toString(), quote: { feeUnsignedTx: {} } },
+      { platformFeeAmount: feeB.toString(), quote: { feeUnsignedTx: {} } },
     ]);
 
     const summary = await service.getMySummary(USER_ID);
@@ -82,7 +89,7 @@ describe('ReferralsService', () => {
 
   it('formats the earned total in USDC\'s own 6 decimals, never a JS number', async () => {
     (mockedPrisma.tradeTransaction.findMany as jest.Mock).mockResolvedValue([
-      { platformFeeAmount: parseUnits('10', 6).toString() }, // 10 USDC in platform fees
+      { platformFeeAmount: parseUnits('10', 6).toString(), quote: { feeUnsignedTx: {} } }, // 10 USDC in platform fees
     ]);
 
     const summary = await service.getMySummary(USER_ID);

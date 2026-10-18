@@ -1,4 +1,4 @@
-import type { TradeQuoteDto } from '@kamby/domain';
+import { tradesInChainUsdc, type TradeQuoteDto } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { useTranslations } from 'next-intl';
 
@@ -17,7 +17,9 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
   // flow it's always quoteToken (confirmed USDC); otherwise it rides the aggregator's own
   // cut, taken from whichever token the trade actually outputs (token for BUY, quoteToken
   // for SELL) — never always quote.token, which would mislabel a SELL's fee currency.
-  const feeTokenSymbol = quote.feeUnsignedTx
+  // In USDC whenever the trade's dollar side is this chain's USDC — inside the swap or as its own transfer.
+  const feeInUsdc = Boolean(quote.feeUnsignedTx) || tradesInChainUsdc(quote.chainId, quote.side, quote.side === 'BUY' ? quote.quoteToken.address : null, quote.side === 'SELL' ? quote.quoteToken.address : null);
+  const feeTokenSymbol = feeInUsdc
     ? quote.quoteToken.symbol
     : quote.side === 'BUY'
       ? quote.token.symbol

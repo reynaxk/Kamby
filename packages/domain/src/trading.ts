@@ -465,3 +465,12 @@ export const EVM_USDC_BY_CHAIN_ID: Readonly<Record<number, { address: string; sy
   // Users still see one dollar balance; Relay converts USDC↔USDG when it moves funds.
   4663: { address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', symbol: 'USDG', decimals: 6 },
 };
+
+/** Whether a trade's dollar side (what a buy pays with / a sell receives) is this chain's USDC —
+ *  then Kamby's fee is in USDC too, whether it rode inside the swap or as a separate transfer
+ *  (2026-10-18: the fee moved into the swap, so "has a fee transfer" no longer means "USDC fee"). */
+export function tradesInChainUsdc(chainId: number, side: TradeSide, inputToken: string | null, outputToken: string | null): boolean {
+  const usdc = EVM_USDC_BY_CHAIN_ID[chainId]?.address.toLowerCase();
+  const dollarSide = (side === 'BUY' ? inputToken : outputToken)?.toLowerCase();
+  return Boolean(usdc && dollarSide && usdc === dollarSide);
+}

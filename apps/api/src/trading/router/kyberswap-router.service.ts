@@ -156,6 +156,7 @@ export class KyberSwapRouter implements SwapRouter {
       // The router contract deducts the fee on-chain as part of the swap itself;
       // KyberSwap's /route/build response doesn't echo the fee amount back separately.
       feeAmountRaw: null,
+      feeEmbedded: chargesFee(request) && feeMatches(route, request),
       requiresApproval,
       approvalSpender: requiresApproval ? built.routerAddress : null,
       unsignedTx: {
@@ -176,6 +177,15 @@ export class KyberSwapRouter implements SwapRouter {
       tokenOut: request.buyToken,
       amountIn: request.sellAmountRaw,
     });
+    // The fee goes on the route itself (verified live 2026-10-18): KyberSwap then prices the
+    // route net of it and carries it into /route/build via routeSummary.extraFee — one
+    // transaction, the output already net of Kamby's fee.
+    if (chargesFee(request)) {
+      params.set('feeAmount', String(request.feeBps));
+      params.set('chargeFeeBy', request.feeChargedIn === 'output' ? 'currency_out' : 'currency_in');
+      params.set('isInBps', 'true');
+      params.set('feeReceiver', request.feeRecipient!);
+    }
     const url = `${KYBERSWAP_BASE_URL}/${chainSlug}/api/v1/routes?${params.toString()}`;
     try {
       const response = await fetch(url, { headers: { 'x-client-id': this.clientId }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
@@ -204,9 +214,6 @@ export class KyberSwapRouter implements SwapRouter {
           sender: request.taker,
           recipient: request.taker,
           slippageTolerance: request.slippageBps,
-          ...(request.feeRecipient && request.feeBps > 0
-            ? { chargeFeeBy: 'currency_in', feeAmount: String(request.feeBps), isInBps: true, feeReceiver: request.feeRecipient }
-            : {}),
         }),
       });
       if (!response.ok) {
@@ -260,8 +267,23 @@ export class KyberSwapRouter implements SwapRouter {
  *  back to `/route/build` unmodified, so it's kept as `unknown` rather than typed field by
  *  field here (this file never reads inside it directly). */
 interface KyberRouteData {
-  routeSummary: unknown;
+  /** Passed back to /route/build untouched; only `extraFee` is read here. */
+  routeSummary: { extraFee?: { feeAmount?: string; chargeFeeBy?: string; feeReceiver?: string } } & Record<string, unknown>;
   routerAddress: string;
+}
+
+function chargesFee(request: SwapRouterQuoteRequest): boolean {
+  return Boolean(request.feeRecipient) && request.feeBps > 0;
+}
+
+/** The route really carries the fee we asked for — never assume the provider honored it. */
+function feeMatches(route: KyberRouteData, request: SwapRouterQuoteRequest): boolean {
+  const fee = route.routeSummary?.extraFee;
+  return (
+    fee?.feeAmount === String(request.feeBps) &&
+    fee?.chargeFeeBy === (request.feeChargedIn === 'output' ? 'currency_out' : 'currency_in') &&
+    fee?.feeReceiver?.toLowerCase() === request.feeRecipient?.toLowerCase()
+  );
 }
 
 interface KyberRouteResponse {

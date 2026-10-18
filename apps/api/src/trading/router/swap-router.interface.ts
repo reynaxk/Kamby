@@ -19,6 +19,10 @@ export interface SwapRouterQuoteRequest {
    *  docs/TRADING.md#fees. `null` when fee collection isn't configured. */
   feeRecipient: string | null;
   feeBps: number;
+  /** Which side of the swap the fee comes out of (2026-10-18): `'input'` (default) takes it
+   *  from what's sold, `'output'` from what's received — a USDC sell uses `'output'` so the
+   *  fee is still USDC, inside the same transaction. */
+  feeChargedIn?: 'input' | 'output';
 }
 
 export interface SwapRouterQuote {
@@ -35,6 +39,10 @@ export interface SwapRouterQuote {
    *  output as part of the same transaction) — `null` if fee collection wasn't requested
    *  or the provider didn't confirm one. */
   feeAmountRaw: string | null;
+  /** `true` only when the provider built Kamby's fee into this very transaction (as asked
+   *  via feeRecipient/feeBps/feeChargedIn) — QuoteService falls back to a separate fee
+   *  transfer whenever this isn't set. */
+  feeEmbedded?: boolean;
   /** `true` when the taker must submit an ERC20 `approve()` before the swap transaction
    *  can succeed — see docs/TRADING.md#transaction-construction. */
   requiresApproval: boolean;

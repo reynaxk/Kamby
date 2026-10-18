@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, prisma } from '@kamby/db';
-import { REFERRAL_SHARE_BPS, calculateFeeAmount, type ReferralSummaryDto } from '@kamby/domain';
+import { prisma } from '@kamby/db';
+import { REFERRAL_SHARE_BPS, calculateFeeAmount, tradesInChainUsdc, type ReferralSummaryDto } from '@kamby/domain';
 import { formatUnits } from 'viem';
 
 /** USDC's own decimals — referral earnings are only ever computed in USDC, see
@@ -30,17 +30,18 @@ export class ReferralsService {
       // docs/TRADING.md#guaranteed-usdc-fees and this file's module comment for why a
       // trade whose fee rode a non-USDC-quoted market's aggregator-embedded cut is
       // deliberately excluded rather than summed as if it were the same currency.
+      // Since 2026-10-18 most USDC fees ride inside the swap (no feeUnsignedTx), so a USDC
+      // dollar side counts too.
       prisma.tradeTransaction.findMany({
-        where: {
-          status: 'CONFIRMED',
-          user: { referredByUserId: userId },
-          quote: { feeUnsignedTx: { not: Prisma.JsonNull } },
-        },
-        select: { platformFeeAmount: true },
+        where: { status: 'CONFIRMED', user: { referredByUserId: userId } },
+        select: { platformFeeAmount: true, chainId: true, side: true, inputToken: true, outputToken: true, quote: { select: { feeUnsignedTx: true } } },
       }),
     ]);
 
-    const totalFeesRaw = feeRows.reduce((sum, row) => sum + BigInt(row.platformFeeAmount), 0n);
+    const usdcFeeRows = feeRows.filter(
+      (row) => row.quote.feeUnsignedTx !== null || tradesInChainUsdc(row.chainId, row.side as 'BUY' | 'SELL', row.inputToken, row.outputToken),
+    );
+    const totalFeesRaw = usdcFeeRows.reduce((sum, row) => sum + BigInt(row.platformFeeAmount), 0n);
     const earnedRaw = calculateFeeAmount(totalFeesRaw, REFERRAL_SHARE_BPS);
 
     return {

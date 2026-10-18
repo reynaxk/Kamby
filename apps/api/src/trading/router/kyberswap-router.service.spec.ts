@@ -121,30 +121,51 @@ describe('KyberSwapRouter', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2); // routes + build only, no on-chain read
   });
 
-  it('sends the fee params only when a fee recipient and non-zero bps are configured', async () => {
+  it('puts the fee on the route (KyberSwap carries it into build via routeSummary.extraFee)', async () => {
     mockFetchByEndpoint(fetchMock, validRoutesBody, validBuildBody);
     stubAllowance(router, 0n);
 
     await router.getQuote(baseRequest);
 
+    const routesUrl = new URL(String(fetchMock.mock.calls.find((c) => String(c[0]).includes('/api/v1/routes'))![0]));
+    expect(routesUrl.searchParams.get('chargeFeeBy')).toBe('currency_in');
+    expect(routesUrl.searchParams.get('feeAmount')).toBe('50');
+    expect(routesUrl.searchParams.get('isInBps')).toBe('true');
+    expect(routesUrl.searchParams.get('feeReceiver')).toBe(baseRequest.feeRecipient);
     const buildCall = fetchMock.mock.calls.find((c) => String(c[0]).includes('/route/build'))!;
-    const body = JSON.parse(buildCall[1].body as string) as Record<string, unknown>;
-    expect(body.chargeFeeBy).toBe('currency_in');
-    expect(body.feeAmount).toBe('50');
-    expect(body.isInBps).toBe(true);
-    expect(body.feeReceiver).toBe(baseRequest.feeRecipient);
+    expect(JSON.parse(buildCall[1].body as string).chargeFeeBy).toBeUndefined();
+  });
+
+  it('charges a sell fee on the output (USDC) when asked', async () => {
+    mockFetchByEndpoint(fetchMock, validRoutesBody, validBuildBody);
+    stubAllowance(router, 0n);
+
+    await router.getQuote({ ...baseRequest, feeChargedIn: 'output' });
+
+    const routesUrl = new URL(String(fetchMock.mock.calls.find((c) => String(c[0]).includes('/api/v1/routes'))![0]));
+    expect(routesUrl.searchParams.get('chargeFeeBy')).toBe('currency_out');
+  });
+
+  it('reports feeEmbedded only when the route really carries the requested fee', async () => {
+    const withFee = { ...validRoutesBody, data: { ...validRoutesBody.data, routeSummary: { ...validRoutesBody.data.routeSummary, extraFee: { feeAmount: '50', chargeFeeBy: 'currency_in', isInBps: true, feeReceiver: baseRequest.feeRecipient } } } };
+    mockFetchByEndpoint(fetchMock, withFee, validBuildBody);
+    stubAllowance(router, 0n);
+    expect((await router.getQuote(baseRequest))?.feeEmbedded).toBe(true);
+
+    mockFetchByEndpoint(fetchMock, validRoutesBody, validBuildBody);
+    expect((await router.getQuote(baseRequest))?.feeEmbedded).toBe(false);
   });
 
   it('omits fee params entirely when feeBps is zero', async () => {
     mockFetchByEndpoint(fetchMock, validRoutesBody, validBuildBody);
     stubAllowance(router, 0n);
 
-    await router.getQuote({ ...baseRequest, feeBps: 0 });
+    const quote = await router.getQuote({ ...baseRequest, feeBps: 0 });
 
-    const buildCall = fetchMock.mock.calls.find((c) => String(c[0]).includes('/route/build'))!;
-    const body = JSON.parse(buildCall[1].body as string) as Record<string, unknown>;
-    expect(body.chargeFeeBy).toBeUndefined();
-    expect(body.feeReceiver).toBeUndefined();
+    const routesUrl = new URL(String(fetchMock.mock.calls.find((c) => String(c[0]).includes('/api/v1/routes'))![0]));
+    expect(routesUrl.searchParams.get('chargeFeeBy')).toBeNull();
+    expect(routesUrl.searchParams.get('feeReceiver')).toBeNull();
+    expect(quote?.feeEmbedded).toBe(false);
   });
 
   it('sends the client id via the X-Client-Id header, never requiring an API key', async () => {
