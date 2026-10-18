@@ -133,7 +133,12 @@
     "wallet": "지갑",
     "walletSub": "입금, 출금하거나 Kamby 전체에서 잔액을 숨기세요.",
     "ticker": "시세 티커",
-    "tickerHint": "화면 아래에 코인 시세를 흘려서 보여줘요"
+    "tickerHint": "화면 아래에 코인 시세를 흘려서 보여줘요",
+    "settings": "설정",
+    "hideTitle": "잔액 숨기기",
+    "hideHint": "Kamby의 모든 $ 금액을 흐리게 해요",
+    "languageTitle": "언어",
+    "languageHint": "Kamby는 14개 언어를 지원해요"
   },
   "landing": {
     "leaderboard": "리더보드",

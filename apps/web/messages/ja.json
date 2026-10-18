@@ -133,7 +133,12 @@
     "wallet": "ウォレット",
     "walletSub": "入金・出金、または Kamby 全体で残高を隠せます。",
     "ticker": "価格ティッカー",
-    "tickerHint": "画面下部にコイン価格を流して表示します"
+    "tickerHint": "画面下部にコイン価格を流して表示します",
+    "settings": "設定",
+    "hideTitle": "残高を隠す",
+    "hideHint": "Kamby 内のすべての金額をぼかします",
+    "languageTitle": "言語",
+    "languageHint": "Kamby は 14 言語に対応"
   },
   "landing": {
     "leaderboard": "ランキング",

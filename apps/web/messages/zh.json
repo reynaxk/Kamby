@@ -133,7 +133,12 @@
     "wallet": "钱包",
     "walletSub": "充值、提现或在 Kamby 中隐藏余额。",
     "ticker": "行情滚动条",
-    "tickerHint": "在屏幕底部显示滚动的币价"
+    "tickerHint": "在屏幕底部显示滚动的币价",
+    "settings": "设置",
+    "hideTitle": "隐藏余额",
+    "hideHint": "模糊 Kamby 上的所有金额",
+    "languageTitle": "语言",
+    "languageHint": "Kamby 支持 14 种语言"
   },
   "landing": {
     "leaderboard": "排行榜",

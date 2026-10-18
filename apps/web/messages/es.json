@@ -133,7 +133,12 @@
     "wallet": "Wallet",
     "walletSub": "Deposita, retira u oculta saldos en Kamby.",
     "ticker": "Cinta de precios",
-    "tickerHint": "Muestra los precios de monedas en movimiento abajo de la pantalla"
+    "tickerHint": "Muestra los precios de monedas en movimiento abajo de la pantalla",
+    "settings": "Ajustes",
+    "hideTitle": "Ocultar saldos",
+    "hideHint": "Difumina todas las cantidades en $ en Kamby",
+    "languageTitle": "Idioma",
+    "languageHint": "Kamby habla 14 idiomas"
   },
   "landing": {
     "leaderboard": "Ranking",

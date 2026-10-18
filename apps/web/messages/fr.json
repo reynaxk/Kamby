@@ -133,7 +133,12 @@
     "wallet": "Wallet",
     "walletSub": "Déposez, retirez ou masquez vos soldes sur Kamby.",
     "ticker": "Bandeau des prix",
-    "tickerHint": "Affiche les prix des coins qui défilent en bas de l’écran"
+    "tickerHint": "Affiche les prix des coins qui défilent en bas de l’écran",
+    "settings": "Réglages",
+    "hideTitle": "Masquer les soldes",
+    "hideHint": "Floute tous les montants en $ sur Kamby",
+    "languageTitle": "Langue",
+    "languageHint": "Kamby parle 14 langues"
   },
   "landing": {
     "leaderboard": "Classement",

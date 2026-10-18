@@ -133,7 +133,12 @@
     "wallet": "Wallet",
     "walletSub": "Einzahlen, auszahlen oder Guthaben in Kamby verbergen.",
     "ticker": "Kurs-Ticker",
-    "tickerHint": "Laufende Coin-Preise unten am Bildschirm anzeigen"
+    "tickerHint": "Laufende Coin-Preise unten am Bildschirm anzeigen",
+    "settings": "Einstellungen",
+    "hideTitle": "Guthaben verbergen",
+    "hideHint": "Alle $-Beträge auf Kamby verschwommen anzeigen",
+    "languageTitle": "Sprache",
+    "languageHint": "Kamby spricht 14 Sprachen"
   },
   "landing": {
     "leaderboard": "Bestenliste",

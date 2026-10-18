@@ -133,7 +133,12 @@
     "wallet": "Cüzdan",
     "walletSub": "Para yatır, çek ya da Kamby genelinde bakiyeleri gizle.",
     "ticker": "Fiyat bandı",
-    "tickerHint": "Ekranın altında kayan coin fiyatlarını göster"
+    "tickerHint": "Ekranın altında kayan coin fiyatlarını göster",
+    "settings": "Ayarlar",
+    "hideTitle": "Bakiyeleri gizle",
+    "hideHint": "Kamby’deki tüm $ tutarlarını bulanıklaştırır",
+    "languageTitle": "Dil",
+    "languageHint": "Kamby 14 dil konuşur"
   },
   "landing": {
     "leaderboard": "Liderlik",

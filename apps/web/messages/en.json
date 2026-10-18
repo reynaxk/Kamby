@@ -133,7 +133,12 @@
     "wallet": "Wallet",
     "walletSub": "Add funds, withdraw, or hide balances across Kamby.",
     "ticker": "Coin ticker",
-    "tickerHint": "Show the scrolling coin prices at the bottom of the screen"
+    "tickerHint": "Show the scrolling coin prices at the bottom of the screen",
+    "settings": "Settings",
+    "hideTitle": "Hide balances",
+    "hideHint": "Blur every $ amount across Kamby",
+    "languageTitle": "Language",
+    "languageHint": "Kamby speaks 14 languages"
   },
   "landing": {
     "leaderboard": "Leaderboard",

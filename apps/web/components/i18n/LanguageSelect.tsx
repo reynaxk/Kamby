@@ -7,7 +7,8 @@ import { cn } from '@kamby/ui';
 import { LOCALE_COOKIE, LOCALE_NAMES, LOCALES, type Locale } from '@/i18n/config';
 
 /** Language picker — saves the choice in a cookie (a year) and re-renders in that language. */
-export function LanguageSelect({ className }: { className?: string }) {
+/** `bare` = just the select (a settings row shows its own title). */
+export function LanguageSelect({ className, bare = false }: { className?: string; bare?: boolean }) {
   const t = useTranslations('language');
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -15,7 +16,7 @@ export function LanguageSelect({ className }: { className?: string }) {
 
   return (
     <label className={cn('flex items-center gap-2 font-body text-sm text-ink-600', className)}>
-      <span className="shrink-0">{t('label')}</span>
+      {bare ? <span className="sr-only">{t('label')}</span> : <span className="shrink-0">{t('label')}</span>}
       <select
         value={locale}
         disabled={pending}

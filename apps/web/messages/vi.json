@@ -133,7 +133,12 @@
     "wallet": "Ví",
     "walletSub": "Nạp, rút hoặc ẩn số dư trên Kamby.",
     "ticker": "Dải giá",
-    "tickerHint": "Hiện giá coin chạy ở cuối màn hình"
+    "tickerHint": "Hiện giá coin chạy ở cuối màn hình",
+    "settings": "Cài đặt",
+    "hideTitle": "Ẩn số dư",
+    "hideHint": "Làm mờ mọi số tiền $ trên Kamby",
+    "languageTitle": "Ngôn ngữ",
+    "languageHint": "Kamby có 14 ngôn ngữ"
   },
   "landing": {
     "leaderboard": "Xếp hạng",

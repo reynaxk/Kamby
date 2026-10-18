@@ -133,7 +133,12 @@
     "wallet": "Carteira",
     "walletSub": "Deposite, saque ou oculte saldos na Kamby.",
     "ticker": "Faixa de preços",
-    "tickerHint": "Mostra os preços das moedas passando na parte de baixo da tela"
+    "tickerHint": "Mostra os preços das moedas passando na parte de baixo da tela",
+    "settings": "Configurações",
+    "hideTitle": "Ocultar saldos",
+    "hideHint": "Desfoca todos os valores em $ na Kamby",
+    "languageTitle": "Idioma",
+    "languageHint": "A Kamby fala 14 idiomas"
   },
   "landing": {
     "leaderboard": "Ranking",

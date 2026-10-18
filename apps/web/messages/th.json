@@ -133,7 +133,12 @@
     "wallet": "วอลเล็ต",
     "walletSub": "ฝาก ถอน หรือซ่อนยอดเงินใน Kamby",
     "ticker": "แถบราคา",
-    "tickerHint": "แสดงราคาเหรียญเลื่อนที่ด้านล่างของหน้าจอ"
+    "tickerHint": "แสดงราคาเหรียญเลื่อนที่ด้านล่างของหน้าจอ",
+    "settings": "การตั้งค่า",
+    "hideTitle": "ซ่อนยอดเงิน",
+    "hideHint": "เบลอจำนวนเงินทั้งหมดใน Kamby",
+    "languageTitle": "ภาษา",
+    "languageHint": "Kamby มี 14 ภาษา"
   },
   "landing": {
     "leaderboard": "อันดับ",

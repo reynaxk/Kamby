@@ -1,12 +1,10 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
-import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
-import { TickerToggle } from '@/components/account/TickerToggle';
+import { PreferencesCard } from '@/components/account/PreferencesCard';
 import { ProfileEditor } from '@/components/account/ProfileEditor';
 import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
 import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
 import { ChainBalancesCard } from '@/components/wallet/ChainBalancesCard';
-import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 import { getTranslations } from 'next-intl/server';
 import { AppProfileMenu } from '@/components/account/AppProfileMenu';
 import { PhoneSignedInOnly } from '@/components/account/PhoneSignedInOnly';
@@ -45,16 +43,10 @@ export default async function AccountPage() {
           <div className="mt-4 flex flex-wrap gap-2 max-md:grid max-md:grid-cols-2">
             <FundButton variant="labeled" />
             <SendButton variant="labeled" />
-            <span className="max-md:hidden">
-              <BlurBalancesToggle variant="labeled" />
-            </span>
-            {/* The bottom coin ticker only exists on a computer, so does its switch. */}
-            <span className="max-md:hidden">
-              <TickerToggle />
-            </span>
           </div>
-          <LanguageSelect className="mt-4 max-w-xs max-md:hidden" />
         </section>
+        {/* Settings — the coin ticker, hiding balances, the language (computer; phones have the Profile menu). */}
+        <PreferencesCard className="mt-6 max-md:hidden" />
         <div id="profile" className="mt-6 scroll-mt-20">
           <ProfileEditor />
         </div>

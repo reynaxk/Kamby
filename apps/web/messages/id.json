@@ -133,7 +133,12 @@
     "wallet": "Wallet",
     "walletSub": "Setor, tarik, atau sembunyikan saldo di Kamby.",
     "ticker": "Ticker harga",
-    "tickerHint": "Tampilkan harga koin bergerak di bawah layar"
+    "tickerHint": "Tampilkan harga koin bergerak di bawah layar",
+    "settings": "Pengaturan",
+    "hideTitle": "Sembunyikan saldo",
+    "hideHint": "Samarkan semua jumlah $ di Kamby",
+    "languageTitle": "Bahasa",
+    "languageHint": "Kamby tersedia dalam 14 bahasa"
   },
   "landing": {
     "leaderboard": "Peringkat",
