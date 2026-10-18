@@ -110,3 +110,15 @@ describe('R2StorageService', () => {
     });
   });
 });
+
+describe('R2StorageService avatar fallback (2026-10-18)', () => {
+  it('only ever reads avatars/<uuid>/<uuid>.<png|jpg|webp> — never another key in the bucket', async () => {
+    const config = { get: (k: string) => ({ R2_ENDPOINT: 'https://r2.example', R2_ACCESS_KEY_ID: 'id', R2_SECRET_ACCESS_KEY: 'secret', R2_VOICE_BUCKET_NAME: 'kamby-voice' } as Record<string, string>)[k] } as never;
+    const service = new R2StorageService(config);
+    const user = '11111111-1111-1111-1111-111111111111';
+    for (const bad of ['../voice/x.webm', '22222222-2222-2222-2222-222222222222.webm', 'x.png', '22222222-2222-2222-2222-222222222222.png.webm']) {
+      await expect(service.getAvatar(user, bad)).rejects.toThrow('No such picture.');
+    }
+    await expect(service.getAvatar('../voice', '22222222-2222-2222-2222-222222222222.png')).rejects.toThrow('No such picture.');
+  });
+});

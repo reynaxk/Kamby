@@ -70,7 +70,7 @@ export class R2StorageService {
    *  (never silently drops or truncates) on anything invalid, matching how `QuoteService`/
    *  `SafetyService` already throw NestJS HTTP exceptions directly from the service layer
    *  in this codebase, rather than a controller translating a generic error afterward. */
-  async uploadAvatar(userId: string, file: UploadableFile): Promise<string> {
+  async uploadAvatar(userId: string, file: UploadableFile, apiOrigin?: string): Promise<string> {
     const extension = ALLOWED_MIME_TYPES[file.mimetype];
     if (!extension) {
       throw new BadRequestException(`Unsupported image type "${file.mimetype}" — only PNG, JPEG, and WebP are accepted`);
@@ -82,7 +82,18 @@ export class R2StorageService {
     const client = this.getClient();
     const bucket = this.config.get('R2_BUCKET_NAME', { infer: true });
     const publicBaseUrl = this.config.get('R2_PUBLIC_BASE_URL', { infer: true });
-    if (!bucket || !publicBaseUrl) throw this.notConfiguredError();
+    if (!bucket || !publicBaseUrl) {
+      // No public picture bucket (2026-10-18: no profile in Kamby had a picture, every upload
+      // failed): keep it in the working voice bucket and serve it through the API instead —
+      // GET /v1/media/avatars/<user>/<file>, public and cached for a year.
+      const fallbackBucket = this.voiceBucket();
+      if (!fallbackBucket || !apiOrigin) throw this.notConfiguredError();
+      const name = `${randomUUID()}.${extension}`;
+      await client.send(
+        new PutObjectCommand({ Bucket: fallbackBucket, Key: `avatars/${userId}/${name}`, Body: file.buffer, ContentType: file.mimetype, CacheControl: 'public, max-age=31536000, immutable' }),
+      );
+      return `${apiOrigin.replace(/\/$/, '')}/v1/media/avatars/${userId}/${name}`;
+    }
 
     // Randomly named, not derived from the client-supplied filename or userId alone —
     // avoids both a path-traversal surface and a predictable object key another request
@@ -131,6 +142,24 @@ export class R2StorageService {
     const out = await this.getClient().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
     if (!out.Body) throw new NotFoundException('Voice note not found.');
     return { body: await out.Body.transformToByteArray(), contentType: out.ContentType ?? 'audio/webm' };
+  }
+
+  /** A profile picture stored by the fallback above. Only `avatars/<uuid>/<uuid>.<png|jpg|webp>`
+   *  is ever read here — never any other key in the bucket (voice notes live there too). */
+  async getAvatar(userId: string, file: string): Promise<{ body: Uint8Array; contentType: string }> {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const [id, ext] = file.split('.');
+    if (!uuid.test(userId) || !id || !uuid.test(id) || !ext || !['png', 'jpg', 'webp'].includes(ext) || file.split('.').length !== 2) {
+      throw new NotFoundException('No such picture.');
+    }
+    const bucket = this.voiceBucket();
+    if (!bucket) throw new NotFoundException('No such picture.');
+    const out = await this.getClient()
+      .send(new GetObjectCommand({ Bucket: bucket, Key: `avatars/${userId}/${file}` }))
+      .catch(() => null);
+    if (!out?.Body) throw new NotFoundException('No such picture.');
+    const contentType = out.ContentType && /^image\/(png|jpeg|webp)$/.test(out.ContentType) ? out.ContentType : 'image/png';
+    return { body: await out.Body.transformToByteArray(), contentType };
   }
 
   private voiceBucket(): string | undefined {

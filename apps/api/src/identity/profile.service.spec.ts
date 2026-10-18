@@ -106,7 +106,7 @@ describe('ProfileService', () => {
 
       const result = await service.uploadAvatar('user-1', file);
 
-      expect(r2.uploadAvatar).toHaveBeenCalledWith('user-1', file);
+      expect(r2.uploadAvatar).toHaveBeenCalledWith('user-1', file, undefined);
       expect(mockedPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-1' },
         data: { avatarUrl: 'https://cdn.kambesh.com/avatars/user-1/abc.png' },

@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
@@ -140,8 +141,11 @@ export class IdentityController {
   @HttpCode(200)
   @Post('profile/avatar')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: MAX_FILE_SIZE_BYTES } }))
-  uploadAvatar(@UploadedFile() file: UploadableFile | undefined, @CurrentUser() user: SessionUser) {
+  uploadAvatar(@UploadedFile() file: UploadableFile | undefined, @CurrentUser() user: SessionUser, @Req() req: Request) {
     if (!file) throw new BadRequestException('No file uploaded — expected a multipart field named "file".');
-    return this.profile.uploadAvatar(user.id, file);
+    // This API's own public address (behind Railway's proxy), for pictures it serves itself.
+    const proto = String(req.headers['x-forwarded-proto'] ?? req.protocol).split(',')[0]!.trim();
+    const host = String(req.headers['x-forwarded-host'] ?? req.get('host') ?? '').split(',')[0]!.trim();
+    return this.profile.uploadAvatar(user.id, file, host ? `${proto === 'http' && !host.startsWith('localhost') ? 'https' : proto}://${host}` : undefined);
   }
 }

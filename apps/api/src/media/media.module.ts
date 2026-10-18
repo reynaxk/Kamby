@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { MediaController } from './media.controller';
 import { R2StorageService } from './r2-storage.service';
 
 /** Owns Cloudflare R2 access — currently just profile-picture uploads (see
@@ -6,6 +7,7 @@ import { R2StorageService } from './r2-storage.service';
  *  R2StorageService into IdentityModule so any future feature needing object storage
  *  (not just profile pictures) depends on this, not on identity. */
 @Module({
+  controllers: [MediaController],
   providers: [R2StorageService],
   exports: [R2StorageService],
 })

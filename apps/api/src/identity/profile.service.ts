@@ -82,8 +82,8 @@ export class ProfileService {
     }
   }
 
-  async uploadAvatar(userId: string, file: UploadableFile): Promise<ProfileDto> {
-    const avatarUrl = await this.r2.uploadAvatar(userId, file);
+  async uploadAvatar(userId: string, file: UploadableFile, apiOrigin?: string): Promise<ProfileDto> {
+    const avatarUrl = await this.r2.uploadAvatar(userId, file, apiOrigin);
     return prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },
