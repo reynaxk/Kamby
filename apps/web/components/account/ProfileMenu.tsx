@@ -6,6 +6,7 @@ import { AtSign, ChevronDown, Copy, LogOut, Pencil, User, Wallet } from 'lucide-
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
 import { useTranslations } from 'next-intl';
+import { SafeImg } from '@/components/social/SafeImg';
 
 /** Fired by ProfileEditor after a username/avatar change so the header updates in place. */
 export const PROFILE_UPDATED_EVENT = 'kamby:profile-updated';
@@ -130,13 +131,15 @@ export function ProfileMenu({ address, onSignOut }: { address: string; onSignOut
 }
 
 function Avatar({ url }: { url: string | null }) {
-  if (url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />;
-  }
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent" aria-hidden>
-      <User className="h-4 w-4" />
-    </span>
+    <SafeImg
+      src={url}
+      className="h-8 w-8 shrink-0 rounded-full object-cover"
+      fallback={
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent" aria-hidden>
+          <User className="h-4 w-4" />
+        </span>
+      }
+    />
   );
 }

@@ -123,7 +123,14 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
                       {formatRelativeTime(row.timestamp)}
                     </td>
                     <td className="whitespace-nowrap px-2.5 py-1 tracking-tight text-ink-600">
-                      {row.trader.address ? truncateAddress(row.trader.address) : tU('unknown_8818')}
+                      {/* A Kamby trader by their @name (2026-10-18: it always showed the address). */}
+                      {row.trader.displayName ? (
+                        <span className="font-semibold text-ink-900">@{row.trader.displayName}</span>
+                      ) : row.trader.address ? (
+                        truncateAddress(row.trader.address)
+                      ) : (
+                        tU('unknown_8818')
+                      )}
                     </td>
                     <td
                       className={cn(

@@ -1,6 +1,7 @@
 import { cn } from '@kamby/ui';
 import { truncateAddress } from '@/lib/format';
 import { AVATAR_GRADIENTS } from '@/components/dm/DmAvatar';
+import { SafeImg } from '@/components/social/SafeImg';
 
 /**
  * Mirrors TokenIdentity's honesty rule: a real `<img>` when we have one, an initials avatar
@@ -27,21 +28,22 @@ export function TraderIdentity({
 
   return (
     <div className="flex min-w-0 items-center gap-3">
-      {avatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={avatarUrl} alt="" className={cn('shrink-0 rounded-full object-cover', dims)} />
-      ) : (
-        <div
-          aria-hidden
-          className={cn(
-            'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-display font-black text-black',
-            AVATAR_GRADIENTS[seed % AVATAR_GRADIENTS.length],
-            dims,
-          )}
-        >
-          {initials}
-        </div>
-      )}
+      <SafeImg
+        src={avatarUrl}
+        className={cn('shrink-0 rounded-full object-cover', dims)}
+        fallback={
+          <div
+            aria-hidden
+            className={cn(
+              'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-display font-black text-black',
+              AVATAR_GRADIENTS[seed % AVATAR_GRADIENTS.length],
+              dims,
+            )}
+          >
+            {initials}
+          </div>
+        }
+      />
       <div className="min-w-0">
         <div className="truncate font-display text-sm font-semibold text-ink-900">{label}</div>
         {displayName && <div className="truncate font-mono text-xs text-ink-400">{truncateAddress(address)}</div>}

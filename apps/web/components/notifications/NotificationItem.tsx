@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { formatCompactUsd, formatRelativeTime } from '@/lib/format';
 import { useTranslations } from 'next-intl';
 import { notificationCopy, notificationKindLabel } from './notificationCopy';
+import { SafeImg } from '@/components/social/SafeImg';
 
 const KIND_COLOR: Record<NotificationDto['type'], string> = {
   FOLLOW: 'text-accent',
@@ -143,13 +144,11 @@ function Avatar({ notification }: { notification: NotificationDto }) {
   }
   return (
     <span aria-hidden className="relative h-10 w-10 shrink-0">
-      {picture ? (
-        // next/image needs every remote domain pre-configured — not workable for an arbitrary avatar URL.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={picture} alt="" className="h-10 w-10 rounded-full object-cover" />
-      ) : (
-        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent">{initials}</span>
-      )}
+      <SafeImg
+        src={picture}
+        className="h-10 w-10 rounded-full object-cover"
+        fallback={<span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent">{initials}</span>}
+      />
       <span className={cn('absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border bg-bg', kind.tile)}>
         <KindIcon type={notification.type} size={11} />
       </span>

@@ -12,6 +12,7 @@ import { SESSION_CHANGED_EVENT } from '@/lib/session-client';
 import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
 import { BlurBalancesToggle } from './BlurBalancesToggle';
+import { SafeImg } from '@/components/social/SafeImg';
 
 /**
  * The Profile tab as an app screen (2026-10-10). Phones have no site header any more, so
@@ -82,14 +83,15 @@ export function AppProfileMenu() {
           </g>
         </svg>
         <div className="relative flex items-center gap-4">
-          {profile?.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/70 ring-offset-2 ring-offset-[#0A0E26]" />
-          ) : (
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.06] text-ink-400 ring-2 ring-accent/70 ring-offset-2 ring-offset-[#0A0E26]">
-              <User className="h-8 w-8" aria-hidden />
-            </span>
-          )}
+          <SafeImg
+            src={profile?.avatarUrl}
+            className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/70 ring-offset-2 ring-offset-[#0A0E26]"
+            fallback={
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.06] text-ink-400 ring-2 ring-accent/70 ring-offset-2 ring-offset-[#0A0E26]">
+                <User className="h-8 w-8" aria-hidden />
+              </span>
+            }
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-2xl font-black tracking-tight text-white">{name}</p>
             <Link href="#profile" className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 font-body text-xs font-semibold text-white">

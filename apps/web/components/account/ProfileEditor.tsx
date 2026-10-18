@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { fetchMyProfile, updateUsername, uploadAvatar, type MyProfile } from '@/lib/profile-client';
 import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
+import { SafeImg } from '@/components/social/SafeImg';
 import { useStoredSession } from '@/hooks/useStoredSession';
 import { useTranslations } from 'next-intl';
 
@@ -126,10 +127,10 @@ export function ProfileEditor() {
   return (
     <section className="rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-center gap-4">
-        {profile.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.avatarUrl} alt="" className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-white/10" />
-        ) : (
+        <SafeImg
+          src={profile.avatarUrl}
+          className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-white/10"
+          fallback={
           <div
             aria-hidden
             className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-xl font-bold text-white"
@@ -140,7 +141,8 @@ export function ProfileEditor() {
           >
             {initials}
           </div>
-        )}
+          }
+        />
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-sm font-bold text-ink-900">{tU('profilePicture_6381')}</h2>
           <p className="mt-0.5 font-body text-xs text-ink-400">{tU('pngJpegOrWebpUp_d4ac')}</p>
