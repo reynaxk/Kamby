@@ -131,7 +131,9 @@
     "title": "Votre profil",
     "subtitle": "Votre pseudo et votre photo apparaissent dans le classement et sur votre profil de trader.",
     "wallet": "Wallet",
-    "walletSub": "Déposez, retirez ou masquez vos soldes sur Kamby."
+    "walletSub": "Déposez, retirez ou masquez vos soldes sur Kamby.",
+    "ticker": "Bandeau des prix",
+    "tickerHint": "Affiche les prix des coins qui défilent en bas de l’écran"
   },
   "landing": {
     "leaderboard": "Classement",

@@ -1,5 +1,6 @@
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { BlurBalancesToggle } from '@/components/account/BlurBalancesToggle';
+import { TickerToggle } from '@/components/account/TickerToggle';
 import { ProfileEditor } from '@/components/account/ProfileEditor';
 import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
 import { FundButton } from '@/components/wallet/FundButton';
@@ -46,6 +47,10 @@ export default async function AccountPage() {
             <SendButton variant="labeled" />
             <span className="max-md:hidden">
               <BlurBalancesToggle variant="labeled" />
+            </span>
+            {/* The bottom coin ticker only exists on a computer, so does its switch. */}
+            <span className="max-md:hidden">
+              <TickerToggle />
             </span>
           </div>
           <LanguageSelect className="mt-4 max-w-xs max-md:hidden" />

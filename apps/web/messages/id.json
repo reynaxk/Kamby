@@ -131,7 +131,9 @@
     "title": "Profilmu",
     "subtitle": "Nama pengguna dan fotomu tampil di peringkat dan profil trader.",
     "wallet": "Wallet",
-    "walletSub": "Setor, tarik, atau sembunyikan saldo di Kamby."
+    "walletSub": "Setor, tarik, atau sembunyikan saldo di Kamby.",
+    "ticker": "Ticker harga",
+    "tickerHint": "Tampilkan harga koin bergerak di bawah layar"
   },
   "landing": {
     "leaderboard": "Peringkat",

@@ -131,7 +131,9 @@
     "title": "Profilin",
     "subtitle": "Kullanıcı adın ve fotoğrafın liderlik tablosunda ve trader profilinde görünür.",
     "wallet": "Cüzdan",
-    "walletSub": "Para yatır, çek ya da Kamby genelinde bakiyeleri gizle."
+    "walletSub": "Para yatır, çek ya da Kamby genelinde bakiyeleri gizle.",
+    "ticker": "Fiyat bandı",
+    "tickerHint": "Ekranın altında kayan coin fiyatlarını göster"
   },
   "landing": {
     "leaderboard": "Liderlik",

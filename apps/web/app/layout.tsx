@@ -84,8 +84,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <CallProvider>
           <div id="kamby-app">
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
-              the TickerBar (h-8) from md up — so neither covers the end of the page. */}
-          <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8">
+              the TickerBar (h-8) from md up when it's switched on — so neither covers the end of the page. */}
+          <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-[var(--ticker-h)]">
             {children}
             <LandingOnlyOnPhones>
               <SiteFooter />

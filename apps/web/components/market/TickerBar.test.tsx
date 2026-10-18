@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MarketSummary } from '@kamby/domain';
 import { TickerBar, topByVolume } from './TickerBar';
 
@@ -45,8 +45,19 @@ function fakeMarket(overrides: Partial<MarketSummary> = {}): MarketSummary {
 }
 
 describe('TickerBar', () => {
+  // Switched on for these tests (it's off by default — see the first test).
+  beforeEach(() => localStorage.setItem('kamby:ticker', '1'));
   afterEach(() => {
     vi.clearAllMocks();
+    localStorage.removeItem('kamby:ticker');
+  });
+
+  it('stays off (and opens no price stream) until switched on in the profile', () => {
+    localStorage.removeItem('kamby:ticker');
+    fetchDiscoverMarkets.mockResolvedValue([fakeMarket()]);
+    const { container } = render(<TickerBar />);
+    expect(container).toBeEmptyDOMElement();
+    expect(fetchDiscoverMarkets).not.toHaveBeenCalled();
   });
 
   it('renders nothing at all before the first fetch resolves', () => {

@@ -131,7 +131,9 @@
     "title": "我的资料",
     "subtitle": "你的用户名和头像会显示在排行榜和交易员主页上。",
     "wallet": "钱包",
-    "walletSub": "充值、提现或在 Kamby 中隐藏余额。"
+    "walletSub": "充值、提现或在 Kamby 中隐藏余额。",
+    "ticker": "行情滚动条",
+    "tickerHint": "在屏幕底部显示滚动的币价"
   },
   "landing": {
     "leaderboard": "排行榜",

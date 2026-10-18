@@ -390,7 +390,7 @@ export function DmThread({ id }: { id: string }) {
     <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:600px] xl:[--dm-left:640px]')}>
       {/* Desktop: the community's channels stay open on the left (Discord) */}
       {community && conv && (
-        <aside className="fixed bottom-8 top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#070A12]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
+        <aside className="fixed bottom-[var(--ticker-h)] top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#070A12]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
           <CommunityPanel
             tall
             onClose={() => undefined}
@@ -660,7 +660,7 @@ export function DmThread({ id }: { id: string }) {
       </main>
 
       {/* Bottom: request choice, blocked note, or the composer */}
-      <div className="fixed bottom-0 right-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 [left:var(--dm-left,0px)] md:bottom-8 md:px-6">
+      <div className="fixed bottom-0 right-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 [left:var(--dm-left,0px)] md:bottom-[var(--ticker-h)] md:px-6">
         <div className="relative mx-auto max-w-2xl">
         {(scrolledUp || newBelow > 0) && (
           <button

@@ -131,7 +131,9 @@
     "title": "Tu perfil",
     "subtitle": "Tu usuario y foto aparecen en el ranking y en tu perfil de trader.",
     "wallet": "Wallet",
-    "walletSub": "Deposita, retira u oculta saldos en Kamby."
+    "walletSub": "Deposita, retira u oculta saldos en Kamby.",
+    "ticker": "Cinta de precios",
+    "tickerHint": "Muestra los precios de monedas en movimiento abajo de la pantalla"
   },
   "landing": {
     "leaderboard": "Ranking",

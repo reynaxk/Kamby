@@ -695,6 +695,16 @@ body:has(.kamby-void) {
   100% { box-shadow: 0 0 0 2px transparent; background: transparent; }
 }
 .kamby-flash { animation: kamby-flash 1.4s ease-out; }
+/* The bottom coin ticker's height — only while it's switched on and showing (lib/ticker-pref.ts). */
+:root {
+  --ticker-h: 0px;
+}
+@media (min-width: 768px) {
+  html.kamby-ticker-on {
+    --ticker-h: 2rem;
+  }
+}
+
 /* Duel cheers rise and fade from a corner (components/duels/DuelArena.tsx). */
 @keyframes kamby-cheer-float {
   0% { transform: translateY(0) scale(0.6); opacity: 0; }

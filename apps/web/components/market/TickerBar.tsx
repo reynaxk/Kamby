@@ -9,6 +9,7 @@ import { formatPercent, formatPrice, priceDirection, cashtag } from '@/lib/forma
 import { subscribeToMarketFeeds } from '@/lib/market-feeds';
 import { solanaMarketHref } from '@/lib/solana-links';
 import { useTranslations } from 'next-intl';
+import { useTickerEnabled } from '@/lib/ticker-pref';
 
 const TICKER_SIZE = 20;
 
@@ -43,25 +44,33 @@ export function TickerBar() {
   const tU = useTranslations('ui');
   const pathname = usePathname();
   const [markets, setMarkets] = useState<MarketSummary[]>([]);
+  // Off unless the person switched it on in their profile (owner, 2026-10-18) — and then it
+  // doesn't even open the price stream.
+  const enabled = useTickerEnabled();
 
-  useEffect(
-    () =>
-      subscribeToMarketFeeds(
-        (type, data) => {
-          if (type === 'trending') setMarkets(topByVolume((data as MarketFeedEvents['trending']).markets));
-        },
-        // A dead stream just leaves the ticker as it was — never worth surfacing app-wide.
-        () => {},
-      ),
-    [],
-  );
-
-  if (markets.length === 0) return null;
-
-  const items = [...markets, ...markets];
+  useEffect(() => {
+    if (!enabled) return;
+    return subscribeToMarketFeeds(
+      (type, data) => {
+        if (type === 'trending') setMarkets(topByVolume((data as MarketFeedEvents['trending']).markets));
+      },
+      // A dead stream just leaves the ticker as it was — never worth surfacing app-wide.
+      () => {},
+    );
+  }, [enabled]);
 
   // Not on the landing page — new visitors don't see coins before signing in (2026-10-04).
-  if (pathname === '/') return null;
+  const visible = enabled && markets.length > 0 && pathname !== '/';
+
+  // Pages leave room at the bottom (--ticker-h) only while the ticker is really there.
+  useEffect(() => {
+    document.documentElement.classList.toggle('kamby-ticker-on', visible);
+    return () => document.documentElement.classList.remove('kamby-ticker-on');
+  }, [visible]);
+
+  if (!visible) return null;
+
+  const items = [...markets, ...markets];
 
   return (
     <div className="kamby-void fixed inset-x-0 bottom-0 z-40 hidden h-8 overflow-hidden border-t border-line bg-surface md:block">

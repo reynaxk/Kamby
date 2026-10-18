@@ -131,7 +131,9 @@
     "title": "Your profile",
     "subtitle": "Your username and picture appear on the leaderboard and your trader profile.",
     "wallet": "Wallet",
-    "walletSub": "Add funds, withdraw, or hide balances across Kamby."
+    "walletSub": "Add funds, withdraw, or hide balances across Kamby.",
+    "ticker": "Coin ticker",
+    "tickerHint": "Show the scrolling coin prices at the bottom of the screen"
   },
   "landing": {
     "leaderboard": "Leaderboard",

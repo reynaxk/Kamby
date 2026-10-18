@@ -131,7 +131,9 @@
     "title": "Dein Profil",
     "subtitle": "Dein Name und Bild erscheinen in der Bestenliste und auf deinem Trader-Profil.",
     "wallet": "Wallet",
-    "walletSub": "Einzahlen, auszahlen oder Guthaben in Kamby verbergen."
+    "walletSub": "Einzahlen, auszahlen oder Guthaben in Kamby verbergen.",
+    "ticker": "Kurs-Ticker",
+    "tickerHint": "Laufende Coin-Preise unten am Bildschirm anzeigen"
   },
   "landing": {
     "leaderboard": "Bestenliste",

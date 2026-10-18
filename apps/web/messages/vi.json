@@ -131,7 +131,9 @@
     "title": "Hồ sơ của bạn",
     "subtitle": "Tên và ảnh của bạn hiển thị trên bảng xếp hạng và hồ sơ trader.",
     "wallet": "Ví",
-    "walletSub": "Nạp, rút hoặc ẩn số dư trên Kamby."
+    "walletSub": "Nạp, rút hoặc ẩn số dư trên Kamby.",
+    "ticker": "Dải giá",
+    "tickerHint": "Hiện giá coin chạy ở cuối màn hình"
   },
   "landing": {
     "leaderboard": "Xếp hạng",
