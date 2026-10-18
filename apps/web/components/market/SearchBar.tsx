@@ -155,7 +155,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
       aria-label={tU('searchResults_eb6b')}
       className={cn(
         screen
-          ? 'kamby-frost kamby-pop mt-3 rounded-[1.75rem] p-2'
+          ? 'kamby-frost kamby-pop relative mt-3 rounded-[1.75rem] p-2'
           : // Dense frost and wider than the header field, so the page underneath never reads through.
             'kamby-frost kamby-frost-strong kamby-pop absolute right-0 z-[60] mt-2 max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-[1.75rem] p-2',
       )}
@@ -186,7 +186,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
         </ul>
       ) : hits.length === 0 ? (
         <div className="flex flex-col items-center px-4 py-8 text-center">
-          <span className="kamby-frost flex h-12 w-12 items-center justify-center rounded-2xl text-ink-400" aria-hidden>
+          <span className="kamby-frost relative flex h-12 w-12 items-center justify-center rounded-2xl text-ink-400" aria-hidden>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5M8.5 11h5" />
@@ -297,7 +297,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
       <div
         className={cn(
           'group flex items-center gap-2.5 transition-colors',
-          'kamby-frost',
+          'kamby-frost relative',
           screen ? 'h-14 rounded-[1.4rem] px-4' : 'h-10 rounded-2xl px-3',
         )}
       >

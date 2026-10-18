@@ -596,9 +596,9 @@ body:has(.kamby-void) {
 /* Frosted glass, deeper (2026-10-18, the search): stronger blur, a lit gradient edge (brighter
    top-left), an inner top highlight and a soft drop — and the edge turns accent while you type
    in it. `kamby-frost-strong` is for what floats over text (the results dropdown): denser, so the
-   page underneath never reads through. */
+   page underneath never reads through. Position it yourself (relative / absolute) — this class
+   never sets it, so it can't override an `absolute` dropdown. */
 .kamby-frost {
-  position: relative;
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0.015) 72%), rgba(13, 17, 30, 0.58);
   border: 1px solid transparent;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 0 rgba(255, 255, 255, 0.03), 0 18px 48px -16px rgba(0, 0, 0, 0.7);
