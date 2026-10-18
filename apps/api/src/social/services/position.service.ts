@@ -240,7 +240,7 @@ function utcDateKey(date: Date): string {
 /** Kamby's USDC fee (trade fee + new-coin setup) on each Solana buy, in dollars: what the user
  *  paid minus what was swapped (both USDC, 6 decimals); the platform fee alone for older quotes
  *  that didn't record the total. */
-async function solanaBuyFees(transactionIds: string[]): Promise<Map<string, number>> {
+export async function solanaBuyFees(transactionIds: string[]): Promise<Map<string, number>> {
   if (transactionIds.length === 0) return new Map();
   const rows = await prisma.solanaTradeTransaction.findMany({
     where: { id: { in: transactionIds } },
@@ -259,7 +259,7 @@ async function solanaBuyFees(transactionIds: string[]): Promise<Map<string, numb
 }
 
 /** Each EVM buy's fee rate in basis points. */
-async function evmBuyFeeBps(transactionIds: string[]): Promise<Map<string, number>> {
+export async function evmBuyFeeBps(transactionIds: string[]): Promise<Map<string, number>> {
   if (transactionIds.length === 0) return new Map();
   const rows = await prisma.tradeTransaction.findMany({
     where: { id: { in: transactionIds } },

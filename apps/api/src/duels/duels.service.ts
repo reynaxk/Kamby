@@ -6,6 +6,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { formatUnits } from 'viem';
 import { DmService } from '../dm/dm.service';
 import { LivePriceService } from '../market-feeds/live-price.service';
+import { evmBuyFeeBps, solanaBuyFees } from '../social/services/position.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
 const PUMPFUN_DECIMALS = 6;
@@ -169,7 +170,7 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
   async score(userId: string, start: Date, end: Date): Promise<{ pct: number | null; investedUsd: number; trades: DuelTrade[] }> {
     const lots = await prisma.tokenLot.findMany({
       where: { userId, acquiredAt: { gte: start, lte: end } },
-      select: { id: true, evmTokenId: true, solanaMint: true, quantityOriginalRaw: true, costBasisUsd: true, acquiredAt: true },
+      select: { id: true, evmTokenId: true, solanaMint: true, quantityOriginalRaw: true, costBasisUsd: true, acquiredAt: true, evmBuyTransactionId: true, solanaBuyTransactionId: true },
       orderBy: { acquiredAt: 'desc' },
       take: 200,
     });
@@ -195,17 +196,31 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
       const p = pumps.find((x) => x.mintAddress === m);
       meta.set(`sol:${m}`, { chainIdentifier: 'solana', address: m, decimals: l?.decimals ?? (p ? PUMPFUN_DECIMALS : null), symbol: l?.symbol ?? p?.symbol ?? null, logoUrl: l?.logoUrl ?? null });
     }
+    // Score what went into the coin, not Kamby's fee (2026-10-18, real duel: the same $2 CAKE buy
+    // read -0.26% on its trade card but -4.25% in the duel — small trades started 4% down).
+    const [evmFeeBps, solanaFees] = await Promise.all([
+      evmBuyFeeBps(lots.map((l) => l.evmBuyTransactionId).filter((id): id is string => id !== null)),
+      solanaBuyFees(lots.map((l) => l.solanaBuyTransactionId).filter((id): id is string => id !== null)),
+    ]);
     const prices = new Map<string, number | null>();
     for (const [key, m] of meta) prices.set(key, await this.priceOf(m.chainIdentifier, m.address));
 
     let invested = 0;
+    let paidIn = 0; // what they put in, fee included — shown as "$2.00 in"
     let value = 0;
     const trades: DuelTrade[] = [];
     for (const lot of lots) {
       const key = lot.evmTokenId ? `evm:${lot.evmTokenId}` : `sol:${lot.solanaMint}`;
       const m = meta.get(key);
-      const cost = Number(lot.costBasisUsd);
+      const gross = Number(lot.costBasisUsd);
+      const fee = lot.evmBuyTransactionId
+        ? gross * ((evmFeeBps.get(lot.evmBuyTransactionId) ?? 0) / 10_000)
+        : lot.solanaBuyTransactionId
+          ? (solanaFees.get(lot.solanaBuyTransactionId) ?? 0)
+          : 0;
+      const cost = Math.max(0, gross - Math.min(fee, gross));
       invested += cost;
+      paidIn += gross;
       const mine = events.filter((e) => e.lotId === lot.id);
       const sold = mine.reduce((sum, e) => sum + BigInt(e.quantityMatchedRaw), 0n);
       value += mine.reduce((sum, e) => sum + Number(e.proceedsUsd), 0);
@@ -216,9 +231,9 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
         // Unknown price or decimals → the rest counts at cost (neither a win nor a loss).
         value += m?.decimals != null && price !== null ? Number(formatUnits(left, m.decimals)) * price : original > 0n ? cost * (Number(left) / Number(original)) : 0;
       }
-      if (m) trades.push({ chainIdentifier: m.chainIdentifier, tokenAddress: m.address, symbol: m.symbol, logoUrl: m.logoUrl, amountUsd: cost, at: lot.acquiredAt.toISOString() });
+      if (m) trades.push({ chainIdentifier: m.chainIdentifier, tokenAddress: m.address, symbol: m.symbol, logoUrl: m.logoUrl, amountUsd: gross, at: lot.acquiredAt.toISOString() });
     }
-    return { pct: invested > 0 ? ((value - invested) / invested) * 100 : null, investedUsd: invested, trades: trades.slice(0, 20) };
+    return { pct: invested > 0 ? ((value - invested) / invested) * 100 : null, investedUsd: paidIn, trades: trades.slice(0, 20) };
   }
 
   private async priceOf(chainIdentifier: string, address: string): Promise<number | null> {
