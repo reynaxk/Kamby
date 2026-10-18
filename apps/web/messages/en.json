@@ -1107,5 +1107,15 @@
     "cheerInChat": "Cheer in chat",
     "goTrade": "Trade now — the clock is running",
     "howScored": "% PnL on buys made during the duel"
+  },
+  "search": {
+    "placeholder": "Coins, contract address or @people",
+    "coins": "Coins",
+    "people": "People",
+    "paste": "Paste",
+    "clear": "Clear",
+    "addressNote": "Contract address — checking it on every chain",
+    "nothing": "Nothing found for “{q}”",
+    "nothingHint": "Try the coin’s symbol, its contract address, or someone’s @name."
   }
 }

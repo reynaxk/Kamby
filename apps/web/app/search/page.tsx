@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { cn } from '@kamby/ui';
-import { SearchBar } from '@/components/market/SearchBar';
+import { SearchScreen } from '@/components/market/SearchScreen';
 import { RecentSearches } from '@/components/market/RecentSearches';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { PriceText } from '@/components/market/PriceText';
@@ -21,9 +21,7 @@ export default async function SearchPage() {
   const trending = (feeds?.trending.markets ?? []).slice(0, 15);
   return (
     <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+1rem)]">
-      <div className="px-4">
-        <SearchBar />
-      </div>
+      <SearchScreen>
       <RecentSearches />
       {trending.length > 0 && (
         <section className="mt-5">
@@ -63,6 +61,7 @@ export default async function SearchPage() {
           </ul>
         </section>
       )}
+      </SearchScreen>
     </main>
   );
 }

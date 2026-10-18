@@ -1107,5 +1107,15 @@
     "cheerInChat": "Torcer no chat",
     "goTrade": "Negocie agora — o tempo está correndo",
     "howScored": "% PnL das compras durante o duelo"
+  },
+  "search": {
+    "placeholder": "Moedas, endereço de contrato ou @pessoas",
+    "coins": "Moedas",
+    "people": "Pessoas",
+    "paste": "Colar",
+    "clear": "Limpar",
+    "addressNote": "Endereço de contrato — verificando em todas as redes",
+    "nothing": "Nada para “{q}”",
+    "nothingHint": "Tente o símbolo, o endereço do contrato ou o @nome de alguém."
   }
 }

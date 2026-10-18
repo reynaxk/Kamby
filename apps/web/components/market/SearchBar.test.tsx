@@ -3,13 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SearchBar } from './SearchBar';
 
-const { fetchSearchResults, push, checkWatchStatus } = vi.hoisted(() => ({
+const { fetchSearchResults, fetchPeopleResults, push, checkWatchStatus } = vi.hoisted(() => ({
   fetchSearchResults: vi.fn(),
+  fetchPeopleResults: vi.fn(async () => []),
   push: vi.fn(),
   checkWatchStatus: vi.fn(),
 }));
 
-vi.mock('@/lib/market-client', () => ({ fetchSearchResults }));
+vi.mock('@/lib/market-client', () => ({ fetchSearchResults, fetchPeopleResults }));
 vi.mock('@/lib/watchlist-client', () => ({
   checkWatchStatus,
   watchToken: vi.fn(),
@@ -80,7 +81,7 @@ describe('SearchBar', () => {
     expect(fetchSearchResults).not.toHaveBeenCalled(); // not yet — still debouncing
 
     await waitFor(() => expect(fetchSearchResults).toHaveBeenCalledWith('pepe', 6));
-    expect(await screen.findByText('PEPE')).toBeInTheDocument();
+    expect(await screen.findByText('$PEPE')).toBeInTheDocument();
     expect(screen.getByLabelText('Search results')).toBeInTheDocument();
   });
 
@@ -91,8 +92,8 @@ describe('SearchBar', () => {
     render(<SearchBar />);
 
     await user.type(screen.getByRole('textbox'), 'pepe');
-    await screen.findByText('PEPE');
-    await user.click(screen.getByText('PEPE'));
+    await screen.findByText('$PEPE');
+    await user.click(screen.getByText('$PEPE'));
 
     expect(push).toHaveBeenCalledWith('/market/base/0xabc0000000000000000000000000000000000a');
     expect(screen.queryByLabelText('Search results')).not.toBeInTheDocument();
@@ -106,13 +107,13 @@ describe('SearchBar', () => {
     render(<SearchBar />);
 
     await user.type(screen.getByRole('textbox'), 'odd');
-    await screen.findByText('ODD');
+    await screen.findByText('$ODD');
 
     expect(
       screen.getByTitle('This market is visible for discovery but is not tradeable here yet'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /watch/i })).not.toBeInTheDocument();
-    await user.click(screen.getByText('ODD'));
+    await user.click(screen.getByText('$ODD'));
     expect(push).not.toHaveBeenCalled();
   });
 
@@ -124,7 +125,7 @@ describe('SearchBar', () => {
     render(<SearchBar />);
 
     await user.type(screen.getByRole('textbox'), 'bonk');
-    await user.click(await screen.findByText('Bonk'));
+    await user.click(await screen.findByText('$Bonk'));
 
     expect(push).toHaveBeenCalledWith('/solana?mint=DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263');
     expect(screen.queryByRole('button', { name: /watch/i })).not.toBeInTheDocument();
@@ -137,9 +138,9 @@ describe('SearchBar', () => {
     render(<SearchBar />);
 
     await user.type(screen.getByRole('textbox'), 'pepe');
-    await screen.findByText('PEPE');
+    await screen.findByText('$PEPE');
 
     await user.clear(screen.getByRole('textbox'));
-    await waitFor(() => expect(screen.queryByText('PEPE')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText('$PEPE')).not.toBeInTheDocument());
   });
 });

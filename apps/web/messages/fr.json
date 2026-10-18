@@ -1107,5 +1107,15 @@
     "cheerInChat": "Encourager dans le chat",
     "goTrade": "Trade maintenant — le temps file",
     "howScored": "% PnL sur les achats faits pendant le duel"
+  },
+  "search": {
+    "placeholder": "Coins, adresse de contrat ou @personnes",
+    "coins": "Coins",
+    "people": "Personnes",
+    "paste": "Coller",
+    "clear": "Effacer",
+    "addressNote": "Adresse de contrat — vérifiée sur toutes les chaînes",
+    "nothing": "Rien pour « {q} »",
+    "nothingHint": "Essaie le symbole, l’adresse du contrat ou le @nom de quelqu’un."
   }
 }

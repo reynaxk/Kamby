@@ -1107,5 +1107,15 @@
     "cheerInChat": "在聊天中加油",
     "goTrade": "现在交易——时间在走",
     "howScored": "对决期间买入的 % 盈亏"
+  },
+  "search": {
+    "placeholder": "币、合约地址或 @用户",
+    "coins": "币",
+    "people": "用户",
+    "paste": "粘贴",
+    "clear": "清除",
+    "addressNote": "合约地址——正在所有链上查找",
+    "nothing": "没有找到“{q}”",
+    "nothingHint": "试试币的代号、合约地址或某人的 @名字。"
   }
 }

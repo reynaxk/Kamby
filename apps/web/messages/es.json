@@ -1107,5 +1107,15 @@
     "cheerInChat": "Animar en el chat",
     "goTrade": "Opera ya — el reloj corre",
     "howScored": "% PnL de las compras durante el duelo"
+  },
+  "search": {
+    "placeholder": "Monedas, dirección de contrato o @personas",
+    "coins": "Monedas",
+    "people": "Personas",
+    "paste": "Pegar",
+    "clear": "Borrar",
+    "addressNote": "Dirección de contrato: la buscamos en todas las redes",
+    "nothing": "Nada para “{q}”",
+    "nothingHint": "Prueba con el símbolo, la dirección del contrato o el @nombre de alguien."
   }
 }

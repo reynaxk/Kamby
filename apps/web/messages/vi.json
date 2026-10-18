@@ -1107,5 +1107,15 @@
     "cheerInChat": "Cổ vũ trong chat",
     "goTrade": "Giao dịch ngay — thời gian đang chạy",
     "howScored": "% PnL của các lệnh mua trong trận"
+  },
+  "search": {
+    "placeholder": "Coin, địa chỉ hợp đồng hoặc @người dùng",
+    "coins": "Coin",
+    "people": "Người dùng",
+    "paste": "Dán",
+    "clear": "Xóa",
+    "addressNote": "Địa chỉ hợp đồng — đang kiểm tra trên mọi chain",
+    "nothing": "Không tìm thấy “{q}”",
+    "nothingHint": "Thử ký hiệu coin, địa chỉ hợp đồng hoặc @tên ai đó."
   }
 }

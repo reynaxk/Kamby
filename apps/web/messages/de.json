@@ -1107,5 +1107,15 @@
     "cheerInChat": "Im Chat anfeuern",
     "goTrade": "Jetzt traden — die Uhr läuft",
     "howScored": "% PnL auf Käufe während des Duells"
+  },
+  "search": {
+    "placeholder": "Coins, Contract-Adresse oder @Leute",
+    "coins": "Coins",
+    "people": "Leute",
+    "paste": "Einfügen",
+    "clear": "Löschen",
+    "addressNote": "Contract-Adresse — wird auf allen Chains geprüft",
+    "nothing": "Nichts gefunden für „{q}“",
+    "nothingHint": "Versuch das Symbol, die Contract-Adresse oder einen @Namen."
   }
 }

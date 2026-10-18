@@ -1107,5 +1107,15 @@
     "cheerInChat": "Dukung di chat",
     "goTrade": "Trading sekarang — waktu berjalan",
     "howScored": "% PnL dari pembelian selama duel"
+  },
+  "search": {
+    "placeholder": "Koin, alamat kontrak, atau @orang",
+    "coins": "Koin",
+    "people": "Orang",
+    "paste": "Tempel",
+    "clear": "Hapus",
+    "addressNote": "Alamat kontrak — dicek di semua chain",
+    "nothing": "Tidak ada hasil untuk “{q}”",
+    "nothingHint": "Coba simbol koin, alamat kontrak, atau @nama seseorang."
   }
 }

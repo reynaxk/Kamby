@@ -1107,5 +1107,15 @@
     "cheerInChat": "채팅에서 응원",
     "goTrade": "지금 거래하세요 — 시간이 가고 있어요",
     "howScored": "결투 중 매수의 % PnL"
+  },
+  "search": {
+    "placeholder": "코인, 컨트랙트 주소 또는 @사람",
+    "coins": "코인",
+    "people": "사람",
+    "paste": "붙여넣기",
+    "clear": "지우기",
+    "addressNote": "컨트랙트 주소 — 모든 체인에서 확인 중",
+    "nothing": "“{q}” 결과가 없어요",
+    "nothingHint": "코인 심볼, 컨트랙트 주소 또는 @이름으로 찾아보세요."
   }
 }

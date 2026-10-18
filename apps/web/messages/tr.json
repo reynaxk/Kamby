@@ -1107,5 +1107,15 @@
     "cheerInChat": "Sohbette destekle",
     "goTrade": "Şimdi işlem yap — süre işliyor",
     "howScored": "Düello sırasındaki alımların % PnL’i"
+  },
+  "search": {
+    "placeholder": "Coin, kontrat adresi veya @kişiler",
+    "coins": "Coinler",
+    "people": "Kişiler",
+    "paste": "Yapıştır",
+    "clear": "Temizle",
+    "addressNote": "Kontrat adresi — tüm ağlarda kontrol ediliyor",
+    "nothing": "“{q}” için sonuç yok",
+    "nothingHint": "Coin sembolünü, kontrat adresini veya birinin @adını dene."
   }
 }

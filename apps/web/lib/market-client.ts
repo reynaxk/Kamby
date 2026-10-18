@@ -52,3 +52,18 @@ export async function fetchEvmChainConfigs(): Promise<EvmChainConfig[]> {
   if (!res.ok) throw new Error(`Failed to fetch chain config (${res.status})`);
   return res.json();
 }
+
+/** A person in search results (2026-10-18): their wallet (profile page) and name. */
+export interface PersonResult {
+  address: string;
+  username: string | null;
+  avatarUrl: string | null;
+}
+
+/** People by @name or wallet address — GET /social/traders/search (public). */
+export async function fetchPeopleResults(q: string, limit = 4): Promise<PersonResult[]> {
+  const query = new URLSearchParams({ q, limit: String(limit) });
+  const res = await fetch(`${API_BASE}/v1/social/traders/search?${query.toString()}`);
+  if (!res.ok) return [];
+  return res.json();
+}
