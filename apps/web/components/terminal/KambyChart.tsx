@@ -594,7 +594,7 @@ export function KambyChart({
         {pickerOpen && (
           // A dark card with real switches (2026-10-18 audit: tiny native checkboxes looked unfinished).
           <div className="absolute left-0 z-20 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 p-1.5 shadow-2xl" style={{ background: 'rgb(13, 15, 24)' }}>
-            <p className="px-2.5 pb-1.5 pt-1 font-display text-xs font-bold text-ink-400">{tL('indicators')}</p>
+            <p className="px-2.5 pb-1.5 pt-1 font-display text-xs font-bold text-ink-400 md:hidden">{tL('indicators')}</p>
             {INDICATOR_ORDER.map((id) => {
               const on = activeIndicators.has(id);
               return (

@@ -29,7 +29,7 @@ export function NetworkPicker({ label, value, onChange }: { label: string; value
               <span aria-hidden className="relative h-5 w-5 shrink-0">
                 <ChainBadge chain={c.slug} className="!static !h-5 !w-5 !ring-0" />
               </span>
-              <span className="min-w-0 flex-1 truncate">{c.name}</span>
+              <span className="min-w-0 flex-1 truncate">{c.slug === 'robinhood' ? 'Robinhood' : c.name}</span>
               <span
                 aria-hidden
                 className={cn('h-2 w-2 shrink-0 rounded-full transition-colors', on ? 'bg-accent' : 'bg-white/10')}
