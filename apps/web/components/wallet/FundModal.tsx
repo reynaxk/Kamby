@@ -130,7 +130,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
           ) : (
             <div>
               <p className="font-body text-xs text-ink-600">{tF('depositOneNetwork')}</p>
-              <button type="button" onClick={() => setShowNetworks(true)} className="mt-1 font-body text-xs text-ink-400 underline-offset-2 hover:text-ink-900 hover:underline">
+              <button type="button" onClick={() => setShowNetworks(true)} className="mt-1.5 font-body text-xs font-semibold text-accent underline-offset-2 hover:underline">
                 {tF('otherNetworks')}
               </button>
             </div>
@@ -149,7 +149,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
           ) : (
             <div>
               <p className="font-body text-xs text-ink-600">{tF('depositOneNetwork')}</p>
-              <button type="button" onClick={() => setShowNetworks(true)} className="mt-1 font-body text-xs text-ink-400 underline-offset-2 hover:text-ink-900 hover:underline">
+              <button type="button" onClick={() => setShowNetworks(true)} className="mt-1.5 font-body text-xs font-semibold text-accent underline-offset-2 hover:underline">
                 {tF('otherNetworks')}
               </button>
             </div>

@@ -8,7 +8,8 @@ const { fetchMyPnlHistory, hasStoredSession, useBalanceVisibility } = vi.hoisted
   useBalanceVisibility: vi.fn(),
 }));
 
-vi.mock('@/lib/discovery-client', () => ({ fetchMyPnlHistory, hasStoredSession }));
+vi.mock('@/lib/discovery-client', () => ({ fetchMyPnlHistory }));
+vi.mock('@/lib/session-client', () => ({ hasStoredSession, SESSION_CHANGED_EVENT: 'kamby:session-changed' }));
 vi.mock('@/components/account/BalanceVisibilityContext', () => ({ useBalanceVisibility }));
 
 describe('PnlHistoryChart', () => {

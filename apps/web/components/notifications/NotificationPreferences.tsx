@@ -9,7 +9,7 @@ import {
   fetchNotificationPreferences,
   updateNotificationPreferences,
 } from '@/lib/notifications-client';
-import { hasStoredSession } from '@/lib/session-client';
+import { useStoredSession } from '@/hooks/useStoredSession';
 import { useTranslations } from 'next-intl';
 import { PushToggle } from './PushToggle';
 
@@ -47,12 +47,15 @@ export function NotificationPreferencesPanel() {
   const [saving, setSaving] = useState<keyof NotificationPreferences | null>(null);
   const [error, setError] = useState(false);
 
+  // Read in an effect, never during render: the server can't see the session, so checking it
+  // while rendering made the signed-in page differ from its HTML (React #418, 2026-10-18).
+  const hasSession = useStoredSession();
   useEffect(() => {
-    if (!hasStoredSession()) return;
+    if (!hasSession) return;
     fetchNotificationPreferences()
       .then(setPrefs)
       .catch(() => setError(true));
-  }, []);
+  }, [hasSession]);
 
   async function toggle(key: keyof NotificationPreferences): Promise<void> {
     if (!prefs) return;
@@ -69,7 +72,7 @@ export function NotificationPreferencesPanel() {
     }
   }
 
-  if (!hasStoredSession()) {
+  if (hasSession === false) {
     return (
       <EmptyState
         title={tU('verifyAWalletToManage_80aa')}

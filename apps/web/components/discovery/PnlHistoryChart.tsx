@@ -7,7 +7,8 @@ import { useBalanceVisibility } from '@/components/account/BalanceVisibilityCont
 import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { formatSignedCompactUsd, priceDirection } from '@/lib/format';
-import { fetchMyPnlHistory, hasStoredSession } from '@/lib/discovery-client';
+import { fetchMyPnlHistory } from '@/lib/discovery-client';
+import { useStoredSession } from '@/hooks/useStoredSession';
 import { useTranslations } from 'next-intl';
 
 const WIDTH = 480;
@@ -31,18 +32,21 @@ export function PnlHistoryChart({ days = 30 }: { days?: number }) {
   const [history, setHistory] = useState<PnlHistory | null>(null);
   const { hidden } = useBalanceVisibility();
 
+  const hasSession = useStoredSession();
   useEffect(() => {
-    if (!hasStoredSession()) {
+    if (hasSession === null) return;
+    if (!hasSession) {
       setState('no-session');
       return;
     }
+    setState('loading');
     fetchMyPnlHistory(days)
       .then((result) => {
         setHistory(result);
         setState('loaded');
       })
       .catch(() => setState('error'));
-  }, [days]);
+  }, [days, hasSession]);
 
   if (state === 'no-session') {
     return <EmptyState title={tU('noPnlHistoryYet_e14d')} detail="Connect a wallet and trade to start tracking this." />;

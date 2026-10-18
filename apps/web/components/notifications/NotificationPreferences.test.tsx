@@ -11,7 +11,7 @@ const { fetchNotificationPreferences, updateNotificationPreferences, hasStoredSe
 }));
 
 vi.mock('@/lib/notifications-client', () => ({ fetchNotificationPreferences, updateNotificationPreferences }));
-vi.mock('@/lib/session-client', () => ({ hasStoredSession }));
+vi.mock('@/lib/session-client', () => ({ hasStoredSession, SESSION_CHANGED_EVENT: 'kamby:session-changed' }));
 
 function fakePrefs(overrides: Partial<NotificationPreferences> = {}): NotificationPreferences {
   return {

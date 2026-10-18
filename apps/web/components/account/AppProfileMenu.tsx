@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { Bell, ChevronRight, Copy, Eye, Gift, History, LogOut, Pencil, Star, User } from 'lucide-react';
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
+import { SESSION_CHANGED_EVENT } from '@/lib/session-client';
 import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
 import { BlurBalancesToggle } from './BlurBalancesToggle';
@@ -36,9 +37,12 @@ export function AppProfileMenu() {
         .catch(() => {});
     void load();
     window.addEventListener(PROFILE_UPDATED_EVENT, load);
+    // The wallet signature can swap this browser onto the person's real account — show it.
+    window.addEventListener(SESSION_CHANGED_EVENT, load);
     return () => {
       cancelled = true;
       window.removeEventListener(PROFILE_UPDATED_EVENT, load);
+      window.removeEventListener(SESSION_CHANGED_EVENT, load);
     };
   }, [authenticated]);
 

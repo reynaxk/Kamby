@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/market/EmptyState';
 import { Skeleton } from '@/components/market/Skeleton';
 import { fetchMyProfile, updateUsername, uploadAvatar, type MyProfile } from '@/lib/profile-client';
 import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
-import { hasStoredSession } from '@/lib/session-client';
+import { useStoredSession } from '@/hooks/useStoredSession';
 import { useTranslations } from 'next-intl';
 
 type State = 'no-session' | 'loading' | 'loaded' | 'error';
@@ -41,11 +41,14 @@ export function ProfileEditor() {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const hasSession = useStoredSession();
   useEffect(() => {
-    if (!hasStoredSession()) {
+    if (hasSession === null) return;
+    if (!hasSession) {
       setState('no-session');
       return;
     }
+    setState('loading');
     fetchMyProfile()
       .then((p) => {
         setProfile(p);
@@ -53,7 +56,7 @@ export function ProfileEditor() {
         setState('loaded');
       })
       .catch(() => setState('error'));
-  }, []);
+  }, [hasSession]);
 
   const normalized = normalizeUsername(usernameInput);
   const usernameFormatValid = usernameInput.length === 0 || isValidUsername(normalized);

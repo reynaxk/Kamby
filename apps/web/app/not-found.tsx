@@ -22,7 +22,7 @@ export default function NotFound() {
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
           <Link
             href="/terminal"
-            className="rounded-xl bg-[#00FF87] px-8 py-3.5 font-display text-sm font-bold text-black shadow-[0_0_28px_rgba(0,255,135,0.45)] transition-shadow hover:shadow-[0_0_44px_rgba(0,255,135,0.75)]"
+            className="rounded-xl bg-[#00FF87] px-8 py-3.5 font-display text-sm font-bold text-black transition-transform active:scale-[0.97]"
           >
             {tU('goTrade_95a9')}
           </Link>

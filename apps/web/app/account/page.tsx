@@ -8,6 +8,7 @@ import { ChainBalancesCard } from '@/components/wallet/ChainBalancesCard';
 import { getTranslations } from 'next-intl/server';
 import { AppProfileMenu } from '@/components/account/AppProfileMenu';
 import { PhoneSignedInOnly } from '@/components/account/PhoneSignedInOnly';
+import { SessionBootstrap } from '@/components/account/SessionBootstrap';
 
 export const metadata = { title: 'Your profile — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
@@ -22,6 +23,7 @@ export default async function AccountPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader />
+      <SessionBootstrap />
       {/* Phones: the Profile tab as an app screen (sign in, lists, settings, sign out). */}
       <AppProfileMenu />
       <PhoneSignedInOnly>

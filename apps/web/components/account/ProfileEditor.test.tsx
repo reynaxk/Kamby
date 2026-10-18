@@ -12,7 +12,7 @@ const { fetchMyProfile, updateUsername, uploadAvatar, hasStoredSession, useAccou
 }));
 
 vi.mock('@/lib/profile-client', () => ({ fetchMyProfile, updateUsername, uploadAvatar }));
-vi.mock('@/lib/session-client', () => ({ hasStoredSession }));
+vi.mock('@/lib/session-client', () => ({ hasStoredSession, SESSION_CHANGED_EVENT: 'kamby:session-changed' }));
 vi.mock('wagmi', () => ({ useAccount }));
 
 describe('ProfileEditor', () => {
