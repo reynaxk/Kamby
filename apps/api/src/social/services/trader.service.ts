@@ -249,19 +249,42 @@ export class TraderService {
    *  docs/SOCIAL.md#search. Usernames are always stored lowercase (see normalizeUsername
    *  in wallet.ts), so a plain `contains` against the lowercased query is correct — no
    *  `mode: 'insensitive'` needed on that side. */
+  /**
+   * People search (2026-10-18): "@tati", "tat" or a wallet address. Names that start with what
+   * you typed come first, then names containing it, then address matches; one row per person
+   * (a user with three wallets is still one result). Addresses match without caring about case
+   * — Solana addresses are mixed-case, so the old lowercased match never found them.
+   */
   async search(query: string, limit: number): Promise<{ address: string; username: string | null; avatarUrl: string | null }[]> {
+    const raw = query.trim().replace(/^@/, '');
+    if (!raw) return [];
+    const name = raw.toLowerCase();
+    const looksLikeAddress = raw.length >= 6 && (/^0x[0-9a-f]+$/i.test(raw) || /^[1-9A-HJ-NP-Za-km-z]+$/.test(raw));
     const wallets = await prisma.wallet.findMany({
       where: {
-        OR: [
-          { address: { contains: query.toLowerCase() } },
-          { user: { username: { contains: query.toLowerCase() } } },
-        ],
+        OR: [{ user: { username: { contains: name } } }, ...(looksLikeAddress ? [{ address: { contains: raw, mode: 'insensitive' as const } }] : [])],
       },
-      take: limit,
-      orderBy: { firstSeenAt: 'desc' },
+      take: limit * 4,
+      orderBy: { firstSeenAt: 'asc' },
       include: { user: true },
     });
-    return wallets.map(toTraderSummary);
+    const rank = (w: (typeof wallets)[number]) => {
+      const u = w.user?.username ?? '';
+      if (u === name) return 4;
+      if (u.startsWith(name)) return 3;
+      if (u.includes(name)) return 2;
+      return 1;
+    };
+    const seen = new Set<string>();
+    const out: typeof wallets = [];
+    for (const w of [...wallets].sort((a, b) => rank(b) - rank(a))) {
+      const who = w.userId ?? w.address;
+      if (seen.has(who)) continue;
+      seen.add(who);
+      out.push(w);
+      if (out.length >= limit) break;
+    }
+    return out.map(toTraderSummary);
   }
 }
 

@@ -288,18 +288,37 @@ describe('TraderService#search', () => {
     service = new TraderService({} as never);
   });
 
-  it('lowercases the real query before matching, since usernames are always stored lowercase', async () => {
+  it('matches names lowercased (usernames are stored lowercase) and drops a leading @', async () => {
     (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([]);
 
-    await service.search('AbC', 10);
+    await service.search('@AbC', 10);
+
+    expect(mockedPrisma.wallet.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { OR: [{ user: { username: { contains: 'abc' } } }] } }),
+    );
+  });
+
+  it('matches a mixed-case Solana address without lowercasing it', async () => {
+    (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([]);
+
+    await service.search('7xKXtg2CW87', 10);
 
     expect(mockedPrisma.wallet.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
-          OR: [{ address: { contains: 'abc' } }, { user: { username: { contains: 'abc' } } }],
-        },
+        where: { OR: [{ user: { username: { contains: '7xkxtg2cw87' } } }, { address: { contains: '7xKXtg2CW87', mode: 'insensitive' } }] },
       }),
     );
+  });
+
+  it('puts names that start with the query first and lists each person once', async () => {
+    const a = { ...fakeWallet('0xaaa', 'mytati'), userId: 'u1' };
+    const b = { ...fakeWallet('0xbbb', 'tati'), userId: 'u2' };
+    const b2 = { ...fakeWallet('0xccc', 'tati'), userId: 'u2' };
+    (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([a, b, b2]);
+
+    const result = await service.search('tati', 10);
+
+    expect(result.map((r) => r.username)).toEqual(['tati', 'mytati']);
   });
 
   it('maps each real matched wallet through toTraderSummary', async () => {
@@ -318,12 +337,12 @@ describe('TraderService#search', () => {
     expect(result).toEqual([{ address: ADDRESS, username: null, avatarUrl: null }]);
   });
 
-  it('passes the real limit straight through as the query bound', async () => {
+  it('reads a few extra wallets per wanted result (one person can have several)', async () => {
     (mockedPrisma.wallet.findMany as jest.Mock).mockResolvedValue([]);
 
     await service.search('abc', 7);
 
-    expect(mockedPrisma.wallet.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 7 }));
+    expect(mockedPrisma.wallet.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 28 }));
   });
 });
 
