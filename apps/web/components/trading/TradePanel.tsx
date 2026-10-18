@@ -972,7 +972,7 @@ export function TradePanel({
       {isConnected ? (
         <Button
           type="button"
-          variant={sheet ? (side === 'BUY' ? 'buy' : 'sell') : undefined}
+          variant={side === 'BUY' ? 'buy' : 'sell'}
           disabled={overBalance || moveBusy || buyAfterMove || (!needsMove && (quoteStatus !== 'ready' || !quote))}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
           className={cn('w-full', sheet && 'h-14 rounded-2xl text-base font-bold')}
