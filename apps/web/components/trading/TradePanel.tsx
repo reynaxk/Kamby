@@ -105,17 +105,21 @@ const WOULD_REVERT_MESSAGE = 'This trade would fail right now (the price moved, 
  * Dry-runs the exact swap (eth_call — free, nothing broadcast) right before it's signed
  * (security audit 2026-10-04): a swap that would revert — price moved past the slippage
  * floor, a honeypot that blocks selling — is stopped here instead of burning Kamby-paid gas.
- * Retries once (an approval mined a moment ago may not have reached the RPC node yet).
- * Fails open: only a real revert blocks the trade, never an RPC hiccup.
+ * Retries with a growing wait (an approval mined a moment ago may not have reached the RPC
+ * node yet — 2026-10-18, a real first Base buy: one 1.5s retry wasn't enough, so a new user's
+ * very first trade on a chain read "would fail" right after approving). ~9s worst case, only
+ * when it keeps reverting. Fails open: only a real revert blocks the trade, never an RPC hiccup.
  */
 async function wouldRevert(tx: { account: `0x${string}`; to: `0x${string}`; data: `0x${string}`; value: bigint; chainId: number }): Promise<boolean> {
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const waits = [1500, 3000, 4500];
+  for (let attempt = 0; attempt <= waits.length; attempt++) {
     try {
       await call(wagmiConfig, tx as Parameters<typeof call<typeof wagmiConfig>>[1]);
       return false;
     } catch (err) {
       if (!/revert/i.test(err instanceof Error ? err.message : String(err))) return false;
-      if (attempt === 0) await new Promise((r) => setTimeout(r, 1500));
+      const wait = waits[attempt];
+      if (wait !== undefined) await new Promise((r) => setTimeout(r, wait));
     }
   }
   return true;

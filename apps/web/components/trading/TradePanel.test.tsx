@@ -278,9 +278,10 @@ describe('TradePanel', () => {
 
     await clickTrade();
 
-    expect(await screen.findByText(/This trade would fail right now/, {}, { timeout: 4000 })).toBeInTheDocument();
+    // The dry run retries for ~9s (an approval may not have reached the RPC node yet).
+    expect(await screen.findByText(/This trade would fail right now/, {}, { timeout: 12000 })).toBeInTheDocument();
     expect(sendTransactionMock).not.toHaveBeenCalled();
-  });
+  }, 20000);
 
   it('never asks for the fee when the swap reverts on-chain (2026-10-12: $0.14 taken for a failed BNB buy)', async () => {
     const quote = fakeQuote({
