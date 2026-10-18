@@ -8,6 +8,7 @@ import { errorText, translateApiMessage, type ErrorKey } from './error-messages'
  * Shown in the page's language (lib/error-messages.ts) since 2026-10-09.
  */
 const RULES: { test: RegExp; key: ErrorKey }[] = [
+  { test: /does not match the target chain|chain ?mismatch|wrong network/i, key: 'wrongNetwork' },
   { test: /user (rejected|denied|cancel)|rejected the request|request rejected|cancelled by user|user closed/i, key: 'cancelled' },
   { test: /insufficient (funds|balance|lamports)|exceeds (the )?balance|not enough (funds|balance)/i, key: 'balance' },
   { test: /blockhash not found|block height exceeded|transaction expired|expired blockhash/i, key: 'expired' },

@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, X, XCircle } from 'lucide-react';
 import { erc20Abi } from 'viem';
 import { useAccount } from 'wagmi';
-import { call, sendTransaction, writeContract } from 'wagmi/actions';
+import { call, getAccount, sendTransaction, switchChain, writeContract } from 'wagmi/actions';
 import { useWalletVerification } from '@/hooks/useWalletVerification';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { explorerName, explorerTxUrl } from '@/lib/explorer';
@@ -348,6 +348,8 @@ export function TradePanel({
     } catch {
       return; // MoveNote shows why; nothing was bought
     }
+    // The move left the wallet on the chain it moved from — back to this coin's chain to buy.
+    if (getAccount(wagmiConfig).chainId !== chainId) await switchChain(wagmiConfig, { chainId: chainId as 8453 | 56 | 4663 }).catch(() => undefined);
     setBuyAfterMove(true);
     setRefreshTick((n) => n + 1); // the old quote said "not enough USDC" — ask again
   }
@@ -681,7 +683,10 @@ export function TradePanel({
   // written to degrade to "no data" rather than fetch/crash when disconnected, so nothing
   // about the quote/signing logic changes here — only which button sits at the bottom.
 
-  if (isConnected && !onCorrectChain) {
+  // Not while USDC is being moved (2026-10-18, owner hit it on a Robinhood coin): the move signs
+  // on the chain it moves *from*, and this screen's button switched the wallet straight back
+  // to the coin's chain mid-move — "current chain 4663 does not match target 56".
+  if (isConnected && !onCorrectChain && !moveBusy) {
     return (
       <Panel title={tU('trade_5f39')} onClose={onClose} animKey="wrong-chain">
         <p className="font-body text-sm text-ink-600">Your wallet is on the wrong network for this trade — it needs to be on {chainName}.</p>

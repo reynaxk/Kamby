@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import { getAccount, sendTransaction, switchChain, waitForTransactionReceipt } from 'wagmi/actions';
 import { useSignTransaction, useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { wagmiConfig } from './wagmi-config';
+import { friendlyError } from './friendly-error';
 import { moveStatus, quoteMove, submitSolanaMove, type BridgeChain } from './bridge-client';
 import { useUsdcBalances } from './use-usdc-balance';
 import { notifyTradeConfirmed } from './my-positions';
@@ -84,13 +85,24 @@ export function useCrossChainFunding(target: BridgeChain, neededUsd: number | nu
         await submitSolanaMove(quote.requestId, bytesToBase64(signedTransaction));
       }
       for (const step of quote.steps) {
-        if (getAccount(wagmiConfig).chainId !== step.chainId) await switchChain(wagmiConfig, { chainId: step.chainId as 8453 | 56 | 4663 });
-        const hash = await sendTransaction(wagmiConfig, {
-          to: step.to as `0x${string}`,
-          data: step.data as `0x${string}`,
-          value: 0n,
-          chainId: step.chainId as 8453 | 56 | 4663,
-          gas: step.gas ? (BigInt(step.gas) * 13n) / 10n : undefined,
+        const stepChain = step.chainId as 8453 | 56 | 4663;
+        const send = async () => {
+          if (getAccount(wagmiConfig).chainId !== stepChain) await switchChain(wagmiConfig, { chainId: stepChain });
+          return sendTransaction(wagmiConfig, {
+            to: step.to as `0x${string}`,
+            data: step.data as `0x${string}`,
+            value: 0n,
+            chainId: stepChain,
+            gas: step.gas ? (BigInt(step.gas) * 13n) / 10n : undefined,
+          });
+        };
+        // Something else on screen may flip the wallet's network between the switch and the
+        // signature (2026-10-18: "current chain 4663 does not match target 56") — switch again
+        // and retry once, rather than failing the move.
+        const hash = await send().catch(async (err: unknown) => {
+          if (!/does not match the target chain|chain mismatch/i.test(err instanceof Error ? err.message : String(err))) throw err;
+          await switchChain(wagmiConfig, { chainId: stepChain });
+          return send();
         });
         // Approve first, then the deposit that spends it.
         await waitForTransactionReceipt(wagmiConfig, { hash, chainId: step.chainId as 8453 | 56 | 4663, timeout: 60_000 });
@@ -108,7 +120,7 @@ export function useCrossChainFunding(target: BridgeChain, neededUsd: number | nu
       setStage('done');
     } catch (err) {
       setStage('error');
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyError(err));
       throw err;
     }
   }
