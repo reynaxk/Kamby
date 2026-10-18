@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
@@ -21,7 +21,7 @@ function localName(code: Locale, inLocale: Locale): string {
 
 /**
  * The language picker (2026-10-18, owner: make it cool) — a pill with the flag and the language's
- * own name; tap it for a glass sheet with search and every language as a card (flag, its own
+ * own name; tap it for a glass sheet with every language as a card (flag, its own
  * name, and its name in yours). The choice is saved in a cookie for a year and the page
  * re-renders in place. Used on the sign-in screen, the profile and the footer.
  *
@@ -59,18 +59,13 @@ function LanguageSheet({ open, onClose }: { open: boolean; onClose: () => void }
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [picked, setPicked] = useState<Locale | null>(null);
-  const [q, setQ] = useState('');
-  const search = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    setQ('');
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    // Typing straight away on a computer; phones keep the keyboard down until they tap search.
-    if (window.matchMedia('(pointer: fine)').matches) setTimeout(() => search.current?.focus(), 120);
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
@@ -87,11 +82,8 @@ function LanguageSheet({ open, onClose }: { open: boolean; onClose: () => void }
 
   const rows = useMemo(
     () =>
-      LOCALES.map((code) => ({ code, own: LOCALE_NAMES[code], local: localName(code, locale) })).filter((r) => {
-        const s = q.trim().toLowerCase();
-        return !s || r.own.toLowerCase().includes(s) || r.local.toLowerCase().includes(s) || r.code.includes(s);
-      }),
-    [locale, q],
+      LOCALES.map((code) => ({ code, own: LOCALE_NAMES[code], local: localName(code, locale) })),
+    [locale],
   );
 
   function choose(code: Locale) {
@@ -134,22 +126,7 @@ function LanguageSheet({ open, onClose }: { open: boolean; onClose: () => void }
                 </svg>
               </button>
             </div>
-            <div className="px-5 pb-3">
-              <label className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-black/30 px-3.5 py-2.5 focus-within:border-accent/50">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 text-ink-400" aria-hidden>
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="m20 20-3.5-3.5" />
-                </svg>
-                <input
-                  ref={search}
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder={t('search')}
-                  className="min-w-0 flex-1 bg-transparent font-body text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none"
-                />
-              </label>
-            </div>
-            <ul className="grid grid-cols-2 gap-2 overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-2 overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-2 sm:grid-cols-3">
               {rows.map((r) => {
                 const current = r.code === locale;
                 const loading = picked === r.code && pending;
@@ -184,7 +161,6 @@ function LanguageSheet({ open, onClose }: { open: boolean; onClose: () => void }
                   </li>
                 );
               })}
-              {rows.length === 0 && <li className="col-span-full py-8 text-center font-body text-sm text-ink-400">{t('noMatch')}</li>}
             </ul>
           </motion.div>
         </div>
