@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { cn } from '@kamby/ui';
 
-/** Traders ⇄ Squads on the Leaders tab (2026-10-17) — a glass segmented switch. */
-export function LeaderTabs({ active, traders, squads }: { active: 'traders' | 'squads'; traders: string; squads: string }) {
-  const tab = (key: 'traders' | 'squads', href: string, label: string, icon: React.ReactNode) => (
+/** Traders ⇄ Squads ⇄ Duels on the Leaders tab (2026-10-17; Duels 2026-10-18) — a glass segmented switch. */
+export function LeaderTabs({ active, traders, squads, duels }: { active: 'traders' | 'squads' | 'duels'; traders: string; squads: string; duels: string }) {
+  const tab = (key: 'traders' | 'squads' | 'duels', href: string, label: string, icon: React.ReactNode) => (
     <Link
       href={href}
       aria-current={active === key ? 'page' : undefined}
@@ -32,6 +32,14 @@ export function LeaderTabs({ active, traders, squads }: { active: 'traders' | 's
         squads,
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2" />
+        </svg>,
+      )}
+      {tab(
+        'duels',
+        '/leaderboard/duels',
+        duels,
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
         </svg>,
       )}
     </nav>

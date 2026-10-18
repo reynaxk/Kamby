@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, NotFoundException, type OnModuleDestroy, type OnModuleInit, Optional } from '@nestjs/common';
 import { prisma, type Duel } from '@kamby/db';
-import { DUEL_LIMITS, duelWinner, slugForIdentifier, type DuelSide, type DuelState, type DuelStatus, type DuelTrade, type TokenInfoChain } from '@kamby/domain';
+import { DUEL_LIMITS, duelWinner, slugForIdentifier, type DuelLeader, type DuelSide, type DuelState, type DuelStatus, type DuelTrade, type TokenInfoChain } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { formatUnits } from 'viem';
@@ -11,8 +11,12 @@ import { REDIS_CLIENT } from '../redis/redis.module';
 
 const PUMPFUN_DECIMALS = 6;
 const SWEEP_MS = 20_000;
+const OPEN_LIST_KEY = 'kamby:duel:open';
 
 type BaseState = Omit<DuelState, 'reactions' | 'meId'>;
+
+/** The empty side of an open duel nobody has joined yet. */
+const NOBODY: DuelSide = { userId: '', username: null, avatarUrl: null, pct: null, investedUsd: 0, trades: [], wins: 0 };
 
 /** Exported for tests. "+12.4% vs −3.1%" for the result line. */
 export function scoreLine(a: number | null, b: number | null): string {
@@ -85,6 +89,106 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
     return this.get(me, duel.id);
   }
 
+  /** An open duel (2026-10-18): thrown into the lobby for anyone to take — no opponent yet. */
+  async openDuel(me: string, minutes: number): Promise<DuelState> {
+    if (!(DUEL_LIMITS.minutes as readonly number[]).includes(minutes)) throw new BadRequestException('Pick 5, 15, 30 or 60 minutes.');
+    const meUser = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
+    if (!meUser?.username) throw new ForbiddenException('Set a username in your profile first.');
+    const mine = await prisma.duel.findFirst({ where: { challengerId: me, status: 'open', createdAt: { gt: new Date(Date.now() - DUEL_LIMITS.openMinutes * 60_000) } } });
+    if (mine) throw new BadRequestException('You already have an open duel waiting.');
+    const ok = await this.redis.set(`kamby:duel:cool:${me}`, '1', 'EX', 20, 'NX').catch(() => 'OK');
+    if (ok !== 'OK') throw new HttpException('One challenge at a time — try again in a few seconds.', HttpStatus.TOO_MANY_REQUESTS);
+    const duel = await prisma.duel.create({ data: { challengerId: me, opponentId: null, minutes, status: 'open' } });
+    await this.redis.del(OPEN_LIST_KEY).catch(() => 0);
+    return this.get(me, duel.id);
+  }
+
+  /** Take an open duel: it starts at once, and its card lands in your private chat with them. */
+  async join(me: string, id: string): Promise<DuelState> {
+    const duel = await this.find(id);
+    if (duel.status !== 'open' || this.lapsed(duel)) throw new BadRequestException('This duel is no longer open.');
+    if (duel.challengerId === me) throw new BadRequestException("You can't duel yourself.");
+    const meUser = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
+    if (!meUser?.username) throw new ForbiddenException('Set a username in your profile first.');
+    const startedAt = new Date();
+    const taken = await prisma.duel.updateMany({
+      where: { id, status: 'open', opponentId: null },
+      data: { opponentId: me, status: 'live', startedAt, endsAt: new Date(startedAt.getTime() + duel.minutes * 60_000) },
+    });
+    if (taken.count === 0) throw new BadRequestException('Someone else just took this duel.');
+    await Promise.all([this.forget(id), this.redis.del(OPEN_LIST_KEY).catch(() => 0)]);
+    const challenger = await prisma.user.findUnique({ where: { id: duel.challengerId }, select: { username: true } });
+    if (challenger?.username) {
+      const conversationId = (await this.dm.open(me, challenger.username).catch(() => null))?.id ?? null;
+      if (conversationId) {
+        const message = await this.dm.postDuel(me, conversationId, { duelId: id, minutes: duel.minutes }).catch(() => null);
+        await prisma.duel.update({ where: { id }, data: { conversationId, messageId: message?.id ?? null } });
+        await this.dm.notifyDuel(me, conversationId, [duel.challengerId], 'duelAccepted', '', `duel:${id}:on`).catch(() => undefined);
+        await this.forget(id);
+      }
+    }
+    return this.get(me, id);
+  }
+
+  /** The lobby: open duels still waiting, newest first. */
+  async listOpen(me: string | null): Promise<DuelState[]> {
+    const ids = await this.cachedOpenIds();
+    const states = await Promise.all(ids.map((id) => this.get(me, id).catch(() => null)));
+    return states.filter((d): d is DuelState => d !== null && d.status === 'open');
+  }
+
+  private async cachedOpenIds(): Promise<string[]> {
+    const hit = await this.redis.get(OPEN_LIST_KEY).catch(() => null);
+    if (hit) return JSON.parse(hit) as string[];
+    const rows = await prisma.duel.findMany({
+      where: { status: 'open', createdAt: { gt: new Date(Date.now() - DUEL_LIMITS.openMinutes * 60_000) } },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: { id: true },
+    });
+    const ids = rows.map((r) => r.id);
+    await this.redis.set(OPEN_LIST_KEY, JSON.stringify(ids), 'EX', 5).catch(() => undefined);
+    return ids;
+  }
+
+  /** This month's top duelists: wins, duels played and the current winning streak. */
+  async leaders(limit = 20): Promise<DuelLeader[]> {
+    const now = new Date();
+    const key = `kamby:duel:leaders:${now.toISOString().slice(0, 7)}`;
+    const hit = await this.redis.get(key).catch(() => null);
+    if (hit) return JSON.parse(hit) as DuelLeader[];
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const wins = await prisma.duel.groupBy({
+      by: ['winnerId'],
+      where: { status: 'done', winnerId: { not: null }, endsAt: { gte: monthStart } },
+      _count: { _all: true },
+      orderBy: { _count: { winnerId: 'desc' } },
+      take: limit,
+    });
+    const ids = wins.map((w) => w.winnerId).filter((x): x is string => Boolean(x));
+    const [users, recent] = await Promise.all([
+      prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, username: true, avatarUrl: true } }),
+      prisma.duel.findMany({
+        where: { status: 'done', endsAt: { gte: monthStart }, OR: [{ challengerId: { in: ids } }, { opponentId: { in: ids } }] },
+        orderBy: { endsAt: 'desc' },
+        select: { challengerId: true, opponentId: true, winnerId: true },
+        take: 2000,
+      }),
+    ]);
+    const leaders: DuelLeader[] = ids.map((id) => {
+      const theirs = recent.filter((d) => d.challengerId === id || d.opponentId === id);
+      let streak = 0;
+      for (const d of theirs) {
+        if (d.winnerId !== id) break;
+        streak++;
+      }
+      const u = users.find((x) => x.id === id);
+      return { userId: id, username: u?.username ?? null, avatarUrl: u?.avatarUrl ?? null, wins: wins.find((w) => w.winnerId === id)?._count._all ?? 0, played: theirs.length, streak };
+    });
+    await this.redis.set(key, JSON.stringify(leaders), 'EX', 60).catch(() => undefined);
+    return leaders;
+  }
+
   async accept(me: string, id: string): Promise<DuelState> {
     const duel = await this.find(id);
     if (duel.opponentId !== me) throw new ForbiddenException('Only the challenged trader can accept.');
@@ -125,7 +229,7 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
   async get(me: string | null, id: string): Promise<DuelState> {
     let duel = await this.find(id);
     if (duel.status === 'live' && duel.endsAt && duel.endsAt.getTime() <= Date.now()) duel = await this.finalize(duel);
-    if (duel.status === 'pending' && this.lapsed(duel)) duel = await this.expire(duel);
+    if ((duel.status === 'pending' || duel.status === 'open') && this.lapsed(duel)) duel = await this.expire(duel);
     const base = await this.state(duel);
     const [challenger, opponent] = await Promise.all([this.reactionsOf(id, 'challenger'), this.reactionsOf(id, 'opponent')]);
     return { ...base, reactions: { challenger, opponent }, meId: me };
@@ -135,7 +239,10 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
     const key = `kamby:duel:state:${duel.id}`;
     const hit = await this.redis.get(key).catch(() => null);
     if (hit) return JSON.parse(hit) as BaseState;
-    const [challenger, opponent] = await Promise.all([this.side(duel, duel.challengerId, duel.challengerPct), this.side(duel, duel.opponentId, duel.opponentPct)]);
+    const [challenger, opponent] = await Promise.all([
+      this.side(duel, duel.challengerId, duel.challengerPct),
+      duel.opponentId ? this.side(duel, duel.opponentId, duel.opponentPct) : Promise.resolve(NOBODY),
+    ]);
     const state: BaseState = {
       id: duel.id,
       conversationId: duel.conversationId,
@@ -144,7 +251,7 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
       createdAt: duel.createdAt.toISOString(),
       startedAt: duel.startedAt?.toISOString() ?? null,
       endsAt: duel.endsAt?.toISOString() ?? null,
-      expiresAt: new Date(duel.createdAt.getTime() + DUEL_LIMITS.pendingMinutes * 60_000).toISOString(),
+      expiresAt: new Date(duel.createdAt.getTime() + (duel.status === 'open' ? DUEL_LIMITS.openMinutes : DUEL_LIMITS.pendingMinutes) * 60_000).toISOString(),
       challenger,
       opponent,
       winnerId: duel.winnerId,
@@ -175,6 +282,10 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
       take: 200,
     });
     if (lots.length === 0) return { pct: null, investedUsd: 0, trades: [] };
+    // Coins this player launched on Kamby's LaunchPad never count — they could pump their own coin.
+    const launched = new Set(
+      (await prisma.tokenLaunch.findMany({ where: { userId, tokenAddress: { not: null } }, select: { tokenAddress: true } })).map((l) => (l.tokenAddress ?? '').toLowerCase()),
+    );
     const events = await prisma.realizedPnlEvent.findMany({
       where: { lotId: { in: lots.map((l) => l.id) }, confirmedAt: { lte: end } },
       select: { lotId: true, proceedsUsd: true, quantityMatchedRaw: true },
@@ -212,6 +323,7 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
     for (const lot of lots) {
       const key = lot.evmTokenId ? `evm:${lot.evmTokenId}` : `sol:${lot.solanaMint}`;
       const m = meta.get(key);
+      if ((m && launched.has(m.address.toLowerCase())) || (lot.solanaMint && launched.has(lot.solanaMint.toLowerCase()))) continue;
       const gross = Number(lot.costBasisUsd);
       const fee = lot.evmBuyTransactionId
         ? gross * ((evmFeeBps.get(lot.evmBuyTransactionId) ?? 0) / 10_000)
@@ -233,6 +345,7 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
       }
       if (m) trades.push({ chainIdentifier: m.chainIdentifier, tokenAddress: m.address, symbol: m.symbol, logoUrl: m.logoUrl, amountUsd: gross, at: lot.acquiredAt.toISOString() });
     }
+    if (paidIn === 0) return { pct: null, investedUsd: 0, trades: [] };
     return { pct: invested > 0 ? ((value - invested) / invested) * 100 : null, investedUsd: paidIn, trades: trades.slice(0, 20) };
   }
 
@@ -261,38 +374,47 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
     if (lock !== 'OK') return;
     const due = await prisma.duel.findMany({ where: { status: 'live', endsAt: { lte: new Date() } }, take: 50 });
     for (const d of due) await this.finalize(d).catch((error: unknown) => this.logger.warn({ err: error, duelId: d.id }, 'Duel finalize failed'));
-    const old = await prisma.duel.findMany({ where: { status: 'pending', createdAt: { lt: new Date(Date.now() - DUEL_LIMITS.pendingMinutes * 60_000) } }, take: 100 });
+    const old = await prisma.duel.findMany({
+      where: {
+        OR: [
+          { status: 'pending', createdAt: { lt: new Date(Date.now() - DUEL_LIMITS.pendingMinutes * 60_000) } },
+          { status: 'open', createdAt: { lt: new Date(Date.now() - DUEL_LIMITS.openMinutes * 60_000) } },
+        ],
+      },
+      take: 100,
+    });
     for (const d of old) await this.expire(d).catch(() => undefined);
   }
 
   private async finalize(duel: Duel): Promise<Duel> {
-    if (!duel.startedAt || !duel.endsAt) return duel;
-    const [a, b] = await Promise.all([this.score(duel.challengerId, duel.startedAt, duel.endsAt), this.score(duel.opponentId, duel.startedAt, duel.endsAt)]);
-    const winnerId = duelWinner({ userId: duel.challengerId, pct: a.pct }, { userId: duel.opponentId, pct: b.pct });
+    if (!duel.startedAt || !duel.endsAt || !duel.opponentId) return duel;
+    const opponentId = duel.opponentId;
+    const [a, b] = await Promise.all([this.score(duel.challengerId, duel.startedAt, duel.endsAt), this.score(opponentId, duel.startedAt, duel.endsAt)]);
+    const winnerId = duelWinner({ userId: duel.challengerId, pct: a.pct }, { userId: opponentId, pct: b.pct });
     const done = await prisma.duel.updateMany({ where: { id: duel.id, status: 'live' }, data: { status: 'done', challengerPct: a.pct, opponentPct: b.pct, winnerId } });
     const fresh = await this.find(duel.id);
     if (done.count === 0) return fresh; // someone else finished it
     await this.forget(duel.id);
     if (duel.conversationId) {
-      const people = await prisma.user.findMany({ where: { id: { in: [duel.challengerId, duel.opponentId] } }, select: { id: true, username: true } });
+      const people = await prisma.user.findMany({ where: { id: { in: [duel.challengerId, opponentId] } }, select: { id: true, username: true } });
       const name = (id: string) => people.find((p) => p.id === id)?.username ?? 'someone';
-      const loserId = winnerId === duel.challengerId ? duel.opponentId : duel.challengerId;
+      const loserId = winnerId === duel.challengerId ? opponentId : duel.challengerId;
       const line = winnerId
         ? scoreLine(winnerId === duel.challengerId ? a.pct : b.pct, winnerId === duel.challengerId ? b.pct : a.pct)
         : scoreLine(a.pct, b.pct);
       await this.dm
         .postSystem(duel.conversationId, winnerId
           ? { event: 'duelWon', actor: name(winnerId), targets: [name(loserId)], title: line }
-          : { event: 'duelDraw', actor: name(duel.challengerId), targets: [name(duel.opponentId)], title: line })
+          : { event: 'duelDraw', actor: name(duel.challengerId), targets: [name(opponentId)], title: line })
         .catch(() => undefined);
       const preview = winnerId ? `🏆 @${name(winnerId)} won · ${line}` : `🤝 Draw · ${line}`;
-      await this.dm.notifyDuel(winnerId ?? duel.challengerId, duel.conversationId, [duel.challengerId, duel.opponentId], 'duelResult', preview, `duel:${duel.id}:done`).catch(() => undefined);
+      await this.dm.notifyDuel(winnerId ?? duel.challengerId, duel.conversationId, [duel.challengerId, opponentId], 'duelResult', preview, `duel:${duel.id}:done`).catch(() => undefined);
     }
     return fresh;
   }
 
   private async expire(duel: Duel): Promise<Duel> {
-    await prisma.duel.updateMany({ where: { id: duel.id, status: 'pending' }, data: { status: 'expired' } });
+    await prisma.duel.updateMany({ where: { id: duel.id, status: { in: ['pending', 'open'] } }, data: { status: 'expired' } });
     await this.forget(duel.id);
     return this.find(duel.id);
   }
@@ -300,14 +422,15 @@ export class DuelsService implements OnModuleInit, OnModuleDestroy {
   private async close(me: string, id: string, who: 'challenger' | 'opponent', status: 'declined' | 'cancelled'): Promise<DuelState> {
     const duel = await this.find(id);
     if ((who === 'challenger' ? duel.challengerId : duel.opponentId) !== me) throw new ForbiddenException("That's not yours to do.");
-    if (duel.status !== 'pending') throw new BadRequestException('This challenge is no longer open.');
-    await prisma.duel.updateMany({ where: { id, status: 'pending' }, data: { status } });
-    await this.forget(id);
+    const openOk = duel.status === 'open' && who === 'challenger';
+    if (duel.status !== 'pending' && !openOk) throw new BadRequestException('This challenge is no longer open.');
+    await prisma.duel.updateMany({ where: { id, status: { in: ['pending', 'open'] } }, data: { status } });
+    await Promise.all([this.forget(id), this.redis.del(OPEN_LIST_KEY).catch(() => 0)]);
     return this.get(me, id);
   }
 
   private lapsed(duel: Duel): boolean {
-    return Date.now() - duel.createdAt.getTime() > DUEL_LIMITS.pendingMinutes * 60_000;
+    return Date.now() - duel.createdAt.getTime() > (duel.status === 'open' ? DUEL_LIMITS.openMinutes : DUEL_LIMITS.pendingMinutes) * 60_000;
   }
 
   private async find(id: string): Promise<Duel> {

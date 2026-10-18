@@ -7,7 +7,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
 import { DUEL_LIMITS, type DuelSide, type DuelState } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { acceptDuel, cheerDuel, declineDuel, useCountdown, useDuel } from '@/lib/duels-client';
+import { acceptDuel, cancelDuel, cheerDuel, declineDuel, joinDuel, useCountdown, useDuel } from '@/lib/duels-client';
 import { friendlyError } from '@/lib/friendly-error';
 import { cashtag, formatCompactUsd, formatRelativeTime } from '@/lib/format';
 import { marketHref } from '@/lib/solana-links';
@@ -72,6 +72,37 @@ function Clock({ duel }: { duel: DuelState }) {
           <span className="font-display text-sm font-black text-white">{t('minShort', { count: duel.minutes })}</span>
         )}
       </span>
+    </div>
+  );
+}
+
+/** The empty corner of an open duel — anyone can take it. */
+function WaitingCorner() {
+  const t = useTranslations('duels');
+  return (
+    <div className="flex min-w-0 flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-white/15 px-2.5 py-8 text-center">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-white/25 font-display text-2xl font-black text-white/40">?</span>
+      <span className="mt-3 font-display text-sm font-bold text-white/70">{t('waiting')}</span>
+    </div>
+  );
+}
+
+/** Who's ahead, as one bar (2026-10-18): the split slides toward the leader, up to 85/15. */
+function LeadBar({ duel }: { duel: DuelState }) {
+  const t = useTranslations('duels');
+  const a = duel.challenger.pct;
+  const b = duel.opponent.pct;
+  if (a === null && b === null) return null;
+  const diff = (a ?? -100) - (b ?? -100);
+  const share = Math.max(15, Math.min(85, 50 + Math.max(-35, Math.min(35, diff * 2))));
+  const leader = Math.abs(diff) < 0.05 ? null : diff > 0 ? duel.challenger : duel.opponent;
+  return (
+    <div className="mt-4">
+      <div className="flex h-2.5 overflow-hidden rounded-full bg-white/[0.06]" role="img" aria-label={leader ? t('leading', { name: `@${leader.username ?? '…'}` }) : t('even')}>
+        <span className="h-full transition-[width] duration-700 ease-out" style={{ width: `${share}%`, background: SIDE_COLOR.challenger }} />
+        <span className="h-full flex-1" style={{ background: SIDE_COLOR.opponent }} />
+      </div>
+      <p className="mt-1.5 text-center font-body text-[0.68rem] font-semibold text-white/60">{leader ? t('leading', { name: `@${leader.username ?? '…'}` }) : t('even')}</p>
     </div>
   );
 }
@@ -239,11 +270,32 @@ export function DuelArena({ id }: { id: string }) {
 
         <div className="relative mt-4 grid grid-cols-2 gap-2.5">
           <Corner side={duel.challenger} which="challenger" duel={duel} onCheer={(s, e) => void cheer(s, e)} canCheer={canCheer} floaters={floaters} />
-          <Corner side={duel.opponent} which="opponent" duel={duel} onCheer={(s, e) => void cheer(s, e)} canCheer={canCheer} floaters={floaters} />
+          {duel.status === 'open' ? <WaitingCorner /> : <Corner side={duel.opponent} which="opponent" duel={duel} onCheer={(s, e) => void cheer(s, e)} canCheer={canCheer} floaters={floaters} />}
           <span className="pointer-events-none absolute left-1/2 top-[5.25rem] -translate-x-1/2">
             <VsChip className="h-10 w-10 text-xs" />
           </span>
         </div>
+
+        {(duel.status === 'live' || duel.status === 'done') && <LeadBar duel={duel} />}
+
+        {/* Open: anyone signed in can take the empty corner; its owner can call it off */}
+        {duel.status === 'open' && (
+          <div className="mt-4 rounded-3xl border border-white/[0.07] bg-white/[0.03] p-4 text-center">
+            {duel.meId === duel.challenger.userId ? (
+              <>
+                <p className="font-body text-sm text-white/70">{t('yourOpen')}</p>
+                <button type="button" disabled={busy} onClick={() => void act(cancelDuel)} className="mt-3 w-full rounded-2xl bg-white/[0.08] py-3 font-display text-sm font-bold disabled:opacity-50">
+                  {t('cancel')}
+                </button>
+              </>
+            ) : (
+              <button type="button" disabled={busy || !authenticated} onClick={() => void act(joinDuel)} className="flex w-full items-center justify-center gap-1.5 rounded-2xl bg-accent py-3.5 font-display text-base font-black text-black transition-transform active:scale-[0.98] disabled:opacity-50">
+                <Swords className="h-4 w-4" />
+                {t('join')}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Pending: the challenged trader answers here too */}
         {duel.status === 'pending' && (

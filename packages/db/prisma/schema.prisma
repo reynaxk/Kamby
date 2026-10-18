@@ -1522,9 +1522,10 @@ model Duel {
   conversationId String?   @map("conversation_id")
   messageId      String?   @map("message_id")
   challengerId   String    @map("challenger_id")
-  opponentId     String    @map("opponent_id")
+  /// Null while an open duel (2026-10-18) waits in the lobby for anyone to join.
+  opponentId     String?   @map("opponent_id")
   minutes        Int
-  /// 'pending' | 'live' | 'done' | 'declined' | 'expired' | 'cancelled'
+  /// 'open' | 'pending' | 'live' | 'done' | 'declined' | 'expired' | 'cancelled'
   status         String    @default("pending") @db.VarChar(10)
   startedAt      DateTime? @map("started_at")
   endsAt         DateTime? @map("ends_at")
@@ -1534,6 +1535,7 @@ model Duel {
   createdAt      DateTime  @default(now()) @map("created_at")
 
   @@index([status, endsAt])
+  @@index([status, createdAt])
   @@index([challengerId, createdAt])
   @@index([opponentId, createdAt])
   @@index([winnerId])

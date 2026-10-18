@@ -22,6 +22,12 @@ class ChallengeDto {
   conversationId?: string;
 }
 
+class OpenDuelDto {
+  @IsInt()
+  @IsIn(DUEL_LIMITS.minutes as unknown as number[])
+  minutes!: number;
+}
+
 class CheerDto {
   @IsIn(['challenger', 'opponent'])
   side!: 'challenger' | 'opponent';
@@ -41,6 +47,35 @@ export class DuelsController {
   @Post()
   challenge(@Body() body: ChallengeDto, @CurrentUser() user: SessionUser) {
     return this.duels.challenge(user.id, body);
+  }
+
+  /** An open duel in the lobby — anyone can join it. */
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('open')
+  openDuel(@Body() body: OpenDuelDto, @CurrentUser() user: SessionUser) {
+    return this.duels.openDuel(user.id, body.minutes);
+  }
+
+  @UseGuards(OptionalAuthGuard)
+  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  @Get('open')
+  listOpen(@CurrentUser() user: SessionUser | null) {
+    return this.duels.listOpen(user?.id ?? null);
+  }
+
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @Get('leaders')
+  leaders() {
+    return this.duels.leaders();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post(':id/join')
+  join(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
+    return this.duels.join(user.id, id);
   }
 
   @UseGuards(OptionalAuthGuard)

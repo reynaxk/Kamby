@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DUEL_LIMITS, type DuelState } from '@kamby/domain';
+import { DUEL_LIMITS, type DuelLeader, type DuelState } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /** Browser client for ⚔️ duels (2026-10-17) — see apps/api/src/duels. */
@@ -19,6 +19,19 @@ export async function fetchDuel(id: string): Promise<DuelState> {
 }
 export const challengeDuel = (opponentUsername: string, minutes: number, conversationId?: string) =>
   post<DuelState>('/duels', { opponentUsername, minutes, conversationId }, 'send the challenge');
+/** The lobby (2026-10-18): open duels anyone can join, and the month's top duelists. */
+export async function fetchOpenDuels(): Promise<DuelState[]> {
+  const res = hasStoredSession() ? await authedFetch('/duels/open') : await fetch(`${API_BASE}/v1/duels/open`);
+  await expectOk(res, 'load open duels');
+  return (await res.json()) as DuelState[];
+}
+export async function fetchDuelLeaders(): Promise<DuelLeader[]> {
+  const res = await fetch(`${API_BASE}/v1/duels/leaders`);
+  await expectOk(res, 'load the top duelists');
+  return (await res.json()) as DuelLeader[];
+}
+export const openDuel = (minutes: number) => post<DuelState>('/duels/open', { minutes }, 'start the duel');
+export const joinDuel = (id: string) => post<DuelState>(`/duels/${id}/join`, undefined, 'join the duel');
 export const acceptDuel = (id: string) => post<DuelState>(`/duels/${id}/accept`, undefined, 'accept the duel');
 export const declineDuel = (id: string) => post<DuelState>(`/duels/${id}/decline`, undefined, 'decline the duel');
 export const cancelDuel = (id: string) => post<DuelState>(`/duels/${id}/cancel`, undefined, 'cancel the duel');
@@ -29,7 +42,7 @@ export const cheerDuel = (id: string, side: 'challenger' | 'opponent', emoji: st
 export function useDuel(id: string, active = true): [DuelState | null, (d: DuelState) => void, string | null] {
   const [duel, setDuel] = useState<DuelState | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const running = !duel || duel.status === 'pending' || duel.status === 'live';
+  const running = !duel || duel.status === 'open' || duel.status === 'pending' || duel.status === 'live';
   useEffect(() => {
     if (!active) return;
     let cancelled = false;

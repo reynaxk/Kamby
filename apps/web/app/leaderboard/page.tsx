@@ -66,6 +66,7 @@ export default async function LeaderboardPage({
   const t = await getTranslations('leaderboard');
   const tL = await getTranslations('labels');
   const tS = await getTranslations('squads');
+  const tD = await getTranslations('duels');
 
   return (
     <div className="kamby-void min-h-screen bg-bg">
@@ -96,7 +97,7 @@ export default async function LeaderboardPage({
           </nav>
         </div>
 
-        <LeaderTabs active="traders" traders={tS('traders')} squads={tS('squads')} />
+        <LeaderTabs active="traders" traders={tS('traders')} squads={tS('squads')} duels={tD('tab')} />
 
         <nav className="-mx-4 mt-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0">
           {CHAIN_FILTERS.map((c) => (
