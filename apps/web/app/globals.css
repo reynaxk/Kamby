@@ -625,7 +625,7 @@ body:has(.kamby-void) {
 /* Nearly opaque: it often floats out of a header that's already frosted, and a blur inside a blur
    sees nothing to blur (the page would read straight through). The lit edge keeps it glass. */
 .kamby-frost.kamby-frost-strong {
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03) 40%, rgba(255, 255, 255, 0.01) 72%), rgba(11, 14, 25, 0.97);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03) 40%, rgba(255, 255, 255, 0.01) 72%), rgb(11, 14, 25);
   -webkit-backdrop-filter: blur(32px) saturate(180%);
   backdrop-filter: blur(32px) saturate(180%);
 }
