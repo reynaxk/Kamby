@@ -646,7 +646,10 @@
     "sinceViewed": "sejak kamu lihat",
     "removeRecent": "Hapus dari terbaru",
     "pref_messages": "Pesan",
-    "pref_messages_detail": "Saat seseorang mengirimimu pesan pribadi"
+    "pref_messages_detail": "Saat seseorang mengirimimu pesan pribadi",
+    "referStep1": "Bagikan tautanmu",
+    "referStep2": "Teman mendaftar dan trading di Kamby",
+    "referStep3": "Kamu dapat bagian dari biaya mereka"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",
@@ -770,7 +773,8 @@
     "notEnough": "Kamu butuh sekitar ${amount} USDC untuk peluncuran ini.",
     "risk": "Koin baru sangat berisiko. Luncurkan dan beli hanya yang sanggup kamu relakan.",
     "rewardsTitle": "Kamu dapat 98% hadiah",
-    "rewardsBody": "Setiap trade koinmu, di mana pun, menghasilkan hadiah — 98% untukmu · 2% biaya platform Kamby."
+    "rewardsBody": "Setiap trade koinmu, di mana pun, menghasilkan hadiah — 98% untukmu · 2% biaya platform Kamby.",
+    "customAmount": "Jumlahmu sendiri"
   },
   "curve": {
     "onCurve": "Di Four.meme — ke PancakeSwap di 100%",
@@ -999,7 +1003,8 @@
     "next": "Berikutnya",
     "buy": "Beli {symbol}",
     "profile": "Profil",
-    "goLive": "Mulai live"
+    "goLive": "Mulai live",
+    "goLiveHint": "Bicara dan bagikan layarmu — pengikutmu dapat notifikasi"
   },
   "live": {
     "back": "Kembali",
@@ -1117,5 +1122,28 @@
     "addressNote": "Alamat kontrak — dicek di semua chain",
     "nothing": "Tidak ada hasil untuk “{q}”",
     "nothingHint": "Coba simbol koin, alamat kontrak, atau @nama seseorang."
+  },
+  "empty": {
+    "tryAgain": "Coba lagi sebentar lagi.",
+    "tryToken": "Pilih koinnya lagi sebentar lagi.",
+    "tradesEmpty": "Pembelian dan penjualanmu akan muncul di sini.",
+    "watchEmpty": "Ketuk ☆ pada koin untuk mengikuti harganya di sini.",
+    "tradeNotYours": "Ini bukan salah satu trade-mu.",
+    "marketsWarming": "Harga sedang dimuat — cek lagi sebentar.",
+    "switchLive": "Ganti ke Live atau 10s untuk melihatnya real-time.",
+    "signInWatch": "Masuk dan ketuk ☆ pada koin untuk mengikutinya.",
+    "tradersEmpty": "Trader terbaru koin ini akan muncul di sini.",
+    "alertsSoon": "Peringatan harga segera hadir.",
+    "notifsEmpty": "Follow, like, dan notifikasi trade akan muncul di sini.",
+    "notifsFollow": "Ikuti trader dan trading untuk melihat aktivitas di sini.",
+    "feedFollow": "Ikuti trader untuk melihat trade-nya di sini.",
+    "picksFollow": "Ikuti trader atau trading untuk dapat rekomendasi.",
+    "discoverTraders": "Temukan trader di peringkat dan ikuti mereka.",
+    "connectSession": "Masuk untuk mulai.",
+    "connectTrack": "Masuk dan trading untuk melacak ini.",
+    "connectFirstTrade": "Masuk dan lakukan trade pertamamu.",
+    "risingEmpty": "Cek lagi saat lebih banyak koin atau trader bergerak.",
+    "findCoins": "Cari koin",
+    "startTrading": "Mulai trading"
   }
 }

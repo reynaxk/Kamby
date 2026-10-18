@@ -646,7 +646,10 @@
     "sinceViewed": "kể từ khi bạn xem",
     "removeRecent": "Xóa khỏi gần đây",
     "pref_messages": "Tin nhắn",
-    "pref_messages_detail": "Khi ai đó gửi tin nhắn riêng cho bạn"
+    "pref_messages_detail": "Khi ai đó gửi tin nhắn riêng cho bạn",
+    "referStep1": "Chia sẻ link của bạn",
+    "referStep2": "Bạn bè đăng ký và giao dịch trên Kamby",
+    "referStep3": "Bạn nhận một phần phí của họ"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",
@@ -770,7 +773,8 @@
     "notEnough": "Bạn cần khoảng ${amount} USDC cho lần ra mắt này.",
     "risk": "Coin mới rủi ro cao. Chỉ ra mắt và mua số tiền bạn chấp nhận mất.",
     "rewardsTitle": "Bạn giữ 98% phần thưởng",
-    "rewardsBody": "Mỗi giao dịch coin của bạn, ở bất kỳ đâu, đều tạo phần thưởng — 98% cho bạn · 2% phí nền tảng Kamby."
+    "rewardsBody": "Mỗi giao dịch coin của bạn, ở bất kỳ đâu, đều tạo phần thưởng — 98% cho bạn · 2% phí nền tảng Kamby.",
+    "customAmount": "Số tiền của bạn"
   },
   "curve": {
     "onCurve": "Trên Four.meme — sang PancakeSwap khi đạt 100%",
@@ -999,7 +1003,8 @@
     "next": "Tiếp",
     "buy": "Mua {symbol}",
     "profile": "Hồ sơ",
-    "goLive": "Phát live"
+    "goLive": "Phát live",
+    "goLiveHint": "Nói chuyện và chia sẻ màn hình — người theo dõi sẽ được báo"
   },
   "live": {
     "back": "Quay lại",
@@ -1117,5 +1122,28 @@
     "addressNote": "Địa chỉ hợp đồng — đang kiểm tra trên mọi chain",
     "nothing": "Không tìm thấy “{q}”",
     "nothingHint": "Thử ký hiệu coin, địa chỉ hợp đồng hoặc @tên ai đó."
+  },
+  "empty": {
+    "tryAgain": "Thử lại sau giây lát.",
+    "tryToken": "Chọn lại coin sau giây lát.",
+    "tradesEmpty": "Lệnh mua bán của bạn sẽ hiện ở đây sau lần đầu.",
+    "watchEmpty": "Chạm ☆ ở một coin để theo dõi giá tại đây.",
+    "tradeNotYours": "Đây không phải giao dịch của bạn.",
+    "marketsWarming": "Đang tải giá — quay lại sau giây lát.",
+    "switchLive": "Chuyển sang Live hoặc 10s để xem thời gian thực.",
+    "signInWatch": "Đăng nhập và chạm ☆ ở một coin để theo dõi.",
+    "tradersEmpty": "Các trader gần đây của coin này sẽ hiện ở đây.",
+    "alertsSoon": "Cảnh báo giá sắp ra mắt.",
+    "notifsEmpty": "Theo dõi, lượt thích và cảnh báo giao dịch sẽ hiện ở đây.",
+    "notifsFollow": "Theo dõi trader và giao dịch để thấy hoạt động ở đây.",
+    "feedFollow": "Theo dõi một trader để thấy giao dịch của họ ở đây.",
+    "picksFollow": "Theo dõi trader hoặc giao dịch để nhận gợi ý.",
+    "discoverTraders": "Tìm trader trên bảng xếp hạng và theo dõi.",
+    "connectSession": "Đăng nhập để bắt đầu.",
+    "connectTrack": "Đăng nhập và giao dịch để theo dõi.",
+    "connectFirstTrade": "Đăng nhập và thực hiện giao dịch đầu tiên.",
+    "risingEmpty": "Quay lại khi nhiều coin hoặc trader sôi động hơn.",
+    "findCoins": "Tìm coin",
+    "startTrading": "Bắt đầu giao dịch"
   }
 }

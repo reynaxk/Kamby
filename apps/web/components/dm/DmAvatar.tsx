@@ -1,6 +1,6 @@
 import { cn } from '@kamby/ui';
 
-const GRADIENTS = [
+export const AVATAR_GRADIENTS = [
   'from-[#00FF87] to-[#00B4D8]',
   'from-[#A78BFA] to-[#6366F1]',
   'from-[#F472B6] to-[#FB923C]',
@@ -18,7 +18,7 @@ export function DmAvatar({ name, src, className }: { name: string | null; src: s
     return <img src={src} alt="" className={cn('h-12 w-12 shrink-0 rounded-full object-cover', className)} />;
   }
   return (
-    <span className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-display text-base font-black text-black', GRADIENTS[seed % GRADIENTS.length], className)} aria-hidden>
+    <span className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-display text-base font-black text-black', AVATAR_GRADIENTS[seed % AVATAR_GRADIENTS.length], className)} aria-hidden>
       {label.slice(0, 1).toUpperCase()}
     </span>
   );

@@ -646,7 +646,10 @@
     "sinceViewed": "baktığından beri",
     "removeRecent": "Son aramalardan kaldır",
     "pref_messages": "Mesajlar",
-    "pref_messages_detail": "Biri sana özel mesaj gönderdiğinde"
+    "pref_messages_detail": "Biri sana özel mesaj gönderdiğinde",
+    "referStep1": "Linkini paylaş",
+    "referStep2": "Arkadaşların kaydolup Kamby’de işlem yapar",
+    "referStep3": "Ücretlerinden pay kazanırsın"
   },
   "notif": {
     "kind_FOLLOW": "Takip",
@@ -770,7 +773,8 @@
     "notEnough": "Bu başlatma için yaklaşık ${amount} USDC gerekiyor.",
     "risk": "Yeni coinler yüksek risklidir. Sadece kaybedebileceğin kadarını başlat ve al.",
     "rewardsTitle": "Ödüllerin %98i senin",
-    "rewardsBody": "Coinin nerede işlem görürse görsün ödül kazandırır — %98i senin · %2 Kamby platform ücreti."
+    "rewardsBody": "Coinin nerede işlem görürse görsün ödül kazandırır — %98i senin · %2 Kamby platform ücreti.",
+    "customAmount": "Kendi tutarın"
   },
   "curve": {
     "onCurve": "Four.meme'de — %100'de PancakeSwap'e",
@@ -999,7 +1003,8 @@
     "next": "Sonraki",
     "buy": "{symbol} al",
     "profile": "Profil",
-    "goLive": "Yayına başla"
+    "goLive": "Yayına başla",
+    "goLiveHint": "Konuş ve ekranını paylaş — takipçilerine bildirim gider"
   },
   "live": {
     "back": "Geri",
@@ -1117,5 +1122,28 @@
     "addressNote": "Kontrat adresi — tüm ağlarda kontrol ediliyor",
     "nothing": "“{q}” için sonuç yok",
     "nothingHint": "Coin sembolünü, kontrat adresini veya birinin @adını dene."
+  },
+  "empty": {
+    "tryAgain": "Biraz sonra tekrar dene.",
+    "tryToken": "Coini biraz sonra yeniden seç.",
+    "tradesEmpty": "Alım ve satımların ilk işlemden sonra burada görünür.",
+    "watchEmpty": "Bir coinde ☆ dokunarak fiyatını burada takip et.",
+    "tradeNotYours": "Bu senin işlemlerinden biri değil.",
+    "marketsWarming": "Fiyatlar yükleniyor — biraz sonra tekrar bak.",
+    "switchLive": "Canlı izlemek için Live veya 10s seç.",
+    "signInWatch": "Giriş yap ve bir coinde ☆ dokun.",
+    "tradersEmpty": "Bu coinin son trader’ları burada görünür.",
+    "alertsSoon": "Fiyat uyarıları yakında geliyor.",
+    "notifsEmpty": "Takipler, beğeniler ve işlem uyarıları burada görünür.",
+    "notifsFollow": "Trader’ları takip et ve işlem yap, aktivite burada görünsün.",
+    "feedFollow": "Bir trader’ı takip et, işlemleri burada görünsün.",
+    "picksFollow": "Öneriler için bir trader’ı takip et veya işlem yap.",
+    "discoverTraders": "Sıralamada trader bul ve takip et.",
+    "connectSession": "Başlamak için giriş yap.",
+    "connectTrack": "Takip etmek için giriş yap ve işlem yap.",
+    "connectFirstTrade": "Giriş yap ve ilk işlemini yap.",
+    "risingEmpty": "Daha fazla coin veya trader hareketlenince tekrar bak.",
+    "findCoins": "Coin bul",
+    "startTrading": "İşleme başla"
   }
 }

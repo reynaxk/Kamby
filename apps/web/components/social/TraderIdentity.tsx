@@ -1,5 +1,6 @@
 import { cn } from '@kamby/ui';
 import { truncateAddress } from '@/lib/format';
+import { AVATAR_GRADIENTS } from '@/components/dm/DmAvatar';
 
 /**
  * Mirrors TokenIdentity's honesty rule: a real `<img>` when we have one, an initials avatar
@@ -20,6 +21,8 @@ export function TraderIdentity({
 }) {
   const label = displayName ?? truncateAddress(address);
   const initials = Array.from(displayName ?? address.slice(2)).slice(0, 2).join('').toUpperCase();
+  // Same gradient initials as everywhere else in Kamby (chats, stories) — not a grey disc (2026-10-18).
+  const seed = Array.from(displayName ?? address).reduce((n, c) => n + c.charCodeAt(0), 0);
   const dims = size === 'lg' ? 'h-11 w-11 text-base' : size === 'sm' ? 'h-7 w-7 text-[0.65rem]' : 'h-9 w-9 text-xs';
 
   return (
@@ -31,7 +34,8 @@ export function TraderIdentity({
         <div
           aria-hidden
           className={cn(
-            'flex shrink-0 items-center justify-center rounded-full border border-line bg-surface-raised font-display font-bold text-accent',
+            'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-display font-black text-black',
+            AVATAR_GRADIENTS[seed % AVATAR_GRADIENTS.length],
             dims,
           )}
         >

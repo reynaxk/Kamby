@@ -646,7 +646,10 @@
     "sinceViewed": "본 이후",
     "removeRecent": "최근 기록에서 삭제",
     "pref_messages": "메시지",
-    "pref_messages_detail": "누군가 비공개 메시지를 보냈을 때"
+    "pref_messages_detail": "누군가 비공개 메시지를 보냈을 때",
+    "referStep1": "링크를 공유하세요",
+    "referStep2": "친구가 가입하고 Kamby에서 거래해요",
+    "referStep3": "친구 수수료의 일부를 받아요"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",
@@ -770,7 +773,8 @@
     "notEnough": "이번 출시에 약 ${amount} USDC가 필요해요.",
     "risk": "새 코인은 고위험입니다. 잃어도 되는 만큼만 출시하고 매수하세요.",
     "rewardsTitle": "보상의 98%를 받으세요",
-    "rewardsBody": "어디서든 코인이 거래될 때마다 보상이 쌓여요 — 98%는 당신에게 · 2%는 Kamby 플랫폼 수수료."
+    "rewardsBody": "어디서든 코인이 거래될 때마다 보상이 쌓여요 — 98%는 당신에게 · 2%는 Kamby 플랫폼 수수료.",
+    "customAmount": "직접 입력"
   },
   "curve": {
     "onCurve": "Four.meme — 100%가 되면 PancakeSwap으로",
@@ -999,7 +1003,8 @@
     "next": "다음",
     "buy": "{symbol} 매수",
     "profile": "프로필",
-    "goLive": "라이브 시작"
+    "goLive": "라이브 시작",
+    "goLiveHint": "말하고 화면을 공유하세요 — 팔로워에게 알림이 가요"
   },
   "live": {
     "back": "뒤로",
@@ -1117,5 +1122,28 @@
     "addressNote": "컨트랙트 주소 — 모든 체인에서 확인 중",
     "nothing": "“{q}” 결과가 없어요",
     "nothingHint": "코인 심볼, 컨트랙트 주소 또는 @이름으로 찾아보세요."
+  },
+  "empty": {
+    "tryAgain": "잠시 후 다시 시도하세요.",
+    "tryToken": "잠시 후 코인을 다시 선택하세요.",
+    "tradesEmpty": "첫 거래를 하면 여기에 매수·매도가 표시돼요.",
+    "watchEmpty": "코인의 ☆를 누르면 여기서 가격을 볼 수 있어요.",
+    "tradeNotYours": "내 거래가 아니에요.",
+    "marketsWarming": "가격을 불러오는 중이에요 — 잠시 후 확인하세요.",
+    "switchLive": "Live나 10s로 바꾸면 실시간으로 볼 수 있어요.",
+    "signInWatch": "로그인하고 코인의 ☆를 누르세요.",
+    "tradersEmpty": "이 코인의 최근 트레이더가 여기에 표시돼요.",
+    "alertsSoon": "가격 알림이 곧 나와요.",
+    "notifsEmpty": "팔로우, 좋아요, 거래 알림이 여기에 표시돼요.",
+    "notifsFollow": "트레이더를 팔로우하고 거래하면 활동이 표시돼요.",
+    "feedFollow": "트레이더를 팔로우하면 거래가 여기에 표시돼요.",
+    "picksFollow": "트레이더를 팔로우하거나 거래하면 추천을 받아요.",
+    "discoverTraders": "순위에서 트레이더를 찾아 팔로우하세요.",
+    "connectSession": "로그인해서 시작하세요.",
+    "connectTrack": "로그인하고 거래하면 추적돼요.",
+    "connectFirstTrade": "로그인하고 첫 거래를 해보세요.",
+    "risingEmpty": "코인이나 트레이더가 움직이면 다시 확인하세요.",
+    "findCoins": "코인 찾기",
+    "startTrading": "거래 시작"
   }
 }

@@ -21,6 +21,7 @@ type State = 'no-session' | 'loading' | 'loaded' | 'error';
  */
 export function TradeHistoryList() {
   const tU = useTranslations('ui');
+  const tE = useTranslations('empty');
   const [state, setState] = useState<State>('loading');
   const [items, setItems] = useState<TradeTransactionDto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -68,7 +69,18 @@ export function TradeHistoryList() {
     return <EmptyState title={tU('couldnTLoadYourTrade_88d8')} detail="Try again in a moment." />;
   }
   if (items.length === 0) {
-    return <EmptyState title={tU('noTradesYet_ceb3')} detail="Your BUY/SELL trades will show up here once you make one." />;
+    return (
+      <EmptyState
+        title={tU('noTradesYet_ceb3')}
+        detail="Your BUY/SELL trades will show up here once you make one."
+        action={{ label: tE('startTrading'), href: '/home' }}
+        icon={
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+          </svg>
+        }
+      />
+    );
   }
 
   return (

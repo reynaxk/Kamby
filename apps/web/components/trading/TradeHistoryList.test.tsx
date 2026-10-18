@@ -65,7 +65,7 @@ describe('TradeHistoryList', () => {
     getTradeHistory.mockResolvedValue({ items: [], nextCursor: null });
     render(<TradeHistoryList />);
 
-    expect(await screen.findByText('Your BUY/SELL trades will show up here once you make one.')).toBeInTheDocument();
+    expect(await screen.findByText('Your buys and sells will show up here once you make one.')).toBeInTheDocument();
   });
 
   it('shows "Bought" in the up color for a real BUY trade', async () => {

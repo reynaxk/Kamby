@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { markAllNotificationsRead } from '@/lib/notifications-client';
 import { hasStoredSession } from '@/lib/session-client';
 import { NotificationList } from './NotificationList';
@@ -11,6 +11,10 @@ export function NotificationsPageClient() {
   const tU = useTranslations('ui');
   const [refreshKey, setRefreshKey] = useState(0);
   const [marking, setMarking] = useState(false);
+  // Read after mount — the server can't see this browser's session, and rendering it straight
+  // away made the server and browser disagree (React hydration error #418).
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => setSignedIn(hasStoredSession()), []);
 
   async function markAll(): Promise<void> {
     setMarking(true);
@@ -29,7 +33,7 @@ export function NotificationsPageClient() {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-ink-400">{tU('allNotifications_8e8a')}</h2>
-          {hasStoredSession() && (
+          {signedIn && (
             <button
               type="button"
               onClick={() => void markAll()}

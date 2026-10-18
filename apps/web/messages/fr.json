@@ -646,7 +646,10 @@
     "sinceViewed": "depuis ta visite",
     "removeRecent": "Retirer des récents",
     "pref_messages": "Messages",
-    "pref_messages_detail": "Quand quelqu’un t’envoie un message privé"
+    "pref_messages_detail": "Quand quelqu’un t’envoie un message privé",
+    "referStep1": "Partage ton lien",
+    "referStep2": "Tes amis s’inscrivent et tradent sur Kamby",
+    "referStep3": "Tu gagnes une part de leurs frais"
   },
   "notif": {
     "kind_FOLLOW": "Abonné",
@@ -770,7 +773,8 @@
     "notEnough": "Il te faut environ ${amount} en USDC pour ce lancement.",
     "risk": "Les nouveaux coins sont très risqués. Ne lance et n’achète que ce que tu peux perdre.",
     "rewardsTitle": "Tu gardes 98 % des récompenses",
-    "rewardsBody": "Chaque trade de ta coin, partout, rapporte des récompenses — 98 % pour toi · 2 % de frais de plateforme Kamby."
+    "rewardsBody": "Chaque trade de ta coin, partout, rapporte des récompenses — 98 % pour toi · 2 % de frais de plateforme Kamby.",
+    "customAmount": "Ton montant"
   },
   "curve": {
     "onCurve": "Sur Four.meme — vers PancakeSwap à 100%",
@@ -999,7 +1003,8 @@
     "next": "Suivant",
     "buy": "Acheter {symbol}",
     "profile": "Profil",
-    "goLive": "Passer en live"
+    "goLive": "Passer en live",
+    "goLiveHint": "Parle et partage ton écran — tes abonnés sont prévenus"
   },
   "live": {
     "back": "Retour",
@@ -1117,5 +1122,28 @@
     "addressNote": "Adresse de contrat — vérifiée sur toutes les chaînes",
     "nothing": "Rien pour « {q} »",
     "nothingHint": "Essaie le symbole, l’adresse du contrat ou le @nom de quelqu’un."
+  },
+  "empty": {
+    "tryAgain": "Réessaie dans un instant.",
+    "tryToken": "Choisis à nouveau le coin dans un instant.",
+    "tradesEmpty": "Tes achats et ventes apparaîtront ici après le premier.",
+    "watchEmpty": "Touche ☆ sur un coin pour suivre son prix ici.",
+    "tradeNotYours": "Ce n’est pas un de tes trades.",
+    "marketsWarming": "Les prix chargent — reviens dans un instant.",
+    "switchLive": "Passe en Live ou 10s pour le voir en temps réel.",
+    "signInWatch": "Connecte-toi et touche ☆ sur un coin pour le suivre.",
+    "tradersEmpty": "Les derniers traders de ce coin apparaîtront ici.",
+    "alertsSoon": "Les alertes de prix arrivent bientôt.",
+    "notifsEmpty": "Abonnements, likes et alertes de trades apparaîtront ici.",
+    "notifsFollow": "Suis des traders et trade pour voir de l’activité ici.",
+    "feedFollow": "Suis un trader pour voir ses trades ici.",
+    "picksFollow": "Suis un trader ou trade pour recevoir des suggestions.",
+    "discoverTraders": "Trouve des traders dans le classement et suis-les.",
+    "connectSession": "Connecte-toi pour commencer.",
+    "connectTrack": "Connecte-toi et trade pour suivre ceci.",
+    "connectFirstTrade": "Connecte-toi et fais ton premier trade.",
+    "risingEmpty": "Reviens quand plus de coins ou de traders s’animent.",
+    "findCoins": "Trouver des coins",
+    "startTrading": "Commencer à trader"
   }
 }

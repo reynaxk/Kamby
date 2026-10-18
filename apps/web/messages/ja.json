@@ -646,7 +646,10 @@
     "sinceViewed": "閲覧時から",
     "removeRecent": "履歴から削除",
     "pref_messages": "メッセージ",
-    "pref_messages_detail": "誰かからプライベートメッセージが届いたとき"
+    "pref_messages_detail": "誰かからプライベートメッセージが届いたとき",
+    "referStep1": "リンクをシェア",
+    "referStep2": "友達が登録して Kamby で取引",
+    "referStep3": "手数料の一部があなたに"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",
@@ -770,7 +773,8 @@
     "notEnough": "このローンチには約${amount}のUSDCが必要です。",
     "risk": "新しいコインは高リスクです。失っても良い額だけでローンチ・購入してください。",
     "rewardsTitle": "報酬の98%があなたに",
-    "rewardsBody": "あなたのコインの取引ごとに、どこでも報酬が発生 — 98%はあなたへ · 2%はKambyのプラットフォーム手数料。"
+    "rewardsBody": "あなたのコインの取引ごとに、どこでも報酬が発生 — 98%はあなたへ · 2%はKambyのプラットフォーム手数料。",
+    "customAmount": "自分で金額を入力"
   },
   "curve": {
     "onCurve": "Four.meme上 — 100%でPancakeSwapへ",
@@ -999,7 +1003,8 @@
     "next": "次へ",
     "buy": "{symbol}を買う",
     "profile": "プロフィール",
-    "goLive": "ライブ開始"
+    "goLive": "ライブ開始",
+    "goLiveHint": "話して画面を共有 — フォロワーに通知が届きます"
   },
   "live": {
     "back": "戻る",
@@ -1117,5 +1122,28 @@
     "addressNote": "コントラクトアドレス — すべてのチェーンで確認中",
     "nothing": "「{q}」は見つかりませんでした",
     "nothingHint": "シンボル、コントラクトアドレス、または @名前 で試してください。"
+  },
+  "empty": {
+    "tryAgain": "少し待ってからもう一度お試しください。",
+    "tryToken": "少し待ってからコインを選び直してください。",
+    "tradesEmpty": "最初の取引をすると、ここに売買が表示されます。",
+    "watchEmpty": "コインの ☆ をタップすると、ここで価格を追えます。",
+    "tradeNotYours": "これはあなたの取引ではありません。",
+    "marketsWarming": "価格を読み込み中です — 少し待ってください。",
+    "switchLive": "ライブまたは 10s に切り替えるとリアルタイムで見られます。",
+    "signInWatch": "ログインしてコインの ☆ をタップしてください。",
+    "tradersEmpty": "このコインの最近のトレーダーがここに表示されます。",
+    "alertsSoon": "価格アラートはまもなく登場します。",
+    "notifsEmpty": "フォロー、いいね、取引アラートがここに表示されます。",
+    "notifsFollow": "トレーダーをフォローして取引すると、ここに表示されます。",
+    "feedFollow": "トレーダーをフォローすると、その取引がここに表示されます。",
+    "picksFollow": "トレーダーをフォローするか取引すると、おすすめが届きます。",
+    "discoverTraders": "ランキングでトレーダーを見つけてフォローしましょう。",
+    "connectSession": "ログインして始めましょう。",
+    "connectTrack": "ログインして取引すると追跡できます。",
+    "connectFirstTrade": "ログインして最初の取引をしましょう。",
+    "risingEmpty": "コインやトレーダーが動き出したらまた見てください。",
+    "findCoins": "コインを探す",
+    "startTrading": "取引を始める"
   }
 }

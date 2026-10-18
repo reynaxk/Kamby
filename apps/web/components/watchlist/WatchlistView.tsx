@@ -23,6 +23,7 @@ type State = 'no-session' | 'loading' | 'loaded' | 'error';
  */
 export function WatchlistView() {
   const tU = useTranslations('ui');
+  const tE = useTranslations('empty');
   const [state, setState] = useState<State>('loading');
   const [items, setItems] = useState<WatchedToken[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -85,6 +86,12 @@ export function WatchlistView() {
       <EmptyState
         title={tU('nothingOnYourWatchlistYet_7b40')}
         detail="Watch a token from its page to track its price and activity here."
+        action={{ label: tE('findCoins'), href: '/search' }}
+        icon={
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+            <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+          </svg>
+        }
       />
     );
   }

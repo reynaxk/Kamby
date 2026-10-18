@@ -646,7 +646,10 @@
     "sinceViewed": "自你查看以来",
     "removeRecent": "从最近记录中移除",
     "pref_messages": "私信",
-    "pref_messages_detail": "有人给你发私信时"
+    "pref_messages_detail": "有人给你发私信时",
+    "referStep1": "分享你的链接",
+    "referStep2": "朋友注册并在 Kamby 交易",
+    "referStep3": "你获得他们手续费的一部分"
   },
   "notif": {
     "kind_FOLLOW": "关注",
@@ -770,7 +773,8 @@
     "notEnough": "这次发射大约需要 ${amount} USDC。",
     "risk": "新币风险很高。只发射和买入你能承受损失的金额。",
     "rewardsTitle": "你获得 98% 的奖励",
-    "rewardsBody": "你的代币在任何地方的每笔交易都会产生奖励 — 98% 归你 · 2% 为 Kamby 平台费。"
+    "rewardsBody": "你的代币在任何地方的每笔交易都会产生奖励 — 98% 归你 · 2% 为 Kamby 平台费。",
+    "customAmount": "自定义金额"
   },
   "curve": {
     "onCurve": "在 Four.meme 上 — 达到 100% 后上 PancakeSwap",
@@ -999,7 +1003,8 @@
     "next": "下一个",
     "buy": "买入 {symbol}",
     "profile": "主页",
-    "goLive": "开始直播"
+    "goLive": "开始直播",
+    "goLiveHint": "开口聊并共享屏幕——你的关注者会收到提醒"
   },
   "live": {
     "back": "返回",
@@ -1117,5 +1122,28 @@
     "addressNote": "合约地址——正在所有链上查找",
     "nothing": "没有找到“{q}”",
     "nothingHint": "试试币的代号、合约地址或某人的 @名字。"
+  },
+  "empty": {
+    "tryAgain": "请稍后再试。",
+    "tryToken": "请稍后重新选择这个币。",
+    "tradesEmpty": "完成第一笔交易后，你的买卖会显示在这里。",
+    "watchEmpty": "在任意币上点 ☆，就能在这里跟踪价格。",
+    "tradeNotYours": "这不是你的交易。",
+    "marketsWarming": "价格正在加载——请稍后再看。",
+    "switchLive": "切换到 Live 或 10s 查看实时走势。",
+    "signInWatch": "登录后在币上点 ☆ 即可跟踪。",
+    "tradersEmpty": "这个币最近的交易员会显示在这里。",
+    "alertsSoon": "价格提醒即将上线。",
+    "notifsEmpty": "关注、点赞和交易提醒会显示在这里。",
+    "notifsFollow": "关注交易员并交易，就能在这里看到动态。",
+    "feedFollow": "关注一位交易员，就能在这里看到他的交易。",
+    "picksFollow": "关注交易员或进行交易，获取为你推荐的内容。",
+    "discoverTraders": "在排行榜找到交易员并关注他们。",
+    "connectSession": "登录即可开始。",
+    "connectTrack": "登录并交易以跟踪这一项。",
+    "connectFirstTrade": "登录并完成你的第一笔交易。",
+    "risingEmpty": "等更多币或交易员活跃起来再来看看。",
+    "findCoins": "找币",
+    "startTrading": "开始交易"
   }
 }

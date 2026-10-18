@@ -77,19 +77,47 @@ export function StoriesRow() {
   }, []);
 
   if (stories.length === 0 && live.length === 0 && !signedIn) return null;
+  const liveIcon = (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5" />
+    </svg>
+  );
+  // Nothing in the row yet but you: one tidy glass strip instead of a lone circle (2026-10-18).
+  if (stories.length === 0 && live.length === 0) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setGoLive(true)}
+          className="kamby-rise kamby-glass mt-3 flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-transform active:scale-[0.99]"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#FF3B69]/25 bg-[#FF3B69]/[0.1] text-[#FF5C83]">{liveIcon(18)}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-sm font-bold text-ink-900">{t('goLive')}</span>
+            <span className="block truncate font-body text-[0.7rem] text-ink-400">{t('goLiveHint')}</span>
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-400" aria-hidden>
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+        <GoLiveSheet open={goLive} onClose={() => setGoLive(false)} />
+      </>
+    );
+  }
   return (
     <>
       <div className="kamby-rise -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="list" aria-label={t('title')}>
         {/* Go live (yours, first — like Instagram's "Your story") */}
         {signedIn && (
           <button type="button" role="listitem" onClick={() => setGoLive(true)} className="flex w-[4.4rem] shrink-0 flex-col items-center gap-1.5 active:scale-95">
-            <span className="relative flex h-[4.15rem] w-[4.15rem] items-center justify-center rounded-full border-2 border-dashed border-[#FF3B69]/60 bg-[#FF3B69]/[0.08] text-[#FF3B69]">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <circle cx="12" cy="12" r="2.5" />
-                <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5" />
-              </svg>
+            <span className="relative rounded-full bg-[conic-gradient(from_200deg,rgba(255,59,105,0.7),rgba(255,138,0,0.5),rgba(255,59,105,0.7))] p-[2px]">
+              <span className="flex h-[3.9rem] w-[3.9rem] items-center justify-center rounded-full bg-[#140A10] text-[#FF5C83]">{liveIcon(24)}</span>
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF3B69] font-display text-sm font-black leading-none text-white ring-2 ring-bg" aria-hidden>
+                +
+              </span>
             </span>
-            <span className="w-full truncate text-center font-body text-[0.68rem] font-semibold text-[#FF8FA8]">{t('goLive')}</span>
+            <span className="w-full truncate text-center font-body text-[0.68rem] font-semibold text-ink-600">{t('goLive')}</span>
           </button>
         )}
         {/* Who's live */}

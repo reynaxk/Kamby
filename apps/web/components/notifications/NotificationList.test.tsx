@@ -64,7 +64,7 @@ describe('NotificationList', () => {
     render(<NotificationList />);
 
     expect(await screen.findByText('No notifications yet.')).toBeInTheDocument();
-    expect(screen.getByText('Follows, likes, and trade alerts will show up here.')).toBeInTheDocument();
+    expect(screen.getByText('Follows, likes and trade alerts will show up here.')).toBeInTheDocument();
   });
 
   it('renders the real fetched items once loaded', async () => {

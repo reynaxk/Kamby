@@ -646,7 +646,10 @@
     "sinceViewed": "desde que lo viste",
     "removeRecent": "Quitar de recientes",
     "pref_messages": "Mensajes",
-    "pref_messages_detail": "Cuando alguien te envía un mensaje privado"
+    "pref_messages_detail": "Cuando alguien te envía un mensaje privado",
+    "referStep1": "Comparte tu enlace",
+    "referStep2": "Tus amigos se registran y operan en Kamby",
+    "referStep3": "Ganas una parte de sus comisiones"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",
@@ -770,7 +773,8 @@
     "notEnough": "Necesitas unos ${amount} en USDC para este lanzamiento.",
     "risk": "Las monedas nuevas son de alto riesgo. Lanza y compra solo lo que puedas perder.",
     "rewardsTitle": "Te quedas con el 98% de las recompensas",
-    "rewardsBody": "Cada operación de tu moneda, en cualquier lugar, genera recompensas — 98% para ti · 2% comisión de plataforma de Kamby."
+    "rewardsBody": "Cada operación de tu moneda, en cualquier lugar, genera recompensas — 98% para ti · 2% comisión de plataforma de Kamby.",
+    "customAmount": "Tu propio monto"
   },
   "curve": {
     "onCurve": "En Four.meme — a PancakeSwap al 100%",
@@ -999,7 +1003,8 @@
     "next": "Siguiente",
     "buy": "Comprar {symbol}",
     "profile": "Perfil",
-    "goLive": "Ir en directo"
+    "goLive": "Ir en directo",
+    "goLiveHint": "Habla y comparte tu pantalla — tus seguidores reciben un aviso"
   },
   "live": {
     "back": "Atrás",
@@ -1117,5 +1122,28 @@
     "addressNote": "Dirección de contrato: la buscamos en todas las redes",
     "nothing": "Nada para “{q}”",
     "nothingHint": "Prueba con el símbolo, la dirección del contrato o el @nombre de alguien."
+  },
+  "empty": {
+    "tryAgain": "Inténtalo de nuevo en un momento.",
+    "tryToken": "Vuelve a elegir la moneda en un momento.",
+    "tradesEmpty": "Tus compras y ventas aparecerán aquí cuando hagas la primera.",
+    "watchEmpty": "Toca ☆ en una moneda para seguir su precio aquí.",
+    "tradeNotYours": "Esta no es una de tus operaciones.",
+    "marketsWarming": "Los precios se están cargando — vuelve en un momento.",
+    "switchLive": "Cambia a Live o 10s para verla en tiempo real.",
+    "signInWatch": "Inicia sesión y toca ☆ en una moneda para seguirla.",
+    "tradersEmpty": "Los últimos traders de esta moneda aparecerán aquí.",
+    "alertsSoon": "Las alertas de precio llegan pronto.",
+    "notifsEmpty": "Seguidores, me gusta y alertas de operaciones aparecerán aquí.",
+    "notifsFollow": "Sigue traders y opera para ver actividad aquí.",
+    "feedFollow": "Sigue a un trader para ver sus operaciones aquí.",
+    "picksFollow": "Sigue a un trader u opera para recibir recomendaciones.",
+    "discoverTraders": "Encuentra traders en la clasificación y síguelos.",
+    "connectSession": "Inicia sesión para empezar.",
+    "connectTrack": "Inicia sesión y opera para seguir esto.",
+    "connectFirstTrade": "Inicia sesión y haz tu primera operación.",
+    "risingEmpty": "Vuelve cuando más monedas o traders se animen.",
+    "findCoins": "Buscar monedas",
+    "startTrading": "Empezar a operar"
   }
 }

@@ -646,7 +646,10 @@
     "sinceViewed": "since you looked",
     "removeRecent": "Remove from recent",
     "pref_messages": "Messages",
-    "pref_messages_detail": "When someone sends you a private message"
+    "pref_messages_detail": "When someone sends you a private message",
+    "referStep1": "Share your link",
+    "referStep2": "Friends sign up and trade on Kamby",
+    "referStep3": "You earn a share of their fees"
   },
   "notif": {
     "kind_FOLLOW": "Follow",
@@ -770,7 +773,8 @@
     "notEnough": "You need about ${amount} in USDC for this launch.",
     "risk": "New coins are high risk. Only launch and buy what you can afford to lose.",
     "rewardsTitle": "You keep 98% of the rewards",
-    "rewardsBody": "Every trade of your coin, anywhere, earns trading rewards — 98% to you · 2% Kamby platform fee."
+    "rewardsBody": "Every trade of your coin, anywhere, earns trading rewards — 98% to you · 2% Kamby platform fee.",
+    "customAmount": "Your own amount"
   },
   "curve": {
     "onCurve": "On Four.meme — to PancakeSwap at 100%",
@@ -999,7 +1003,8 @@
     "next": "Next",
     "buy": "Buy {symbol}",
     "profile": "Profile",
-    "goLive": "Go live"
+    "goLive": "Go live",
+    "goLiveHint": "Talk and share your screen — your followers get pinged"
   },
   "live": {
     "back": "Back",
@@ -1117,5 +1122,28 @@
     "addressNote": "Contract address — checking it on every chain",
     "nothing": "Nothing found for “{q}”",
     "nothingHint": "Try the coin’s symbol, its contract address, or someone’s @name."
+  },
+  "empty": {
+    "tryAgain": "Try again in a moment.",
+    "tryToken": "Pick the coin again in a moment.",
+    "tradesEmpty": "Your buys and sells will show up here once you make one.",
+    "watchEmpty": "Tap ☆ on any coin to follow its price here.",
+    "tradeNotYours": "This isn't one of your trades.",
+    "marketsWarming": "Prices are warming up — check back in a moment.",
+    "switchLive": "Switch to Live or 10s to watch it move in real time.",
+    "signInWatch": "Sign in and tap ☆ on a coin to follow it here.",
+    "tradersEmpty": "Recent traders on this coin will show up here.",
+    "alertsSoon": "Price alerts are coming soon.",
+    "notifsEmpty": "Follows, likes and trade alerts will show up here.",
+    "notifsFollow": "Follow traders and trade to see activity here.",
+    "feedFollow": "Follow a trader to see their trades here, next to the market.",
+    "picksFollow": "Follow a trader or make a trade to get picks made for you.",
+    "discoverTraders": "Find traders on the leaderboard or in the feed, and follow them to fill this up.",
+    "connectSession": "Sign in to start.",
+    "connectTrack": "Sign in and trade to start tracking this.",
+    "connectFirstTrade": "Sign in and make your first trade to see it here.",
+    "risingEmpty": "Check back when more coins or traders pick up pace.",
+    "findCoins": "Find coins",
+    "startTrading": "Start trading"
   }
 }

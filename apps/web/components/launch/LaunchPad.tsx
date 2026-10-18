@@ -211,7 +211,7 @@ export function LaunchPad() {
       <p className="mt-1 font-body text-sm text-ink-400 max-md:mt-0">{t('subtitle')}</p>
 
       {/* Network → launchpad */}
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label={t('network')}>
+      <div className="mt-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('network')}>
         {(config?.launchpads ?? []).map((l) => (
           <button
             key={l.id}
@@ -316,7 +316,7 @@ export function LaunchPad() {
       <div className="kamby-glass mt-4 rounded-3xl p-4">
         <p className="font-display text-sm font-bold text-ink-900">{t('firstBuy')}</p>
         <p className="mt-0.5 font-body text-xs text-ink-400">{t('firstBuyHint')}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 grid grid-cols-4 gap-2">
           {[0, ...LAUNCH_LIMITS.devBuyPresetsUsd].map((usd) => (
             <button
               key={usd}
@@ -326,21 +326,35 @@ export function LaunchPad() {
                 setDevBuy(usd);
                 setCustomBuy('');
               }}
-              className={cn('h-9 rounded-full px-4 font-display text-sm font-bold', customBuy === '' && devBuy === usd ? 'bg-accent text-black' : 'bg-surface-raised text-ink-900')}
+              className={cn(
+                'h-10 rounded-full font-display text-sm font-bold transition-colors',
+                customBuy === '' && devBuy === usd ? 'bg-accent text-black' : 'border border-white/[0.07] bg-white/[0.04] text-ink-900 hover:bg-white/[0.07]',
+              )}
             >
               {usd === 0 ? t('none') : `$${usd}`}
             </button>
           ))}
+        </div>
+        {/* Your own amount — a real field with its $ (it used to wrap onto its own line as a pill). */}
+        <label className={cn('mt-2 flex h-11 items-center gap-2 rounded-2xl border bg-black/25 px-4 transition-colors', customBuy !== '' ? 'border-accent/60' : 'border-white/[0.07]')}>
+          <span className="font-display text-base font-bold text-accent">$</span>
           <input
             value={customBuy}
             onChange={(e) => setCustomBuy(e.target.value.replace(/[^0-9.]/g, '').slice(0, 7))}
-            placeholder={t('custom')}
+            placeholder={t('customAmount')}
             inputMode="decimal"
             aria-label={t('custom')}
             disabled={busy}
-            className={cn('h-9 w-24 rounded-full bg-surface-raised px-4 font-display text-sm font-bold text-ink-900 placeholder:font-normal placeholder:text-ink-400 focus:outline-none', customBuy !== '' && 'ring-1 ring-accent')}
+            className="min-w-0 flex-1 bg-transparent font-display text-sm font-bold text-ink-900 placeholder:font-body placeholder:font-normal placeholder:text-ink-400 focus:outline-none"
           />
-        </div>
+          {customBuy !== '' && (
+            <button type="button" onClick={() => setCustomBuy('')} aria-label={t('none')} className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-ink-600">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </label>
       </div>
 
       {/* What it costs — a receipt card, the total in neon (2026-10-15) */}
@@ -374,7 +388,10 @@ export function LaunchPad() {
 
       {/* The action, or where the launch is */}
       <div className="mt-5">
-        {!ready ? null : !authenticated ? (
+        {!ready ? (
+          // Sign-in is still loading — hold the button's place so nothing jumps.
+          <span className="block h-12 w-full animate-pulse rounded-2xl bg-white/[0.06]" aria-hidden />
+        ) : !authenticated ? (
           <button type="button" onClick={() => login()} className="h-12 w-full rounded-2xl bg-accent font-display text-base font-bold text-black">
             {tAuth('signIn')} — {t('toLaunch')}
           </button>
