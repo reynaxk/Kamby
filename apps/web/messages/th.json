@@ -130,7 +130,10 @@
     "balanceN": "ยอดคงเหลือ: {n}",
     "invalidAddressFor": "ดูเหมือนไม่ใช่ที่อยู่ {chain} ที่ถูกต้อง",
     "viewOn": "ดูบน {explorer} →",
-    "send": "ส่ง"
+    "send": "ส่ง",
+    "sendingOn": "ส่งผ่าน {chain}",
+    "changeNetwork": "เปลี่ยน",
+    "networkMustMatch": "ใช้เครือข่ายเดียวกับวอลเล็ตหรือกระดานที่คุณส่งไป"
   },
   "account": {
     "title": "โปรไฟล์ของคุณ",

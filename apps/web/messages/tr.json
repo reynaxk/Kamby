@@ -130,7 +130,10 @@
     "balanceN": "Bakiye: {n}",
     "invalidAddressFor": "Bu geçerli bir {chain} adresine benzemiyor.",
     "viewOn": "{explorer} üzerinde gör →",
-    "send": "Gönder"
+    "send": "Gönder",
+    "sendingOn": "{chain} üzerinden gönderiliyor",
+    "changeNetwork": "Değiştir",
+    "networkMustMatch": "Gönderdiğin cüzdan veya borsayla aynı ağı seç."
   },
   "account": {
     "title": "Profilin",

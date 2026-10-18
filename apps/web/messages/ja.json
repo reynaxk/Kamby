@@ -130,7 +130,10 @@
     "balanceN": "残高: {n}",
     "invalidAddressFor": "有効な{chain}アドレスではないようです。",
     "viewOn": "{explorer}で見る →",
-    "send": "送る"
+    "send": "送る",
+    "sendingOn": "{chain} で送金",
+    "changeNetwork": "変更",
+    "networkMustMatch": "送金先のウォレットや取引所と同じネットワークを選んでください。"
   },
   "account": {
     "title": "プロフィール",

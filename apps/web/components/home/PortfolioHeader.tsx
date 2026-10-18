@@ -17,7 +17,7 @@ import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
 import { formatSignedCompactUsd } from '@/lib/format';
 import { useMyPositions } from '@/lib/my-positions';
-import { totalUsdc, useUsdcBalances } from '@/lib/use-usdc-balance';
+import { useUsdcBalances } from '@/lib/use-usdc-balance';
 
 /**
  * The home screen's balance (2026-10-09 app redesign): everything you own — USDC on every chain
@@ -35,7 +35,7 @@ export function PortfolioHeader() {
   const { hidden } = useBalanceVisibility();
 
   // The launch splash waits for this: signed out, or the balance is in (2026-10-11).
-  const cashReady = totalUsdc([balances.base, balances.bnb, balances.solana]) !== null;
+  const cashReady = balances.total !== null;
   useEffect(() => {
     if (ready && (!authenticated || cashReady)) markAppReady();
   }, [ready, authenticated, cashReady]);
@@ -57,7 +57,8 @@ export function PortfolioHeader() {
     );
   }
 
-  const cash = totalUsdc([balances.base, balances.bnb, balances.solana]);
+  // The same one total the header shows — Robinhood's USDG included (2026-10-18).
+  const cash = balances.total;
   const held = positions?.reduce((sum, p) => sum + (p.currentValueUsd ?? 0), 0) ?? 0;
   const openPnl = positions?.reduce((sum, p) => sum + (p.unrealizedPnlUsd ?? 0), 0) ?? 0;
   const total = cash === null ? null : cash + held;

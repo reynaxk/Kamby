@@ -130,7 +130,10 @@
     "balanceN": "Guthaben: {n}",
     "invalidAddressFor": "Das sieht nicht nach einer gültigen {chain}-Adresse aus.",
     "viewOn": "Auf {explorer} ansehen →",
-    "send": "Senden"
+    "send": "Senden",
+    "sendingOn": "Wird über {chain} gesendet",
+    "changeNetwork": "Ändern",
+    "networkMustMatch": "Nutze dasselbe Netzwerk wie die Wallet oder Börse, an die du sendest."
   },
   "account": {
     "title": "Dein Profil",

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
 import { usePrivy } from '@privy-io/react-auth';
 import { useSignAndSendTransaction, useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { getAccount, getAssociatedTokenAddress, TokenAccountNotFoundError } from '@solana/spl-token';
@@ -208,9 +209,9 @@ export function SendModal({
 
   // Re-pick a default asset (native) whenever the chain changes — the previous asset may not
   // exist on the new chain at all (e.g. switching away from a chain with no USDC configured).
+  // Always USDC now (one balance), so a network change keeps the typed amount.
   useEffect(() => {
-    setAsset(assets[0]!);
-    setAmountDisplay('');
+    if (assets[0]) setAsset(assets[0]);
   }, [chain, assets]);
 
   // EVM token decimals are never assumed — read live once an EVM token asset is selected.
@@ -274,17 +275,42 @@ export function SendModal({
   const destinationValid = destination.trim().length > 0 && isValidDestination(chain.kind, destination);
   // USDC withdrawals: at least $10, or the whole balance when it's less (owner rule 2026-10-07 —
   // every withdrawal's gas is Kamby's cost, and small balances must never be stuck).
-  const isUsdc = asset.symbol.toUpperCase() === 'USDC';
+  const isUsdc = asset.kind === 'token'; // USDC (USDG on Robinhood) — the only thing Kamby users hold
   const minimumUsd = toUser ? MIN_USER_SEND_USD : Number(MIN_USDC_WITHDRAWAL);
-  const belowMinimum =
-    isUsdc && amountRaw !== null && tokenDecimals !== null && amountRaw < BigInt(minimumUsd) * 10n ** BigInt(tokenDecimals) && amountRaw !== balance;
   // One USDC (2026-10-13): withdrawing more than this network holds moves the rest over first.
   const amountUsd = amountRaw !== null && tokenDecimals !== null ? Number(formatUnits(amountRaw, tokenDecimals)) : null;
   const funding = useCrossChainFunding(chain.slug as BridgeChain, isUsdc ? amountUsd : null);
+  // One USDC balance (owner, 2026-10-18): shown as the total everywhere; what one send can reach
+  // is this network's USDC plus the biggest other balance (a single move), less a few cents.
+  const otherBest = Math.max(0, ...(['base', 'bnb', 'robinhood', 'solana'] as const).filter((c) => c !== chain.slug).map((c) => (funding.balances[c] ?? 0) - 0.1));
+  const spendableUsd = (funding.balances[chain.slug as BridgeChain] ?? 0) + otherBest;
+  const atMax = amountUsd !== null && amountUsd >= Math.floor(spendableUsd * 100) / 100 - 0.005;
+  const belowMinimum =
+    isUsdc && amountRaw !== null && tokenDecimals !== null && amountRaw < BigInt(minimumUsd) * 10n ** BigInt(tokenDecimals) && amountRaw !== balance && !atMax;
   const shortOnChain = balance !== null && amountRaw !== null && amountRaw > balance;
   const needsMove = isUsdc && shortOnChain && funding.canCover && funding.stage !== 'done';
   const amountValid = amountRaw !== null && amountRaw > 0n && (balance === null || amountRaw <= balance || needsMove) && !belowMinimum;
   const canReview = destinationValid && amountValid && tokenDecimals !== null && !solanaFeeInsufficient;
+
+  // Send to @name: no network to pick — the one you hold the most USDC on (that they can receive on).
+  const autoPickedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!toUser || !recipient || funding.balances.total === null || autoPickedFor.current === recipient.username) return;
+    const options = SEND_CHAINS.filter((c) => (c.kind === 'evm' ? recipient.evmAddress : recipient.solanaAddress));
+    const best = [...options].sort((a, b) => (funding.balances[b.slug as BridgeChain] ?? 0) - (funding.balances[a.slug as BridgeChain] ?? 0))[0];
+    autoPickedFor.current = recipient.username;
+    if (best && best.slug !== chain.slug) setChain(best);
+  }, [toUser, recipient, funding.balances, chain.slug]);
+  // Withdraw: a pasted Solana address means Solana; a 0x address on Solana means Base.
+  const [showNetworks, setShowNetworks] = useState(false);
+  useEffect(() => {
+    if (toUser) return;
+    const d = destination.trim();
+    if (!d) return;
+    if (chain.kind === 'evm' && isValidDestination('solana', d)) setChain(SEND_CHAINS.find((c) => c.slug === 'solana')!);
+    else if (chain.kind === 'solana' && /^0x/i.test(d)) setChain(SEND_CHAINS[1]!);
+  }, [toUser, destination, chain.kind]);
+
 
   function reset() {
     setStep('form');
@@ -302,6 +328,10 @@ export function SendModal({
   }
 
   async function applyMax() {
+    if (isUsdc && funding.balances.total !== null) {
+      setAmountDisplay((Math.floor(spendableUsd * 100) / 100).toFixed(2));
+      return;
+    }
     if (balance === null || tokenDecimals === null) return;
     let spendable = balance;
     if (asset.kind === 'native') {
@@ -390,7 +420,23 @@ export function SendModal({
 
       {step === 'form' && (
         <div className="mt-4 flex flex-col gap-4">
-          <NetworkPicker label={tU('network_eec8')} value={chain} onChange={setChain} />
+          {!toUser &&
+            (showNetworks ? (
+              <div>
+                <NetworkPicker label={tU('network_eec8')} value={chain} onChange={setChain} />
+                <p className="mt-1.5 font-body text-[0.7rem] text-ink-400">{tW('networkMustMatch')}</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+                <span aria-hidden className="relative h-5 w-5 shrink-0">
+                  <ChainBadge chain={chain.slug as BadgeChain} className="!static !h-5 !w-5 !ring-0" />
+                </span>
+                <span className="min-w-0 flex-1 font-body text-sm text-ink-600">{tW('sendingOn', { chain: chain.name })}</span>
+                <button type="button" onClick={() => setShowNetworks(true)} className="shrink-0 font-body text-xs font-semibold text-accent hover:underline">
+                  {tW('changeNetwork')}
+                </button>
+              </div>
+            ))}
 
           {assets.length > 1 && (
           <div>
@@ -432,9 +478,13 @@ export function SendModal({
               )}
               <div>
                 <div className="flex items-center justify-between font-body text-xs text-ink-600">
-                  <span>{tW('amountOf', { symbol: asset.symbol })}</span>
-                  {balance !== null && tokenDecimals !== null && (
-                    <span>{tW('balanceN', { n: Number(formatUnits(balance, tokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 }) })}</span>
+                  <span>{tW('amountOf', { symbol: 'USDC' })}</span>
+                  {isUsdc && funding.balances.total !== null ? (
+                    <span>{tW('balanceN', { n: `$${funding.balances.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` })}</span>
+                  ) : (
+                    balance !== null && tokenDecimals !== null && (
+                      <span>{tW('balanceN', { n: Number(formatUnits(balance, tokenDecimals)).toLocaleString('en-US', { maximumFractionDigits: 6 }) })}</span>
+                    )
                   )}
                 </div>
                 <div className="mt-1 flex items-center gap-2">
@@ -451,7 +501,7 @@ export function SendModal({
                   />
                   <button
                     type="button"
-                    disabled={balance === null || tokenDecimals === null}
+                    disabled={(funding.balances.total === null || !isUsdc) && (balance === null || tokenDecimals === null)}
                     onClick={() => void applyMax()}
                     className="shrink-0 rounded-full bg-accent/15 px-4 py-2.5 font-display text-xs font-bold text-accent active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -531,9 +581,8 @@ export function SendModal({
       {step === 'review' && tokenDecimals !== null && amountRaw !== null && (
         <div className="mt-4 flex flex-col gap-4">
           <div className="rounded-xl border border-line bg-surface-raised p-3 font-body text-sm text-ink-900">
-            <Row label={tU('network_eec8')} value={chain.name} />
-            <Row label={tU('asset_26e9')} value={asset.symbol} />
-            <Row label={tU('amount_b2f4')} value={`${formatUnits(amountRaw, tokenDecimals)} ${asset.symbol}`} />
+            {!toUser && <Row label={tU('network_eec8')} value={chain.name} />}
+            <Row label={tU('amount_b2f4')} value={`$${Number(formatUnits(amountRaw, tokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`} />
             <Row label={tL('toLabel')} value={toUser && recipient ? `@${recipient.username} · ${destination.trim().slice(0, 6)}…${destination.trim().slice(-4)}` : destination.trim()} mono={!toUser} />
           </div>
           {needsMove && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}

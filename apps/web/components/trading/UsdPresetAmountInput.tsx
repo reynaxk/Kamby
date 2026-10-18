@@ -34,6 +34,7 @@ export function UsdPresetAmountInput({
   walletAddress,
   hero = false,
   onBalance,
+  usdBalance = null,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -42,6 +43,8 @@ export function UsdPresetAmountInput({
   hero?: boolean;
   /** The wallet's Solana USDC balance (raw) once known — lets the panel stop a buy it can't pay for. */
   onBalance?: (raw: bigint | null) => void;
+  /** One USDC balance (2026-10-18): the total across chains, and what one buy can reach. */
+  usdBalance?: { shown: number; spendable: number } | null;
 }) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -81,6 +84,10 @@ export function UsdPresetAmountInput({
   };
 
   const applyMax = () => {
+    if (usdBalance) {
+      onChange(usdToRawUsdc(Math.floor(usdBalance.spendable * 100) / 100));
+      return;
+    }
     if (usdcBalanceRaw === null) return;
     onChange(usdcBalanceRaw.toString());
   };
@@ -89,7 +96,12 @@ export function UsdPresetAmountInput({
     <div>
       <div className={cn('flex items-center font-body text-xs text-ink-600', hero ? 'justify-center' : 'justify-between')}>
         {!hero && <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'USDC' })}</span>}
-        {usdcBalanceRaw !== null && (
+        {usdBalance ? (
+          <span className="inline-flex items-center gap-1">
+            <Wallet className="h-3 w-3" />
+            {tTrade('balance')} ${usdBalance.shown.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        ) : usdcBalanceRaw !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
             {tTrade('balance')}{' '}

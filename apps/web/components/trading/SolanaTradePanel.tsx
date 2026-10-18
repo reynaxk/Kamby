@@ -179,6 +179,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const blockedByBalance = overBalance && !needsMove && funding.stage !== 'done';
   const moveBusy = isMoveBusy(funding);
   const moveLabel = useMoveButtonLabel(funding, 'solana');
+  // One balance line (2026-10-18): all your USDC, and what one buy can reach (Solana + one move).
+  const otherBest = Math.max(0, ...(['base', 'bnb', 'robinhood'] as const).map((c) => (funding.balances[c] ?? 0) - 0.1));
+  const usdBalance = funding.balances.total !== null ? { shown: funding.balances.total, spendable: (funding.balances.solana ?? 0) + otherBest } : null;
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
   const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));
@@ -669,8 +672,9 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         </div>
         {side === 'BUY' ? (
           <>
-            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} onBalance={setUsdcBalanceRaw} />
-            <ChainUsdcLine chain="solana" amountUsd={(Number(amount) || 0) / 1e6} />
+            <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} onBalance={setUsdcBalanceRaw} usdBalance={usdBalance} />
+            {/* Only when there isn't enough USDC anywhere — then it's the Deposit shortcut. */}
+            {usdBalance && usdBalance.shown < Math.max(0.01, (Number(amount) || 0) / 1e6) && <ChainUsdcLine chain="solana" amountUsd={(Number(amount) || 0) / 1e6} />}
             {(needsMove || moveBusy || funding.stage === 'error') && <MoveNote funding={funding} target="solana" />}
             {blockedByBalance && usdcBalanceRaw !== null && (
               <p className="text-center font-body text-xs font-semibold text-down">

@@ -130,7 +130,10 @@
     "balanceN": "Баланс: {n}",
     "invalidAddressFor": "Это не похоже на адрес {chain}.",
     "viewOn": "Открыть в {explorer} →",
-    "send": "Отправить"
+    "send": "Отправить",
+    "sendingOn": "Отправка через {chain}",
+    "changeNetwork": "Изменить",
+    "networkMustMatch": "Выберите ту же сеть, что и у кошелька или биржи получателя."
   },
   "account": {
     "title": "Ваш профиль",

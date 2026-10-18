@@ -130,7 +130,10 @@
     "balanceN": "Balance: {n}",
     "invalidAddressFor": "That doesn’t look like a valid {chain} address.",
     "viewOn": "View on {explorer} →",
-    "send": "Send"
+    "send": "Send",
+    "sendingOn": "Sending on {chain}",
+    "changeNetwork": "Change",
+    "networkMustMatch": "Use the same network as the wallet or exchange you're sending to."
   },
   "account": {
     "title": "Your profile",

@@ -130,7 +130,10 @@
     "balanceN": "Баланс: {n}",
     "invalidAddressFor": "Това не прилича на валиден адрес в {chain}.",
     "viewOn": "Виж в {explorer} →",
-    "send": "Изпрати"
+    "send": "Изпрати",
+    "sendingOn": "Изпраща се по {chain}",
+    "changeNetwork": "Смени",
+    "networkMustMatch": "Избери същата мрежа като портфейла или борсата, към които пращаш."
   },
   "account": {
     "title": "Твоят профил",

@@ -130,7 +130,10 @@
     "balanceN": "Saldo: {n}",
     "invalidAddressFor": "Eso no parece una dirección válida de {chain}.",
     "viewOn": "Ver en {explorer} →",
-    "send": "Enviar"
+    "send": "Enviar",
+    "sendingOn": "Se envía por {chain}",
+    "changeNetwork": "Cambiar",
+    "networkMustMatch": "Usa la misma red que la wallet o el exchange al que envías."
   },
   "account": {
     "title": "Tu perfil",

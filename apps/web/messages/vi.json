@@ -130,7 +130,10 @@
     "balanceN": "Số dư: {n}",
     "invalidAddressFor": "Đó không giống địa chỉ {chain} hợp lệ.",
     "viewOn": "Xem trên {explorer} →",
-    "send": "Gửi"
+    "send": "Gửi",
+    "sendingOn": "Gửi qua {chain}",
+    "changeNetwork": "Đổi",
+    "networkMustMatch": "Hãy chọn cùng mạng với ví hoặc sàn bạn gửi đến."
   },
   "account": {
     "title": "Hồ sơ của bạn",

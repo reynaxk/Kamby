@@ -120,6 +120,7 @@ describe('SendModal', () => {
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Change' }));
     await user.click(screen.getByRole('button', { name: 'Solana' }));
 
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
@@ -134,6 +135,7 @@ describe('SendModal', () => {
     render(<SendModal open onClose={vi.fn()} />);
     expect(await screen.findByText(/Amount \(USDC\)/)).toBeInTheDocument();
     for (const native of ['ETH', 'BNB', 'SOL']) expect(screen.queryByRole('button', { name: native })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Change' }));
     await user.click(screen.getByRole('button', { name: 'Solana' }));
     for (const native of ['ETH', 'BNB', 'SOL']) expect(screen.queryByRole('button', { name: native })).not.toBeInTheDocument();
   });
@@ -210,7 +212,7 @@ describe('SendModal', () => {
     await user.click(screen.getByRole('button', { name: 'Review' }));
 
     expect(screen.getByText(EVM_ADDRESS)).toBeInTheDocument();
-    expect(screen.getByText(/12 USDC/)).toBeInTheDocument();
+    expect(screen.getByText(/\$12\.00 USDC/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /confirm.*send/i }));
 
@@ -245,6 +247,7 @@ describe('SendModal', () => {
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Change' }));
     await user.click(screen.getByRole('button', { name: 'Solana' }));
 
     await waitFor(() => expect(getBalanceMock).toHaveBeenCalled());
@@ -257,6 +260,7 @@ describe('SendModal', () => {
     const user = userEvent.setup();
 
     render(<SendModal open onClose={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'Change' }));
     await user.click(screen.getByRole('button', { name: 'Solana' }));
 
     await waitFor(() => expect(getBalanceMock).toHaveBeenCalled());
