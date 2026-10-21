@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} đang thịnh hành",
     "WATCHED_TOKEN_ACTIVITY_BUY": "Biến động lớn ở {token} bạn theo dõi — {actor} mua {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "Biến động lớn ở {token} bạn theo dõi — {actor} bán {amount}",
-    "TRADE_CONFIRMED_BUY": "Lệnh mua {token} {amount} đã được xác nhận",
-    "TRADE_CONFIRMED_SELL": "Lệnh bán {token} {amount} đã được xác nhận",
+    "TRADE_CONFIRMED_BUY": "Đã mua {token} ✓",
+    "TRADE_CONFIRMED_SELL": "Đã bán {token} ✓",
     "TRADE_FAILED": "Giao dịch {token} không thành công — USDC của bạn vẫn an toàn",
     "PRICE_MOVE_UP": "{token} tăng {pct} trong 1 giờ qua",
     "PRICE_MOVE_DOWN": "{token} giảm {pct} trong 1 giờ qua",
@@ -782,7 +782,8 @@
     "risk": "Coin mới rủi ro cao. Chỉ ra mắt và mua số tiền bạn chấp nhận mất.",
     "rewardsTitle": "Bạn giữ 98% phần thưởng",
     "rewardsBody": "Mỗi giao dịch coin của bạn, ở bất kỳ đâu, đều tạo phần thưởng — 98% cho bạn · 2% phí nền tảng Kamby.",
-    "customAmount": "Số tiền của bạn"
+    "customAmount": "Số tiền của bạn",
+    "launchCoin": "Phát hành coin"
   },
   "curve": {
     "onCurve": "Trên Four.meme — sang PancakeSwap khi đạt 100%",
@@ -1140,7 +1141,7 @@
     "expiresIn": "còn mở {time}"
   },
   "search": {
-    "placeholder": "Coin, địa chỉ hợp đồng hoặc @người dùng",
+    "placeholder": "Coin, địa chỉ hoặc @tên",
     "coins": "Coin",
     "people": "Người dùng",
     "paste": "Dán",

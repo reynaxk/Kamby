@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} sedang trending",
     "WATCHED_TOKEN_ACTIVITY_BUY": "Pergerakan besar di {token} yang kamu pantau — {actor} membeli {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "Pergerakan besar di {token} yang kamu pantau — {actor} menjual {amount}",
-    "TRADE_CONFIRMED_BUY": "Pembelian {token} senilai {amount} terkonfirmasi",
-    "TRADE_CONFIRMED_SELL": "Penjualan {token} senilai {amount} terkonfirmasi",
+    "TRADE_CONFIRMED_BUY": "Beli {token} ✓",
+    "TRADE_CONFIRMED_SELL": "Jual {token} ✓",
     "TRADE_FAILED": "Trade {token}-mu tidak berhasil — USDC-mu aman",
     "PRICE_MOVE_UP": "{token} naik {pct} dalam satu jam terakhir",
     "PRICE_MOVE_DOWN": "{token} turun {pct} dalam satu jam terakhir",
@@ -782,7 +782,8 @@
     "risk": "Koin baru sangat berisiko. Luncurkan dan beli hanya yang sanggup kamu relakan.",
     "rewardsTitle": "Kamu dapat 98% hadiah",
     "rewardsBody": "Setiap trade koinmu, di mana pun, menghasilkan hadiah — 98% untukmu · 2% biaya platform Kamby.",
-    "customAmount": "Jumlahmu sendiri"
+    "customAmount": "Jumlahmu sendiri",
+    "launchCoin": "Luncurkan koin"
   },
   "curve": {
     "onCurve": "Di Four.meme — ke PancakeSwap di 100%",
@@ -1140,7 +1141,7 @@
     "expiresIn": "terbuka {time}"
   },
   "search": {
-    "placeholder": "Koin, alamat kontrak, atau @orang",
+    "placeholder": "Koin, alamat atau @nama",
     "coins": "Koin",
     "people": "Orang",
     "paste": "Tempel",

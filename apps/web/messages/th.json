@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} กำลังเป็นเทรนด์",
     "WATCHED_TOKEN_ACTIVITY_BUY": "เทรดใหญ่ใน {token} ที่คุณเฝ้าดู — {actor} ซื้อ {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "เทรดใหญ่ใน {token} ที่คุณเฝ้าดู — {actor} ขาย {amount}",
-    "TRADE_CONFIRMED_BUY": "การซื้อ {token} มูลค่า {amount} ได้รับการยืนยัน",
-    "TRADE_CONFIRMED_SELL": "การขาย {token} มูลค่า {amount} ได้รับการยืนยัน",
+    "TRADE_CONFIRMED_BUY": "ซื้อ {token} แล้ว ✓",
+    "TRADE_CONFIRMED_SELL": "ขาย {token} แล้ว ✓",
     "TRADE_FAILED": "เทรด {token} ของคุณไม่สำเร็จ — USDC ของคุณปลอดภัย",
     "PRICE_MOVE_UP": "{token} ขึ้น {pct} ในชั่วโมงที่ผ่านมา",
     "PRICE_MOVE_DOWN": "{token} ลง {pct} ในชั่วโมงที่ผ่านมา",
@@ -782,7 +782,8 @@
     "risk": "เหรียญใหม่มีความเสี่ยงสูง เปิดตัวและซื้อเท่าที่เสียได้เท่านั้น",
     "rewardsTitle": "คุณได้รับรางวัล 98%",
     "rewardsBody": "ทุกการเทรดเหรียญของคุณ ไม่ว่าที่ไหน จะได้รางวัล — 98% เป็นของคุณ · 2% ค่าธรรมเนียมแพลตฟอร์ม Kamby",
-    "customAmount": "ใส่จำนวนเอง"
+    "customAmount": "ใส่จำนวนเอง",
+    "launchCoin": "เปิดตัวเหรียญ"
   },
   "curve": {
     "onCurve": "อยู่บน Four.meme — ไป PancakeSwap ที่ 100%",
@@ -1140,7 +1141,7 @@
     "expiresIn": "เปิดอีก {time}"
   },
   "search": {
-    "placeholder": "เหรียญ ที่อยู่สัญญา หรือ @ผู้คน",
+    "placeholder": "เหรียญ ที่อยู่ หรือ @ชื่อ",
     "coins": "เหรียญ",
     "people": "ผู้คน",
     "paste": "วาง",

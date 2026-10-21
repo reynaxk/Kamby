@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} 正在走热",
     "WATCHED_TOKEN_ACTIVITY_BUY": "你关注的 {token} 有大额交易 — {actor} 买入 {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "你关注的 {token} 有大额交易 — {actor} 卖出 {amount}",
-    "TRADE_CONFIRMED_BUY": "你买入 {token}（{amount}）已确认",
-    "TRADE_CONFIRMED_SELL": "你卖出 {token}（{amount}）已确认",
+    "TRADE_CONFIRMED_BUY": "已买入 {token} ✓",
+    "TRADE_CONFIRMED_SELL": "已卖出 {token} ✓",
     "TRADE_FAILED": "你的 {token} 交易未成功 — USDC 安全无损",
     "PRICE_MOVE_UP": "{token} 过去一小时上涨 {pct}",
     "PRICE_MOVE_DOWN": "{token} 过去一小时下跌 {pct}",
@@ -782,7 +782,8 @@
     "risk": "新币风险很高。只发射和买入你能承受损失的金额。",
     "rewardsTitle": "你获得 98% 的奖励",
     "rewardsBody": "你的代币在任何地方的每笔交易都会产生奖励 — 98% 归你 · 2% 为 Kamby 平台费。",
-    "customAmount": "自定义金额"
+    "customAmount": "自定义金额",
+    "launchCoin": "发行币"
   },
   "curve": {
     "onCurve": "在 Four.meme 上 — 达到 100% 后上 PancakeSwap",
@@ -1140,7 +1141,7 @@
     "expiresIn": "还剩 {time}"
   },
   "search": {
-    "placeholder": "币、合约地址或 @用户",
+    "placeholder": "币、地址或 @名字",
     "coins": "币",
     "people": "用户",
     "paste": "粘贴",

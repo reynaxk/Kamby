@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} is trending",
     "WATCHED_TOKEN_ACTIVITY_BUY": "Big move on {token}, which you're watching — {actor} bought {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "Big move on {token}, which you're watching — {actor} sold {amount}",
-    "TRADE_CONFIRMED_BUY": "Your buy of {token} for {amount} is confirmed",
-    "TRADE_CONFIRMED_SELL": "Your sale of {token} for {amount} is confirmed",
+    "TRADE_CONFIRMED_BUY": "Bought {token} ✓",
+    "TRADE_CONFIRMED_SELL": "Sold {token} ✓",
     "TRADE_FAILED": "Your {token} trade didn't go through — your USDC is safe",
     "PRICE_MOVE_UP": "{token} is up {pct} in the last hour",
     "PRICE_MOVE_DOWN": "{token} is down {pct} in the last hour",
@@ -782,7 +782,8 @@
     "risk": "New coins are high risk. Only launch and buy what you can afford to lose.",
     "rewardsTitle": "You keep 98% of the rewards",
     "rewardsBody": "Every trade of your coin, anywhere, earns trading rewards — 98% to you · 2% Kamby platform fee.",
-    "customAmount": "Your own amount"
+    "customAmount": "Your own amount",
+    "launchCoin": "Launch coin"
   },
   "curve": {
     "onCurve": "On Four.meme — to PancakeSwap at 100%",
@@ -1140,7 +1141,7 @@
     "expiresIn": "open {time}"
   },
   "search": {
-    "placeholder": "Coins, contract address or @people",
+    "placeholder": "Coins, address or @name",
     "coins": "Coins",
     "people": "People",
     "paste": "Paste",

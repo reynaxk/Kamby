@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} trend oldu",
     "WATCHED_TOKEN_ACTIVITY_BUY": "İzlediğin {token} için büyük işlem — {actor} {amount} aldı",
     "WATCHED_TOKEN_ACTIVITY_SELL": "İzlediğin {token} için büyük işlem — {actor} {amount} sattı",
-    "TRADE_CONFIRMED_BUY": "{amount} değerindeki {token} alımın onaylandı",
-    "TRADE_CONFIRMED_SELL": "{amount} değerindeki {token} satışın onaylandı",
+    "TRADE_CONFIRMED_BUY": "{token} alındı ✓",
+    "TRADE_CONFIRMED_SELL": "{token} satıldı ✓",
     "TRADE_FAILED": "{token} işlemin gerçekleşmedi — USDC güvende",
     "PRICE_MOVE_UP": "{token} son bir saatte {pct} yükseldi",
     "PRICE_MOVE_DOWN": "{token} son bir saatte {pct} düştü",
@@ -782,7 +782,8 @@
     "risk": "Yeni coinler yüksek risklidir. Sadece kaybedebileceğin kadarını başlat ve al.",
     "rewardsTitle": "Ödüllerin %98i senin",
     "rewardsBody": "Coinin nerede işlem görürse görsün ödül kazandırır — %98i senin · %2 Kamby platform ücreti.",
-    "customAmount": "Kendi tutarın"
+    "customAmount": "Kendi tutarın",
+    "launchCoin": "Coin çıkar"
   },
   "curve": {
     "onCurve": "Four.meme'de — %100'de PancakeSwap'e",
@@ -1140,7 +1141,7 @@
     "expiresIn": "{time} açık"
   },
   "search": {
-    "placeholder": "Coin, kontrat adresi veya @kişiler",
+    "placeholder": "Coin, adres veya @isim",
     "coins": "Coinler",
     "people": "Kişiler",
     "paste": "Yapıştır",

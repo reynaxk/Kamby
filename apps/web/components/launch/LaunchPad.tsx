@@ -434,7 +434,7 @@ export function LaunchPad() {
             onClick={() => void launch()}
             className="h-12 w-full rounded-2xl bg-accent font-display text-base font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-40"
           >
-            {fundedId ? t('retry') : t('launch', { symbol: ticker || '…' })}
+            {fundedId ? t('retry') : ticker ? t('launch', { symbol: ticker }) : t('launchCoin')}
           </button>
         )}
         {short && !funding.canCover && stage === 'form' && <p className="mt-2 text-center font-body text-xs text-down">{t('notEnough', { amount: totalUsd.toFixed(2) })}</p>}

@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} es tendencia",
     "WATCHED_TOKEN_ACTIVITY_BUY": "Gran movimiento en {token}, que sigues — {actor} compró {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "Gran movimiento en {token}, que sigues — {actor} vendió {amount}",
-    "TRADE_CONFIRMED_BUY": "Tu compra de {token} por {amount} está confirmada",
-    "TRADE_CONFIRMED_SELL": "Tu venta de {token} por {amount} está confirmada",
+    "TRADE_CONFIRMED_BUY": "Compraste {token} ✓",
+    "TRADE_CONFIRMED_SELL": "Vendiste {token} ✓",
     "TRADE_FAILED": "Tu operación de {token} no se completó — tus USDC están a salvo",
     "PRICE_MOVE_UP": "{token} sube {pct} en la última hora",
     "PRICE_MOVE_DOWN": "{token} baja {pct} en la última hora",
@@ -782,7 +782,8 @@
     "risk": "Las monedas nuevas son de alto riesgo. Lanza y compra solo lo que puedas perder.",
     "rewardsTitle": "Te quedas con el 98% de las recompensas",
     "rewardsBody": "Cada operación de tu moneda, en cualquier lugar, genera recompensas — 98% para ti · 2% comisión de plataforma de Kamby.",
-    "customAmount": "Tu propio monto"
+    "customAmount": "Tu propio monto",
+    "launchCoin": "Lanzar moneda"
   },
   "curve": {
     "onCurve": "En Four.meme — a PancakeSwap al 100%",
@@ -1140,7 +1141,7 @@
     "expiresIn": "abierto {time}"
   },
   "search": {
-    "placeholder": "Monedas, dirección de contrato o @personas",
+    "placeholder": "Monedas, dirección o @nombre",
     "coins": "Monedas",
     "people": "Personas",
     "paste": "Pegar",

@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} е в тренд",
     "WATCHED_TOKEN_ACTIVITY_BUY": "Голяма сделка на {token}, която следиш — {actor} купи за {amount}",
     "WATCHED_TOKEN_ACTIVITY_SELL": "Голяма сделка на {token}, която следиш — {actor} продаде за {amount}",
-    "TRADE_CONFIRMED_BUY": "Покупката на {token} за {amount} е потвърдена",
-    "TRADE_CONFIRMED_SELL": "Продажбата на {token} за {amount} е потвърдена",
+    "TRADE_CONFIRMED_BUY": "Купи {token} ✓",
+    "TRADE_CONFIRMED_SELL": "Продаде {token} ✓",
     "TRADE_FAILED": "Сделката с {token} не мина — твоите USDC са на сигурно",
     "PRICE_MOVE_UP": "{token} се качи с {pct} за последния час",
     "PRICE_MOVE_DOWN": "{token} падна с {pct} за последния час",
@@ -782,7 +782,8 @@
     "risk": "Новите монети са с висок риск. Пускай и купувай само колкото можеш да си позволиш да загубиш.",
     "rewardsTitle": "Печелиш 98% от наградите",
     "rewardsBody": "Всяка търговия с монетата ти, навсякъде, носи награди — 98% за теб · 2% такса на платформата Kamby.",
-    "customAmount": "Своя сума"
+    "customAmount": "Своя сума",
+    "launchCoin": "Пусни монетата"
   },
   "curve": {
     "onCurve": "На Four.meme — към PancakeSwap при 100%",
@@ -1140,7 +1141,7 @@
     "expiresIn": "отворен още {time}"
   },
   "search": {
-    "placeholder": "Монети, адрес на договор или @хора",
+    "placeholder": "Монети, адрес или @име",
     "coins": "Монети",
     "people": "Хора",
     "paste": "Постави",

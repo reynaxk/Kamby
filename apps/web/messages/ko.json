@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} 트렌딩 중",
     "WATCHED_TOKEN_ACTIVITY_BUY": "관심 코인 {token} 대규모 거래 — {actor}님 {amount} 매수",
     "WATCHED_TOKEN_ACTIVITY_SELL": "관심 코인 {token} 대규모 거래 — {actor}님 {amount} 매도",
-    "TRADE_CONFIRMED_BUY": "{token} {amount} 매수가 확인되었습니다",
-    "TRADE_CONFIRMED_SELL": "{token} {amount} 매도가 확인되었습니다",
+    "TRADE_CONFIRMED_BUY": "{token} 매수 완료 ✓",
+    "TRADE_CONFIRMED_SELL": "{token} 매도 완료 ✓",
     "TRADE_FAILED": "{token} 거래가 실패했습니다 — USDC는 안전합니다",
     "PRICE_MOVE_UP": "{token} 지난 1시간 {pct} 상승",
     "PRICE_MOVE_DOWN": "{token} 지난 1시간 {pct} 하락",
@@ -782,7 +782,8 @@
     "risk": "새 코인은 고위험입니다. 잃어도 되는 만큼만 출시하고 매수하세요.",
     "rewardsTitle": "보상의 98%를 받으세요",
     "rewardsBody": "어디서든 코인이 거래될 때마다 보상이 쌓여요 — 98%는 당신에게 · 2%는 Kamby 플랫폼 수수료.",
-    "customAmount": "직접 입력"
+    "customAmount": "직접 입력",
+    "launchCoin": "코인 출시"
   },
   "curve": {
     "onCurve": "Four.meme — 100%가 되면 PancakeSwap으로",
@@ -1140,7 +1141,7 @@
     "expiresIn": "{time} 남음"
   },
   "search": {
-    "placeholder": "코인, 컨트랙트 주소 또는 @사람",
+    "placeholder": "코인, 주소 또는 @이름",
     "coins": "코인",
     "people": "사람",
     "paste": "붙여넣기",

@@ -678,8 +678,8 @@
     "TRENDING_TOKEN": "{token} がトレンド入り",
     "WATCHED_TOKEN_ACTIVITY_BUY": "ウォッチ中の {token} で大口取引 — {actor} が {amount} 購入",
     "WATCHED_TOKEN_ACTIVITY_SELL": "ウォッチ中の {token} で大口取引 — {actor} が {amount} 売却",
-    "TRADE_CONFIRMED_BUY": "{token} の購入（{amount}）が確認されました",
-    "TRADE_CONFIRMED_SELL": "{token} の売却（{amount}）が確認されました",
+    "TRADE_CONFIRMED_BUY": "{token} を購入 ✓",
+    "TRADE_CONFIRMED_SELL": "{token} を売却 ✓",
     "TRADE_FAILED": "{token} の取引は失敗しました — USDC は無事です",
     "PRICE_MOVE_UP": "{token} が直近1時間で {pct} 上昇",
     "PRICE_MOVE_DOWN": "{token} が直近1時間で {pct} 下落",
@@ -782,7 +782,8 @@
     "risk": "新しいコインは高リスクです。失っても良い額だけでローンチ・購入してください。",
     "rewardsTitle": "報酬の98%があなたに",
     "rewardsBody": "あなたのコインの取引ごとに、どこでも報酬が発生 — 98%はあなたへ · 2%はKambyのプラットフォーム手数料。",
-    "customAmount": "自分で金額を入力"
+    "customAmount": "自分で金額を入力",
+    "launchCoin": "コインをローンチ"
   },
   "curve": {
     "onCurve": "Four.meme上 — 100%でPancakeSwapへ",
@@ -1140,7 +1141,7 @@
     "expiresIn": "残り {time}"
   },
   "search": {
-    "placeholder": "コイン、コントラクトアドレス、@ユーザー",
+    "placeholder": "コイン・アドレス・@名前",
     "coins": "コイン",
     "people": "ユーザー",
     "paste": "貼り付け",
