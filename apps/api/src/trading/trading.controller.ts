@@ -1,7 +1,10 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, HttpCode, Optional, Param, Post, Query, UnprocessableEntityException, UseGuards } from '@nestjs/common';
+import { prisma } from '@kamby/db';
+import { IsEthereumAddress, IsIn } from 'class-validator';
 import { Body } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { DEFAULT_CHAIN_ID } from '@kamby/domain';
+import { DEFAULT_CHAIN_ID, EVM_USDC_BY_CHAIN_ID, normalizeEvmAddress } from '@kamby/domain';
+import { EvmGasTopupService } from './evm-gas-topup.service';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
@@ -22,13 +25,37 @@ import { TradingPausedGuard } from './trading-paused.guard';
  * it's all inherently tied to one person's funds and history.
  */
 @UseGuards(JwtAuthGuard)
+class EnsureGasDto {
+  @IsIn([8453, 56, 4663])
+  chainId!: number;
+
+  @IsEthereumAddress()
+  walletAddress!: string;
+}
+
 @Controller('trade')
 export class TradingController {
   constructor(
     private readonly quotes: QuoteService,
     private readonly transactions: TransactionService,
     private readonly gasRelayer: EvmGasRelayerQuoteService,
+    @Optional() private readonly gasTopup?: EvmGasTopupService,
   ) {}
+
+  /** A few cents of ETH/BNB from Kamby's gas tank before the wallet sends a coin (2026-10-21,
+   *  Send a coin you hold) — the same top-up a trade gets, for the caller's own verified wallet. */
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(204)
+  @Post('gas')
+  async ensureGas(@Body() body: EnsureGasDto, @CurrentUser() user: SessionUser): Promise<void> {
+    const walletAddress = normalizeEvmAddress(body.walletAddress);
+    const wallet = await prisma.wallet.findUnique({ where: { address: walletAddress } });
+    if (!wallet || wallet.userId !== user.id || wallet.verifiedAt === null) throw new ForbiddenException('This wallet is not verified as belonging to your account');
+    const usdc = EVM_USDC_BY_CHAIN_ID[body.chainId];
+    if (!this.gasTopup || !usdc) return;
+    const result = await this.gasTopup.ensureGas(body.chainId, walletAddress, usdc);
+    if (result === 'stranded') throw new UnprocessableEntityException('Sending on this network is getting ready — try again in a few minutes.');
+  }
 
   // Real aggregator calls are expensive and rate-limited upstream — tighter than the
   // app-wide default so one client can't hammer it, loose enough not to break normal

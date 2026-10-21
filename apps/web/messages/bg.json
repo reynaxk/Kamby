@@ -134,7 +134,8 @@
     "sendingOn": "Изпраща се по {chain}",
     "changeNetwork": "Смени",
     "networkMustMatch": "Избери същата мрежа като портфейла или борсата, към които пращаш.",
-    "recipientNoWallet": "@{name} още няма портфейл — трябва първо да влезе в Kamby"
+    "recipientNoWallet": "@{name} още няма портфейл — трябва първо да влезе в Kamby",
+    "whatToSend": "Какво изпращаш"
   },
   "account": {
     "title": "Твоят профил",

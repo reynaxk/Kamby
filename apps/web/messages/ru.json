@@ -134,7 +134,8 @@
     "sendingOn": "Отправка через {chain}",
     "changeNetwork": "Изменить",
     "networkMustMatch": "Выберите ту же сеть, что и у кошелька или биржи получателя.",
-    "recipientNoWallet": "У @{name} ещё нет кошелька — сначала нужно войти в Kamby"
+    "recipientNoWallet": "У @{name} ещё нет кошелька — сначала нужно войти в Kamby",
+    "whatToSend": "Что отправить"
   },
   "account": {
     "title": "Ваш профиль",

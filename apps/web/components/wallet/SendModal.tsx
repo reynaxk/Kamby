@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
+import { ChainBadge, type BadgeChain, badgeChainFor } from '@/components/market/ChainBadge';
+import { useMyPositions } from '@/lib/my-positions';
+import { useMintDecimals } from '@/lib/solana-mint';
+import { formatTradeAmount } from '@/lib/format';
 import { usePrivy } from '@privy-io/react-auth';
 import { useSignAndSendTransaction, useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { getAccount, getAssociatedTokenAddress, TokenAccountNotFoundError } from '@solana/spl-token';
@@ -189,6 +192,15 @@ export function SendModal({
   const [evmChainConfigs, setEvmChainConfigs] = useState<EvmChainConfig[]>([]);
   const assets = useMemo(() => assetsForChain(chain, evmChainConfigs), [chain, evmChainConfigs]);
   const [asset, setAsset] = useState<SendAsset>(assets[0]!);
+  // Send a coin you hold (2026-10-21): null = USDC (the default), else that coin on its own chain.
+  const positions = useMyPositions();
+  const sendable = useMemo(
+    () => (positions ?? []).filter((p) => p.quantity > 0 && SEND_CHAINS.some((c) => c.slug === badgeChainFor(p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : ''))) && (p.currentValueUsd ?? 1) >= 0.01),
+    [positions],
+  );
+  const [coinKey, setCoinKey] = useState<string | null>(null);
+  const coin = coinKey ? (sendable.find((p) => `${p.chainIdentifier}:${p.tokenAddress}` === coinKey) ?? null) : null;
+  const coinMintDecimals = useMintDecimals(coin && coin.chainIdentifier === 'solana' ? coin.tokenAddress : 'So11111111111111111111111111111111111111112');
   const [tokenDecimals, setTokenDecimals] = useState<number | null>(asset.decimals);
 
   const [amountDisplay, setAmountDisplay] = useState('');
@@ -209,10 +221,22 @@ export function SendModal({
 
   // Re-pick a default asset (native) whenever the chain changes — the previous asset may not
   // exist on the new chain at all (e.g. switching away from a chain with no USDC configured).
-  // Always USDC now (one balance), so a network change keeps the typed amount.
+  // Always USDC unless a coin is picked, so a network change keeps the typed amount.
   useEffect(() => {
+    if (coin) {
+      const slug = badgeChainFor(coin.chainIdentifier ?? 'solana');
+      const coinChain = SEND_CHAINS.find((c) => c.slug === slug);
+      if (coinChain && coinChain.slug !== chain.slug) setChain(coinChain);
+      setAsset((cur) => (cur.address === coin.tokenAddress ? cur : { kind: 'token', symbol: coin.symbol ?? 'coin', address: coin.tokenAddress, decimals: null }));
+      return;
+    }
     if (assets[0]) setAsset(assets[0]);
-  }, [chain, assets]);
+  }, [chain, assets, coinKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A Solana coin's decimals come from its mint (EVM tokens are read below).
+  useEffect(() => {
+    if (coin?.chainIdentifier === 'solana' && coinMintDecimals !== null) setTokenDecimals(coinMintDecimals);
+  }, [coinKey, coinMintDecimals]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // EVM token decimals are never assumed — read live once an EVM token asset is selected.
   useEffect(() => {
@@ -275,7 +299,7 @@ export function SendModal({
   const destinationValid = destination.trim().length > 0 && isValidDestination(chain.kind, destination);
   // USDC withdrawals: at least $10, or the whole balance when it's less (owner rule 2026-10-07 —
   // every withdrawal's gas is Kamby's cost, and small balances must never be stuck).
-  const isUsdc = asset.kind === 'token'; // USDC (USDG on Robinhood) — the only thing Kamby users hold
+  const isUsdc = asset.kind === 'token' && !coin; // USDC (USDG on Robinhood); a held coin is its own case
   const minimumUsd = toUser ? MIN_USER_SEND_USD : Number(MIN_USDC_WITHDRAWAL);
   // One USDC (2026-10-13): withdrawing more than this network holds moves the rest over first.
   const amountUsd = amountRaw !== null && tokenDecimals !== null ? Number(formatUnits(amountRaw, tokenDecimals)) : null;
@@ -295,21 +319,21 @@ export function SendModal({
   // Send to @name: no network to pick — the one you hold the most USDC on (that they can receive on).
   const autoPickedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!toUser || !recipient || funding.balances.total === null || autoPickedFor.current === recipient.username) return;
+    if (coin || !toUser || !recipient || funding.balances.total === null || autoPickedFor.current === recipient.username) return;
     const options = SEND_CHAINS.filter((c) => (c.kind === 'evm' ? recipient.evmAddress : recipient.solanaAddress));
     const best = [...options].sort((a, b) => (funding.balances[b.slug as BridgeChain] ?? 0) - (funding.balances[a.slug as BridgeChain] ?? 0))[0];
     autoPickedFor.current = recipient.username;
     if (best && best.slug !== chain.slug) setChain(best);
-  }, [toUser, recipient, funding.balances, chain.slug]);
+  }, [coinKey, toUser, recipient, funding.balances, chain.slug]); // eslint-disable-line react-hooks/exhaustive-deps
   // Withdraw: a pasted Solana address means Solana; a 0x address on Solana means Base.
   const [showNetworks, setShowNetworks] = useState(false);
   useEffect(() => {
-    if (toUser) return;
+    if (toUser || coin) return;
     const d = destination.trim();
     if (!d) return;
     if (chain.kind === 'evm' && isValidDestination('solana', d)) setChain(SEND_CHAINS.find((c) => c.slug === 'solana')!);
     else if (chain.kind === 'solana' && /^0x/i.test(d)) setChain(SEND_CHAINS[1]!);
-  }, [toUser, destination, chain.kind]);
+  }, [coinKey, toUser, destination, chain.kind]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   function reset() {
@@ -370,6 +394,10 @@ export function SendModal({
       const to = destination.trim();
       let result: string;
       if (chain.kind === 'evm') {
+        if (coin) {
+          const gas = await authedFetch('/trade/gas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chainId: chain.evmChainId, walletAddress: evmAddress }) });
+          if (gas.status === 422) throw new Error(((await gas.json().catch(() => null)) as { message?: string } | null)?.message ?? 'Try again in a few minutes.');
+        }
         result =
           asset.kind === 'native'
             ? await sendEvmNative(to as `0x${string}`, amountRaw, chain.evmChainId!)
@@ -396,7 +424,9 @@ export function SendModal({
       setTxResult(result);
       setStep('confirmed');
       // Tell them (2026-10-15): the API checks the transfer on-chain, then notifies @name.
-      if (toUser && recipient && onSent) {
+      if (coin) {
+        // A coin: the chat's "Sent $X USDC" card and the USDC notice don't apply.
+      } else if (toUser && recipient && onSent) {
         onSent(result, chain.slug);
       } else if (toUser && recipient) {
         void authedFetch('/transfers/notify', {
@@ -420,8 +450,58 @@ export function SendModal({
 
       {step === 'form' && (
         <div className="mt-4 flex flex-col gap-4">
+          {sendable.length > 0 && (
+            <div>
+              <div className="font-body text-xs text-ink-600">{tW('whatToSend')}</div>
+              <div className="-mx-1 mt-1.5 flex gap-1.5 overflow-x-auto px-1 pb-0.5">
+                <button
+                  type="button"
+                  aria-pressed={!coin}
+                  onClick={() => {
+                    setCoinKey(null);
+                    setAmountDisplay('');
+                  }}
+                  className={cn('flex shrink-0 items-center gap-2 rounded-2xl border px-3 py-2 font-body text-sm font-semibold transition-colors', !coin ? 'border-accent/70 bg-accent/[0.1] text-ink-900' : 'border-white/[0.08] bg-white/[0.03] text-ink-600')}
+                >
+                  <span aria-hidden className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2775CA] font-display text-[0.6rem] font-black text-white">$</span>
+                  USDC
+                </button>
+                {sendable.map((p) => {
+                  const key = `${p.chainIdentifier}:${p.tokenAddress}`;
+                  const on = coinKey === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => {
+                        setCoinKey(key);
+                        setAmountDisplay('');
+                        setShowNetworks(false);
+                      }}
+                      className={cn('flex shrink-0 items-center gap-2 rounded-2xl border px-3 py-2 text-left font-body text-sm font-semibold transition-colors', on ? 'border-accent/70 bg-accent/[0.1] text-ink-900' : 'border-white/[0.08] bg-white/[0.03] text-ink-600')}
+                    >
+                      <TokenAvatar src={p.logoUrl} seed={p.tokenAddress} label={p.symbol ?? '?'} className="h-5 w-5 text-[0.55rem]" />
+                      <span>
+                        {p.symbol ?? '?'}
+                        {p.currentValueUsd !== null && <span className="ml-1 font-normal text-ink-400">${formatTradeAmount(p.currentValueUsd)}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {!toUser &&
-            (showNetworks ? (
+            (coin ? (
+              <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+                <span aria-hidden className="relative h-5 w-5 shrink-0">
+                  <ChainBadge chain={chain.slug as BadgeChain} className="!static !h-5 !w-5 !ring-0" />
+                </span>
+                <span className="min-w-0 flex-1 font-body text-sm text-ink-600">{tW('sendingOn', { chain: chain.name })}</span>
+              </div>
+            ) : showNetworks ? (
               <div>
                 <NetworkPicker label={tU('network_eec8')} value={chain} onChange={setChain} />
                 <p className="mt-1.5 font-body text-[0.7rem] text-ink-400">{tW('networkMustMatch')}</p>
@@ -478,8 +558,10 @@ export function SendModal({
               )}
               <div>
                 <div className="flex items-center justify-between font-body text-xs text-ink-600">
-                  <span>{tW('amountOf', { symbol: 'USDC' })}</span>
-                  {isUsdc && funding.balances.total !== null ? (
+                  <span>{tW('amountOf', { symbol: coin ? (coin.symbol ?? 'coin') : 'USDC' })}</span>
+                  {coin ? (
+                    balance !== null && tokenDecimals !== null && <span>{tW('balanceN', { n: formatTradeAmount(Number(formatUnits(balance, tokenDecimals))) })}</span>
+                  ) : isUsdc && funding.balances.total !== null ? (
                     <span>{tW('balanceN', { n: `$${funding.balances.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` })}</span>
                   ) : (
                     balance !== null && tokenDecimals !== null && (
@@ -582,7 +664,10 @@ export function SendModal({
         <div className="mt-4 flex flex-col gap-4">
           <div className="rounded-xl border border-line bg-surface-raised p-3 font-body text-sm text-ink-900">
             {!toUser && <Row label={tU('network_eec8')} value={chain.name} />}
-            <Row label={tU('amount_b2f4')} value={`$${Number(formatUnits(amountRaw, tokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`} />
+            <Row
+              label={tU('amount_b2f4')}
+              value={coin ? `${formatTradeAmount(Number(formatUnits(amountRaw, tokenDecimals)))} ${coin.symbol ?? ''}` : `$${Number(formatUnits(amountRaw, tokenDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`}
+            />
             <Row label={tL('toLabel')} value={toUser && recipient ? `@${recipient.username} · ${destination.trim().slice(0, 6)}…${destination.trim().slice(-4)}` : destination.trim()} mono={!toUser} />
           </div>
           {needsMove && <MoveNote funding={funding} target={chain.slug as BridgeChain} />}

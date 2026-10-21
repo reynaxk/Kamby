@@ -134,7 +134,8 @@
     "sendingOn": "Gửi qua {chain}",
     "changeNetwork": "Đổi",
     "networkMustMatch": "Hãy chọn cùng mạng với ví hoặc sàn bạn gửi đến.",
-    "recipientNoWallet": "@{name} chưa có ví — cần đăng nhập Kamby trước"
+    "recipientNoWallet": "@{name} chưa có ví — cần đăng nhập Kamby trước",
+    "whatToSend": "Gửi gì"
   },
   "account": {
     "title": "Hồ sơ của bạn",

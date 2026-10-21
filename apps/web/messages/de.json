@@ -134,7 +134,8 @@
     "sendingOn": "Wird über {chain} gesendet",
     "changeNetwork": "Ändern",
     "networkMustMatch": "Nutze dasselbe Netzwerk wie die Wallet oder Börse, an die du sendest.",
-    "recipientNoWallet": "@{name} hat noch keine Wallet – muss sich erst bei Kamby anmelden"
+    "recipientNoWallet": "@{name} hat noch keine Wallet – muss sich erst bei Kamby anmelden",
+    "whatToSend": "Was senden"
   },
   "account": {
     "title": "Dein Profil",

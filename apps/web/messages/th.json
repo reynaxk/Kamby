@@ -134,7 +134,8 @@
     "sendingOn": "ส่งผ่าน {chain}",
     "changeNetwork": "เปลี่ยน",
     "networkMustMatch": "ใช้เครือข่ายเดียวกับวอลเล็ตหรือกระดานที่คุณส่งไป",
-    "recipientNoWallet": "@{name} ยังไม่มีวอลเล็ต — ต้องเข้าสู่ระบบ Kamby ก่อน"
+    "recipientNoWallet": "@{name} ยังไม่มีวอลเล็ต — ต้องเข้าสู่ระบบ Kamby ก่อน",
+    "whatToSend": "ส่งอะไร"
   },
   "account": {
     "title": "โปรไฟล์ของคุณ",
