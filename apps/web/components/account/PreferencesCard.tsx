@@ -65,7 +65,7 @@ export function PreferencesCard({ className }: { className?: string }) {
           <Switch on={hidden} onChange={() => toggle()} label={t('hideTitle')} />
         </Row>
         <Row icon={icon('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18')} title={t('languageTitle')} hint={t('languageHint')}>
-          <LanguageSelect bare className="w-36 shrink-0" />
+          <LanguageSelect bare className="w-auto min-w-[9rem] max-w-[13rem] shrink-0" />
         </Row>
       </ul>
     </section>
