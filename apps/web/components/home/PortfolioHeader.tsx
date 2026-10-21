@@ -26,6 +26,7 @@ import { useUsdcBalances } from '@/lib/use-usdc-balance';
  */
 export function PortfolioHeader() {
   const tLp = useTranslations('launchpad');
+  const tP = useTranslations('perps');
   const t = useTranslations('home');
   const { ready, authenticated, login } = usePrivy();
   const { address } = useAccount();
@@ -100,16 +101,29 @@ export function PortfolioHeader() {
         {/* Send to another Kamby user by their @name (2026-10-15). */}
         <SendButton variant="stacked" toUser />
       </div>
-      {/* Kamby's LaunchPad (2026-10-14). */}
-      <Link href="/launch" className="relative mt-2 flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:col-span-2 md:mt-6 md:hover:bg-white/[0.07]">
-        <span>
-          <span className="block font-display text-sm font-bold text-ink-900">Kamby&apos;s LaunchPad</span>
-          <span className="block font-body text-xs text-ink-400">{tLp('homeCard')}</span>
-        </span>
-        <span className="font-display text-lg font-bold text-accent" aria-hidden>
-          →
-        </span>
-      </Link>
+      {/* Kamby's LaunchPad (2026-10-14) and ⚡ Perps (2026-10-21), side by side. */}
+      <div className="relative mt-2 grid grid-cols-2 gap-2 md:col-span-2 md:mt-6">
+        <Link href="/launch" className="flex items-center justify-between gap-2 rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:hover:bg-white/[0.07]">
+          <span className="min-w-0">
+            <span className="block truncate font-display text-sm font-bold text-ink-900">LaunchPad</span>
+            <span className="block truncate font-body text-xs text-ink-400">{tLp('homeCard')}</span>
+          </span>
+          <span className="shrink-0 font-display text-lg font-bold text-accent" aria-hidden>
+            →
+          </span>
+        </Link>
+        <Link href="/perps" className="flex items-center justify-between gap-2 rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:hover:bg-white/[0.07]">
+          <span className="min-w-0">
+            <span className="flex items-center gap-1 font-display text-sm font-bold text-ink-900">
+              ⚡ {tP('card')}
+            </span>
+            <span className="block truncate font-body text-xs text-ink-400">{tP('cardSub')}</span>
+          </span>
+          <span className="shrink-0 font-display text-lg font-bold text-accent" aria-hidden>
+            →
+          </span>
+        </Link>
+      </div>
     </section>
     </>
   );

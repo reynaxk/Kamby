@@ -20,6 +20,7 @@
     "@farcaster/mini-app-solana": "^1.0.7",
     "@kamby/domain": "workspace:*",
     "@kamby/ui": "workspace:*",
+    "@nktkas/hyperliquid": "0.33.3",
     "@privy-io/react-auth": "^3.42.0",
     "@privy-io/wagmi": "^4.0.17",
     "@solana-program/memo": "^0.8.0",
