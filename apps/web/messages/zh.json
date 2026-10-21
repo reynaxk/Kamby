@@ -1014,7 +1014,7 @@
     "buy": "买入 {symbol}",
     "profile": "主页",
     "goLive": "开始直播",
-    "goLiveHint": "开口聊并共享屏幕——你的关注者会收到提醒"
+    "goLiveHint": "语音并共享屏幕"
   },
   "live": {
     "back": "返回",

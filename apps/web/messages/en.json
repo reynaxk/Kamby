@@ -1014,7 +1014,7 @@
     "buy": "Buy {symbol}",
     "profile": "Profile",
     "goLive": "Go live",
-    "goLiveHint": "Talk and share your screen — your followers get pinged"
+    "goLiveHint": "Talk and share your screen"
   },
   "live": {
     "back": "Back",

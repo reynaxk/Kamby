@@ -55,21 +55,27 @@ function OpenRow({ duel, onJoin, busy }: { duel: DuelState; onJoin: (id: string)
  */
 export function DuelLobby() {
   const t = useTranslations('duels');
+  const tE = useTranslations('empty');
   const router = useRouter();
   const { authenticated, login } = usePrivy();
   const [open, setOpen] = useState<DuelState[] | null>(null);
   const [leaders, setLeaders] = useState<DuelLeader[] | null>(null);
   const [minutes, setMinutes] = useState<number>(DUEL_LIMITS.minutes[0]);
   const [busy, setBusy] = useState(false);
+  // A failed load says so — never "no duels" when we simply couldn't ask (2026-10-21).
+  const [loadFailed, setLoadFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     void fetchOpenDuels()
-      .then(setOpen)
-      .catch(() => setOpen((o) => o ?? []));
+      .then((rows) => {
+        setOpen(rows);
+        setLoadFailed(false);
+      })
+      .catch(() => setLoadFailed(true));
     void fetchDuelLeaders()
       .then(setLeaders)
-      .catch(() => setLeaders((l) => l ?? []));
+      .catch(() => setLoadFailed(true));
   }, []);
 
   useEffect(() => {
@@ -127,7 +133,9 @@ export function DuelLobby() {
 
       {/* Waiting to be taken */}
       <section className="overflow-hidden rounded-3xl border border-white/[0.07] bg-surface">
-        {open === null ? (
+        {open === null && loadFailed ? (
+          <p className="px-4 py-6 text-center font-body text-sm text-ink-400">{tE('tryAgain')}</p>
+        ) : open === null ? (
           <div className="space-y-2 p-4" aria-hidden>
             {[0, 1].map((i) => (
               <div key={i} className="h-12 animate-pulse rounded-2xl bg-white/[0.04]" />
@@ -147,7 +155,9 @@ export function DuelLobby() {
       {/* The month's best */}
       <section className="overflow-hidden rounded-3xl border border-white/[0.07] bg-surface">
         <h2 className="px-4 pt-4 font-display text-sm font-bold text-ink-900">{t('topDuelists')}</h2>
-        {leaders === null ? (
+        {leaders === null && loadFailed ? (
+          <p className="px-4 pb-5 pt-3 font-body text-sm text-ink-400">{tE('tryAgain')}</p>
+        ) : leaders === null ? (
           <div className="space-y-2 p-4" aria-hidden>
             {[0, 1, 2].map((i) => (
               <div key={i} className="h-10 animate-pulse rounded-2xl bg-white/[0.04]" />

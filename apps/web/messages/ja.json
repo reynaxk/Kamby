@@ -1014,7 +1014,7 @@
     "buy": "{symbol}を買う",
     "profile": "プロフィール",
     "goLive": "ライブ開始",
-    "goLiveHint": "話して画面を共有 — フォロワーに通知が届きます"
+    "goLiveHint": "話して画面を共有"
   },
   "live": {
     "back": "戻る",

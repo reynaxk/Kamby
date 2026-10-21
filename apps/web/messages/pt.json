@@ -1014,7 +1014,7 @@
     "buy": "Comprar {symbol}",
     "profile": "Perfil",
     "goLive": "Entrar ao vivo",
-    "goLiveHint": "Fale e compartilhe sua tela — seus seguidores são avisados"
+    "goLiveHint": "Fale e compartilhe a tela"
   },
   "live": {
     "back": "Voltar",

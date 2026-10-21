@@ -1014,7 +1014,7 @@
     "buy": "Mua {symbol}",
     "profile": "Hồ sơ",
     "goLive": "Phát live",
-    "goLiveHint": "Nói chuyện và chia sẻ màn hình — người theo dõi sẽ được báo"
+    "goLiveHint": "Nói và chia sẻ màn hình"
   },
   "live": {
     "back": "Quay lại",
