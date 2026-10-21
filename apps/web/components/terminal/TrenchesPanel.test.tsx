@@ -60,14 +60,14 @@ describe('TrenchesPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('loads FRESH by default and shows the graduation progress bar for an incomplete curve', async () => {
+  it('loads Near grad by default (2026-10-21) and shows the graduation progress bar for an incomplete curve', async () => {
     fetchTrenchesMock.mockResolvedValue([pumpFunToken()]);
     render(<TrenchesPanel />);
 
     expect(await screen.findByText('$TEST')).toBeInTheDocument();
     expect(screen.getByText('10.00 SOL raised')).toBeInTheDocument();
     expect(screen.getByText('12%')).toBeInTheDocument(); // 11.76 rounded
-    expect(fetchTrenchesMock).toHaveBeenCalledWith('FRESH');
+    expect(fetchTrenchesMock).toHaveBeenCalledWith('NEAR_GRADUATED');
   });
 
   it('shows an honest empty state, never fabricated rows, when a trench has nothing yet', async () => {
@@ -106,7 +106,7 @@ describe('TrenchesPanel', () => {
   });
 
   it('renders real TRENDING_HOLDERS market rows as links to the real market page', async () => {
-    // The default tab is FRESH (a Pump.fun category) — the mock must answer that initial
+    // The default tab is NEAR_GRADUATED (a Pump.fun category) — the mock must answer that initial
     // fetch with FRESH-shaped data too, or the component would try to render a
     // MarketSummary as a PumpFunTokenSummary before the tab switch ever happens.
     fetchTrenchesMock.mockImplementation((category: string) =>

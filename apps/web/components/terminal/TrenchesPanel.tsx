@@ -10,9 +10,11 @@ import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { useTranslations } from 'next-intl';
 import { ListSkeleton } from '@/components/market/ListSkeleton';
 
+// Near grad first (2026-10-21): brand-new coins are mostly "0.00 SOL raised · 0%" noise; the
+// ones about to graduate are what a trader acts on. Fresh is one tap away.
 const TABS: { category: TrenchesCategory; label: string }[] = [
-  { category: 'FRESH', label: 'Fresh' },
   { category: 'NEAR_GRADUATED', label: 'Near grad' },
+  { category: 'FRESH', label: 'Fresh' },
   { category: 'JUST_GRADUATED', label: 'Graduated' },
   { category: 'TRENDING_HOLDERS', label: 'Trending' },
 ];
@@ -36,7 +38,7 @@ function lamportsToSol(raw: string): number {
 export function TrenchesPanel() {
   const tU = useTranslations('ui');
   const tL = useTranslations('labels');
-  const [category, setCategory] = useState<TrenchesCategory>('FRESH');
+  const [category, setCategory] = useState<TrenchesCategory>('NEAR_GRADUATED');
   const [items, setItems] = useState<MarketSummary[] | PumpFunTokenSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   /** Which tab `items` belongs to — rows render only for their own tab, never mid-switch. */
