@@ -1226,7 +1226,8 @@
     "opened": "Posisi dibuka",
     "closed": "Posisi ditutup",
     "card": "Perps",
-    "cardSub": "Long atau short dengan leverage",
-    "upTo": "hingga {lev}×"
+    "cardSub": "Leverage hingga 40×",
+    "upTo": "hingga {lev}×",
+    "launchShort": "Buat koin"
   }
 }

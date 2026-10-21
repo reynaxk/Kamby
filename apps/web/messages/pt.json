@@ -1226,7 +1226,8 @@
     "opened": "Posição aberta",
     "closed": "Posição fechada",
     "card": "Perps",
-    "cardSub": "Long ou short com alavancagem",
-    "upTo": "até {lev}×"
+    "cardSub": "Até 40× alavanc.",
+    "upTo": "até {lev}×",
+    "launchShort": "Crie uma moeda"
   }
 }

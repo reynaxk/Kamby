@@ -1226,7 +1226,8 @@
     "opened": "Position eröffnet",
     "closed": "Position geschlossen",
     "card": "Perps",
-    "cardSub": "Long oder Short mit Hebel",
-    "upTo": "bis {lev}×"
+    "cardSub": "Bis 40× Hebel",
+    "upTo": "bis {lev}×",
+    "launchShort": "Coin erstellen"
   }
 }

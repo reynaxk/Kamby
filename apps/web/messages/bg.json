@@ -1226,7 +1226,8 @@
     "opened": "Позицията е отворена",
     "closed": "Позицията е затворена",
     "card": "Perps",
-    "cardSub": "Long или short с ливъридж",
-    "upTo": "до {lev}×"
+    "cardSub": "До 40× ливъридж",
+    "upTo": "до {lev}×",
+    "launchShort": "Създай монета"
   }
 }

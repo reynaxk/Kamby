@@ -1226,7 +1226,8 @@
     "opened": "Pozisyon açıldı",
     "closed": "Pozisyon kapandı",
     "card": "Perps",
-    "cardSub": "Kaldıraçla long ya da short",
-    "upTo": "{lev}× kadar"
+    "cardSub": "40× kaldıraç",
+    "upTo": "{lev}× kadar",
+    "launchShort": "Coin oluştur"
   }
 }

@@ -1226,7 +1226,8 @@
     "opened": "Đã mở vị thế",
     "closed": "Đã đóng vị thế",
     "card": "Perps",
-    "cardSub": "Long hoặc short với đòn bẩy",
-    "upTo": "tới {lev}×"
+    "cardSub": "Đòn bẩy tới 40×",
+    "upTo": "tới {lev}×",
+    "launchShort": "Tạo coin"
   }
 }

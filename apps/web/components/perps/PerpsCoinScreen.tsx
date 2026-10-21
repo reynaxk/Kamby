@@ -132,11 +132,12 @@ export function PerpsCoinScreen({ coin }: { coin: string }) {
         </Link>
         <PerpMark coin={coin} className="h-11 w-11 text-base" />
         <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-bold text-ink-900">
-            {coin}-PERP <span className="ml-1 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-xs font-bold text-ink-600">{t('upTo', { lev: market?.maxLeverage ?? '…' })}</span>
+          <p className="flex items-center gap-1.5 font-display text-lg font-bold text-ink-900">
+            {coin}
+            <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-xs font-bold text-ink-600">{market?.maxLeverage ?? '…'}×</span>
           </p>
-          <p className="font-body text-xs text-ink-400">
-            {t('funding')} {market ? `${(market.funding * 100).toFixed(4)}%/h` : '—'} · {t('oi')} {market ? formatCompactUsd(market.openInterestUsd) : '—'}
+          <p className="truncate font-body text-xs text-ink-400">
+            {t('funding')} {market ? `${(market.funding * 100).toFixed(4)}%` : '—'} · OI {market ? formatCompactUsd(market.openInterestUsd) : '—'}
           </p>
         </div>
         <div className="text-right">

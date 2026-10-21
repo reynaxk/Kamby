@@ -1226,7 +1226,8 @@
     "opened": "ポジションを開きました",
     "closed": "ポジションを決済しました",
     "card": "Perps",
-    "cardSub": "レバレッジでロング／ショート",
-    "upTo": "最大 {lev}×"
+    "cardSub": "最大40倍",
+    "upTo": "最大 {lev}×",
+    "launchShort": "コインを作る"
   }
 }

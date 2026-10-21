@@ -1226,7 +1226,8 @@
     "opened": "Position opened",
     "closed": "Position closed",
     "card": "Perps",
-    "cardSub": "Long or short with leverage",
-    "upTo": "up to {lev}×"
+    "cardSub": "Up to 40× leverage",
+    "upTo": "up to {lev}×",
+    "launchShort": "Make a coin"
   }
 }

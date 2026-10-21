@@ -1226,7 +1226,8 @@
     "opened": "已开仓",
     "closed": "已平仓",
     "card": "永续",
-    "cardSub": "杠杆做多或做空",
-    "upTo": "最高 {lev}×"
+    "cardSub": "最高 40 倍杠杆",
+    "upTo": "最高 {lev}×",
+    "launchShort": "创建币"
   }
 }

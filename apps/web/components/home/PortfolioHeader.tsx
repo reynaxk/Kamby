@@ -25,7 +25,6 @@ import { useUsdcBalances } from '@/lib/use-usdc-balance';
  * under it and Deposit beside it. Signed out: a sign-in prompt in the same spot.
  */
 export function PortfolioHeader() {
-  const tLp = useTranslations('launchpad');
   const tP = useTranslations('perps');
   const t = useTranslations('home');
   const { ready, authenticated, login } = usePrivy();
@@ -106,7 +105,7 @@ export function PortfolioHeader() {
         <Link href="/launch" className="flex items-center justify-between gap-2 rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:hover:bg-white/[0.07]">
           <span className="min-w-0">
             <span className="block truncate font-display text-sm font-bold text-ink-900">LaunchPad</span>
-            <span className="block truncate font-body text-xs text-ink-400">{tLp('homeCard')}</span>
+            <span className="block truncate font-body text-xs text-ink-400">{tP('launchShort')}</span>
           </span>
           <span className="shrink-0 font-display text-lg font-bold text-accent" aria-hidden>
             →

@@ -1226,7 +1226,8 @@
     "opened": "Position ouverte",
     "closed": "Position fermée",
     "card": "Perps",
-    "cardSub": "Long ou short avec levier",
-    "upTo": "jusqu’à {lev}×"
+    "cardSub": "Levier jusqu’à 40×",
+    "upTo": "jusqu’à {lev}×",
+    "launchShort": "Créer un coin"
   }
 }

@@ -1226,7 +1226,8 @@
     "opened": "포지션 오픈",
     "closed": "포지션 종료",
     "card": "Perps",
-    "cardSub": "레버리지로 롱 또는 숏",
-    "upTo": "최대 {lev}×"
+    "cardSub": "최대 40배",
+    "upTo": "최대 {lev}×",
+    "launchShort": "코인 만들기"
   }
 }
