@@ -1,4 +1,5 @@
 import type {
+  KambyTrade,
   Leaderboard,
   LeaderboardChainFilter,
   PnlWindow,
@@ -47,6 +48,11 @@ export async function fetchTraderProfile(address: string): Promise<TraderProfile
     if (err instanceof MarketApiError && err.status === 400) return null;
     throw err;
   });
+}
+
+/** Trades placed through Kamby by this wallet's account (2026-10-18). */
+export async function fetchKambyTrades(address: string): Promise<KambyTrade[]> {
+  return (await apiGet<KambyTrade[]>(`/social/traders/${encodeURIComponent(address)}/kamby-trades`, 10)) ?? [];
 }
 
 export async function fetchTraderActivity(address: string, params: { cursor?: string; limit?: number } = {}): Promise<ActivityPage> {

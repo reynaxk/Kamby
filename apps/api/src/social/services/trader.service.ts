@@ -10,6 +10,7 @@ import {
   type TraderProfile,
   type TraderRealizedPnl,
   type TraderTokenStat,
+  type KambyTrade,
 } from '@kamby/domain';
 import { toTopTrader, toTraderProfile, toTraderStats, toTraderSummary, toTraderTokenStat } from '../social.mapper';
 import { FollowService } from './follow.service';
@@ -90,6 +91,59 @@ export class TraderService {
     );
 
     return toTraderProfile(wallet, stats, followerCount, followingCount, isFollowedByMe, realizedPnl);
+  }
+
+  /** The trades this wallet's Kamby account placed, newest first: buys from its lots, sells from
+   *  its realized-PnL events (one row per sell transaction). Empty for a wallet with no account. */
+  async kambyTrades(address: string, limit: number): Promise<KambyTrade[]> {
+    const wallet = await prisma.wallet.findUnique({ where: { address: normalizeTraderAddress(address) }, select: { userId: true } });
+    if (!wallet?.userId) return [];
+    const userId = wallet.userId;
+    const [lots, events] = await Promise.all([
+      prisma.tokenLot.findMany({ where: { userId }, orderBy: { acquiredAt: 'desc' }, take: limit, select: { evmTokenId: true, solanaMint: true, costBasisUsd: true, acquiredAt: true } }),
+      prisma.realizedPnlEvent.findMany({
+        where: { userId },
+        orderBy: { confirmedAt: 'desc' },
+        take: limit * 4,
+        select: { evmTokenId: true, solanaMint: true, evmSellTransactionId: true, solanaSellTransactionId: true, proceedsUsd: true, realizedPnlUsd: true, confirmedAt: true },
+      }),
+    ]);
+    type Sell = { evmTokenId: string | null; solanaMint: string | null; amountUsd: number; pnlUsd: number; at: Date };
+    const sells = new Map<string, Sell>();
+    for (const e of events) {
+      const key = e.evmSellTransactionId ?? e.solanaSellTransactionId ?? `${e.confirmedAt.toISOString()}:${e.evmTokenId ?? e.solanaMint}`;
+      const row = sells.get(key) ?? { evmTokenId: e.evmTokenId, solanaMint: e.solanaMint, amountUsd: 0, pnlUsd: 0, at: e.confirmedAt };
+      row.amountUsd += Number(e.proceedsUsd);
+      row.pnlUsd += Number(e.realizedPnlUsd);
+      sells.set(key, row);
+    }
+    const evmIds = [...new Set([...lots.map((l) => l.evmTokenId), ...[...sells.values()].map((x) => x.evmTokenId)].filter((x): x is string => Boolean(x)))];
+    const mints = [...new Set([...lots.map((l) => l.solanaMint), ...[...sells.values()].map((x) => x.solanaMint)].filter((x): x is string => Boolean(x)))];
+    const [tokens, listed, pumps] = await Promise.all([
+      evmIds.length ? prisma.token.findMany({ where: { id: { in: evmIds } }, select: { id: true, contractAddress: true, symbol: true, logoUrl: true, chain: { select: { identifier: true } } } }) : [],
+      mints.length ? prisma.solanaTokenMarket.findMany({ where: { mintAddress: { in: mints } }, select: { mintAddress: true, symbol: true, logoUrl: true } }) : [],
+      mints.length ? prisma.pumpFunToken.findMany({ where: { mintAddress: { in: mints } }, select: { mintAddress: true, symbol: true } }) : [],
+    ]);
+    const meta = (evmTokenId: string | null, mint: string | null) => {
+      if (evmTokenId) {
+        const t = tokens.find((x) => x.id === evmTokenId);
+        return t ? { chainIdentifier: t.chain.identifier, tokenAddress: t.contractAddress, symbol: t.symbol, logoUrl: t.logoUrl } : null;
+      }
+      if (!mint) return null;
+      const l = listed.find((x) => x.mintAddress === mint);
+      const p = pumps.find((x) => x.mintAddress === mint);
+      return { chainIdentifier: 'solana', tokenAddress: mint, symbol: l?.symbol ?? p?.symbol ?? null, logoUrl: l?.logoUrl ?? null };
+    };
+    const rows: KambyTrade[] = [];
+    for (const l of lots) {
+      const m = meta(l.evmTokenId, l.solanaMint);
+      if (m) rows.push({ side: 'BUY', ...m, amountUsd: Number(l.costBasisUsd), pnlUsd: null, at: l.acquiredAt.toISOString() });
+    }
+    for (const x of sells.values()) {
+      const m = meta(x.evmTokenId, x.solanaMint);
+      if (m) rows.push({ side: 'SELL', ...m, amountUsd: x.amountUsd, pnlUsd: x.pnlUsd, at: x.at.toISOString() });
+    }
+    return rows.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
   }
 
   /** Confirmed Kamby trades (EVM + Solana) and their dollar volume: buys at cost, sells at proceeds. */

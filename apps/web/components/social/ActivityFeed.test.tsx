@@ -110,44 +110,40 @@ describe('ActivityFeed — realtime status', () => {
 });
 
 describe('ActivityFeed — new activity reveal', () => {
-  it('shows a "N new" pill after a ping, and reveals only genuinely new items on click without disturbing existing ones', async () => {
+  it('after a ping, counts only what is really new in this feed, and reveals it on click', async () => {
     fetchLatestActivity.mockResolvedValue({ items: [activity('new-1'), activity('a')], nextCursor: null });
     const user = userEvent.setup();
     render(<ActivityFeed initialItems={[activity('a')]} initialCursor={null} scope={{ type: 'global' }} />);
 
     expect(screen.queryByText(/new trade/)).not.toBeInTheDocument();
     act(() => capturedOnPing?.());
-    expect(await screen.findByText('1 new trade')).toBeInTheDocument();
+    act(() => capturedOnPing?.()); // a burst of pings is one check
+    expect(await screen.findByText('1 new trade', {}, { timeout: 6000 })).toBeInTheDocument();
 
     await user.click(screen.getByText('1 new trade'));
 
     await waitFor(() => expect(screen.getAllByText('Bought')).toHaveLength(2)); // "a" deduped, "new-1" added
     expect(screen.queryByText(/new trade/)).not.toBeInTheDocument();
-  });
+  }, 15000);
 
-  it('routes the reveal fetch through the trader-scoped fetcher when scope is a trader', async () => {
-    fetchLatestTraderActivity.mockResolvedValue({ items: [], nextCursor: null });
-    const user = userEvent.setup();
+  it("a trader's page shows no pill for other people's trades (2026-10-18: '19 new trades', empty list)", async () => {
+    fetchLatestTraderActivity.mockResolvedValue({ items: [activity('a')], nextCursor: null });
     render(<ActivityFeed initialItems={[activity('a')]} initialCursor={null} scope={{ type: 'trader', address: '0xabc' }} />);
 
     act(() => capturedOnPing?.());
-    await user.click(await screen.findByText('1 new trade'));
-
-    await waitFor(() => expect(fetchLatestTraderActivity).toHaveBeenCalledWith('0xabc', { cursor: undefined, limit: 20 }));
+    await waitFor(() => expect(fetchLatestTraderActivity).toHaveBeenCalledWith('0xabc', { cursor: undefined, limit: 20 }), { timeout: 6000 });
     expect(fetchLatestActivity).not.toHaveBeenCalled();
-  });
+    expect(screen.queryByText(/new trade/)).not.toBeInTheDocument();
+  }, 15000);
 
-  it('leaves the pill up for the user to retry when the reveal fetch fails', async () => {
+  it('shows nothing when the check fails — never a made-up count', async () => {
     fetchLatestActivity.mockRejectedValue(new Error('network error'));
-    const user = userEvent.setup();
     render(<ActivityFeed initialItems={[activity('a')]} initialCursor={null} scope={{ type: 'global' }} />);
 
     act(() => capturedOnPing?.());
-    await user.click(await screen.findByText('1 new trade'));
-
-    await waitFor(() => expect(fetchLatestActivity).toHaveBeenCalled());
-    expect(screen.getByText('1 new trade')).toBeInTheDocument(); // still there — nothing silently succeeded
-  });
+    await waitFor(() => expect(fetchLatestActivity).toHaveBeenCalled(), { timeout: 6000 });
+    expect(screen.queryByText(/new trade/)).not.toBeInTheDocument();
+  }, 15000);
 });
 
 describe('ActivityFeed — load more', () => {

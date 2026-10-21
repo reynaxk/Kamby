@@ -169,3 +169,18 @@ export const TopTraderSchema = z.object({
   tradeCount: z.number().int(),
 });
 export type TopTrader = z.infer<typeof TopTraderSchema>;
+
+/** One trade placed through Kamby, as a trader's profile shows it (2026-10-18). Most Kamby trades
+ *  route through aggregators and never appear in the indexed pools' swaps, so profiles list these. */
+export interface KambyTrade {
+  side: 'BUY' | 'SELL';
+  chainIdentifier: string;
+  tokenAddress: string;
+  symbol: string | null;
+  logoUrl: string | null;
+  /** What went in on a buy, what came out on a sell. */
+  amountUsd: number;
+  /** A sell's realized PnL; null for a buy. */
+  pnlUsd: number | null;
+  at: string;
+}

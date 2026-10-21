@@ -72,14 +72,39 @@ export function ActivityFeed({
   const [isRevealing, setIsRevealing] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
+  // The stream pings for every trade anywhere on Kamby (2026-10-18: a trader's own page read
+  // "19 new trades" while their list stayed empty). On a ping, look — at most every 4 s — at
+  // this feed's own first page and count only what's really new in it.
+  const knownRef = useRef(new Set<string>());
+  useEffect(() => {
+    knownRef.current = new Set(items.map((item) => item.id));
+  }, [items]);
   useEffect(() => {
     if (!live) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+    const check = () => {
+      timer = null;
+      void fetchScopedPage(scope, undefined)
+        .then((page) => {
+          if (!cancelled) setPendingCount(page.items.filter((item) => !knownRef.current.has(item.id)).length);
+        })
+        .catch(() => undefined);
+    };
     const unsubscribe = subscribeToActivityStream(
-      () => setPendingCount((count) => count + 1),
+      () => {
+        if (!timer) timer = setTimeout(check, 4_000);
+      },
       (next) => setStatus(next),
     );
-    return unsubscribe;
-  }, [live]);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      unsubscribe();
+    };
+    // scope is a fresh object each render; its type + address identify it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, scope.type, 'address' in scope ? scope.address : null]);
 
   const revealNew = useCallback(async () => {
     setIsRevealing(true);

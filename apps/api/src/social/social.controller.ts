@@ -181,6 +181,13 @@ export class SocialController {
     return this.traders.getProfile(params.address, user?.id ?? null);
   }
 
+  /** Trades placed through Kamby by this wallet's account (2026-10-18). */
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @Get('traders/:address/kamby-trades')
+  getKambyTrades(@Param() params: TraderAddressParamDto) {
+    return this.traders.kambyTrades(params.address, 20);
+  }
+
   @UseGuards(OptionalAuthGuard)
   @Get('traders/:address/activity')
   getTraderActivity(

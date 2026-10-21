@@ -11,7 +11,8 @@ import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { TraderTokensList } from '@/components/discovery/TraderTokensList';
 import { formatCompactUsd, formatDateTime, formatPercent, formatSignedCompactUsd, truncateAddress } from '@/lib/format';
-import { fetchTraderActivity, fetchTraderProfile } from '@/lib/social-api';
+import { fetchKambyTrades, fetchTraderActivity, fetchTraderProfile } from '@/lib/social-api';
+import { KambyTradesList } from '@/components/social/KambyTradesList';
 import { fetchTraderTokens } from '@/lib/discovery-api';
 import { settledOr } from '@/lib/settled-fetch';
 import { getTranslations } from 'next-intl/server';
@@ -56,9 +57,10 @@ export default async function TraderProfilePage({ params }: { params: { address:
 
   // Secondary sections — a failure here shouldn't take down a profile that otherwise
   // loaded fine, so each degrades to its own empty state rather than crashing the page.
-  const [activity, tokens] = await Promise.all([
+  const [activity, tokens, kambyTrades] = await Promise.all([
     settledOr(fetchTraderActivity(params.address, { limit: 20 }), { items: [], nextCursor: null }),
     settledOr(fetchTraderTokens(params.address, 10), []),
+    settledOr(fetchKambyTrades(params.address), []),
   ]);
 
   // The headline on the card: the longest window with matched PnL (the PnL-card look, 2026-10-15).
@@ -188,6 +190,10 @@ export default async function TraderProfilePage({ params }: { params: { address:
 
         <section className="mt-8">
           <h2 className="mb-3 font-display text-base font-bold text-ink-900">{tU('recentActivity_f7ce')}</h2>
+          {/* Their Kamby trades first — most never show in the indexed pools' swaps below. */}
+          {kambyTrades.length > 0 ? (
+            <KambyTradesList trades={kambyTrades} />
+          ) : (
           <ActivityFeed
             initialItems={activity.items}
             initialCursor={activity.nextCursor}
@@ -195,6 +201,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
             emptyTitle="No trades yet."
             emptyDetail={`${truncateAddress(profile.address)} hasn't traded on a tracked market recently.`}
           />
+          )}
         </section>
       </main>
     </div>
