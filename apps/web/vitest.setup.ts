@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
+
+// findBy*/waitFor give up after 1s by default — fine alone, but with every package's tests
+// running at once (turbo, a shared CI runner) a render can take longer, and DiscoverTerminal
+// failed in the full run while passing alone (2026-10-21). 4s is still quick to fail a real bug.
+configure({ asyncUtilTimeout: 4_000 });
 
 // Testing Library's own auto-cleanup only registers when it finds `afterEach` on
 // globalThis, which requires Vitest's `globals: true`. This project imports test helpers

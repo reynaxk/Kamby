@@ -24,8 +24,8 @@ describe('CHAIN_REGISTRY', () => {
   });
 
   it('derives SUPPORTED_CHAIN_SLUGS/SUPPORTED_CHAIN_IDS from the same table', () => {
-    expect(SUPPORTED_CHAIN_SLUGS).toEqual(['base', 'arbitrum', 'bnb', 'ethereum']);
-    expect(SUPPORTED_CHAIN_IDS).toEqual([8453, 42161, 56, 1]);
+    expect(SUPPORTED_CHAIN_SLUGS).toEqual(['base', 'arbitrum', 'bnb', 'robinhood', 'ethereum']);
+    expect(SUPPORTED_CHAIN_IDS).toEqual([8453, 42161, 56, 4663, 1]);
   });
 
   it('defaults to Base — the one chain every pre-multi-chain request implicitly meant', () => {
