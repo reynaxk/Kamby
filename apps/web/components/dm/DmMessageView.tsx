@@ -275,7 +275,7 @@ export const DmMessageView = memo(function DmMessageView({
         </span>
       )}
       {picking && (
-        <div className="kamby-glass-solid mb-1 flex gap-1 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]" role="menu">
+        <div className="kamby-glass-solid kamby-sheet-solid mb-1 flex gap-1 rounded-full px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]" role="menu">
           {DM_REACTIONS.map((e) => (
             <button
               key={e}

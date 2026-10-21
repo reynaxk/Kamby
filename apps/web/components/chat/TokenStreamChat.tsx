@@ -350,7 +350,7 @@ export function TokenStreamChat({
           <SlidersHorizontal className="h-4 w-4" aria-hidden />
         </button>
         {picking && (
-          <div className="kamby-glass-solid absolute bottom-full right-2 z-10 mb-2 w-64 rounded-2xl p-3">
+          <div className="kamby-glass-solid kamby-sheet-solid absolute bottom-full right-2 z-10 mb-2 w-64 rounded-2xl p-3">
             <p className="mb-2 font-body text-xs text-ink-400">{t('customize')}</p>
             <div className="grid grid-cols-8 gap-1">
               {TOKEN_CHAT_REACTIONS.map((emoji) => {

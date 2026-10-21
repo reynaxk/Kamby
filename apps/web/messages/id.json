@@ -701,7 +701,7 @@
     "trader": "Trader",
     "toChat": "untuk chat",
     "setUsername": "Atur username untuk chat",
-    "placeholder": "Tulis sesuatu… sebut koin dengan $SYMBOL",
+    "placeholder": "Tulis sesuatu… $COIN",
     "send": "Kirim",
     "noLinks": "Link tidak boleh di Pulse — sebut koin dengan $SYMBOL.",
     "slowDown": "Pelan-pelan — satu pesan tiap beberapa detik.",

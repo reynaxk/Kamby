@@ -701,7 +701,7 @@
     "trader": "트레이더",
     "toChat": "후 채팅",
     "setUsername": "채팅하려면 사용자 이름을 설정하세요",
-    "placeholder": "메시지 입력… 코인은 $SYMBOL로",
+    "placeholder": "한마디… $COIN",
     "send": "보내기",
     "noLinks": "Pulse에서는 링크를 쓸 수 없습니다 — 코인은 $SYMBOL로 언급하세요.",
     "slowDown": "조금 천천히 — 몇 초에 한 번씩.",

@@ -701,7 +701,7 @@
     "trader": "Trader",
     "toChat": "để trò chuyện",
     "setUsername": "Đặt tên người dùng để trò chuyện",
-    "placeholder": "Nói gì đó… nhắc coin bằng $SYMBOL",
+    "placeholder": "Nói gì đó… $COIN",
     "send": "Gửi",
     "noLinks": "Không được gửi link trong Pulse — nhắc coin bằng $SYMBOL.",
     "slowDown": "Chậm lại chút — vài giây một tin.",

@@ -701,7 +701,7 @@
     "trader": "交易者",
     "toChat": "即可聊天",
     "setUsername": "设置用户名即可聊天",
-    "placeholder": "说点什么… 用 $SYMBOL 提及币种",
+    "placeholder": "说点什么… $COIN",
     "send": "发送",
     "noLinks": "Pulse 中不允许链接 — 请用 $SYMBOL 提及币种。",
     "slowDown": "慢一点 — 每隔几秒发一条。",

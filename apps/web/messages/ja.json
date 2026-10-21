@@ -701,7 +701,7 @@
     "trader": "トレーダー",
     "toChat": "してチャット",
     "setUsername": "チャットするにはユーザー名を設定",
-    "placeholder": "メッセージ… コインは $SYMBOL で",
+    "placeholder": "何か書こう… $COIN",
     "send": "送信",
     "noLinks": "Pulse ではリンクは使えません — コインは $SYMBOL で書いてください。",
     "slowDown": "少しゆっくり — 数秒に1回まで。",

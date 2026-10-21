@@ -487,7 +487,7 @@ export function DmThread({ id }: { id: string }) {
             </svg>
           </button>
           {menu && (
-            <div className="kamby-glass-solid absolute right-0 top-11 z-40 w-52 overflow-hidden rounded-2xl py-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]" role="menu">
+            <div className="kamby-glass-solid kamby-sheet-solid absolute right-0 top-11 z-40 w-52 overflow-hidden rounded-2xl py-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]" role="menu">
               <button
                 type="button"
                 onClick={() => {
@@ -666,7 +666,7 @@ export function DmThread({ id }: { id: string }) {
           <button
             type="button"
             onClick={jumpToLatest}
-            className="kamby-pop kamby-glass-solid absolute -top-11 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-xs font-bold text-ink-900 shadow-[0_10px_30px_rgba(0,0,0,0.55)]"
+            className="kamby-pop kamby-glass-solid kamby-sheet-solid absolute -top-11 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-xs font-bold text-ink-900 shadow-[0_10px_30px_rgba(0,0,0,0.55)]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="text-accent" aria-hidden>
               <path d="M12 5v14M5 12l7 7 7-7" />

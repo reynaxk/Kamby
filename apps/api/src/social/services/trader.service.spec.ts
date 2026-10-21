@@ -9,8 +9,12 @@ jest.mock('@kamby/db', () => ({
     swap: { groupBy: jest.fn(), aggregate: jest.fn(), findFirst: jest.fn(), count: jest.fn() },
     tokenMarket: { findMany: jest.fn() },
     realizedPnlEvent: { aggregate: jest.fn() },
+    tradeTransaction: { count: jest.fn().mockResolvedValue(0) },
+    solanaTradeTransaction: { count: jest.fn().mockResolvedValue(0) },
+    tokenLot: { aggregate: jest.fn().mockResolvedValue({ _sum: { costBasisUsd: null } }) },
     $queryRaw: jest.fn(),
   },
+  Prisma: { Decimal: class { constructor(public v: number) {} } },
 }));
 jest.mock('@kamby/domain', () => ({
   normalizeEvmAddress: (a: string) => a.toLowerCase(),
@@ -464,7 +468,7 @@ describe('TraderService#getProfile', () => {
 
     expect(mockedPrisma.follow.count).toHaveBeenCalledTimes(2); // followerCount AND followingCount
     expect(mockedPrisma.follow.count).toHaveBeenCalledWith({ where: { userId: 'user-1' } });
-    expect(mockedPrisma.realizedPnlEvent.aggregate).toHaveBeenCalledTimes(3); // one per PnL window
+    expect(mockedPrisma.realizedPnlEvent.aggregate).toHaveBeenCalledTimes(4); // one per PnL window + the Kamby sell volume
     expect(profile.realizedPnl).not.toBeNull();
     expect(profile.realizedPnl?.['24h']).toEqual({
       realizedPnlUsd: 100,

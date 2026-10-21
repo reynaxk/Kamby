@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@kamby/db';
+import { Prisma, prisma } from '@kamby/db';
 import {
   MIN_TRADES_FOR_TRADER_RANKING,
   normalizeTraderAddress,
@@ -71,9 +71,16 @@ export class TraderService {
         wallet.userId ? this.computeRealizedPnl(wallet.userId) : Promise.resolve(null),
       ]);
 
+    // Trades placed through Kamby (2026-10-18: a real account showed "0 trades, $0 volume" next to
+    // its own realized PnL — Kamby routes through aggregators, so most of its trades never land
+    // in the indexed pools' Swap rows). Whichever record knows more trades is the one shown.
+    const kamby = wallet.userId ? await this.kambyTradeTotals(wallet.userId) : null;
+    const useKamby = kamby !== null && kamby.total > agg._count._all;
     const stats = toTraderStats(
       wallet,
-      { totalSwaps: agg._count._all, buyCount, sellCount, volumeUsd: agg._sum.volumeUsd },
+      useKamby
+        ? { totalSwaps: kamby.total, buyCount: kamby.buys, sellCount: kamby.sells, volumeUsd: new Prisma.Decimal(kamby.volumeUsd) }
+        : { totalSwaps: agg._count._all, buyCount, sellCount, volumeUsd: agg._sum.volumeUsd },
       lastSwap?.blockTimestamp ?? null,
       {
         perTokenVolumeUsd: perToken.map((p) => (p._sum.volumeUsd === null ? 0 : Number(p._sum.volumeUsd))),
@@ -83,6 +90,22 @@ export class TraderService {
     );
 
     return toTraderProfile(wallet, stats, followerCount, followingCount, isFollowedByMe, realizedPnl);
+  }
+
+  /** Confirmed Kamby trades (EVM + Solana) and their dollar volume: buys at cost, sells at proceeds. */
+  private async kambyTradeTotals(userId: string): Promise<{ total: number; buys: number; sells: number; volumeUsd: number }> {
+    const done = { userId, status: 'CONFIRMED' as const };
+    const [evmBuys, evmSells, solBuys, solSells, bought, sold] = await Promise.all([
+      prisma.tradeTransaction.count({ where: { ...done, side: 'BUY' } }),
+      prisma.tradeTransaction.count({ where: { ...done, side: 'SELL' } }),
+      prisma.solanaTradeTransaction.count({ where: { ...done, side: 'BUY' } }),
+      prisma.solanaTradeTransaction.count({ where: { ...done, side: 'SELL' } }),
+      prisma.tokenLot.aggregate({ where: { userId }, _sum: { costBasisUsd: true } }),
+      prisma.realizedPnlEvent.aggregate({ where: { userId }, _sum: { proceedsUsd: true } }),
+    ]);
+    const buys = evmBuys + solBuys;
+    const sells = evmSells + solSells;
+    return { total: buys + sells, buys, sells, volumeUsd: Number(bought._sum.costBasisUsd ?? 0) + Number(sold._sum.proceedsUsd ?? 0) };
   }
 
   /**

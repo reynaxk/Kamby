@@ -701,7 +701,7 @@
     "trader": "Trader",
     "toChat": "sohbet için",
     "setUsername": "Sohbet için bir kullanıcı adı seç",
-    "placeholder": "Bir şey yaz… coinleri $SYMBOL ile an",
+    "placeholder": "Bir şey yaz… $COIN",
     "send": "Gönder",
     "noLinks": "Pulse'ta link yasak — coinleri $SYMBOL ile an.",
     "slowDown": "Biraz yavaş — birkaç saniyede bir mesaj.",

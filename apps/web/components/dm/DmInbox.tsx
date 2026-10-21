@@ -12,6 +12,7 @@ import { hasStoredSession } from '@/lib/session-client';
 import { friendlyError } from '@/lib/friendly-error';
 import { formatRelativeTime } from '@/lib/format';
 import { fetchPeopleResults, type PersonResult } from '@/lib/market-client';
+import { useMyUsername } from '@/lib/use-my-username';
 import { DmAvatar } from './DmAvatar';
 import { GroupAvatar, NewGroupDrawer } from './GroupBits';
 import { CommunityAvatar, CommunityRail, NewCommunityDrawer } from './CommunityBits';
@@ -35,6 +36,7 @@ export function DmInbox() {
   const [username, setUsername] = useState('');
   const [opening, setOpening] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [myName] = useMyUsername(true);
   // People as you type (2026-10-18: the field only worked if you knew the exact @name).
   const [people, setPeople] = useState<PersonResult[] | null>(null);
   useEffect(() => {
@@ -50,7 +52,7 @@ export function DmInbox() {
           if (cancelled) return;
           // One row per name; only people with a Kamby name can be messaged.
           const seen = new Set<string>();
-          setPeople(rows.filter((r) => r.username && !seen.has(r.username) && seen.add(r.username)));
+          setPeople(rows.filter((r) => r.username && r.username !== myName && !seen.has(r.username) && seen.add(r.username)));
         })
         .catch(() => !cancelled && setPeople([]));
     }, 250);
@@ -58,7 +60,7 @@ export function DmInbox() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [username, composing]);
+  }, [username, composing, myName]);
   const [groupOpen, setGroupOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
 
