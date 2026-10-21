@@ -131,10 +131,16 @@ describe('Market (e2e)', () => {
     expect(response.status).toBe(400);
   });
 
-  it('GET /v1/market/tokens/:address/history returns an honest empty array with no candles yet', async () => {
+  it('GET /v1/market/tokens/:address/history with no candles of its own returns real data or an honest empty array', async () => {
+    // Since the GeckoTerminal fallback, a token Kamby has no candles for gets the pool's real
+    // history (when the network answers) — never fabricated, so every row is real OHLC.
     const response = await request(app.getHttpServer()).get(`/v1/market/tokens/${baseAddress}/history?timeframe=1D`);
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([]);
+    expect(Array.isArray(response.body)).toBe(true);
+    for (const c of response.body as { open: number; high: number; low: number; close: number; bucketStart: string }[]) {
+      expect(c.low).toBeLessThanOrEqual(c.high);
+      expect(Number.isNaN(Date.parse(c.bucketStart))).toBe(false);
+    }
   });
 
   it('GET /v1/market/tokens/:address/history rejects an invalid timeframe', async () => {

@@ -371,6 +371,11 @@ describe('Notifications (e2e) — like notifications and preferences', () => {
       whaleTrades: true,
       trendingTokens: true,
       watchedTokenActivity: true,
+      // Added since (2026-10-11 push, 2026-10-17 chats).
+      messages: true,
+      priceMoves: true,
+      pushEnabled: true,
+      tradeUpdates: true,
     });
   });
 
@@ -575,7 +580,7 @@ describe('Notifications (e2e) — worker-created notifications (seeded directly,
     expect(notif.token.address).toBe(baseAddress);
     expect(notif.amountUsd).toBe(50_000);
     expect(notif.side).toBe('BUY');
-    expect(notif.deepLink).toBe(`/market/${baseAddress}`);
+    expect(notif.deepLink).toBe(`/market/base/${baseAddress}`); // chain-scoped links (multi-chain)
   });
 
   it('serves a worker-created TRENDING_TOKEN notification with no actor', async () => {

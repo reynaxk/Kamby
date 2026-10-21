@@ -452,7 +452,7 @@ describe('Watched-token notification integration (e2e) — read side', () => {
       );
       expect(notif).toBeDefined();
       expect(notif.token.address).toBe(tokenAddress);
-      expect(notif.deepLink).toBe(`/market/${tokenAddress}`);
+      expect(notif.deepLink).toBe(`/market/base/${tokenAddress}`); // chain-scoped links (multi-chain)
     },
   );
 });
