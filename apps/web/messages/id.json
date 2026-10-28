@@ -39,7 +39,9 @@
     "deposit": "Setor",
     "openPnl": "PnL terbuka",
     "noPositions": "Belum ada posisi",
-    "topTraders": "Trader teratas minggu ini"
+    "topTraders": "Trader teratas minggu ini",
+    "totalBalance": "Total saldo",
+    "fundHint": "Tambah USDC untuk mulai trading"
   },
   "trade": {
     "title": "Trading",

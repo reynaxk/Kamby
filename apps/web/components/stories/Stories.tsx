@@ -83,28 +83,8 @@ export function StoriesRow() {
       <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5" />
     </svg>
   );
-  // Nothing in the row yet but you: one tidy glass strip instead of a lone circle (2026-10-18).
-  if (stories.length === 0 && live.length === 0) {
-    return (
-      <>
-        <button
-          type="button"
-          onClick={() => setGoLive(true)}
-          className="kamby-rise kamby-glass mt-3 flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-transform active:scale-[0.99]"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#FF3B69]/25 bg-[#FF3B69]/[0.1] text-[#FF5C83]">{liveIcon(18)}</span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-display text-sm font-bold text-ink-900">{t('goLive')}</span>
-            <span className="block truncate font-body text-[0.7rem] text-ink-400">{t('goLiveHint')}</span>
-          </span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ink-400" aria-hidden>
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
-        <GoLiveSheet open={goLive} onClose={() => setGoLive(false)} />
-      </>
-    );
-  }
+  // Nothing in the row yet but you: no row at all — Go live sits by the balance (2026-10-28).
+  if (stories.length === 0 && live.length === 0) return null;
   return (
     <>
       <div className="kamby-rise -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="list" aria-label={t('title')}>

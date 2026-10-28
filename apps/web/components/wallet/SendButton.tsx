@@ -19,7 +19,7 @@ import { useTranslations } from 'next-intl';
  * your own balance, not buried in a header icon only. `variant="icon"` (default) is the
  * compact header form next to BlurBalancesToggle/ConnectWalletButton.
  */
-export function SendButton({ variant = 'icon', toUser = false }: { variant?: 'icon' | 'labeled' | 'stacked'; toUser?: boolean }) {
+export function SendButton({ variant = 'icon', toUser = false }: { variant?: 'icon' | 'labeled' | 'stacked' | 'pill'; toUser?: boolean }) {
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
@@ -34,6 +34,8 @@ export function SendButton({ variant = 'icon', toUser = false }: { variant?: 'ic
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
+            : variant === 'pill'
+              ? 'flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/[0.07] px-3 font-display text-sm font-bold text-ink-900 transition-transform active:scale-[0.97] md:hover:bg-white/[0.11]'
             : variant === 'stacked'
               ? 'flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-surface-raised px-2 py-3 font-display text-xs font-bold text-ink-900 transition-transform hover:border-accent/50 active:scale-[0.97]'
             // Withdraw is the glass one, its icon in a neon disc (see FundButton). No glow.
@@ -41,7 +43,12 @@ export function SendButton({ variant = 'icon', toUser = false }: { variant?: 'ic
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        {variant !== 'icon' ? (
+        {variant === 'pill' ? (
+          <>
+            <span className="text-accent">{toUser ? <SendToUserIcon /> : <WithdrawIcon />}</span>
+            {toUser ? tW('send') : tW('withdraw')}
+          </>
+        ) : variant !== 'icon' ? (
           <>
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
               {toUser ? <SendToUserIcon /> : <WithdrawIcon />}

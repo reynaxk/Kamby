@@ -39,7 +39,9 @@
     "deposit": "Déposer",
     "openPnl": "PnL ouvert",
     "noPositions": "Aucune position ouverte",
-    "topTraders": "Meilleurs traders de la semaine"
+    "topTraders": "Meilleurs traders de la semaine",
+    "totalBalance": "Solde total",
+    "fundHint": "Ajoute des USDC pour commencer"
   },
   "trade": {
     "title": "Trader",

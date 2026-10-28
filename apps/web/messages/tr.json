@@ -39,7 +39,9 @@
     "deposit": "Yatır",
     "openPnl": "açık K/Z",
     "noPositions": "Açık pozisyon yok",
-    "topTraders": "Haftanın en iyi trader’ları"
+    "topTraders": "Haftanın en iyi trader’ları",
+    "totalBalance": "Toplam bakiye",
+    "fundHint": "İşleme başlamak için USDC ekle"
   },
   "trade": {
     "title": "İşlem",

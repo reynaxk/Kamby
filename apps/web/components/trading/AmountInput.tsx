@@ -5,6 +5,7 @@ import { formatUnits } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
 import { useTranslations } from 'next-intl';
 import { formatTradeAmount } from '@/lib/format';
+import { applyNumpadKey, Numpad } from './Numpad';
 
 const PRESET_FRACTIONS = [0.25, 0.5, 1] as const;
 
@@ -45,6 +46,9 @@ export function AmountInput({
     query: { refetchInterval: 15_000 },
   });
 
+  // A buy in dollars gets the keypad (2026-10-28); a sell types token amounts as before.
+  const dollars = hero && inputTokenSymbol === 'USDC';
+
   const applyFraction = (fraction: number) => {
     if (usdBalance) {
       onChange((Math.floor(usdBalance.spendable * fraction * 100) / 100).toFixed(2));
@@ -79,7 +83,8 @@ export function AmountInput({
           {inputTokenSymbol === 'USDC' && <span className={cn('text-5xl', !value && 'text-ink-400')}>$</span>}
           <input
             type="text"
-            inputMode="decimal"
+            inputMode={dollars ? 'none' : 'decimal'}
+            readOnly={dollars}
             placeholder="0"
             aria-label={tTrade('amountOf', { symbol: inputTokenSymbol ?? 'token' })}
             value={value}
@@ -123,6 +128,7 @@ export function AmountInput({
           </button>
         ))}
       </div>
+      {dollars && <Numpad className="mt-3" onKey={(key) => onChange(applyNumpadKey(value, key))} />}
     </div>
   );
 }

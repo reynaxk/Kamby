@@ -39,7 +39,9 @@
     "deposit": "Nạp tiền",
     "openPnl": "Lãi/lỗ đang mở",
     "noPositions": "Chưa có vị thế",
-    "topTraders": "Trader hàng đầu tuần này"
+    "topTraders": "Trader hàng đầu tuần này",
+    "totalBalance": "Tổng số dư",
+    "fundHint": "Nạp USDC để bắt đầu giao dịch"
   },
   "trade": {
     "title": "Giao dịch",

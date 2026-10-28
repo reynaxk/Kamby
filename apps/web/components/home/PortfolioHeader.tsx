@@ -8,6 +8,7 @@ import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
 import { AppBell } from '@/components/notifications/AppBell';
 import { StoriesRow } from '@/components/stories/Stories';
+import { GoLiveSheet } from '@/components/live/GoLive';
 import { markAppReady } from '@/components/pwa/AppSplash';
 import { useAccount } from 'wagmi';
 import { cn } from '@kamby/ui';
@@ -33,6 +34,8 @@ export function PortfolioHeader() {
   const balances = useUsdcBalances(address, wallets[0]?.address);
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
+  const tS = useTranslations('stories');
+  const [goLive, setGoLive] = useState(false);
 
   // The launch splash waits for this: signed out, or the balance is in (2026-10-11).
   const cashReady = balances.total !== null;
@@ -76,54 +79,58 @@ export function PortfolioHeader() {
     </div>
     {/* Today's wins as stories, Instagram-style (2026-10-17). */}
     <StoriesRow />
-    {/* Desktop (2026-10-15): the same midnight card as the phone — balance left, the three money
-        buttons right, LaunchPad across the bottom — instead of a bare number over small buttons. */}
-    <section className="kamby-rise kamby-rise-2 kamby-glass relative mt-3 overflow-hidden rounded-3xl px-4 py-4 md:mt-6 md:grid md:grid-cols-[1fr_minmax(0,22rem)] md:items-center md:gap-x-8 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#05070A] md:px-7 md:py-7">
-      {/* The faint neon K of the PnL cards (2026-10-15), Kamby's mark on its own balance. */}
-      <svg className="pointer-events-none absolute -right-5 -top-5 h-[150px] w-[150px] md:-right-10 md:-top-16 md:h-[300px] md:w-[300px]" width="150" height="150" viewBox="0 0 512 512" aria-hidden="true">
-        <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
-          <path d="M186 140 V372" />
-          <path d="M200 268 L338 140" />
-          <path d="M232 246 L346 372" />
-        </g>
-      </svg>
-      <div className={cn('relative min-w-0', hidden && 'select-none blur-md')}>
-        <BigUsd value={total} className="block font-display text-4xl font-bold tracking-tight text-ink-900 md:text-5xl" />
-        <p className={cn('mt-1 font-body text-sm font-semibold tabular-nums', !positions?.length ? 'text-ink-400' : openPnl >= 0 ? 'text-up' : 'text-down')}>
-          {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : t('noPositions')}
+    {/* The balance, flat and short (2026-10-28, owner: "like GMGN but better, simpler"): one big
+        number, the money buttons as one row of pills, LaunchPad and Perps as two slim links — so
+        the coins start higher on the screen. No card, no glow. */}
+    <section className="kamby-rise kamby-rise-2 relative mt-4 md:mt-6">
+      <p className="font-body text-xs font-semibold text-ink-400">{t('totalBalance')}</p>
+      <div className={cn('mt-0.5 min-w-0', hidden && 'select-none blur-md')}>
+        <BigUsd value={total} className="block font-display text-[2.6rem] font-bold leading-none tracking-tight text-ink-900" />
+        <p className={cn('mt-1.5 font-body text-sm font-semibold tabular-nums', !positions?.length ? 'text-ink-400' : openPnl >= 0 ? 'text-up' : 'text-down')}>
+          {positions && positions.length > 0 ? `${formatSignedCompactUsd(openPnl)} ${t('openPnl')}` : total === 0 ? t('fundHint') : t('noPositions')}
         </p>
       </div>
-      {/* Deposit + Withdraw side by side, like a wallet app's quick actions. */}
-      <div className="relative mt-4 grid grid-cols-3 gap-2 md:mt-0">
-        <FundButton variant="stacked" />
-        <SendButton variant="stacked" />
+      <div className="mt-4 flex gap-2">
+        <FundButton variant="pill" />
+        <SendButton variant="pill" />
         {/* Send to another Kamby user by their @name (2026-10-15). */}
-        <SendButton variant="stacked" toUser />
+        <SendButton variant="pill" toUser />
+        <button
+          type="button"
+          onClick={() => setGoLive(true)}
+          aria-label={tS('goLive')}
+          title={tS('goLive')}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF3B69]/[0.12] text-[#FF5C83] transition-transform active:scale-[0.97]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="12" cy="12" r="2.5" />
+            <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5" />
+          </svg>
+        </button>
       </div>
       {/* Kamby's LaunchPad (2026-10-14) and ⚡ Perps (2026-10-21), side by side. */}
-      <div className="relative mt-2 grid grid-cols-2 gap-2 md:col-span-2 md:mt-6">
-        <Link href="/launch" className="flex items-center justify-between gap-2 rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:hover:bg-white/[0.07]">
-          <span className="min-w-0">
-            <span className="block truncate font-display text-sm font-bold text-ink-900">LaunchPad</span>
-            <span className="block truncate font-body text-xs text-ink-400">{tP('launchShort')}</span>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Link href="/launch" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
+          <span className="flex min-w-0 items-baseline gap-1.5">
+            <span className="shrink-0 font-display text-sm font-bold text-ink-900">🚀 LaunchPad</span>
+            <span className="truncate font-body text-xs text-ink-400">{tP('launchShort')}</span>
           </span>
-          <span className="shrink-0 font-display text-lg font-bold text-accent" aria-hidden>
+          <span className="shrink-0 font-display text-base font-bold text-accent" aria-hidden>
             →
           </span>
         </Link>
-        <Link href="/perps" className="flex items-center justify-between gap-2 rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors active:bg-white/[0.08] md:hover:bg-white/[0.07]">
-          <span className="min-w-0">
-            <span className="flex items-center gap-1 font-display text-sm font-bold text-ink-900">
-              ⚡ {tP('card')}
-            </span>
-            <span className="block truncate font-body text-xs text-ink-400">{tP('cardSub')}</span>
+        <Link href="/perps" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
+          <span className="flex min-w-0 items-baseline gap-1.5">
+            <span className="shrink-0 font-display text-sm font-bold text-ink-900">⚡ {tP('card')}</span>
+            <span className="truncate font-body text-xs text-ink-400">{tP('cardSub')}</span>
           </span>
-          <span className="shrink-0 font-display text-lg font-bold text-accent" aria-hidden>
+          <span className="shrink-0 font-display text-base font-bold text-accent" aria-hidden>
             →
           </span>
         </Link>
       </div>
     </section>
+    <GoLiveSheet open={goLive} onClose={() => setGoLive(false)} />
     </>
   );
 }

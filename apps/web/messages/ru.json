@@ -39,7 +39,9 @@
     "deposit": "Пополнить",
     "openPnl": "открытый PnL",
     "noPositions": "Нет открытых позиций",
-    "topTraders": "Лучшие трейдеры недели"
+    "topTraders": "Лучшие трейдеры недели",
+    "totalBalance": "Общий баланс",
+    "fundHint": "Пополни USDC, чтобы начать"
   },
   "trade": {
     "title": "Торговля",

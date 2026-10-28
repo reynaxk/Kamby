@@ -39,7 +39,9 @@
     "deposit": "充值",
     "openPnl": "持仓盈亏",
     "noPositions": "暂无持仓",
-    "topTraders": "本周顶尖交易员"
+    "topTraders": "本周顶尖交易员",
+    "totalBalance": "总余额",
+    "fundHint": "充值 USDC 开始交易"
   },
   "trade": {
     "title": "交易",

@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
  * ConnectWalletButton for its EVM wrong-network gate, so nesting the trigger inside FundModal
  * itself would be a circular import.
  */
-export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' | 'stacked' }) {
+export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' | 'stacked' | 'pill' }) {
   const tU = useTranslations('ui');
   const tW = useTranslations('wallet');
   const [open, setOpen] = useState(false);
@@ -28,6 +28,8 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
         className={cn(
           variant === 'icon'
             ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-raised hover:text-ink-900'
+            : variant === 'pill'
+              ? 'flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-3 font-display text-sm font-bold text-black transition-transform active:scale-[0.97]'
             : variant === 'stacked'
               ? 'flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-accent px-2 py-3 font-display text-xs font-bold text-black transition-transform active:scale-[0.97]'
             // shrink-0 here too, not just on the icon variant above — without it, the button
@@ -39,7 +41,12 @@ export function FundButton({ variant = 'icon' }: { variant?: 'icon' | 'labeled' 
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
         )}
       >
-        {variant !== 'icon' ? (
+        {variant === 'pill' ? (
+          <>
+            <FundIcon />
+            {tW('deposit')}
+          </>
+        ) : variant !== 'icon' ? (
           <>
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/15">
               <FundIcon />

@@ -39,7 +39,9 @@
     "deposit": "Einzahlen",
     "openPnl": "offener PnL",
     "noPositions": "Keine offenen Positionen",
-    "topTraders": "Top-Trader der Woche"
+    "topTraders": "Top-Trader der Woche",
+    "totalBalance": "Gesamtguthaben",
+    "fundHint": "Füge USDC hinzu, um zu traden"
   },
   "trade": {
     "title": "Handeln",

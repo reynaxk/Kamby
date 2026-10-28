@@ -39,7 +39,9 @@
     "deposit": "Depositar",
     "openPnl": "PnL abierto",
     "noPositions": "Sin posiciones abiertas",
-    "topTraders": "Mejores traders de la semana"
+    "topTraders": "Mejores traders de la semana",
+    "totalBalance": "Saldo total",
+    "fundHint": "Añade USDC para empezar"
   },
   "trade": {
     "title": "Operar",

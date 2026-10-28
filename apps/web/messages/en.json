@@ -39,7 +39,9 @@
     "deposit": "Deposit",
     "openPnl": "open PnL",
     "noPositions": "No open positions",
-    "topTraders": "Top traders this week"
+    "topTraders": "Top traders this week",
+    "totalBalance": "Total balance",
+    "fundHint": "Add USDC to start trading"
   },
   "trade": {
     "title": "Trade",

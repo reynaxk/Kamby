@@ -39,7 +39,9 @@
     "deposit": "入金",
     "openPnl": "含み損益",
     "noPositions": "保有ポジションなし",
-    "topTraders": "今週のトップトレーダー"
+    "topTraders": "今週のトップトレーダー",
+    "totalBalance": "合計残高",
+    "fundHint": "USDC を入金して取引を始めよう"
   },
   "trade": {
     "title": "取引",

@@ -6,12 +6,15 @@ import { PublicKey } from '@solana/web3.js';
 import { Wallet } from 'lucide-react';
 import { SOLANA_USDC_MINT } from '@kamby/domain';
 import { cn } from '@kamby/ui';
+import { applyNumpadKey, Numpad } from './Numpad';
 import { useDecimalText } from './useDecimalText';
 import { GlowValue } from '@/components/market/GlowValue';
 import { solanaConnection } from '@/lib/solana-config';
 import { useTranslations } from 'next-intl';
 
 export const USD_PRESETS = [10, 25, 50, 100] as const;
+/** The phone sheet's chips (2026-10-28) — smaller, since most balances are small. */
+const HERO_PRESETS = [5, 10, 25, 50] as const;
 const USDC_DECIMALS = 6;
 
 /** Shared with the mobile speed dock (SolanaTradePanel) so the $ → raw-USDC conversion
@@ -115,16 +118,16 @@ export function UsdPresetAmountInput({
       </div>
       {hero ? (
         <div className="flex items-baseline justify-center py-4">
-          <span className={cn('font-display text-5xl font-bold', text ? 'text-ink-900' : 'text-ink-400')}>$</span>
+          <span className={cn('font-display text-[3.4rem] font-bold', text ? 'text-ink-900' : 'text-ink-400')}>$</span>
           <input
             type="text"
-            inputMode="decimal"
+            inputMode="none"
+            readOnly
             placeholder="0"
             aria-label={tTrade('amountOf', { symbol: 'USDC' })}
             value={text}
             style={{ width: `${Math.max(1, text.length) + 0.15}ch` }}
-            onChange={(event) => setText(event.target.value)}
-            className="min-w-[1ch] max-w-full bg-transparent text-center font-display text-5xl font-bold tabular-nums text-ink-900 placeholder:text-ink-400 focus:outline-none"
+            className="min-w-[1ch] max-w-full bg-transparent text-center font-display text-[3.4rem] font-bold tabular-nums text-ink-900 placeholder:text-ink-400 focus:outline-none"
           />
         </div>
       ) : (
@@ -138,7 +141,7 @@ export function UsdPresetAmountInput({
       />
       )}
       <div className="mt-1.5 flex gap-1.5">
-        {USD_PRESETS.map((dollars) => {
+        {(hero ? HERO_PRESETS : USD_PRESETS).map((dollars) => {
           const isActive = value === usdToRawUsdc(dollars);
           return (
             <button
@@ -147,7 +150,7 @@ export function UsdPresetAmountInput({
               onClick={() => applyUsd(dollars)}
               className={cn(
                 'flex-1 rounded-full border px-2 py-1.5 font-mono text-xs font-semibold transition-colors',
-                hero && 'py-2.5 text-sm',
+                hero && 'rounded-xl border-transparent bg-white/[0.06] py-2.5 font-display text-sm font-bold',
                 isActive
                   ? 'border-accent bg-accent/15 text-accent'
                   : 'border-line bg-surface-raised text-ink-600 hover:border-accent/60 hover:text-ink-900',
@@ -163,13 +166,14 @@ export function UsdPresetAmountInput({
           onClick={applyMax}
           className={cn(
             'flex-1 rounded-full border border-line bg-surface-raised px-2 py-1.5 font-mono text-xs font-semibold text-ink-600',
-            hero && 'py-2.5 text-sm',
+            hero && 'rounded-xl border-transparent bg-white/[0.06] py-2.5 font-display text-sm font-bold text-ink-900',
             'hover:border-accent/60 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-40',
           )}
         >
           {tU('max_6a06')}
         </button>
       </div>
+      {hero && <Numpad className="mt-3" onKey={(key) => setText(applyNumpadKey(text, key))} />}
     </div>
   );
 }
