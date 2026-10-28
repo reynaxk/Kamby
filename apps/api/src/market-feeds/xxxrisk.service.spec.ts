@@ -1,4 +1,4 @@
-import { curveValuesUsd, riskFlags } from './xxxrisk.service';
+import { curveValuesUsd, riskFlags, socialsOf } from './xxxrisk.service';
 
 describe('XXXRisk helpers', () => {
   it('prices a curve from its reserves: SOL in the curve as liquidity, implied price x supply as market cap', () => {
@@ -18,5 +18,9 @@ describe('XXXRisk helpers', () => {
       'top-holders-over-50pct',
     ]);
     expect(riskFlags(undefined)).toEqual(['unverified-audit']);
+  });
+  it('keeps only https socials', () => {
+    expect(socialsOf({ id: 'x', twitter: 'https://x.com/a', telegram: 'javascript:alert(1)', website: '' })).toEqual({ twitter: 'https://x.com/a' });
+    expect(socialsOf(undefined)).toEqual({});
   });
 });

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { prisma } from '@kamby/db';
-import { XXXRISK_FILTER, type XxxRiskFlag, type XxxRiskToken } from '@kamby/domain';
+import { pumpFunGraduationProgressPct, XXXRISK_FILTER, type XxxRiskFlag, type XxxRiskToken } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -34,9 +34,29 @@ export function curveValuesUsd(row: CurveRow, solUsd: number): { liquidityUsd: n
 interface JupiterStats {
   id: string;
   icon?: string;
+  holderCount?: number;
+  twitter?: string;
+  telegram?: string;
+  website?: string;
   audit?: { mintAuthorityDisabled?: boolean; freezeAuthorityDisabled?: boolean; devBalancePercentage?: number; topHoldersPercentage?: number };
-  stats5m?: { buyVolume?: number; sellVolume?: number; numTraders?: number };
+  stats5m?: { buyVolume?: number; sellVolume?: number; numTraders?: number; numBuys?: number; numSells?: number; priceChange?: number };
 }
+
+const httpsOnly = (url: string | undefined) => (url?.startsWith('https://') ? url : undefined);
+
+/** Exported for tests. A coin's socials from Jupiter — https links only, empty ones dropped. */
+export function socialsOf(j: JupiterStats | undefined): XxxRiskToken['socials'] {
+  const out: NonNullable<XxxRiskToken['socials']> = {};
+  const twitter = httpsOnly(j?.twitter);
+  const telegram = httpsOnly(j?.telegram);
+  const website = httpsOnly(j?.website);
+  if (twitter) out.twitter = twitter;
+  if (telegram) out.telegram = telegram;
+  if (website) out.website = website;
+  return out;
+}
+
+const num = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) ? n : null);
 
 /** Exported for tests. Rug-risk flags from Jupiter's audit; a coin it hasn't audited yet says so. */
 export function riskFlags(j: JupiterStats | undefined): XxxRiskFlag[] {
@@ -54,7 +74,7 @@ export function riskFlags(j: JupiterStats | undefined): XxxRiskFlag[] {
  * under 5 minutes old (launch events from PumpPortal, reserves kept current on-chain by the
  * workers' curve refresher) priced with the live SOL price, filtered to $1–3K liquidity and
  * $5–15K market cap, then enriched with ONE Jupiter call per cycle (5-minute volume, traders,
- * audit, picture) and sorted by volume. Rebuilt with the other feeds every ~10s, cached in
+ * audit, picture, holders, socials) and sorted newest first (2026-10-28, card grid). Rebuilt with the other feeds every ~10s, cached in
  * Redis for 10s, streamed over the existing SSE feed — never fetched by browsers directly.
  */
 @Injectable()
@@ -103,9 +123,19 @@ export class XxxRiskService {
         volume5mUsd: volume,
         traders5m: j?.stats5m?.numTraders ?? null,
         riskFlags: riskFlags(j),
+        createdAtMs: row.createdAt.getTime(),
+        curvePct: pumpFunGraduationProgressPct(row.realSolReserves),
+        holders: num(j?.holderCount),
+        buys5m: num(j?.stats5m?.numBuys),
+        sells5m: num(j?.stats5m?.numSells),
+        priceChange5mPct: num(j?.stats5m?.priceChange),
+        devPct: num(j?.audit?.devBalancePercentage),
+        topHoldersPct: num(j?.audit?.topHoldersPercentage),
+        socials: socialsOf(j),
       };
     });
-    tokens.sort((a, b) => (b.volume5mUsd ?? 0) - (a.volume5mUsd ?? 0));
+    // Newest first, like GMGN's "New" column — the browser can re-sort by volume or market cap.
+    tokens.sort((a, b) => a.ageSeconds - b.ageSeconds);
     const top = tokens.slice(0, XXXRISK_FILTER.limit);
     await this.redis.set(REDIS_KEY, JSON.stringify(top), 'EX', REDIS_TTL_SECONDS).catch(() => undefined);
     return top;

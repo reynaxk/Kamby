@@ -67,17 +67,31 @@ export interface XxxRiskToken {
   traders5m: number | null;
   /** Rug-risk flags; empty = none of these checks tripped. */
   riskFlags: XxxRiskFlag[];
+  /** Launch time (ms) — browsers tick the age from this. Added 2026-10-28 with the card grid;
+   *  everything below is optional so an older cached list still renders. */
+  createdAtMs?: number;
+  /** 0-100 toward Pump.fun's ~85 SOL graduation. */
+  curvePct?: number;
+  holders?: number | null;
+  buys5m?: number | null;
+  sells5m?: number | null;
+  priceChange5mPct?: number | null;
+  devPct?: number | null;
+  topHoldersPct?: number | null;
+  /** https links only. */
+  socials?: { twitter?: string; telegram?: string; website?: string };
 }
 export type XxxRiskFlag = 'mintable' | 'freezable' | 'dev-holds-over-20pct' | 'top-holders-over-50pct' | 'unverified-audit';
 
-/** Widened 2026-10-04 (user: "I want more coins") from <5 min, $1–3K, $5–15K. */
+/** Widened 2026-10-04 (user: "I want more coins") from <5 min, $1–3K, $5–15K; and again
+ *  2026-10-28 for the GMGN-style card grid, whose own filters narrow it in the browser. */
 export const XXXRISK_FILTER = {
   maxAgeSeconds: 600,
-  minLiquidityUsd: 500,
-  maxLiquidityUsd: 5_000,
-  minMarketCapUsd: 4_000,
-  maxMarketCapUsd: 25_000,
-  limit: 20,
+  minLiquidityUsd: 300,
+  maxLiquidityUsd: 10_000,
+  minMarketCapUsd: 3_000,
+  maxMarketCapUsd: 50_000,
+  limit: 60,
 } as const;
 
 /** Server-Sent Event names on GET /v1/market/feeds/stream, and each one's `data`. */
