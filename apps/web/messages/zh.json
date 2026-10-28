@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "来电",
     "CALL_INCOMING": "{actor} 正在呼叫你",
     "kind_LIVE_STARTED": "直播",
-    "LIVE_STARTED": "{actor} 正在直播——点击观看"
+    "LIVE_STARTED": "{actor} 正在直播——点击观看",
+    "kind_CALL_MISSED": "未接来电",
+    "CALL_MISSED": "{actor} 给你打过电话 — 未接",
+    "CALL_MISSED_VIDEO": "{actor} 给你打过视频电话 — 未接"
   },
   "pulse": {
     "live": "实时 — 全球交易者",
@@ -1281,6 +1284,14 @@
     "dev": "开发者",
     "top": "前10",
     "quickUse": "使用 ${usd}",
-    "minShort": "分钟"
+    "minShort": "分钟",
+    "colNew": "新币",
+    "colSoon": "即将毕业",
+    "colMigrated": "已迁移",
+    "columns": "列",
+    "snipers": "狙击",
+    "insiders": "内幕",
+    "bundlers": "捆绑",
+    "v": "量"
   }
 }

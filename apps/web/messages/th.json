@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "การโทร",
     "CALL_INCOMING": "{actor} กำลังโทรหาคุณ",
     "kind_LIVE_STARTED": "ไลฟ์",
-    "LIVE_STARTED": "{actor} กำลังไลฟ์ — แตะเพื่อดู"
+    "LIVE_STARTED": "{actor} กำลังไลฟ์ — แตะเพื่อดู",
+    "kind_CALL_MISSED": "สายที่ไม่ได้รับ",
+    "CALL_MISSED": "{actor} โทรหาคุณ — ไม่ได้รับสาย",
+    "CALL_MISSED_VIDEO": "{actor} วิดีโอคอลหาคุณ — ไม่ได้รับสาย"
   },
   "pulse": {
     "live": "สด — เทรดเดอร์ทั่วโลก",
@@ -1281,6 +1284,14 @@
     "dev": "Dev",
     "top": "Top10",
     "quickUse": "ใช้ ${usd}",
-    "minShort": "นาที"
+    "minShort": "นาที",
+    "colNew": "ใหม่",
+    "colSoon": "ใกล้จบเคิร์ฟ",
+    "colMigrated": "ย้ายแล้ว",
+    "columns": "คอลัมน์",
+    "snipers": "สไนเปอร์",
+    "insiders": "อินไซเดอร์",
+    "bundlers": "บันเดิล",
+    "v": "V"
   }
 }

@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "Обаждане",
     "CALL_INCOMING": "{actor} ти звъни",
     "kind_LIVE_STARTED": "Live",
-    "LIVE_STARTED": "{actor} е на живо — докосни, за да гледаш"
+    "LIVE_STARTED": "{actor} е на живо — докосни, за да гледаш",
+    "kind_CALL_MISSED": "Пропуснато обаждане",
+    "CALL_MISSED": "{actor} ти звъня — пропусна го",
+    "CALL_MISSED_VIDEO": "{actor} ти звъня по видео — пропусна го"
   },
   "pulse": {
     "live": "На живо — трейдъри от цял свят",
@@ -1281,6 +1284,14 @@
     "dev": "Дев",
     "top": "Топ10",
     "quickUse": "Ползвай ${usd}",
-    "minShort": "мин"
+    "minShort": "мин",
+    "colNew": "Нови",
+    "colSoon": "Почти готови",
+    "colMigrated": "Мигрирали",
+    "columns": "Колони",
+    "snipers": "Снайпери",
+    "insiders": "Инсайдъри",
+    "bundlers": "Бъндъли",
+    "v": "О"
   }
 }

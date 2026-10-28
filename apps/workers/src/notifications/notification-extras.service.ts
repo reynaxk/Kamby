@@ -14,7 +14,7 @@ import {
 import type { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import webpush from 'web-push';
-import { dmPushCopy, pushCopy } from './push-copy';
+import { dmPushCopy, missedVideoTitle, pushCopy } from './push-copy';
 
 const SOLANA_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const USDC_DECIMALS_BY_CHAIN_ID: Record<number, number> = { 8453: 6, 56: 18 };
@@ -361,6 +361,8 @@ export class NotificationExtrasService {
                 preview: payload.preview ?? '',
                 emoji: payload.emoji ?? '',
               })
+            : row.type === 'CALL_MISSED' && payload?.callVideo
+              ? { ...pushCopy(sub.locale, row.type, { actor: actorName, token: '', amount: '', pct: '', side: null }), title: missedVideoTitle(sub.locale) }
             : row.type === 'LIVE_STARTED' && payload?.liveTitle
               ? { ...pushCopy(sub.locale, row.type, { actor: actorName, token: '', amount: '', pct: '', side: null }), body: payload.liveTitle }
               : pushCopy(sub.locale, row.type, {
@@ -376,7 +378,7 @@ export class NotificationExtrasService {
             .sendNotification(
               { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
               JSON.stringify({ title, body, url, tag, renotify: tag !== row.id }),
-              { TTL: row.type === 'CALL_INCOMING' ? 60 : 3600, urgency: row.type.startsWith('TRADE_') || row.type === 'PRICE_MOVE' || row.type === 'USDC_RECEIVED' || row.type === 'DM_MESSAGE' || row.type === 'CALL_INCOMING' || row.type === 'LIVE_STARTED' ? 'high' : 'normal' },
+              { TTL: row.type === 'CALL_INCOMING' ? 60 : 3600, urgency: row.type.startsWith('TRADE_') || row.type === 'PRICE_MOVE' || row.type === 'USDC_RECEIVED' || row.type === 'DM_MESSAGE' || row.type === 'CALL_INCOMING' || row.type === 'CALL_MISSED' || row.type === 'LIVE_STARTED' ? 'high' : 'normal' },
             )
             .then(() => {
               sent += 1;

@@ -15,7 +15,7 @@ export interface PushFacts {
   arrow?: string;
 }
 
-type Copy = Record<NotificationType, { title: string; body: string }> & { bought: string; sold: string };
+type Copy = Record<NotificationType, { title: string; body: string }> & { bought: string; sold: string; /** CALL_MISSED's title for a video call. */ missedVideo: string };
 
 const EN: Copy = {
   bought: 'bought',
@@ -32,6 +32,8 @@ const EN: Copy = {
   USDC_RECEIVED: { title: '💸 {amount} received', body: '@{actor} sent you {amount}' },
   DM_MESSAGE: { title: "💬 @{actor}", body: "sent you a message" },
   CALL_INCOMING: { title: "📞 @{actor}", body: "is calling you" },
+  CALL_MISSED: { title: '📞 Missed call', body: 'from @{actor}' },
+  missedVideo: '🎥 Missed video call',
   LIVE_STARTED: { title: '🔴 @{actor} is live', body: 'Tap to watch and chat' },
 };
 
@@ -42,6 +44,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 Получи {amount}", body: "@{actor} ти прати {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ти писа" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "ти звъни" },
+    CALL_MISSED: { title: '📞 Пропуснато обаждане', body: 'от @{actor}' },
+    missedVideo: '🎥 Пропуснат видео разговор',
     bought: 'купи', sold: 'продаде',
     FOLLOW: { title: 'Нов последовател', body: '{actor} започна да те следва' },
     LIKE: { title: 'Ново харесване', body: '{actor} хареса твоя сделка' },
@@ -58,6 +62,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 收到 {amount}", body: "@{actor} 给你发了 {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "给你发了一条消息" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "正在呼叫你" },
+    CALL_MISSED: { title: '📞 未接来电', body: '来自 @{actor}' },
+    missedVideo: '🎥 未接视频通话',
     bought: '买入', sold: '卖出',
     FOLLOW: { title: '新粉丝', body: '{actor} 关注了你' },
     LIKE: { title: '新点赞', body: '{actor} 点赞了你的交易' },
@@ -74,6 +80,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} 받았어요", body: "@{actor}님이 {amount}를 보냈어요" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "님이 메시지를 보냈어요" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "님이 전화하고 있어요" },
+    CALL_MISSED: { title: '📞 부재중 전화', body: '@{actor}님' },
+    missedVideo: '🎥 부재중 영상 통화',
     bought: '매수', sold: '매도',
     FOLLOW: { title: '새 팔로워', body: '{actor}님이 회원님을 팔로우합니다' },
     LIKE: { title: '새 좋아요', body: '{actor}님이 거래에 좋아요를 눌렀습니다' },
@@ -90,6 +98,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} 受け取りました", body: "@{actor} から {amount} が届きました" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "からメッセージが届きました" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "から着信中" },
+    CALL_MISSED: { title: '📞 不在着信', body: '@{actor} から' },
+    missedVideo: '🎥 不在ビデオ通話',
     bought: '購入', sold: '売却',
     FOLLOW: { title: '新しいフォロワー', body: '{actor} があなたをフォローしました' },
     LIKE: { title: '新しいいいね', body: '{actor} があなたの取引にいいねしました' },
@@ -106,6 +116,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} geldi", body: "@{actor} sana {amount} gönderdi" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "sana mesaj gönderdi" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "seni arıyor" },
+    CALL_MISSED: { title: '📞 Cevapsız arama', body: '@{actor} aradı' },
+    missedVideo: '🎥 Cevapsız görüntülü arama',
     bought: 'aldı', sold: 'sattı',
     FOLLOW: { title: 'Yeni takipçi', body: '{actor} seni takip etmeye başladı' },
     LIKE: { title: 'Yeni beğeni', body: '{actor} işlemini beğendi' },
@@ -122,6 +134,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 Получено {amount}", body: "@{actor} отправил тебе {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "написал тебе" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "звонит тебе" },
+    CALL_MISSED: { title: '📞 Пропущенный звонок', body: 'от @{actor}' },
+    missedVideo: '🎥 Пропущенный видеозвонок',
     bought: 'купил', sold: 'продал',
     FOLLOW: { title: 'Новый подписчик', body: '{actor} подписался на вас' },
     LIKE: { title: 'Новый лайк', body: '{actor} лайкнул вашу сделку' },
@@ -138,6 +152,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 Recibiste {amount}", body: "@{actor} te envió {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te envió un mensaje" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "te está llamando" },
+    CALL_MISSED: { title: '📞 Llamada perdida', body: 'de @{actor}' },
+    missedVideo: '🎥 Videollamada perdida',
     bought: 'compró', sold: 'vendió',
     FOLLOW: { title: 'Nuevo seguidor', body: '{actor} empezó a seguirte' },
     LIKE: { title: 'Nuevo me gusta', body: 'A {actor} le gustó tu operación' },
@@ -154,6 +170,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} recebidos", body: "@{actor} te enviou {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te enviou uma mensagem" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "está te ligando" },
+    CALL_MISSED: { title: '📞 Chamada perdida', body: 'de @{actor}' },
+    missedVideo: '🎥 Videochamada perdida',
     bought: 'comprou', sold: 'vendeu',
     FOLLOW: { title: 'Novo seguidor', body: '{actor} começou a seguir você' },
     LIKE: { title: 'Nova curtida', body: '{actor} curtiu sua operação' },
@@ -170,6 +188,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 Đã nhận {amount}", body: "@{actor} đã gửi bạn {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "đã nhắn tin cho bạn" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "đang gọi cho bạn" },
+    CALL_MISSED: { title: '📞 Cuộc gọi nhỡ', body: 'từ @{actor}' },
+    missedVideo: '🎥 Cuộc gọi video nhỡ',
     bought: 'mua', sold: 'bán',
     FOLLOW: { title: 'Người theo dõi mới', body: '{actor} đã theo dõi bạn' },
     LIKE: { title: 'Lượt thích mới', body: '{actor} đã thích giao dịch của bạn' },
@@ -186,6 +206,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} diterima", body: "@{actor} mengirimimu {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "mengirimimu pesan" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "sedang meneleponmu" },
+    CALL_MISSED: { title: '📞 Panggilan tak terjawab', body: 'dari @{actor}' },
+    missedVideo: '🎥 Panggilan video tak terjawab',
     bought: 'membeli', sold: 'menjual',
     FOLLOW: { title: 'Pengikut baru', body: '{actor} mulai mengikutimu' },
     LIKE: { title: 'Suka baru', body: '{actor} menyukai trade-mu' },
@@ -202,6 +224,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 ได้รับ {amount}", body: "@{actor} ส่ง {amount} ให้คุณ" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ส่งข้อความถึงคุณ" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "กำลังโทรหาคุณ" },
+    CALL_MISSED: { title: '📞 สายที่ไม่ได้รับ', body: 'จาก @{actor}' },
+    missedVideo: '🎥 วิดีโอคอลที่ไม่ได้รับ',
     bought: 'ซื้อ', sold: 'ขาย',
     FOLLOW: { title: 'ผู้ติดตามใหม่', body: '{actor} เริ่มติดตามคุณ' },
     LIKE: { title: 'ถูกใจใหม่', body: '{actor} ถูกใจเทรดของคุณ' },
@@ -218,6 +242,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} erhalten", body: "@{actor} hat dir {amount} geschickt" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "hat dir geschrieben" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "ruft dich an" },
+    CALL_MISSED: { title: '📞 Verpasster Anruf', body: 'von @{actor}' },
+    missedVideo: '🎥 Verpasster Videoanruf',
     bought: 'kaufte', sold: 'verkaufte',
     FOLLOW: { title: 'Neuer Follower', body: '{actor} folgt dir jetzt' },
     LIKE: { title: 'Neues Like', body: '{actor} gefällt dein Trade' },
@@ -234,6 +260,8 @@ const COPY: Record<string, Partial<Copy>> = {
     USDC_RECEIVED: { title: "💸 {amount} reçus", body: "@{actor} t'a envoyé {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "t'a envoyé un message" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "t'appelle" },
+    CALL_MISSED: { title: '📞 Appel manqué', body: 'de @{actor}' },
+    missedVideo: '🎥 Appel vidéo manqué',
     bought: 'a acheté', sold: 'a vendu',
     FOLLOW: { title: 'Nouvel abonné', body: '{actor} te suit maintenant' },
     LIKE: { title: 'Nouveau j’aime', body: '{actor} a aimé ton trade' },
@@ -261,6 +289,11 @@ export function pushCopy(locale: string, type: NotificationType, facts: PushFact
       .replaceAll('{arrow}', facts.arrow ?? '')
       .trim();
   return { title: fill(entry.title), body: fill(entry.body) };
+}
+
+/** CALL_MISSED's title for a video call ("🎥 Missed video call"). */
+export function missedVideoTitle(locale: string): string {
+  return (COPY[locale] ?? EN).missedVideo ?? EN.missedVideo;
 }
 
 /** "@x accepted your duel — it's on!" per phone language. */

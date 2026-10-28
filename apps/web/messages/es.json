@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "Llamada",
     "CALL_INCOMING": "{actor} te está llamando",
     "kind_LIVE_STARTED": "Directo",
-    "LIVE_STARTED": "{actor} está en directo — toca para verlo"
+    "LIVE_STARTED": "{actor} está en directo — toca para verlo",
+    "kind_CALL_MISSED": "Llamada perdida",
+    "CALL_MISSED": "{actor} te llamó — no contestaste",
+    "CALL_MISSED_VIDEO": "{actor} te hizo una videollamada — no contestaste"
   },
   "pulse": {
     "live": "En vivo — traders de todo el mundo",
@@ -1281,6 +1284,14 @@
     "dev": "Dev",
     "top": "Top10",
     "quickUse": "Usar ${usd}",
-    "minShort": "min"
+    "minShort": "min",
+    "colNew": "Nuevos",
+    "colSoon": "Casi listos",
+    "colMigrated": "Migrados",
+    "columns": "Columnas",
+    "snipers": "Snipers",
+    "insiders": "Insiders",
+    "bundlers": "Bundles",
+    "v": "V"
   }
 }

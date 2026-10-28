@@ -27,6 +27,8 @@ export const NotificationTypeSchema = z.enum([
   'LIVE_STARTED',
   /** 2026-10-17 — someone is calling you in a chat (phone push only). */
   'CALL_INCOMING',
+  /** 2026-10-28 — a call (voice or video) you didn't pick up; listed and pushed. */
+  'CALL_MISSED',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -96,6 +98,7 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   USDC_RECEIVED: 'tradeUpdates',
   DM_MESSAGE: 'messages',
   CALL_INCOMING: 'messages',
+  CALL_MISSED: 'messages',
   LIVE_STARTED: 'follows',
 };
 
@@ -127,6 +130,8 @@ export const NotificationPayloadSchema = z.object({
   /** LIVE_STARTED: the room to open and its title. */
   liveRoomId: z.string().optional(),
   liveTitle: z.string().optional(),
+  /** CALL_MISSED: a video call (true) or a voice call. */
+  callVideo: z.boolean().optional(),
 });
 export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
 
@@ -221,6 +226,7 @@ export function notificationDeepLink(
       return '/';
     case 'DM_MESSAGE':
     case 'CALL_INCOMING':
+    case 'CALL_MISSED':
       return ctx.conversationId ? `/messages/${ctx.conversationId}` : '/messages';
     case 'LIVE_STARTED':
       return ctx.liveRoomId ? `/live/${ctx.liveRoomId}` : '/home';
@@ -261,6 +267,8 @@ export const NotificationDtoSchema = z.object({
   side: z.enum(['BUY', 'SELL']).nullable(),
   /** PRICE_MOVE: the % move (signed) — absent/null for every other type. */
   pct: z.number().nullable().optional(),
+  /** CALL_MISSED: whether it was a video call. */
+  video: z.boolean().nullable().optional(),
   deepLink: z.string().nullable(),
 });
 export type NotificationDto = z.infer<typeof NotificationDtoSchema>;

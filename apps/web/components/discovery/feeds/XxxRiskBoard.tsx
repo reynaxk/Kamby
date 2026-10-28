@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { MIN_TRADE_USD, type XxxRiskFlag, type XxxRiskToken } from '@kamby/domain';
+import { MIN_TRADE_USD, type XxxRiskColumn, type XxxRiskFlag, type XxxRiskToken } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { Loader2, Zap } from 'lucide-react';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
@@ -31,12 +31,19 @@ interface View {
   sort: Sort;
   filters: Filters;
   quickUsd: number;
+  /** The column a phone shows (desktop shows all three). */
+  column: XxxRiskColumn;
 }
 
 const NO_FILTERS: Filters = { maxAgeMin: null, mcMin: null, mcMax: null, liqMin: null, volMin: null, holdersMin: null, hideMint: false, hideDev: false, auditedOnly: false, socialsOnly: false };
-const DEFAULT_VIEW: View = { sort: 'new', filters: NO_FILTERS, quickUsd: 5 };
+const DEFAULT_VIEW: View = { sort: 'new', filters: NO_FILTERS, quickUsd: 5, column: 'new' };
 const STORE_KEY = 'kamby:xxxrisk-view';
 const QUICK_PRESETS = [2, 5, 10, 25];
+const COLUMNS: { id: XxxRiskColumn; key: 'colNew' | 'colSoon' | 'colMigrated' }[] = [
+  { id: 'new', key: 'colNew' },
+  { id: 'soon', key: 'colSoon' },
+  { id: 'migrated', key: 'colMigrated' },
+];
 
 const CHOICES = {
   maxAgeMin: [1, 3, 5],
@@ -54,12 +61,27 @@ const FLAG_KEY: Partial<Record<XxxRiskFlag, string>> = {
   'unverified-audit': 'flagNoAudit',
 };
 
+/** A small mark on the picture for where the coin launched. */
+const LAUNCHPADS: Record<string, { mark: string; name: string; color: string }> = {
+  'pump.fun': { mark: 'P', name: 'Pump.fun', color: '#5BE38F' },
+  'met-dbc': { mark: 'M', name: 'Meteora', color: '#F5A524' },
+  Meteora: { mark: 'M', name: 'Meteora', color: '#F5A524' },
+  'raydium-launchlab': { mark: 'R', name: 'LaunchLab', color: '#8B9BFF' },
+  'letsbonk.fun': { mark: 'B', name: 'Bonk', color: '#FF8A3D' },
+  'bags.fun': { mark: 'B', name: 'Bags', color: '#C084FC' },
+};
+
 function loadView(): View {
   try {
     const raw = window.localStorage.getItem(STORE_KEY);
     if (raw) {
       const v = JSON.parse(raw) as Partial<View> & { filters?: Partial<Filters> };
-      return { sort: v.sort ?? 'new', filters: { ...NO_FILTERS, ...v.filters }, quickUsd: typeof v.quickUsd === 'number' && v.quickUsd > 0 ? v.quickUsd : DEFAULT_VIEW.quickUsd };
+      return {
+        sort: v.sort ?? 'new',
+        filters: { ...NO_FILTERS, ...v.filters },
+        quickUsd: typeof v.quickUsd === 'number' && v.quickUsd > 0 ? v.quickUsd : DEFAULT_VIEW.quickUsd,
+        column: COLUMNS.some((c) => c.id === v.column) ? v.column! : 'new',
+      };
     }
   } catch {
     // a fresh view
@@ -71,8 +93,9 @@ function activeCount(f: Filters): number {
   return (Object.keys(NO_FILTERS) as (keyof Filters)[]).filter((k) => f[k] !== NO_FILTERS[k]).length;
 }
 
+/** Max age only narrows New — migrated coins are hours old by nature. */
 function passes(t: XxxRiskToken, f: Filters, ageS: number): boolean {
-  if (f.maxAgeMin !== null && ageS > f.maxAgeMin * 60) return false;
+  if (f.maxAgeMin !== null && (t.column ?? 'new') === 'new' && ageS > f.maxAgeMin * 60) return false;
   if (f.mcMin !== null && t.marketCapUsd < f.mcMin) return false;
   if (f.mcMax !== null && t.marketCapUsd > f.mcMax) return false;
   if (f.liqMin !== null && t.liquidityUsd < f.liqMin) return false;
@@ -102,15 +125,26 @@ function money(v: number | null): string {
 function ageText(s: number): string {
   if (s < 60) return `${s}s`;
   if (s < 3600) return `${Math.floor(s / 60)}m`;
-  return `${Math.floor(s / 3600)}h`;
+  if (s < 86_400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86_400)}d`;
+}
+
+/** Each column's own order ("New" in the sort control), unless volume / market cap is picked. */
+function order(list: XxxRiskToken[], column: XxxRiskColumn, sort: Sort, launchedAt: Map<string, number>): XxxRiskToken[] {
+  if (sort === 'vol') return list.sort((a, b) => (b.volume5mUsd ?? 0) - (a.volume5mUsd ?? 0));
+  if (sort === 'mc') return list.sort((a, b) => b.marketCapUsd - a.marketCapUsd);
+  if (column === 'soon') return list.sort((a, b) => (b.curvePct ?? 0) - (a.curvePct ?? 0));
+  if (column === 'migrated') return list.sort((a, b) => (b.graduatedAtMs ?? 0) - (a.graduatedAtMs ?? 0));
+  return list.sort((a, b) => (launchedAt.get(b.mintAddress) ?? 0) - (launchedAt.get(a.mintAddress) ?? 0));
 }
 
 /**
- * XXXRisk as a live card grid (owner 2026-10-28: "like GMGN — appearing fast, newest ones in
- * cubes with data, customizable filters"). Newest first by default; a coin that just arrived
- * drops in with a brief accent edge. Hovering the grid (mouse only) pauses it so a card
- * doesn't move under the pointer. Every card has ⚡ quick buy for the amount set in the bar.
- * Sort, filters and that amount are remembered on this device.
+ * XXXRisk as GMGN-style live columns (owner 2026-10-28: "like GMGN — appearing fast", then
+ * "huge variety … really popping out"): New launches, Almost bonded and Migrated, from every
+ * Solana launchpad. Desktop shows the three side by side, each scrolling on its own; a phone
+ * switches between them. A coin that just arrived drops in with a brief accent edge; hovering
+ * (mouse only) pauses the board so a card doesn't move under the pointer. Every card has ⚡
+ * quick buy for the amount set in the bar. Sort, filters, column and amount are remembered.
  */
 export function XxxRiskBoard(props: { tokens: XxxRiskToken[]; emptyText: string }) {
   return (
@@ -162,24 +196,52 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   }
   const ageOf = (token: XxxRiskToken) => Math.max(0, Math.round((now - (launchedAt.current.get(token.mintAddress) ?? now)) / 1000));
 
-  const shown = useMemo(() => {
-    const list = source.filter((token) => passes(token, view.filters, ageOf(token)));
-    if (view.sort === 'vol') list.sort((a, b) => (b.volume5mUsd ?? 0) - (a.volume5mUsd ?? 0));
-    else if (view.sort === 'mc') list.sort((a, b) => b.marketCapUsd - a.marketCapUsd);
-    else list.sort((a, b) => (launchedAt.current.get(b.mintAddress) ?? 0) - (launchedAt.current.get(a.mintAddress) ?? 0));
-    return list;
-  }, [source, view, now]); // eslint-disable-line react-hooks/exhaustive-deps
+  const byColumn = useMemo(() => {
+    const out: Record<XxxRiskColumn, XxxRiskToken[]> = { new: [], soon: [], migrated: [] };
+    for (const token of source) if (passes(token, view.filters, ageOf(token))) out[token.column ?? 'new'].push(token);
+    for (const c of COLUMNS) order(out[c.id], c.id, view.sort, launchedAt.current);
+    return out;
+  }, [source, view.filters, view.sort, now]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const count = activeCount(view.filters);
-  const preview = source.filter((token) => passes(token, view.filters, ageOf(token))).length;
+  const total = byColumn.new.length + byColumn.soon.length + byColumn.migrated.length;
+
+  const card = (token: XxxRiskToken) => (
+    <XxxRiskCard
+      key={token.mintAddress}
+      token={token}
+      ageS={ageOf(token)}
+      fresh={(firstSeen.current.get(token.mintAddress) ?? 0) - openedAt.current > 1_500}
+      quickUsd={view.quickUsd}
+      buying={quick.busy === token.mintAddress}
+      onBuy={() => void quick.buy(token.mintAddress, token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress))}
+    />
+  );
+  const empty = (
+    <div className="flex flex-col items-center gap-2 px-3 py-10 text-center">
+      <p className="font-body text-sm text-ink-400">{t('noMatch')}</p>
+      {count > 0 && (
+        <button type="button" onClick={() => update({ filters: NO_FILTERS })} className="h-9 rounded-xl bg-white/[0.06] px-4 font-display text-xs font-bold text-ink-900">
+          {t('reset')}
+        </button>
+      )}
+    </div>
+  );
+  const hover = {
+    onPointerEnter: (e: React.PointerEvent) => e.pointerType === 'mouse' && setPaused(true),
+    onPointerLeave: () => setPaused(false),
+  };
 
   return (
     <div className="col-span-full">
       <div className="flex flex-wrap items-center gap-2 px-2 py-2 md:px-3">
         <span className="flex items-center gap-1.5 font-body text-xs font-semibold text-ink-600">
           <span className={cn('h-1.5 w-1.5 rounded-full', paused ? 'bg-ink-400' : 'animate-pulse bg-up')} aria-hidden />
-          {paused ? t('paused') : t('live', { n: shown.length })}
+          {paused ? t('paused') : t('live', { n: total })}
         </span>
+        <div className="hidden items-center gap-1 rounded-xl bg-white/[0.04] p-0.5 lg:ml-3 lg:flex" role="group" aria-label={t('sort')}>
+          <SortButtons sort={view.sort} onSort={(sort) => update({ sort })} />
+        </div>
         <div className="ml-auto flex items-center gap-1.5">
           <button
             type="button"
@@ -204,52 +266,56 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
             {count > 0 && <span className="rounded-md bg-accent px-1 text-[0.65rem] text-black">{count}</span>}
           </button>
         </div>
-        <div className="flex w-full items-center gap-1 rounded-xl bg-white/[0.04] p-0.5 sm:order-none" role="group" aria-label={t('sort')}>
-          {(['new', 'vol', 'mc'] as const).map((s) => (
+        {/* Phones and tablets: one column at a time. */}
+        <div className="grid w-full grid-cols-3 gap-1 rounded-2xl bg-white/[0.04] p-1 lg:hidden" role="tablist" aria-label={t('columns')}>
+          {COLUMNS.map((c) => (
             <button
-              key={s}
+              key={c.id}
               type="button"
-              aria-pressed={view.sort === s}
-              onClick={() => update({ sort: s })}
-              className={cn('h-7 flex-1 rounded-lg px-2.5 font-display text-xs font-bold transition-colors', view.sort === s ? 'bg-white/[0.1] text-ink-900' : 'text-ink-400 hover:text-ink-900')}
+              role="tab"
+              aria-selected={view.column === c.id}
+              onClick={() => update({ column: c.id })}
+              className={cn(
+                'flex h-9 items-center justify-center gap-1.5 rounded-xl font-display text-[0.8rem] font-extrabold transition-colors',
+                view.column === c.id ? 'bg-white/[0.1] text-ink-900' : 'text-ink-400',
+              )}
             >
-              {t(s === 'new' ? 'sortNew' : s === 'vol' ? 'sortVol' : 'sortMc')}
+              {t(c.key)}
+              <span className={cn('font-mono text-[0.65rem] tabular-nums', view.column === c.id ? 'text-accent' : 'text-ink-400')}>{byColumn[c.id].length}</span>
             </button>
           ))}
+        </div>
+        <div className="flex w-full items-center gap-1 rounded-xl bg-white/[0.04] p-0.5 lg:hidden" role="group" aria-label={t('sort')}>
+          <SortButtons sort={view.sort} onSort={(sort) => update({ sort })} />
         </div>
       </div>
 
       {tokens.length === 0 ? (
         <p className="p-3 font-body text-xs text-ink-400">{emptyText}</p>
-      ) : shown.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 px-3 py-10 text-center">
-          <p className="font-body text-sm text-ink-400">{t('noMatch')}</p>
-          <button type="button" onClick={() => update({ filters: NO_FILTERS })} className="h-9 rounded-xl bg-white/[0.06] px-4 font-display text-xs font-bold text-ink-900">
-            {t('reset')}
-          </button>
-        </div>
       ) : (
-        <ul
-          className="grid grid-cols-2 gap-2 px-2 pb-3 sm:grid-cols-[repeat(auto-fill,minmax(210px,1fr))] md:px-3"
-          onPointerEnter={(e) => e.pointerType === 'mouse' && setPaused(true)}
-          onPointerLeave={() => setPaused(false)}
-        >
-          {shown.map((token) => (
-            <XxxRiskCard
-              key={token.mintAddress}
-              token={token}
-              ageS={ageOf(token)}
-              fresh={(firstSeen.current.get(token.mintAddress) ?? 0) - openedAt.current > 1_500}
-              quickUsd={view.quickUsd}
-              buying={quick.busy === token.mintAddress}
-              onBuy={() => void quick.buy(token.mintAddress, token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress))}
-            />
-          ))}
-        </ul>
+        <>
+          <div className="lg:hidden" {...hover}>
+            {byColumn[view.column].length === 0 ? empty : <ul className="grid gap-2 px-2 pb-3 md:grid-cols-2 md:px-3">{byColumn[view.column].map(card)}</ul>}
+          </div>
+          <div className="hidden gap-2 px-3 pb-3 lg:grid lg:grid-cols-3" {...hover}>
+            {COLUMNS.map((c) => (
+              <section key={c.id} className="flex min-w-0 flex-col overflow-hidden rounded-[20px] border border-white/[0.07] bg-white/[0.015]">
+                <header className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2.5">
+                  <span className={cn('h-1.5 w-1.5 rounded-full', c.id === 'new' ? 'bg-accent' : c.id === 'soon' ? 'bg-amber-300' : 'bg-[#8B9BFF]')} aria-hidden />
+                  <h3 className="font-display text-sm font-extrabold text-ink-900">{t(c.key)}</h3>
+                  <span className="font-mono text-xs tabular-nums text-ink-400">{byColumn[c.id].length}</span>
+                </header>
+                <div className="kamby-thin-scroll max-h-[calc(100dvh-15rem)] min-h-[24rem] overflow-y-auto">
+                  {byColumn[c.id].length === 0 ? empty : <ul className="grid gap-1.5 p-1.5">{byColumn[c.id].map(card)}</ul>}
+                </div>
+              </section>
+            ))}
+          </div>
+        </>
       )}
 
       <MobileDrawer open={sheet === 'filters'} onClose={() => setSheet(null)} title={t('filters')} desktop>
-        <FilterSheet filters={view.filters} onChange={(filters) => update({ filters })} matching={preview} onDone={() => setSheet(null)} />
+        <FilterSheet filters={view.filters} onChange={(filters) => update({ filters })} matching={total} onDone={() => setSheet(null)} />
       </MobileDrawer>
       <MobileDrawer open={sheet === 'quick'} onClose={() => setSheet(null)} title={t('quickAmount')} desktop>
         <QuickAmountSheet value={view.quickUsd} onChange={(quickUsd) => update({ quickUsd })} onDone={() => setSheet(null)} />
@@ -258,6 +324,30 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   );
 }
 
+function SortButtons({ sort, onSort }: { sort: Sort; onSort: (s: Sort) => void }) {
+  const t = useTranslations('xxxrisk');
+  return (
+    <>
+      {(['new', 'vol', 'mc'] as const).map((s) => (
+        <button
+          key={s}
+          type="button"
+          aria-pressed={sort === s}
+          onClick={() => onSort(s)}
+          className={cn('h-7 flex-1 rounded-lg px-2.5 font-display text-xs font-bold transition-colors', sort === s ? 'bg-white/[0.1] text-ink-900' : 'text-ink-400 hover:text-ink-900')}
+        >
+          {t(s === 'new' ? 'sortNew' : s === 'vol' ? 'sortVol' : 'sortMc')}
+        </button>
+      ))}
+    </>
+  );
+}
+
+/**
+ * One coin as a GMGN-style row card: a big picture ringed by its curve progress (with where it
+ * launched), name and age with socials and holders, market cap and volume on the right, and
+ * the holder-risk shares (top 10, dev, snipers, insiders, bundles) underneath, coloured by risk.
+ */
 function XxxRiskCard({ token, ageS, fresh, quickUsd, buying, onBuy }: { token: XxxRiskToken; ageS: number; fresh: boolean; quickUsd: number; buying: boolean; onBuy: () => void }) {
   const t = useTranslations('xxxrisk');
   const curve = Math.max(0, Math.min(100, token.curvePct ?? 0));
@@ -272,67 +362,87 @@ function XxxRiskCard({ token, ageS, fresh, quickUsd, buying, onBuy }: { token: X
   const devFlagOnly = dev === null && token.riskFlags.includes('dev-holds-over-20pct');
   const topFlagOnly = top === null && token.riskFlags.includes('top-holders-over-50pct');
   const clean = token.riskFlags.length === 0;
+  const pad = token.launchpad ? LAUNCHPADS[token.launchpad] : undefined;
+  const migrated = token.column === 'migrated';
+  const age = migrated && token.graduatedAtMs ? Math.max(0, Math.round((Date.now() - token.graduatedAtMs) / 1000)) : ageS;
 
   return (
     <li
       className={cn(
-        'kamby-xcard flex flex-col overflow-hidden rounded-[20px] border border-white/[0.07] bg-surface transition-colors hover:border-white/[0.16]',
+        'kamby-xcard relative overflow-hidden rounded-[18px] border border-white/[0.07] bg-surface transition-colors hover:border-white/[0.18] hover:bg-white/[0.03]',
         fresh && 'kamby-card-in',
       )}
     >
-      <Link href={`/solana?mint=${encodeURIComponent(token.mintAddress)}`} className="flex flex-1 flex-col gap-2.5 p-3 pb-2.5">
-        <span className="flex items-start gap-2.5">
+      <Link href={`/solana?mint=${encodeURIComponent(token.mintAddress)}`} className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-2 p-3">
+        <span className="row-span-2 flex flex-col items-center gap-1">
           <span
-            className="relative shrink-0 rounded-full p-[2.5px]"
-            style={{ background: `conic-gradient(rgb(var(--kamby-accent)) ${curve * 3.6}deg, rgba(255,255,255,0.09) 0deg)` }}
+            className="relative rounded-[18px] p-[2.5px]"
+            style={{ background: `conic-gradient(${migrated ? '#8B9BFF' : 'rgb(var(--kamby-accent))'} ${curve * 3.6}deg, rgba(255,255,255,0.09) 0deg)` }}
             title={t('curve', { pct: Math.round(curve) })}
           >
-            <TokenAvatar src={token.imageUrl} seed={token.mintAddress} label={token.symbol ?? token.name} className="h-11 w-11 border-[2.5px] border-surface text-[0.9rem]" />
+            <TokenAvatar src={token.imageUrl} seed={token.mintAddress} label={token.symbol ?? token.name} className="!rounded-[16px] h-[60px] w-[60px] border-[2.5px] border-surface text-base" />
+            {pad && (
+              <span
+                className="absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 border-surface bg-black font-display text-[0.6rem] font-black"
+                style={{ color: pad.color }}
+                title={pad.name}
+              >
+                {pad.mark}
+              </span>
+            )}
           </span>
-          <span className="min-w-0 flex-1 pt-0.5">
-            <span className="flex items-center gap-1">
-              <span className="truncate font-display text-[0.95rem] font-extrabold leading-tight text-ink-900">{label}</span>
-            </span>
-            <span className="mt-0.5 block truncate font-body text-[0.7rem] leading-tight text-ink-400">{token.name ?? truncateAddress(token.mintAddress)}</span>
-            <span className="mt-1 flex items-center gap-1">
-              <span className={cn('rounded-md px-1.5 py-px font-mono text-[0.62rem] font-bold tabular-nums', ageS < 60 ? 'bg-accent/15 text-accent' : 'bg-white/[0.06] text-ink-600')}>{ageText(ageS)}</span>
-              {socials.twitter && <SocialDot kind="x" />}
-              {socials.telegram && <SocialDot kind="tg" />}
-              {socials.website && <SocialDot kind="web" />}
-            </span>
+          <span className="font-mono text-[0.58rem] text-ink-400">{`${token.mintAddress.slice(0, 4)}…${token.mintAddress.slice(-4)}`}</span>
+        </span>
+
+        <span className="min-w-0">
+          <span className="flex items-baseline gap-1.5">
+            <span className="truncate font-display text-[0.98rem] font-extrabold leading-tight text-ink-900">{label}</span>
+            <span className="truncate font-body text-[0.72rem] text-ink-400">{token.name}</span>
+          </span>
+          <span className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className={cn('rounded-md px-1.5 py-px font-mono text-[0.66rem] font-bold tabular-nums', ageS < 60 && !migrated ? 'bg-accent/15 text-accent' : 'bg-white/[0.06] text-ink-600')}>{ageText(age)}</span>
+            {socials.twitter && <SocialDot kind="x" />}
+            {socials.telegram && <SocialDot kind="tg" />}
+            {socials.website && <SocialDot kind="web" />}
+            {token.holders != null && (
+              <span className="flex items-center gap-0.5 font-mono text-[0.68rem] font-semibold tabular-nums text-ink-600" title={t('holders')}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                  <circle cx="9" cy="8" r="3.5" />
+                  <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" />
+                </svg>
+                {token.holders}
+              </span>
+            )}
+            {buys !== null && sells !== null && buys + sells > 0 && (
+              <span className="font-mono text-[0.66rem] font-semibold tabular-nums" title={t('buysSells')}>
+                <span className="text-up">{buys}</span>
+                <span className="text-ink-400">/</span>
+                <span className="text-down">{sells}</span>
+              </span>
+            )}
           </span>
         </span>
 
-        <span className="flex items-end justify-between gap-1">
-          <span className="min-w-0">
-            <span className="block font-body text-[0.58rem] font-semibold uppercase tracking-wide text-ink-400">{t('mc')}</span>
-            <span className="block font-display text-lg font-extrabold leading-none tabular-nums text-ink-900">{money(token.marketCapUsd)}</span>
+        <span className="flex flex-col items-end text-right">
+          <span className="font-display text-[1.05rem] font-black leading-none tabular-nums text-ink-900">
+            <span className="mr-0.5 font-body text-[0.6rem] font-bold text-ink-400">{t('mc')}</span>
+            {money(token.marketCapUsd)}
+          </span>
+          <span className="mt-1 font-mono text-[0.7rem] font-semibold tabular-nums text-ink-600">
+            <span className="mr-0.5 text-ink-400">{t('v')}</span>
+            {money(token.volume5mUsd)}
           </span>
           {change !== null && (
-            <span className={cn('shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[0.68rem] font-bold tabular-nums', change >= 0 ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>{formatPercent(change)}</span>
+            <span className={cn('mt-1 rounded-md px-1.5 py-px font-mono text-[0.62rem] font-bold tabular-nums', change >= 0 ? 'bg-up/15 text-up' : 'bg-down/15 text-down')}>{formatPercent(change)}</span>
           )}
         </span>
 
-        <span className="grid grid-cols-3 gap-1 font-mono text-[0.68rem] tabular-nums">
-          <Stat label={t('vol')} value={money(token.volume5mUsd)} />
-          <Stat label={t('holders')} value={token.holders != null ? String(token.holders) : '—'} />
-          <Stat label={t('liq')} value={money(token.liquidityUsd)} />
-        </span>
-
-        {buys !== null && sells !== null && buys + sells > 0 && (
-          <span className="flex items-center gap-1.5 font-mono text-[0.62rem] font-semibold tabular-nums" title={t('buysSells')}>
-            <span className="text-up">{buys}</span>
-            <span className="flex h-1 flex-1 gap-px overflow-hidden rounded-full">
-              <span className="h-full rounded-full bg-up" style={{ width: `${(buys / (buys + sells)) * 100}%` }} />
-              <span className="h-full flex-1 rounded-full bg-down/70" />
-            </span>
-            <span className="text-down">{sells}</span>
-          </span>
-        )}
-
-        <span className="flex flex-wrap items-center gap-1">
-          {dev !== null && <Pct label={t('dev')} value={dev} warn={10} bad={20} />}
+        <span className="col-span-2 flex min-w-0 flex-wrap items-center gap-1 pr-[4.6rem]">
           {top !== null && <Pct label={t('top')} value={top} warn={35} bad={50} />}
+          {dev !== null && <Pct label={t('dev')} value={dev} warn={10} bad={20} />}
+          {token.snipersPct != null && <Pct label={t('snipers')} value={token.snipersPct} warn={10} bad={30} />}
+          {token.insidersPct != null && <Pct label={t('insiders')} value={token.insidersPct} warn={10} bad={30} />}
+          {token.bundlersPct != null && <Pct label={t('bundlers')} value={token.bundlersPct} warn={10} bad={30} />}
           {devFlagOnly && <Badge bad>{t('flagDev')}</Badge>}
           {topFlagOnly && <Badge bad>{t('flagTop')}</Badge>}
           {flags.map((f) => (
@@ -348,10 +458,11 @@ function XxxRiskCard({ token, ageS, fresh, quickUsd, buying, onBuy }: { token: X
         type="button"
         onClick={onBuy}
         disabled={buying}
-        className="mx-3 mb-3 flex h-9 items-center justify-center gap-1.5 rounded-xl border border-accent/35 bg-accent/10 font-display text-[0.8rem] font-extrabold text-accent transition-colors hover:bg-accent hover:text-black active:scale-[0.98] disabled:opacity-60"
+        aria-label={t('quickBuy', { usd: quickUsd })}
+        className="absolute bottom-2.5 right-2.5 flex h-8 items-center gap-1 rounded-xl border border-accent/40 bg-accent/10 px-2.5 font-display text-[0.78rem] font-extrabold tabular-nums text-accent transition-colors hover:bg-accent hover:text-black active:scale-[0.97] disabled:opacity-60"
       >
         {buying ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <Zap className="h-3.5 w-3.5" fill="currentColor" aria-hidden />}
-        {buying ? t('buyingShort') : t('quickBuy', { usd: quickUsd })}
+        {buying ? t('buyingShort') : `$${quickUsd}`}
       </button>
     </li>
   );

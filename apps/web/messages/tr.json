@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "Arama",
     "CALL_INCOMING": "{actor} seni arıyor",
     "kind_LIVE_STARTED": "Canlı",
-    "LIVE_STARTED": "{actor} canlı yayında — izlemek için dokun"
+    "LIVE_STARTED": "{actor} canlı yayında — izlemek için dokun",
+    "kind_CALL_MISSED": "Cevapsız arama",
+    "CALL_MISSED": "{actor} seni aradı — cevapsız",
+    "CALL_MISSED_VIDEO": "{actor} seni görüntülü aradı — cevapsız"
   },
   "pulse": {
     "live": "Canlı — dünyanın dört bir yanından trader’lar",
@@ -1281,6 +1284,14 @@
     "dev": "Dev",
     "top": "Top10",
     "quickUse": "${usd} kullan",
-    "minShort": "dk"
+    "minShort": "dk",
+    "colNew": "Yeni",
+    "colSoon": "Bitmek üzere",
+    "colMigrated": "Taşındı",
+    "columns": "Sütunlar",
+    "snipers": "Sniper",
+    "insiders": "İçeriden",
+    "bundlers": "Bundle",
+    "v": "H"
   }
 }

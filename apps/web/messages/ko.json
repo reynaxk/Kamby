@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "통화",
     "CALL_INCOMING": "{actor}님이 전화하고 있어요",
     "kind_LIVE_STARTED": "라이브",
-    "LIVE_STARTED": "{actor}님이 라이브 중 — 눌러서 시청"
+    "LIVE_STARTED": "{actor}님이 라이브 중 — 눌러서 시청",
+    "kind_CALL_MISSED": "부재중 전화",
+    "CALL_MISSED": "{actor}님의 부재중 전화",
+    "CALL_MISSED_VIDEO": "{actor}님의 부재중 영상 통화"
   },
   "pulse": {
     "live": "실시간 — 전 세계 트레이더",
@@ -1281,6 +1284,14 @@
     "dev": "개발자",
     "top": "상위10",
     "quickUse": "${usd} 사용",
-    "minShort": "분"
+    "minShort": "분",
+    "colNew": "신규",
+    "colSoon": "졸업 임박",
+    "colMigrated": "이전 완료",
+    "columns": "열",
+    "snipers": "스나이퍼",
+    "insiders": "내부자",
+    "bundlers": "번들",
+    "v": "거래량"
   }
 }

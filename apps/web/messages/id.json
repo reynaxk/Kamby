@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "Panggilan",
     "CALL_INCOMING": "{actor} meneleponmu",
     "kind_LIVE_STARTED": "Live",
-    "LIVE_STARTED": "{actor} sedang live — ketuk untuk menonton"
+    "LIVE_STARTED": "{actor} sedang live — ketuk untuk menonton",
+    "kind_CALL_MISSED": "Panggilan tak terjawab",
+    "CALL_MISSED": "{actor} meneleponmu — tak terjawab",
+    "CALL_MISSED_VIDEO": "{actor} melakukan panggilan video — tak terjawab"
   },
   "pulse": {
     "live": "Live — trader dari seluruh dunia",
@@ -1281,6 +1284,14 @@
     "dev": "Dev",
     "top": "Top10",
     "quickUse": "Pakai ${usd}",
-    "minShort": "mnt"
+    "minShort": "mnt",
+    "colNew": "Baru",
+    "colSoon": "Hampir lulus",
+    "colMigrated": "Migrasi",
+    "columns": "Kolom",
+    "snipers": "Sniper",
+    "insiders": "Insider",
+    "bundlers": "Bundle",
+    "v": "V"
   }
 }

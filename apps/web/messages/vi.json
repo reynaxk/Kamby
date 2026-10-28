@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "Cuộc gọi",
     "CALL_INCOMING": "{actor} đang gọi cho bạn",
     "kind_LIVE_STARTED": "Live",
-    "LIVE_STARTED": "{actor} đang live — chạm để xem"
+    "LIVE_STARTED": "{actor} đang live — chạm để xem",
+    "kind_CALL_MISSED": "Cuộc gọi nhỡ",
+    "CALL_MISSED": "{actor} đã gọi cho bạn — cuộc gọi nhỡ",
+    "CALL_MISSED_VIDEO": "{actor} đã gọi video cho bạn — cuộc gọi nhỡ"
   },
   "pulse": {
     "live": "Trực tiếp — trader toàn thế giới",
@@ -1281,6 +1284,14 @@
     "dev": "Dev",
     "top": "Top10",
     "quickUse": "Dùng ${usd}",
-    "minShort": "phút"
+    "minShort": "phút",
+    "colNew": "Mới",
+    "colSoon": "Sắp xong",
+    "colMigrated": "Đã chuyển",
+    "columns": "Cột",
+    "snipers": "Sniper",
+    "insiders": "Nội gián",
+    "bundlers": "Bundle",
+    "v": "KL"
   }
 }

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { prisma } from '@kamby/db';
-import { pumpFunGraduationProgressPct, XXXRISK_FILTER, type XxxRiskFlag, type XxxRiskToken } from '@kamby/domain';
+import { pumpFunGraduationProgressPct, XXXRISK_FILTER, type XxxRiskColumn, type XxxRiskFlag, type XxxRiskToken } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -10,6 +10,9 @@ const LAMPORTS = 1e9;
 const PUMP_DECIMALS = 1e6;
 const REDIS_KEY = 'feeds:xxxrisk';
 const REDIS_TTL_SECONDS = 10;
+const GEMS_URL = 'https://datapi.jup.ag/v1/pools/gems';
+/** Per column, after merging — GMGN-style lists that scroll. */
+const PER_COLUMN = 60;
 
 interface CurveRow {
   mintAddress: string;
@@ -38,9 +41,39 @@ interface JupiterStats {
   twitter?: string;
   telegram?: string;
   website?: string;
-  audit?: { mintAuthorityDisabled?: boolean; freezeAuthorityDisabled?: boolean; devBalancePercentage?: number; topHoldersPercentage?: number };
+  audit?: {
+    mintAuthorityDisabled?: boolean;
+    freezeAuthorityDisabled?: boolean;
+    devBalancePercentage?: number;
+    topHoldersPercentage?: number;
+    sniperPct?: number;
+    insiderPct?: number;
+    bundlerStats?: { holdingPct?: number };
+  };
   stats5m?: { buyVolume?: number; sellVolume?: number; numTraders?: number; numBuys?: number; numSells?: number; priceChange?: number };
 }
+
+/** One pool from Jupiter's launchpad board (the data behind jup.ag's Pulse). */
+interface GemsPool {
+  liquidity?: number;
+  /** 0-100 toward leaving the curve. */
+  bondingCurve?: number;
+  createdAt?: string;
+  baseAsset?: JupiterStats & {
+    name?: string;
+    symbol?: string;
+    launchpad?: string;
+    mcap?: number;
+    createdAt?: string;
+    graduatedAt?: string;
+  };
+}
+type GemsBody = Partial<Record<'recent' | 'aboutToGraduate' | 'graduated', { pools?: GemsPool[] }>>;
+
+const ms = (iso: string | undefined): number | null => {
+  const t = iso ? Date.parse(iso) : NaN;
+  return Number.isFinite(t) ? t : null;
+};
 
 const httpsOnly = (url: string | undefined) => (url?.startsWith('https://') ? url : undefined);
 
@@ -57,6 +90,49 @@ export function socialsOf(j: JupiterStats | undefined): XxxRiskToken['socials'] 
 }
 
 const num = (n: unknown): number | null => (typeof n === 'number' && Number.isFinite(n) ? n : null);
+
+/** Exported for tests. A launchpad-board pool as a card; null when it lacks a price. */
+export function gemsToken(pool: GemsPool, column: XxxRiskColumn, now: number): XxxRiskToken | null {
+  const a = pool.baseAsset;
+  const marketCapUsd = num(a?.mcap);
+  if (!a?.id || marketCapUsd === null || marketCapUsd <= 0) return null;
+  const createdAtMs = ms(a.createdAt) ?? ms(pool.createdAt) ?? now;
+  const s5 = a.stats5m;
+  return {
+    mintAddress: a.id,
+    symbol: a.symbol ?? null,
+    name: a.name ?? null,
+    imageUrl: a.icon?.startsWith('https://') ? a.icon : null,
+    ageSeconds: Math.max(0, Math.round((now - createdAtMs) / 1000)),
+    liquidityUsd: num(pool.liquidity) ?? 0,
+    marketCapUsd,
+    volume5mUsd: s5 ? (s5.buyVolume ?? 0) + (s5.sellVolume ?? 0) : null,
+    traders5m: num(s5?.numTraders),
+    riskFlags: riskFlags(a),
+    createdAtMs,
+    curvePct: column === 'migrated' ? 100 : Math.max(0, Math.min(100, num(pool.bondingCurve) ?? 0)),
+    holders: num(a.holderCount),
+    buys5m: num(s5?.numBuys),
+    sells5m: num(s5?.numSells),
+    priceChange5mPct: num(s5?.priceChange),
+    devPct: num(a.audit?.devBalancePercentage),
+    topHoldersPct: num(a.audit?.topHoldersPercentage),
+    socials: socialsOf(a),
+    column,
+    launchpad: a.launchpad ?? null,
+    graduatedAtMs: ms(a.graduatedAt),
+    snipersPct: num(a.audit?.sniperPct),
+    insidersPct: num(a.audit?.insiderPct),
+    bundlersPct: num(a.audit?.bundlerStats?.holdingPct),
+  };
+}
+
+/** Exported for tests. Newest launches first; closest to the finish line; newest migrations. */
+export function sortColumn(column: XxxRiskColumn, list: XxxRiskToken[]): XxxRiskToken[] {
+  if (column === 'soon') return list.sort((a, b) => (b.curvePct ?? 0) - (a.curvePct ?? 0));
+  if (column === 'migrated') return list.sort((a, b) => (b.graduatedAtMs ?? b.createdAtMs ?? 0) - (a.graduatedAtMs ?? a.createdAtMs ?? 0));
+  return list.sort((a, b) => a.ageSeconds - b.ageSeconds);
+}
 
 /** Exported for tests. Rug-risk flags from Jupiter's audit; a coin it hasn't audited yet says so. */
 export function riskFlags(j: JupiterStats | undefined): XxxRiskFlag[] {
@@ -87,10 +163,63 @@ export class XxxRiskService {
     this.logger.setContext('XxxRiskService');
   }
 
+  /**
+   * Three GMGN-style columns (owner 2026-10-28: "huge variety of coins"): Jupiter's launchpad
+   * board (every Solana launchpad — Pump.fun, Meteora, LaunchLab, …) twice — its newest and,
+   * for variety, its bigger ones — plus Kamby's own fresh Pump.fun launches for the New column.
+   * Two board calls and one token search per cycle; if the board is down, New still fills.
+   */
   async build(): Promise<XxxRiskToken[]> {
+    const now = Date.now();
+    const [board, own] = await Promise.all([this.board(now), this.ownLaunches(now)]);
+    const seen = new Set<string>();
+    const columns: Record<XxxRiskColumn, XxxRiskToken[]> = { new: [], soon: [], migrated: [] };
+    for (const token of [...board, ...own]) {
+      if (seen.has(token.mintAddress)) continue;
+      seen.add(token.mintAddress);
+      columns[token.column ?? 'new'].push(token);
+    }
+    const top = (['new', 'soon', 'migrated'] as const).flatMap((c) => sortColumn(c, columns[c]).slice(0, PER_COLUMN)).slice(0, XXXRISK_FILTER.limit);
+    await this.redis.set(REDIS_KEY, JSON.stringify(top), 'EX', REDIS_TTL_SECONDS).catch(() => undefined);
+    return top;
+  }
+
+  /** Jupiter's launchpad board: 30 per column per call, so a second call with market-cap
+   *  floors brings in different (bigger) coins. */
+  private async board(now: number): Promise<XxxRiskToken[]> {
+    const bodies = [
+      { recent: { timeframe: '24h' }, aboutToGraduate: { timeframe: '24h' }, graduated: { timeframe: '24h' } },
+      { recent: { timeframe: '24h', minMcap: 8_000 }, aboutToGraduate: { timeframe: '24h', minMcap: 30_000 }, graduated: { timeframe: '24h', minMcap: 60_000 } },
+    ];
+    const replies = await Promise.all(
+      bodies.map(async (body) => {
+        try {
+          const res = await fetch(GEMS_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(6000) });
+          return res.ok ? ((await res.json()) as GemsBody) : null;
+        } catch (error) {
+          this.logger.warn({ err: error }, 'XXXRisk: launchpad board unavailable this cycle');
+          return null;
+        }
+      }),
+    );
+    const out: XxxRiskToken[] = [];
+    for (const reply of replies) {
+      if (!reply) continue;
+      for (const [key, column] of [['recent', 'new'], ['aboutToGraduate', 'soon'], ['graduated', 'migrated']] as const) {
+        for (const pool of reply[key]?.pools ?? []) {
+          const token = gemsToken(pool, column, now);
+          if (token) out.push(token);
+        }
+      }
+    }
+    return out;
+  }
+
+  /** Kamby's own Pump.fun launches (PumpPortal + on-chain curve reads), enriched with one
+   *  Jupiter search — the original XXXRisk list, now a second source for the New column. */
+  private async ownLaunches(now: number): Promise<XxxRiskToken[]> {
     const solUsd = this.cryptoPrices.snapshot().find((p) => p.symbol === 'SOL')?.priceUsd;
     if (!solUsd) return [];
-    const now = Date.now();
     const rows = await prisma.pumpFunToken.findMany({
       where: { complete: false, createdAt: { gte: new Date(now - XXXRISK_FILTER.maxAgeSeconds * 1000) } },
       orderBy: { createdAt: 'desc' },
@@ -132,13 +261,14 @@ export class XxxRiskService {
         devPct: num(j?.audit?.devBalancePercentage),
         topHoldersPct: num(j?.audit?.topHoldersPercentage),
         socials: socialsOf(j),
+        column: 'new' as const,
+        launchpad: 'pump.fun',
+        snipersPct: num(j?.audit?.sniperPct),
+        insidersPct: num(j?.audit?.insiderPct),
+        bundlersPct: num(j?.audit?.bundlerStats?.holdingPct),
       };
     });
-    // Newest first, like GMGN's "New" column — the browser can re-sort by volume or market cap.
-    tokens.sort((a, b) => a.ageSeconds - b.ageSeconds);
-    const top = tokens.slice(0, XXXRISK_FILTER.limit);
-    await this.redis.set(REDIS_KEY, JSON.stringify(top), 'EX', REDIS_TTL_SECONDS).catch(() => undefined);
-    return top;
+    return tokens;
   }
 
   /** The last list the stream built (≤10s old) — for page snapshots, never a fresh Jupiter call. */

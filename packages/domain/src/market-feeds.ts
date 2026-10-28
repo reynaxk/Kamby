@@ -80,7 +80,18 @@ export interface XxxRiskToken {
   topHoldersPct?: number | null;
   /** https links only. */
   socials?: { twitter?: string; telegram?: string; website?: string };
+  /** GMGN-style columns (2026-10-28, "huge variety"): just launched, close to leaving the
+   *  curve, or already migrated to a DEX. Missing = 'new' (an older cached list). */
+  column?: XxxRiskColumn;
+  /** Where it launched — 'pump.fun', 'met-dbc' (Meteora), 'raydium-launchlab' (bonk), … */
+  launchpad?: string | null;
+  /** When it left the curve (migrated coins). */
+  graduatedAtMs?: number | null;
+  snipersPct?: number | null;
+  insidersPct?: number | null;
+  bundlersPct?: number | null;
 }
+export type XxxRiskColumn = 'new' | 'soon' | 'migrated';
 export type XxxRiskFlag = 'mintable' | 'freezable' | 'dev-holds-over-20pct' | 'top-holders-over-50pct' | 'unverified-audit';
 
 /** Widened 2026-10-04 (user: "I want more coins") from <5 min, $1–3K, $5–15K; and again
@@ -91,7 +102,8 @@ export const XXXRISK_FILTER = {
   maxLiquidityUsd: 10_000,
   minMarketCapUsd: 3_000,
   maxMarketCapUsd: 50_000,
-  limit: 60,
+  /** 2026-10-28: three columns of up to ~60 each. */
+  limit: 180,
 } as const;
 
 /** Server-Sent Event names on GET /v1/market/feeds/stream, and each one's `data`. */

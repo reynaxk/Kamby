@@ -693,7 +693,10 @@
     "kind_CALL_INCOMING": "通話",
     "CALL_INCOMING": "{actor}から着信",
     "kind_LIVE_STARTED": "ライブ",
-    "LIVE_STARTED": "{actor} がライブ中 — タップで視聴"
+    "LIVE_STARTED": "{actor} がライブ中 — タップで視聴",
+    "kind_CALL_MISSED": "不在着信",
+    "CALL_MISSED": "{actor} からの不在着信",
+    "CALL_MISSED_VIDEO": "{actor} からの不在ビデオ通話"
   },
   "pulse": {
     "live": "ライブ — 世界中のトレーダー",
@@ -1281,6 +1284,14 @@
     "dev": "開発者",
     "top": "上位10",
     "quickUse": "${usd} にする",
-    "minShort": "分"
+    "minShort": "分",
+    "colNew": "新着",
+    "colSoon": "まもなく卒業",
+    "colMigrated": "移行済み",
+    "columns": "列",
+    "snipers": "スナイパー",
+    "insiders": "インサイダー",
+    "bundlers": "バンドル",
+    "v": "出来高"
   }
 }

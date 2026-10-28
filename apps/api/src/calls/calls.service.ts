@@ -13,6 +13,10 @@ import { CloudflareRealtimeClient, type RealtimeTracksResponse, type SessionDesc
 interface CallRecord extends CallState {
   /** Someone besides the caller joined — decides "Call · 12 min" vs "Missed call". */
   answered: boolean;
+  /** Everyone rung at the start, and who tapped Decline — the rest get "Missed call" if
+   *  nobody picks up (2026-10-28). Optional: calls started before this shipped have neither. */
+  rang?: string[];
+  declined?: string[];
 }
 
 /** Rough bitrates for the traffic meter (Cloudflare bills what the SFU sends out). */
@@ -31,7 +35,7 @@ export function cameraFits(call: CallState): boolean {
   return call.participants.reduce((n, p) => n + p.tracks.filter((t) => t.kind === 'video').length, 0) < CALL_LIMITS.maxCameras;
 }
 
-const toState = ({ answered: _answered, ...state }: CallRecord): CallState => state;
+const toState = ({ answered: _answered, rang: _rang, declined: _declined, ...state }: CallRecord): CallState => state;
 
 /**
  * Calls (2026-10-17) — see @kamby/domain calls.ts. One live call per chat, kept in Redis. The
@@ -75,6 +79,7 @@ export class CallsService {
         participants: [],
         // A community's voice lounge rings nobody — people drop in when they see it's on.
         ringing: isCommunity ? [] : participants.filter((u) => u !== me),
+        rang: isCommunity ? [] : participants.filter((u) => u !== me),
         answered: false,
         ...(isCommunity ? { lounge: true } : {}),
       };
@@ -207,7 +212,7 @@ export class CallsService {
 
   async decline(me: string, conversationId: string): Promise<void> {
     const { participants } = await this.dm.callAccess(me, conversationId);
-    const call = await this.mutate(conversationId, (c) => (c ? { ...c, ringing: c.ringing.filter((u) => u !== me) } : null));
+    const call = await this.mutate(conversationId, (c) => (c ? { ...c, ringing: c.ringing.filter((u) => u !== me), declined: [...(c.declined ?? []), me] } : null));
     if (!call) return;
     // A 1:1 call nobody else will answer ends right away.
     if (call.ringing.length === 0 && call.participants.every((p) => p.userId === call.startedBy)) {
@@ -297,7 +302,19 @@ export class CallsService {
     const caller = await prisma.user.findUnique({ where: { id: call.startedBy }, select: { username: true } });
     const durationSec = call.answered ? Math.max(1, Math.round((Date.now() - Date.parse(call.startedAt)) / 1000)) : 0;
     await this.dm.postSystem(conversationId, { event: 'call', actor: caller?.username ?? null, targets: [], durationSec, video: call.video }).catch(() => undefined);
+    if (!call.answered) await this.notifyMissed(call);
     await this.dm.publishEvent({ type: 'call', userIds: participants, conversationId, call: null });
+  }
+
+  /** "Missed call from @x" (listed + pushed) for everyone rung who didn't decline. */
+  private async notifyMissed(call: CallRecord): Promise<void> {
+    const declined = new Set(call.declined ?? []);
+    for (const userId of call.rang ?? []) {
+      if (userId === call.startedBy || declined.has(userId)) continue;
+      await this.notifications
+        .create({ userId, type: 'CALL_MISSED', dedupeKey: `missed:${call.id}:${userId}`, actorUserId: call.startedBy, payload: { conversationId: call.conversationId, callVideo: call.video } })
+        .catch((error: unknown) => this.logger.warn({ err: error }, 'Missed-call notification failed'));
+    }
   }
 
   private async broadcast(conversationId: string, participants: string[], call: CallRecord): Promise<void> {
