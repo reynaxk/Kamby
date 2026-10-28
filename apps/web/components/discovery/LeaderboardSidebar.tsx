@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CHAIN_REGISTRY, SUPPORTED_CHAIN_SLUGS, type Leaderboard, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
+import type { Leaderboard, LeaderboardChainFilter, PnlWindow } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
+import { ChainFilter, type ChainFilterValue } from './ChainFilter';
 import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { fetchLeaderboard } from '@/lib/social-client';
@@ -14,14 +14,6 @@ const WINDOWS: readonly PnlWindow[] = ['24h', '7d', '30d'];
 const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d': '30D' };
 
 /** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
-const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', ...SUPPORTED_CHAIN_SLUGS];
-
-function chainLabel(chain: LeaderboardChainFilter | null): string {
-  if (chain === null) return 'All';
-  if (chain === 'solana') return 'Solana';
-  return CHAIN_REGISTRY[chain].name;
-}
-
 /**
  * A compact rank/PnL list for the terminal's left rail — same realized-PnL data as the
  * standalone /leaderboard page (GET /social/leaderboard, see lib/social-api.ts's
@@ -78,30 +70,7 @@ export function LeaderboardSidebar() {
         </div>
       </div>
 
-      <div className="flex gap-1.5 overflow-x-auto border-b border-white/[0.06] px-2.5 py-2.5">
-        {CHAIN_FILTERS.map((c) => {
-          const badge = c === null ? null : badgeChainFor(c === 'solana' ? 'solana' : CHAIN_REGISTRY[c].identifier);
-          return (
-            <button
-              key={c ?? 'all'}
-              type="button"
-              aria-pressed={chain === c}
-              onClick={() => setChain(c)}
-              className={cn(
-                'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 font-display text-xs font-semibold transition-colors',
-                chain === c ? 'border-accent/50 bg-accent/[0.1] text-ink-900' : 'border-white/[0.06] text-ink-400 hover:text-ink-900',
-              )}
-            >
-              {badge && (
-                <span aria-hidden className="relative h-3.5 w-3.5 shrink-0">
-                  <ChainBadge chain={badge} className="!static !h-3.5 !w-3.5 !ring-0" />
-                </span>
-              )}
-              {chainLabel(c)}
-            </button>
-          );
-        })}
-      </div>
+      <ChainFilter value={(chain ?? 'all') as ChainFilterValue} onChange={(next) => setChain(next === 'all' ? null : next)} className="border-b border-white/[0.06] px-2.5 py-2.5 max-md:px-2.5" />
 
       <div className="flex-1 overflow-y-auto">
         {status === 'loading' && (

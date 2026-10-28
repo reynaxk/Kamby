@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import { LeaderboardChainMenu } from '@/components/discovery/LeaderboardChainMenu';
 import { cn, Surface } from '@kamby/ui';
-import { CHAIN_REGISTRY, SUPPORTED_CHAIN_SLUGS, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
+import { SUPPORTED_CHAIN_SLUGS, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
@@ -17,10 +18,6 @@ const WINDOW_LABEL: Record<PnlWindow, string> = { '24h': '24H', '7d': '7D', '30d
 /** Fewer ranked traders than this shows the "be the first" state instead of a near-empty table. */
 const MIN_RANKED = 3;
 
-/** `null` first — "All" is the real default every viewer sees before choosing to narrow. */
-// Only chains Kamby trades on — Arbitrum/Ethereum are in the registry but have no markets.
-const CHAIN_FILTERS: readonly (LeaderboardChainFilter | null)[] = [null, 'solana', 'base', 'bnb', 'robinhood'];
-
 function isPnlWindow(value: string | undefined): value is PnlWindow {
   return WINDOWS.includes(value as PnlWindow);
 }
@@ -28,12 +25,6 @@ function isPnlWindow(value: string | undefined): value is PnlWindow {
 function isChainFilter(value: string | undefined): value is LeaderboardChainFilter {
   if (value === undefined) return false;
   return value === 'solana' || (SUPPORTED_CHAIN_SLUGS as readonly string[]).includes(value);
-}
-
-function chainLabel(chain: LeaderboardChainFilter | null, all: string): string {
-  if (chain === null) return all;
-  if (chain === 'solana') return 'Solana';
-  return CHAIN_REGISTRY[chain].name.replace('Robinhood Chain', 'Robinhood');
 }
 
 /**
@@ -99,20 +90,7 @@ export default async function LeaderboardPage({
 
         <LeaderTabs active="traders" traders={tS('traders')} squads={tS('squads')} duels={tD('tab')} />
 
-        <nav className="-mx-4 mt-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0">
-          {CHAIN_FILTERS.map((c) => (
-            <Link
-              key={c ?? 'all'}
-              href={`/leaderboard?window=${window}${c ? `&chain=${c}` : ''}`}
-              className={cn(
-                'shrink-0 rounded-full px-3.5 py-1.5 font-body text-sm font-semibold transition-colors',
-                c === chain ? 'bg-white/10 text-ink-900' : 'text-ink-400 hover:text-ink-900',
-              )}
-            >
-              {chainLabel(c, t('allChains'))}
-            </Link>
-          ))}
-        </nav>
+        <LeaderboardChainMenu chain={chain} window={window} />
 
         {leaderboard.entries.length < MIN_RANKED ? (
           // Too few traders to rank (2026-10-06: one test wallet at -$0.37 looked empty and off at

@@ -120,23 +120,23 @@ describe('LeaderboardSidebar', () => {
     expect(screen.getByText('0xfresh')).toBeInTheDocument();
   });
 
-  it('shows a real tab for every supported chain plus Solana and All', () => {
+  it('offers All and every Kamby chain in the chain menu', async () => {
     fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
+    const user = userEvent.setup();
     render(<LeaderboardSidebar />);
 
-    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Solana' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Base' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'BNB Chain' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Blockchain' }));
+    for (const name of [/All/, /Solana/, /Base/, /BNB/, /Robinhood/]) expect(screen.getByRole('option', { name })).toBeInTheDocument();
   });
 
-  it('refetches with the real selected chain on tab click, keeping the current window', async () => {
+  it('refetches with the picked chain, keeping the current window', async () => {
     fetchLeaderboard.mockResolvedValue(fakeLeaderboard());
     const user = userEvent.setup();
     render(<LeaderboardSidebar />);
     await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
 
-    await user.click(screen.getByRole('button', { name: 'Solana' }));
+    await user.click(screen.getByRole('button', { name: 'Blockchain' }));
+    await user.click(screen.getByRole('option', { name: /Solana/ }));
 
     await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, 'solana'));
   });
@@ -146,7 +146,8 @@ describe('LeaderboardSidebar', () => {
     const user = userEvent.setup();
     render(<LeaderboardSidebar />);
     await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
-    await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
+    await user.click(screen.getByRole('button', { name: 'Blockchain' }));
+    await user.click(screen.getByRole('option', { name: /BNB/ }));
     await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, 'bnb'));
 
     await user.click(screen.getByRole('button', { name: '7D' }));
