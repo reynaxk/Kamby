@@ -75,6 +75,12 @@ function passes(t: XxxRiskToken, f: Filters, ageS: number): boolean {
   return true;
 }
 
+/** "$435" / "$9.3K" — whole dollars under $1K so a narrow card never truncates. */
+function money(v: number | null): string {
+  if (v !== null && Number.isFinite(v) && Math.abs(v) < 1_000) return `$${Math.round(v)}`;
+  return formatCompactUsd(v).replace('.0K', 'K');
+}
+
 function ageText(s: number): string {
   if (s < 60) return `${s}s`;
   if (s < 3600) return `${Math.floor(s / 60)}m`;
@@ -242,15 +248,15 @@ function XxxRiskCard({ token, ageS, fresh }: { token: XxxRiskToken; ageS: number
         <span className="flex items-baseline justify-between gap-1">
           <span className="font-display text-base font-extrabold tabular-nums text-ink-900">
             <span className="mr-1 font-body text-[0.62rem] font-semibold text-ink-400">MC</span>
-            {formatCompactUsd(token.marketCapUsd)}
+            {money(token.marketCapUsd)}
           </span>
           {change !== null && <span className={cn('font-mono text-[0.72rem] font-semibold tabular-nums', change >= 0 ? 'text-up' : 'text-down')}>{formatPercent(change)}</span>}
         </span>
 
         <span className="grid grid-cols-3 gap-1 font-mono text-[0.66rem] tabular-nums">
-          <Stat label={t('vol')} value={formatCompactUsd(token.volume5mUsd)} />
+          <Stat label={t('vol')} value={money(token.volume5mUsd)} />
           <Stat label={t('holders')} value={token.holders != null ? String(token.holders) : '—'} />
-          <Stat label={t('liq')} value={formatCompactUsd(token.liquidityUsd)} />
+          <Stat label={t('liq')} value={money(token.liquidityUsd)} />
         </span>
 
         {buys !== null && sells !== null && buys + sells > 0 && (
@@ -347,15 +353,14 @@ function FilterSheet({ filters, onChange, matching, onDone }: { filters: Filters
       </span>
     </button>
   );
-  const usd = (v: number) => formatCompactUsd(v).replace('.0K', 'K');
 
   return (
     <div className="space-y-4">
       {row('maxAgeMin', t('maxAge'), (v) => t('underMin', { n: v }))}
-      {row('mcMin', t('mcMin'), usd)}
-      {row('mcMax', t('mcMax'), usd)}
-      {row('liqMin', t('liqMin'), usd)}
-      {row('volMin', t('volMin'), usd)}
+      {row('mcMin', t('mcMin'), money)}
+      {row('mcMax', t('mcMax'), money)}
+      {row('liqMin', t('liqMin'), money)}
+      {row('volMin', t('volMin'), money)}
       {row('holdersMin', t('holdersMin'), String)}
       <div>
         <p className="mb-0.5 font-body text-xs font-semibold text-ink-400">{t('safety')}</p>
