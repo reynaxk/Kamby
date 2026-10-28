@@ -1264,6 +1264,21 @@
     "flagDev": "開発者20%+",
     "flagTop": "上位50%+",
     "flagNoAudit": "未監査",
-    "flagClean": "クリーン"
+    "flagClean": "クリーン",
+    "quickAmount": "クイック購入額",
+    "quickBuy": "${usd} 購入",
+    "buyingShort": "購入中…",
+    "buying": "{token} を購入中…",
+    "bought": "{token} を購入しました ✓",
+    "impactHigh": "この購入で価格が10%以上動きます — コインを開いて購入してください。",
+    "notEnough": "この購入に必要な USDC が足りません。",
+    "moving": "USDC を Solana に移動中…",
+    "minBuy": "最低 ${min}",
+    "walletSetup": "ウォレットを準備中です — 少し待ってからもう一度。",
+    "custom": "カスタム",
+    "quickHint": "⚡ をタップするとこの金額ですぐ購入します。",
+    "mc": "時価",
+    "dev": "開発者",
+    "top": "上位10"
   }
 }

@@ -1264,6 +1264,21 @@
     "flagDev": "개발자 20%+",
     "flagTop": "상위 50%+",
     "flagNoAudit": "감사 없음",
-    "flagClean": "깨끗함"
+    "flagClean": "깨끗함",
+    "quickAmount": "빠른 매수 금액",
+    "quickBuy": "${usd} 매수",
+    "buyingShort": "매수 중…",
+    "buying": "{token} 매수 중…",
+    "bought": "{token} 매수 완료 ✓",
+    "impactHigh": "이 매수는 가격을 10% 이상 움직여요 — 코인을 열어서 매수하세요.",
+    "notEnough": "이 매수에 USDC가 부족해요.",
+    "moving": "USDC를 Solana로 옮기는 중…",
+    "minBuy": "최소 ${min}",
+    "walletSetup": "지갑을 준비 중이에요 — 잠시 후 다시 시도하세요.",
+    "custom": "직접 입력",
+    "quickHint": "⚡ 한 번 탭하면 이 금액만큼 바로 매수해요.",
+    "mc": "시총",
+    "dev": "개발자",
+    "top": "상위10"
   }
 }

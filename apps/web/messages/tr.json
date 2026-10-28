@@ -1264,6 +1264,21 @@
     "flagDev": "Dev %20+",
     "flagTop": "Top %50+",
     "flagNoAudit": "Denetim yok",
-    "flagClean": "Temiz"
+    "flagClean": "Temiz",
+    "quickAmount": "Hızlı alım tutarı",
+    "quickBuy": "${usd} al",
+    "buyingShort": "Alınıyor…",
+    "buying": "{token} alınıyor…",
+    "bought": "{token} alındı ✓",
+    "impactHigh": "Bu alım fiyatı %10 veya daha fazla oynatır — almak için coin’i aç.",
+    "notEnough": "Bu alım için yeterli USDC yok.",
+    "moving": "USDC’n Solana’ya taşınıyor…",
+    "minBuy": "En az ${min}",
+    "walletSetup": "Cüzdanın hazırlanıyor — birazdan tekrar dene.",
+    "custom": "Özel",
+    "quickHint": "⚡’ye bir dokunuş coin’den bu kadarını hemen alır.",
+    "mc": "MC",
+    "dev": "Dev",
+    "top": "Top10"
   }
 }

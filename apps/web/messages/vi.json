@@ -1264,6 +1264,21 @@
     "flagDev": "Dev 20%+",
     "flagTop": "Top 50%+",
     "flagNoAudit": "Chưa kiểm toán",
-    "flagClean": "Sạch"
+    "flagClean": "Sạch",
+    "quickAmount": "Số tiền mua nhanh",
+    "quickBuy": "Mua ${usd}",
+    "buyingShort": "Đang mua…",
+    "buying": "Đang mua {token}…",
+    "bought": "Đã mua {token} ✓",
+    "impactHigh": "Lệnh mua này sẽ làm giá biến động 10% trở lên — mở coin để mua.",
+    "notEnough": "Không đủ USDC cho lệnh mua này.",
+    "moving": "Đang chuyển USDC sang Solana…",
+    "minBuy": "Tối thiểu ${min}",
+    "walletSetup": "Đang thiết lập ví — thử lại sau giây lát.",
+    "custom": "Tùy chỉnh",
+    "quickHint": "Chạm ⚡ một lần để mua ngay số tiền này.",
+    "mc": "MC",
+    "dev": "Dev",
+    "top": "Top10"
   }
 }

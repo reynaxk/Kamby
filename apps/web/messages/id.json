@@ -1264,6 +1264,21 @@
     "flagDev": "Dev 20%+",
     "flagTop": "Top 50%+",
     "flagNoAudit": "Belum diaudit",
-    "flagClean": "Bersih"
+    "flagClean": "Bersih",
+    "quickAmount": "Jumlah beli cepat",
+    "quickBuy": "Beli ${usd}",
+    "buyingShort": "Membeli…",
+    "buying": "Membeli {token}…",
+    "bought": "{token} terbeli ✓",
+    "impactHigh": "Pembelian ini akan menggerakkan harga 10% atau lebih — buka koinnya untuk membeli.",
+    "notEnough": "USDC tidak cukup untuk pembelian ini.",
+    "moving": "Memindahkan USDC ke Solana…",
+    "minBuy": "Minimal ${min}",
+    "walletSetup": "Menyiapkan dompetmu — coba lagi sebentar.",
+    "custom": "Kustom",
+    "quickHint": "Sekali ketuk ⚡ langsung membeli koin sebanyak ini.",
+    "mc": "MC",
+    "dev": "Dev",
+    "top": "Top10"
   }
 }

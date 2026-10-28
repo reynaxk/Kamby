@@ -1264,6 +1264,21 @@
     "flagDev": "Dev 20 %+",
     "flagTop": "Top 50 %+",
     "flagNoAudit": "Pas d’audit",
-    "flagClean": "Propre"
+    "flagClean": "Propre",
+    "quickAmount": "Montant d’achat rapide",
+    "quickBuy": "Acheter ${usd}",
+    "buyingShort": "Achat…",
+    "buying": "Achat de {token}…",
+    "bought": "{token} acheté ✓",
+    "impactHigh": "Cet achat ferait bouger le prix de 10 % ou plus — ouvre le coin pour l’acheter.",
+    "notEnough": "Pas assez d’USDC pour cet achat.",
+    "moving": "Transfert de ton USDC vers Solana…",
+    "minBuy": "Minimum ${min}",
+    "walletSetup": "Préparation de ton wallet — réessaie dans un instant.",
+    "custom": "Autre",
+    "quickHint": "Un appui sur ⚡ achète ce montant d’un coin, tout de suite.",
+    "mc": "MC",
+    "dev": "Dev",
+    "top": "Top10"
   }
 }

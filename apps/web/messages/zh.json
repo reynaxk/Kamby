@@ -1264,6 +1264,21 @@
     "flagDev": "开发者 20%+",
     "flagTop": "前排 50%+",
     "flagNoAudit": "未审计",
-    "flagClean": "干净"
+    "flagClean": "干净",
+    "quickAmount": "快速买入金额",
+    "quickBuy": "买入 ${usd}",
+    "buyingShort": "买入中…",
+    "buying": "正在买入 {token}…",
+    "bought": "已买入 {token} ✓",
+    "impactHigh": "这笔买入会让价格变动 10% 以上 — 请打开该币再买。",
+    "notEnough": "USDC 不足以完成这笔买入。",
+    "moving": "正在把 USDC 转到 Solana…",
+    "minBuy": "最低 ${min}",
+    "walletSetup": "正在准备你的钱包 — 请稍后再试。",
+    "custom": "自定义",
+    "quickHint": "点一下 ⚡ 立即买入这个金额。",
+    "mc": "市值",
+    "dev": "开发者",
+    "top": "前10"
   }
 }

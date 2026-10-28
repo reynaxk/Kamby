@@ -1264,6 +1264,21 @@
     "flagDev": "Dev 20%+",
     "flagTop": "Top 50%+",
     "flagNoAudit": "ไม่มีการตรวจสอบ",
-    "flagClean": "สะอาด"
+    "flagClean": "สะอาด",
+    "quickAmount": "จำนวนซื้อด่วน",
+    "quickBuy": "ซื้อ ${usd}",
+    "buyingShort": "กำลังซื้อ…",
+    "buying": "กำลังซื้อ {token}…",
+    "bought": "ซื้อ {token} แล้ว ✓",
+    "impactHigh": "การซื้อนี้จะทำให้ราคาขยับ 10% ขึ้นไป — เปิดเหรียญเพื่อซื้อ",
+    "notEnough": "USDC ไม่พอสำหรับการซื้อนี้",
+    "moving": "กำลังย้าย USDC ไป Solana…",
+    "minBuy": "ขั้นต่ำ ${min}",
+    "walletSetup": "กำลังตั้งค่ากระเป๋า — ลองอีกครั้งในอีกสักครู่",
+    "custom": "กำหนดเอง",
+    "quickHint": "แตะ ⚡ ครั้งเดียวซื้อเหรียญจำนวนนี้ทันที",
+    "mc": "MC",
+    "dev": "Dev",
+    "top": "Top10"
   }
 }

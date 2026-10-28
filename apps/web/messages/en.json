@@ -1264,6 +1264,21 @@
     "flagDev": "Dev 20%+",
     "flagTop": "Top 50%+",
     "flagNoAudit": "No audit",
-    "flagClean": "Clean"
+    "flagClean": "Clean",
+    "quickAmount": "Quick buy amount",
+    "quickBuy": "Buy ${usd}",
+    "buyingShort": "Buying…",
+    "buying": "Buying {token}…",
+    "bought": "Bought {token} ✓",
+    "impactHigh": "This buy would move the price 10% or more — open the coin to buy it.",
+    "notEnough": "Not enough USDC for this buy.",
+    "moving": "Moving your USDC to Solana…",
+    "minBuy": "Minimum ${min}",
+    "walletSetup": "Setting up your wallet — try again in a moment.",
+    "custom": "Custom",
+    "quickHint": "One tap on ⚡ buys this much of a coin, straight away.",
+    "mc": "MC",
+    "dev": "Dev",
+    "top": "Top10"
   }
 }
