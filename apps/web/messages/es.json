@@ -635,7 +635,7 @@
     "infoChain": "Blockchain",
     "infoContract": "Dirección del contrato",
     "viewPublicProfile": "Ver tu perfil público →",
-    "xxxRiskNote": "Riesgo extremo: monedas de menos de 10 minutos con liquidez mínima, por debajo de los controles habituales de Kamby. La mayoría llega a cero.",
+    "xxxRiskNote": "Riesgo extremo: lanzamientos recién salidos, monedas a punto de dejar la curva y migraciones recientes de todos los launchpads de Solana — liquidez mínima, por debajo de los controles habituales de Kamby. La mayoría acaba en cero.",
     "openToSell": "Abrir para vender →",
     "referralsPitch": "Quien opere tras registrarse con este enlace te genera el 20 % de la comisión de Kamby en sus operaciones — se paga periódicamente y se sigue aquí en tiempo real.",
     "slowConfirmation": "Tarda más de lo normal — la red está congestionada. Puedes cerrar esto; seguimos la operación y aparecerá en tus Operaciones.",

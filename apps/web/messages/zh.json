@@ -635,7 +635,7 @@
     "infoChain": "区块链",
     "infoContract": "合约地址",
     "viewPublicProfile": "查看公开主页 →",
-    "xxxRiskNote": "极高风险：上线不到 10 分钟、流动性极小、低于 Kamby 常规安全检查的币。大多数会归零。",
+    "xxxRiskNote": "极高风险：来自所有 Solana 发射台的新币、即将毕业的币和刚迁移的币 — 流动性极小，低于 Kamby 的常规安全检查。大多数会归零。",
     "openToSell": "打开以卖出 →",
     "referralsPitch": "通过此链接注册并交易的人，其交易的 Kamby 平台费有 20% 归你——定期发放，在此实时统计。",
     "slowConfirmation": "比平时慢——网络繁忙。可以放心关闭；我们会继续跟踪，交易会出现在你的交易记录中。",

@@ -635,7 +635,7 @@
     "infoChain": "Blockchain",
     "infoContract": "Endereço do contrato",
     "viewPublicProfile": "Ver seu perfil público →",
-    "xxxRiskNote": "Risco extremo: moedas com menos de 10 minutos e liquidez mínima, abaixo das verificações normais da Kamby. A maioria vai a zero.",
+    "xxxRiskNote": "Risco extremo: lançamentos recém-saídos, moedas quase saindo da curva e migrações recentes de todos os launchpads da Solana — liquidez mínima, abaixo das verificações normais da Kamby. A maioria vai a zero.",
     "openToSell": "Abrir para vender →",
     "referralsPitch": "Quem negociar depois de se cadastrar por este link rende a você 20% da taxa da Kamby nas negociações dele — pago periodicamente, acompanhado aqui em tempo real.",
     "slowConfirmation": "Demorando mais que o normal — a rede está congestionada. Pode fechar; seguimos acompanhando e a negociação aparece em Negociações.",

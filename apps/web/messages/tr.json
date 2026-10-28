@@ -635,7 +635,7 @@
     "infoChain": "Blokzincir",
     "infoContract": "Kontrat adresi",
     "viewPublicProfile": "Herkese açık profilini gör →",
-    "xxxRiskNote": "Aşırı risk: 10 dakikadan genç, çok az likiditeli, Kamby’nin normal güvenlik kontrollerinin altındaki coinler. Çoğu sıfıra iner.",
+    "xxxRiskNote": "Aşırı risk: tüm Solana launchpad’lerinden yeni çıkan, eğriyi bitirmek üzere olan ve yeni taşınan coinler — çok düşük likidite, Kamby’nin normal güvenlik kontrollerinin altında. Çoğu sıfıra gider.",
     "openToSell": "Satmak için aç →",
     "referralsPitch": "Bu bağlantıyla kaydolup işlem yapan herkes, işlemlerindeki Kamby ücretinin %20’sini sana kazandırır — dönemsel ödenir, burada canlı izlenir.",
     "slowConfirmation": "Her zamankinden uzun sürüyor — ağ yoğun. Kapatabilirsin; işlemi izlemeye devam ediyoruz, İşlemlerinde görünecek.",

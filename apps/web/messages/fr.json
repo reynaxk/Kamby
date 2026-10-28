@@ -635,7 +635,7 @@
     "infoChain": "Blockchain",
     "infoContract": "Adresse du contrat",
     "viewPublicProfile": "Voir ton profil public →",
-    "xxxRiskNote": "Risque extrême : coins de moins de 10 minutes avec une liquidité minime, sous les contrôles habituels de Kamby. La plupart tombent à zéro.",
+    "xxxRiskNote": "Risque extrême : lancements tout neufs, coins sur le point de quitter la courbe et migrations récentes de tous les launchpads Solana — liquidité minime, en dessous des contrôles habituels de Kamby. La plupart finissent à zéro.",
     "openToSell": "Ouvrir pour vendre →",
     "referralsPitch": "Toute personne qui trade après s’être inscrite via ce lien te rapporte 20 % des frais de Kamby sur ses trades — versés régulièrement, suivis ici en temps réel.",
     "slowConfirmation": "Plus long que d’habitude — le réseau est chargé. Tu peux fermer ; on suit le trade et il apparaîtra dans tes Trades.",
