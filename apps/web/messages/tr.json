@@ -1279,6 +1279,8 @@
     "quickHint": "⚡’ye bir dokunuş coin’den bu kadarını hemen alır.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "${usd} kullan",
+    "minShort": "dk"
   }
 }

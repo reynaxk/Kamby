@@ -1279,6 +1279,8 @@
     "quickHint": "Un toque en ⚡ compra esta cantidad de una moneda al instante.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "Usar ${usd}",
+    "minShort": "min"
   }
 }

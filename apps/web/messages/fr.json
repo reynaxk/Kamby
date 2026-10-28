@@ -1279,6 +1279,8 @@
     "quickHint": "Un appui sur ⚡ achète ce montant d’un coin, tout de suite.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "Utiliser ${usd}",
+    "minShort": "min"
   }
 }

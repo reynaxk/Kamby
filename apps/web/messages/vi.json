@@ -1279,6 +1279,8 @@
     "quickHint": "Chạm ⚡ một lần để mua ngay số tiền này.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "Dùng ${usd}",
+    "minShort": "phút"
   }
 }

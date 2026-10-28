@@ -1279,6 +1279,8 @@
     "quickHint": "แตะ ⚡ ครั้งเดียวซื้อเหรียญจำนวนนี้ทันที",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "ใช้ ${usd}",
+    "minShort": "นาที"
   }
 }

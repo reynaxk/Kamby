@@ -1279,6 +1279,8 @@
     "quickHint": "Sekali ketuk ⚡ langsung membeli koin sebanyak ini.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "Pakai ${usd}",
+    "minShort": "mnt"
   }
 }

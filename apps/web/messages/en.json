@@ -1279,6 +1279,8 @@
     "quickHint": "One tap on ⚡ buys this much of a coin, straight away.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "Use ${usd}",
+    "minShort": "min"
   }
 }

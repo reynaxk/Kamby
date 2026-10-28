@@ -261,7 +261,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
 function XxxRiskCard({ token, ageS, fresh, quickUsd, buying, onBuy }: { token: XxxRiskToken; ageS: number; fresh: boolean; quickUsd: number; buying: boolean; onBuy: () => void }) {
   const t = useTranslations('xxxrisk');
   const curve = Math.max(0, Math.min(100, token.curvePct ?? 0));
-  const change = token.priceChange5mPct ?? null;
+  const change = token.priceChange5mPct != null && Math.abs(token.priceChange5mPct) >= 0.01 ? token.priceChange5mPct : null;
   const buys = token.buys5m ?? null;
   const sells = token.sells5m ?? null;
   const socials = token.socials ?? {};
@@ -405,7 +405,7 @@ const chip = (on: boolean) =>
 
 /** A typed value next to the preset chips ("10k", "250") — shows the current value when it
  *  isn't one of the presets. */
-function CustomInput({ value, presets, onValue, prefix }: { value: number | null; presets: readonly number[]; onValue: (v: number | null) => void; prefix?: string }) {
+function CustomInput({ value, presets, onValue, prefix, suffix }: { value: number | null; presets: readonly number[]; onValue: (v: number | null) => void; prefix?: string; suffix?: string }) {
   const t = useTranslations('xxxrisk');
   const custom = value !== null && !presets.includes(value);
   const [text, setText] = useState(custom ? String(value) : '');
@@ -426,6 +426,7 @@ function CustomInput({ value, presets, onValue, prefix }: { value: number | null
         }}
         className="min-w-0 flex-1 bg-transparent placeholder:font-semibold placeholder:text-ink-400 focus:outline-none"
       />
+      {suffix && <span className="text-ink-400">{suffix}</span>}
     </label>
   );
 }
@@ -433,7 +434,7 @@ function CustomInput({ value, presets, onValue, prefix }: { value: number | null
 function FilterSheet({ filters, onChange, matching, onDone }: { filters: Filters; onChange: (f: Filters) => void; matching: number; onDone: () => void }) {
   const t = useTranslations('xxxrisk');
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
-  const row = (key: keyof typeof CHOICES, title: string, fmt: (v: number) => string, prefix?: string) => (
+  const row = (key: keyof typeof CHOICES, title: string, fmt: (v: number) => string, prefix?: string, suffix?: string) => (
     <div>
       <p className="mb-1.5 font-body text-xs font-semibold text-ink-400">{title}</p>
       <div className="flex flex-wrap gap-1.5">
@@ -442,7 +443,7 @@ function FilterSheet({ filters, onChange, matching, onDone }: { filters: Filters
             {v === null ? t('any') : fmt(v)}
           </button>
         ))}
-        <CustomInput value={filters[key]} presets={CHOICES[key]} prefix={prefix} onValue={(v) => set({ [key]: v } as Partial<Filters>)} />
+        <CustomInput value={filters[key]} presets={CHOICES[key]} prefix={prefix} suffix={suffix} onValue={(v) => set({ [key]: v } as Partial<Filters>)} />
       </div>
     </div>
   );
@@ -463,7 +464,7 @@ function FilterSheet({ filters, onChange, matching, onDone }: { filters: Filters
 
   return (
     <div className="space-y-4">
-      {row('maxAgeMin', t('maxAge'), (v) => t('underMin', { n: v }))}
+      {row('maxAgeMin', t('maxAge'), (v) => t('underMin', { n: v }), undefined, t('minShort'))}
       {row('mcMin', t('mcMin'), money, '$')}
       {row('mcMax', t('mcMax'), money, '$')}
       {row('liqMin', t('liqMin'), money, '$')}
@@ -531,7 +532,7 @@ function QuickAmountSheet({ value, onChange, onDone }: { value: number; onChange
       </label>
       {tooSmall && <p className="font-body text-xs font-semibold text-down">{t('minBuy', { min: MIN_TRADE_USD })}</p>}
       <button type="button" onClick={onDone} className="h-12 w-full rounded-2xl bg-accent font-display text-sm font-black text-black">
-        {t('quickBuy', { usd: value })}
+        {t('quickUse', { usd: value })}
       </button>
     </div>
   );

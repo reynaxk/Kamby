@@ -1279,6 +1279,8 @@
     "quickHint": "Ein Tipp auf ⚡ kauft sofort so viel von einem Coin.",
     "mc": "MC",
     "dev": "Dev",
-    "top": "Top10"
+    "top": "Top10",
+    "quickUse": "${usd} verwenden",
+    "minShort": "Min."
   }
 }
