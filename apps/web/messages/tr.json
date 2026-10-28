@@ -201,7 +201,10 @@
     "loadingHolders": "Sahipler yükleniyor…",
     "noHolders": "Bu coin için henüz sahip verisi yok — birazdan tekrar bak.",
     "holdersTop": "{count} sahip · ilk {top}",
-    "holders": "Sahipler"
+    "holders": "Sahipler",
+    "liq": "Likidite",
+    "vol24": "24s hacim",
+    "txns": "24s işlem"
   },
   "fund": {
     "network": "Ağ",
@@ -1295,5 +1298,11 @@
     "insiders": "İçeriden",
     "bundlers": "Bundle",
     "v": "H"
+  },
+  "you": {
+    "holdings": "Varlıklar",
+    "pnl": "PnL",
+    "settings": "Ayarlar",
+    "noHoldings": "Henüz coin yok — bir tane al, burada görünür."
   }
 }

@@ -66,6 +66,7 @@ export function MobileCoinScreen({
   const router = useRouter();
   const tT = useTranslations('terminal');
   const tU = useTranslations('ui');
+  const tC = useTranslations('coin');
   const live = useLivePrice(source);
   const stats = useTokenStats(source);
   const [tab, setTab] = useState(tabs[0]?.id ?? '');
@@ -171,6 +172,41 @@ export function MobileCoinScreen({
         )}
       </div>
 
+      {/* The coin at a glance (2026-10-28, GMGN-like but calmer): the move over four windows, then
+          liquidity, 24h volume, age and trades — one quiet row each, no boxes. */}
+      {stats && (
+        <>
+          <div className="mt-3 grid grid-cols-4 gap-1.5 px-4">
+            {(['m5', 'h1', 'h6', 'h24'] as const).map((w) => {
+              const v = stats.priceChangePct[w];
+              return (
+                <span key={w} className={cn('rounded-xl py-1.5 text-center', v === null ? 'bg-white/[0.03]' : v >= 0 ? 'bg-up/[0.08]' : 'bg-down/[0.08]')}>
+                  <span className="block font-body text-[0.62rem] font-semibold uppercase text-ink-400">{w.replace('m', '').replace('h', '') + (w.startsWith('m') ? 'm' : 'h')}</span>
+                  <span className={cn('block font-display text-[0.8rem] font-bold tabular-nums', v === null ? 'text-ink-400' : v >= 0 ? 'text-up' : 'text-down')}>
+                    {v === null ? '—' : formatPercent(v)}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+          <div className="mt-2.5 grid grid-cols-4 gap-1 px-4">
+            <Fact label={tC('liq')} value={stats.liquidityUsd != null ? formatCompactUsd(stats.liquidityUsd) : '—'} />
+            <Fact label={tC('vol24')} value={formatCompactUsd(stats.volumeUsd.h24)} />
+            <Fact label={tC('age')} value={stats.pairCreatedAtMs ? ageShort(Date.now() - stats.pairCreatedAtMs) : '—'} />
+            <Fact
+              label={tC('txns')}
+              value={
+                <>
+                  <span className="text-up">{compactCount(stats.txns24h.buys)}</span>
+                  <span className="text-ink-400">/</span>
+                  <span className="text-down">{compactCount(stats.txns24h.sells)}</span>
+                </>
+              }
+            />
+          </div>
+        </>
+      )}
+
       {/* What you hold of it, right under the price — trading apps lead with your position. */}
       <div className="px-4 pt-2 empty:hidden">
         <PositionChip source={source} />
@@ -240,3 +276,24 @@ export function MobileCoinScreen({
 }
 
 
+
+function Fact({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <span className="min-w-0">
+      <span className="block truncate font-body text-[0.65rem] font-semibold text-ink-400">{label}</span>
+      <span className="block truncate font-display text-sm font-bold tabular-nums text-ink-900">{value}</span>
+    </span>
+  );
+}
+
+function ageShort(ms: number): string {
+  const m = Math.max(0, Math.floor(ms / 60_000));
+  if (m < 60) return `${m}m`;
+  if (m < 1440) return `${Math.floor(m / 60)}h`;
+  if (m < 525_600) return `${Math.floor(m / 1440)}d`;
+  return `${Math.floor(m / 525_600)}y`;
+}
+
+function compactCount(n: number): string {
+  return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 10_000 ? `${Math.round(n / 1000)}K` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
+}

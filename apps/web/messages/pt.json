@@ -201,7 +201,10 @@
     "loadingHolders": "Carregando holders…",
     "noHolders": "Ainda sem dados de holders desta moeda — volte em um minuto.",
     "holdersTop": "{count} holders · top {top}",
-    "holders": "Holders"
+    "holders": "Holders",
+    "liq": "Liquidez",
+    "vol24": "Vol. 24h",
+    "txns": "Trades 24h"
   },
   "fund": {
     "network": "Rede",
@@ -1295,5 +1298,11 @@
     "insiders": "Insiders",
     "bundlers": "Bundles",
     "v": "V"
+  },
+  "you": {
+    "holdings": "Posições",
+    "pnl": "PnL",
+    "settings": "Ajustes",
+    "noHoldings": "Ainda sem moedas — compre uma e ela aparece aqui."
   }
 }

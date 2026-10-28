@@ -201,7 +201,10 @@
     "loadingHolders": "Memuat holder…",
     "noHolders": "Belum ada data holder untuk koin ini — cek lagi sebentar.",
     "holdersTop": "{count} holder · top {top}",
-    "holders": "Holder"
+    "holders": "Holder",
+    "liq": "Likuiditas",
+    "vol24": "Vol 24j",
+    "txns": "Transaksi 24j"
   },
   "fund": {
     "network": "Jaringan",
@@ -1295,5 +1298,11 @@
     "insiders": "Insider",
     "bundlers": "Bundle",
     "v": "V"
+  },
+  "you": {
+    "holdings": "Aset",
+    "pnl": "PnL",
+    "settings": "Pengaturan",
+    "noHoldings": "Belum ada koin — beli satu dan akan muncul di sini."
   }
 }

@@ -196,12 +196,15 @@
     "buys": "매수 {n}",
     "sells": "매도 {n}",
     "fdv": "FDV",
-    "age": "경과",
+    "age": "기간",
     "vol": "거래량",
     "loadingHolders": "홀더 불러오는 중…",
     "noHolders": "아직 이 코인의 홀더 데이터가 없습니다 — 잠시 후 다시 확인하세요.",
     "holdersTop": "홀더 {count}명 · 상위 {top}",
-    "holders": "홀더"
+    "holders": "홀더",
+    "liq": "유동성",
+    "vol24": "24h 거래량",
+    "txns": "24h 거래"
   },
   "fund": {
     "network": "네트워크",
@@ -1295,5 +1298,11 @@
     "insiders": "내부자",
     "bundlers": "번들",
     "v": "거래량"
+  },
+  "you": {
+    "holdings": "보유",
+    "pnl": "손익",
+    "settings": "설정",
+    "noHoldings": "아직 코인이 없어요 — 사면 여기에 보여요."
   }
 }

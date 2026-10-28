@@ -15,16 +15,19 @@ import { cashtag, formatCompactUsd, formatPercent, formatTokenAmount } from '@/l
  * — each coin you hold with its value and profit, one tap to its screen. Nothing when you hold
  * nothing. Phones only; desktop has the terminal's positions panel.
  */
-export function HomeHoldings() {
+export function HomeHoldings({ bare = false, emptyText }: { bare?: boolean; emptyText?: string } = {}) {
   const t = useTranslations('labels');
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
-  if (!positions || positions.length === 0) return null;
+  if (!positions || positions.length === 0) {
+    return bare && emptyText && positions ? <p className="py-10 text-center font-body text-sm text-ink-400">{emptyText}</p> : null;
+  }
 
   return (
-    <section className="mt-3 px-4 md:hidden">
-      <h2 className="px-1 pb-1.5 font-display text-sm font-semibold text-ink-400">{t('yourCoins')}</h2>
-      <ul className="kamby-glass overflow-hidden rounded-3xl">
+    // `bare`: the Profile screen's Holdings tab (2026-10-28) — no heading, flat rows.
+    <section className={bare ? undefined : 'mt-3 px-4 md:hidden'}>
+      {!bare && <h2 className="px-1 pb-1.5 font-display text-sm font-semibold text-ink-400">{t('yourCoins')}</h2>}
+      <ul className={bare ? 'divide-y divide-white/[0.05]' : 'kamby-glass overflow-hidden rounded-3xl'}>
         {positions.map((p) => {
           const chainId = p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : null);
           const href = chainId ? marketHref(chainId, p.tokenAddress) : null;
@@ -54,11 +57,11 @@ export function HomeHoldings() {
           return (
             <li key={`${chainId ?? 'evm'}:${p.tokenAddress}`}>
               {href ? (
-                <Link href={href} className="flex items-center gap-3 px-4 py-2.5">
+                <Link href={href} className={cn('flex items-center gap-3 py-2.5', bare ? 'px-1' : 'px-4')}>
                   {row}
                 </Link>
               ) : (
-                <div className="flex items-center gap-3 px-4 py-2.5">{row}</div>
+                <div className={cn('flex items-center gap-3 py-2.5', bare ? 'px-1' : 'px-4')}>{row}</div>
               )}
             </li>
           );

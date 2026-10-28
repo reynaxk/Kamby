@@ -201,7 +201,10 @@
     "loadingHolders": "Đang tải holder…",
     "noHolders": "Chưa có dữ liệu holder cho coin này — quay lại sau ít phút.",
     "holdersTop": "{count} holder · top {top}",
-    "holders": "Holder"
+    "holders": "Holder",
+    "liq": "Thanh khoản",
+    "vol24": "KL 24h",
+    "txns": "Giao dịch 24h"
   },
   "fund": {
     "network": "Mạng",
@@ -1295,5 +1298,11 @@
     "insiders": "Nội gián",
     "bundlers": "Bundle",
     "v": "KL"
+  },
+  "you": {
+    "holdings": "Nắm giữ",
+    "pnl": "PnL",
+    "settings": "Cài đặt",
+    "noHoldings": "Chưa có coin — mua một coin và nó sẽ hiện ở đây."
   }
 }

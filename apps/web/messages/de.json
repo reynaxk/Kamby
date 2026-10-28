@@ -201,7 +201,10 @@
     "loadingHolders": "Holder werden geladen…",
     "noHolders": "Noch keine Holder-Daten für diesen Coin — schau gleich wieder vorbei.",
     "holdersTop": "{count} Holder · Top {top}",
-    "holders": "Holder"
+    "holders": "Holder",
+    "liq": "Liquidität",
+    "vol24": "24h Vol.",
+    "txns": "Trades 24h"
   },
   "fund": {
     "network": "Netzwerk",
@@ -1295,5 +1298,11 @@
     "insiders": "Insider",
     "bundlers": "Bundles",
     "v": "V"
+  },
+  "you": {
+    "holdings": "Bestände",
+    "pnl": "PnL",
+    "settings": "Einstellungen",
+    "noHoldings": "Noch keine Coins — kauf einen, dann erscheint er hier."
   }
 }

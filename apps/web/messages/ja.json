@@ -201,7 +201,10 @@
     "loadingHolders": "ホルダーを読み込み中…",
     "noHolders": "このコインのホルダーデータはまだありません。少し後でご確認ください。",
     "holdersTop": "ホルダー {count} · 上位 {top}",
-    "holders": "ホルダー"
+    "holders": "ホルダー",
+    "liq": "流動性",
+    "vol24": "24h出来高",
+    "txns": "24h取引"
   },
   "fund": {
     "network": "ネットワーク",
@@ -1295,5 +1298,11 @@
     "insiders": "インサイダー",
     "bundlers": "バンドル",
     "v": "出来高"
+  },
+  "you": {
+    "holdings": "保有",
+    "pnl": "損益",
+    "settings": "設定",
+    "noHoldings": "まだコインがありません — 買うとここに表示されます。"
   }
 }

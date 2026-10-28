@@ -27,7 +27,8 @@ export default async function AccountPage() {
       {/* Phones: the Profile tab as an app screen (sign in, lists, settings, sign out). */}
       <AppProfileMenu />
       <PhoneSignedInOnly>
-      <main className="mx-auto max-w-2xl px-6 py-10 max-md:px-4 max-md:py-4">
+      {/* Phones show all of this inside the Profile screen above (2026-10-28). */}
+      <main className="mx-auto max-w-2xl px-6 py-10 max-md:hidden">
         <div className="flex items-start justify-between gap-4 max-md:hidden">
           <div>
             <h1 className="font-display text-xl font-bold text-ink-900">{t('title')}</h1>
