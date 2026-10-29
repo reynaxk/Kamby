@@ -65,6 +65,7 @@ function Feed({ compact }: { compact: boolean }) {
   const [status, setStatus] = useState<RealtimeStatus>('connecting');
   const [, setTick] = useState(0);
   const loading = useRef(false);
+  const [retry, setRetry] = useState(0);
   // Traders followed from this screen (the feed carries no follow state; Following-tab rows are followed by definition).
   const [followed, setFollowed] = useState<Set<string>>(() => new Set());
 
@@ -108,6 +109,8 @@ function Feed({ compact }: { compact: boolean }) {
     } catch {
       setFailed(true);
       setItems((prev) => prev ?? []);
+      // A blip (the API restarts on every deploy) shouldn't leave the list dead until the next trade.
+      setTimeout(() => setRetry((n) => n + 1), 5_000);
     } finally {
       loading.current = false;
     }
@@ -117,6 +120,9 @@ function Feed({ compact }: { compact: boolean }) {
     setItems(null);
     void load();
   }, [load]);
+  useEffect(() => {
+    if (retry > 0) void load();
+  }, [retry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // New trades land as a ping; refetch at most every 3s so a busy market doesn't hammer the API.
   useEffect(() => {
