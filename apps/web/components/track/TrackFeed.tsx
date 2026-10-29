@@ -55,7 +55,10 @@ export function TrackFeed() {
       // The API serves at most 50 a page; whales take two, since most trades are small.
       const page = tab === 'following' ? await fetchLatestFollowingActivity({ limit: 50 }) : await fetchLatestActivity({ limit: 50 });
       const more = tab === 'whales' && page.nextCursor ? await fetchLatestActivity({ limit: 50, cursor: page.nextCursor }).catch(() => null) : null;
-      setItems([...page.items, ...(more?.items ?? [])]);
+      const fresh = [...page.items, ...(more?.items ?? [])];
+      // Whales pile up while you watch (the newest 100 trades are only seconds of a busy market);
+      // trackRows drops repeats. Capped so a long session stays light.
+      setItems((prev) => (tab === 'whales' && prev ? [...fresh, ...prev].slice(0, 600) : fresh));
       setFailed(false);
     } catch {
       setFailed(true);
