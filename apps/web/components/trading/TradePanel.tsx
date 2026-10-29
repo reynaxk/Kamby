@@ -1,5 +1,6 @@
 'use client';
 
+import { takeQuickPrefill } from './QuickBuy';
 import type { ShareChain } from '@/components/social/ShareTradeSheet';
 import { USDC_BY_CHAIN_ID } from '@/lib/usdc';
 import { friendlyError } from '@/lib/friendly-error';
@@ -193,7 +194,8 @@ export function TradePanel({
   const chainName = chainSlug ? CHAIN_REGISTRY[chainSlug].name : 'the right chain';
 
   const [side, setSide] = useState<TradeSide>(initialSide);
-  const [amount, setAmount] = useState('');
+  // Opened from a list row's ⚡: starts on that amount (2026-10-29).
+  const [amount, setAmount] = useState(() => (initialSide === 'BUY' && typeof window !== 'undefined' ? takeQuickPrefill(tokenAddress) : ''));
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
   const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));

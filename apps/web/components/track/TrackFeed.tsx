@@ -46,7 +46,7 @@ function Feed() {
   const t = useTranslations('track');
   const { authenticated, login } = usePrivy();
   const [tab, setTab] = useState<Tab>('whales');
-  const [minUsd, setMinUsd] = useState<number>(1_000);
+  const [minUsd, setMinUsd] = useState<number>(100);
   const [items, setItems] = useState<SocialActivity[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState<RealtimeStatus>('connecting');

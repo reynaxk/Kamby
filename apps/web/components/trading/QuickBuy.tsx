@@ -38,6 +38,22 @@ function useQuickAmount(): number {
   return usd;
 }
 
+const PREFILL_KEY = 'kamby:quick-prefill';
+
+/** The buy keypad a ⚡ opened starts on the ⚡ amount — once, for that coin, within a minute. */
+export function takeQuickPrefill(address: string): string {
+  try {
+    const raw = window.sessionStorage.getItem(PREFILL_KEY);
+    if (!raw) return '';
+    window.sessionStorage.removeItem(PREFILL_KEY);
+    const p = JSON.parse(raw) as { address?: string; usd?: number; at?: number };
+    const fresh = typeof p.at === 'number' && Date.now() - p.at < 60_000;
+    return fresh && p.address?.toLowerCase() === address.toLowerCase() && typeof p.usd === 'number' ? String(p.usd) : '';
+  } catch {
+    return '';
+  }
+}
+
 type QuickBuy = { usd: number; busy: string | null; buy: (mint: string, label: string) => void };
 const QuickBuyContext = createContext<QuickBuy | null>(null);
 
@@ -83,7 +99,14 @@ function Button({ chainIdentifier, address, label, className, quick }: ButtonPro
         e.preventDefault();
         e.stopPropagation();
         if (solana) quick.buy(address, label);
-        else router.push(`${href}${href!.includes('?') ? '&' : '?'}buy=1`);
+        else {
+          try {
+            window.sessionStorage.setItem(PREFILL_KEY, JSON.stringify({ address, usd: quick.usd, at: Date.now() }));
+          } catch {
+            // the keypad just starts empty
+          }
+          router.push(`${href}${href!.includes('?') ? '&' : '?'}buy=1`);
+        }
       }}
       disabled={buying}
       aria-label={t('quickBuy', { usd: quick.usd })}
