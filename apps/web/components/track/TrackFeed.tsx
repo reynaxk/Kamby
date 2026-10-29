@@ -52,8 +52,10 @@ export function TrackFeed() {
     }
     loading.current = true;
     try {
-      const page = tab === 'following' ? await fetchLatestFollowingActivity({ limit: 50 }) : await fetchLatestActivity({ limit: 100 });
-      setItems(page.items);
+      // The API serves at most 50 a page; whales take two, since most trades are small.
+      const page = tab === 'following' ? await fetchLatestFollowingActivity({ limit: 50 }) : await fetchLatestActivity({ limit: 50 });
+      const more = tab === 'whales' && page.nextCursor ? await fetchLatestActivity({ limit: 50, cursor: page.nextCursor }).catch(() => null) : null;
+      setItems([...page.items, ...(more?.items ?? [])]);
       setFailed(false);
     } catch {
       setFailed(true);
