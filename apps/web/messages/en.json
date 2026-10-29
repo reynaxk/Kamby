@@ -1338,5 +1338,20 @@
     "unfollow": "Unfollow",
     "whalesLive": "Whales live",
     "seeAll": "See all"
+  },
+  "whatsNew": {
+    "title": "Kamby just updated",
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "done": "Got it",
+    "s1Title": "⚡ Quick buy everywhere",
+    "s1Body": "Every coin has a ⚡ button. Solana coins buy in one tap; other chains open straight on the buy keypad.",
+    "s2Title": "Whales, live",
+    "s2Body": "The biggest trades as they happen. Follow a trader in one tap and sell any coin you hold right from your list.",
+    "s3Title": "Your track record",
+    "s3Body": "Win rate, best trade and a P&L calendar — on your profile and on every trader's page.",
+    "s4Title": "Chats & communities",
+    "s4Body": "Message anyone by @name, start a group or a community — all in one clean screen."
   }
 }

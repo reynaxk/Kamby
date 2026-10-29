@@ -8,6 +8,7 @@ import '@/lib/env';
 import { SiteFooter } from '@/components/legal/SiteFooter';
 import { TickerBar } from '@/components/market/TickerBar';
 import { Providers } from './providers';
+import { WhatsNew } from '@/components/home/WhatsNew';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { CallProvider } from '@/components/calls/CallProvider';
@@ -98,6 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AuthGate />
           <SessionGuard />
           <ChatPulse />
+          <WhatsNew />
         </Providers>
         <InstallApp />
         <LaunchOnHome />

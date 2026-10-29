@@ -1338,5 +1338,20 @@
     "unfollow": "Entfolgen",
     "whalesLive": "Wale live",
     "seeAll": "Alle"
+  },
+  "whatsNew": {
+    "title": "Kamby wurde aktualisiert",
+    "skip": "Überspringen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "done": "Verstanden",
+    "s1Title": "⚡ Schnellkauf überall",
+    "s1Body": "Jeder Coin hat einen ⚡-Button. Solana-Coins kaufst du mit einem Tipp, andere Chains öffnen direkt das Kauf-Tastenfeld.",
+    "s2Title": "Wale, live",
+    "s2Body": "Die größten Trades in Echtzeit. Folge einem Trader mit einem Tipp und verkaufe jeden Coin direkt aus deiner Liste.",
+    "s3Title": "Deine Bilanz",
+    "s3Body": "Trefferquote, bester Trade und ein PnL-Kalender – in deinem Profil und auf jeder Trader-Seite.",
+    "s4Title": "Chats & Communities",
+    "s4Body": "Schreib jedem per @Name, starte eine Gruppe oder Community – alles auf einem klaren Screen."
   }
 }

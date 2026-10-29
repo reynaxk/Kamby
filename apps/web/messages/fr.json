@@ -1338,5 +1338,20 @@
     "unfollow": "Ne plus suivre",
     "whalesLive": "Baleines en direct",
     "seeAll": "Tout voir"
+  },
+  "whatsNew": {
+    "title": "Kamby a été mis à jour",
+    "skip": "Passer",
+    "back": "Retour",
+    "next": "Suivant",
+    "done": "Compris",
+    "s1Title": "⚡ Achat rapide partout",
+    "s1Body": "Chaque coin a un bouton ⚡. Les coins Solana s'achètent en un tap ; les autres chaînes ouvrent directement le pavé d'achat.",
+    "s2Title": "Baleines en direct",
+    "s2Body": "Les plus gros trades en temps réel. Suis un trader en un tap et vends n'importe quel coin depuis ta liste.",
+    "s3Title": "Ton bilan",
+    "s3Body": "Taux de réussite, meilleur trade et calendrier PnL — sur ton profil et sur la page de chaque trader.",
+    "s4Title": "Chats et communautés",
+    "s4Body": "Écris à n'importe qui par @nom, crée un groupe ou une communauté — tout sur un seul écran épuré."
   }
 }

@@ -1338,5 +1338,20 @@
     "unfollow": "Berhenti ikuti",
     "whalesLive": "Paus live",
     "seeAll": "Lihat semua"
+  },
+  "whatsNew": {
+    "title": "Kamby baru diperbarui",
+    "skip": "Lewati",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "done": "Oke",
+    "s1Title": "⚡ Beli cepat di mana saja",
+    "s1Body": "Setiap koin punya tombol ⚡. Koin Solana dibeli sekali ketuk; chain lain langsung membuka keypad beli.",
+    "s2Title": "Whale, live",
+    "s2Body": "Trade terbesar saat terjadi. Ikuti trader sekali ketuk dan jual koin apa pun langsung dari daftarmu.",
+    "s3Title": "Rekam jejakmu",
+    "s3Body": "Win rate, trade terbaik, dan kalender PnL — di profilmu dan di halaman setiap trader.",
+    "s4Title": "Chat & komunitas",
+    "s4Body": "Kirim pesan ke siapa pun lewat @nama, buat grup atau komunitas — semua di satu layar rapi."
   }
 }

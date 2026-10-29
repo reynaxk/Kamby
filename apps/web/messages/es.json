@@ -1338,5 +1338,20 @@
     "unfollow": "Dejar de seguir",
     "whalesLive": "Ballenas en vivo",
     "seeAll": "Ver todo"
+  },
+  "whatsNew": {
+    "title": "Kamby se actualizó",
+    "skip": "Saltar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "done": "Entendido",
+    "s1Title": "⚡ Compra rápida en todas partes",
+    "s1Body": "Cada moneda tiene un botón ⚡. Las de Solana se compran con un toque; las demás redes abren directo el teclado de compra.",
+    "s2Title": "Ballenas en vivo",
+    "s2Body": "Las operaciones más grandes al instante. Sigue a un trader con un toque y vende cualquier moneda desde tu lista.",
+    "s3Title": "Tu historial",
+    "s3Body": "Tasa de acierto, mejor operación y un calendario de PnL — en tu perfil y en la página de cada trader.",
+    "s4Title": "Chats y comunidades",
+    "s4Body": "Escribe a cualquiera por @nombre, crea un grupo o una comunidad — todo en una pantalla limpia."
   }
 }

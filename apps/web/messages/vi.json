@@ -1338,5 +1338,20 @@
     "unfollow": "Bỏ theo dõi",
     "whalesLive": "Cá voi trực tiếp",
     "seeAll": "Xem tất cả"
+  },
+  "whatsNew": {
+    "title": "Kamby vừa cập nhật",
+    "skip": "Bỏ qua",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "done": "Đã hiểu",
+    "s1Title": "⚡ Mua nhanh mọi nơi",
+    "s1Body": "Mỗi coin đều có nút ⚡. Coin Solana mua chỉ một chạm; chuỗi khác mở thẳng bàn phím mua.",
+    "s2Title": "Cá voi trực tiếp",
+    "s2Body": "Những giao dịch lớn nhất theo thời gian thực. Theo dõi trader một chạm và bán coin đang giữ ngay từ danh sách.",
+    "s3Title": "Thành tích của bạn",
+    "s3Body": "Tỷ lệ thắng, lệnh tốt nhất và lịch PnL — trên hồ sơ của bạn và trang của mọi trader.",
+    "s4Title": "Trò chuyện & cộng đồng",
+    "s4Body": "Nhắn tin cho bất kỳ ai bằng @tên, tạo nhóm hoặc cộng đồng — tất cả trên một màn hình gọn gàng."
   }
 }
