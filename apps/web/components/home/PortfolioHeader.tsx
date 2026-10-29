@@ -113,7 +113,6 @@ export function PortfolioHeader() {
         <Link href="/launch" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
           <span className="flex min-w-0 items-baseline gap-1.5">
             <span className="shrink-0 font-display text-sm font-bold text-ink-900">🚀 LaunchPad</span>
-            <span className="truncate font-body text-xs text-ink-400">{tP('launchShort')}</span>
           </span>
           <span className="shrink-0 font-display text-base font-bold text-accent" aria-hidden>
             →
@@ -122,7 +121,6 @@ export function PortfolioHeader() {
         <Link href="/perps" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
           <span className="flex min-w-0 items-baseline gap-1.5">
             <span className="shrink-0 font-display text-sm font-bold text-ink-900">⚡ {tP('card')}</span>
-            <span className="truncate font-body text-xs text-ink-400">{tP('cardSub')}</span>
           </span>
           <span className="shrink-0 font-display text-base font-bold text-accent" aria-hidden>
             →

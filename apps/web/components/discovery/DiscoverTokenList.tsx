@@ -243,8 +243,13 @@ export function DiscoverTokenList({
       {pageScroll && <div ref={tabsAnchorRef} aria-hidden className="max-md:scroll-mt-[calc(env(safe-area-inset-top)+3rem)]" />}
       <div className={cn(pageScroll && 'kamby-rise kamby-rise-3 kamby-frost-bar-phone max-md:sticky max-md:top-[calc(env(safe-area-inset-top)+3rem)] max-md:z-30 max-md:pb-1')}>
       {showPrimaryNav && <TerminalPrimaryNav activeTab={primaryTab} onChange={setPrimaryTab} roomy={pageScroll} />}
-      {primaryTab === 'tokens' && pageScroll && tokenChips}
-      {primaryTab === 'tokens' && pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} className="pt-1.5 md:px-3 md:pb-1" />}
+      {/* One row, like GMGN: the list chips, then the chain menu at the end (2026-10-29). */}
+      {primaryTab === 'tokens' && pageScroll && (
+        <div className="flex items-center">
+          <div className="min-w-0 flex-1">{tokenChips}</div>
+          {tokenTab !== 'crypto' && <ChainFilter compact value={chainFilter} onChange={setChainFilter} className="shrink-0 !pl-0 max-md:pt-2 md:pt-3" />}
+        </div>
+      )}
       </div>
 
       <div className={cn('flex min-h-0 flex-1 flex-col gap-1.5', pageScroll && 'max-md:flex-none')}>

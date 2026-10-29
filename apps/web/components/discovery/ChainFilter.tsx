@@ -47,7 +47,8 @@ export function matchesChain(filter: ChainFilterValue, chainIdentifier: string):
  * scrolling row of chips; since 2026-10-28 (owner: "tap and drop") one button showing the
  * current choice that opens a short list — All, then each chain with its mark.
  */
-export function ChainFilter({ value, onChange, className }: { value: ChainFilterValue; onChange: (value: ChainFilterValue) => void; className?: string }) {
+/** `compact` (2026-10-29, like GMGN): just the chain's mark and a chevron, to sit at the end of a tab row. */
+export function ChainFilter({ value, onChange, className, compact }: { value: ChainFilterValue; onChange: (value: ChainFilterValue) => void; className?: string; compact?: boolean }) {
   const tLb = useTranslations('leaderboard');
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -81,13 +82,20 @@ export function ChainFilter({ value, onChange, className }: { value: ChainFilter
         )}
       >
         {current ? <Mark chain={current.chain} /> : <AllMark />}
-        {current ? current.label : tLb('allChains')}
+        {!compact && (current ? current.label : tLb('allChains'))}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className={cn('text-ink-400 transition-transform', open && 'rotate-180')} aria-hidden>
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
       {open && (
-        <ul role="listbox" aria-label="Blockchain" className="absolute left-1 top-full z-40 mt-1.5 w-48 overflow-hidden rounded-2xl border border-white/10 bg-surface p-1 shadow-xl shadow-black/50 max-md:left-4">
+        <ul
+          role="listbox"
+          aria-label="Blockchain"
+          className={cn(
+            'absolute top-full z-40 mt-1.5 w-48 overflow-hidden rounded-2xl border border-white/10 bg-surface p-1 shadow-xl shadow-black/50',
+            compact ? 'right-1 max-md:right-4' : 'left-1 max-md:left-4',
+          )}
+        >
           {options.map((o) => (
             <li key={o.value}>
               <button
