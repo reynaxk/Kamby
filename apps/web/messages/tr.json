@@ -1312,7 +1312,11 @@
     "noHoldings": "Henüz coin yok — bir tane al, burada görünür.",
     "calendar": "PnL takvimi",
     "winDays": "{n} yeşil gün",
-    "lossDays": "{n} kırmızı gün"
+    "lossDays": "{n} kırmızı gün",
+    "totalPnl": "Toplam K/Z",
+    "openPnl": "Açık K/Z",
+    "realized30d": "Gerçekleşen (30G)",
+    "winRate": "Kazanma oranı"
   },
   "track": {
     "tab": "Track",

@@ -1312,7 +1312,11 @@
     "noHoldings": "Aún no tienes monedas — compra una y aparecerá aquí.",
     "calendar": "Calendario de PnL",
     "winDays": "{n, plural, one {# día verde} other {# días verdes}}",
-    "lossDays": "{n, plural, one {# día rojo} other {# días rojos}}"
+    "lossDays": "{n, plural, one {# día rojo} other {# días rojos}}",
+    "totalPnl": "PnL total",
+    "openPnl": "PnL abierto",
+    "realized30d": "Realizado (30D)",
+    "winRate": "Tasa de acierto"
   },
   "track": {
     "tab": "Track",

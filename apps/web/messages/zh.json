@@ -1312,7 +1312,11 @@
     "noHoldings": "还没有币 — 买入后会显示在这里。",
     "calendar": "盈亏日历",
     "winDays": "盈利 {n} 天",
-    "lossDays": "亏损 {n} 天"
+    "lossDays": "亏损 {n} 天",
+    "totalPnl": "总盈亏",
+    "openPnl": "持仓盈亏",
+    "realized30d": "已实现(30天)",
+    "winRate": "胜率"
   },
   "track": {
     "tab": "追踪",

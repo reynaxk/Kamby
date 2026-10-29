@@ -1312,7 +1312,11 @@
     "noHoldings": "Noch keine Coins — kauf einen, dann erscheint er hier.",
     "calendar": "PnL-Kalender",
     "winDays": "{n, plural, one {# grüner Tag} other {# grüne Tage}}",
-    "lossDays": "{n, plural, one {# roter Tag} other {# rote Tage}}"
+    "lossDays": "{n, plural, one {# roter Tag} other {# rote Tage}}",
+    "totalPnl": "Gesamt-PnL",
+    "openPnl": "Offener PnL",
+    "realized30d": "Realisiert (30T)",
+    "winRate": "Trefferquote"
   },
   "track": {
     "tab": "Track",

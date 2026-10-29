@@ -1312,7 +1312,11 @@
     "noHoldings": "Belum ada koin — beli satu dan akan muncul di sini.",
     "calendar": "Kalender PnL",
     "winDays": "{n} hari hijau",
-    "lossDays": "{n} hari merah"
+    "lossDays": "{n} hari merah",
+    "totalPnl": "Total PnL",
+    "openPnl": "PnL terbuka",
+    "realized30d": "Terealisasi (30H)",
+    "winRate": "Win rate"
   },
   "track": {
     "tab": "Track",

@@ -74,6 +74,7 @@ export function MobileCoinScreen({
   // A tab mounts the first time it's opened, then stays (no refetch when switching back).
   const [opened, setOpened] = useState<Set<string>>(() => new Set([tabs[0]?.id ?? '']));
   const [side, setSide] = useState<'BUY' | 'SELL' | null>(null);
+  const [copied, setCopied] = useState(false);
   // ⚡ on a list row opens a coin straight on its buy keypad (?buy=1, 2026-10-29); "Sell" on a
   // holding opens it on the sell sheet (?sell=1).
   useEffect(() => {
@@ -149,7 +150,34 @@ export function MobileCoinScreen({
               <PriceText value={price} flash /> {change !== null && formatPercent(change)}
             </span>
           ) : (
-            <span className="block truncate font-body text-xs text-ink-400">{name ?? ''}</span>
+            // The contract one tap from the top (2026-10-29, like GMGN): degens paste it everywhere.
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard?.writeText(address).then(
+                  () => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  },
+                  () => undefined,
+                );
+              }}
+              title={address}
+              className="flex max-w-full items-center gap-1 font-body text-xs text-ink-400 active:text-accent"
+            >
+              <span className="tabular-nums">{`${address.slice(0, 4)}…${address.slice(-4)}`}</span>
+              {copied ? (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent" aria-hidden>
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              ) : (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden>
+                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                  <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                </svg>
+              )}
+              {name && <span className="min-w-0 truncate">· {name}</span>}
+            </button>
           )}
         </span>
         {watch}

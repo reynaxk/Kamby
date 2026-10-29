@@ -1312,7 +1312,11 @@
     "noHoldings": "아직 코인이 없어요 — 사면 여기에 보여요.",
     "calendar": "손익 캘린더",
     "winDays": "수익 {n}일",
-    "lossDays": "손실 {n}일"
+    "lossDays": "손실 {n}일",
+    "totalPnl": "총 손익",
+    "openPnl": "미실현 손익",
+    "realized30d": "실현 손익(30일)",
+    "winRate": "승률"
   },
   "track": {
     "tab": "Track",

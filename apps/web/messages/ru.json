@@ -1312,7 +1312,11 @@
     "noHoldings": "Пока нет монет — купи, и они появятся здесь.",
     "calendar": "Календарь PnL",
     "winDays": "{n, plural, one {# зелёный день} few {# зелёных дня} other {# зелёных дней}}",
-    "lossDays": "{n, plural, one {# красный день} few {# красных дня} other {# красных дней}}"
+    "lossDays": "{n, plural, one {# красный день} few {# красных дня} other {# красных дней}}",
+    "totalPnl": "Общий PnL",
+    "openPnl": "Открытый PnL",
+    "realized30d": "Реализовано (30д)",
+    "winRate": "Винрейт"
   },
   "track": {
     "tab": "Track",

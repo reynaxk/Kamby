@@ -1312,7 +1312,11 @@
     "noHoldings": "Още нямаш монети — купи и ще се появят тук.",
     "calendar": "Календар на PnL",
     "winDays": "{n, plural, one {# зелен ден} other {# зелени дни}}",
-    "lossDays": "{n, plural, one {# червен ден} other {# червени дни}}"
+    "lossDays": "{n, plural, one {# червен ден} other {# червени дни}}",
+    "totalPnl": "Обща печалба",
+    "openPnl": "Отворена печалба",
+    "realized30d": "Реализирана (30д)",
+    "winRate": "Печеливши"
   },
   "track": {
     "tab": "Track",

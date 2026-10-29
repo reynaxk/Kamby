@@ -1312,7 +1312,11 @@
     "noHoldings": "まだコインがありません — 買うとここに表示されます。",
     "calendar": "損益カレンダー",
     "winDays": "プラス {n} 日",
-    "lossDays": "マイナス {n} 日"
+    "lossDays": "マイナス {n} 日",
+    "totalPnl": "合計損益",
+    "openPnl": "含み損益",
+    "realized30d": "確定損益(30日)",
+    "winRate": "勝率"
   },
   "track": {
     "tab": "Track",

@@ -1312,7 +1312,11 @@
     "noHoldings": "Chưa có coin — mua một coin và nó sẽ hiện ở đây.",
     "calendar": "Lịch PnL",
     "winDays": "{n} ngày xanh",
-    "lossDays": "{n} ngày đỏ"
+    "lossDays": "{n} ngày đỏ",
+    "totalPnl": "Tổng PnL",
+    "openPnl": "PnL đang mở",
+    "realized30d": "Đã chốt (30N)",
+    "winRate": "Tỷ lệ thắng"
   },
   "track": {
     "tab": "Track",
