@@ -9,10 +9,25 @@ import { formatCompactUsd, formatPercent } from '@/lib/format';
 import { PerpsMoneySheet } from './PerpsMoneySheet';
 import { perpPx, usd, usePerpAccount, usePerpMarkets } from './usePerps';
 
-/** A coin's mark for perps: Hyperliquid has no logos in its API, so a clean letter tile. */
+/** A coin's mark for perps: Hyperliquid's own coin icon (2026-10-29 — its API has no logos, but
+ *  its app serves one per coin), falling back to a clean letter tile when there isn't one. */
 export function PerpMark({ coin, className }: { coin: string; className?: string }) {
+  const [broken, setBroken] = useState(false);
   const seed = Array.from(coin).reduce((n, c) => n * 31 + c.charCodeAt(0), 7);
   const hue = Math.abs(seed) % 360;
+  if (!broken) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- a small remote SVG, not worth next/image
+      <img
+        src={`https://app.hyperliquid.xyz/coins/${encodeURIComponent(coin)}.svg`}
+        alt=""
+        aria-hidden
+        loading="lazy"
+        onError={() => setBroken(true)}
+        className={cn('shrink-0 rounded-full bg-white/[0.06] object-cover', className)}
+      />
+    );
+  }
   return (
     <span
       aria-hidden
