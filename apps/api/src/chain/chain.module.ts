@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import { getSolanaConfig, type Env } from '../config/env';
 import { SolanaConnectionPool, SOLANA_CONNECTION_POOL } from './solana-connection-pool';
+import { PUBLIC_SOLANA_RPC_URL } from './rpc-failover-fetch';
 
 /**
  * One shared, failover-aware Solana connection pool for the whole process — see
@@ -22,7 +23,8 @@ import { SolanaConnectionPool, SOLANA_CONNECTION_POOL } from './solana-connectio
         logger.setContext('SolanaConnectionPool');
         const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
         if (!solanaConfig) return null;
-        return new SolanaConnectionPool(solanaConfig.rpcUrl, solanaConfig.rpcUrlFallback, logger);
+        // Solana's public RPC when no fallback is configured (2026-10-29) — better slow than down.
+        return new SolanaConnectionPool(solanaConfig.rpcUrl, solanaConfig.rpcUrlFallback ?? PUBLIC_SOLANA_RPC_URL, logger);
       },
     },
   ],

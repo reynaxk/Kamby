@@ -9,6 +9,7 @@ import { getSolanaConfig, type Env } from '../config/env';
 import { validateRelayerInstructions, type ResolvedInstruction } from './gas-relayer-instruction-guard';
 import { parseSolanaUnsignedTx, solanaTransactionMatchesQuote } from './solana-quote-match';
 import { toDto, type SolanaTradeTransactionDto } from './solana-transaction.service';
+import { failoverFetch, PUBLIC_SOLANA_RPC_URL } from '../chain/rpc-failover-fetch';
 
 /** The SPL Token Account rent-exemption minimum (165-byte account) as of 2026-09-13 —
  *  stable for a very long time, but a real network parameter, not a protocol constant;
@@ -68,7 +69,19 @@ export class GasRelayerService {
     private readonly logger: PinoLogger,
   ) {
     const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
-    this.connection = solanaConfig ? new Connection(solanaConfig.rpcUrl, 'confirmed') : null;
+    // Falls over to the fallback RPC (or Solana's public one) when the paid RPC refuses a call,
+    // so sponsored buys don't all fail while it's out of credits (2026-10-29).
+    let lastWarn = 0;
+    this.connection = solanaConfig
+      ? new Connection(solanaConfig.rpcUrl, {
+          commitment: 'confirmed',
+          fetch: failoverFetch(solanaConfig.rpcUrlFallback ?? PUBLIC_SOLANA_RPC_URL, (reason) => {
+            if (Date.now() - lastWarn < 60_000) return;
+            lastWarn = Date.now();
+            this.logger.error({ reason }, 'Relayer RPC refused a call — using the fallback RPC');
+          }),
+        })
+      : null;
     // Never logged — see the `redact` config in app.module.ts, which already anticipates a
     // `*.privateKey`/`*.secretKey` path, same discipline as SolanaTopupService's own key.
     this.feePayerKeypair =
