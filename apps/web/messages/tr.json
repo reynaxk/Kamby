@@ -663,7 +663,13 @@
     "youOnlyHave": "Sadece {amount} {symbol} var",
     "notEnoughToken": "Yeterli {symbol} yok",
     "youGet": "Alacağın",
-    "tradeFee": "Ücret"
+    "tradeFee": "Ücret",
+    "trackRecord": "Geçmiş",
+    "winRate": "Kazanma oranı",
+    "bestTrade": "En iyi işlem",
+    "pnlSpread": "İşlemler nasıl bitti",
+    "lastSells": "Son {n} satış",
+    "moreStats": "Daha fazla istatistik"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

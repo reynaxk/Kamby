@@ -663,7 +663,13 @@
     "youOnlyHave": "Kamu hanya punya {amount} {symbol}",
     "notEnoughToken": "{symbol} tidak cukup",
     "youGet": "Kamu dapat",
-    "tradeFee": "Biaya"
+    "tradeFee": "Biaya",
+    "trackRecord": "Rekam jejak",
+    "winRate": "Win rate",
+    "bestTrade": "Trade terbaik",
+    "pnlSpread": "Hasil trade",
+    "lastSells": "{n} penjualan terakhir",
+    "moreStats": "Statistik lainnya"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

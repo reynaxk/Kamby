@@ -663,7 +663,13 @@
     "youOnlyHave": "保有は {amount} {symbol} のみです",
     "notEnoughToken": "{symbol} が足りません",
     "youGet": "受け取り",
-    "tradeFee": "手数料"
+    "tradeFee": "手数料",
+    "trackRecord": "実績",
+    "winRate": "勝率",
+    "bestTrade": "ベストトレード",
+    "pnlSpread": "損益の分布",
+    "lastSells": "直近{n}件の売却",
+    "moreStats": "その他の統計"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

@@ -663,7 +663,13 @@
     "youOnlyHave": "You only have {amount} {symbol}",
     "notEnoughToken": "Not enough {symbol}",
     "youGet": "You get",
-    "tradeFee": "Fee"
+    "tradeFee": "Fee",
+    "trackRecord": "Track record",
+    "winRate": "Win rate",
+    "bestTrade": "Best trade",
+    "pnlSpread": "How trades ended",
+    "lastSells": "Last {n} sells",
+    "moreStats": "More stats"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

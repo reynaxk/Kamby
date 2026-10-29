@@ -663,7 +663,13 @@
     "youOnlyHave": "Имаш само {amount} {symbol}",
     "notEnoughToken": "Нямаш достатъчно {symbol}",
     "youGet": "Получаваш",
-    "tradeFee": "Такса"
+    "tradeFee": "Такса",
+    "trackRecord": "Резултати",
+    "winRate": "Печеливши",
+    "bestTrade": "Най-добра сделка",
+    "pnlSpread": "Как приключват сделките",
+    "lastSells": "Последни {n} продажби",
+    "moreStats": "Още статистика"
   },
   "notif": {
     "kind_FOLLOW": "Последване",

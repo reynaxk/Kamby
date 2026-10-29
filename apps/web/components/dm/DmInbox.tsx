@@ -190,41 +190,38 @@ export function DmInbox() {
           )}
         </div>
       )}
+      {/* One slim row (2026-10-29, GMGN-simple): the field starts a chat, the icons make a group or a community. */}
       {composing ? null : (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setComposing(true)}
-            className="kamby-glass flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition-transform active:scale-[0.98]"
+            className="kamby-glass-solid flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-2xl px-4 text-left transition-transform active:scale-[0.99]"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('newMessage')}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 text-accent">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span className="truncate font-body text-sm text-ink-400">{t('newMessage')}</span>
           </button>
           <button
             type="button"
             onClick={() => setGroupOpen(true)}
-            className="kamby-glass flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition-transform active:scale-[0.98]"
+            aria-label={t('newGroup')}
+            title={t('newGroup')}
+            className="kamby-glass-solid flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-accent transition-transform active:scale-95"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] text-accent" aria-hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8" />
-              </svg>
-            </span>
-            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('newGroup')}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8" />
+            </svg>
           </button>
           <button
             type="button"
             onClick={() => setCommunityOpen(true)}
-            className="kamby-glass flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center transition-transform active:scale-[0.98]"
+            aria-label={t('communityBadge')}
+            title={t('communityBadge')}
+            className="kamby-glass-solid flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-display text-lg font-black text-accent transition-transform active:scale-95"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/[0.08] font-display text-lg font-black text-accent" aria-hidden>
-              #
-            </span>
-            <span className="w-full truncate whitespace-nowrap font-display text-[0.8rem] font-bold text-ink-900">{t('communityBadge')}</span>
+            #
           </button>
         </div>
       )}
@@ -237,7 +234,7 @@ export function DmInbox() {
       )}
 
       {/* Chats / Requests */}
-      <div className="mt-5 flex gap-1 rounded-full bg-white/[0.04] p-1" role="tablist">
+      <div className="mt-4 flex gap-5 border-b border-line/60 px-1" role="tablist">
         {(['chats', 'requests'] as const).map((b) => (
           <button
             key={b}
@@ -245,7 +242,7 @@ export function DmInbox() {
             role="tab"
             aria-selected={box === b}
             onClick={() => setBox(b)}
-            className={cn('flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 font-display text-sm font-bold transition-colors', box === b ? 'bg-white/10 text-ink-900' : 'text-ink-400')}
+            className={cn('-mb-px flex items-center gap-1.5 border-b-2 pb-2.5 pt-1 font-display text-[0.95rem] font-bold transition-colors', box === b ? 'border-accent text-ink-900' : 'border-transparent text-ink-400 hover:text-ink-900')}
           >
             {t(b)}
             {b === 'requests' && (unread?.requests ?? 0) > 0 && (

@@ -663,7 +663,13 @@
     "youOnlyHave": "У вас только {amount} {symbol}",
     "notEnoughToken": "Недостаточно {symbol}",
     "youGet": "Вы получите",
-    "tradeFee": "Комиссия"
+    "tradeFee": "Комиссия",
+    "trackRecord": "Результаты",
+    "winRate": "Винрейт",
+    "bestTrade": "Лучшая сделка",
+    "pnlSpread": "Чем закончились сделки",
+    "lastSells": "Последние {n} продаж",
+    "moreStats": "Больше статистики"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

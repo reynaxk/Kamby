@@ -663,7 +663,13 @@
     "youOnlyHave": "Bạn chỉ có {amount} {symbol}",
     "notEnoughToken": "Không đủ {symbol}",
     "youGet": "Bạn nhận",
-    "tradeFee": "Phí"
+    "tradeFee": "Phí",
+    "trackRecord": "Thành tích",
+    "winRate": "Tỷ lệ thắng",
+    "bestTrade": "Lệnh tốt nhất",
+    "pnlSpread": "Kết quả giao dịch",
+    "lastSells": "{n} lệnh bán gần nhất",
+    "moreStats": "Thêm thống kê"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

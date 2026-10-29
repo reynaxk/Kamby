@@ -153,9 +153,18 @@ export default async function TraderProfilePage({ params }: { params: { address:
           </section>
         )}
 
+        <TradeQuality trades={kambyTrades} t={{ title: tL('trackRecord'), winRate: tL('winRate'), bestTrade: tL('bestTrade'), spread: tL('pnlSpread'), lastSells: tL('lastSells', { n: '{n}' }) }} />
+
         {profile.stats.totalSwaps > 0 && (
           <section className="mt-8">
-            <h2 className="font-display text-base font-bold text-ink-900">{tU('tradingBehavior_2f0a')}</h2>
+            {/* Folded away (2026-10-29, GMGN-simple): the headline numbers sit above; the rest on a tap. */}
+            <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-display text-base font-bold text-ink-900 [&::-webkit-details-marker]:hidden">
+              {tL('moreStats')}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="text-ink-400 transition-transform group-open:rotate-180">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
             <p className="mt-0.5 font-body text-xs text-ink-400">{tL('behaviorNote')}</p>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label={tU('uniqueTokens_976c')} value={profile.stats.uniqueTokensTraded.toString()} />
@@ -178,6 +187,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
                 value={profile.stats.activityFrequencyPerDay !== null ? profile.stats.activityFrequencyPerDay.toFixed(2) : '—'}
               />
             </div>
+            </details>
           </section>
         )}
 
@@ -205,6 +215,70 @@ export default async function TraderProfilePage({ params }: { params: { address:
         </section>
       </main>
     </div>
+  );
+}
+
+type KambyTradeRow = Awaited<ReturnType<typeof fetchKambyTrades>>[number];
+
+/** GMGN-style quality (2026-10-29): win rate, best trade and how the wins spread, from the
+ *  recent Kamby sells that carry a matched PnL. Nothing when there are none. */
+function TradeQuality({ trades, t }: { trades: KambyTradeRow[]; t: { title: string; winRate: string; bestTrade: string; spread: string; lastSells: string } }) {
+  const sells = trades
+    .filter((x) => x.side === 'SELL' && x.pnlUsd !== null)
+    .map((x) => {
+      const cost = x.amountUsd - x.pnlUsd!;
+      return { ...x, pct: cost > 0 ? (x.pnlUsd! / cost) * 100 : 0 };
+    });
+  if (sells.length === 0) return null;
+  const wins = sells.filter((x) => x.pnlUsd! > 0).length;
+  const winRate = Math.round((wins / sells.length) * 100);
+  const best = sells.reduce((a, b) => (b.pnlUsd! > a.pnlUsd! ? b : a));
+  const buckets = [
+    { label: '>100%', n: sells.filter((x) => x.pct >= 100).length, cls: 'bg-up' },
+    { label: '0–100%', n: sells.filter((x) => x.pct > 0 && x.pct < 100).length, cls: 'bg-up/45' },
+    { label: '−50–0%', n: sells.filter((x) => x.pct <= 0 && x.pct > -50).length, cls: 'bg-down/45' },
+    { label: '<−50%', n: sells.filter((x) => x.pct <= -50).length, cls: 'bg-down' },
+  ];
+  return (
+    <section className="mt-8">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="font-display text-base font-bold text-ink-900">{t.title}</h2>
+        <span className="font-body text-xs text-ink-400">{t.lastSells.replace('{n}', String(sells.length))}</span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+          <div className="font-body text-[0.68rem] text-ink-400">{t.winRate}</div>
+          <div className={cn('mt-0.5 font-display text-2xl font-black tabular-nums', winRate >= 50 ? 'text-up' : 'text-down')}>{winRate}%</div>
+          <div className="font-body text-[0.68rem] tabular-nums text-ink-400">
+            <span className="text-up">{wins}W</span> / <span className="text-down">{sells.length - wins}L</span>
+          </div>
+        </div>
+        <div className="min-w-0 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+          <div className="font-body text-[0.68rem] text-ink-400">{t.bestTrade}</div>
+          <div className={cn('mt-0.5 truncate font-display text-2xl font-black tabular-nums', best.pnlUsd! >= 0 ? 'text-up' : 'text-down')}>{formatSignedCompactUsd(best.pnlUsd)}</div>
+          <div className="truncate font-body text-[0.68rem] tabular-nums text-ink-400">
+            {best.symbol ? `${best.symbol}` : truncateAddress(best.tokenAddress)} · {formatPercent(best.pct)}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-3">
+        <div className="font-body text-[0.68rem] text-ink-400">{t.spread}</div>
+        <div className="mt-2 flex h-2 gap-0.5 overflow-hidden rounded-full">
+          {buckets.map((b) => (b.n > 0 ? <span key={b.label} className={b.cls} style={{ flexGrow: b.n }} /> : null))}
+        </div>
+        <div className="mt-2 grid grid-cols-4 gap-1">
+          {buckets.map((b) => (
+            <div key={b.label} className="min-w-0">
+              <div className="flex items-center gap-1 truncate font-body text-[0.62rem] text-ink-400">
+                <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', b.cls)} aria-hidden />
+                {b.label}
+              </div>
+              <div className="font-display text-sm font-bold tabular-nums text-ink-900">{b.n}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

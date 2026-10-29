@@ -17,6 +17,7 @@ import { cashtag, formatCompactUsd, formatPercent, formatTokenAmount } from '@/l
  */
 export function HomeHoldings({ bare = false, emptyText }: { bare?: boolean; emptyText?: string } = {}) {
   const t = useTranslations('labels');
+  const tT = useTranslations('trade');
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
   if (!positions || positions.length === 0) {
@@ -57,9 +58,19 @@ export function HomeHoldings({ bare = false, emptyText }: { bare?: boolean; empt
           return (
             <li key={`${chainId ?? 'evm'}:${p.tokenAddress}`}>
               {href ? (
-                <Link href={href} className={cn('flex items-center gap-3 py-2.5', bare ? 'px-1' : 'px-4')}>
-                  {row}
-                </Link>
+                // A one-tap Sell beside each holding (2026-10-29, like GMGN's positions): opens the
+                // coin on its sell sheet.
+                <div className={cn('flex items-center gap-2', bare ? 'pr-1' : 'pr-3')}>
+                  <Link href={href} className={cn('flex min-w-0 flex-1 items-center gap-3 py-2.5', bare ? 'pl-1' : 'pl-4')}>
+                    {row}
+                  </Link>
+                  <Link
+                    href={`${href}${href.includes('?') ? '&' : '?'}sell=1`}
+                    className="flex h-8 shrink-0 items-center rounded-xl border border-down/35 bg-down/10 px-2.5 font-display text-[0.75rem] font-extrabold text-down transition-colors active:scale-[0.97] hover:bg-down hover:text-black"
+                  >
+                    {tT('sell')}
+                  </Link>
+                </div>
               ) : (
                 <div className={cn('flex items-center gap-3 py-2.5', bare ? 'px-1' : 'px-4')}>{row}</div>
               )}

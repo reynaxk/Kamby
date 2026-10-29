@@ -663,7 +663,13 @@
     "youOnlyHave": "{amount} {symbol}만 보유 중입니다",
     "notEnoughToken": "{symbol}이(가) 부족합니다",
     "youGet": "받는 금액",
-    "tradeFee": "수수료"
+    "tradeFee": "수수료",
+    "trackRecord": "트랙 레코드",
+    "winRate": "승률",
+    "bestTrade": "최고 거래",
+    "pnlSpread": "거래 결과 분포",
+    "lastSells": "최근 {n}건 매도",
+    "moreStats": "통계 더보기"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

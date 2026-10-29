@@ -663,7 +663,13 @@
     "youOnlyHave": "คุณมีเพียง {amount} {symbol}",
     "notEnoughToken": "{symbol} ไม่พอ",
     "youGet": "คุณได้รับ",
-    "tradeFee": "ค่าธรรมเนียม"
+    "tradeFee": "ค่าธรรมเนียม",
+    "trackRecord": "ผลงาน",
+    "winRate": "อัตราชนะ",
+    "bestTrade": "เทรดที่ดีที่สุด",
+    "pnlSpread": "ผลของการเทรด",
+    "lastSells": "ขาย {n} ครั้งล่าสุด",
+    "moreStats": "สถิติเพิ่มเติม"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

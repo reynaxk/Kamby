@@ -663,7 +663,13 @@
     "youOnlyHave": "你只有 {amount} {symbol}",
     "notEnoughToken": "{symbol} 不足",
     "youGet": "你将获得",
-    "tradeFee": "手续费"
+    "tradeFee": "手续费",
+    "trackRecord": "战绩",
+    "winRate": "胜率",
+    "bestTrade": "最佳交易",
+    "pnlSpread": "盈亏分布",
+    "lastSells": "最近 {n} 笔卖出",
+    "moreStats": "更多统计"
   },
   "notif": {
     "kind_FOLLOW": "关注",

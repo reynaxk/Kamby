@@ -663,7 +663,13 @@
     "youOnlyHave": "Solo tienes {amount} {symbol}",
     "notEnoughToken": "No tienes suficiente {symbol}",
     "youGet": "Recibes",
-    "tradeFee": "Comisión"
+    "tradeFee": "Comisión",
+    "trackRecord": "Historial",
+    "winRate": "Tasa de acierto",
+    "bestTrade": "Mejor operación",
+    "pnlSpread": "Cómo terminaron",
+    "lastSells": "Últimas {n} ventas",
+    "moreStats": "Más estadísticas"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",
