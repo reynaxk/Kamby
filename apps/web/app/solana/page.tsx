@@ -4,19 +4,16 @@ import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { TokenLinks } from '@/components/terminal/TokenLinks';
 import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 import { NewListingBanner } from '@/components/market/NewListingBanner';
-import { TokenIdentity } from '@/components/market/TokenIdentity';
 import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { CoinRail } from '@/components/discovery/CoinRail';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
-import { LivePriceText } from '@/components/market/LivePriceText';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchLaunchedToken, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
-import { formatPercent } from '@/lib/format';
 import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
-import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
+import { CoinHeaderDesktop } from '@/components/market/CoinHeaderDesktop';
 import { getTranslations } from 'next-intl/server';
 import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
 import { soft } from '@/lib/soft';
@@ -170,24 +167,21 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             </aside>
           )}
           <section className="min-w-0">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              {isSol ? (
-                <h1 className="font-display text-xl font-bold text-ink-900">{tU('tradeOnSolana_e8eb')}</h1>
-              ) : (
-                <h1 className="font-display text-xl font-bold text-ink-900">
-                  <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} size="sm" chainIdentifier="solana" seed={market.tokenAddress} />
-                  <LaunchpadBadge chain="solana" address={market.tokenAddress} className="mt-1" />
-                </h1>
-              )}
-              {!isSol && (
-                <p className="font-mono text-lg font-semibold tabular-nums text-ink-900">
-                  <LivePriceText mint={market.tokenAddress} initial={lastClose} />
-                  {market.priceChange24hPct !== null && (
-                    <span className={cn('ml-2 text-sm', market.priceChange24hPct >= 0 ? 'text-up' : 'text-down')}>{formatPercent(market.priceChange24hPct)}</span>
-                  )}
-                </p>
-              )}
-            </div>
+            {isSol ? (
+              <h1 className="font-display text-xl font-bold text-ink-900">{tU('tradeOnSolana_e8eb')}</h1>
+            ) : (
+              <CoinHeaderDesktop
+                chainIdentifier="solana"
+                address={market.tokenAddress}
+                symbol={market.symbol}
+                name={market.name}
+                logoUrl={market.logoUrl}
+                source={{ kind: 'solana', mint: market.tokenAddress }}
+                initialPrice={market.priceUsd ?? lastClose}
+                change24hPct={market.priceChange24hPct}
+                marketCapUsd={market.marketCapUsd ?? null}
+              />
+            )}
             {market.isNewListing && (
               <div className="mt-3">
                 <NewListingBanner onBondingCurve={market.onBondingCurve} />

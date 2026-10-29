@@ -9,6 +9,8 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 // LeaderboardSidebar/TradersSidebar/SelectableTokenRow have their own coverage — mocked here
 // so this file only exercises DiscoverTokenList's tab routing and per-tab data mapping.
 vi.mock('./LeaderboardSidebar', () => ({ LeaderboardSidebar: () => <div>LeaderboardSidebar</div> }));
+// ⚡ needs the wallet providers — its own behaviour is covered elsewhere.
+vi.mock('@/components/trading/QuickBuy', () => ({ QuickBuyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>, QuickBuyButton: () => null }));
 vi.mock('@/components/pulse/PulseChat', () => ({ PulseChat: () => <div>PulseChat</div> }));
 vi.mock('./SelectableTokenRow', () => ({
   SelectableTokenRow: ({

@@ -63,7 +63,7 @@ export function TerminalPrimaryNav({
           onClick={() => onChange(tab.id)}
           className={cn(
             'relative shrink-0 font-display text-sm font-semibold transition-colors max-md:flex-1 max-md:py-3',
-            roomy ? 'md:px-5 md:py-3.5' : 'md:font-mono md:text-[0.62rem] md:font-medium md:uppercase md:tracking-tight',
+            roomy ? 'md:px-5 md:py-3.5' : 'md:py-2 md:text-[0.82rem] md:font-bold',
             activeTab === tab.id ? 'text-ink-900' : 'text-ink-400 hover:text-ink-900',
             // Alerts aren't built yet — not worth a tab on the phone app.
             tab.id === 'alerts' && 'max-md:hidden',
@@ -72,7 +72,7 @@ export function TerminalPrimaryNav({
           )}
         >
           {tLists(tab.id)}
-          {activeTab === tab.id && <span aria-hidden className={cn('absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent', !roomy && 'md:hidden')} />}
+          {activeTab === tab.id && <span aria-hidden className={cn('absolute inset-x-5 -bottom-px h-0.5 rounded-full bg-accent', !roomy && 'md:inset-x-0')} />}
         </button>
       ))}
     </nav>
@@ -153,9 +153,10 @@ export function DiscoverTokenList({
                 className={cn(
                   // Phones: tappable chips (2026-10-09 app redesign); desktop keeps the compact tabs.
                   'shrink-0 rounded-full px-3 py-1.5 font-display text-xs font-semibold transition-colors',
-                  !pageScroll && 'md:rounded-none md:px-0 md:py-0 md:font-mono md:text-[0.58rem] md:font-normal md:uppercase md:tracking-tight',
+                  // Desktop terminal too since 2026-10-29: the tiny mono caps were unreadable.
+                  !pageScroll && 'md:px-2.5 md:py-1 md:text-[0.72rem]',
                   tokenTab === t.id
-                    ? cn('bg-accent/10 text-accent ring-1 ring-inset ring-accent/30', !pageScroll && 'md:bg-transparent md:text-ink-900 md:ring-0')
+                    ? 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/30'
                     : 'text-ink-400 hover:text-ink-600',
                 )}
               >
@@ -287,7 +288,8 @@ export function DiscoverTokenList({
     </div>
   );
   // ⚡ on every row in the app look (2026-10-29); the compact terminal rail stays as it was.
-  return pageScroll ? <QuickBuyProvider>{view}</QuickBuyProvider> : view;
+  // ⚡ on every row, the desktop terminal's list too (2026-10-29, like GMGN's Buy column).
+  return <QuickBuyProvider>{view}</QuickBuyProvider>;
 }
 
 /** One row per chain+token. React keys rows by that pair, and a duplicate (WBNB arrived
