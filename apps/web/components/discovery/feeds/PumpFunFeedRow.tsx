@@ -8,6 +8,7 @@ import { cashtag, formatAge, truncateAddress } from '@/lib/format';
 import { solanaMarketHref } from '@/lib/solana-links';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { useTranslations } from 'next-intl';
+import { QuickBuyButton } from '@/components/trading/QuickBuy';
 
 function lamportsToSol(raw: string): number {
   return Number(raw) / 1_000_000_000;
@@ -64,11 +65,13 @@ export function PumpFunFeedRow({ token, emphasizeProgress = false }: { token: Pu
   );
   // Every coin opens its trade page — bonding-curve coins included (user decision 2026-10-03;
   // Jupiter routes Pump.fun curves). The trade page shows the early-stage risk warning.
-  const className = 'flex items-center gap-2.5 border-b border-line/60 px-2.5 py-2.5';
   return (
-    <Link href={solanaMarketHref(token.mintAddress)} className={cn(className, 'transition-colors hover:bg-surface-raised')}>
-      {content}
-    </Link>
+    <div className="flex items-center border-b border-line/60 transition-colors hover:bg-surface-raised">
+      <Link href={solanaMarketHref(token.mintAddress)} className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2.5">
+        {content}
+      </Link>
+      <QuickBuyButton chainIdentifier="solana" address={token.mintAddress} label={token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress)} className="mr-2.5" />
+    </div>
   );
 }
 

@@ -11,6 +11,7 @@ import { PriceText } from '@/components/market/PriceText';
 import { LaunchpadBadge } from '@/components/market/LaunchpadBadge';
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
+import { QuickBuyButton } from '@/components/trading/QuickBuy';
 
 /** A left-rail terminal row — modeled on TrenchesPanel.tsx's own TrendingHolderRow markup,
  *  but a button that selects the token in place (DiscoverTerminal's own state) instead of a
@@ -43,6 +44,7 @@ function SelectableTokenRowView({
   const unavailable = !chainSlug && disabled;
 
   return (
+    <div className="relative flex items-center border-b border-line/60 max-md:border-0">
     <button
       type="button"
       onClick={() => onSelect(market)}
@@ -59,7 +61,7 @@ function SelectableTokenRowView({
           : undefined
       }
       className={cn(
-        'terminal-token-row relative flex w-full items-center gap-2.5 border-b border-line/60 px-2.5 py-2.5 text-left transition-all max-md:gap-3 max-md:border-0 max-md:px-4 max-md:py-3',
+        'terminal-token-row relative flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2.5 text-left transition-all max-md:gap-3 max-md:px-4 max-md:py-3',
         selected ? 'bg-surface-raised' : 'hover:bg-surface-raised max-md:active:bg-white/[0.05]',
         disabled && !selected && 'cursor-not-allowed opacity-50',
       )}
@@ -91,7 +93,7 @@ function SelectableTokenRowView({
       </span>
       {market.recentCloses && market.recentCloses.length >= 2 && (
         // Phones too (2026-10-15, Robinhood-app feel) — only where there's real history to draw.
-        <span className="terminal-token-sparkline max-md:mr-1">
+        <span className="terminal-token-sparkline max-md:hidden">
           <Sparkline closes={market.recentCloses} width={44} height={22} />
         </span>
       )}
@@ -110,6 +112,13 @@ function SelectableTokenRowView({
         </span>
       </span>
     </button>
+    <QuickBuyButton
+      chainIdentifier={market.chainIdentifier}
+      address={market.tokenAddress}
+      label={cashtag(market.symbol ?? market.tokenAddress.slice(0, 6))}
+      className="mr-2.5 max-md:-ml-1.5 max-md:mr-4"
+    />
+    </div>
   );
 }
 

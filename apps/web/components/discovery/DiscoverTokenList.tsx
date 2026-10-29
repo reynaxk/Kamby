@@ -16,6 +16,7 @@ import { PulseChat } from '@/components/pulse/PulseChat';
 import { useTranslations } from 'next-intl';
 import { useSteadyOrder } from '@/lib/use-steady-order';
 import { WatchlistTokens } from './WatchlistTokens';
+import { QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { ChainFilter, matchesChain, useChainFilter } from './ChainFilter';
 export type PrimaryTab = 'watchlist' | 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
@@ -236,7 +237,7 @@ export function DiscoverTokenList({
     ),
   };
 
-  return (
+  const view = (
     <div className={cn('flex h-full flex-col gap-1.5', pageScroll && 'max-md:h-auto')}>
       {/* Phones: opening Pulse scrolls here so the tabs stick at the top and the chat fills the
           rest of the screen (its composer was ending up behind the tab bar, 2026-10-13). */}
@@ -285,6 +286,8 @@ export function DiscoverTokenList({
       </div>
     </div>
   );
+  // ⚡ on every row in the app look (2026-10-29); the compact terminal rail stays as it was.
+  return pageScroll ? <QuickBuyProvider>{view}</QuickBuyProvider> : view;
 }
 
 /** One row per chain+token. React keys rows by that pair, and a duplicate (WBNB arrived

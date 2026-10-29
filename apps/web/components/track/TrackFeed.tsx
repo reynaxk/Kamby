@@ -9,6 +9,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from '@/components/dm/DmAvatar';
+import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { followTrader, unfollowTrader, fetchLatestActivity, fetchLatestFollowingActivity, subscribeToActivityStream, type RealtimeStatus } from '@/lib/social-client';
 import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatCompactUsd, formatRelativeTime, truncateAddress } from '@/lib/format';
@@ -34,6 +35,14 @@ export function trackRows(items: SocialActivity[], minUsd: number): SocialActivi
  * trader to see their profile.
  */
 export function TrackFeed() {
+  return (
+    <QuickBuyProvider>
+      <Feed />
+    </QuickBuyProvider>
+  );
+}
+
+function Feed() {
   const t = useTranslations('track');
   const { authenticated, login } = usePrivy();
   const [tab, setTab] = useState<Tab>('whales');
@@ -269,6 +278,7 @@ function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivit
         {buy ? '+' : '−'}
         {formatCompactUsd(a.amountUsd).replace('.0K', 'K')}
       </span>
+      <QuickBuyButton chainIdentifier={a.chainIdentifier} address={a.token.address} label={coin} className="-ml-1" />
     </li>
   );
 }

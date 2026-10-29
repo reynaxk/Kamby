@@ -73,6 +73,15 @@ export function MobileCoinScreen({
   // A tab mounts the first time it's opened, then stays (no refetch when switching back).
   const [opened, setOpened] = useState<Set<string>>(() => new Set([tabs[0]?.id ?? '']));
   const [side, setSide] = useState<'BUY' | 'SELL' | null>(null);
+  // ⚡ on a list row opens a coin straight on its buy keypad (?buy=1, 2026-10-29).
+  useEffect(() => {
+    if (!canTrade) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('buy') !== '1') return;
+    url.searchParams.delete('buy');
+    window.history.replaceState(window.history.state, '', url.toString());
+    setSide('BUY');
+  }, [canTrade]);
   // Once the big price scrolls away it rides along in the top bar instead (2026-10-10).
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {

@@ -16,6 +16,7 @@ import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { cashtag, formatCompactUsd, formatPercent, truncateAddress } from '@/lib/format';
 import { useQuickSolanaBuy } from '@/lib/use-quick-solana-buy';
+import { QUICK_AMOUNT_EVENT } from '@/components/trading/QuickBuy';
 
 type Sort = 'new' | 'vol' | 'mc';
 
@@ -219,6 +220,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
       const merged = { ...v, ...next };
       try {
         window.localStorage.setItem(STORE_KEY, JSON.stringify(merged));
+        window.dispatchEvent(new Event(QUICK_AMOUNT_EVENT)); // every other ⚡ in the app follows
       } catch {
         // remembered for this visit only
       }
