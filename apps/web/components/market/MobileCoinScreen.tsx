@@ -10,6 +10,7 @@ import { LaunchpadBadge } from './LaunchpadBadge';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { PriceText } from './PriceText';
 import { PositionChip } from '@/components/trading/PositionChip';
+import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
 import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
@@ -267,6 +268,13 @@ export function MobileCoinScreen({
         >
           {tT('buy')}
         </button>
+        {/* ⚡ the set amount in one tap (2026-10-29, GMGN's quick amounts): Solana buys right away,
+            other chains open the buy sheet already on that amount. */}
+        {canTrade && (
+          <QuickBuyProvider>
+            <QuickBuyButton chainIdentifier={chainIdentifier} address={address} label={cashtag(label)} onOpen={() => setSide('BUY')} className="!h-12 rounded-2xl px-3.5 text-base" />
+          </QuickBuyProvider>
+        )}
         <button
           type="button"
           disabled={!canTrade}

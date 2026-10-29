@@ -79,13 +79,14 @@ function Inner({ children }: { children: React.ReactNode }) {
 }
 
 /** Nothing outside a QuickBuyProvider, so a row can always render it. */
-type ButtonProps = { chainIdentifier: string; address: string; label: string; className?: string };
+/** `onOpen`: on a coin's own screen an EVM ⚡ opens the buy sheet in place instead of navigating. */
+type ButtonProps = { chainIdentifier: string; address: string; label: string; className?: string; onOpen?: () => void };
 export function QuickBuyButton(props: ButtonProps) {
   const quick = useContext(QuickBuyContext);
   return quick ? <Button {...props} quick={quick} /> : null;
 }
 
-function Button({ chainIdentifier, address, label, className, quick }: ButtonProps & { quick: QuickBuy }) {
+function Button({ chainIdentifier, address, label, className, onOpen, quick }: ButtonProps & { quick: QuickBuy }) {
   const router = useRouter();
   const t = useTranslations('xxxrisk');
   const solana = chainIdentifier.toLowerCase() === 'solana';
@@ -105,7 +106,8 @@ function Button({ chainIdentifier, address, label, className, quick }: ButtonPro
           } catch {
             // the keypad just starts empty
           }
-          router.push(`${href}${href!.includes('?') ? '&' : '?'}buy=1`);
+          if (onOpen) onOpen();
+          else router.push(`${href}${href!.includes('?') ? '&' : '?'}buy=1`);
         }
       }}
       disabled={buying}
