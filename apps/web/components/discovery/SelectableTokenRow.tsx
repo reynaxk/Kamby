@@ -87,7 +87,7 @@ function SelectableTokenRowView({
           {isNew && <NewListingBadge className="ml-1 align-middle max-md:ml-1.5" />}
           <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} className="ml-1 align-middle max-md:hidden" />
         </span>
-        <span className="terminal-token-row-meta block font-mono text-[0.7rem] tabular-nums text-ink-400">
+        <span className="terminal-token-row-meta block truncate font-mono text-[0.7rem] tabular-nums text-ink-400">
           <span className="max-md:hidden">{chainLabel} · </span>{formatCompactUsd(market.marketCapUsd)} MC
         </span>
       </span>
