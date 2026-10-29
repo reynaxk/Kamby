@@ -45,18 +45,18 @@ export function TokenMetricsBar({ market }: { market: MarketSummary }) {
 
   return (
     <Surface className="kamby-token-metrics flex flex-wrap items-center gap-x-5 gap-y-2 px-3.5 py-2.5">
-      <div className="flex min-w-[180px] flex-1 items-center gap-2.5">
+      <div className="flex min-w-[240px] flex-1 items-center gap-2.5">
         <TokenAvatar src={market.logoUrl} seed={market.tokenAddress} label={display} className="h-8 w-8 text-sm" />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-display text-sm font-bold tracking-tight text-ink-900">
+            <span className="font-display text-lg font-black tracking-tight text-ink-900">
               {cashtag(market.symbol ?? display)}
             </span>
             {isLowLiquidity && <LowLiquidityBadge />}
             <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} />
           </div>
-          <div className="flex items-center gap-1.5 truncate font-mono text-[0.6rem] text-ink-400">
-            <span className="truncate">
+          <div className="flex min-w-0 items-center gap-1.5 font-mono text-[0.68rem] text-ink-400">
+            <span className="min-w-0 truncate">
               {market.name ?? tU('indexedMarket_808e')} · {chainName}
             </span>
             <span className="shrink-0">

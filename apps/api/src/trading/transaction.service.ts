@@ -289,7 +289,17 @@ export class TransactionService {
     const last = page[page.length - 1];
     const nextCursor = hasMore && last ? encodeCursor({ createdAt: last.createdAt.toISOString(), id: last.id }) : null;
 
-    return { items: page.map(toDto), nextCursor };
+    // One unreadable row must not take the whole history down (2026-10-29: /trades showed
+    // "couldn't load" for @kamby_qa — a 500 from a single row). Skip it, say which one.
+    const items = page.flatMap((row) => {
+      try {
+        return [toDto(row)];
+      } catch (err) {
+        this.logger.error({ err, transactionId: row.id }, 'trade history row could not be shown');
+        return [];
+      }
+    });
+    return { items, nextCursor };
   }
 
   /**
