@@ -8,6 +8,7 @@ import { PriceText } from '@/components/market/PriceText';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { fetchMarketFeeds } from '@/lib/market-api';
 import { soft } from '@/lib/soft';
+import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
 
@@ -43,6 +44,7 @@ export default async function SearchPage() {
             </span>
             {tU('trending_3752')}
           </h2>
+          <QuickBuyProvider>
           <ul>
             {trending.map((m) => {
               const href = marketHref(m.chainIdentifier, m.tokenAddress);
@@ -50,8 +52,8 @@ export default async function SearchPage() {
               const up = (m.priceChange24hPct ?? 0) >= 0;
               if (!href) return null;
               return (
-                <li key={`${m.chainIdentifier}:${m.tokenAddress}`}>
-                  <Link href={href} className="flex items-center gap-3 px-4 py-3">
+                <li key={`${m.chainIdentifier}:${m.tokenAddress}`} className="flex items-center">
+                  <Link href={href} className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 pr-2.5">
                     <span className="relative shrink-0">
                       <TokenAvatar src={m.logoUrl} seed={m.tokenAddress} label={m.symbol ?? m.tokenAddress} className="h-11 w-11 text-sm" />
                       {chain && <ChainBadge chain={chain} />}
@@ -65,10 +67,12 @@ export default async function SearchPage() {
                       <span className={cn('block font-body text-xs font-semibold tabular-nums', up ? 'text-up' : 'text-down')}>{formatPercent(m.priceChange24hPct)}</span>
                     </span>
                   </Link>
+                  <QuickBuyButton chainIdentifier={m.chainIdentifier} address={m.tokenAddress} label={cashtag(m.symbol ?? m.tokenAddress.slice(0, 6))} className="mr-4" />
                 </li>
               );
             })}
           </ul>
+          </QuickBuyProvider>
         </section>
       )}
       </SearchScreen>

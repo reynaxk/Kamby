@@ -662,10 +662,9 @@ body:has(.kamby-void) {
 }
 /* Phones: the sticky list tabs on Home, frosted over the coins scrolling under them. */
 @media (max-width: 767px) {
+  /* Solid (2026-10-29, like GMGN): coins scrolling under the sticky tabs showed through the frost. */
   .kamby-frost-bar-phone {
-    background: rgba(6, 7, 12, 0.78);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    backdrop-filter: blur(18px) saturate(160%);
+    background: rgb(var(--kamby-bg));
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .kamby-frost-bar-phone {

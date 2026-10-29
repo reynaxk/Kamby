@@ -247,7 +247,7 @@ export function DiscoverTokenList({
       {/* One row, like GMGN: the list chips, then the chain menu at the end (2026-10-29). */}
       {primaryTab === 'tokens' && pageScroll && (
         <div className="flex items-center">
-          <div className="min-w-0 flex-1">{tokenChips}</div>
+          <div className="min-w-0 flex-1 [mask-image:linear-gradient(to_right,black_88%,transparent)]">{tokenChips}</div>
           {tokenTab !== 'crypto' && <ChainFilter compact value={chainFilter} onChange={setChainFilter} className="shrink-0 !pl-0 max-md:pt-2 md:pt-3" />}
         </div>
       )}
