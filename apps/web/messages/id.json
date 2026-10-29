@@ -1325,6 +1325,8 @@
     "findTraders": "Cari trader",
     "failed": "Gagal memuat trade — coba lagi sebentar.",
     "follow": "Ikuti",
-    "unfollow": "Berhenti ikuti"
+    "unfollow": "Berhenti ikuti",
+    "whalesLive": "Paus live",
+    "seeAll": "Lihat semua"
   }
 }

@@ -1325,6 +1325,8 @@
     "findTraders": "Trader bul",
     "failed": "İşlemler yüklenemedi — birazdan tekrar dene.",
     "follow": "Takip et",
-    "unfollow": "Takibi bırak"
+    "unfollow": "Takibi bırak",
+    "whalesLive": "Canlı balinalar",
+    "seeAll": "Tümü"
   }
 }

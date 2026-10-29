@@ -1325,6 +1325,8 @@
     "findTraders": "Trader finden",
     "failed": "Trades konnten nicht geladen werden — versuch es gleich nochmal.",
     "follow": "Folgen",
-    "unfollow": "Entfolgen"
+    "unfollow": "Entfolgen",
+    "whalesLive": "Wale live",
+    "seeAll": "Alle"
   }
 }

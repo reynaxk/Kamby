@@ -1325,6 +1325,8 @@
     "findTraders": "トレーダーを探す",
     "failed": "取引を読み込めませんでした — 少し待って再試行してください。",
     "follow": "フォロー",
-    "unfollow": "フォロー解除"
+    "unfollow": "フォロー解除",
+    "whalesLive": "クジラ ライブ",
+    "seeAll": "すべて"
   }
 }

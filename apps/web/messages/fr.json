@@ -1325,6 +1325,8 @@
     "findTraders": "Trouver des traders",
     "failed": "Impossible de charger les trades — réessaie dans un instant.",
     "follow": "Suivre",
-    "unfollow": "Ne plus suivre"
+    "unfollow": "Ne plus suivre",
+    "whalesLive": "Baleines en direct",
+    "seeAll": "Tout voir"
   }
 }

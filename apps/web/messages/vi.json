@@ -1325,6 +1325,8 @@
     "findTraders": "Tìm trader",
     "failed": "Không tải được giao dịch — thử lại sau giây lát.",
     "follow": "Theo dõi",
-    "unfollow": "Bỏ theo dõi"
+    "unfollow": "Bỏ theo dõi",
+    "whalesLive": "Cá voi trực tiếp",
+    "seeAll": "Xem tất cả"
   }
 }

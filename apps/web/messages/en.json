@@ -1325,6 +1325,8 @@
     "findTraders": "Find traders",
     "failed": "Couldn’t load trades — try again in a moment.",
     "follow": "Follow",
-    "unfollow": "Unfollow"
+    "unfollow": "Unfollow",
+    "whalesLive": "Whales live",
+    "seeAll": "See all"
   }
 }

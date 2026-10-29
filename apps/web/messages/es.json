@@ -1325,6 +1325,8 @@
     "findTraders": "Buscar traders",
     "failed": "No se pudieron cargar las operaciones — inténtalo en un momento.",
     "follow": "Seguir",
-    "unfollow": "Dejar de seguir"
+    "unfollow": "Dejar de seguir",
+    "whalesLive": "Ballenas en vivo",
+    "seeAll": "Ver todo"
   }
 }

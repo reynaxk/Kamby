@@ -34,15 +34,28 @@ export function trackRows(items: SocialActivity[], minUsd: number): SocialActivi
  * follow. Each row: who, bought/sold, how much, which coin — tap the coin to trade it, the
  * trader to see their profile.
  */
-export function TrackFeed() {
+export function TrackFeed({ compact = false }: { compact?: boolean }) {
+  // `compact` is the desktop home's side panel — only mounted (and only streaming) on wide screens.
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    if (!compact) return;
+    const mq = window.matchMedia('(min-width: 1280px)');
+    const sync = () => setWide(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [compact]);
+  if (compact && !wide) return null;
   return (
     <QuickBuyProvider>
-      <Feed />
+      <Feed compact={compact} />
     </QuickBuyProvider>
   );
 }
 
-function Feed() {
+const COMPACT_ROWS = 6;
+
+function Feed({ compact }: { compact: boolean }) {
   const t = useTranslations('track');
   const { authenticated, login } = usePrivy();
   const [tab, setTab] = useState<Tab>('whales');
@@ -130,7 +143,36 @@ function Feed() {
     return () => clearInterval(id);
   }, []);
 
-  const rows = items ? trackRows(items, tab === 'whales' ? minUsd : 0) : null;
+  const all = items ? trackRows(items, tab === 'whales' ? minUsd : 0) : null;
+  const rows = all && compact ? all.slice(0, COMPACT_ROWS) : all;
+
+  if (compact)
+    return (
+      <section className="mt-6">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-[0.95rem] font-bold text-ink-900">🐋 {t('whalesLive')}</h2>
+          <span className={cn('h-1.5 w-1.5 rounded-full', status === 'live' ? 'animate-pulse bg-up' : 'bg-ink-400')} aria-hidden />
+          <Link href="/leaderboard/track" className="ml-auto font-body text-xs font-semibold text-accent">
+            {t('seeAll')} →
+          </Link>
+        </div>
+        {rows === null ? (
+          <ul className="mt-2 space-y-2" aria-hidden>
+            {Array.from({ length: 4 }, (_, i) => (
+              <li key={i} className="h-[3.75rem] rounded-2xl bg-white/[0.03]" />
+            ))}
+          </ul>
+        ) : rows.length === 0 ? (
+          <p className="py-6 font-body text-xs text-ink-400">{failed ? t('failed') : t('emptyWhales')}</p>
+        ) : (
+          <ul className="mt-1 divide-y divide-white/[0.05]">
+            {rows.map((a) => (
+              <TrackRow key={a.id} activity={a} followed={!!a.trader.address && followed.has(a.trader.address)} onFollow={a.trader.address ? () => void toggleFollow(a.trader.address!) : undefined} />
+            ))}
+          </ul>
+        )}
+      </section>
+    );
 
   return (
     <section className="mt-4">

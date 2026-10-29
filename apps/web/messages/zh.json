@@ -1325,6 +1325,8 @@
     "findTraders": "寻找交易者",
     "failed": "交易加载失败 — 请稍后再试。",
     "follow": "关注",
-    "unfollow": "取消关注"
+    "unfollow": "取消关注",
+    "whalesLive": "巨鲸实时",
+    "seeAll": "查看全部"
   }
 }

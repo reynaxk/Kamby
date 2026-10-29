@@ -1325,6 +1325,8 @@
     "findTraders": "트레이더 찾기",
     "failed": "거래를 불러오지 못했어요 — 잠시 후 다시 시도하세요.",
     "follow": "팔로우",
-    "unfollow": "언팔로우"
+    "unfollow": "언팔로우",
+    "whalesLive": "고래 실시간",
+    "seeAll": "전체 보기"
   }
 }

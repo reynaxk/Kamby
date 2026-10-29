@@ -7,6 +7,7 @@ import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { formatCompactUsd } from '@/lib/format';
 import { fetchLeaderboard } from '@/lib/social-api';
+import { TrackFeed } from '@/components/track/TrackFeed';
 import { getTranslations } from 'next-intl/server';
 import { LeaderTabs } from '@/components/squads/LeaderTabs';
 
@@ -95,31 +96,35 @@ export default async function LeaderboardPage({
         {leaderboard.entries.length < MIN_RANKED ? (
           // Too few traders to rank (2026-10-06: one test wallet at -$0.37 looked empty and off at
           // launch) — an invitation instead of a near-empty table.
-          <div className="kamby-glass relative mt-10 flex flex-col items-center overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+          <>
+          <div className="kamby-glass relative mt-6 flex flex-col items-center overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] px-6 py-8 text-center">
             {/* The PnL cards' faint neon K (2026-10-15). */}
-            <svg className="pointer-events-none absolute -right-16 -top-12" width="300" height="300" viewBox="0 0 512 512" aria-hidden="true">
+            <svg className="pointer-events-none absolute -right-16 -top-16" width="220" height="220" viewBox="0 0 512 512" aria-hidden="true">
               <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
                 <path d="M186 140 V372" />
                 <path d="M200 268 L338 140" />
                 <path d="M232 246 L346 372" />
               </g>
             </svg>
-            <span className="relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#00FF87]/20 bg-[#00FF87]/[0.08] text-[#00FF87]" aria-hidden>
+            <span className="relative mb-3 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#00FF87]/20 bg-[#00FF87]/[0.08] text-[#00FF87]" aria-hidden>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" />
                 <path d="M17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
               </svg>
             </span>
             <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-accent">{t('season')}</p>
-            <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-white">{t('beFirst')}</h2>
+            <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight text-white">{t('beFirst')}</h2>
             <p className="mt-2 max-w-sm font-body text-sm text-ink-400">{t('beFirstSub')}</p>
             <Link
               href="/terminal"
-              className="mt-8 rounded-2xl bg-accent px-8 py-3.5 font-display text-sm font-bold text-accent-ink active:scale-[0.98]"
+              className="mt-5 rounded-2xl bg-accent px-7 py-3 font-display text-sm font-bold text-accent-ink active:scale-[0.98]"
             >
               {t('goTrade')}
             </Link>
           </div>
+          {/* Never an empty screen (2026-10-29): until the board fills, the whales trading right now. */}
+          <TrackFeed />
+          </>
         ) : (
           <ol className="mt-8 flex flex-col gap-2 max-md:mt-4 max-md:gap-0">
             {leaderboard.entries.map((entry, index) => (

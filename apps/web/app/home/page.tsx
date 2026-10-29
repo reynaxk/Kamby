@@ -4,6 +4,7 @@ import { MarketHeader } from '@/components/market/MarketHeader';
 import { PortfolioHeader } from '@/components/home/PortfolioHeader';
 import { TopTradersStrip } from '@/components/home/TopTradersStrip';
 import { HomeHoldings } from '@/components/home/HomeHoldings';
+import { TrackFeed } from '@/components/track/TrackFeed';
 import { fetchMarketFeeds } from '@/lib/market-api';
 import { soft } from '@/lib/soft';
 
@@ -31,6 +32,8 @@ export default async function HomePage() {
           <TopTradersStrip />
         </div>
         <HomeHoldings />
+        {/* Wide screens: the column under your money was empty — whales trading right now. */}
+        <TrackFeed compact />
       </div>
       <div className="mt-3 md:h-[calc(100dvh-13rem)] md:min-h-[420px] xl:mt-6 xl:h-[calc(100dvh-6.5rem)]">
         <CoinRail initial={feeds} selectedKey={null} pageScroll />
