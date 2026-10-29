@@ -1307,5 +1307,22 @@
     "calendar": "盈亏日历",
     "winDays": "盈利 {n} 天",
     "lossDays": "亏损 {n} 天"
+  },
+  "track": {
+    "tab": "追踪",
+    "whales": "巨鲸",
+    "following": "关注",
+    "live": "实时",
+    "connecting": "连接中…",
+    "min": "最低",
+    "bought": "买入",
+    "sold": "卖出",
+    "someone": "某人",
+    "emptyWhales": "最近几分钟没有大额交易 — 一出现就会显示在这里。",
+    "emptyFollowing": "你关注的人还没有交易。关注顶级交易者，在这里看他们的动向。",
+    "signInFollowing": "登录后可查看你关注的人的交易。",
+    "signIn": "登录",
+    "findTraders": "寻找交易者",
+    "failed": "交易加载失败 — 请稍后再试。"
   }
 }

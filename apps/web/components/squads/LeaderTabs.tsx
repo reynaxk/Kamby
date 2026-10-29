@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
 
 /** Traders ⇄ Squads ⇄ Duels on the Leaders tab (2026-10-17; Duels 2026-10-18) — a glass segmented switch. */
-export function LeaderTabs({ active, traders, squads, duels }: { active: 'traders' | 'squads' | 'duels'; traders: string; squads: string; duels: string }) {
-  const tab = (key: 'traders' | 'squads' | 'duels', href: string, label: string, icon: React.ReactNode) => (
+export function LeaderTabs({ active, traders, squads, duels }: { active: 'traders' | 'track' | 'squads' | 'duels'; traders: string; squads: string; duels: string }) {
+  const tT = useTranslations('track');
+  const tab = (key: 'traders' | 'track' | 'squads' | 'duels', href: string, label: string, icon: React.ReactNode) => (
     <Link
       href={href}
       aria-current={active === key ? 'page' : undefined}
@@ -24,6 +26,17 @@ export function LeaderTabs({ active, traders, squads, duels }: { active: 'trader
         traders,
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+        </svg>,
+      )}
+      {/* Track (2026-10-29): big trades and followed traders, live. */}
+      {tab(
+        'track',
+        '/leaderboard/track',
+        tT('tab'),
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <circle cx="12" cy="12" r="8" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
         </svg>,
       )}
       {tab(

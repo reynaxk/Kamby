@@ -1307,5 +1307,22 @@
     "calendar": "Kalender PnL",
     "winDays": "{n} hari hijau",
     "lossDays": "{n} hari merah"
+  },
+  "track": {
+    "tab": "Track",
+    "whales": "Paus",
+    "following": "Diikuti",
+    "live": "Live",
+    "connecting": "Menghubungkan…",
+    "min": "Min",
+    "bought": "Beli",
+    "sold": "Jual",
+    "someone": "Seseorang",
+    "emptyWhales": "Belum ada trade besar beberapa menit ini — akan muncul di sini begitu terjadi.",
+    "emptyFollowing": "Belum ada trade dari yang kamu ikuti. Ikuti top trader untuk melihat langkah mereka di sini.",
+    "signInFollowing": "Masuk untuk melihat trade orang yang kamu ikuti.",
+    "signIn": "Masuk",
+    "findTraders": "Cari trader",
+    "failed": "Gagal memuat trade — coba lagi sebentar."
   }
 }

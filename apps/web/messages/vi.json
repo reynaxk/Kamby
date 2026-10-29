@@ -1307,5 +1307,22 @@
     "calendar": "Lịch PnL",
     "winDays": "{n} ngày xanh",
     "lossDays": "{n} ngày đỏ"
+  },
+  "track": {
+    "tab": "Track",
+    "whales": "Cá voi",
+    "following": "Đang theo dõi",
+    "live": "Trực tiếp",
+    "connecting": "Đang kết nối…",
+    "min": "Tối thiểu",
+    "bought": "Đã mua",
+    "sold": "Đã bán",
+    "someone": "Ai đó",
+    "emptyWhales": "Vài phút qua chưa có lệnh lớn — sẽ hiện ở đây ngay khi có.",
+    "emptyFollowing": "Người bạn theo dõi chưa giao dịch. Theo dõi top trader để thấy động thái của họ ở đây.",
+    "signInFollowing": "Đăng nhập để xem giao dịch của người bạn theo dõi.",
+    "signIn": "Đăng nhập",
+    "findTraders": "Tìm trader",
+    "failed": "Không tải được giao dịch — thử lại sau giây lát."
   }
 }

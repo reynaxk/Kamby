@@ -1307,5 +1307,22 @@
     "calendar": "PnL takvimi",
     "winDays": "{n} yeşil gün",
     "lossDays": "{n} kırmızı gün"
+  },
+  "track": {
+    "tab": "Track",
+    "whales": "Balinalar",
+    "following": "Takip",
+    "live": "Canlı",
+    "connecting": "Bağlanıyor…",
+    "min": "Min.",
+    "bought": "Aldı",
+    "sold": "Sattı",
+    "someone": "Biri",
+    "emptyWhales": "Son dakikalarda büyük işlem yok — olur olmaz burada görünür.",
+    "emptyFollowing": "Takip ettiklerin henüz işlem yapmadı. Hamlelerini burada görmek için top trader’ları takip et.",
+    "signInFollowing": "Takip ettiklerinin işlemlerini görmek için giriş yap.",
+    "signIn": "Giriş yap",
+    "findTraders": "Trader bul",
+    "failed": "İşlemler yüklenemedi — birazdan tekrar dene."
   }
 }

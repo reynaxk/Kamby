@@ -1307,5 +1307,22 @@
     "calendar": "損益カレンダー",
     "winDays": "プラス {n} 日",
     "lossDays": "マイナス {n} 日"
+  },
+  "track": {
+    "tab": "Track",
+    "whales": "クジラ",
+    "following": "フォロー中",
+    "live": "ライブ",
+    "connecting": "接続中…",
+    "min": "最小",
+    "bought": "購入",
+    "sold": "売却",
+    "someone": "誰か",
+    "emptyWhales": "ここ数分は大口取引なし — 発生するとすぐここに表示されます。",
+    "emptyFollowing": "フォロー中の人はまだ取引していません。トップトレーダーをフォローするとここに表示されます。",
+    "signInFollowing": "ログインするとフォロー中の人の取引が見られます。",
+    "signIn": "ログイン",
+    "findTraders": "トレーダーを探す",
+    "failed": "取引を読み込めませんでした — 少し待って再試行してください。"
   }
 }

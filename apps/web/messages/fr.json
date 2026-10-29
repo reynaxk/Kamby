@@ -1307,5 +1307,22 @@
     "calendar": "Calendrier PnL",
     "winDays": "{n, plural, one {# jour vert} other {# jours verts}}",
     "lossDays": "{n, plural, one {# jour rouge} other {# jours rouges}}"
+  },
+  "track": {
+    "tab": "Track",
+    "whales": "Baleines",
+    "following": "Suivis",
+    "live": "En direct",
+    "connecting": "Connexion…",
+    "min": "Min.",
+    "bought": "A acheté",
+    "sold": "A vendu",
+    "someone": "Quelqu’un",
+    "emptyWhales": "Pas de gros trades ces dernières minutes — ils apparaissent ici dès qu’ils arrivent.",
+    "emptyFollowing": "Personne que tu suis n’a encore tradé. Suis des top traders pour voir leurs moves ici.",
+    "signInFollowing": "Connecte-toi pour voir les trades des gens que tu suis.",
+    "signIn": "Se connecter",
+    "findTraders": "Trouver des traders",
+    "failed": "Impossible de charger les trades — réessaie dans un instant."
   }
 }

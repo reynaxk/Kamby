@@ -1307,5 +1307,22 @@
     "calendar": "손익 캘린더",
     "winDays": "수익 {n}일",
     "lossDays": "손실 {n}일"
+  },
+  "track": {
+    "tab": "Track",
+    "whales": "고래",
+    "following": "팔로잉",
+    "live": "실시간",
+    "connecting": "연결 중…",
+    "min": "최소",
+    "bought": "매수",
+    "sold": "매도",
+    "someone": "누군가",
+    "emptyWhales": "최근 몇 분간 큰 거래가 없어요 — 생기면 바로 여기 보여요.",
+    "emptyFollowing": "팔로우한 사람이 아직 거래하지 않았어요. 톱 트레이더를 팔로우하면 여기서 볼 수 있어요.",
+    "signInFollowing": "로그인하면 팔로우한 사람의 거래를 볼 수 있어요.",
+    "signIn": "로그인",
+    "findTraders": "트레이더 찾기",
+    "failed": "거래를 불러오지 못했어요 — 잠시 후 다시 시도하세요."
   }
 }
