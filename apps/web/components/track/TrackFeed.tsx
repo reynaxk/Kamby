@@ -9,7 +9,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { badgeChainFor, ChainBadge } from '@/components/market/ChainBadge';
 import { DmAvatar } from '@/components/dm/DmAvatar';
-import { fetchLatestActivity, fetchLatestFollowingActivity, subscribeToActivityStream, type RealtimeStatus } from '@/lib/social-client';
+import { followTrader, unfollowTrader, fetchLatestActivity, fetchLatestFollowingActivity, subscribeToActivityStream, type RealtimeStatus } from '@/lib/social-client';
 import { marketHref } from '@/lib/solana-links';
 import { cashtag, formatCompactUsd, formatRelativeTime, truncateAddress } from '@/lib/format';
 
@@ -43,6 +43,29 @@ export function TrackFeed() {
   const [status, setStatus] = useState<RealtimeStatus>('connecting');
   const [, setTick] = useState(0);
   const loading = useRef(false);
+  // Traders followed from this screen (the feed carries no follow state; Following-tab rows are followed by definition).
+  const [followed, setFollowed] = useState<Set<string>>(() => new Set());
+
+  const toggleFollow = useCallback(
+    async (address: string) => {
+      if (!authenticated) return login();
+      const next = !followed.has(address);
+      const apply = (on: boolean) =>
+        setFollowed((prev) => {
+          const s = new Set(prev);
+          if (on) s.add(address);
+          else s.delete(address);
+          return s;
+        });
+      apply(next);
+      try {
+        await (next ? followTrader(address) : unfollowTrader(address));
+      } catch {
+        apply(!next); // the server never confirmed it
+      }
+    },
+    [authenticated, login, followed],
+  );
 
   const load = useCallback(async () => {
     if (loading.current) return;
@@ -167,7 +190,12 @@ export function TrackFeed() {
       ) : (
         <ul className="mt-2 divide-y divide-white/[0.05]">
           {rows.map((a) => (
-            <TrackRow key={a.id} activity={a} />
+            <TrackRow
+              key={a.id}
+              activity={a}
+              followed={tab === 'following' || (!!a.trader.address && followed.has(a.trader.address))}
+              onFollow={tab === 'whales' && a.trader.address ? () => void toggleFollow(a.trader.address!) : undefined}
+            />
           ))}
         </ul>
       )}
@@ -175,7 +203,7 @@ export function TrackFeed() {
   );
 }
 
-function TrackRow({ activity: a }: { activity: SocialActivity }) {
+function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivity; followed: boolean; onFollow?: () => void }) {
   const t = useTranslations('track');
   const buy = a.action === 'BUY';
   const who = a.trader.displayName ? `@${a.trader.displayName}` : a.trader.address ? truncateAddress(a.trader.address) : t('someone');
@@ -187,9 +215,26 @@ function TrackRow({ activity: a }: { activity: SocialActivity }) {
   return (
     <li className="flex items-center gap-3 py-3">
       {a.trader.address ? (
-        <Link href={`/trader/${a.trader.address}`} className="shrink-0" aria-label={who}>
-          <DmAvatar name={a.trader.displayName ?? a.trader.address} src={a.trader.avatarUrl} className="h-10 w-10 text-sm" />
-        </Link>
+        <span className="relative shrink-0">
+          <Link href={`/trader/${a.trader.address}`} aria-label={who}>
+            <DmAvatar name={a.trader.displayName ?? a.trader.address} src={a.trader.avatarUrl} className="h-10 w-10 text-sm" />
+          </Link>
+          {/* One tap to follow the whale that just moved — like a story avatar's "+". */}
+          {onFollow && (
+            <button
+              type="button"
+              onClick={onFollow}
+              aria-pressed={followed}
+              aria-label={followed ? t('unfollow') : t('follow')}
+              className={cn(
+                'absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-bg text-[0.7rem] font-black leading-none',
+                followed ? 'bg-up text-black' : 'bg-accent text-black',
+              )}
+            >
+              {followed ? '✓' : '+'}
+            </button>
+          )}
+        </span>
       ) : (
         <DmAvatar name={who} src={null} className="h-10 w-10 shrink-0 text-sm" />
       )}

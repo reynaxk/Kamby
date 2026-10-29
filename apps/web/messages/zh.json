@@ -1323,6 +1323,8 @@
     "signInFollowing": "登录后可查看你关注的人的交易。",
     "signIn": "登录",
     "findTraders": "寻找交易者",
-    "failed": "交易加载失败 — 请稍后再试。"
+    "failed": "交易加载失败 — 请稍后再试。",
+    "follow": "关注",
+    "unfollow": "取消关注"
   }
 }

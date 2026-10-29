@@ -1323,6 +1323,8 @@
     "signInFollowing": "Entre para ver os trades de quem você segue.",
     "signIn": "Entrar",
     "findTraders": "Encontrar traders",
-    "failed": "Não foi possível carregar os trades — tente de novo em instantes."
+    "failed": "Não foi possível carregar os trades — tente de novo em instantes.",
+    "follow": "Seguir",
+    "unfollow": "Deixar de seguir"
   }
 }

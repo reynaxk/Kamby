@@ -1323,6 +1323,8 @@
     "signInFollowing": "Đăng nhập để xem giao dịch của người bạn theo dõi.",
     "signIn": "Đăng nhập",
     "findTraders": "Tìm trader",
-    "failed": "Không tải được giao dịch — thử lại sau giây lát."
+    "failed": "Không tải được giao dịch — thử lại sau giây lát.",
+    "follow": "Theo dõi",
+    "unfollow": "Bỏ theo dõi"
   }
 }

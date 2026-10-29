@@ -1323,6 +1323,8 @@
     "signInFollowing": "Takip ettiklerinin işlemlerini görmek için giriş yap.",
     "signIn": "Giriş yap",
     "findTraders": "Trader bul",
-    "failed": "İşlemler yüklenemedi — birazdan tekrar dene."
+    "failed": "İşlemler yüklenemedi — birazdan tekrar dene.",
+    "follow": "Takip et",
+    "unfollow": "Takibi bırak"
   }
 }

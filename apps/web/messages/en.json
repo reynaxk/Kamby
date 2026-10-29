@@ -1323,6 +1323,8 @@
     "signInFollowing": "Sign in to see the trades of people you follow.",
     "signIn": "Sign in",
     "findTraders": "Find traders",
-    "failed": "Couldn’t load trades — try again in a moment."
+    "failed": "Couldn’t load trades — try again in a moment.",
+    "follow": "Follow",
+    "unfollow": "Unfollow"
   }
 }

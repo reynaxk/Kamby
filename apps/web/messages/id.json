@@ -1323,6 +1323,8 @@
     "signInFollowing": "Masuk untuk melihat trade orang yang kamu ikuti.",
     "signIn": "Masuk",
     "findTraders": "Cari trader",
-    "failed": "Gagal memuat trade — coba lagi sebentar."
+    "failed": "Gagal memuat trade — coba lagi sebentar.",
+    "follow": "Ikuti",
+    "unfollow": "Berhenti ikuti"
   }
 }
