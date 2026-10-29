@@ -195,7 +195,7 @@ export function TradePanel({
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   // Opened from a list row's ⚡: starts on that amount (2026-10-29).
-  const [amount, setAmount] = useState(() => (initialSide === 'BUY' && typeof window !== 'undefined' ? takeQuickPrefill(tokenAddress) : ''));
+  const [amount, setAmount] = useState(() => (sheet && initialSide === 'BUY' && typeof window !== 'undefined' ? takeQuickPrefill(tokenAddress) : ''));
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
   const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));
