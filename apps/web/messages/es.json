@@ -1344,7 +1344,6 @@
     "skip": "Saltar",
     "back": "Atrás",
     "next": "Siguiente",
-    "done": "Entendido",
     "s1Title": "⚡ Compra rápida en todas partes",
     "s1Body": "Cada moneda tiene un botón ⚡. Las de Solana se compran con un toque; las demás redes abren directo el teclado de compra.",
     "s2Title": "Ballenas en vivo",
@@ -1352,6 +1351,15 @@
     "s3Title": "Tu historial",
     "s3Body": "Tasa de acierto, mejor operación y un calendario de PnL — en tu perfil y en la página de cada trader.",
     "s4Title": "Chats y comunidades",
-    "s4Body": "Escribe a cualquiera por @nombre, crea un grupo o una comunidad — todo en una pantalla limpia."
+    "s4Body": "Escribe a cualquiera por @nombre, crea un grupo o una comunidad — todo en una pantalla limpia.",
+    "introTitle": "Kamby ahora es mejor",
+    "introBody": "Cuatro novedades que hacen el trading más rápido — 30 segundos, toca para avanzar.",
+    "start": "A ver",
+    "cta": "A tradear",
+    "keysHint": "Tip: ← → para moverte, Esc para cerrar",
+    "chip1": "Compra rápida",
+    "chip2": "Ballenas en vivo",
+    "chip3": "Historial",
+    "chip4": "Chats"
   }
 }

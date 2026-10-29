@@ -1344,7 +1344,6 @@
     "skip": "Skip",
     "back": "Back",
     "next": "Next",
-    "done": "Got it",
     "s1Title": "⚡ Quick buy everywhere",
     "s1Body": "Every coin has a ⚡ button. Solana coins buy in one tap; other chains open straight on the buy keypad.",
     "s2Title": "Whales, live",
@@ -1352,6 +1351,15 @@
     "s3Title": "Your track record",
     "s3Body": "Win rate, best trade and a P&L calendar — on your profile and on every trader's page.",
     "s4Title": "Chats & communities",
-    "s4Body": "Message anyone by @name, start a group or a community — all in one clean screen."
+    "s4Body": "Message anyone by @name, start a group or a community — all in one clean screen.",
+    "introTitle": "Kamby just got better",
+    "introBody": "Four new things that make trading faster — 30 seconds, tap to go.",
+    "start": "Let's see",
+    "cta": "Let's trade",
+    "keysHint": "Tip: ← → to move, Esc to close",
+    "chip1": "Quick buy",
+    "chip2": "Whales live",
+    "chip3": "Track record",
+    "chip4": "Chats"
   }
 }

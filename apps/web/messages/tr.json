@@ -1344,7 +1344,6 @@
     "skip": "Geç",
     "back": "Geri",
     "next": "İleri",
-    "done": "Tamam",
     "s1Title": "⚡ Her yerde hızlı alım",
     "s1Body": "Her coinde ⚡ butonu var. Solana coinleri tek dokunuşla alınır; diğer ağlar doğrudan alım tuş takımını açar.",
     "s2Title": "Balinalar canlı",
@@ -1352,6 +1351,15 @@
     "s3Title": "Geçmişin",
     "s3Body": "Kazanma oranı, en iyi işlem ve K/Z takvimi — profilinde ve her trader'ın sayfasında.",
     "s4Title": "Sohbetler ve topluluklar",
-    "s4Body": "Herkese @isimle yaz, grup ya da topluluk kur — hepsi tek, sade bir ekranda."
+    "s4Body": "Herkese @isimle yaz, grup ya da topluluk kur — hepsi tek, sade bir ekranda.",
+    "introTitle": "Kamby daha da iyi",
+    "introBody": "İşlemi hızlandıran dört yenilik — 30 saniye, ilerlemek için dokun.",
+    "start": "Göster",
+    "cta": "Hadi işlem yapalım",
+    "keysHint": "İpucu: ← → geçiş, Esc kapat",
+    "chip1": "Hızlı alım",
+    "chip2": "Canlı balinalar",
+    "chip3": "Geçmiş",
+    "chip4": "Sohbet"
   }
 }

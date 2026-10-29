@@ -1344,7 +1344,6 @@
     "skip": "Passer",
     "back": "Retour",
     "next": "Suivant",
-    "done": "Compris",
     "s1Title": "⚡ Achat rapide partout",
     "s1Body": "Chaque coin a un bouton ⚡. Les coins Solana s'achètent en un tap ; les autres chaînes ouvrent directement le pavé d'achat.",
     "s2Title": "Baleines en direct",
@@ -1352,6 +1351,15 @@
     "s3Title": "Ton bilan",
     "s3Body": "Taux de réussite, meilleur trade et calendrier PnL — sur ton profil et sur la page de chaque trader.",
     "s4Title": "Chats et communautés",
-    "s4Body": "Écris à n'importe qui par @nom, crée un groupe ou une communauté — tout sur un seul écran épuré."
+    "s4Body": "Écris à n'importe qui par @nom, crée un groupe ou une communauté — tout sur un seul écran épuré.",
+    "introTitle": "Kamby passe au niveau supérieur",
+    "introBody": "Quatre nouveautés pour trader plus vite — 30 secondes, touche pour avancer.",
+    "start": "Voir",
+    "cta": "C'est parti",
+    "keysHint": "Astuce : ← → pour naviguer, Échap pour fermer",
+    "chip1": "Achat rapide",
+    "chip2": "Baleines live",
+    "chip3": "Bilan",
+    "chip4": "Chats"
   }
 }

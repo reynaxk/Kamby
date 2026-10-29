@@ -1344,7 +1344,6 @@
     "skip": "Bỏ qua",
     "back": "Quay lại",
     "next": "Tiếp",
-    "done": "Đã hiểu",
     "s1Title": "⚡ Mua nhanh mọi nơi",
     "s1Body": "Mỗi coin đều có nút ⚡. Coin Solana mua chỉ một chạm; chuỗi khác mở thẳng bàn phím mua.",
     "s2Title": "Cá voi trực tiếp",
@@ -1352,6 +1351,15 @@
     "s3Title": "Thành tích của bạn",
     "s3Body": "Tỷ lệ thắng, lệnh tốt nhất và lịch PnL — trên hồ sơ của bạn và trang của mọi trader.",
     "s4Title": "Trò chuyện & cộng đồng",
-    "s4Body": "Nhắn tin cho bất kỳ ai bằng @tên, tạo nhóm hoặc cộng đồng — tất cả trên một màn hình gọn gàng."
+    "s4Body": "Nhắn tin cho bất kỳ ai bằng @tên, tạo nhóm hoặc cộng đồng — tất cả trên một màn hình gọn gàng.",
+    "introTitle": "Kamby vừa tốt hơn",
+    "introBody": "Bốn điều mới giúp giao dịch nhanh hơn — 30 giây, chạm để tiếp.",
+    "start": "Xem nào",
+    "cta": "Giao dịch thôi",
+    "keysHint": "Mẹo: ← → để chuyển, Esc để đóng",
+    "chip1": "Mua nhanh",
+    "chip2": "Cá voi trực tiếp",
+    "chip3": "Thành tích",
+    "chip4": "Trò chuyện"
   }
 }

@@ -1344,7 +1344,6 @@
     "skip": "Lewati",
     "back": "Kembali",
     "next": "Lanjut",
-    "done": "Oke",
     "s1Title": "⚡ Beli cepat di mana saja",
     "s1Body": "Setiap koin punya tombol ⚡. Koin Solana dibeli sekali ketuk; chain lain langsung membuka keypad beli.",
     "s2Title": "Whale, live",
@@ -1352,6 +1351,15 @@
     "s3Title": "Rekam jejakmu",
     "s3Body": "Win rate, trade terbaik, dan kalender PnL — di profilmu dan di halaman setiap trader.",
     "s4Title": "Chat & komunitas",
-    "s4Body": "Kirim pesan ke siapa pun lewat @nama, buat grup atau komunitas — semua di satu layar rapi."
+    "s4Body": "Kirim pesan ke siapa pun lewat @nama, buat grup atau komunitas — semua di satu layar rapi.",
+    "introTitle": "Kamby makin keren",
+    "introBody": "Empat hal baru yang bikin trading lebih cepat — 30 detik, ketuk untuk lanjut.",
+    "start": "Lihat",
+    "cta": "Ayo trading",
+    "keysHint": "Tip: ← → untuk pindah, Esc untuk tutup",
+    "chip1": "Beli cepat",
+    "chip2": "Whale live",
+    "chip3": "Rekam jejak",
+    "chip4": "Chat"
   }
 }
