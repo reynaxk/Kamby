@@ -1303,6 +1303,9 @@
     "holdings": "Posições",
     "pnl": "PnL",
     "settings": "Ajustes",
-    "noHoldings": "Ainda sem moedas — compre uma e ela aparece aqui."
+    "noHoldings": "Ainda sem moedas — compre uma e ela aparece aqui.",
+    "calendar": "Calendário de PnL",
+    "winDays": "{n} dias verdes",
+    "lossDays": "{n} dias vermelhos"
   }
 }

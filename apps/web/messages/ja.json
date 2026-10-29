@@ -1303,6 +1303,9 @@
     "holdings": "保有",
     "pnl": "損益",
     "settings": "設定",
-    "noHoldings": "まだコインがありません — 買うとここに表示されます。"
+    "noHoldings": "まだコインがありません — 買うとここに表示されます。",
+    "calendar": "損益カレンダー",
+    "winDays": "プラス {n} 日",
+    "lossDays": "マイナス {n} 日"
   }
 }

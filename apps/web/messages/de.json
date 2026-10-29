@@ -1303,6 +1303,9 @@
     "holdings": "Bestände",
     "pnl": "PnL",
     "settings": "Einstellungen",
-    "noHoldings": "Noch keine Coins — kauf einen, dann erscheint er hier."
+    "noHoldings": "Noch keine Coins — kauf einen, dann erscheint er hier.",
+    "calendar": "PnL-Kalender",
+    "winDays": "{n} grüne Tage",
+    "lossDays": "{n} rote Tage"
   }
 }

@@ -1303,6 +1303,9 @@
     "holdings": "Nắm giữ",
     "pnl": "PnL",
     "settings": "Cài đặt",
-    "noHoldings": "Chưa có coin — mua một coin và nó sẽ hiện ở đây."
+    "noHoldings": "Chưa có coin — mua một coin và nó sẽ hiện ở đây.",
+    "calendar": "Lịch PnL",
+    "winDays": "{n} ngày xanh",
+    "lossDays": "{n} ngày đỏ"
   }
 }

@@ -1303,6 +1303,9 @@
     "holdings": "보유",
     "pnl": "손익",
     "settings": "설정",
-    "noHoldings": "아직 코인이 없어요 — 사면 여기에 보여요."
+    "noHoldings": "아직 코인이 없어요 — 사면 여기에 보여요.",
+    "calendar": "손익 캘린더",
+    "winDays": "수익 {n}일",
+    "lossDays": "손실 {n}일"
   }
 }

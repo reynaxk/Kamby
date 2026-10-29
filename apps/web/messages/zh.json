@@ -1303,6 +1303,9 @@
     "holdings": "持仓",
     "pnl": "盈亏",
     "settings": "设置",
-    "noHoldings": "还没有币 — 买入后会显示在这里。"
+    "noHoldings": "还没有币 — 买入后会显示在这里。",
+    "calendar": "盈亏日历",
+    "winDays": "盈利 {n} 天",
+    "lossDays": "亏损 {n} 天"
   }
 }

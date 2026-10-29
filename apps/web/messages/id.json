@@ -1303,6 +1303,9 @@
     "holdings": "Aset",
     "pnl": "PnL",
     "settings": "Pengaturan",
-    "noHoldings": "Belum ada koin — beli satu dan akan muncul di sini."
+    "noHoldings": "Belum ada koin — beli satu dan akan muncul di sini.",
+    "calendar": "Kalender PnL",
+    "winDays": "{n} hari hijau",
+    "lossDays": "{n} hari merah"
   }
 }

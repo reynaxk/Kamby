@@ -1303,6 +1303,9 @@
     "holdings": "Positions",
     "pnl": "PnL",
     "settings": "Réglages",
-    "noHoldings": "Pas encore de coins — achètes-en un et il apparaîtra ici."
+    "noHoldings": "Pas encore de coins — achètes-en un et il apparaîtra ici.",
+    "calendar": "Calendrier PnL",
+    "winDays": "{n} jours verts",
+    "lossDays": "{n} jours rouges"
   }
 }

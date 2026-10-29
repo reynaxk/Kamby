@@ -1303,6 +1303,9 @@
     "holdings": "Varlıklar",
     "pnl": "PnL",
     "settings": "Ayarlar",
-    "noHoldings": "Henüz coin yok — bir tane al, burada görünür."
+    "noHoldings": "Henüz coin yok — bir tane al, burada görünür.",
+    "calendar": "PnL takvimi",
+    "winDays": "{n} yeşil gün",
+    "lossDays": "{n} kırmızı gün"
   }
 }

@@ -21,6 +21,7 @@ import { FundButton } from '@/components/wallet/FundButton';
 import { SendButton } from '@/components/wallet/SendButton';
 import { HomeHoldings } from '@/components/home/HomeHoldings';
 import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
+import { PnlCalendar } from './PnlCalendar';
 import { formatSignedCompactUsd } from '@/lib/format';
 import { useMyPositions } from '@/lib/my-positions';
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
@@ -177,7 +178,8 @@ export function AppProfileMenu() {
         </div>
       )}
       {tab === 'pnl' && (
-        <div className="pt-4">
+        <div className="space-y-5 pt-4">
+          <PnlCalendar />
           <PnlHistoryChart />
         </div>
       )}

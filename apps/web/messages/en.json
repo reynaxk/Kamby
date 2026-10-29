@@ -1303,6 +1303,9 @@
     "holdings": "Holdings",
     "pnl": "PnL",
     "settings": "Settings",
-    "noHoldings": "No coins yet — buy one and it shows up here."
+    "noHoldings": "No coins yet — buy one and it shows up here.",
+    "calendar": "P&L calendar",
+    "winDays": "{n} green days",
+    "lossDays": "{n} red days"
   }
 }
