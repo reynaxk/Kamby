@@ -274,7 +274,11 @@ function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivit
       {a.trader.address ? (
         <span className="relative shrink-0">
           <Link href={`/trader/${a.trader.address}`} aria-label={who}>
-            <DmAvatar name={a.trader.displayName ?? a.trader.address} src={a.trader.avatarUrl} className="h-10 w-10 text-sm" />
+            {a.trader.avatarUrl || a.trader.displayName ? (
+              <DmAvatar name={a.trader.displayName ?? a.trader.address} src={a.trader.avatarUrl} className="h-10 w-10 text-sm" />
+            ) : (
+              <SizeMark usd={a.amountUsd} />
+            )}
           </Link>
           {/* One tap to follow the whale that just moved — like a story avatar's "+". */}
           {onFollow && (
@@ -293,7 +297,7 @@ function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivit
           )}
         </span>
       ) : (
-        <DmAvatar name={who} src={null} className="h-10 w-10 shrink-0 text-sm" />
+        <SizeMark usd={a.amountUsd} />
       )}
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 truncate font-body text-[0.8rem] text-ink-400">
@@ -338,4 +342,11 @@ function CoinMark({ activity: a, chain }: { activity: SocialActivity; chain: Ret
       {chain && <ChainBadge chain={chain} className="!h-2.5 !w-2.5" />}
     </span>
   );
+}
+
+/** A wallet with no name or picture (2026-10-29: every one showed "0" — addresses start 0x): its
+ *  size instead, Kamby's sea — 🐋 $10K+, 🦈 $1K+, 🐟 under. */
+function SizeMark({ usd }: { usd: number }) {
+  const [icon, tone] = usd >= 10_000 ? ['🐋', 'bg-[#38BDF8]/15'] : usd >= 1_000 ? ['🦈', 'bg-white/[0.07]'] : ['🐟', 'bg-white/[0.05]'];
+  return <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg', tone)}>{icon}</span>;
 }
