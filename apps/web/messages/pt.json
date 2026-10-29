@@ -1305,7 +1305,7 @@
     "settings": "Ajustes",
     "noHoldings": "Ainda sem moedas — compre uma e ela aparece aqui.",
     "calendar": "Calendário de PnL",
-    "winDays": "{n} dias verdes",
-    "lossDays": "{n} dias vermelhos"
+    "winDays": "{n, plural, one {# dia verde} other {# dias verdes}}",
+    "lossDays": "{n, plural, one {# dia vermelho} other {# dias vermelhos}}"
   }
 }

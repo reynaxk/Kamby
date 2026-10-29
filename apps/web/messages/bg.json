@@ -1305,7 +1305,7 @@
     "settings": "Настройки",
     "noHoldings": "Още нямаш монети — купи и ще се появят тук.",
     "calendar": "Календар на PnL",
-    "winDays": "{n} зелени дни",
-    "lossDays": "{n} червени дни"
+    "winDays": "{n, plural, one {# зелен ден} other {# зелени дни}}",
+    "lossDays": "{n, plural, one {# червен ден} other {# червени дни}}"
   }
 }

@@ -1305,7 +1305,7 @@
     "settings": "Réglages",
     "noHoldings": "Pas encore de coins — achètes-en un et il apparaîtra ici.",
     "calendar": "Calendrier PnL",
-    "winDays": "{n} jours verts",
-    "lossDays": "{n} jours rouges"
+    "winDays": "{n, plural, one {# jour vert} other {# jours verts}}",
+    "lossDays": "{n, plural, one {# jour rouge} other {# jours rouges}}"
   }
 }

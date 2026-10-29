@@ -1305,7 +1305,7 @@
     "settings": "Einstellungen",
     "noHoldings": "Noch keine Coins — kauf einen, dann erscheint er hier.",
     "calendar": "PnL-Kalender",
-    "winDays": "{n} grüne Tage",
-    "lossDays": "{n} rote Tage"
+    "winDays": "{n, plural, one {# grüner Tag} other {# grüne Tage}}",
+    "lossDays": "{n, plural, one {# roter Tag} other {# rote Tage}}"
   }
 }
