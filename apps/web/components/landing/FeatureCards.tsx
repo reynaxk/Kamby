@@ -2,6 +2,7 @@
 
 import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
 import type { PointerEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
 
 export type LandingIcon = 'gas' | 'shield' | 'dollar' | 'launch' | 'chat' | 'card';
@@ -103,7 +104,7 @@ function Tile({ f, index }: { f: LandingFeature; index: number }) {
       style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className={`kamby-bento group relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_60%)] p-6 transition-[border-color,box-shadow] duration-300 hover:border-emerald-500/60 hover:shadow-[0_0_60px_-18px_rgba(0,255,135,0.45)] ${SPAN[index] ?? ''} ${big ? 'flex flex-col justify-between lg:p-9' : ''}`}
+      className={`kamby-bento group relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_60%)] p-6 transition-[border-color,box-shadow] duration-300 hover:border-emerald-500/60 ${SPAN[index] ?? ''} ${big ? 'flex flex-col justify-between lg:p-9' : ''}`}
     >
       <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: light }} />
       {big && (
@@ -120,6 +121,7 @@ function Tile({ f, index }: { f: LandingFeature; index: number }) {
       >
         <Icon name={f.icon} size={big ? 28 : 22} />
       </span>
+      {big && <GasReceipt />}
       <div className="relative">
         <h3 className={`font-display font-bold tracking-tight text-white ${big ? 'mt-10 text-3xl sm:text-4xl' : 'mt-5 text-[1.05rem]'}`}>{f.title}</h3>
         <p className={`mt-2 font-body leading-[1.65] text-[#7C8798] ${big ? 'max-w-md text-base' : 'text-[0.86rem]'}`}>{f.body}</p>
@@ -139,6 +141,31 @@ function Tile({ f, index }: { f: LandingFeature; index: number }) {
         )}
       </div>
     </motion.div>
+  );
+}
+
+/** The big tile's picture (2026-10-29 — it was an empty box): a trade's receipt where the network
+ *  gas is struck through and Kamby pays it. */
+function GasReceipt() {
+  const t = useTranslations('landing');
+  return (
+    <div aria-hidden className="relative mt-8 w-full max-w-sm rounded-2xl border border-white/[0.08] bg-black/40 p-4 font-body text-sm">
+      <div className="flex justify-between py-1.5 text-white/60">
+        <span>{t('rcSwap')}</span>
+        <span className="font-display font-bold tabular-nums text-white">$50.00 USDC</span>
+      </div>
+      <div className="flex justify-between border-t border-dashed border-white/10 py-1.5 text-white/60">
+        <span>{t('rcGas')}</span>
+        <span className="tabular-nums">
+          <span className="mr-2 text-white/30 line-through">$0.42</span>
+          <span className="font-display font-black text-[#00FF87]">$0.00</span>
+        </span>
+      </div>
+      <div className="mt-1 flex items-center gap-2 rounded-xl bg-[#00FF87]/10 px-3 py-2 font-display text-xs font-bold text-[#00FF87]">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#00FF87] text-[0.6rem] text-black">✓</span>
+        {t('rcPaid')}
+      </div>
+    </div>
   );
 }
 

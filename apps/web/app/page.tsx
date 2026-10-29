@@ -4,7 +4,9 @@ import { KambyLogo } from '@/components/layout/KambyLogo';
 import { FeatureCards, type LandingFeature } from '@/components/landing/FeatureCards';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { ChatShowcase } from '@/components/landing/ChatShowcase';
-import { TerminalMockup } from '@/components/landing/TerminalMockup';
+import { HeroPhone } from '@/components/landing/HeroPhone';
+import { LandingTour } from '@/components/landing/LandingTour';
+import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
 import { getTranslations } from 'next-intl/server';
 
@@ -58,7 +60,7 @@ export default async function LandingPage() {
           </nav>
         </header>
 
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-32 lg:pt-16">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-24 lg:pt-12">
           <div className="text-center lg:text-left">
             <p className="kamby-gate-in inline-flex items-center gap-2 rounded-full border border-[#00FF87]/20 bg-[#00FF87]/[0.06] px-3 py-1 font-mono text-[0.68rem] lowercase tracking-[0.18em] text-[#5BE3A0]">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#00FF87]" />
@@ -72,7 +74,7 @@ export default async function LandingPage() {
               <span className="font-semibold text-white">{t('tagline')}</span> — {t('heroSub')}
             </p>
             <div className="kamby-gate-in kamby-gate-in-4 mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <LandingCta label={t('heroCta')} variant="neon" arrow className="kamby-cta-pulse w-full px-9 py-4 text-base sm:w-auto" />
+              <LandingCta label={t('heroCta')} variant="neon" arrow className="w-full px-9 py-4 text-base sm:w-auto" />
               <Link
                 href="/leaderboard"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-center font-display text-sm font-bold text-white/80 transition-colors hover:border-white/25 hover:text-white sm:w-auto"
@@ -82,12 +84,27 @@ export default async function LandingPage() {
             </div>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <TerminalMockup />
+            <HeroPhone />
           </div>
         </div>
       </section>
 
       <main>
+        {/* 2026-10-29 (owner: "more introducing and explaining"): the chains, how it works in three
+            steps, the live tour, and what happens inside when you tap Buy — before the features. */}
+        <section className="-mt-8 pb-8">
+          <ChainStrip />
+        </section>
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <HowItWorks />
+        </section>
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <LandingTour />
+        </section>
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <UnderTheHood />
+        </section>
+
         {/* What Kamby does — bento */}
         <section className="mx-auto max-w-6xl px-5 py-20">
           <FeatureCards features={features} />
@@ -110,6 +127,10 @@ export default async function LandingPage() {
           />
         </section>
 
+        <section className="mx-auto max-w-3xl px-5 py-20">
+          <LandingFaq />
+        </section>
+
         {/* Bottom action box */}
         <section className="mx-auto max-w-3xl px-5 pb-32 pt-8">
           <div className="relative flex flex-col items-center overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01)_60%)] px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:py-20">
@@ -118,7 +139,7 @@ export default async function LandingPage() {
             <h2 className="relative mt-5 bg-[linear-gradient(100deg,#FFFFFF_0%,#B8FFE0_50%,#00FF87_100%)] bg-clip-text font-display text-[clamp(2.4rem,8vw,4.5rem)] font-black leading-none tracking-tight text-transparent">
               {t('tagline')}
             </h2>
-            <LandingCta label={t('goTrade')} variant="neon" arrow className="kamby-cta-pulse relative mt-12 px-10 py-4 text-base" />
+            <LandingCta label={t('goTrade')} variant="neon" arrow className="relative mt-12 px-10 py-4 text-base" />
           </div>
         </section>
       </main>
