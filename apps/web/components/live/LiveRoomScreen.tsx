@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
-import type { LiveChatLine, LiveRoom } from '@kamby/domain';
+import { LIVE_LIMITS, type LiveChatLine, type LiveRoom } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, reportLive, sayInLive } from '@/lib/live-engine';
+import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, reportLive, sayInLive, silenceInLive } from '@/lib/live-engine';
 import { slugForIdentifier } from '@kamby/domain';
 import { TradeCard } from '@/components/social/TradeCard';
 import { PositionPicker } from '@/components/social/PositionPicker';
@@ -18,15 +18,16 @@ import { marketHref } from '@/lib/solana-links';
 import { cashtag } from '@/lib/format';
 import { DmAvatar } from '@/components/dm/DmAvatar';
 import { takePendingHost } from './pending-host';
+import { compactUsd, LiveDuelSheet, LivePositions, LiveTipSheet, useHostPerps } from './LiveWidgets';
 
-function Media({ track, kind }: { track: MediaStreamTrack; kind: 'audio' | 'video' }) {
+function Media({ track, kind, className }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string }) {
   const ref = useRef<HTMLVideoElement & HTMLAudioElement>(null);
   useEffect(() => {
     if (!ref.current) return;
     ref.current.srcObject = new MediaStream([track]);
     void ref.current.play().catch(() => undefined);
   }, [track]);
-  return kind === 'audio' ? <audio ref={ref} autoPlay /> : <video ref={ref} autoPlay playsInline muted className="h-full w-full object-contain" />;
+  return kind === 'audio' ? <audio ref={ref} autoPlay /> : <video ref={ref} autoPlay playsInline muted className={className ?? 'h-full w-full object-contain'} />;
 }
 
 function useElapsed(startIso: string | undefined): string {
@@ -46,6 +47,11 @@ function useElapsed(startIso: string | undefined): string {
  * A live room (2026-10-17): the host's shared screen on stage (or their avatar with sound rings
  * for a voice live), a LIVE pill with the viewer count, Twitch-style chat over the bottom, and
  * for the host: mic, share screen, end. Viewers can Report (three reports end the room).
+ *
+ * 2026-10-30 (live trading streams): the host's camera (over the screen, or the whole stage), the
+ * host's open perps under the stage, ⚔️ Duel and 💸 Tip for viewers, trade and tip lines in chat,
+ * and the host can tap a line to remove it or silence its author. The chat keeps only the last
+ * LIVE_LIMITS.chatKeep lines in the page, however long the stream runs.
  */
 export function LiveRoomScreen({ id }: { id: string }) {
   const t = useTranslations('live');
@@ -62,6 +68,8 @@ export function LiveRoomScreen({ id }: { id: string }) {
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
+  const [sheet, setSheet] = useState<'duel' | 'tip' | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const elapsed = useElapsed(room?.startedAt);
 
@@ -83,7 +91,11 @@ export function LiveRoomScreen({ id }: { id: string }) {
         },
         chat: (data) => {
           const e = JSON.parse(data) as { line: LiveChatLine };
-          setLines((l) => (l.some((x) => x.id === e.line.id) ? l : [...l, e.line].slice(-120)));
+          setLines((l) => (l.some((x) => x.id === e.line.id) ? l : [...l, e.line].slice(-LIVE_LIMITS.chatKeep)));
+        },
+        removed: (data) => {
+          const e = JSON.parse(data) as { lineId: string };
+          setLines((l) => l.filter((x) => x.id !== e.lineId));
         },
         ended: () => setEnded(true),
       },
@@ -170,7 +182,34 @@ export function LiveRoomScreen({ id }: { id: string }) {
     router.push('/home');
   }
 
+  // The host's perps, straight from Hyperliquid; a new position becomes a line in this viewer's chat.
+  const perps = useHostPerps(room?.host.evmAddress, (p) => {
+    if (!room) return;
+    const line: LiveChatLine = {
+      id: `perp:${p.coin}:${Date.now()}`,
+      userId: room.host.userId,
+      username: room.host.username,
+      avatarUrl: room.host.avatarUrl,
+      body: t('opened', { amount: compactUsd(p.positionValueUsd), side: p.size > 0 ? t('long') : t('short'), coin: p.coin, leverage: p.leverage }),
+      at: new Date().toISOString(),
+      host: true,
+      kind: 'trade',
+    };
+    setLines((l) => [...l, line].slice(-LIVE_LIMITS.chatKeep));
+  });
+
+  async function moderate(line: LiveChatLine, action: 'remove' | 'silence') {
+    setPicked(null);
+    try {
+      if (action === 'remove') await removeLiveLine(id, line.id);
+      else await silenceInLive(id, line.userId);
+    } catch (err) {
+      setError(friendlyError(err));
+    }
+  }
+
   const screen = host ? host.screenTrack() : (viewer?.track('screen') ?? null);
+  const camera = host ? host.cameraTrack() : (viewer?.track('camera') ?? null);
   const voice = viewer?.track('audio') ?? null;
   const coinHref = room?.coin ? marketHref(room.coin.chainIdentifier, room.coin.tokenAddress) : null;
 
@@ -220,7 +259,16 @@ export function LiveRoomScreen({ id }: { id: string }) {
       {/* Stage */}
       <div className="relative z-0 mx-3 min-h-0 flex-[1.15] overflow-hidden rounded-3xl border border-white/10 bg-black/60">
         {screen ? (
-          <Media track={screen} kind="video" />
+          <>
+            <Media track={screen} kind="video" />
+            {camera && (
+              <div className="absolute right-3 top-3 h-28 w-28 overflow-hidden rounded-2xl border border-white/15 bg-black md:h-40 md:w-40">
+                <Media track={camera} kind="video" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </>
+        ) : camera ? (
+          <Media track={camera} kind="video" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full flex-col items-center justify-center">
             <span className="relative flex items-center justify-center">
@@ -238,6 +286,25 @@ export function LiveRoomScreen({ id }: { id: string }) {
         )}
       </div>
 
+      {/* Under the stage: the host's open perps, and for viewers ⚔️ Duel / 💸 Tip */}
+      {room && (
+        <div className="relative z-10 mx-3 mt-2 flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <LivePositions positions={perps} />
+          </div>
+          {!isHost && authenticated && (
+            <>
+              <button type="button" onClick={() => setSheet('duel')} className="h-9 shrink-0 rounded-full bg-white/[0.08] px-3.5 font-display text-xs font-bold text-white">
+                ⚔️ {t('duel')}
+              </button>
+              <button type="button" onClick={() => setSheet('tip')} className="h-9 shrink-0 rounded-full bg-accent px-3.5 font-display text-xs font-black text-black">
+                💸 {t('tip')}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* The host's pinned trade — viewers can ⚡ Copy Snipe it */}
       {room?.trade && (
         <div className="kamby-pop relative z-10 mx-3 mt-2">
@@ -253,14 +320,42 @@ export function LiveRoomScreen({ id }: { id: string }) {
       {/* Chat */}
       <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)]">
         <div className="flex min-h-full flex-col justify-end gap-1 py-2">
-          {lines.map((l) => (
-            <p key={l.id} className="kamby-chat-in font-body text-[0.85rem] leading-snug text-white/90">
-              <span className={cn('mr-1.5 font-display font-bold', l.host ? 'text-[#FF8FA8]' : 'text-accent')}>
-                {l.host && '🎙️ '}@{l.username}
-              </span>
-              {l.body}
-            </p>
-          ))}
+          {lines.slice(-LIVE_LIMITS.chatKeep).map((l) =>
+            l.kind ? (
+              // Not typed by anyone: a trade (🔥) or a tip (💸), from Kamby itself.
+              <p
+                key={l.id}
+                className={cn(
+                  'kamby-chat-in self-start rounded-xl px-2.5 py-1 font-display text-[0.8rem] font-bold leading-snug',
+                  l.kind === 'tip' ? 'bg-[#FACC15]/15 text-[#FDE68A]' : 'bg-accent/10 text-accent',
+                )}
+              >
+                {l.kind === 'tip' ? '💸' : '🔥'} @{l.username} {l.kind === 'tip' && l.amountUsd ? t('tipped', { amount: `${l.amountUsd.toFixed(2)}` }) : l.body}
+              </p>
+            ) : (
+              <div key={l.id} className="kamby-chat-in">
+                <p
+                  onClick={isHost && !l.host ? () => setPicked((cur) => (cur === l.id ? null : l.id)) : undefined}
+                  className={cn('font-body text-[0.85rem] leading-snug text-white/90', isHost && !l.host && 'cursor-pointer')}
+                >
+                  <span className={cn('mr-1.5 font-display font-bold', l.host ? 'text-[#FF8FA8]' : 'text-accent')}>
+                    {l.host && '🎙️ '}@{l.username}
+                  </span>
+                  {l.body}
+                </p>
+                {picked === l.id && (
+                  <div className="mt-1 flex gap-1.5">
+                    <button type="button" onClick={() => void moderate(l, 'remove')} className="rounded-full bg-white/[0.1] px-3 py-1 font-display text-[0.7rem] font-bold text-white">
+                      {t('remove')}
+                    </button>
+                    <button type="button" onClick={() => void moderate(l, 'silence')} className="rounded-full bg-[#FF3B69]/20 px-3 py-1 font-display text-[0.7rem] font-bold text-[#FF8FA8]">
+                      {t('silence', { name: l.username })}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ),
+          )}
         </div>
       </div>
 
@@ -287,6 +382,11 @@ export function LiveRoomScreen({ id }: { id: string }) {
             <button type="button" onClick={() => void host.setMuted(!host.muted)} aria-label={host.muted ? t('unmute') : t('mute')} className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', host.muted ? 'bg-white text-black' : 'bg-white/[0.12] text-white')}>
               {host.muted ? '🔇' : '🎙️'}
             </button>
+            {host.canUseCamera && (
+              <button type="button" onClick={() => void host.setCamera(!host.cameraTrack()).catch((err: unknown) => setError(friendlyError(err)))} aria-label={t('camera')} className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', host.cameraTrack() ? 'bg-white text-black' : 'bg-white/[0.12] text-white')}>
+                📷
+              </button>
+            )}
             {host.canShareScreen && (
               <button type="button" onClick={() => void host.setScreen(!host.screenTrack()).catch((err: unknown) => setError(friendlyError(err)))} aria-label={t('share')} className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', host.screenTrack() ? 'bg-white text-black' : 'bg-white/[0.12] text-white')}>
                 🖥️
@@ -301,6 +401,12 @@ export function LiveRoomScreen({ id }: { id: string }) {
           </>
         )}
       </div>
+      {room && !isHost && (
+        <>
+          <LiveDuelSheet open={sheet === 'duel'} onClose={() => setSheet(null)} host={room.host} />
+          <LiveTipSheet open={sheet === 'tip'} onClose={() => setSheet(null)} roomId={id} host={room.host} />
+        </>
+      )}
       {isHost && (
         <PositionPicker
           open={picking}

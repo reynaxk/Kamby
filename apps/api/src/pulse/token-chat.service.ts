@@ -18,6 +18,7 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { getAddress } from 'viem';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { announceTradeInLive } from '../live/live-lines';
 import { LeaderboardService } from '../social/services/leaderboard.service';
 import { PositionService } from '../social/services/position.service';
 import { TRANSACTION_INCLUDE, toDto } from '../trading/transaction-dto';
@@ -297,6 +298,8 @@ export async function announceTradeInChat(
   redis: Redis,
   trade: { id: string; userId: string; chainIdentifier: string; tokenAddress: string; side: 'BUY' | 'SELL'; usd: number },
 ): Promise<void> {
+  // ...and in the live room the trader is in, if any (2026-10-30).
+  void announceTradeInLive(redis, trade);
   try {
     const tokenKey = chatTokenKey(trade.chainIdentifier, trade.tokenAddress);
     if (!tokenKey || !(trade.usd > 0)) return;

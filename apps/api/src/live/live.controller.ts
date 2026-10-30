@@ -1,12 +1,14 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Sse, UseGuards, type MessageEvent } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { LIVE_LIMITS, type LiveTipChain } from '@kamby/domain';
 import { filter, interval, map, merge, type Observable } from 'rxjs';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { RealtimeService } from '../realtime/realtime.service';
+import { LiveTipsService } from './live-tips.service';
 import { LiveService } from './live.service';
 
 class SdpDto {
@@ -49,8 +51,8 @@ class LocalTrackDto {
   @MaxLength(80)
   trackName!: string;
 
-  @IsIn(['audio', 'screen'])
-  kind!: 'audio' | 'screen';
+  @IsIn(['audio', 'screen', 'camera'])
+  kind!: 'audio' | 'screen' | 'camera';
 }
 
 class PublishDto {
@@ -101,6 +103,34 @@ class SayDto {
   body!: string;
 }
 
+class SilenceDto {
+  @IsUUID()
+  userId!: string;
+}
+
+class TipDto {
+  @IsIn(['solana', 'base', 'bnb', 'robinhood'])
+  chain!: LiveTipChain;
+
+  @IsNumber()
+  @Min(LIVE_LIMITS.tipMinUsd)
+  @Max(LIVE_LIMITS.tipMaxUsd)
+  amountUsd!: number;
+}
+
+class TipProofDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(20_000)
+  signedTransactionBase64?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(2)
+  @Matches(/^0x[0-9a-fA-F]{64}$/, { each: true })
+  txHashes?: string[];
+}
+
 class MuteDto {
   @IsBoolean()
   muted!: boolean;
@@ -113,6 +143,7 @@ export class LiveController {
   constructor(
     private readonly live: LiveService,
     private readonly realtime: RealtimeService,
+    private readonly tips: LiveTipsService,
   ) {}
 
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
@@ -246,6 +277,41 @@ export class LiveController {
   @Post(':id/chat')
   say(@Param('id', ParseUUIDPipe) id: string, @Body() body: SayDto, @CurrentUser() user: SessionUser) {
     return this.live.say(user.id, id, body.body);
+  }
+
+  /** Host: take a chat line down. */
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post(':id/chat/:lineId/remove')
+  removeLine(@Param('id', ParseUUIDPipe) id: string, @Param('lineId', ParseUUIDPipe) lineId: string, @CurrentUser() user: SessionUser) {
+    return this.live.removeLine(user.id, id, lineId);
+  }
+
+  /** Host: silence someone in the chat for a while. */
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post(':id/silence')
+  silence(@Param('id', ParseUUIDPipe) id: string, @Body() body: SilenceDto, @CurrentUser() user: SessionUser) {
+    return this.live.silence(user.id, id, body.userId);
+  }
+
+  /** A tip to the host, ready to sign (see LiveTipsService). */
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post(':id/tips')
+  prepareTip(@Param('id', ParseUUIDPipe) id: string, @Body() body: TipDto, @CurrentUser() user: SessionUser) {
+    return this.tips.prepare(user.id, id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post(':id/tips/:tipId')
+  submitTip(@Param('id', ParseUUIDPipe) id: string, @Param('tipId', ParseUUIDPipe) tipId: string, @Body() body: TipProofDto, @CurrentUser() user: SessionUser) {
+    return this.tips.submit(user.id, id, { tipId, ...body });
   }
 
   @UseGuards(JwtAuthGuard)

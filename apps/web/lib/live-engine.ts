@@ -1,6 +1,6 @@
 'use client';
 
-import { LIVE_LIMITS, type LiveChatLine, type LiveRoom, type LiveTrackKind } from '@kamby/domain';
+import { LIVE_LIMITS, type LiveChatLine, type LiveRoom, type LiveTipChain, type LiveTipQuote, type LiveTrackKind } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk } from './session-client';
 
 /** Live rooms (2026-10-17) — browser side: the API wrappers and the host / viewer engines. */
@@ -26,6 +26,15 @@ async function post<T>(path: string, body?: unknown, what = 'update the live'): 
   const text = await res.text();
   return (text ? JSON.parse(text) : null) as T;
 }
+
+/** Host moderation (2026-10-30). */
+export const removeLiveLine = (id: string, lineId: string) => post<void>(`/live/${id}/chat/${lineId}/remove`, undefined, 'remove the message');
+export const silenceInLive = (id: string, userId: string) => post<void>(`/live/${id}/silence`, { userId }, 'silence them');
+
+/** Tips (2026-10-30): prepare → sign in the wallet → submit (see LiveTipSheet). */
+export const prepareLiveTip = (id: string, chain: LiveTipChain, amountUsd: number) => post<LiveTipQuote>(`/live/${id}/tips`, { chain, amountUsd }, 'prepare the tip');
+export const submitLiveTip = (id: string, tipId: string, proof: { signedTransactionBase64?: string; txHashes?: string[] }) =>
+  post<{ ok: true; amountUsd: number }>(`/live/${id}/tips/${tipId}`, proof, 'send the tip');
 
 export async function fetchLiveRooms(): Promise<LiveRoom[]> {
   const res = await fetch(`${API_BASE}/v1/live`);
@@ -57,7 +66,7 @@ function queue(): Queue {
   };
 }
 
-/** The host: sends the mic (and the screen when shared). */
+/** The host: sends the mic (and the screen and camera when on). */
 export class LiveHostEngine {
   private readonly pc: RTCPeerConnection;
   private readonly q = queue();
@@ -108,6 +117,24 @@ export class LiveHostEngine {
     track.contentHint = 'detail';
     track.addEventListener('ended', () => void this.setScreen(false));
     await this.publish('screen', track);
+  }
+
+  get canUseCamera(): boolean {
+    return typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia);
+  }
+  cameraTrack(): MediaStreamTrack | null {
+    return this.local.get('camera')?.track ?? null;
+  }
+
+  /** The host's face (2026-10-30) — a small picture over the screen, or the whole stage without one. */
+  async setCamera(on: boolean): Promise<void> {
+    if (on === this.local.has('camera')) return;
+    if (!on) return this.unpublish('camera');
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 640 }, frameRate: { ideal: 24 }, facingMode: 'user' }, audio: false });
+    const track = stream.getVideoTracks()[0]!;
+    track.contentHint = 'motion';
+    track.addEventListener('ended', () => void this.setCamera(false));
+    await this.publish('camera', track);
   }
 
   async setMuted(muted: boolean): Promise<void> {

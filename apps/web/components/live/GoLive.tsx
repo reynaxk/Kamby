@@ -43,7 +43,7 @@ export function GoLiveSheet({ open, onClose }: { open: boolean; onClose: () => v
       <ul className="mt-3 space-y-1.5 font-body text-xs text-ink-400">
         <li>🎙️ {t('ruleVoice')}</li>
         <li>🖥️ {t('ruleScreen')}</li>
-        <li>🚫 {t('ruleNoCamera')}</li>
+        <li>📷 {t('ruleNoCamera')}</li>
       </ul>
       {error && <p className="mt-3 font-body text-xs font-semibold text-down">{error}</p>}
       <button

@@ -1,7 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, createTransferCheckedInstruction, getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { SOLANA_USDC_MINT } from '@kamby/domain';
 import bs58 from 'bs58';
 import { Prisma, prisma } from '@kamby/db';
 import { PinoLogger } from 'nestjs-pino';
@@ -374,12 +375,61 @@ export class GasRelayerService {
    *  transaction quoted (byte for byte), only once the user has signed, only after a clean
    *  simulation, and only if this relayer pays nothing beyond a normal fee. */
   async submitSponsoredRelayDeposit(params: { userWallet: string; expectedUnsignedTxBase64: string; partiallySignedTxBase64: string }): Promise<string> {
+    return this.coSignFeeOnly(params, {
+      mismatch: 'This transaction does not match the move you were quoted',
+      failed: "The move would fail right now — nothing was sent. Check your Solana USDC and try again.",
+      tooCostly: 'This move would cost the relayer more than a normal fee',
+      sent: 'gas relayer sponsored a USDC move out of Solana',
+    });
+  }
+
+  /**
+   * Live tips (2026-10-30): USDC from the user's own account to accounts that already exist (the
+   * host's and Kamby's), with this relayer only as the fee payer — it appears in no instruction,
+   * creates no account, so the most it can ever spend is the signature fee. A destination with no
+   * USDC account yet is refused rather than paid for.
+   */
+  async buildSponsoredUsdcTransfers(params: { userWallet: string; transfers: { toTokenAccount: string; amountRaw: bigint }[] }): Promise<string> {
+    if (!this.connection || !this.feePayerKeypair) throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
+    if (this.testWalletAddresses !== null && !this.testWalletAddresses.has(params.userWallet)) {
+      throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
+    }
+    const relayer = this.feePayerKeypair.publicKey;
+    const mint = new PublicKey(SOLANA_USDC_MINT);
+    const owner = new PublicKey(params.userWallet);
+    const from = getAssociatedTokenAddressSync(mint, owner, true);
+    const destinations = params.transfers.map((t) => new PublicKey(t.toTokenAccount));
+    const existing = await this.connection.getMultipleAccountsInfo(destinations, 'confirmed');
+    if (existing.some((info) => info === null)) throw new UnprocessableEntityException("They can't get USDC on Solana yet — pick another network.");
+    const instructions = params.transfers.map((t, i) => createTransferCheckedInstruction(from, mint, destinations[i]!, owner, t.amountRaw, 6));
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const message = new TransactionMessage({ payerKey: relayer, recentBlockhash: blockhash, instructions }).compileToV0Message();
+    return Buffer.from(new VersionedTransaction(message).serialize()).toString('base64');
+  }
+
+  /** Co-signs and sends a transfer built by buildSponsoredUsdcTransfers — same rules as a Relay deposit. */
+  async submitSponsoredUsdcTransfers(params: { userWallet: string; expectedUnsignedTxBase64: string; partiallySignedTxBase64: string }): Promise<string> {
+    return this.coSignFeeOnly(params, {
+      mismatch: 'This transaction does not match the tip you prepared',
+      failed: 'The tip would fail right now — nothing was sent. Check your Solana USDC and try again.',
+      tooCostly: 'This tip would cost the relayer more than a normal fee',
+      sent: 'gas relayer sponsored a USDC tip',
+    });
+  }
+
+  /** A transaction where this relayer is the fee payer and nothing else: only the exact transaction
+   *  built (byte for byte), only once the user has signed, only after a clean simulation, and only
+   *  if the fee is a normal one. */
+  private async coSignFeeOnly(
+    params: { userWallet: string; expectedUnsignedTxBase64: string; partiallySignedTxBase64: string },
+    text: { mismatch: string; failed: string; tooCostly: string; sent: string },
+  ): Promise<string> {
     if (!this.connection || !this.feePayerKeypair) throw new UnprocessableEntityException('The gas relayer is not configured on this deployment');
     const connection = this.connection;
     const relayer = this.feePayerKeypair;
     const transaction = deserializeOrThrow(params.partiallySignedTxBase64);
     if (!solanaTransactionMatchesQuote(transaction, params.expectedUnsignedTxBase64)) {
-      throw new ForbiddenException('This transaction does not match the move you were quoted');
+      throw new ForbiddenException(text.mismatch);
     }
     const lookupTableAccounts = await resolveLookupTables(connection, transaction);
     const accountKeys = transaction.message.getAccountKeys({ addressLookupTableAccounts: lookupTableAccounts });
@@ -393,14 +443,14 @@ export class GasRelayerService {
     assertUserAlreadySigned(transaction, params.userWallet, accountKeys);
     const simulation = await connection.simulateTransaction(transaction, { sigVerify: false, replaceRecentBlockhash: false });
     if (simulation.value.err) {
-      this.logger.warn({ err: simulation.value.err }, 'relay deposit failed simulation');
-      throw new UnprocessableEntityException("The move would fail right now — nothing was sent. Check your Solana USDC and try again.");
+      this.logger.warn({ err: simulation.value.err }, 'fee-only sponsored transaction failed simulation');
+      throw new UnprocessableEntityException(text.failed);
     }
     const fee = (await connection.getFeeForMessage(transaction.message, 'confirmed')).value ?? 0;
-    if (fee > RELAY_DEPOSIT_MAX_FEE_LAMPORTS) throw new ForbiddenException('This move would cost the relayer more than a normal fee');
+    if (fee > RELAY_DEPOSIT_MAX_FEE_LAMPORTS) throw new ForbiddenException(text.tooCostly);
     transaction.sign([relayer]);
     const signature = await connection.sendTransaction(transaction, { skipPreflight: false, maxRetries: 3 });
-    this.logger.info({ walletAddress: params.userWallet, signature }, 'gas relayer sponsored a USDC move out of Solana');
+    this.logger.info({ walletAddress: params.userWallet, signature }, text.sent);
     rebroadcastUntilLanded(connection, transaction.serialize(), signature, this.logger);
     return signature;
   }

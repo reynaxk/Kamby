@@ -5,27 +5,58 @@ import type { DmTrade } from './dm';
  * is voice + screen only — no camera: a live room is public to strangers and can't be moderated
  * as it happens. Three reports from different viewers end the room. Built on the same
  * Cloudflare Realtime SFU as calls (the host publishes, viewers only pull).
+ *
+ * 2026-10-30 (owner: "Live Trading Streams — crypto Twitch"): the host can add their camera, and
+ * the room gets Twitch tools — the host removes chat lines and silences people, Kamby trades made
+ * by the host or anyone watching appear in chat as alerts, viewers can tip the host in USDC
+ * ($5 minimum, Kamby keeps a small fee shown only as a dollar amount) and challenge them to a
+ * duel (no money at stake). Still the same WebRTC path: well under a second behind.
  */
 
 export const LIVE_LIMITS = {
   titleMax: 60,
   chatMax: 200,
   chatCooldownMs: 1500,
-  chatKeep: 80,
+  chatKeep: 100,
   reportsToEnd: 3,
   heartbeatMs: 15_000,
   /** A host silent this long has dropped — the room ends. */
   hostStaleMs: 45_000,
   viewerStaleMs: 45_000,
+  /** How long the host's "silence" keeps someone out of the chat. */
+  silenceMs: 10 * 60_000,
+  tipMinUsd: 5,
+  tipMaxUsd: 1_000,
+  /** Kamby's cut of a tip, in basis points — never shown as a percentage (owner rule). */
+  tipFeeBps: 300,
 } as const;
 
-export type LiveTrackKind = 'audio' | 'screen';
+export type LiveTrackKind = 'audio' | 'screen' | 'camera';
+
+/** Kamby's fee on a tip of `amountUsd`, in whole cents. */
+export function liveTipFeeUsd(amountUsd: number): number {
+  return Math.round((amountUsd * LIVE_LIMITS.tipFeeBps) / 100) / 100;
+}
+
+export type LiveTipChain = 'solana' | 'base' | 'bnb' | 'robinhood';
+
+/** A tip ready to sign: Solana is one transaction (Kamby pays its fee), EVM is two transfers in order. */
+export interface LiveTipQuote {
+  tipId: string;
+  chain: LiveTipChain;
+  amountUsd: number;
+  feeUsd: number;
+  solanaTransactionBase64?: string;
+  evmTransactions?: { chainId: number; to: string; data: string; value: string }[];
+}
 
 export interface LiveHost {
   userId: string;
   username: string;
   avatarUrl: string | null;
   walletAddress: string | null;
+  /** The host's EVM wallet — their Hyperliquid (perps) account too. */
+  evmAddress?: string | null;
 }
 
 export interface LiveRoom {
@@ -52,10 +83,14 @@ export interface LiveChatLine {
   body: string;
   at: string;
   host: boolean;
+  /** Not typed by anyone: a Kamby trade ("bought $120 of $WIF") or a tip, from the server. */
+  kind?: 'trade' | 'tip';
+  amountUsd?: number;
 }
 
 export const LIVE_REALTIME_CHANNEL = 'kamby:live';
 export type LiveEvent =
   | { type: 'room'; roomId: string; room: LiveRoom }
   | { type: 'chat'; roomId: string; line: LiveChatLine }
+  | { type: 'removed'; roomId: string; lineId: string }
   | { type: 'ended'; roomId: string };

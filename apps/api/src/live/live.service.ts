@@ -19,6 +19,7 @@ import { CloudflareRealtimeClient, type RealtimeTracksResponse, type SessionDesc
 import { DmService } from '../dm/dm.service';
 import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { markInRoom, pushLiveLine } from './live-lines';
 
 /** What Redis keeps for a room that's on air (the app sees LiveRoom). */
 interface LiveState {
@@ -34,15 +35,16 @@ interface LiveState {
   trade?: DmTrade | null;
 }
 
-const KINDS: readonly LiveTrackKind[] = ['audio', 'screen'];
+const KINDS: readonly LiveTrackKind[] = ['audio', 'screen', 'camera'];
 const ACTIVE_SET = 'kamby:live:active';
 
 /**
  * Live rooms (2026-10-17) — see @kamby/domain live.ts. The host publishes voice + screen to
- * Cloudflare Realtime through here (only their own tracks, no camera); signed-in viewers pull
+ * Cloudflare Realtime through here (only their own tracks; camera too since 2026-10-30); signed-in viewers pull
  * only the host's tracks. Who's watching is a Redis sorted set of heartbeats; a host who stops
  * checking in ends the room. Chat is kept in Redis (the last few dozen lines), no links, a
- * short cooldown. Three reports from different viewers end the room.
+ * short cooldown. Three reports from different viewers end the room. The host can take a line
+ * down or silence someone for a while; Kamby trades and tips show up as their own lines.
  */
 @Injectable()
 export class LiveService {
@@ -236,14 +238,47 @@ export class LiveService {
     if (containsLink(body)) throw new BadRequestException("Links aren't allowed in live chat.");
     const who = await this.person(me);
     if (!who) throw new ForbiddenException('Set a username in your profile to chat.');
+    if (await this.redis.exists(this.silencedKey(id, me)).catch(() => 0)) throw new ForbiddenException('The host paused your chat for a few minutes.');
     const ok = await this.redis.set(`kamby:live:cool:${me}`, '1', 'PX', LIVE_LIMITS.chatCooldownMs, 'NX').catch(() => 'OK');
     if (ok !== 'OK') throw new HttpException('Slow down a little.', HttpStatus.TOO_MANY_REQUESTS);
     const line: LiveChatLine = { id: randomUUID(), userId: me, username: who.username, avatarUrl: who.avatarUrl, body, at: new Date().toISOString(), host: me === state.host.userId };
-    await this.redis.lpush(this.chatKey(id), JSON.stringify(line));
-    await this.redis.ltrim(this.chatKey(id), 0, LIVE_LIMITS.chatKeep - 1);
-    await this.redis.expire(this.chatKey(id), 12 * 3600);
-    await this.publish({ type: 'chat', roomId: id, line });
+    await this.pushLine(id, line);
     return line;
+  }
+
+  /** The host takes a chat line down — gone for everyone watching. */
+  async removeLine(me: string, id: string, lineId: string): Promise<void> {
+    await this.hostState(me, id);
+    const raw = await this.redis.lrange(this.chatKey(id), 0, -1).catch(() => [] as string[]);
+    const hit = raw.find((r) => (JSON.parse(r) as LiveChatLine).id === lineId);
+    if (hit) await this.redis.lrem(this.chatKey(id), 1, hit);
+    await this.publish({ type: 'removed', roomId: id, lineId });
+  }
+
+  /** The host silences someone for LIVE_LIMITS.silenceMs — they can still watch — and their lines go. */
+  async silence(me: string, id: string, userId: string): Promise<void> {
+    const state = await this.hostState(me, id);
+    if (userId === state.host.userId) throw new BadRequestException("You can't silence yourself.");
+    await this.redis.set(this.silencedKey(id, userId), '1', 'PX', LIVE_LIMITS.silenceMs);
+    const raw = await this.redis.lrange(this.chatKey(id), 0, -1).catch(() => [] as string[]);
+    for (const r of raw) {
+      const line = JSON.parse(r) as LiveChatLine;
+      if (line.userId !== userId || line.kind) continue;
+      await this.redis.lrem(this.chatKey(id), 1, r);
+      await this.publish({ type: 'removed', roomId: id, lineId: line.id });
+    }
+  }
+
+  /** "💸 @x tipped $10" — called once the tip is checked on-chain (LiveTipsService). */
+  async announceTip(id: string, senderId: string, amountUsd: number): Promise<void> {
+    const state = await this.read(id);
+    const who = await this.person(senderId);
+    if (!state || !who) return;
+    await this.pushLine(id, { id: randomUUID(), userId: senderId, username: who.username, avatarUrl: who.avatarUrl, body: `tipped ${amountUsd.toFixed(2)}`, at: new Date().toISOString(), host: false, kind: 'tip', amountUsd });
+  }
+
+  private async pushLine(id: string, line: LiveChatLine): Promise<void> {
+    await pushLiveLine(this.redis, id, line);
   }
 
   /** The host pins one of their open positions as a Trade Card (null unpins). */
@@ -288,6 +323,9 @@ export class LiveService {
   private hostSeenKey(id: string) {
     return `kamby:live:${id}:host`;
   }
+  private silencedKey(id: string, userId: string) {
+    return `kamby:live:${id}:silenced:${userId}`;
+  }
 
   private async read(id: string): Promise<LiveState | null> {
     const raw = await this.redis.get(this.key(id)).catch(() => null);
@@ -307,11 +345,14 @@ export class LiveService {
 
   private async hostSeen(id: string): Promise<void> {
     await this.redis.set(this.hostSeenKey(id), String(Date.now()), 'EX', 12 * 3600).catch(() => undefined);
+    const state = await this.read(id);
+    if (state) await markInRoom(this.redis, state.host.userId, id);
   }
 
   private async viewerSeen(id: string, userId: string): Promise<void> {
     await this.redis.zadd(this.viewersKey(id), Date.now(), userId).catch(() => 0);
     await this.redis.expire(this.viewersKey(id), 12 * 3600).catch(() => 0);
+    await markInRoom(this.redis, userId, id);
   }
 
   /** Ends a room whose host stopped checking in. */
@@ -358,9 +399,11 @@ export class LiveService {
   private async person(userId: string): Promise<LiveHost | null> {
     const u = await prisma.user.findUnique({
       where: { id: userId },
-      select: { username: true, avatarUrl: true, wallets: { where: { verifiedAt: { not: null } }, select: { address: true }, orderBy: { verifiedAt: 'asc' }, take: 1 } },
+      select: { username: true, avatarUrl: true, wallets: { where: { verifiedAt: { not: null } }, select: { address: true, chain: true }, orderBy: { verifiedAt: 'asc' } } },
     });
-    return u?.username ? { userId, username: u.username, avatarUrl: u.avatarUrl, walletAddress: u.wallets[0]?.address ?? null } : null;
+    return u?.username
+      ? { userId, username: u.username, avatarUrl: u.avatarUrl, walletAddress: u.wallets[0]?.address ?? null, evmAddress: u.wallets.find((w) => w.chain === 'EVM')?.address ?? null }
+      : null;
   }
 
   private async coin(tokenKey: string): Promise<LiveRoom['coin']> {
