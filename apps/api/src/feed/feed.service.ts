@@ -66,20 +66,10 @@ export class FeedService {
     return { photos: on, videos: on };
   }
 
-  /** Per person and per day caps (Redis; an outage counts as the first of the day). */
-  private async underCaps(kind: 'photos' | 'videos', me: string, perUser: number, perDay: number): Promise<void> {
-    const day = new Date().toISOString().slice(0, 10);
-    const mine = await this.redis.incr(`kamby:feed:${kind}:${day}:${me}`).catch(() => 1);
-    const all = await this.redis.incr(`kamby:feed:${kind}:${day}`).catch(() => 1);
-    void this.redis.expire(`kamby:feed:${kind}:${day}:${me}`, 90_000).catch(() => undefined);
-    void this.redis.expire(`kamby:feed:${kind}:${day}`, 90_000).catch(() => undefined);
-    if (mine > perUser) throw new HttpException(`That's ${perUser} ${kind} today — more tomorrow.`, HttpStatus.TOO_MANY_REQUESTS);
-    if (all > perDay) throw new HttpException(`${kind === 'photos' ? 'Photos' : 'Videos'} are full for today — try again tomorrow.`, HttpStatus.TOO_MANY_REQUESTS);
-  }
 
   /**
    * A short video for a post (2026-10-30): up to 15 s / 20 MB, every 3rd second checked by
-   * Sightengine BEFORE it's stored (fails closed), 3 per person and 40 a day.
+   * Sightengine BEFORE it's stored (fails closed). No daily caps (owner, 10-30).
    */
   async uploadVideo(me: string, file: UploadableFile | undefined, apiOrigin: string): Promise<{ videoId: string; url: string }> {
     if (!file) throw new BadRequestException('Pick a video first.');
@@ -89,7 +79,6 @@ export class FeedService {
     const type = file.mimetype.split(';')[0]!.trim();
     if (!/^video\/(mp4|webm|quicktime)$/.test(type)) throw new BadRequestException('Only MP4, WebM or MOV videos.');
     if (file.size > FEED_LIMITS.videoMaxBytes) throw new BadRequestException('That video is over 20 MB.');
-    await this.underCaps('videos', me, FEED_LIMITS.videosPerUserPerDay, FEED_LIMITS.videosPerDay);
     const verdict = await this.moderation.checkVideo(file.buffer, type, FEED_LIMITS.videoMaxSeconds);
     if (!verdict.ok) {
       throw new BadRequestException(
@@ -104,15 +93,13 @@ export class FeedService {
 
   /**
    * A photo for a post (2026-10-30): checked by Sightengine BEFORE it's stored — refused if it
-   * shows nudity, gore or weapons, or if the check can't run. Capped per person and per day so
-   * the moderation plan can't run dry. Returns a one-hour ticket to attach to the post.
+   * shows nudity, gore or weapons, or if the check can't run. Returns a one-hour ticket to attach to the post.
    */
   async uploadPhoto(me: string, file: UploadableFile | undefined, apiOrigin: string): Promise<{ photoId: string; url: string }> {
     if (!file) throw new BadRequestException('Pick a photo first.');
     if (!this.moderation.isConfigured()) throw new ServiceUnavailableException('Photos are not switched on yet.');
     const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
     if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
-    await this.underCaps('photos', me, FEED_LIMITS.photosPerUserPerDay, FEED_LIMITS.photosPerDay);
     if (!/^image\/(png|jpeg|webp)$/.test(file.mimetype)) throw new BadRequestException('Only PNG, JPEG or WebP photos.');
     if (file.size > FEED_LIMITS.photoMaxBytes) throw new BadRequestException('That photo is over 5 MB.');
 

@@ -15,15 +15,11 @@ export const FEED_LIMITS = {
   repliesPageSize: 50,
   /** This many reports from different people hide a post. */
   reportsToHide: 3,
-  /** Photos (2026-10-30): checked by Sightengine first; capped so the free plan never runs out mid-day. */
+  /** Photos (2026-10-30): every one checked by Sightengine first. No daily caps (owner, 10-30). */
   photoMaxBytes: 5 * 1024 * 1024,
-  photosPerUserPerDay: 10,
-  photosPerDay: 150,
   /** Videos (2026-10-30): short clips, every 3rd second checked by Sightengine. */
   videoMaxBytes: 20 * 1024 * 1024,
   videoMaxSeconds: 15,
-  videosPerUserPerDay: 3,
-  videosPerDay: 40,
 } as const;
 
 export type FeedTab = 'foryou' | 'following';
