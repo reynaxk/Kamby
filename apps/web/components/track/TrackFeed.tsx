@@ -53,7 +53,7 @@ export function TrackFeed({ compact = false }: { compact?: boolean }) {
   );
 }
 
-const COMPACT_ROWS = 6;
+const COMPACT_ROWS = 4;
 
 function Feed({ compact }: { compact: boolean }) {
   const t = useTranslations('track');

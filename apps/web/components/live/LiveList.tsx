@@ -160,7 +160,7 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
           ))}
         </div>
       ) : shown.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-surface px-6 py-12 text-center">
+        <div className="rounded-2xl border border-line bg-surface px-5 py-7 text-center">
           <p className="font-display text-lg font-bold text-ink-900">{t('nobodyLive')}</p>
           <p className="mt-1 font-body text-sm text-ink-600">{t('nobodyLiveHint')}</p>
         </div>

@@ -110,7 +110,7 @@ export function Feed({ address, composer = true, title, emptyText }: { address?:
       {items === null ? (
         [0, 1, 2].map((i) => <div key={i} className="h-40 animate-pulse rounded-2xl bg-surface" />)
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-surface px-6 py-10 text-center">
+        <div className="rounded-2xl border border-line bg-surface px-5 py-6 text-center">
           <p className="font-display text-base font-bold text-ink-900">{tab === 'following' && !address ? t('emptyFollowing') : t('empty')}</p>
           <p className="mt-1 font-body text-sm text-ink-600">{t('emptyHint')}</p>
         </div>
