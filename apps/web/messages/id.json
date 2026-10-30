@@ -9,7 +9,8 @@
     "menu": "Menu",
     "live": "Live",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "Feed"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -722,7 +723,8 @@
     "pnlSpread": "Hasil trade",
     "lastSells": "{n} penjualan terakhir",
     "moreStats": "Statistik lainnya",
-    "pnlDays": "28 hari terakhir"
+    "pnlDays": "28 hari terakhir",
+    "posts": "Postingan"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",
@@ -1453,5 +1455,25 @@
     "chip2": "Whale live",
     "chip3": "Rekam jejak",
     "chip4": "Chat"
+  },
+  "feed": {
+    "title": "Feed",
+    "foryou": "Untukmu",
+    "following": "Diikuti",
+    "placeholder": "Trading apa hari ini?",
+    "post": "Posting",
+    "tradeCard": "Kartu trade",
+    "pnlCard": "Kartu PnL",
+    "removeCard": "Hapus kartu",
+    "empty": "Belum ada postingan",
+    "emptyFollowing": "Yang kamu ikuti belum posting",
+    "emptyHint": "Bagikan trade atau pikiran — tanpa link, koin sebagai $SYMBOL.",
+    "more": "Lagi",
+    "report": "Laporkan",
+    "reported": "Dilaporkan — terima kasih.",
+    "delete": "Hapus",
+    "replyPlaceholder": "Tulis balasan",
+    "reply": "Balas",
+    "needUsername": "Pilih username di profil untuk posting."
   }
 }

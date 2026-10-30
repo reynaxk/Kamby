@@ -16,6 +16,7 @@ import { MarketModule } from './market/market.module';
 import { TradingModule } from './trading/trading.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PulseModule } from './pulse/pulse.module';
+import { FeedModule } from './feed/feed.module';
 import { DmModule } from './dm/dm.module';
 import { CallsModule } from './calls/calls.module';
 import { LiveModule } from './live/live.module';
@@ -86,6 +87,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     TradingModule,
     NotificationsModule,
     PulseModule,
+    FeedModule,
     DmModule,
     CallsModule,
     LiveModule,

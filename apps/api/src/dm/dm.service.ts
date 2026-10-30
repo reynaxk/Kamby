@@ -392,6 +392,12 @@ export class DmService {
 
   /** A PnL card from the sender's real position — the numbers can't be typed in. */
   async sendPnl(me: string, id: string, chain: string, tokenAddress: string, channelId?: string): Promise<DmMessage> {
+    const pnl = await this.pnlCard(me, chain, tokenAddress);
+    return this.write(me, id, { kind: 'pnl', body: '', data: pnl, channelId });
+  }
+
+  /** The PnL card for my open position on a coin (also used by Feed posts). */
+  async pnlCard(me: string, chain: string, tokenAddress: string): Promise<DmPnl> {
     const chainIdentifier = CHAIN_SLUG_TO_IDENTIFIER[chain] ?? chain;
     const position = (await this.positions.getMine(me)).find(
       (p) => (p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : null)) === chainIdentifier && p.tokenAddress.toLowerCase() === tokenAddress.toLowerCase(),
@@ -410,7 +416,7 @@ export class DmService {
       investedUsd: position.costBasisUsd,
       valueUsd: position.currentValueUsd,
     };
-    return this.write(me, id, { kind: 'pnl', body: '', data: pnl, channelId });
+    return pnl;
   }
 
   /** A Trade Card from the sender's real open position (2026-10-17) — shared only when they

@@ -29,6 +29,7 @@ import { useMediaQuery, XL_QUERY } from '@/lib/use-media';
 export function PortfolioHeader() {
   const tP = useTranslations('perps');
   const t = useTranslations('home');
+  const tF = useTranslations('feed');
   const { ready, authenticated, login } = usePrivy();
   const { address } = useAccount();
   const { wallets } = useSolanaWallets();
@@ -121,6 +122,11 @@ export function PortfolioHeader() {
       </div>
       {/* Kamby's LaunchPad (2026-10-14) and ⚡ Perps (2026-10-21), side by side — from lg up they're
           in the left menu (DesktopSideNav). */}
+      {/* Phones: the Feed one tap from Home (2026-10-30); from lg up it is in the left menu. */}
+      <Link href="/feed" className="mt-2 flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] lg:hidden">
+        <span className="font-display text-sm font-bold text-ink-900">📰 {tF('title')}</span>
+        <span className="font-display text-base font-bold text-accent" aria-hidden>→</span>
+      </Link>
       <div className="mt-2 grid grid-cols-2 gap-2 lg:hidden">
         <Link href="/launch" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
           <span className="flex min-w-0 items-baseline gap-1.5">

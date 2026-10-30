@@ -23,6 +23,7 @@ export * from './pulse';
 export * from './token-chat';
 export * from './launchpad';
 export * from './dm';
+export * from './feed';
 export * from './calls';
 export * from './stories';
 export * from './live';

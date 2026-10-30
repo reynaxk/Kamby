@@ -9,7 +9,8 @@
     "menu": "菜单",
     "live": "直播",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "动态"
   },
   "install": {
     "title": "获取 Kamby 应用",
@@ -722,7 +723,8 @@
     "pnlSpread": "盈亏分布",
     "lastSells": "最近 {n} 笔卖出",
     "moreStats": "更多统计",
-    "pnlDays": "近 28 天"
+    "pnlDays": "近 28 天",
+    "posts": "帖子"
   },
   "notif": {
     "kind_FOLLOW": "关注",
@@ -1453,5 +1455,25 @@
     "chip2": "巨鲸实时",
     "chip3": "战绩",
     "chip4": "聊天"
+  },
+  "feed": {
+    "title": "动态",
+    "foryou": "推荐",
+    "following": "关注",
+    "placeholder": "今天交易什么？",
+    "post": "发布",
+    "tradeCard": "交易卡",
+    "pnlCard": "盈亏卡",
+    "removeCard": "移除卡片",
+    "empty": "还没有帖子",
+    "emptyFollowing": "你关注的人还没发帖",
+    "emptyHint": "分享交易或想法 — 不能放链接，代币用 $SYMBOL。",
+    "more": "更多",
+    "report": "举报",
+    "reported": "已举报，谢谢。",
+    "delete": "删除",
+    "replyPlaceholder": "写回复",
+    "reply": "回复",
+    "needUsername": "在个人资料里设置用户名后才能发帖。"
   }
 }

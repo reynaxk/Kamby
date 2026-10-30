@@ -9,7 +9,8 @@
     "menu": "Menu",
     "live": "Trực tiếp",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "Bảng tin"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -722,7 +723,8 @@
     "pnlSpread": "Kết quả giao dịch",
     "lastSells": "{n} lệnh bán gần nhất",
     "moreStats": "Thêm thống kê",
-    "pnlDays": "28 ngày qua"
+    "pnlDays": "28 ngày qua",
+    "posts": "Bài đăng"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",
@@ -1453,5 +1455,25 @@
     "chip2": "Cá voi trực tiếp",
     "chip3": "Thành tích",
     "chip4": "Trò chuyện"
+  },
+  "feed": {
+    "title": "Bảng tin",
+    "foryou": "Dành cho bạn",
+    "following": "Đang theo dõi",
+    "placeholder": "Hôm nay bạn giao dịch gì?",
+    "post": "Đăng",
+    "tradeCard": "Thẻ giao dịch",
+    "pnlCard": "Thẻ PnL",
+    "removeCard": "Bỏ thẻ",
+    "empty": "Chưa có bài đăng",
+    "emptyFollowing": "Người bạn theo dõi chưa đăng",
+    "emptyHint": "Chia sẻ giao dịch hoặc suy nghĩ — không link, coin dạng $SYMBOL.",
+    "more": "Thêm",
+    "report": "Báo cáo",
+    "reported": "Đã báo cáo.",
+    "delete": "Xóa",
+    "replyPlaceholder": "Viết trả lời",
+    "reply": "Trả lời",
+    "needUsername": "Chọn tên người dùng trong hồ sơ để đăng."
   }
 }

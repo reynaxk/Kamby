@@ -384,6 +384,10 @@ model User {
   tokenLots               TokenLot[]
   realizedPnlEvents       RealizedPnlEvent[]
   tokenTheses             TokenThesis[]
+  feedPosts               FeedPost[]
+  feedLikes               FeedLike[]
+  feedReplies             FeedReply[]
+  feedReports             FeedReport[]
 
   @@map("users")
 }
@@ -1542,4 +1546,70 @@ model Duel {
   @@index([opponentId, createdAt])
   @@index([winnerId])
   @@map("duels")
+}
+
+/// The Feed (2026-10-30, owner's concepts): short posts by traders — text, optionally with a
+/// Trade Card or a PnL card the server built from the poster's real position (`data`). No links,
+/// no pictures yet. Three reports hide a post (`hiddenAt`).
+model FeedPost {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  body        String    @db.VarChar(500)
+  /// 'text', 'trade' (DmTrade) or 'pnl' (DmPnl).
+  kind        String    @default("text") @db.VarChar(8)
+  data        Json?
+  likeCount   Int       @default(0) @map("like_count")
+  replyCount  Int       @default(0) @map("reply_count")
+  reportCount Int       @default(0) @map("report_count")
+  hiddenAt    DateTime? @map("hidden_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes   FeedLike[]
+  replies FeedReply[]
+  reports FeedReport[]
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("feed_posts")
+}
+
+model FeedLike {
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+  @@map("feed_likes")
+}
+
+model FeedReply {
+  id        String    @id @default(uuid())
+  postId    String    @map("post_id")
+  userId    String    @map("user_id")
+  body      String    @db.VarChar(280)
+  hiddenAt  DateTime? @map("hidden_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@map("feed_replies")
+}
+
+model FeedReport {
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@map("feed_reports")
 }

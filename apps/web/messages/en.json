@@ -9,7 +9,8 @@
     "menu": "Menu",
     "live": "Live",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "Feed"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -722,7 +723,8 @@
     "pnlSpread": "How trades ended",
     "lastSells": "Last {n} sells",
     "moreStats": "More stats",
-    "pnlDays": "Last 28 days"
+    "pnlDays": "Last 28 days",
+    "posts": "Posts"
   },
   "notif": {
     "kind_FOLLOW": "Follow",
@@ -1453,5 +1455,25 @@
     "chip2": "Whales live",
     "chip3": "Track record",
     "chip4": "Chats"
+  },
+  "feed": {
+    "title": "Feed",
+    "foryou": "For You",
+    "following": "Following",
+    "placeholder": "What are you trading today?",
+    "post": "Post",
+    "tradeCard": "Trade card",
+    "pnlCard": "PnL card",
+    "removeCard": "Remove card",
+    "empty": "No posts yet",
+    "emptyFollowing": "Nobody you follow has posted yet",
+    "emptyHint": "Share a trade or a thought — no links, coins as $SYMBOL.",
+    "more": "More",
+    "report": "Report",
+    "reported": "Reported — thanks.",
+    "delete": "Delete",
+    "replyPlaceholder": "Write a reply",
+    "reply": "Reply",
+    "needUsername": "Pick a username in your profile to post."
   }
 }

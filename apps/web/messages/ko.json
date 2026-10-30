@@ -9,7 +9,8 @@
     "menu": "메뉴",
     "live": "라이브",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "피드"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -722,7 +723,8 @@
     "pnlSpread": "거래 결과 분포",
     "lastSells": "최근 {n}건 매도",
     "moreStats": "통계 더보기",
-    "pnlDays": "최근 28일"
+    "pnlDays": "최근 28일",
+    "posts": "게시물"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",
@@ -1453,5 +1455,25 @@
     "chip2": "고래 실시간",
     "chip3": "트랙 레코드",
     "chip4": "채팅"
+  },
+  "feed": {
+    "title": "피드",
+    "foryou": "추천",
+    "following": "팔로잉",
+    "placeholder": "오늘 뭐 트레이딩해요?",
+    "post": "게시",
+    "tradeCard": "트레이드 카드",
+    "pnlCard": "PnL 카드",
+    "removeCard": "카드 빼기",
+    "empty": "아직 게시물이 없어요",
+    "emptyFollowing": "팔로우한 사람이 아직 게시하지 않았어요",
+    "emptyHint": "트레이드나 생각을 공유하세요 — 링크 금지, 코인은 $SYMBOL.",
+    "more": "더 보기",
+    "report": "신고",
+    "reported": "신고했어요.",
+    "delete": "삭제",
+    "replyPlaceholder": "답글 쓰기",
+    "reply": "답글",
+    "needUsername": "게시하려면 프로필에서 사용자 이름을 정하세요."
   }
 }

@@ -9,7 +9,8 @@
     "menu": "Menú",
     "live": "En vivo",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "Feed"
   },
   "install": {
     "title": "Obtén la app de Kamby",
@@ -722,7 +723,8 @@
     "pnlSpread": "Cómo terminaron",
     "lastSells": "Últimas {n} ventas",
     "moreStats": "Más estadísticas",
-    "pnlDays": "Últimos 28 días"
+    "pnlDays": "Últimos 28 días",
+    "posts": "Posts"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",
@@ -1453,5 +1455,25 @@
     "chip2": "Ballenas en vivo",
     "chip3": "Historial",
     "chip4": "Chats"
+  },
+  "feed": {
+    "title": "Feed",
+    "foryou": "Para ti",
+    "following": "Siguiendo",
+    "placeholder": "¿Qué operas hoy?",
+    "post": "Publicar",
+    "tradeCard": "Trade",
+    "pnlCard": "Tarjeta PnL",
+    "removeCard": "Quitar tarjeta",
+    "empty": "Aún no hay posts",
+    "emptyFollowing": "Nadie a quien sigues ha publicado",
+    "emptyHint": "Comparte un trade o una idea — sin enlaces, monedas como $SYMBOL.",
+    "more": "Más",
+    "report": "Reportar",
+    "reported": "Reportado — gracias.",
+    "delete": "Borrar",
+    "replyPlaceholder": "Escribe una respuesta",
+    "reply": "Responder",
+    "needUsername": "Elige un nombre de usuario en tu perfil para publicar."
   }
 }

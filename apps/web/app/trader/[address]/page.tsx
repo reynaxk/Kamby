@@ -18,6 +18,7 @@ import { settledOr } from '@/lib/settled-fetch';
 import { getTranslations } from 'next-intl/server';
 import { BackPill } from '@/components/layout/BackPill';
 import { PnlDays, PnlRunLine, WinRing } from '@/components/social/TraderPnlBits';
+import { Feed } from '@/components/feed/Feed';
 
 export const revalidate = 15;
 
@@ -209,6 +210,10 @@ export default async function TraderProfilePage({ params }: { params: { address:
         </aside>
 
         <section className="mt-8 lg:col-start-1 lg:row-start-2">
+          {/* Their posts (2026-10-30 Feed) above their trades. */}
+          <div className="mb-8 empty:hidden">
+            <Feed address={profile.address} composer={false} title={tL('posts')} />
+          </div>
           <h2 className="mb-3 font-display text-base font-bold text-ink-900">{tU('recentActivity_f7ce')}</h2>
           {/* Their Kamby trades first — most never show in the indexed pools' swaps below. */}
           {kambyTrades.length > 0 ? (

@@ -9,7 +9,8 @@
     "menu": "เมนู",
     "live": "ไลฟ์",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "ฟีด"
   },
   "install": {
     "title": "ติดตั้งแอป Kamby",
@@ -722,7 +723,8 @@
     "pnlSpread": "ผลของการเทรด",
     "lastSells": "ขาย {n} ครั้งล่าสุด",
     "moreStats": "สถิติเพิ่มเติม",
-    "pnlDays": "28 วันล่าสุด"
+    "pnlDays": "28 วันล่าสุด",
+    "posts": "โพสต์"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",
@@ -1453,5 +1455,25 @@
     "chip2": "วาฬสด",
     "chip3": "ผลงาน",
     "chip4": "แชท"
+  },
+  "feed": {
+    "title": "ฟีด",
+    "foryou": "สำหรับคุณ",
+    "following": "กำลังติดตาม",
+    "placeholder": "วันนี้เทรดอะไร?",
+    "post": "โพสต์",
+    "tradeCard": "การ์ดเทรด",
+    "pnlCard": "การ์ด PnL",
+    "removeCard": "เอาการ์ดออก",
+    "empty": "ยังไม่มีโพสต์",
+    "emptyFollowing": "คนที่คุณติดตามยังไม่ได้โพสต์",
+    "emptyHint": "แชร์เทรดหรือความคิด — ห้ามลิงก์ ใช้ $SYMBOL",
+    "more": "เพิ่มเติม",
+    "report": "รายงาน",
+    "reported": "รายงานแล้ว",
+    "delete": "ลบ",
+    "replyPlaceholder": "เขียนตอบกลับ",
+    "reply": "ตอบกลับ",
+    "needUsername": "ตั้งชื่อผู้ใช้ในโปรไฟล์ก่อนโพสต์"
   }
 }

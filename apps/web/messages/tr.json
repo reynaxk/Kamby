@@ -9,7 +9,8 @@
     "menu": "Menü",
     "live": "Canlı",
     "perps": "Perps",
-    "launchpad": "LaunchPad"
+    "launchpad": "LaunchPad",
+    "feed": "Akış"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -722,7 +723,8 @@
     "pnlSpread": "İşlemler nasıl bitti",
     "lastSells": "Son {n} satış",
     "moreStats": "Daha fazla istatistik",
-    "pnlDays": "Son 28 gün"
+    "pnlDays": "Son 28 gün",
+    "posts": "Gönderiler"
   },
   "notif": {
     "kind_FOLLOW": "Takip",
@@ -1453,5 +1455,25 @@
     "chip2": "Canlı balinalar",
     "chip3": "Geçmiş",
     "chip4": "Sohbet"
+  },
+  "feed": {
+    "title": "Akış",
+    "foryou": "Senin için",
+    "following": "Takip",
+    "placeholder": "Bugün ne trade ediyorsun?",
+    "post": "Paylaş",
+    "tradeCard": "Trade kartı",
+    "pnlCard": "PnL kartı",
+    "removeCard": "Kartı kaldır",
+    "empty": "Henüz gönderi yok",
+    "emptyFollowing": "Takip ettiklerin henüz paylaşmadı",
+    "emptyHint": "Bir trade ya da düşünce paylaş — link yok, coinler $SYMBOL olarak.",
+    "more": "Daha",
+    "report": "Bildir",
+    "reported": "Bildirildi — teşekkürler.",
+    "delete": "Sil",
+    "replyPlaceholder": "Yanıt yaz",
+    "reply": "Yanıtla",
+    "needUsername": "Paylaşmak için profilinde kullanıcı adı seç."
   }
 }
