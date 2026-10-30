@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "라이브를 켜고 모두가 보는 앞에서 트레이딩하세요.",
     "watching": "{count}명 시청 중",
     "join": "참여",
-    "seeAll": "전체 보기"
+    "seeAll": "전체 보기",
+    "chatTab": "채팅",
+    "tradesTab": "거래",
+    "buyCoin": "{symbol} 매수",
+    "buyAmount": "{amount} 매수",
+    "gas": "네트워크 가스",
+    "gasFree": "무료",
+    "openCoin": "코인 열기"
   },
   "snipe": {
     "bought": "매수",

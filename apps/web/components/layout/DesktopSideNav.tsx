@@ -94,5 +94,6 @@ export function DesktopSideNav() {
 /** Moves the app right of DesktopSideNav on pages that show it. */
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
-  return <div className={showsDesktopSideNav(pathname) ? 'lg:pl-[232px]' : undefined}>{children}</div>;
+  // --nav-w: how far fixed side panes (Messages' chat list) start from the left edge.
+  return <div className={showsDesktopSideNav(pathname) ? 'lg:pl-[232px] lg:[--nav-w:232px]' : undefined}>{children}</div>;
 }

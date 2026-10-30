@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Пусни стрийм и търгувай пред всички.",
     "watching": "{count} гледат",
     "join": "Влез",
-    "seeAll": "Виж всички"
+    "seeAll": "Виж всички",
+    "chatTab": "Чат",
+    "tradesTab": "Сделки",
+    "buyCoin": "Купи {symbol}",
+    "buyAmount": "Купи за {amount}",
+    "gas": "Такса за мрежата",
+    "gasFree": "Безплатно",
+    "openCoin": "Отвори монетата"
   },
   "snipe": {
     "bought": "Купено",

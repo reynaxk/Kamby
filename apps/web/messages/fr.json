@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Lance un live et trade devant tout le monde.",
     "watching": "{count} spectateurs",
     "join": "Rejoindre",
-    "seeAll": "Tout voir"
+    "seeAll": "Tout voir",
+    "chatTab": "Chat",
+    "tradesTab": "Trades",
+    "buyCoin": "Acheter {symbol}",
+    "buyAmount": "Acheter {amount}",
+    "gas": "Gas réseau",
+    "gasFree": "Gratuit",
+    "openCoin": "Ouvrir le coin"
   },
   "snipe": {
     "bought": "Acheté",

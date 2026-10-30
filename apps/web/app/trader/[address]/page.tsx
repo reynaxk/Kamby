@@ -71,13 +71,13 @@ export default async function TraderProfilePage({ params }: { params: { address:
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader className="max-md:hidden" />
       <AppBackBar fallback="/leaderboard" />
-      <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-0">
-        <BackPill href="/terminal" className="max-md:hidden" />
+      <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-0 lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-x-6">
+        <BackPill href="/terminal" className="max-md:hidden lg:hidden" />
 
         {/* The trader's card (2026-10-15): the midnight PnL-card look — who, follow, and the
             realized PnL big in its own colour, with the faint neon K behind. */}
         <section
-          className="relative mt-4 overflow-hidden rounded-3xl border border-white/[0.07] p-5 max-md:mt-1 md:p-7"
+          className="relative mt-4 overflow-hidden rounded-3xl border border-white/[0.07] p-5 max-md:mt-1 md:p-7 lg:col-start-1 lg:row-start-1"
           style={{ background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#020203 100%)' }}
         >
           <svg className="pointer-events-none absolute -right-10 -top-10 h-[220px] w-[220px] md:h-[300px] md:w-[300px]" viewBox="0 0 512 512" aria-hidden="true">
@@ -128,6 +128,8 @@ export default async function TraderProfilePage({ params }: { params: { address:
           </p>
         </section>
 
+        {/* Desktop (2026-10-30 redesign): PnL, track record, more stats and coins in a column on the right. */}
+        <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mt-4">
         {realizedPnl && (
           <section className="mt-8">
             <h2 className="font-display text-base font-bold text-ink-900">{tU('realizedPnl_4c8e')}</h2>
@@ -198,7 +200,9 @@ export default async function TraderProfilePage({ params }: { params: { address:
           </section>
         )}
 
-        <section className="mt-8">
+        </aside>
+
+        <section className="mt-8 lg:col-start-1 lg:row-start-2">
           <h2 className="mb-3 font-display text-base font-bold text-ink-900">{tU('recentActivity_f7ce')}</h2>
           {/* Their Kamby trades first — most never show in the indexed pools' swaps below. */}
           {kambyTrades.length > 0 ? (

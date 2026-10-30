@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "ライブ配信して、みんなの前でトレードしよう。",
     "watching": "{count}人が視聴中",
     "join": "参加",
-    "seeAll": "すべて"
+    "seeAll": "すべて",
+    "chatTab": "チャット",
+    "tradesTab": "取引",
+    "buyCoin": "{symbol}を買う",
+    "buyAmount": "{amount}分買う",
+    "gas": "ネットワーク手数料",
+    "gasFree": "無料",
+    "openCoin": "コインを開く"
   },
   "snipe": {
     "bought": "購入",

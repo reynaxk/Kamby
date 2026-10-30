@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Entre ao vivo e negocie com todos assistindo.",
     "watching": "{count} assistindo",
     "join": "Entrar",
-    "seeAll": "Ver tudo"
+    "seeAll": "Ver tudo",
+    "chatTab": "Chat",
+    "tradesTab": "Trades",
+    "buyCoin": "Comprar {symbol}",
+    "buyAmount": "Comprar {amount}",
+    "gas": "Gas da rede",
+    "gasFree": "Grátis",
+    "openCoin": "Abrir moeda"
   },
   "snipe": {
     "bought": "Comprado",

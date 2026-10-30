@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Canlı yayına geç, herkes izlerken işlem yap.",
     "watching": "{count} izliyor",
     "join": "Katıl",
-    "seeAll": "Tümü"
+    "seeAll": "Tümü",
+    "chatTab": "Sohbet",
+    "tradesTab": "İşlemler",
+    "buyCoin": "{symbol} al",
+    "buyAmount": "{amount} al",
+    "gas": "Ağ ücreti",
+    "gasFree": "Ücretsiz",
+    "openCoin": "Coini aç"
   },
   "snipe": {
     "bought": "Alındı",

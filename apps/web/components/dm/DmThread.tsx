@@ -387,10 +387,10 @@ export function DmThread({ id }: { id: string }) {
   const typingName = typing ? (isGroup ? `@${memberBy.get(typing)?.username ?? '…'}` : name) : null;
 
   return (
-    <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:600px] xl:[--dm-left:640px]')}>
+    <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:calc(var(--nav-w,0px)+600px)] xl:[--dm-left:calc(var(--nav-w,0px)+640px)]')}>
       {/* Desktop: the community's channels stay open on the left (Discord) */}
       {community && conv && (
-        <aside className="fixed bottom-[var(--ticker-h)] top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#050609]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
+        <aside className="fixed bottom-[var(--ticker-h)] top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#050609]/80 px-3 pb-6 pt-4 [left:calc(var(--nav-w,0px)+340px)] lg:block xl:[left:calc(var(--nav-w,0px)+380px)]">
           <CommunityPanel
             tall
             onClose={() => undefined}

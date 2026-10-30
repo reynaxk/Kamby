@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "เริ่มไลฟ์แล้วเทรดต่อหน้าทุกคน",
     "watching": "{count} คนกำลังดู",
     "join": "เข้าร่วม",
-    "seeAll": "ดูทั้งหมด"
+    "seeAll": "ดูทั้งหมด",
+    "chatTab": "แชท",
+    "tradesTab": "เทรด",
+    "buyCoin": "ซื้อ {symbol}",
+    "buyAmount": "ซื้อ {amount}",
+    "gas": "ค่าแก๊สเครือข่าย",
+    "gasFree": "ฟรี",
+    "openCoin": "เปิดเหรียญ"
   },
   "snipe": {
     "bought": "ซื้อแล้ว",

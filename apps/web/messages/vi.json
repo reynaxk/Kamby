@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Phát trực tiếp và giao dịch trước mọi người.",
     "watching": "{count} đang xem",
     "join": "Tham gia",
-    "seeAll": "Xem tất cả"
+    "seeAll": "Xem tất cả",
+    "chatTab": "Chat",
+    "tradesTab": "Giao dịch",
+    "buyCoin": "Mua {symbol}",
+    "buyAmount": "Mua {amount}",
+    "gas": "Phí gas mạng",
+    "gasFree": "Miễn phí",
+    "openCoin": "Mở coin"
   },
   "snipe": {
     "bought": "Đã mua",

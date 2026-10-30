@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "开播，在大家面前交易。",
     "watching": "{count} 人在看",
     "join": "进入",
-    "seeAll": "查看全部"
+    "seeAll": "查看全部",
+    "chatTab": "聊天",
+    "tradesTab": "交易",
+    "buyCoin": "买入 {symbol}",
+    "buyAmount": "买入 {amount}",
+    "gas": "网络 Gas",
+    "gasFree": "免费",
+    "openCoin": "打开代币"
   },
   "snipe": {
     "bought": "已买入",

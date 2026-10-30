@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Запусти эфир и торгуй у всех на виду.",
     "watching": "{count} смотрят",
     "join": "Смотреть",
-    "seeAll": "Все"
+    "seeAll": "Все",
+    "chatTab": "Чат",
+    "tradesTab": "Сделки",
+    "buyCoin": "Купить {symbol}",
+    "buyAmount": "Купить на {amount}",
+    "gas": "Газ сети",
+    "gasFree": "Бесплатно",
+    "openCoin": "Открыть монету"
   },
   "snipe": {
     "bought": "Куплено",

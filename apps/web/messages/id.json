@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Mulai live dan trading di depan semua orang.",
     "watching": "{count} menonton",
     "join": "Gabung",
-    "seeAll": "Lihat semua"
+    "seeAll": "Lihat semua",
+    "chatTab": "Chat",
+    "tradesTab": "Trade",
+    "buyCoin": "Beli {symbol}",
+    "buyAmount": "Beli {amount}",
+    "gas": "Gas jaringan",
+    "gasFree": "Gratis",
+    "openCoin": "Buka koin"
   },
   "snipe": {
     "bought": "Dibeli",

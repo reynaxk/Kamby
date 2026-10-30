@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Sal en vivo y opera con todos mirando.",
     "watching": "{count} viendo",
     "join": "Entrar",
-    "seeAll": "Ver todo"
+    "seeAll": "Ver todo",
+    "chatTab": "Chat",
+    "tradesTab": "Trades",
+    "buyCoin": "Comprar {symbol}",
+    "buyAmount": "Comprar {amount}",
+    "gas": "Gas de red",
+    "gasFree": "Gratis",
+    "openCoin": "Abrir moneda"
   },
   "snipe": {
     "bought": "Comprado",

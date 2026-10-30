@@ -1131,7 +1131,14 @@
     "nobodyLiveHint": "Go live and trade with everyone watching.",
     "watching": "{count} watching",
     "join": "Join",
-    "seeAll": "See all"
+    "seeAll": "See all",
+    "chatTab": "Chat",
+    "tradesTab": "Trades",
+    "buyCoin": "Buy {symbol}",
+    "buyAmount": "Buy {amount}",
+    "gas": "Network gas",
+    "gasFree": "Free",
+    "openCoin": "Open coin"
   },
   "snipe": {
     "bought": "Bought",

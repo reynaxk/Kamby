@@ -19,6 +19,8 @@ import { cashtag } from '@/lib/format';
 import { DmAvatar } from '@/components/dm/DmAvatar';
 import { takePendingHost } from './pending-host';
 import { compactUsd, LiveDuelSheet, LivePositions, LiveTipSheet, useHostPerps } from './LiveWidgets';
+import { LiveCoinPanel } from './LiveCoinPanel';
+import { useMediaQuery } from '@/lib/use-media';
 
 function Media({ track, kind, className }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string }) {
   const ref = useRef<HTMLVideoElement & HTMLAudioElement>(null);
@@ -70,6 +72,9 @@ export function LiveRoomScreen({ id }: { id: string }) {
   const [reported, setReported] = useState(false);
   const [sheet, setSheet] = useState<'duel' | 'tip' | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
+  // Desktop (2026-10-30 redesign): the chat column has Chat / Trades tabs, the coin sits under the stage.
+  const [tab, setTab] = useState<'chat' | 'trades'>('chat');
+  const desktop = useMediaQuery('(min-width: 1024px)');
   const listRef = useRef<HTMLDivElement>(null);
   const elapsed = useElapsed(room?.startedAt);
 
@@ -232,6 +237,8 @@ export function LiveRoomScreen({ id }: { id: string }) {
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_26rem_at_50%_0%,rgba(255,59,105,0.12),transparent_60%),radial-gradient(36rem_24rem_at_100%_100%,rgba(72,88,255,0.14),transparent_62%)]" />
       {voice && <Media track={voice} kind="audio" />}
 
+      <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="relative flex min-h-0 flex-[1.15] flex-col lg:flex-1 lg:overflow-y-auto lg:px-3 lg:pb-4">
       {/* Top bar */}
       <header className="relative z-10 flex items-center gap-2.5 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.6rem)]">
         <button type="button" aria-label={t('back')} onClick={() => (window.history.length > 1 ? router.back() : router.push('/home'))} className="flex h-10 w-10 items-center justify-center rounded-full text-white/80 active:bg-white/10">
@@ -257,7 +264,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
       </header>
 
       {/* Stage */}
-      <div className="relative z-0 mx-3 min-h-0 flex-[1.15] overflow-hidden rounded-3xl border border-white/10 bg-black/60">
+      <div className="relative z-0 mx-3 min-h-0 flex-1 overflow-hidden rounded-3xl border border-white/10 bg-black/60 lg:aspect-video lg:max-h-[52vh] lg:flex-none">
         {screen ? (
           <>
             <Media track={screen} kind="video" />
@@ -317,10 +324,35 @@ export function LiveRoomScreen({ id }: { id: string }) {
         </div>
       )}
 
+      {/* Desktop: the coin's chart and a buy box under the stage */}
+      {desktop && room?.coin && (
+        <div className="relative z-10 mx-3 mt-3">
+          <LiveCoinPanel coin={room.coin} />
+        </div>
+      )}
+      </div>
+
+      <aside className="relative flex min-h-0 flex-1 flex-col lg:w-[360px] lg:flex-none lg:border-l lg:border-white/10 lg:bg-[#040507]">
+      {desktop && (
+        <div role="tablist" className="flex border-b border-white/10 px-2">
+          {(['chat', 'trades'] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={tab === k}
+              onClick={() => setTab(k)}
+              className={cn('h-12 flex-1 font-display text-sm font-bold', tab === k ? 'text-white shadow-[inset_0_-2px_0_rgb(var(--kamby-accent))]' : 'text-white/50')}
+            >
+              {k === 'chat' ? t('chatTab') : t('tradesTab')}
+            </button>
+          ))}
+        </div>
+      )}
       {/* Chat */}
-      <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)]">
+      <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)] lg:[mask-image:none]">
         <div className="flex min-h-full flex-col justify-end gap-1 py-2">
-          {lines.slice(-LIVE_LIMITS.chatKeep).map((l) =>
+          {lines.slice(-LIVE_LIMITS.chatKeep).filter((l) => !desktop || tab === 'chat' || l.kind).map((l) =>
             l.kind ? (
               // Not typed by anyone: a trade (🔥) or a tip (💸), from Kamby itself.
               <p
@@ -400,6 +432,8 @@ export function LiveRoomScreen({ id }: { id: string }) {
             </button>
           </>
         )}
+      </div>
+      </aside>
       </div>
       {room && !isHost && (
         <>

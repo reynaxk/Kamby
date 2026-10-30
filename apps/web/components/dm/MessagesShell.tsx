@@ -30,19 +30,20 @@ export function MessagesShell({ children, home = null }: { children: React.React
   if (wide === null) return <div className="kamby-void min-h-screen bg-bg" />;
   if (!wide) return <div className="kamby-void min-h-screen bg-bg">{home ?? children}</div>;
   return (
-    <div className="kamby-void min-h-screen bg-bg [--dm-left:340px] xl:[--dm-left:380px]">
-      <aside className="fixed bottom-[var(--ticker-h)] left-0 top-0 z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#020203]/70 xl:w-[380px]">
+    <div className="kamby-void min-h-screen bg-bg [--dm-left:calc(var(--nav-w,0px)+340px)] xl:[--dm-left:calc(var(--nav-w,0px)+380px)]">
+      <aside className="fixed bottom-[var(--ticker-h)] left-[var(--nav-w,0px)] top-0 z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#020203]/70 xl:w-[380px]">
         <div className="flex items-center justify-between px-5 pb-2 pt-5">
-          <Link href="/home" className="flex items-center gap-2" aria-label="Kamby">
+          {/* From lg up the logo is in the left menu (DesktopSideNav) — the pane just says Messages. */}
+          <Link href="/home" className="flex items-center gap-2 lg:hidden" aria-label="Kamby">
             <KambyLogo size="sm" />
           </Link>
-          <span className="font-display text-sm font-bold text-ink-400">{t('title')}</span>
+          <span className="font-display text-sm font-bold text-ink-400 lg:text-xl lg:font-extrabold lg:text-ink-900">{t('title')}</span>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 [scrollbar-width:thin]">
           <DmInbox />
         </div>
       </aside>
-      <div className="pl-[var(--dm-left)]">{home ? <EmptyPane /> : children}</div>
+      <div className="pl-[340px] xl:pl-[380px]">{home ? <EmptyPane /> : children}</div>
     </div>
   );
 }
