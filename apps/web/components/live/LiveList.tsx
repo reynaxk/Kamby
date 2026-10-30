@@ -125,7 +125,7 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="-mx-4 flex flex-1 gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
+        <div className="-mx-4 flex flex-1 gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] max-md:basis-full md:mx-0 md:px-0">
           {cats
             .filter((c) => c === 'all' || counts[c] > 0 || cat === c)
             .map((c) => (
