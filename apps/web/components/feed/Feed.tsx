@@ -16,6 +16,7 @@ import {
   deleteFeedPost,
   fetchFeed,
   fetchFeedReplies,
+  FEED_ENABLED,
   likeFeedPost,
   replyToFeedPost,
   reportFeedPost,
@@ -41,6 +42,7 @@ export function Feed({ address, composer = true, title }: { address?: string; co
 
   const load = useCallback(
     (which: FeedTab) => {
+      if (!FEED_ENABLED) return setItems([]);
       setItems(null);
       setError(null);
       fetchFeed(which, null, address)
@@ -71,6 +73,7 @@ export function Feed({ address, composer = true, title }: { address?: string; co
     }
   }
 
+  if (!FEED_ENABLED && !address) return <p className="rounded-2xl border border-line bg-surface px-6 py-10 text-center font-body text-sm text-ink-600">{t('soon')}</p>;
   // A trader's profile: no section at all until they have posts (or when the feed can't load).
   if (address && (!items || items.length === 0)) return null;
 

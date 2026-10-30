@@ -1148,7 +1148,10 @@
     "buyAmount": "Für {amount} kaufen",
     "gas": "Netzwerk-Gas",
     "gasFree": "Gratis",
-    "openCoin": "Coin öffnen"
+    "openCoin": "Coin öffnen",
+    "prevLive": "Vorheriger Stream",
+    "nextLive": "Nächster Stream",
+    "swipeNext": "Weiter: {name}"
   },
   "snipe": {
     "bought": "Gekauft",
@@ -1474,6 +1477,7 @@
     "delete": "Löschen",
     "replyPlaceholder": "Antwort schreiben",
     "reply": "Antworten",
-    "needUsername": "Wähle einen Nutzernamen im Profil, um zu posten."
+    "needUsername": "Wähle einen Nutzernamen im Profil, um zu posten.",
+    "soon": "Der Feed startet sehr bald."
   }
 }

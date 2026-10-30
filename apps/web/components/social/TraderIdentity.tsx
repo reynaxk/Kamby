@@ -1,6 +1,6 @@
 import { cn } from '@kamby/ui';
 import { truncateAddress } from '@/lib/format';
-import { AVATAR_GRADIENTS } from '@/components/dm/DmAvatar';
+import { KambyPfp } from '@/components/social/KambyPfp';
 import { SafeImg } from '@/components/social/SafeImg';
 
 /**
@@ -21,9 +21,6 @@ export function TraderIdentity({
   size?: 'sm' | 'md' | 'lg';
 }) {
   const label = displayName ?? truncateAddress(address);
-  const initials = Array.from(displayName ?? address.slice(2)).slice(0, 2).join('').toUpperCase();
-  // Same gradient initials as everywhere else in Kamby (chats, stories) — not a grey disc (2026-10-18).
-  const seed = Array.from(displayName ?? address).reduce((n, c) => n + c.charCodeAt(0), 0);
   const dims = size === 'lg' ? 'h-11 w-11 text-base' : size === 'sm' ? 'h-7 w-7 text-[0.65rem]' : 'h-9 w-9 text-xs';
 
   return (
@@ -31,18 +28,7 @@ export function TraderIdentity({
       <SafeImg
         src={avatarUrl}
         className={cn('shrink-0 rounded-full object-cover', dims)}
-        fallback={
-          <div
-            aria-hidden
-            className={cn(
-              'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-display font-black text-black',
-              AVATAR_GRADIENTS[seed % AVATAR_GRADIENTS.length],
-              dims,
-            )}
-          >
-            {initials}
-          </div>
-        }
+        fallback={<KambyPfp seedKey={displayName ?? address} className={dims} />}
       />
       <div className="min-w-0">
         <div className="truncate font-display text-sm font-semibold text-ink-900">{label}</div>

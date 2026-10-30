@@ -26,17 +26,17 @@ describe('TraderIdentity', () => {
     expect(screen.getAllByText('0x1234…7890')).toHaveLength(1);
   });
 
-  it('computes initials from the displayName when one exists, not the address', () => {
-    render(<TraderIdentity address={ADDRESS} displayName="whale1" avatarUrl={null} />);
-    expect(screen.getByText('WH')).toBeInTheDocument();
+  it('shows the Kamby K as the default picture when there is none (2026-10-30)', () => {
+    const { container } = render(<TraderIdentity address={ADDRESS} displayName="whale1" avatarUrl={null} />);
+    expect(container.querySelectorAll('svg path')).toHaveLength(3);
+    expect(container.querySelector('img')).not.toBeInTheDocument();
   });
 
-  it('computes initials from the address (after stripping the 0x prefix) when there is no displayName', () => {
-    // Without stripping "0x" first, every wallet with no displayName would show the same
-    // "0X" initials regardless of its real address — the first 2 real hex characters are
-    // what should show instead.
-    render(<TraderIdentity address={ADDRESS} displayName={null} avatarUrl={null} />);
-    expect(screen.getByText('12')).toBeInTheDocument();
+  it('gives the same person the same colour every time', () => {
+    const a = render(<TraderIdentity address={ADDRESS} displayName={null} avatarUrl={null} />).container.querySelector('g')?.getAttribute('stroke');
+    const b = render(<TraderIdentity address={ADDRESS} displayName={null} avatarUrl={null} />).container.querySelector('g')?.getAttribute('stroke');
+    expect(a).toBeTruthy();
+    expect(a).toBe(b);
   });
 
   it('renders a real avatar image, not initials, when avatarUrl is present', () => {
@@ -44,7 +44,7 @@ describe('TraderIdentity', () => {
       <TraderIdentity address={ADDRESS} displayName="whale1" avatarUrl="https://example.com/a.png" />,
     );
     expect(container.querySelector('img')).toHaveAttribute('src', 'https://example.com/a.png');
-    expect(screen.queryByText('WH')).not.toBeInTheDocument();
+    expect(container.querySelector('g')).not.toBeInTheDocument();
   });
 
   it('applies the correct dimension classes for each size, defaulting to md', () => {

@@ -5,6 +5,7 @@ import { formatCompactUsd, formatRelativeTime } from '@/lib/format';
 import { useTranslations } from 'next-intl';
 import { notificationCopy, notificationKindLabel } from './notificationCopy';
 import { SafeImg } from '@/components/social/SafeImg';
+import { KambyPfp } from '@/components/social/KambyPfp';
 
 const KIND_COLOR: Record<NotificationDto['type'], string> = {
   FOLLOW: 'text-accent',
@@ -149,7 +150,7 @@ function Avatar({ notification }: { notification: NotificationDto }) {
       <SafeImg
         src={picture}
         className="h-10 w-10 rounded-full object-cover"
-        fallback={<span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent">{initials}</span>}
+        fallback={notification.actor ? <KambyPfp seedKey={notification.actor.displayName ?? notification.actor.address ?? '?'} className="h-10 w-10" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-raised font-display text-xs font-bold text-accent">{initials}</span>}
       />
       <span className={cn('absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border bg-bg', kind.tile)}>
         <KindIcon type={notification.type} size={11} />

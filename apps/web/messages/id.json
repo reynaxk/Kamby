@@ -1148,7 +1148,10 @@
     "buyAmount": "Beli {amount}",
     "gas": "Gas jaringan",
     "gasFree": "Gratis",
-    "openCoin": "Buka koin"
+    "openCoin": "Buka koin",
+    "prevLive": "Live sebelumnya",
+    "nextLive": "Live berikutnya",
+    "swipeNext": "Berikutnya: {name}"
   },
   "snipe": {
     "bought": "Dibeli",
@@ -1474,6 +1477,7 @@
     "delete": "Hapus",
     "replyPlaceholder": "Tulis balasan",
     "reply": "Balas",
-    "needUsername": "Pilih username di profil untuk posting."
+    "needUsername": "Pilih username di profil untuk posting.",
+    "soon": "Feed segera dibuka."
   }
 }

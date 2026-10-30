@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { LeaderboardEntry } from '@kamby/domain';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { DmAvatar } from '@/components/dm/DmAvatar';
 import { formatSignedCompactUsd } from '@/lib/format';
 import { fetchLeaderboard } from '@/lib/social-client';
 
@@ -39,7 +40,7 @@ export function TopTradersStrip() {
             className="w-40 shrink-0 snap-start rounded-2xl border border-line bg-surface p-3 transition-colors active:bg-surface-raised"
           >
             <div className="flex items-center gap-2">
-              <TokenAvatar src={entry.avatarUrl} seed={entry.walletAddress} label={entry.username ?? entry.walletAddress} className="h-7 w-7 text-xs" />
+              <DmAvatar name={entry.username ?? entry.walletAddress} src={entry.avatarUrl} className="h-7 w-7" />
               <span className="truncate font-display text-sm font-semibold text-ink-900">
                 {entry.username ?? `${entry.walletAddress.slice(0, 4)}…${entry.walletAddress.slice(-4)}`}
               </span>

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
 import { useDmUnread } from '@/lib/dm-client';
 import { KambyLogo } from './KambyLogo';
+import { FEED_ENABLED } from '@/lib/feed-client';
 
 type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread' };
 
@@ -30,7 +31,7 @@ export function DesktopSideNav() {
 
   const items: Item[] = [
     { href: '/home', label: t('home'), match: ['/home'], icon: <path d="M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5" /> },
-    { href: '/feed', label: t('feed'), match: ['/feed'], icon: <path d="M4 6h16M4 12h16M4 18h10" /> },
+    ...(FEED_ENABLED ? [{ href: '/feed', label: t('feed'), match: ['/feed'], icon: <path d="M4 6h16M4 12h16M4 18h10" /> }] : []),
     { href: '/terminal', label: t('trade'), match: ['/terminal', '/market', '/solana', '/search'], icon: <><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></> },
     { href: '/live', label: t('live'), match: ['/live'], icon: <><rect x="2" y="6" width="14" height="12" rx="2" /><path d="m16 10 6-3v10l-6-3" /></> },
     { href: '/messages', label: tDm('title'), match: ['/messages'], badge: 'unread', icon: <path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z" /> },

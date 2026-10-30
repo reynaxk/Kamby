@@ -1148,7 +1148,10 @@
     "buyAmount": "买入 {amount}",
     "gas": "网络 Gas",
     "gasFree": "免费",
-    "openCoin": "打开代币"
+    "openCoin": "打开代币",
+    "prevLive": "上一个直播",
+    "nextLive": "下一个直播",
+    "swipeNext": "下一个：{name}"
   },
   "snipe": {
     "bought": "已买入",
@@ -1474,6 +1477,7 @@
     "delete": "删除",
     "replyPlaceholder": "写回复",
     "reply": "回复",
-    "needUsername": "在个人资料里设置用户名后才能发帖。"
+    "needUsername": "在个人资料里设置用户名后才能发帖。",
+    "soon": "动态即将开放。"
   }
 }

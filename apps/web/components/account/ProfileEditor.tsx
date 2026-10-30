@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/market/Skeleton';
 import { fetchMyProfile, updateUsername, uploadAvatar, type MyProfile } from '@/lib/profile-client';
 import { PROFILE_UPDATED_EVENT } from './ProfileMenu';
 import { SafeImg } from '@/components/social/SafeImg';
+import { KambyPfp } from '@/components/social/KambyPfp';
 import { useStoredSession } from '@/hooks/useStoredSession';
 import { useTranslations } from 'next-intl';
 
@@ -117,31 +118,16 @@ export function ProfileEditor() {
     return <EmptyState title={tU('couldnTLoadYourProfile_82ca')} detail="Try again in a moment." />;
   }
 
-  // One card, like Settings above it (2026-10-18 audit: the editor sat loose on the page with a
-  // grey "?" for an avatar). A coin-style gradient stands in until a picture is uploaded.
-  const seed = (address ?? profile.username ?? 'kamby').toLowerCase();
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  const hue = Math.abs(hash) % 360;
-  const initials = profile.username ? Array.from(profile.username).slice(0, 2).join('').toUpperCase() : address ? address.slice(2, 4).toUpperCase() : 'K';
+  // One card, like Settings above it (2026-10-18 audit). Until a picture is uploaded: Kamby's default
+  // pfp, the K in your colour (2026-10-30, owner).
+  const seed = address ?? profile.username ?? 'kamby';
   return (
     <section className="rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-center gap-4">
         <SafeImg
           src={profile.avatarUrl}
           className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-white/10"
-          fallback={
-          <div
-            aria-hidden
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full font-display text-xl font-bold text-white"
-            style={{
-              background: `linear-gradient(135deg, hsl(${hue} 85% 55%), hsl(${(hue + 55) % 360} 80% 38%))`,
-              boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)',
-            }}
-          >
-            {initials}
-          </div>
-          }
+          fallback={<KambyPfp seedKey={seed} className="h-16 w-16" />}
         />
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-sm font-bold text-ink-900">{tU('profilePicture_6381')}</h2>

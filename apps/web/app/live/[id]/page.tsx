@@ -11,7 +11,8 @@ export default function LivePage({ params }: { params: { id: string } }) {
   if (!UUID.test(params.id)) notFound();
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <LiveRoomScreen id={params.id} />
+      {/* key: a swipe to another stream starts that room fresh (its own call, chat and state). */}
+      <LiveRoomScreen key={params.id} id={params.id} />
     </div>
   );
 }

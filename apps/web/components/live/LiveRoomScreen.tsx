@@ -20,6 +20,7 @@ import { DmAvatar } from '@/components/dm/DmAvatar';
 import { takePendingHost } from './pending-host';
 import { compactUsd, LiveDuelSheet, LivePositions, LiveTipSheet, useHostPerps } from './LiveWidgets';
 import { LiveCoinPanel, useCoinPrice } from './LiveCoinPanel';
+import { useLiveSwipe } from './useLiveSwipe';
 import { useMediaQuery } from '@/lib/use-media';
 
 function Media({ track, kind, className }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string }) {
@@ -132,6 +133,8 @@ export function LiveRoomScreen({ id }: { id: string }) {
 
   // Viewer: once signed in, and when not the host.
   const isHost = Boolean(host) || Boolean(room && username && room.host.username === username);
+  // Swipe / ↑↓ between streams (2026-10-30) — viewers only.
+  const swipe = useLiveSwipe(id, !isHost);
   useEffect(() => {
     if (!ready || !authenticated || isHost || !room || viewer || ended) return;
     let engine: LiveViewerEngine | null = null;
@@ -266,7 +269,23 @@ export function LiveRoomScreen({ id }: { id: string }) {
       </header>
 
       {/* Stage */}
-      <div className="relative z-0 mx-3 min-h-0 flex-1 overflow-hidden rounded-3xl border border-white/10 bg-black/60 lg:aspect-video lg:max-h-[52vh] lg:flex-none">
+      <div {...swipe.handlers} className="relative z-0 mx-3 min-h-0 flex-1 touch-pan-x overflow-hidden rounded-3xl border border-white/10 bg-black/60 lg:aspect-video lg:max-h-[52vh] lg:flex-none">
+        {/* Next / previous stream: a hint on phones, buttons on a computer */}
+        {(swipe.next || swipe.prev) && (
+          <div className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 flex-col gap-2 lg:flex">
+            <button type="button" disabled={!swipe.prev} onClick={swipe.goPrev} aria-label={t('prevLive')} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white ring-1 ring-white/15 disabled:opacity-30">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m18 15-6-6-6 6" /></svg>
+            </button>
+            <button type="button" disabled={!swipe.next} onClick={swipe.goNext} aria-label={t('nextLive')} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white ring-1 ring-white/15 disabled:opacity-30">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+          </div>
+        )}
+        {swipe.next && (
+          <span className="pointer-events-none absolute bottom-3 right-3 z-10 rounded-full bg-black/70 px-2.5 py-1 font-display text-[0.65rem] font-bold text-white/80 lg:hidden">
+            ↑ {t('swipeNext', { name: swipe.next.host.username })}
+          </span>
+        )}
         {screen ? (
           <>
             <Media track={screen} kind="video" />

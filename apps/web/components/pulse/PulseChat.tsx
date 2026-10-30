@@ -8,6 +8,7 @@ import { ArrowUp } from 'lucide-react';
 import { containsLink, PULSE_LIMITS, type PulseMessage } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { DmAvatar } from '@/components/dm/DmAvatar';
 import { ChatUsernameSetup } from '@/components/chat/ChatUsernameSetup';
 import { fetchPulse, postPulse, PULSE_STREAM_URL } from '@/lib/pulse-client';
 import { openResilientEventSource } from '@/lib/resilient-event-source';
@@ -173,7 +174,7 @@ export function PulseChat({ className }: { className?: string }) {
             {messages.map((m) => {
               const name = m.author.username ? `@${m.author.username}` : t('trader');
               const avatar = (
-                <TokenAvatar src={m.author.avatarUrl} seed={m.author.address ?? m.id} label={m.author.username ?? 'K'} className="h-8 w-8 shrink-0 text-xs" />
+                <DmAvatar name={m.author.username ?? m.author.address} src={m.author.avatarUrl} className="h-8 w-8 shrink-0" />
               );
               return (
                 <li key={m.id} className="flex items-start gap-2.5">

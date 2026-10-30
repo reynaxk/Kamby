@@ -1148,7 +1148,10 @@
     "buyAmount": "{amount} 매수",
     "gas": "네트워크 가스",
     "gasFree": "무료",
-    "openCoin": "코인 열기"
+    "openCoin": "코인 열기",
+    "prevLive": "이전 라이브",
+    "nextLive": "다음 라이브",
+    "swipeNext": "다음: {name}"
   },
   "snipe": {
     "bought": "매수",
@@ -1474,6 +1477,7 @@
     "delete": "삭제",
     "replyPlaceholder": "답글 쓰기",
     "reply": "답글",
-    "needUsername": "게시하려면 프로필에서 사용자 이름을 정하세요."
+    "needUsername": "게시하려면 프로필에서 사용자 이름을 정하세요.",
+    "soon": "피드가 곧 열려요."
   }
 }

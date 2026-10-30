@@ -41,6 +41,7 @@ import { TradeModal } from '../trading/TradeModal';
 import { ModalHeader, WithdrawGlyph } from './ModalHeader';
 import { authedFetch } from '@/lib/session-client';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
+import { DmAvatar } from '@/components/dm/DmAvatar';
 import { MoveNote } from '../trading/CrossChainMove';
 import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 import type { BridgeChain } from '@/lib/bridge-client';
@@ -620,7 +621,7 @@ export function SendModal({
                   </span>
                   {recipient ? (
                     <div className="mt-2 flex items-center gap-2.5 rounded-xl bg-accent/10 px-3 py-2">
-                      <TokenAvatar src={recipient.avatarUrl} seed={recipient.evmAddress ?? recipient.username} label={recipient.username} className="h-8 w-8 shrink-0 text-xs" />
+                      <DmAvatar name={recipient.username} src={recipient.avatarUrl} className="h-8 w-8 shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-display text-sm font-bold text-ink-900">@{recipient.username}</span>
                         <span className="block truncate font-mono text-[0.65rem] text-ink-400">{destination ? `${destination.slice(0, 6)}…${destination.slice(-4)}` : recipient.evmAddress || recipient.solanaAddress ? tL('noWalletOnNetwork', { chain: chain.name }) : tW('recipientNoWallet', { name: recipient.username })}</span>

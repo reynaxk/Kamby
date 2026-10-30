@@ -1148,7 +1148,10 @@
     "buyAmount": "{amount}分買う",
     "gas": "ネットワーク手数料",
     "gasFree": "無料",
-    "openCoin": "コインを開く"
+    "openCoin": "コインを開く",
+    "prevLive": "前の配信",
+    "nextLive": "次の配信",
+    "swipeNext": "次: {name}"
   },
   "snipe": {
     "bought": "購入",
@@ -1474,6 +1477,7 @@
     "delete": "削除",
     "replyPlaceholder": "返信を書く",
     "reply": "返信",
-    "needUsername": "投稿するにはプロフィールでユーザー名を設定してください。"
+    "needUsername": "投稿するにはプロフィールでユーザー名を設定してください。",
+    "soon": "フィードはまもなく公開。"
   }
 }

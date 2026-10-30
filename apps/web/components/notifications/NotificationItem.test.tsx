@@ -30,11 +30,11 @@ describe('NotificationItem', () => {
     expect(screen.queryByRole('button')?.querySelector('.rounded-full.bg-accent')).not.toBeInTheDocument();
   });
 
-  it('renders initials when the actor has no avatar image', () => {
+  it('renders the Kamby default picture when the actor has no avatar image', () => {
     const { container } = render(
       <NotificationItem notification={fakeNotification({ actor: { address: null, displayName: 'trader1', avatarUrl: null } })} onOpen={vi.fn()} />,
     );
-    expect(screen.getByText('TR')).toBeInTheDocument();
+    expect(container.querySelectorAll('svg g path').length).toBeGreaterThanOrEqual(3);
     expect(container.querySelector('img')).not.toBeInTheDocument();
   });
 

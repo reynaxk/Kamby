@@ -1148,7 +1148,10 @@
     "buyAmount": "Mua {amount}",
     "gas": "Phí gas mạng",
     "gasFree": "Miễn phí",
-    "openCoin": "Mở coin"
+    "openCoin": "Mở coin",
+    "prevLive": "Live trước",
+    "nextLive": "Live tiếp",
+    "swipeNext": "Tiếp: {name}"
   },
   "snipe": {
     "bought": "Đã mua",
@@ -1474,6 +1477,7 @@
     "delete": "Xóa",
     "replyPlaceholder": "Viết trả lời",
     "reply": "Trả lời",
-    "needUsername": "Chọn tên người dùng trong hồ sơ để đăng."
+    "needUsername": "Chọn tên người dùng trong hồ sơ để đăng.",
+    "soon": "Bảng tin sắp mở."
   }
 }

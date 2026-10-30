@@ -1148,7 +1148,10 @@
     "buyAmount": "Acheter {amount}",
     "gas": "Gas réseau",
     "gasFree": "Gratuit",
-    "openCoin": "Ouvrir le coin"
+    "openCoin": "Ouvrir le coin",
+    "prevLive": "Live précédent",
+    "nextLive": "Live suivant",
+    "swipeNext": "Suivant : {name}"
   },
   "snipe": {
     "bought": "Acheté",
@@ -1474,6 +1477,7 @@
     "delete": "Supprimer",
     "replyPlaceholder": "Écris une réponse",
     "reply": "Répondre",
-    "needUsername": "Choisis un pseudo dans ton profil pour publier."
+    "needUsername": "Choisis un pseudo dans ton profil pour publier.",
+    "soon": "Le fil ouvre très bientôt."
   }
 }

@@ -1148,7 +1148,10 @@
     "buyAmount": "{amount} al",
     "gas": "Ağ ücreti",
     "gasFree": "Ücretsiz",
-    "openCoin": "Coini aç"
+    "openCoin": "Coini aç",
+    "prevLive": "Önceki yayın",
+    "nextLive": "Sonraki yayın",
+    "swipeNext": "Sıradaki: {name}"
   },
   "snipe": {
     "bought": "Alındı",
@@ -1474,6 +1477,7 @@
     "delete": "Sil",
     "replyPlaceholder": "Yanıt yaz",
     "reply": "Yanıtla",
-    "needUsername": "Paylaşmak için profilinde kullanıcı adı seç."
+    "needUsername": "Paylaşmak için profilinde kullanıcı adı seç.",
+    "soon": "Akış çok yakında açılıyor."
   }
 }
