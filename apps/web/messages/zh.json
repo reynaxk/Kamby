@@ -1483,6 +1483,10 @@
     "needUsername": "在个人资料里设置用户名后才能发帖。",
     "soon": "动态即将开放。",
     "photo": "照片",
-    "checkingPhoto": "正在检查照片…"
+    "checkingPhoto": "正在检查照片…",
+    "video": "视频",
+    "videoTooBig": "视频超过 20 MB。",
+    "videoTooLong": "请控制在 {seconds} 秒内。",
+    "checkingVideo": "正在检查视频…"
   }
 }

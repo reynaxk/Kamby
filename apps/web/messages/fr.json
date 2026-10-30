@@ -1483,6 +1483,10 @@
     "needUsername": "Choisis un pseudo dans ton profil pour publier.",
     "soon": "Le fil ouvre très bientôt.",
     "photo": "Photo",
-    "checkingPhoto": "Vérification de la photo…"
+    "checkingPhoto": "Vérification de la photo…",
+    "video": "Vidéo",
+    "videoTooBig": "La vidéo dépasse 20 Mo.",
+    "videoTooLong": "Moins de {seconds} secondes.",
+    "checkingVideo": "Vérification de la vidéo…"
   }
 }

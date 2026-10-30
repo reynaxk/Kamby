@@ -1483,6 +1483,10 @@
     "needUsername": "Pick a username in your profile to post.",
     "soon": "The Feed opens very soon.",
     "photo": "Photo",
-    "checkingPhoto": "Checking the photo…"
+    "checkingPhoto": "Checking the photo…",
+    "video": "Video",
+    "videoTooBig": "That video is over 20 MB.",
+    "videoTooLong": "Keep it under {seconds} seconds.",
+    "checkingVideo": "Checking the video…"
   }
 }

@@ -1483,6 +1483,10 @@
     "needUsername": "게시하려면 프로필에서 사용자 이름을 정하세요.",
     "soon": "피드가 곧 열려요.",
     "photo": "사진",
-    "checkingPhoto": "사진 확인 중…"
+    "checkingPhoto": "사진 확인 중…",
+    "video": "동영상",
+    "videoTooBig": "동영상이 20MB를 넘어요.",
+    "videoTooLong": "{seconds}초 이내로 해주세요.",
+    "checkingVideo": "동영상 확인 중…"
   }
 }

@@ -28,6 +28,19 @@ export function verdict(r: SightengineResult): { ok: boolean; reason: 'nudity' |
   return { ok: true, reason: null };
 }
 
+/** A video's verdict: every sampled frame must pass, the clip must be short, and the answer sane. */
+export function videoVerdict(r: { status?: string; data?: { frames?: (SightengineResult & { info?: { position?: number } })[] } }, maxSeconds: number) {
+  const frames = r.data?.frames;
+  if (r.status !== 'success' || !Array.isArray(frames) || frames.length === 0) return { ok: false, reason: 'error' as const };
+  const last = Math.max(...frames.map((f) => f.info?.position ?? 0));
+  if (last > maxSeconds + 1) return { ok: false, reason: 'long' as const };
+  for (const f of frames) {
+    const v = verdict({ ...f, status: 'success' });
+    if (!v.ok) return v;
+  }
+  return { ok: true, reason: null };
+}
+
 /**
  * Checks a picture with Sightengine before Kamby stores it (2026-10-30). Fails closed: no keys,
  * a timeout or any odd answer means "not allowed". Three models per picture = three operations.
@@ -43,6 +56,29 @@ export class ImageModerationService {
 
   isConfigured(): boolean {
     return Boolean(this.config.get('SIGHTENGINE_USER', { infer: true }) && this.config.get('SIGHTENGINE_SECRET', { infer: true }));
+  }
+
+  /** A short clip, a frame every 3 seconds (Sightengine's synchronous video check, < 1 minute). */
+  async checkVideo(buffer: Buffer, mimetype: string, maxSeconds: number): Promise<{ ok: boolean; reason: string | null }> {
+    const user = this.config.get('SIGHTENGINE_USER', { infer: true });
+    const secret = this.config.get('SIGHTENGINE_SECRET', { infer: true });
+    if (!user || !secret) return { ok: false, reason: 'error' };
+    const form = new FormData();
+    form.set('models', 'nudity-2.1,weapon,gore-2.0');
+    form.set('interval', '3');
+    form.set('api_user', user);
+    form.set('api_secret', secret);
+    form.set('media', new Blob([new Uint8Array(buffer)], { type: mimetype }), 'upload');
+    try {
+      const res = await fetch('https://api.sightengine.com/1.0/video/check-sync.json', { method: 'POST', body: form, signal: AbortSignal.timeout(60_000) });
+      const body = (await res.json()) as { status?: string; error?: { message?: string }; data?: { frames?: (SightengineResult & { info?: { position?: number } })[] } };
+      const v = videoVerdict(body, maxSeconds);
+      if (!v.ok) this.logger.info({ reason: v.reason, status: body.status, error: body.error?.message }, 'Video refused by moderation');
+      return v;
+    } catch (error) {
+      this.logger.warn({ err: error }, 'Sightengine video check failed — video refused');
+      return { ok: false, reason: 'error' };
+    }
   }
 
   async check(buffer: Buffer, mimetype: string): Promise<{ ok: boolean; reason: 'nudity' | 'gore' | 'weapon' | 'error' | null }> {

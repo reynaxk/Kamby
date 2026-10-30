@@ -33,6 +33,13 @@ export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 /** A Feed photo is shown big — 5MB (phones send 2–4MB JPEGs). */
 export const MAX_FEED_PHOTO_BYTES = 5 * 1024 * 1024;
 
+/** Feed videos: what phones and browsers record. */
+const VIDEO_MIME_TYPES: Record<string, string> = {
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
+  'video/quicktime': 'mov',
+};
+
 /** Voice notes: what browsers record (WebM/Opus on Chrome & Android, MP4/AAC on iPhone). */
 const VOICE_MIME_TYPES: Record<string, string> = {
   'audio/webm': 'webm',
@@ -159,6 +166,37 @@ export class R2StorageService {
    *  is ever read here — never any other key in the bucket (voice notes live there too). */
   async getAvatar(userId: string, file: string): Promise<{ body: Uint8Array; contentType: string }> {
     return this.getPicture('avatars', userId, file);
+  }
+
+  /** A Feed video (2026-10-30), stored only after moderation passed. */
+  async uploadFeedVideo(userId: string, file: UploadableFile, apiOrigin: string): Promise<string> {
+    const ext = VIDEO_MIME_TYPES[file.mimetype.split(';')[0]!.trim()];
+    if (!ext) throw new BadRequestException('Only MP4, WebM or MOV videos.');
+    const bucket = this.voiceBucket();
+    if (!bucket) throw this.notConfiguredError();
+    const name = `${randomUUID()}.${ext}`;
+    await this.getClient().send(
+      new PutObjectCommand({ Bucket: bucket, Key: `feedvideo/${userId}/${name}`, Body: file.buffer, ContentType: file.mimetype.split(';')[0]!.trim(), CacheControl: 'public, max-age=31536000, immutable' }),
+    );
+    return `${apiOrigin.replace(/\/$/, '')}/v1/media/feedvideo/${userId}/${name}`;
+  }
+
+  /** Part of a Feed video — `range` is the browser's Range header (or none for the whole file). */
+  async getFeedVideo(userId: string, file: string, range?: string): Promise<{ body: Uint8Array; contentType: string; contentRange: string | null; total: number | null }> {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const [id, ext] = file.split('.');
+    if (!uuid.test(userId) || !id || !uuid.test(id) || !ext || !['mp4', 'webm', 'mov'].includes(ext) || file.split('.').length !== 2) {
+      throw new NotFoundException('No such video.');
+    }
+    const bucket = this.voiceBucket();
+    if (!bucket) throw new NotFoundException('No such video.');
+    const safeRange = range && /^bytes=\d*-\d*$/.test(range) ? range : undefined;
+    const out = await this.getClient()
+      .send(new GetObjectCommand({ Bucket: bucket, Key: `feedvideo/${userId}/${file}`, Range: safeRange }))
+      .catch(() => null);
+    if (!out?.Body) throw new NotFoundException('No such video.');
+    const total = out.ContentRange ? Number(out.ContentRange.split('/')[1]) : (out.ContentLength ?? null);
+    return { body: await out.Body.transformToByteArray(), contentType: out.ContentType ?? 'video/mp4', contentRange: out.ContentRange ?? null, total: Number.isFinite(total) ? total : null };
   }
 
   async getFeedPhoto(userId: string, file: string): Promise<{ body: Uint8Array; contentType: string }> {

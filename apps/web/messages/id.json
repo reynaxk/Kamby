@@ -1483,6 +1483,10 @@
     "needUsername": "Pilih username di profil untuk posting.",
     "soon": "Feed segera dibuka.",
     "photo": "Foto",
-    "checkingPhoto": "Memeriksa foto…"
+    "checkingPhoto": "Memeriksa foto…",
+    "video": "Video",
+    "videoTooBig": "Video lebih dari 20 MB.",
+    "videoTooLong": "Maksimal {seconds} detik.",
+    "checkingVideo": "Memeriksa video…"
   }
 }

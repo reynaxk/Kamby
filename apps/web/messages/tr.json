@@ -1483,6 +1483,10 @@
     "needUsername": "Paylaşmak için profilinde kullanıcı adı seç.",
     "soon": "Akış çok yakında açılıyor.",
     "photo": "Fotoğraf",
-    "checkingPhoto": "Fotoğraf kontrol ediliyor…"
+    "checkingPhoto": "Fotoğraf kontrol ediliyor…",
+    "video": "Video",
+    "videoTooBig": "Video 20 MB üstü.",
+    "videoTooLong": "{seconds} saniyenin altında olsun.",
+    "checkingVideo": "Video kontrol ediliyor…"
   }
 }

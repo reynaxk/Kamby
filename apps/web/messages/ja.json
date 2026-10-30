@@ -1483,6 +1483,10 @@
     "needUsername": "投稿するにはプロフィールでユーザー名を設定してください。",
     "soon": "フィードはまもなく公開。",
     "photo": "写真",
-    "checkingPhoto": "写真を確認中…"
+    "checkingPhoto": "写真を確認中…",
+    "video": "動画",
+    "videoTooBig": "動画が20MBを超えています。",
+    "videoTooLong": "{seconds}秒以内にしてください。",
+    "checkingVideo": "動画を確認中…"
   }
 }

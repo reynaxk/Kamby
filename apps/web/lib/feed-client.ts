@@ -27,7 +27,7 @@ export function fetchFeed(tab: FeedTab, before?: string | null, address?: string
   return get<FeedPage>(`/feed?${q.toString()}`, 'load the feed');
 }
 
-export const createFeedPost = (body: string, attach?: { kind: 'trade' | 'pnl' | 'photo'; chain?: string; tokenAddress?: string; photoId?: string }) =>
+export const createFeedPost = (body: string, attach?: { kind: 'trade' | 'pnl' | 'photo' | 'video'; chain?: string; tokenAddress?: string; photoId?: string; videoId?: string }) =>
   post<FeedPost>('/feed/posts', { body, attach }, 'post');
 export const likeFeedPost = (id: string, on: boolean) => post<{ likeCount: number; likedByMe: boolean }>(`/feed/posts/${id}/like`, { on }, 'like');
 export const fetchFeedReplies = (id: string) => get<FeedReply[]>(`/feed/posts/${id}/replies`, 'load the replies');
@@ -35,7 +35,7 @@ export const replyToFeedPost = (id: string, body: string) => post<FeedReply>(`/f
 export const reportFeedPost = (id: string) => post<{ hidden: boolean }>(`/feed/posts/${id}/report`, {}, 'report');
 export const deleteFeedPost = (id: string) => post<void>(`/feed/posts/${id}/delete`, {}, 'delete');
 
-export const fetchFeedCapabilities = () => get<{ photos: boolean }>('/feed/capabilities', 'check photos');
+export const fetchFeedCapabilities = () => get<{ photos: boolean; videos?: boolean }>('/feed/capabilities', 'check photos');
 
 /** Shrinks a photo in the browser first (max 1600px, JPEG) — faster uploads, under the 5MB cap,
  *  and iPhone HEIC comes out as JPEG. Then the server checks it with moderation before storing. */
@@ -57,4 +57,31 @@ async function shrink(file: File): Promise<Blob> {
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('shrink'))), 'image/jpeg', 0.86));
+}
+
+/** How long a clip is, read in the browser before uploading (so a too-long one is refused fast). */
+export function videoSeconds(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(v.duration);
+    };
+    v.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(Number.NaN);
+    };
+    v.src = url;
+  });
+}
+
+/** Up to 15 s / 20 MB; the server checks every 3rd second with moderation before storing it. */
+export async function uploadFeedVideo(file: File): Promise<{ videoId: string; url: string }> {
+  const form = new FormData();
+  form.set('file', file, file.name || 'clip.mp4');
+  const res = await authedFetch('/feed/videos', { method: 'POST', body: form });
+  await expectOk(res, 'upload the video');
+  return (await res.json()) as { videoId: string; url: string };
 }

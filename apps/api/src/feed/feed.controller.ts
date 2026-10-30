@@ -31,8 +31,8 @@ class FeedQueryDto {
 }
 
 class AttachDto {
-  @IsIn(['trade', 'pnl', 'photo'])
-  kind!: 'trade' | 'pnl' | 'photo';
+  @IsIn(['trade', 'pnl', 'photo', 'video'])
+  kind!: 'trade' | 'pnl' | 'photo' | 'video';
 
   @IsOptional()
   @IsString()
@@ -48,6 +48,11 @@ class AttachDto {
   @IsString()
   @MaxLength(40)
   photoId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  videoId?: string;
 }
 
 class PostDto {
@@ -100,6 +105,16 @@ export class FeedController {
     const proto = String(req.headers['x-forwarded-proto'] ?? req.protocol).split(',')[0]!.trim();
     const host = String(req.headers['x-forwarded-host'] ?? req.get('host') ?? '').split(',')[0]!.trim();
     return this.feed.uploadPhoto(user.id, file, `${proto === 'http' && !host.startsWith('localhost') ? 'https' : proto}://${host}`);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  @Post('videos')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: FEED_LIMITS.videoMaxBytes } }))
+  uploadVideo(@UploadedFile() file: UploadableFile | undefined, @CurrentUser() user: SessionUser, @Req() req: Request) {
+    const proto = String(req.headers['x-forwarded-proto'] ?? req.protocol).split(',')[0]!.trim();
+    const host = String(req.headers['x-forwarded-host'] ?? req.get('host') ?? '').split(',')[0]!.trim();
+    return this.feed.uploadVideo(user.id, file, `${proto === 'http' && !host.startsWith('localhost') ? 'https' : proto}://${host}`);
   }
 
   @UseGuards(JwtAuthGuard)

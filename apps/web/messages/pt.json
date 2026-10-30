@@ -1483,6 +1483,10 @@
     "needUsername": "Escolha um nome de usuário no perfil para postar.",
     "soon": "O feed abre muito em breve.",
     "photo": "Foto",
-    "checkingPhoto": "Verificando a foto…"
+    "checkingPhoto": "Verificando a foto…",
+    "video": "Vídeo",
+    "videoTooBig": "O vídeo passa de 20 MB.",
+    "videoTooLong": "Menos de {seconds} segundos.",
+    "checkingVideo": "Verificando o vídeo…"
   }
 }

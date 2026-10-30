@@ -8,6 +8,7 @@ import {
   type DmPnl,
   type DmTrade,
   type FeedPhoto,
+  type FeedVideo,
   type FeedAuthor,
   type FeedPage,
   type FeedPost,
@@ -60,8 +61,45 @@ export class FeedService {
   ) {}
 
   /** Photos are on only when moderation is configured (Sightengine keys on the API). */
-  capabilities(): { photos: boolean } {
-    return { photos: this.moderation.isConfigured() };
+  capabilities(): { photos: boolean; videos: boolean } {
+    const on = this.moderation.isConfigured();
+    return { photos: on, videos: on };
+  }
+
+  /** Per person and per day caps (Redis; an outage counts as the first of the day). */
+  private async underCaps(kind: 'photos' | 'videos', me: string, perUser: number, perDay: number): Promise<void> {
+    const day = new Date().toISOString().slice(0, 10);
+    const mine = await this.redis.incr(`kamby:feed:${kind}:${day}:${me}`).catch(() => 1);
+    const all = await this.redis.incr(`kamby:feed:${kind}:${day}`).catch(() => 1);
+    void this.redis.expire(`kamby:feed:${kind}:${day}:${me}`, 90_000).catch(() => undefined);
+    void this.redis.expire(`kamby:feed:${kind}:${day}`, 90_000).catch(() => undefined);
+    if (mine > perUser) throw new HttpException(`That's ${perUser} ${kind} today — more tomorrow.`, HttpStatus.TOO_MANY_REQUESTS);
+    if (all > perDay) throw new HttpException(`${kind === 'photos' ? 'Photos' : 'Videos'} are full for today — try again tomorrow.`, HttpStatus.TOO_MANY_REQUESTS);
+  }
+
+  /**
+   * A short video for a post (2026-10-30): up to 15 s / 20 MB, every 3rd second checked by
+   * Sightengine BEFORE it's stored (fails closed), 3 per person and 40 a day.
+   */
+  async uploadVideo(me: string, file: UploadableFile | undefined, apiOrigin: string): Promise<{ videoId: string; url: string }> {
+    if (!file) throw new BadRequestException('Pick a video first.');
+    if (!this.moderation.isConfigured()) throw new ServiceUnavailableException('Videos are not switched on yet.');
+    const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
+    if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
+    const type = file.mimetype.split(';')[0]!.trim();
+    if (!/^video\/(mp4|webm|quicktime)$/.test(type)) throw new BadRequestException('Only MP4, WebM or MOV videos.');
+    if (file.size > FEED_LIMITS.videoMaxBytes) throw new BadRequestException('That video is over 20 MB.');
+    await this.underCaps('videos', me, FEED_LIMITS.videosPerUserPerDay, FEED_LIMITS.videosPerDay);
+    const verdict = await this.moderation.checkVideo(file.buffer, type, FEED_LIMITS.videoMaxSeconds);
+    if (!verdict.ok) {
+      throw new BadRequestException(
+        verdict.reason === 'long' ? `Keep it under ${FEED_LIMITS.videoMaxSeconds} seconds.` : verdict.reason === 'error' ? "We couldn't check that video — try again in a moment." : "That video can't be posted on Kamby.",
+      );
+    }
+    const url = await this.r2.uploadFeedVideo(me, file, apiOrigin);
+    const videoId = randomUUID();
+    await this.redis.set(`kamby:feed:video:${videoId}`, JSON.stringify({ userId: me, url }), 'EX', 3600);
+    return { videoId, url };
   }
 
   /**
@@ -74,13 +112,7 @@ export class FeedService {
     if (!this.moderation.isConfigured()) throw new ServiceUnavailableException('Photos are not switched on yet.');
     const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
     if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
-    const day = new Date().toISOString().slice(0, 10);
-    const mine = await this.redis.incr(`kamby:feed:photos:${day}:${me}`).catch(() => 1);
-    const all = await this.redis.incr(`kamby:feed:photos:${day}`).catch(() => 1);
-    void this.redis.expire(`kamby:feed:photos:${day}:${me}`, 90_000).catch(() => undefined);
-    void this.redis.expire(`kamby:feed:photos:${day}`, 90_000).catch(() => undefined);
-    if (mine > FEED_LIMITS.photosPerUserPerDay) throw new HttpException(`That's ${FEED_LIMITS.photosPerUserPerDay} photos today — more tomorrow.`, HttpStatus.TOO_MANY_REQUESTS);
-    if (all > FEED_LIMITS.photosPerDay) throw new HttpException('Photos are full for today — try again tomorrow.', HttpStatus.TOO_MANY_REQUESTS);
+    await this.underCaps('photos', me, FEED_LIMITS.photosPerUserPerDay, FEED_LIMITS.photosPerDay);
     if (!/^image\/(png|jpeg|webp)$/.test(file.mimetype)) throw new BadRequestException('Only PNG, JPEG or WebP photos.');
     if (file.size > FEED_LIMITS.photoMaxBytes) throw new BadRequestException('That photo is over 5 MB.');
 
@@ -125,7 +157,7 @@ export class FeedService {
     return this.list(me, 'foryou', before, wallet.userId);
   }
 
-  async post(me: string, input: { body: string; attach?: { kind: 'trade' | 'pnl' | 'photo'; chain?: string; tokenAddress?: string; photoId?: string } }): Promise<FeedPost> {
+  async post(me: string, input: { body: string; attach?: { kind: 'trade' | 'pnl' | 'photo' | 'video'; chain?: string; tokenAddress?: string; photoId?: string; videoId?: string } }): Promise<FeedPost> {
     const body = cleanBody(input.body, FEED_LIMITS.maxLength, Boolean(input.attach));
     const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
     if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
@@ -139,8 +171,14 @@ export class FeedService {
     }
 
     let kind: FeedPost['kind'] = 'text';
-    let data: DmTrade | DmPnl | FeedPhoto | null = null;
-    if (input.attach?.kind === 'photo') {
+    let data: DmTrade | DmPnl | FeedPhoto | FeedVideo | null = null;
+    if (input.attach?.kind === 'video') {
+      const ticket = input.attach.videoId ? await this.redis.getdel(`kamby:feed:video:${input.attach.videoId}`) : null;
+      const parsed = ticket ? (JSON.parse(ticket) as { userId: string; url: string }) : null;
+      if (!parsed || parsed.userId !== me) throw new BadRequestException('Upload the video again.');
+      kind = 'video';
+      data = { url: parsed.url };
+    } else if (input.attach?.kind === 'photo') {
       // Only a photo this person uploaded (and moderation passed) in the last hour.
       const ticket = input.attach.photoId ? await this.redis.getdel(`kamby:feed:photo:${input.attach.photoId}`) : null;
       const parsed = ticket ? (JSON.parse(ticket) as { userId: string; url: string }) : null;
@@ -219,7 +257,7 @@ export class FeedService {
   }
 
   private toDto(row: Prisma.FeedPostGetPayload<{ include: { user: typeof AUTHOR } }> & { likes?: { userId: string }[] }, me: string | null): FeedPost {
-    const kind = (row.kind === 'trade' || row.kind === 'pnl' || row.kind === 'photo' ? row.kind : 'text') as FeedPost['kind'];
+    const kind = (row.kind === 'trade' || row.kind === 'pnl' || row.kind === 'photo' || row.kind === 'video' ? row.kind : 'text') as FeedPost['kind'];
     return {
       id: row.id,
       author: author(row.user),
@@ -228,6 +266,7 @@ export class FeedService {
       trade: kind === 'trade' ? (row.data as unknown as DmTrade) : null,
       pnl: kind === 'pnl' ? (row.data as unknown as DmPnl) : null,
       photo: kind === 'photo' ? (row.data as unknown as FeedPhoto) : null,
+      video: kind === 'video' ? (row.data as unknown as FeedVideo) : null,
       likeCount: Math.max(0, row.likeCount),
       replyCount: row.replyCount,
       likedByMe: Boolean(row.likes?.length),

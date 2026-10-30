@@ -1483,6 +1483,10 @@
     "needUsername": "ตั้งชื่อผู้ใช้ในโปรไฟล์ก่อนโพสต์",
     "soon": "ฟีดจะเปิดเร็วๆ นี้",
     "photo": "รูป",
-    "checkingPhoto": "กำลังตรวจรูป…"
+    "checkingPhoto": "กำลังตรวจรูป…",
+    "video": "วิดีโอ",
+    "videoTooBig": "วิดีโอเกิน 20 MB",
+    "videoTooLong": "ไม่เกิน {seconds} วินาที",
+    "checkingVideo": "กำลังตรวจวิดีโอ…"
   }
 }

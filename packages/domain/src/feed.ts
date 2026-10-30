@@ -19,12 +19,21 @@ export const FEED_LIMITS = {
   photoMaxBytes: 5 * 1024 * 1024,
   photosPerUserPerDay: 10,
   photosPerDay: 150,
+  /** Videos (2026-10-30): short clips, every 3rd second checked by Sightengine. */
+  videoMaxBytes: 20 * 1024 * 1024,
+  videoMaxSeconds: 15,
+  videosPerUserPerDay: 3,
+  videosPerDay: 40,
 } as const;
 
 export type FeedTab = 'foryou' | 'following';
-export type FeedPostKind = 'text' | 'trade' | 'pnl' | 'photo';
+export type FeedPostKind = 'text' | 'trade' | 'pnl' | 'photo' | 'video';
 
 export interface FeedPhoto {
+  url: string;
+}
+
+export interface FeedVideo {
   url: string;
 }
 
@@ -44,6 +53,7 @@ export interface FeedPost {
   trade: DmTrade | null;
   pnl: DmPnl | null;
   photo: FeedPhoto | null;
+  video: FeedVideo | null;
   likeCount: number;
   replyCount: number;
   likedByMe: boolean;

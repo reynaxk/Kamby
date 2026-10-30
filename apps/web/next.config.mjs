@@ -76,6 +76,8 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' https: data: blob:",
+              // Feed videos and voice notes are served by the API (2026-10-30); a picked clip previews as blob:.
+              "media-src 'self' https: blob:",
               "font-src 'self' data:",
               "connect-src 'self' https: wss:",
               "frame-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",

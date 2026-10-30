@@ -19,6 +19,8 @@ import {
   FEED_ENABLED,
   fetchFeedCapabilities,
   uploadFeedPhoto,
+  uploadFeedVideo,
+  videoSeconds,
   likeFeedPost,
   replyToFeedPost,
   reportFeedPost,
@@ -133,13 +135,41 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
   // A photo (2026-10-30): shown only when the server says moderation is on; checked on upload.
   const [photosOn, setPhotosOn] = useState(false);
   const [photo, setPhoto] = useState<{ photoId: string; url: string } | null>(null);
+  const [videosOn, setVideosOn] = useState(false);
+  const [video, setVideo] = useState<{ videoId: string; url: string } | null>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
+  const [checkingVideo, setCheckingVideo] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     fetchFeedCapabilities()
-      .then((c) => setPhotosOn(c.photos))
+      .then((c) => {
+        setPhotosOn(c.photos);
+        setVideosOn(Boolean(c.videos));
+      })
       .catch(() => setPhotosOn(false));
   }, []);
+
+  async function pickVideo(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    if (file.size > FEED_LIMITS.videoMaxBytes) return setError(t('videoTooBig'));
+    const secs = await videoSeconds(file);
+    if (Number.isFinite(secs) && secs > FEED_LIMITS.videoMaxSeconds + 0.5) return setError(t('videoTooLong', { seconds: FEED_LIMITS.videoMaxSeconds }));
+    setUploading(true);
+    setCheckingVideo(true);
+    try {
+      setVideo(await uploadFeedVideo(file));
+      setPhoto(null);
+      setAttach(null);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setUploading(false);
+      setCheckingVideo(false);
+      if (videoRef.current) videoRef.current.value = '';
+    }
+  }
 
   async function pickPhoto(file: File | undefined) {
     if (!file) return;
@@ -147,6 +177,7 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
     setError(null);
     try {
       setPhoto(await uploadFeedPhoto(file));
+      setVideo(null);
       setAttach(null);
     } catch (err) {
       setError(friendlyError(err));
@@ -158,7 +189,7 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
   const [picking, setPicking] = useState<'trade' | 'pnl' | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const can = !busy && !uploading && (body.trim().length > 0 || attach !== null || photo !== null);
+  const can = !busy && !uploading && (body.trim().length > 0 || attach !== null || photo !== null || video !== null);
 
   async function submit() {
     if (!can) return;
@@ -168,12 +199,13 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
       const chain = attach ? (attach.position.chainIdentifier ?? (attach.position.chain === 'solana' ? 'solana' : '')) : '';
       const p = await createFeedPost(
         body.trim(),
-        photo ? { kind: 'photo', photoId: photo.photoId } : attach ? { kind: attach.kind, chain, tokenAddress: attach.position.tokenAddress } : undefined,
+        video ? { kind: 'video', videoId: video.videoId } : photo ? { kind: 'photo', photoId: photo.photoId } : attach ? { kind: attach.kind, chain, tokenAddress: attach.position.tokenAddress } : undefined,
       );
       onPosted(p);
       setBody('');
       setAttach(null);
       setPhoto(null);
+      setVideo(null);
     } catch (err) {
       setError(friendlyError(err));
     } finally {
@@ -202,13 +234,21 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
           className="min-h-[3rem] flex-1 resize-none rounded-xl border border-line bg-bg px-3 py-2.5 font-body text-sm text-ink-900 placeholder:text-ink-400 focus:border-accent/40 focus:outline-none"
         />
       </div>
-      {(photo || uploading) && (
+      {video && (
+        <div className="relative mt-2.5 overflow-hidden rounded-xl border border-line bg-black">
+          <video src={video.url} controls playsInline className="max-h-80 w-full" />
+          <button type="button" onClick={() => setVideo(null)} aria-label={t('removeCard')} className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white">
+            ✕
+          </button>
+        </div>
+      )}
+      {(photo || (uploading && !video)) && (
         <div className="relative mt-2.5 overflow-hidden rounded-xl border border-line bg-bg">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element -- a checked upload on Kamby's own API
             <img src={photo.url} alt="" className="max-h-72 w-full object-cover" />
           ) : (
-            <div className="flex h-28 items-center justify-center font-body text-xs text-ink-400">{t('checkingPhoto')}</div>
+            <div className="flex h-28 items-center justify-center font-body text-xs text-ink-400">{t(checkingVideo ? 'checkingVideo' : 'checkingPhoto')}</div>
           )}
           {photo && (
             <button type="button" onClick={() => setPhoto(null)} aria-label={t('removeCard')} className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white">
@@ -238,6 +278,14 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
             </button>
           </>
         )}
+        {videosOn && (
+          <>
+            <input ref={videoRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => void pickVideo(e.target.files?.[0])} />
+            <button type="button" disabled={uploading} onClick={() => videoRef.current?.click()} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
+              <span className="text-[#FF5CA8]">▶</span> {t('video')}
+            </button>
+          </>
+        )}
         <button type="button" onClick={() => setPicking('trade')} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
           <span className="text-accent">↗</span> {t('tradeCard')}
         </button>
@@ -257,6 +305,7 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
           if (picking) {
             setAttach({ kind: picking, position: p });
             setPhoto(null);
+            setVideo(null);
           }
           setPicking(null);
         }}
@@ -345,6 +394,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
       {post.body && <p className="mt-2.5 whitespace-pre-wrap break-words font-body text-[0.92rem] leading-relaxed text-ink-900/90">{post.body}</p>}
       {post.trade && <TradeCard trade={post.trade} mine={post.mine} by={`@${name}`} className="mt-3" />}
       {post.pnl && <PnlCard pnl={post.pnl} />}
+      {post.video && <video src={post.video.url} controls playsInline preload="metadata" className="mt-3 max-h-[32rem] w-full rounded-xl border border-line bg-black" />}
       {post.photo && <SafeImg src={post.photo.url} className="mt-3 max-h-[32rem] w-full rounded-xl border border-line object-cover" fallback={null} />}
       {error && <p className="mt-2 font-body text-xs text-ink-400">{error}</p>}
       <div className="mt-3 flex items-center gap-5">
