@@ -126,7 +126,7 @@ function PnlCard({ m }: { m: DmMessage }) {
   const up = p.pnlUsd >= 0;
   const href = marketHref(p.chainIdentifier, p.tokenAddress);
   const body = (
-    <div className="relative w-64 overflow-hidden rounded-3xl border border-white/10 p-4" style={{ background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#05070A 100%)' }}>
+    <div className="relative w-64 overflow-hidden rounded-3xl border border-white/10 p-4" style={{ background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#020203 100%)' }}>
       <svg className="pointer-events-none absolute -right-10 -top-6" width="170" height="170" viewBox="0 0 512 512" aria-hidden>
         <g fill="none" stroke="#FFFFFF" strokeWidth="92" strokeLinecap="round" opacity="0.05">
           {K_PATHS.map((d) => (

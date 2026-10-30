@@ -84,8 +84,8 @@ export function HeroPhone() {
       </FloatCard>
 
       {/* the phone */}
-      <div className="kh-tilt relative mx-auto w-[292px] rounded-[44px] border border-white/15 bg-[#0B0E17] p-2.5">
-        <div className="relative overflow-hidden rounded-[36px] bg-[#06080F]">
+      <div className="kh-tilt relative mx-auto w-[292px] rounded-[44px] border border-white/15 bg-[#08090E] p-2.5">
+        <div className="relative overflow-hidden rounded-[36px] bg-[#030305]">
           <div className="mx-auto mt-2 h-5 w-24 rounded-full bg-black" />
           <div className="flex items-center gap-2.5 px-4 pt-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#00FF87]/15 font-display text-sm font-black text-[#00FF87]">N</span>

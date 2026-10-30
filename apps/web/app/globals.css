@@ -43,7 +43,7 @@
 }
 
 html {
-  background-color: rgb(5 7 10);
+  background-color: rgb(2 2 3);
 }
 body {
   background-color: rgb(var(--kamby-bg));
@@ -53,7 +53,7 @@ body {
 /* Every dark page is dark to the very bottom — the layout's ticker gap below the footer
    showed the light body background as a white strip (landing 10-04, then coin pages). */
 body:has(.kamby-void) {
-  background-color: rgb(5 7 10);
+  background-color: rgb(2 2 3);
 }
 
 /*
@@ -87,12 +87,13 @@ body:has(.kamby-void) {
  * `text-white`, precisely because that pairing has flipped before and silently broken.
  */
 /* Kamby Neon (2026-10-12, owner: "interesting and aesthetic", own style — not fomo's): a deep
- * blue-black, the brand's own #00FF87 on every main action (black text on it), juicy up/down. */
+ * blue-black, the brand's own #00FF87 on every main action (black text on it), juicy up/down.
+ * 2026-10-30 (owner: "more dark"): background near pure black, panels a step above it. */
 .kamby-void {
-  --kamby-bg: 6 7 12;
-  --kamby-surface: 12 14 22;
-  --kamby-surface-raised: 19 22 33;
-  --kamby-line: 27 31 46;
+  --kamby-bg: 2 2 3;
+  --kamby-surface: 8 9 12;
+  --kamby-surface-raised: 14 15 20;
+  --kamby-line: 23 25 32;
   --kamby-ink-900: 240 242 248;
   --kamby-ink-600: 150 155 172;
   --kamby-ink-400: 98 103 122;
@@ -114,10 +115,10 @@ body:has(.kamby-void) {
 }
 
 .kamby-terminal {
-  --kamby-bg: 7 6 14;
-  --kamby-surface: 11 9 19;
-  --kamby-surface-raised: 18 15 29;
-  --kamby-line: 32 27 48;
+  --kamby-bg: 2 2 4;
+  --kamby-surface: 8 7 12;
+  --kamby-surface-raised: 14 13 20;
+  --kamby-line: 24 22 33;
   --kamby-ink-900: 238 235 246;
   --kamby-ink-600: 151 145 169;
   --kamby-ink-400: 95 88 116;

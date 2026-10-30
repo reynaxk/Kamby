@@ -5,7 +5,11 @@
     "leaders": "ランキング",
     "profile": "プロフィール",
     "home": "ホーム",
-    "search": "検索"
+    "search": "検索",
+    "menu": "メニュー",
+    "live": "ライブ",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -1121,7 +1125,13 @@
     "tipped": "が{amount}をチップ",
     "remove": "削除",
     "silence": "@{name}をミュート · 10分",
-    "walletSettingUp": "ウォレットを準備中です — 少ししてからもう一度。"
+    "walletSettingUp": "ウォレットを準備中です — 少ししてからもう一度。",
+    "liveNow": "ライブ配信中",
+    "nobodyLive": "今ライブ中の人はいません",
+    "nobodyLiveHint": "ライブ配信して、みんなの前でトレードしよう。",
+    "watching": "{count}人が視聴中",
+    "join": "参加",
+    "seeAll": "すべて"
   },
   "snipe": {
     "bought": "購入",

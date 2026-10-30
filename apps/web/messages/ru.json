@@ -5,7 +5,11 @@
     "leaders": "Лидеры",
     "profile": "Профиль",
     "home": "Главная",
-    "search": "Поиск"
+    "search": "Поиск",
+    "menu": "Меню",
+    "live": "Эфир",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Установите приложение Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "оставил чаевые {amount}",
     "remove": "Удалить",
     "silence": "Заглушить @{name} · 10 мин",
-    "walletSettingUp": "Кошелёк ещё настраивается — попробуй через минуту."
+    "walletSettingUp": "Кошелёк ещё настраивается — попробуй через минуту.",
+    "liveNow": "Сейчас в эфире",
+    "nobodyLive": "Сейчас никто не в эфире",
+    "nobodyLiveHint": "Запусти эфир и торгуй у всех на виду.",
+    "watching": "{count} смотрят",
+    "join": "Смотреть",
+    "seeAll": "Все"
   },
   "snipe": {
     "bought": "Куплено",

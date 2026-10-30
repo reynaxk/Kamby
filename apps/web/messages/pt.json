@@ -5,7 +5,11 @@
     "leaders": "Líderes",
     "profile": "Perfil",
     "home": "Início",
-    "search": "Buscar"
+    "search": "Buscar",
+    "menu": "Menu",
+    "live": "Ao vivo",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Baixe o app Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "deu {amount} de gorjeta",
     "remove": "Remover",
     "silence": "Silenciar @{name} · 10 min",
-    "walletSettingUp": "Sua carteira ainda está sendo preparada — tente de novo em instantes."
+    "walletSettingUp": "Sua carteira ainda está sendo preparada — tente de novo em instantes.",
+    "liveNow": "Ao vivo agora",
+    "nobodyLive": "Ninguém está ao vivo agora",
+    "nobodyLiveHint": "Entre ao vivo e negocie com todos assistindo.",
+    "watching": "{count} assistindo",
+    "join": "Entrar",
+    "seeAll": "Ver tudo"
   },
   "snipe": {
     "bought": "Comprado",

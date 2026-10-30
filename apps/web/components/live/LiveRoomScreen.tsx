@@ -228,7 +228,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
   }
 
   return (
-    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-[#05070A] text-white">
+    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-[#020203] text-white">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_26rem_at_50%_0%,rgba(255,59,105,0.12),transparent_60%),radial-gradient(36rem_24rem_at_100%_100%,rgba(72,88,255,0.14),transparent_62%)]" />
       {voice && <Media track={voice} kind="audio" />}
 

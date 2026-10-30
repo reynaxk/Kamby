@@ -70,7 +70,7 @@ export function AppSplash() {
     <div
       id="kamby-splash"
       aria-hidden
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#05070A] transition-opacity duration-[450ms] ease-out ${phase === 'leave' ? 'opacity-0' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#020203] transition-opacity duration-[450ms] ease-out ${phase === 'leave' ? 'opacity-0' : 'opacity-100'}`}
     >
       {/* Just the K, centred and 52vw wide — exactly iOS's launch image (public/brand/startup),
           so the native launch screen hands over to this without a jump; like Robinhood's

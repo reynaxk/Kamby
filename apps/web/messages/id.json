@@ -5,7 +5,11 @@
     "leaders": "Peringkat",
     "profile": "Profil",
     "home": "Beranda",
-    "search": "Cari"
+    "search": "Cari",
+    "menu": "Menu",
+    "live": "Live",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "memberi tip {amount}",
     "remove": "Hapus",
     "silence": "Bisukan @{name} · 10 mnt",
-    "walletSettingUp": "Wallet kamu masih disiapkan — coba lagi sebentar."
+    "walletSettingUp": "Wallet kamu masih disiapkan — coba lagi sebentar.",
+    "liveNow": "Live sekarang",
+    "nobodyLive": "Belum ada yang live",
+    "nobodyLiveHint": "Mulai live dan trading di depan semua orang.",
+    "watching": "{count} menonton",
+    "join": "Gabung",
+    "seeAll": "Lihat semua"
   },
   "snipe": {
     "bought": "Dibeli",

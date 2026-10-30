@@ -26,7 +26,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: '#05070A', color: '#F3F5F8', fontFamily: 'system-ui, sans-serif' }}>
+      <body style={{ margin: 0, background: '#020203', color: '#F3F5F8', fontFamily: 'system-ui, sans-serif' }}>
         <main
           style={{
             minHeight: '100vh',
@@ -39,7 +39,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
             textAlign: 'center',
           }}
         >
-          <div style={{ maxWidth: '28rem', width: '100%', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.5rem', padding: '2rem', background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#05070A 100%)' }}>
+          <div style={{ maxWidth: '28rem', width: '100%', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.5rem', padding: '2rem', background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#020203 100%)' }}>
             <h1 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Something went wrong</h1>
             <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#9AA3B2' }}>
               Kamby hit an unexpected error loading this page. It&apos;s been logged — try again.

@@ -5,6 +5,7 @@ import { PortfolioHeader } from '@/components/home/PortfolioHeader';
 import { TopTradersStrip } from '@/components/home/TopTradersStrip';
 import { HomeHoldings } from '@/components/home/HomeHoldings';
 import { TrackFeed } from '@/components/track/TrackFeed';
+import { HomeSocialTop } from '@/components/home/HomeSocialTop';
 import { fetchMarketFeeds } from '@/lib/market-api';
 import { soft } from '@/lib/soft';
 
@@ -23,10 +24,10 @@ export default async function HomePage() {
     <div className="kamby-void hidden md:block">
       <MarketHeader />
     </div>
-    {/* Wide screens (2026-10-28, GMGN-like terminal): your money on the left, the coin lists
-        across the rest — wide enough for XXXRisk's three columns side by side. */}
-    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-4 xl:grid xl:max-w-[1560px] xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start xl:gap-6">
-      <div className="xl:sticky xl:top-16">
+    {/* Wide screens (2026-10-30 redesign, owner's concepts): stories, who's live and the coin lists
+        in the main column; your money, top traders, holdings and whales in a column on the right. */}
+    <main className="kamby-void mx-auto min-h-screen max-w-2xl bg-bg pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-4 xl:grid xl:max-w-[1560px] xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start xl:gap-6 xl:px-6 xl:pt-6">
+      <div className="xl:sticky xl:top-20 xl:order-2">
         <div className="px-4 md:px-0">
           <PortfolioHeader />
           <TopTradersStrip />
@@ -35,8 +36,11 @@ export default async function HomePage() {
         {/* Wide screens: the column under your money was empty — whales trading right now. */}
         <TrackFeed compact />
       </div>
-      <div className="mt-3 md:h-[calc(100dvh-13rem)] md:min-h-[420px] xl:mt-6 xl:h-[calc(100dvh-6.5rem)]">
-        <CoinRail initial={feeds} selectedKey={null} pageScroll />
+      <div className="mt-3 xl:order-1 xl:mt-0">
+        <HomeSocialTop />
+        <div className="md:h-[calc(100dvh-13rem)] md:min-h-[420px] xl:h-[calc(100dvh-8rem)]">
+          <CoinRail initial={feeds} selectedKey={null} pageScroll />
+        </div>
       </div>
     </main>
     </>

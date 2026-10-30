@@ -5,7 +5,11 @@
     "leaders": "Класация",
     "profile": "Профил",
     "home": "Начало",
-    "search": "Търсене"
+    "search": "Търсене",
+    "menu": "Меню",
+    "live": "На живо",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Вземи приложението Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "даде бакшиш {amount}",
     "remove": "Изтрий",
     "silence": "Заглуши @{name} · 10 мин",
-    "walletSettingUp": "Портфейлът ти още се настройва — опитай пак след малко."
+    "walletSettingUp": "Портфейлът ти още се настройва — опитай пак след малко.",
+    "liveNow": "На живо сега",
+    "nobodyLive": "Никой не е на живо в момента",
+    "nobodyLiveHint": "Пусни стрийм и търгувай пред всички.",
+    "watching": "{count} гледат",
+    "join": "Влез",
+    "seeAll": "Виж всички"
   },
   "snipe": {
     "bought": "Купено",

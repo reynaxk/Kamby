@@ -119,7 +119,7 @@ export function CallScreen({ engine, conv }: { engine: CallEngine; conv: DmConve
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex flex-col bg-[#05070A] text-white" role="dialog" aria-label={t('inCall')}>
+    <div className="fixed inset-0 z-[70] flex flex-col bg-[#020203] text-white" role="dialog" aria-label={t('inCall')}>
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(48rem_30rem_at_100%_0%,rgba(72,88,255,0.18),transparent_62%),radial-gradient(34rem_24rem_at_0%_100%,rgba(0,255,135,0.10),transparent_60%)]" />
       {remotes.map((r) => r.audio && <Voice key={`${r.userId}:a`} track={r.audio} />)}
 

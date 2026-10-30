@@ -81,7 +81,7 @@ export function RecentSearches() {
             <li
               key={keyOf(r)}
               className="relative w-[9.25rem] shrink-0 overflow-hidden rounded-2xl border border-white/[0.07]"
-              style={{ background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 55%,#05070A 100%)' }}
+              style={{ background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 55%,#020203 100%)' }}
             >
               <Link href={href} className="block p-3 pr-2.5 active:bg-white/[0.03]">
                 <span className="flex items-center gap-2">

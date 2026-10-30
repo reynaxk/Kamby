@@ -151,7 +151,7 @@ function LanguageSheet({ open, onClose }: { open: boolean; onClose: () => void }
                       {loading ? (
                         <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden />
                       ) : current ? (
-                        <span className="kamby-pop absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-black ring-2 ring-[#0B0F18]" aria-label={t('current')}>
+                        <span className="kamby-pop absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-black ring-2 ring-[#08090E]" aria-label={t('current')}>
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                             <path d="M20 6 9 17l-5-5" />
                           </svg>

@@ -5,7 +5,11 @@
     "leaders": "Leaders",
     "profile": "Profile",
     "home": "Home",
-    "search": "Search"
+    "search": "Search",
+    "menu": "Menu",
+    "live": "Live",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -1121,7 +1125,13 @@
     "tipped": "tipped {amount}",
     "remove": "Remove",
     "silence": "Silence @{name} · 10 min",
-    "walletSettingUp": "Your wallet is still being set up — try again in a moment."
+    "walletSettingUp": "Your wallet is still being set up — try again in a moment.",
+    "liveNow": "Live now",
+    "nobodyLive": "Nobody is live right now",
+    "nobodyLiveHint": "Go live and trade with everyone watching.",
+    "watching": "{count} watching",
+    "join": "Join",
+    "seeAll": "See all"
   },
   "snipe": {
     "bought": "Bought",

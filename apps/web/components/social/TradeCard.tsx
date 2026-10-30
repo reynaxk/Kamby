@@ -74,7 +74,7 @@ export function TradeCard({ trade, mine = false, by = null, className, compact =
     <div
       ref={ref}
       className={cn('relative w-[17rem] overflow-hidden rounded-3xl border border-white/10 p-3.5 text-left', className)}
-      style={{ background: 'linear-gradient(160deg,#101833 0%,#0A0F22 50%,#06080F 100%)' }}
+      style={{ background: 'linear-gradient(160deg,#101833 0%,#0A0F22 50%,#030305 100%)' }}
     >
       <div className="flex items-start gap-2.5">
         <span className="relative shrink-0">

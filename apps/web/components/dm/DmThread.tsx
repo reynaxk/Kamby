@@ -390,7 +390,7 @@ export function DmThread({ id }: { id: string }) {
     <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:600px] xl:[--dm-left:640px]')}>
       {/* Desktop: the community's channels stay open on the left (Discord) */}
       {community && conv && (
-        <aside className="fixed bottom-[var(--ticker-h)] top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#070A12]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
+        <aside className="fixed bottom-[var(--ticker-h)] top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#050609]/80 px-3 pb-6 pt-4 [left:340px] lg:block xl:[left:380px]">
           <CommunityPanel
             tall
             onClose={() => undefined}
@@ -715,7 +715,7 @@ export function DmThread({ id }: { id: string }) {
                     >
                       <span className="relative shrink-0">
                         <DmAvatar name={p.username} src={p.avatarUrl} className="h-7 w-7 text-[0.6rem]" />
-                        {conv?.onlineIds?.includes(p.userId) && <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0B0F18] bg-up" aria-hidden />}
+                        {conv?.onlineIds?.includes(p.userId) && <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#08090E] bg-up" aria-hidden />}
                       </span>
                       <span className="font-display text-sm font-bold" style={{ color: nameColor(p.userId) }}>
                         @{p.username}

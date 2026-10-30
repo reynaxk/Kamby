@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { showsDesktopSideNav } from '@/components/layout/DesktopSideNav';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { UsdcBalancePill } from '@/components/wallet/UsdcBalancePill';
@@ -42,6 +44,7 @@ export function MarketHeader({
   /** Extra classes on the header itself — e.g. hiding it under a page's own phone screen. */
   className?: string;
 }) {
+  const sideNav = showsDesktopSideNav(usePathname() ?? '/');
   const shellClass = wide ? 'max-w-[1920px] px-2 sm:px-3' : 'max-w-6xl px-6';
   return (
     <>
@@ -51,7 +54,8 @@ export function MarketHeader({
       <div
         className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 ${wide ? 'py-2.5' : 'py-3 sm:py-4'} ${shellClass}`}
       >
-        <Link href="/terminal" className="flex items-center gap-2">
+        {/* From lg up the logo and LaunchPad/Perps live in the left menu (DesktopSideNav, 2026-10-30). */}
+        <Link href="/terminal" className={`flex items-center gap-2 ${sideNav ? 'lg:hidden' : ''}`}>
           <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
         {/* Phones: logo + bell + Sign in share the first row and search gets its own full-width
@@ -59,16 +63,10 @@ export function MarketHeader({
             of their own, ~150px of header on every page. From sm up: logo · search · actions.
             Keyed on the server-known term so navigating between searches (or back to plain
             Discover) fully remounts SearchBar and resets its typeahead state. */}
-        <div className={`order-last w-full sm:order-none ${wide ? 'sm:mx-auto sm:max-w-xl sm:flex-1' : 'sm:ml-auto sm:w-auto'}`}>
+        <div className={`order-last w-full sm:order-none ${wide ? 'sm:mx-auto sm:max-w-xl sm:flex-1' : sideNav ? 'sm:ml-auto sm:w-auto lg:ml-0 lg:mr-auto lg:max-w-xl lg:flex-1' : 'sm:ml-auto sm:w-auto'}`}>
           <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
         </div>
         <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
-          <Link href="/launch" className="hidden rounded-full border border-accent/30 px-3 py-1.5 font-display text-xs font-bold text-accent transition-colors hover:bg-accent/10 lg:inline-flex">
-            LaunchPad
-          </Link>
-          <Link href="/perps" className="hidden rounded-full border border-white/15 px-3 py-1.5 font-display text-xs font-bold text-ink-900 transition-colors hover:bg-white/[0.06] lg:inline-flex">
-            ⚡ Perps
-          </Link>
           <MessagesButton screen="desktop" />
           <UsdcBalancePill />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} enforceChain={false} />

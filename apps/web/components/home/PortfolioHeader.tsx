@@ -19,6 +19,7 @@ import { SendButton } from '@/components/wallet/SendButton';
 import { formatSignedCompactUsd } from '@/lib/format';
 import { useMyPositions } from '@/lib/my-positions';
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
+import { useMediaQuery, XL_QUERY } from '@/lib/use-media';
 
 /**
  * The home screen's balance (2026-10-09 app redesign): everything you own — USDC on every chain
@@ -36,6 +37,7 @@ export function PortfolioHeader() {
   const { hidden } = useBalanceVisibility();
   const tS = useTranslations('stories');
   const [goLive, setGoLive] = useState(false);
+  const wide = useMediaQuery(XL_QUERY);
   // A chain that answers first with $0 must not flash "$0.00 · Add USDC" while the one holding the
   // money is still loading (2026-10-30). After 8s whatever has come in counts (a chain can fail to answer).
   const [settled, setSettled] = useState(false);
@@ -54,7 +56,7 @@ export function PortfolioHeader() {
     return (
       <>
       <ScrolledBar />
-      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:mt-6 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#05070A] md:px-7 md:py-6">
+      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:mt-6 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#020203] md:px-7 md:py-6">
         <div>
           <p className="font-display text-2xl font-bold text-ink-900">{t('welcome')}</p>
           <p className="font-body text-sm text-ink-600">{t('welcomeSub')}</p>
@@ -85,8 +87,9 @@ export function PortfolioHeader() {
       <img src="/brand/kamby-mark.svg" alt="Kamby" className="h-7 w-7" />
       <AppBell />
     </div>
-    {/* Today's wins as stories, Instagram-style (2026-10-17). */}
-    <StoriesRow />
+    {/* Today's wins as stories, Instagram-style (2026-10-17). Wide desktops show them above the
+        coins instead (HomeSocialTop, 2026-10-30). */}
+    {wide === false && <StoriesRow />}
     {/* The balance, flat and short (2026-10-28, owner: "like GMGN but better, simpler"): one big
         number, the money buttons as one row of pills, LaunchPad and Perps as two slim links — so
         the coins start higher on the screen. No card, no glow. */}
@@ -116,8 +119,9 @@ export function PortfolioHeader() {
           </svg>
         </button>
       </div>
-      {/* Kamby's LaunchPad (2026-10-14) and ⚡ Perps (2026-10-21), side by side. */}
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      {/* Kamby's LaunchPad (2026-10-14) and ⚡ Perps (2026-10-21), side by side — from lg up they're
+          in the left menu (DesktopSideNav). */}
+      <div className="mt-2 grid grid-cols-2 gap-2 lg:hidden">
         <Link href="/launch" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
           <span className="flex min-w-0 items-baseline gap-1.5">
             <span className="shrink-0 font-display text-sm font-bold text-ink-900">🚀 LaunchPad</span>

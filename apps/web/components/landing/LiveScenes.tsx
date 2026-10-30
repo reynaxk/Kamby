@@ -57,7 +57,7 @@ export function CoinRow({ icon, sym, sub, right, className }: { icon: string; sy
 export function QuickBuyArt() {
   return (
     <div className="relative">
-      <CoinRow icon="🐸" sym="$PEPE" sub="$12.4M MC · +18%" right={<span className="font-display text-sm font-bold tabular-nums text-up">+18%</span>} className="scale-[0.94] bg-[#0A0D18]" />
+      <CoinRow icon="🐸" sym="$PEPE" sub="$12.4M MC · +18%" right={<span className="font-display text-sm font-bold tabular-nums text-up">+18%</span>} className="scale-[0.94] bg-[#07080D]" />
       <div className="relative mt-2">
         <CoinRow
           icon="K"
@@ -76,7 +76,7 @@ export function QuickBuyArt() {
           👆
         </span>
       </div>
-      <CoinRow icon="🐶" sym="$WIF" sub="$910K MC · +12%" right={<span className="font-display text-sm font-bold tabular-nums text-up">+12%</span>} className="mt-2 scale-[0.94] bg-[#0A0D18]" />
+      <CoinRow icon="🐶" sym="$WIF" sub="$910K MC · +12%" right={<span className="font-display text-sm font-bold tabular-nums text-up">+12%</span>} className="mt-2 scale-[0.94] bg-[#07080D]" />
       <div className="kw-toast absolute inset-x-4 -bottom-14 flex items-center gap-2 rounded-2xl bg-accent px-4 py-3 font-display text-sm font-black text-black">
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/15">✓</span>
         $5 · $KAMBY

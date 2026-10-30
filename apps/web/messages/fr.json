@@ -5,7 +5,11 @@
     "leaders": "Classement",
     "profile": "Profil",
     "home": "Accueil",
-    "search": "Recherche"
+    "search": "Recherche",
+    "menu": "Menu",
+    "live": "Live",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "a donné {amount} de pourboire",
     "remove": "Supprimer",
     "silence": "Rendre @{name} muet · 10 min",
-    "walletSettingUp": "Ton wallet est encore en préparation — réessaie dans un instant."
+    "walletSettingUp": "Ton wallet est encore en préparation — réessaie dans un instant.",
+    "liveNow": "En live",
+    "nobodyLive": "Personne n'est en live",
+    "nobodyLiveHint": "Lance un live et trade devant tout le monde.",
+    "watching": "{count} spectateurs",
+    "join": "Rejoindre",
+    "seeAll": "Tout voir"
   },
   "snipe": {
     "bought": "Acheté",

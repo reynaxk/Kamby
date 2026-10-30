@@ -15,8 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#05070A',
-    theme_color: '#05070A',
+    background_color: '#020203',
+    theme_color: '#020203',
     categories: ['finance'],
     // Android (2026-10-11, owner's dad's phone showed "K in a box" before the app's own splash):
     // its launch screen draws the `any` icon on background_color, so that one is the bare mark

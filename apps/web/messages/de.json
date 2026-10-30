@@ -5,7 +5,11 @@
     "leaders": "Bestenliste",
     "profile": "Profil",
     "home": "Start",
-    "search": "Suche"
+    "search": "Suche",
+    "menu": "Menü",
+    "live": "Live",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -1121,7 +1125,13 @@
     "tipped": "gab {amount} Trinkgeld",
     "remove": "Entfernen",
     "silence": "@{name} stummschalten · 10 Min",
-    "walletSettingUp": "Deine Wallet wird noch eingerichtet — versuch es gleich nochmal."
+    "walletSettingUp": "Deine Wallet wird noch eingerichtet — versuch es gleich nochmal.",
+    "liveNow": "Jetzt live",
+    "nobodyLive": "Gerade ist niemand live",
+    "nobodyLiveHint": "Geh live und trade, während alle zusehen.",
+    "watching": "{count} schauen zu",
+    "join": "Beitreten",
+    "seeAll": "Alle"
   },
   "snipe": {
     "bought": "Gekauft",

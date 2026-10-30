@@ -12,7 +12,7 @@ export function IncomingCall({ call, conv, onAccept, onDecline }: { call: CallSt
   const caller = conv.group?.members.find((m) => m.userId === call.startedBy) ?? conv.other;
   const title = conv.group ? conv.group.title : caller?.username ? `@${caller.username}` : t('someone');
   return (
-    <div className="fixed inset-0 z-[75] flex flex-col items-center justify-between bg-[#05070A]/90 px-6 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] pt-[calc(env(safe-area-inset-top)+4rem)] backdrop-blur-xl" role="dialog" aria-label={t('incoming')}>
+    <div className="fixed inset-0 z-[75] flex flex-col items-center justify-between bg-[#020203]/90 px-6 pb-[calc(env(safe-area-inset-bottom)+2.5rem)] pt-[calc(env(safe-area-inset-top)+4rem)] backdrop-blur-xl" role="dialog" aria-label={t('incoming')}>
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_28rem_at_50%_20%,rgba(0,255,135,0.14),transparent_65%)]" />
       <div className="relative flex flex-col items-center text-center">
         <span className="relative">

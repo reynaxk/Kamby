@@ -5,7 +5,11 @@
     "leaders": "排行",
     "profile": "我的",
     "home": "首页",
-    "search": "搜索"
+    "search": "搜索",
+    "menu": "菜单",
+    "live": "直播",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "获取 Kamby 应用",
@@ -1121,7 +1125,13 @@
     "tipped": "打赏了 {amount}",
     "remove": "删除",
     "silence": "禁言 @{name} · 10 分钟",
-    "walletSettingUp": "你的钱包还在准备中 — 稍后再试。"
+    "walletSettingUp": "你的钱包还在准备中 — 稍后再试。",
+    "liveNow": "正在直播",
+    "nobodyLive": "现在没有人在直播",
+    "nobodyLiveHint": "开播，在大家面前交易。",
+    "watching": "{count} 人在看",
+    "join": "进入",
+    "seeAll": "查看全部"
   },
   "snipe": {
     "bought": "已买入",

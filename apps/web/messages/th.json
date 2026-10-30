@@ -5,7 +5,11 @@
     "leaders": "ผู้นำ",
     "profile": "โปรไฟล์",
     "home": "หน้าแรก",
-    "search": "ค้นหา"
+    "search": "ค้นหา",
+    "menu": "เมนู",
+    "live": "ไลฟ์",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "ติดตั้งแอป Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "ทิป {amount}",
     "remove": "ลบ",
     "silence": "ปิดเสียง @{name} · 10 นาที",
-    "walletSettingUp": "วอลเล็ตยังตั้งค่าอยู่ — ลองใหม่อีกครู่"
+    "walletSettingUp": "วอลเล็ตยังตั้งค่าอยู่ — ลองใหม่อีกครู่",
+    "liveNow": "กำลังไลฟ์",
+    "nobodyLive": "ตอนนี้ยังไม่มีใครไลฟ์",
+    "nobodyLiveHint": "เริ่มไลฟ์แล้วเทรดต่อหน้าทุกคน",
+    "watching": "{count} คนกำลังดู",
+    "join": "เข้าร่วม",
+    "seeAll": "ดูทั้งหมด"
   },
   "snipe": {
     "bought": "ซื้อแล้ว",

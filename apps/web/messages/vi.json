@@ -5,7 +5,11 @@
     "leaders": "Xếp hạng",
     "profile": "Hồ sơ",
     "home": "Trang chủ",
-    "search": "Tìm kiếm"
+    "search": "Tìm kiếm",
+    "menu": "Menu",
+    "live": "Trực tiếp",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -1121,7 +1125,13 @@
     "tipped": "đã tip {amount}",
     "remove": "Xóa",
     "silence": "Tắt chat @{name} · 10 phút",
-    "walletSettingUp": "Ví của bạn vẫn đang được thiết lập — thử lại sau chút nữa."
+    "walletSettingUp": "Ví của bạn vẫn đang được thiết lập — thử lại sau chút nữa.",
+    "liveNow": "Đang trực tiếp",
+    "nobodyLive": "Hiện chưa ai phát trực tiếp",
+    "nobodyLiveHint": "Phát trực tiếp và giao dịch trước mọi người.",
+    "watching": "{count} đang xem",
+    "join": "Tham gia",
+    "seeAll": "Xem tất cả"
   },
   "snipe": {
     "bought": "Đã mua",

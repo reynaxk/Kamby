@@ -78,7 +78,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
             realized PnL big in its own colour, with the faint neon K behind. */}
         <section
           className="relative mt-4 overflow-hidden rounded-3xl border border-white/[0.07] p-5 max-md:mt-1 md:p-7"
-          style={{ background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#05070A 100%)' }}
+          style={{ background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#020203 100%)' }}
         >
           <svg className="pointer-events-none absolute -right-10 -top-10 h-[220px] w-[220px] md:h-[300px] md:w-[300px]" viewBox="0 0 512 512" aria-hidden="true">
             <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">

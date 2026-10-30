@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 export default function NotFound() {
   const tU = useTranslations('ui');
   return (
-    <div className="kamby-void kamby-landing flex min-h-screen flex-col bg-[#05070A] text-white">
+    <div className="kamby-void kamby-landing flex min-h-screen flex-col bg-[#020203] text-white">
       <header className="mx-auto flex w-full max-w-6xl items-center px-5 py-6">
         <Link href="/" aria-label={tU('kambyHome_2b2e')} className="flex items-center gap-2">
           <KambyLogo />

@@ -48,7 +48,7 @@ function SampleCard({ s }: { s: Sample }) {
   return (
     <div
       className="relative h-[330px] w-[260px] shrink-0 overflow-hidden rounded-[26px] border border-[#00FF87]/15 p-5 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)]"
-      style={{ background: neon ? 'linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01) 45%),#05070A' : 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#05070A 100%)' }}
+      style={{ background: neon ? 'linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01) 45%),#020203' : 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#020203 100%)' }}
     >
       <svg className="pointer-events-none absolute -right-14 -top-4" width="240" height="240" viewBox="0 0 512 512" aria-hidden="true">
         <g fill="none" stroke={neon ? '#00FF87' : '#FFFFFF'} strokeWidth="92" strokeLinecap="round" opacity={neon ? 0.08 : 0.05}>

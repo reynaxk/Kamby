@@ -239,7 +239,7 @@ export function DuelArena({ id }: { id: string }) {
   const winner = duel.winnerId ? (duel.winnerId === duel.challenger.userId ? duel.challenger : duel.opponent) : null;
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[#05070A] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] text-white">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[#020203] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] text-white">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(34rem_22rem_at_0%_0%,rgba(0,255,135,0.10),transparent_60%),radial-gradient(34rem_22rem_at_100%_0%,rgba(0,229,255,0.10),transparent_60%)]" />
 
       <header className="relative z-10 flex items-center gap-2 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.6rem)]">

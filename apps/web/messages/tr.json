@@ -5,7 +5,11 @@
     "leaders": "Liderler",
     "profile": "Profil",
     "home": "Ana sayfa",
-    "search": "Ara"
+    "search": "Ara",
+    "menu": "Menü",
+    "live": "Canlı",
+    "perps": "Perps",
+    "launchpad": "LaunchPad"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -1121,7 +1125,13 @@
     "tipped": "{amount} bahşiş verdi",
     "remove": "Sil",
     "silence": "@{name} sustur · 10 dk",
-    "walletSettingUp": "Cüzdanın hâlâ hazırlanıyor — birazdan tekrar dene."
+    "walletSettingUp": "Cüzdanın hâlâ hazırlanıyor — birazdan tekrar dene.",
+    "liveNow": "Şu an canlı",
+    "nobodyLive": "Şu an kimse canlı değil",
+    "nobodyLiveHint": "Canlı yayına geç, herkes izlerken işlem yap.",
+    "watching": "{count} izliyor",
+    "join": "Katıl",
+    "seeAll": "Tümü"
   },
   "snipe": {
     "bought": "Alındı",

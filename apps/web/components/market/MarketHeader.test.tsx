@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MarketHeader } from './MarketHeader';
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/terminal' }));
 
 // ConnectWalletButton itself is already independently tested (wagmi/session-dependent) —
 // stubbed here so this file only exercises what actually changed. Captures the props it was

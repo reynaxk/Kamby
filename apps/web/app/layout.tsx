@@ -11,6 +11,7 @@ import { Providers } from './providers';
 import { WhatsNew } from '@/components/home/WhatsNew';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
+import { AppFrame, DesktopSideNav } from '@/components/layout/DesktopSideNav';
 import { CallProvider } from '@/components/calls/CallProvider';
 import { SessionGuard } from '@/components/account/SessionGuard';
 import { ChatPulse } from '@/components/dm/ChatPulse';
@@ -32,7 +33,7 @@ const jetbrainsMono = JetBrains_Mono({
 // maximumScale 1: iOS Safari zoomed into every small text field on tap and stayed zoomed
 // (owner, 2026-10-13 — "the user gotta zoom out with fingers"). iOS still lets people pinch-zoom
 // for accessibility; it only stops the automatic zoom-on-focus.
-export const viewport: Viewport = { themeColor: '#05070A', width: 'device-width', initialScale: 1, maximumScale: 1 };
+export const viewport: Viewport = { themeColor: '#020203', width: 'device-width', initialScale: 1, maximumScale: 1 };
 
 /** iPhone screens (CSS px wide, tall, pixel ratio) — keep in step with scripts/gen-logo.cjs. */
 const IPHONE_LAUNCH_SCREENS: [number, number, number][] = [
@@ -68,7 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`} style={{ backgroundColor: '#05070A', colorScheme: 'dark' }} suppressHydrationWarning>
+    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`} style={{ backgroundColor: '#020203', colorScheme: 'dark' }} suppressHydrationWarning>
       <head>
         {/* Dark from the very first paint (2026-10-13: the app opened on a white page — the
             light :root theme showed until a .kamby-void screen streamed in). */}
@@ -84,6 +85,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers>
           <CallProvider>
           <div id="kamby-app">
+          <DesktopSideNav />
+          <AppFrame>
           {/* Bottom space for what's fixed there: the phone tab bar (h-16 + safe area) on phones,
               the TickerBar (h-8) from md up when it's switched on — so neither covers the end of the page. */}
           <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-[var(--ticker-h)]">
@@ -92,6 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <SiteFooter />
             </LandingOnlyOnPhones>
           </div>
+          </AppFrame>
           <TickerBar />
           <MobileTabBar />
           </div>

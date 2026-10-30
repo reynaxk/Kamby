@@ -205,7 +205,7 @@ function StoryViewer({ stories, start, onSeen, onClose }: { stories: StoryPerson
 
   return createPortal(
     <div className="kamby-void fixed inset-0 z-[90] flex items-center justify-center bg-black" role="dialog" aria-label={t('title')}>
-      <div className="relative flex h-full w-full max-w-md flex-col overflow-hidden md:h-[92vh] md:rounded-3xl" style={{ background: 'linear-gradient(170deg,#141B4D 0%,#0A0E26 42%,#05070A 100%)' }}>
+      <div className="relative flex h-full w-full max-w-md flex-col overflow-hidden md:h-[92vh] md:rounded-3xl" style={{ background: 'linear-gradient(170deg,#141B4D 0%,#0A0E26 42%,#020203 100%)' }}>
         <svg className="pointer-events-none absolute -right-16 top-24" width="380" height="380" viewBox="0 0 512 512" aria-hidden>
           <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.07">
             {K_PATHS.map((d) => (

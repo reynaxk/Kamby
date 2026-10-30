@@ -76,7 +76,7 @@ export function WhatsNew() {
         aria-modal="true"
         aria-label={t('title')}
         onClick={(e) => e.stopPropagation()}
-        className="relative flex w-full flex-col overflow-hidden bg-[#06080F] md:h-[560px] md:max-w-[920px] md:flex-row md:rounded-[28px] md:border md:border-white/[0.08]"
+        className="relative flex w-full flex-col overflow-hidden bg-[#030305] md:h-[560px] md:max-w-[920px] md:flex-row md:rounded-[28px] md:border md:border-white/[0.08]"
         style={{ ['--kw-tone' as string]: slide.tone }}
       >
         {/* Story segments — the current one fills; when it's full the next slide plays. */}

@@ -86,7 +86,7 @@ export async function HowItWorks() {
         <span aria-hidden className="absolute left-[16%] right-[16%] top-[2.1rem] hidden border-t border-dashed border-[#00FF87]/25 md:block" />
         {steps.map((s) => (
           <li key={s.n} className="relative flex flex-col rounded-[1.75rem] border border-white/[0.08] bg-[linear-gradient(160deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01)_60%)] p-6">
-            <span className="relative z-10 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#00FF87]/30 bg-[#06080F] font-display text-sm font-black text-[#00FF87]">{s.n}</span>
+            <span className="relative z-10 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#00FF87]/30 bg-[#030305] font-display text-sm font-black text-[#00FF87]">{s.n}</span>
             <h3 className="mt-5 font-display text-xl font-bold tracking-tight text-white">{s.title}</h3>
             <p className="mt-2 flex-1 font-body text-sm leading-relaxed text-[#94A3B8]">{s.body}</p>
             <div className="mt-6">{s.art}</div>
@@ -141,7 +141,7 @@ export async function UnderTheHood() {
         <span aria-hidden className="kh-wire absolute bottom-8 left-[1.45rem] top-8 w-px lg:bottom-auto lg:left-[10%] lg:right-[10%] lg:top-[1.45rem] lg:h-px lg:w-auto" />
         {steps.map((s, n) => (
           <li key={n} className="relative flex gap-4 lg:flex-col lg:items-center lg:gap-0 lg:text-center">
-            <span className="kh-node relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#0B0E17] text-xl" style={{ animationDelay: `${n * 1.1}s` }}>
+            <span className="kh-node relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#08090E] text-xl" style={{ animationDelay: `${n * 1.1}s` }}>
               {s.icon}
             </span>
             <span className="pb-4 lg:mt-5 lg:pb-0">
