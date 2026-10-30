@@ -1,4 +1,5 @@
-import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { prisma, type Prisma } from '@kamby/db';
 import {
   containsLink,
@@ -6,6 +7,7 @@ import {
   normalizePulseBody,
   type DmPnl,
   type DmTrade,
+  type FeedPhoto,
   type FeedAuthor,
   type FeedPage,
   type FeedPost,
@@ -14,6 +16,8 @@ import {
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { DmService } from '../dm/dm.service';
+import { ImageModerationService } from '../media/image-moderation.service';
+import { R2StorageService, type UploadableFile } from '../media/r2-storage.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
 const AUTHOR = {
@@ -51,7 +55,44 @@ export class FeedService {
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly dm: DmService,
+    private readonly moderation: ImageModerationService,
+    private readonly r2: R2StorageService,
   ) {}
+
+  /** Photos are on only when moderation is configured (Sightengine keys on the API). */
+  capabilities(): { photos: boolean } {
+    return { photos: this.moderation.isConfigured() };
+  }
+
+  /**
+   * A photo for a post (2026-10-30): checked by Sightengine BEFORE it's stored — refused if it
+   * shows nudity, gore or weapons, or if the check can't run. Capped per person and per day so
+   * the moderation plan can't run dry. Returns a one-hour ticket to attach to the post.
+   */
+  async uploadPhoto(me: string, file: UploadableFile | undefined, apiOrigin: string): Promise<{ photoId: string; url: string }> {
+    if (!file) throw new BadRequestException('Pick a photo first.');
+    if (!this.moderation.isConfigured()) throw new ServiceUnavailableException('Photos are not switched on yet.');
+    const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
+    if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
+    const day = new Date().toISOString().slice(0, 10);
+    const mine = await this.redis.incr(`kamby:feed:photos:${day}:${me}`).catch(() => 1);
+    const all = await this.redis.incr(`kamby:feed:photos:${day}`).catch(() => 1);
+    void this.redis.expire(`kamby:feed:photos:${day}:${me}`, 90_000).catch(() => undefined);
+    void this.redis.expire(`kamby:feed:photos:${day}`, 90_000).catch(() => undefined);
+    if (mine > FEED_LIMITS.photosPerUserPerDay) throw new HttpException(`That's ${FEED_LIMITS.photosPerUserPerDay} photos today — more tomorrow.`, HttpStatus.TOO_MANY_REQUESTS);
+    if (all > FEED_LIMITS.photosPerDay) throw new HttpException('Photos are full for today — try again tomorrow.', HttpStatus.TOO_MANY_REQUESTS);
+    if (!/^image\/(png|jpeg|webp)$/.test(file.mimetype)) throw new BadRequestException('Only PNG, JPEG or WebP photos.');
+    if (file.size > FEED_LIMITS.photoMaxBytes) throw new BadRequestException('That photo is over 5 MB.');
+
+    const verdict = await this.moderation.check(file.buffer, file.mimetype);
+    if (!verdict.ok) {
+      throw new BadRequestException(verdict.reason === 'error' ? "We couldn't check that photo — try again in a moment." : "That photo can't be posted on Kamby.");
+    }
+    const url = await this.r2.uploadFeedPhoto(me, file, apiOrigin);
+    const photoId = randomUUID();
+    await this.redis.set(`kamby:feed:photo:${photoId}`, JSON.stringify({ userId: me, url }), 'EX', 3600);
+    return { photoId, url };
+  }
 
   async list(me: string | null, tab: FeedTab, before?: string, authorId?: string): Promise<FeedPage> {
     const take = FEED_LIMITS.pageSize;
@@ -84,7 +125,7 @@ export class FeedService {
     return this.list(me, 'foryou', before, wallet.userId);
   }
 
-  async post(me: string, input: { body: string; attach?: { kind: 'trade' | 'pnl'; chain: string; tokenAddress: string } }): Promise<FeedPost> {
+  async post(me: string, input: { body: string; attach?: { kind: 'trade' | 'pnl' | 'photo'; chain?: string; tokenAddress?: string; photoId?: string } }): Promise<FeedPost> {
     const body = cleanBody(input.body, FEED_LIMITS.maxLength, Boolean(input.attach));
     const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
     if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
@@ -98,8 +139,16 @@ export class FeedService {
     }
 
     let kind: FeedPost['kind'] = 'text';
-    let data: DmTrade | DmPnl | null = null;
-    if (input.attach) {
+    let data: DmTrade | DmPnl | FeedPhoto | null = null;
+    if (input.attach?.kind === 'photo') {
+      // Only a photo this person uploaded (and moderation passed) in the last hour.
+      const ticket = input.attach.photoId ? await this.redis.getdel(`kamby:feed:photo:${input.attach.photoId}`) : null;
+      const parsed = ticket ? (JSON.parse(ticket) as { userId: string; url: string }) : null;
+      if (!parsed || parsed.userId !== me) throw new BadRequestException('Upload the photo again.');
+      kind = 'photo';
+      data = { url: parsed.url };
+    } else if (input.attach) {
+      if (!input.attach.chain || !input.attach.tokenAddress) throw new BadRequestException('Pick a coin for the card.');
       kind = input.attach.kind;
       data = kind === 'trade' ? await this.dm.tradeCard(me, input.attach.chain, input.attach.tokenAddress) : await this.dm.pnlCard(me, input.attach.chain, input.attach.tokenAddress);
     }
@@ -170,7 +219,7 @@ export class FeedService {
   }
 
   private toDto(row: Prisma.FeedPostGetPayload<{ include: { user: typeof AUTHOR } }> & { likes?: { userId: string }[] }, me: string | null): FeedPost {
-    const kind = (row.kind === 'trade' || row.kind === 'pnl' ? row.kind : 'text') as FeedPost['kind'];
+    const kind = (row.kind === 'trade' || row.kind === 'pnl' || row.kind === 'photo' ? row.kind : 'text') as FeedPost['kind'];
     return {
       id: row.id,
       author: author(row.user),
@@ -178,6 +227,7 @@ export class FeedService {
       kind,
       trade: kind === 'trade' ? (row.data as unknown as DmTrade) : null,
       pnl: kind === 'pnl' ? (row.data as unknown as DmPnl) : null,
+      photo: kind === 'photo' ? (row.data as unknown as FeedPhoto) : null,
       likeCount: Math.max(0, row.likeCount),
       replyCount: row.replyCount,
       likedByMe: Boolean(row.likes?.length),

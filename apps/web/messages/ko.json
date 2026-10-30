@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "답글 쓰기",
     "reply": "답글",
     "needUsername": "게시하려면 프로필에서 사용자 이름을 정하세요.",
-    "soon": "피드가 곧 열려요."
+    "soon": "피드가 곧 열려요.",
+    "photo": "사진",
+    "checkingPhoto": "사진 확인 중…"
   }
 }

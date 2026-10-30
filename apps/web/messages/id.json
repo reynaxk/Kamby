@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "Tulis balasan",
     "reply": "Balas",
     "needUsername": "Pilih username di profil untuk posting.",
-    "soon": "Feed segera dibuka."
+    "soon": "Feed segera dibuka.",
+    "photo": "Foto",
+    "checkingPhoto": "Memeriksa foto…"
   }
 }

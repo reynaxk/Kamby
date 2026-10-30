@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "Write a reply",
     "reply": "Reply",
     "needUsername": "Pick a username in your profile to post.",
-    "soon": "The Feed opens very soon."
+    "soon": "The Feed opens very soon.",
+    "photo": "Photo",
+    "checkingPhoto": "Checking the photo…"
   }
 }

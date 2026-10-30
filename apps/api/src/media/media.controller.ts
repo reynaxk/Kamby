@@ -18,4 +18,15 @@ export class MediaController {
     const picture = await this.r2.getAvatar(userId, file);
     return new StreamableFile(Buffer.from(picture.body), { type: picture.contentType });
   }
+
+  /** Feed photos (2026-10-30) — only ever stored after passing moderation. */
+  @Get('feed/:userId/:file')
+  @Header('Cache-Control', 'public, max-age=31536000, immutable')
+  @Header('X-Content-Type-Options', 'nosniff')
+  @Header('Cross-Origin-Resource-Policy', 'cross-origin')
+  @SkipThrottle()
+  async feedPhoto(@Param('userId') userId: string, @Param('file') file: string): Promise<StreamableFile> {
+    const picture = await this.r2.getFeedPhoto(userId, file);
+    return new StreamableFile(Buffer.from(picture.body), { type: picture.contentType });
+  }
 }

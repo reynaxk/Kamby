@@ -1,4 +1,9 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Request } from 'express';
+import { memoryStorage } from 'multer';
+import { FEED_LIMITS } from '@kamby/domain';
+import type { UploadableFile } from '../media/r2-storage.service';
 import { Throttle } from '@nestjs/throttler';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
@@ -26,16 +31,23 @@ class FeedQueryDto {
 }
 
 class AttachDto {
-  @IsIn(['trade', 'pnl'])
-  kind!: 'trade' | 'pnl';
+  @IsIn(['trade', 'pnl', 'photo'])
+  kind!: 'trade' | 'pnl' | 'photo';
 
+  @IsOptional()
   @IsString()
   @MaxLength(32)
-  chain!: string;
+  chain?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(64)
-  tokenAddress!: string;
+  tokenAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  photoId?: string;
 }
 
 class PostDto {
@@ -71,6 +83,23 @@ export class FeedController {
   list(@Query() query: FeedQueryDto, @CurrentUser() user: SessionUser | null) {
     if (query.address) return this.feed.byAddress(user?.id ?? null, query.address, query.before);
     return this.feed.list(user?.id ?? null, query.tab ?? 'foryou', query.before);
+  }
+
+  /** Whether photos are on (moderation configured) — never which keys. */
+  @Get('capabilities')
+  capabilities() {
+    return this.feed.capabilities();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 6, ttl: 60_000 } })
+  @Post('photos')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: FEED_LIMITS.photoMaxBytes } }))
+  uploadPhoto(@UploadedFile() file: UploadableFile | undefined, @CurrentUser() user: SessionUser, @Req() req: Request) {
+    // This API's own public address behind Railway's proxy (same as avatars).
+    const proto = String(req.headers['x-forwarded-proto'] ?? req.protocol).split(',')[0]!.trim();
+    const host = String(req.headers['x-forwarded-host'] ?? req.get('host') ?? '').split(',')[0]!.trim();
+    return this.feed.uploadPhoto(user.id, file, `${proto === 'http' && !host.startsWith('localhost') ? 'https' : proto}://${host}`);
   }
 
   @UseGuards(JwtAuthGuard)

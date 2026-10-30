@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "写回复",
     "reply": "回复",
     "needUsername": "在个人资料里设置用户名后才能发帖。",
-    "soon": "动态即将开放。"
+    "soon": "动态即将开放。",
+    "photo": "照片",
+    "checkingPhoto": "正在检查照片…"
   }
 }

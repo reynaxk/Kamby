@@ -30,6 +30,8 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
  *  interceptor can reject an oversized upload before it's ever fully buffered into memory —
  *  the check here stays too, as a backstop in case that interceptor config ever drifts. */
 export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+/** A Feed photo is shown big — 5MB (phones send 2–4MB JPEGs). */
+export const MAX_FEED_PHOTO_BYTES = 5 * 1024 * 1024;
 
 /** Voice notes: what browsers record (WebM/Opus on Chrome & Android, MP4/AAC on iPhone). */
 const VOICE_MIME_TYPES: Record<string, string> = {
@@ -71,12 +73,21 @@ export class R2StorageService {
    *  `SafetyService` already throw NestJS HTTP exceptions directly from the service layer
    *  in this codebase, rather than a controller translating a generic error afterward. */
   async uploadAvatar(userId: string, file: UploadableFile, apiOrigin?: string): Promise<string> {
+    return this.uploadPicture('avatars', userId, file, MAX_FILE_SIZE_BYTES, apiOrigin);
+  }
+
+  /** A Feed photo (2026-10-30) — same path as avatars, under feed/. Checked by moderation first. */
+  async uploadFeedPhoto(userId: string, file: UploadableFile, apiOrigin?: string): Promise<string> {
+    return this.uploadPicture('feed', userId, file, MAX_FEED_PHOTO_BYTES, apiOrigin);
+  }
+
+  private async uploadPicture(folder: 'avatars' | 'feed', userId: string, file: UploadableFile, maxBytes: number, apiOrigin?: string): Promise<string> {
     const extension = ALLOWED_MIME_TYPES[file.mimetype];
     if (!extension) {
       throw new BadRequestException(`Unsupported image type "${file.mimetype}" — only PNG, JPEG, and WebP are accepted`);
     }
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      throw new BadRequestException(`Image is too large (${file.size} bytes) — the limit is ${MAX_FILE_SIZE_BYTES} bytes`);
+    if (file.size > maxBytes) {
+      throw new BadRequestException(`Image is too large (${file.size} bytes) — the limit is ${maxBytes} bytes`);
     }
 
     const client = this.getClient();
@@ -90,15 +101,15 @@ export class R2StorageService {
       if (!fallbackBucket || !apiOrigin) throw this.notConfiguredError();
       const name = `${randomUUID()}.${extension}`;
       await client.send(
-        new PutObjectCommand({ Bucket: fallbackBucket, Key: `avatars/${userId}/${name}`, Body: file.buffer, ContentType: file.mimetype, CacheControl: 'public, max-age=31536000, immutable' }),
+        new PutObjectCommand({ Bucket: fallbackBucket, Key: `${folder}/${userId}/${name}`, Body: file.buffer, ContentType: file.mimetype, CacheControl: 'public, max-age=31536000, immutable' }),
       );
-      return `${apiOrigin.replace(/\/$/, '')}/v1/media/avatars/${userId}/${name}`;
+      return `${apiOrigin.replace(/\/$/, '')}/v1/media/${folder}/${userId}/${name}`;
     }
 
     // Randomly named, not derived from the client-supplied filename or userId alone —
     // avoids both a path-traversal surface and a predictable object key another request
     // could race/overwrite.
-    const key = `avatars/${userId}/${randomUUID()}.${extension}`;
+    const key = `${folder}/${userId}/${randomUUID()}.${extension}`;
 
     await client.send(
       new PutObjectCommand({
@@ -147,6 +158,14 @@ export class R2StorageService {
   /** A profile picture stored by the fallback above. Only `avatars/<uuid>/<uuid>.<png|jpg|webp>`
    *  is ever read here — never any other key in the bucket (voice notes live there too). */
   async getAvatar(userId: string, file: string): Promise<{ body: Uint8Array; contentType: string }> {
+    return this.getPicture('avatars', userId, file);
+  }
+
+  async getFeedPhoto(userId: string, file: string): Promise<{ body: Uint8Array; contentType: string }> {
+    return this.getPicture('feed', userId, file);
+  }
+
+  private async getPicture(folder: 'avatars' | 'feed', userId: string, file: string): Promise<{ body: Uint8Array; contentType: string }> {
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const [id, ext] = file.split('.');
     if (!uuid.test(userId) || !id || !uuid.test(id) || !ext || !['png', 'jpg', 'webp'].includes(ext) || file.split('.').length !== 2) {
@@ -155,7 +174,7 @@ export class R2StorageService {
     const bucket = this.voiceBucket();
     if (!bucket) throw new NotFoundException('No such picture.');
     const out = await this.getClient()
-      .send(new GetObjectCommand({ Bucket: bucket, Key: `avatars/${userId}/${file}` }))
+      .send(new GetObjectCommand({ Bucket: bucket, Key: `${folder}/${userId}/${file}` }))
       .catch(() => null);
     if (!out?.Body) throw new NotFoundException('No such picture.');
     const contentType = out.ContentType && /^image\/(png|jpeg|webp)$/.test(out.ContentType) ? out.ContentType : 'image/png';

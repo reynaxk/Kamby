@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "返信を書く",
     "reply": "返信",
     "needUsername": "投稿するにはプロフィールでユーザー名を設定してください。",
-    "soon": "フィードはまもなく公開。"
+    "soon": "フィードはまもなく公開。",
+    "photo": "写真",
+    "checkingPhoto": "写真を確認中…"
   }
 }

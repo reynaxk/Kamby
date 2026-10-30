@@ -15,10 +15,18 @@ export const FEED_LIMITS = {
   repliesPageSize: 50,
   /** This many reports from different people hide a post. */
   reportsToHide: 3,
+  /** Photos (2026-10-30): checked by Sightengine first; capped so the free plan never runs out mid-day. */
+  photoMaxBytes: 5 * 1024 * 1024,
+  photosPerUserPerDay: 10,
+  photosPerDay: 150,
 } as const;
 
 export type FeedTab = 'foryou' | 'following';
-export type FeedPostKind = 'text' | 'trade' | 'pnl';
+export type FeedPostKind = 'text' | 'trade' | 'pnl' | 'photo';
+
+export interface FeedPhoto {
+  url: string;
+}
 
 export interface FeedAuthor {
   userId: string;
@@ -35,6 +43,7 @@ export interface FeedPost {
   kind: FeedPostKind;
   trade: DmTrade | null;
   pnl: DmPnl | null;
+  photo: FeedPhoto | null;
   likeCount: number;
   replyCount: number;
   likedByMe: boolean;

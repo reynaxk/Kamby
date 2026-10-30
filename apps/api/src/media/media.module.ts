@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MediaController } from './media.controller';
 import { R2StorageService } from './r2-storage.service';
+import { ImageModerationService } from './image-moderation.service';
 
 /** Owns Cloudflare R2 access — currently just profile-picture uploads (see
  *  R2StorageService's own doc comment). A separate module rather than folding
@@ -8,7 +9,7 @@ import { R2StorageService } from './r2-storage.service';
  *  (not just profile pictures) depends on this, not on identity. */
 @Module({
   controllers: [MediaController],
-  providers: [R2StorageService],
-  exports: [R2StorageService],
+  providers: [R2StorageService, ImageModerationService],
+  exports: [R2StorageService, ImageModerationService],
 })
 export class MediaModule {}

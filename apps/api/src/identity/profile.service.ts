@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException, 
 import { Prisma, prisma } from '@kamby/db';
 import { isValidUsername, normalizeUsername } from '@kamby/domain';
 import { R2StorageService, type UploadableFile } from '../media/r2-storage.service';
+import { ImageModerationService } from '../media/image-moderation.service';
 
 export interface ProfileDto {
   username: string | null;
@@ -24,7 +25,10 @@ export interface ProfileDto {
  */
 @Injectable()
 export class ProfileService {
-  constructor(private readonly r2: R2StorageService) {}
+  constructor(
+    private readonly r2: R2StorageService,
+    private readonly moderation: ImageModerationService,
+  ) {}
 
   /** The current session's own profile — how the frontend knows whether to show the
    *  onboarding "set up your profile" prompt (`username === null`) and what to pre-fill
@@ -83,6 +87,14 @@ export class ProfileService {
   }
 
   async uploadAvatar(userId: string, file: UploadableFile, apiOrigin?: string): Promise<ProfileDto> {
+    // Checked like Feed photos once moderation is configured (2026-10-30); until then avatars
+    // keep working as before.
+    if (this.moderation.isConfigured()) {
+      const verdict = await this.moderation.check(file.buffer, file.mimetype);
+      if (!verdict.ok) {
+        throw new BadRequestException(verdict.reason === 'error' ? "We couldn't check that picture — try again in a moment." : "That picture can't be used on Kamby.");
+      }
+    }
     const avatarUrl = await this.r2.uploadAvatar(userId, file, apiOrigin);
     return prisma.user.update({
       where: { id: userId },

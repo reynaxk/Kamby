@@ -26,7 +26,8 @@ describe('ProfileService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     r2 = fakeR2();
-    service = new ProfileService(r2 as never);
+    // Moderation off (no Sightengine keys) — avatars upload as before.
+    service = new ProfileService(r2 as never, { isConfigured: () => false, check: jest.fn() } as never);
   });
 
   describe('getProfile', () => {

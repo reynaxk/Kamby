@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
@@ -17,6 +17,8 @@ import {
   fetchFeed,
   fetchFeedReplies,
   FEED_ENABLED,
+  fetchFeedCapabilities,
+  uploadFeedPhoto,
   likeFeedPost,
   replyToFeedPost,
   reportFeedPost,
@@ -25,6 +27,7 @@ import { DmAvatar } from '@/components/dm/DmAvatar';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { TradeCard } from '@/components/social/TradeCard';
 import { PositionPicker } from '@/components/social/PositionPicker';
+import { SafeImg } from '@/components/social/SafeImg';
 
 /**
  * The Feed (2026-10-30, owner's concepts): what traders post — a few lines, optionally with a
@@ -127,10 +130,35 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
   const [username] = useMyUsername(authenticated);
   const [body, setBody] = useState('');
   const [attach, setAttach] = useState<{ kind: 'trade' | 'pnl'; position: TokenPosition } | null>(null);
+  // A photo (2026-10-30): shown only when the server says moderation is on; checked on upload.
+  const [photosOn, setPhotosOn] = useState(false);
+  const [photo, setPhoto] = useState<{ photoId: string; url: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    fetchFeedCapabilities()
+      .then((c) => setPhotosOn(c.photos))
+      .catch(() => setPhotosOn(false));
+  }, []);
+
+  async function pickPhoto(file: File | undefined) {
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    try {
+      setPhoto(await uploadFeedPhoto(file));
+      setAttach(null);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
   const [picking, setPicking] = useState<'trade' | 'pnl' | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const can = !busy && (body.trim().length > 0 || attach !== null);
+  const can = !busy && !uploading && (body.trim().length > 0 || attach !== null || photo !== null);
 
   async function submit() {
     if (!can) return;
@@ -138,10 +166,14 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
     setError(null);
     try {
       const chain = attach ? (attach.position.chainIdentifier ?? (attach.position.chain === 'solana' ? 'solana' : '')) : '';
-      const p = await createFeedPost(body.trim(), attach ? { kind: attach.kind, chain, tokenAddress: attach.position.tokenAddress } : undefined);
+      const p = await createFeedPost(
+        body.trim(),
+        photo ? { kind: 'photo', photoId: photo.photoId } : attach ? { kind: attach.kind, chain, tokenAddress: attach.position.tokenAddress } : undefined,
+      );
       onPosted(p);
       setBody('');
       setAttach(null);
+      setPhoto(null);
     } catch (err) {
       setError(friendlyError(err));
     } finally {
@@ -170,6 +202,21 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
           className="min-h-[3rem] flex-1 resize-none rounded-xl border border-line bg-bg px-3 py-2.5 font-body text-sm text-ink-900 placeholder:text-ink-400 focus:border-accent/40 focus:outline-none"
         />
       </div>
+      {(photo || uploading) && (
+        <div className="relative mt-2.5 overflow-hidden rounded-xl border border-line bg-bg">
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- a checked upload on Kamby's own API
+            <img src={photo.url} alt="" className="max-h-72 w-full object-cover" />
+          ) : (
+            <div className="flex h-28 items-center justify-center font-body text-xs text-ink-400">{t('checkingPhoto')}</div>
+          )}
+          {photo && (
+            <button type="button" onClick={() => setPhoto(null)} aria-label={t('removeCard')} className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white">
+              ✕
+            </button>
+          )}
+        </div>
+      )}
       {attach && (
         <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/[0.05] px-3 py-2">
           <TokenAvatar src={attach.position.logoUrl} seed={attach.position.tokenAddress} label={attach.position.symbol} className="h-6 w-6 text-[0.6rem]" />
@@ -183,6 +230,14 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
       )}
       {error && <p className="mt-2 font-body text-xs text-down">{error}</p>}
       <div className="mt-2.5 flex items-center gap-1.5">
+        {photosOn && (
+          <>
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => void pickPhoto(e.target.files?.[0])} />
+            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
+              <span className="text-[#5CEFFF]">▣</span> {t('photo')}
+            </button>
+          </>
+        )}
         <button type="button" onClick={() => setPicking('trade')} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
           <span className="text-accent">↗</span> {t('tradeCard')}
         </button>
@@ -199,7 +254,10 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
         title={picking === 'pnl' ? t('pnlCard') : t('tradeCard')}
         onClose={() => setPicking(null)}
         onPick={(p) => {
-          if (picking) setAttach({ kind: picking, position: p });
+          if (picking) {
+            setAttach({ kind: picking, position: p });
+            setPhoto(null);
+          }
           setPicking(null);
         }}
       />
@@ -287,6 +345,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
       {post.body && <p className="mt-2.5 whitespace-pre-wrap break-words font-body text-[0.92rem] leading-relaxed text-ink-900/90">{post.body}</p>}
       {post.trade && <TradeCard trade={post.trade} mine={post.mine} by={`@${name}`} className="mt-3" />}
       {post.pnl && <PnlCard pnl={post.pnl} />}
+      {post.photo && <SafeImg src={post.photo.url} className="mt-3 max-h-[32rem] w-full rounded-xl border border-line object-cover" fallback={null} />}
       {error && <p className="mt-2 font-body text-xs text-ink-400">{error}</p>}
       <div className="mt-3 flex items-center gap-5">
         <button type="button" onClick={() => void like()} aria-pressed={post.likedByMe} className={cn('flex items-center gap-1.5 font-display text-xs font-bold', post.likedByMe ? 'text-[#FF3B69]' : 'text-ink-400 hover:text-ink-900')}>

@@ -322,6 +322,10 @@ export const EnvSchema = z.object({
    *  URL or a custom domain fronting it, never derived/guessed from R2_ENDPOINT (a
    *  private, account-scoped API endpoint, not a public asset host). */
   R2_PUBLIC_BASE_URL: z.string().url('R2_PUBLIC_BASE_URL must be a valid URL').optional(),
+  /** Sightengine (2026-10-30): every Feed photo — and avatar — is checked for nudity, gore and
+   *  weapons before it's stored. Unset = Feed photos are off (avatars keep working unchecked). */
+  SIGHTENGINE_USER: z.string().min(1).optional(),
+  SIGHTENGINE_SECRET: z.string().min(1).optional(),
   /** Kamby's LaunchPad: Kamby's fixed fee per coin created, in USD (paid in USDC). */
   LAUNCH_FEE_USD: z.coerce.number().min(0).max(100).optional(),
   /** Calls (2026-10-17): Cloudflare Realtime (SFU) app + its TURN key. Calls are off without them. */

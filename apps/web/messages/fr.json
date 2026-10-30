@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "Écris une réponse",
     "reply": "Répondre",
     "needUsername": "Choisis un pseudo dans ton profil pour publier.",
-    "soon": "Le fil ouvre très bientôt."
+    "soon": "Le fil ouvre très bientôt.",
+    "photo": "Photo",
+    "checkingPhoto": "Vérification de la photo…"
   }
 }

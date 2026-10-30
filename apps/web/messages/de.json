@@ -1481,6 +1481,8 @@
     "replyPlaceholder": "Antwort schreiben",
     "reply": "Antworten",
     "needUsername": "Wähle einen Nutzernamen im Profil, um zu posten.",
-    "soon": "Der Feed startet sehr bald."
+    "soon": "Der Feed startet sehr bald.",
+    "photo": "Foto",
+    "checkingPhoto": "Foto wird geprüft…"
   }
 }
