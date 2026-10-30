@@ -1036,7 +1036,8 @@
     "play": "Phát",
     "voiceNote": "Tin nhắn thoại",
     "voiceFailed": "Không tải được",
-    "noPeople": "Chưa có ai tên như vậy"
+    "noPeople": "Chưa có ai tên như vậy",
+    "communities": "Cộng đồng"
   },
   "calls": {
     "failed": "Cuộc gọi không kết nối được",

@@ -1036,7 +1036,8 @@
     "play": "Lire",
     "voiceNote": "Message vocal",
     "voiceFailed": "Chargement impossible",
-    "noPeople": "Personne avec ce nom pour l’instant"
+    "noPeople": "Personne avec ce nom pour l’instant",
+    "communities": "Communautés"
   },
   "calls": {
     "failed": "L’appel n’a pas abouti",

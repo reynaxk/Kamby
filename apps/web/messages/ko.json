@@ -1036,7 +1036,8 @@
     "play": "재생",
     "voiceNote": "음성 메시지",
     "voiceFailed": "불러오지 못했어요",
-    "noPeople": "그 이름의 사용자가 없어요"
+    "noPeople": "그 이름의 사용자가 없어요",
+    "communities": "커뮤니티"
   },
   "calls": {
     "failed": "통화가 연결되지 않았어요",

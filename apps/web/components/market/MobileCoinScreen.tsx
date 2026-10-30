@@ -196,7 +196,7 @@ export function MobileCoinScreen({
 
       <div className="flex items-start justify-between gap-3 px-4 pt-1">
         <div className="min-w-0">
-          <p className="truncate font-display text-[2rem] font-bold leading-none tracking-tight text-ink-900 tabular-nums">
+          <p className="truncate font-display text-[2.4rem] font-bold leading-none tracking-tight text-ink-900 tabular-nums">
             <PriceText value={price} flash />
           </p>
           {change !== null && (

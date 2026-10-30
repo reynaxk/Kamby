@@ -1036,7 +1036,8 @@
     "play": "Tocar",
     "voiceNote": "Mensagem de voz",
     "voiceFailed": "Não foi possível carregar",
-    "noPeople": "Ninguém com esse nome ainda"
+    "noPeople": "Ninguém com esse nome ainda",
+    "communities": "Comunidades"
   },
   "calls": {
     "failed": "A chamada não conectou",

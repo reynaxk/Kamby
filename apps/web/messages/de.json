@@ -1036,7 +1036,8 @@
     "play": "Abspielen",
     "voiceNote": "Sprachnachricht",
     "voiceFailed": "Laden fehlgeschlagen",
-    "noPeople": "Noch niemand mit diesem Namen"
+    "noPeople": "Noch niemand mit diesem Namen",
+    "communities": "Communities"
   },
   "calls": {
     "failed": "Anruf nicht verbunden",

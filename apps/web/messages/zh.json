@@ -1036,7 +1036,8 @@
     "play": "播放",
     "voiceNote": "语音消息",
     "voiceFailed": "加载失败",
-    "noPeople": "还没有这个名字的用户"
+    "noPeople": "还没有这个名字的用户",
+    "communities": "社区"
   },
   "calls": {
     "failed": "通话未接通",

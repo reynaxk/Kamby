@@ -1036,7 +1036,8 @@
     "play": "再生",
     "voiceNote": "ボイスメッセージ",
     "voiceFailed": "読み込めませんでした",
-    "noPeople": "その名前のユーザーはいません"
+    "noPeople": "その名前のユーザーはいません",
+    "communities": "コミュニティ"
   },
   "calls": {
     "failed": "通話に接続できませんでした",

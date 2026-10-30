@@ -1036,7 +1036,8 @@
     "play": "Putar",
     "voiceNote": "Pesan suara",
     "voiceFailed": "Gagal memuat",
-    "noPeople": "Belum ada yang bernama itu"
+    "noPeople": "Belum ada yang bernama itu",
+    "communities": "Komunitas"
   },
   "calls": {
     "failed": "Panggilan gagal tersambung",

@@ -15,14 +15,14 @@ import { CommunityAvatar } from '@/components/dm/CommunityBits';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { haptic } from '@/components/dm/DmMessageView';
 
-async function fetchBoard(sort: SquadSort): Promise<SquadBoard> {
+export async function fetchBoard(sort: SquadSort): Promise<SquadBoard> {
   // Signed-in viewers see which squads they're already in; anyone can look.
   const res = hasStoredSession() ? await authedFetch(`/squads?sort=${sort}`) : await fetch(`${API_BASE}/v1/squads?sort=${sort}`);
   await expectOk(res, 'load Squad Wars');
   return (await res.json()) as SquadBoard;
 }
 
-async function act(path: string, what: string): Promise<{ id?: string; conversationId?: string; status?: string }> {
+export async function act(path: string, what: string): Promise<{ id?: string; conversationId?: string; status?: string }> {
   const res = await authedFetch(path, { method: 'POST' });
   await expectOk(res, what);
   return res.json();

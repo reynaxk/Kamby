@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { DmInbox } from './DmInbox';
+import { CommunitiesPane } from './CommunitiesPane';
 
 /** True from 768px up (Tailwind `md`) — null until the browser says, so nothing renders twice. */
 function useWide(): boolean | null {
@@ -48,11 +49,13 @@ export function MessagesShell({ children, home = null }: { children: React.React
   );
 }
 
-/** The right pane before you pick a chat. */
+/** The right pane before you pick a chat — with the Communities column beside it on wide screens
+ *  (2026-10-30 redesign). */
 function EmptyPane() {
   const t = useTranslations('dm');
   return (
-    <div className="flex min-h-screen items-center justify-center px-8">
+    <div className="flex min-h-screen">
+    <div className="flex flex-1 items-center justify-center px-8">
       <div className="text-center">
         <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-[30%] border border-accent/25 bg-accent/[0.08] text-accent" aria-hidden>
           <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -62,6 +65,10 @@ function EmptyPane() {
         <p className="mt-5 font-display text-2xl font-black tracking-tight text-ink-900">{t('pickTitle')}</p>
         <p className="mx-auto mt-2 max-w-sm font-body text-sm text-ink-400">{t('pickBody')}</p>
       </div>
+    </div>
+    <div className="sticky top-0 hidden h-[calc(100dvh-var(--ticker-h))] w-[340px] shrink-0 xl:block">
+      <CommunitiesPane />
+    </div>
     </div>
   );
 }

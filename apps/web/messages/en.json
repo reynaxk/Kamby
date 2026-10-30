@@ -1036,7 +1036,8 @@
     "play": "Play",
     "voiceNote": "Voice note",
     "voiceFailed": "Couldn't load",
-    "noPeople": "No one by that name yet"
+    "noPeople": "No one by that name yet",
+    "communities": "Communities"
   },
   "calls": {
     "failed": "Call didn’t connect",

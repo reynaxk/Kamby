@@ -1036,7 +1036,8 @@
     "play": "Oynat",
     "voiceNote": "Sesli mesaj",
     "voiceFailed": "Yüklenemedi",
-    "noPeople": "Bu isimde kimse yok"
+    "noPeople": "Bu isimde kimse yok",
+    "communities": "Topluluklar"
   },
   "calls": {
     "failed": "Arama bağlanamadı",
