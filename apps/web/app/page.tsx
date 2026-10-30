@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { KambyLogo } from '@/components/layout/KambyLogo';
-import { FeatureCards, type LandingFeature } from '@/components/landing/FeatureCards';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { ChatShowcase } from '@/components/landing/ChatShowcase';
 import { HeroPhone } from '@/components/landing/HeroPhone';
@@ -11,30 +10,22 @@ import { LandingCta } from '@/components/landing/LandingCta';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  title: 'Kamby — Multi-Chain Meme Coin Terminal',
+  title: 'Kamby — Social Terminal for Trading',
   description:
-    'Find. Trade. Repeat. Trade meme coins on Solana, Base, BNB Chain and Robinhood Chain with just USDC — no native gas, simulated before every swap.',
+    'The social terminal for trading: find coins, follow whales and chat with traders on Solana, Base, BNB Chain and Robinhood Chain — with just USDC, no gas.',
 };
 
 /**
  * The landing page (2026-10-17 rewrite, owner: "10/10 aesthetic, ultra-smooth"): an obsidian
- * hero over a neon 3D grid with a frosted preview of the terminal beside the pitch, the
- * features as a bento grid, the PnL cards drifting past in a marquee, both chats live-looking,
+ * hero over a neon 3D grid with a live phone beside the pitch (2026-10-30: the feature bento is gone —
+ * How it works, the tour and Under the hood already say it), the chats and PnL cards, a short FAQ,
  * and one last call to action (no countdown — owner 2026-10-17). New visitors see this, not the terminal — the buttons open Privy
- * sign-in, then the app. Server-rendered; the client code is the sign-in buttons and the bento
- * tiles' tilt. All motion is transform/opacity. The risk notice lives in the
+ * sign-in, then the app. Server-rendered; the client code is the sign-in buttons and the live
+ * scenes. All motion is transform/opacity. The risk notice lives in the
  * site footer.
  */
 export default async function LandingPage() {
   const t = await getTranslations('landing');
-  const features: LandingFeature[] = [
-    { icon: 'gas', title: t('f1Title'), body: t('f1Body') },
-    { icon: 'dollar', title: t('f3Title'), body: t('f3Body') },
-    { icon: 'shield', title: t('f2Title'), body: t('f2Body') },
-    { icon: 'launch', title: t('f4Title'), body: t('f4Body') },
-    { icon: 'chat', title: t('f5Title'), body: t('f5Body') },
-    { icon: 'card', title: t('f6Title'), body: t('f6Body') },
-  ];
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#050608] text-white">
       {/* Hero */}
@@ -62,16 +53,13 @@ export default async function LandingPage() {
 
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-24 lg:pt-12">
           <div className="text-center lg:text-left">
-            <p className="kamby-gate-in inline-flex items-center gap-2 rounded-full border border-[#00FF87]/20 bg-[#00FF87]/[0.06] px-3 py-1 font-mono text-[0.68rem] lowercase tracking-[0.18em] text-[#5BE3A0]">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#00FF87]" />
-              {t('chains')}
-            </p>
-            <h1 className="kamby-gate-in kamby-gate-in-2 mt-6 font-display text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.02] tracking-tight">
-              <span className="bg-[linear-gradient(180deg,#FFFFFF_0%,rgba(255,255,255,0.72)_100%)] bg-clip-text text-transparent">{t('heroTitleA')} </span>
-              <span className="bg-[linear-gradient(100deg,#00FF87_0%,#B8FFE0_45%,#00E5FF_100%)] bg-clip-text text-transparent">{t('heroTitleB')}</span>
+            <h1 className="kamby-gate-in kamby-gate-in-2 font-display text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.02] tracking-tight">
+              {/* 2026-10-30 owner: "Social Terminal for trading" — the neon part first; each locale keeps its own spacing */}
+              <span className="whitespace-pre-wrap bg-[linear-gradient(100deg,#00FF87_0%,#B8FFE0_45%,#00E5FF_100%)] bg-clip-text text-transparent">{t('heroTitleA')}</span>
+              <span className="bg-[linear-gradient(180deg,#FFFFFF_0%,rgba(255,255,255,0.72)_100%)] bg-clip-text text-transparent">{t('heroTitleB')}</span>
             </h1>
             <p className="kamby-gate-in kamby-gate-in-3 mx-auto mt-6 max-w-xl font-body text-lg leading-relaxed text-[#94A3B8] lg:mx-0">
-              <span className="font-semibold text-white">{t('tagline')}</span> — {t('heroSub')}
+              {t('heroSub')}
             </p>
             <div className="kamby-gate-in kamby-gate-in-4 mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <LandingCta label={t('heroCta')} variant="neon" arrow className="w-full px-9 py-4 text-base sm:w-auto" />
@@ -101,14 +89,6 @@ export default async function LandingPage() {
         <section className="mx-auto max-w-6xl px-5 py-20">
           <LandingTour />
         </section>
-        <section className="mx-auto max-w-6xl px-5 py-20">
-          <UnderTheHood />
-        </section>
-
-        {/* What Kamby does — bento */}
-        <section className="mx-auto max-w-6xl px-5 py-20">
-          <FeatureCards features={features} />
-        </section>
 
         {/* Flex every win — the PnL cards marquee */}
         <section className="py-20">
@@ -127,20 +107,17 @@ export default async function LandingPage() {
           />
         </section>
 
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <UnderTheHood />
+        </section>
+
         <section className="mx-auto max-w-3xl px-5 py-20">
           <LandingFaq />
         </section>
 
-        {/* Bottom action box */}
-        <section className="mx-auto max-w-3xl px-5 pb-32 pt-8">
-          <div className="relative flex flex-col items-center overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01)_60%)] px-6 py-16 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:py-20">
-            <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(0,255,102,0.18),transparent)]" />
-            <p className="relative font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#3D7A58]">{t('chains')}</p>
-            <h2 className="relative mt-5 bg-[linear-gradient(100deg,#FFFFFF_0%,#B8FFE0_50%,#00FF87_100%)] bg-clip-text font-display text-[clamp(2.4rem,8vw,4.5rem)] font-black leading-none tracking-tight text-transparent">
-              {t('tagline')}
-            </h2>
-            <LandingCta label={t('goTrade')} variant="neon" arrow className="relative mt-12 px-10 py-4 text-base" />
-          </div>
+        {/* The sign-off (2026-10-30 owner): only the slogan on clean black — no box, no glow, no chain list. */}
+        <section className="px-5 pb-32 pt-16 text-center">
+          <h2 className="font-display text-[clamp(2.4rem,8vw,4.5rem)] font-black leading-none tracking-tight text-white">{t('tagline')}</h2>
         </section>
       </main>
     </div>

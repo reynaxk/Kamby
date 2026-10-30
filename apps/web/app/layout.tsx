@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   // what shipped on the first deploy of these images, silently defeating the whole point.
   metadataBase: new URL('https://kambesh.com'),
   title: 'Kamby',
-  description: 'A social crypto discovery and trading platform.',
+  description: 'The social terminal for trading — find coins, follow whales and chat with traders, all with USDC.',
   // Installable app (see app/manifest.ts): full-screen on iPhone home screens too.
   appleWebApp: {
     capable: true,

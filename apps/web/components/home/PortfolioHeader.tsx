@@ -36,6 +36,13 @@ export function PortfolioHeader() {
   const { hidden } = useBalanceVisibility();
   const tS = useTranslations('stories');
   const [goLive, setGoLive] = useState(false);
+  // A chain that answers first with $0 must not flash "$0.00 · Add USDC" while the one holding the
+  // money is still loading (2026-10-30). After 8s whatever has come in counts (a chain can fail to answer).
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), 8_000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // The launch splash waits for this: signed out, or the balance is in (2026-10-11).
   const cashReady = balances.total !== null;
@@ -61,7 +68,8 @@ export function PortfolioHeader() {
   }
 
   // The same one total the header shows — Robinhood's USDG included (2026-10-18).
-  const cash = balances.total;
+  const allIn = [balances.base, balances.bnb, balances.robinhood, balances.solana].every((v) => v !== null);
+  const cash = balances.total === 0 && !allIn && !settled ? null : balances.total;
   const held = positions?.reduce((sum, p) => sum + (p.currentValueUsd ?? 0), 0) ?? 0;
   const openPnl = positions?.reduce((sum, p) => sum + (p.unrealizedPnlUsd ?? 0), 0) ?? 0;
   const total = cash === null ? null : cash + held;

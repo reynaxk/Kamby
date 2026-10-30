@@ -59,8 +59,9 @@ export function useChartOverlayFilter(trades: SocialActivity[]): [SocialActivity
     });
   }, [trades, minSizeUsd, showMySwaps, friendsOnly, friendAddresses, myAddress]);
 
+  // Phones: just the timeframes — the overlay filters are a desktop nicety (2026-10-30).
   const controls = (
-    <div className="kamby-chart-filters flex flex-wrap items-center gap-3 font-mono text-[0.65rem] text-ink-400">
+    <div className="kamby-chart-filters hidden flex-wrap items-center gap-3 font-mono md:flex text-[0.65rem] text-ink-400">
       <label className="flex cursor-pointer items-center gap-1.5">
         <input
           type="checkbox"

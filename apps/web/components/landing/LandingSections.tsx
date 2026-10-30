@@ -100,7 +100,7 @@ export async function HowItWorks() {
 /** Straight answers to the first questions people have (2026-10-29). */
 export async function LandingFaq() {
   const t = await getTranslations('landing');
-  const qs = [1, 2, 3, 4, 5].map((n) => ({ q: t(`q${n}`), a: t(`a${n}`) }));
+  const qs = [1, 3, 5].map((n) => ({ q: t(`q${n}`), a: t(`a${n}`) }));
   return (
     <div>
       <h2 className="text-center font-display text-[clamp(2rem,5vw,3rem)] font-black tracking-tight text-white">{t('faqTitle')}</h2>

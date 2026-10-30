@@ -19,13 +19,19 @@ export function TokenStatsStrip({ source, className }: { source: ChartSource | n
   const { buys, sells } = stats.txns24h;
   const total = buys + sells;
   const buyShare = total > 0 ? (buys / total) * 100 : 50;
+  // 2026-10-30 owner ("too much unnecessary info"): three "0% · Vol $0" cells say nothing, so the
+  // short windows show only when one of them traded; FDV only when it isn't just the market cap again.
+  const windows: readonly (keyof typeof WINDOW_LABEL)[] =
+    stats.volumeUsd.m5 + stats.volumeUsd.h1 + stats.volumeUsd.h6 > 0 ? ['m5', 'h1', 'h6'] : [];
+  const mc = stats.marketCapUsd ?? null;
+  const showFdv = stats.fdvUsd !== null && (mc === null || Math.abs(stats.fdvUsd - mc) > mc * 0.01);
 
   return (
-    <div className={cn('grid grid-cols-3 gap-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1.6fr)]', className)}>
-      {(['m5', 'h1', 'h6'] as const).map((window) => (
+    <div className={cn('grid grid-cols-3 gap-2', windows.length > 0 && 'lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1.6fr)]', className)}>
+      {windows.map((window) => (
         <Change key={window} label={WINDOW_LABEL[window]} value={stats.priceChangePct[window]} volume={stats.volumeUsd[window]} />
       ))}
-      <div className="col-span-3 rounded-xl border border-line bg-surface-raised/60 px-3 py-2 lg:col-span-1">
+      <div className={cn('col-span-3 rounded-xl border border-line bg-surface-raised/60 px-3 py-2', windows.length > 0 && 'lg:col-span-1')}>
         <div className="flex items-center justify-between font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">
           <span>{tC('trades24h')}</span>
           <span className="tabular-nums">{total.toLocaleString('en-US')}</span>
@@ -38,7 +44,7 @@ export function TokenStatsStrip({ source, className }: { source: ChartSource | n
           <span className="text-down">{tC('sells', { n: sells.toLocaleString('en-US') })}</span>
         </div>
         <div className="mt-1 flex items-center justify-between font-mono text-[0.6rem] text-ink-400">
-          <span>{tC('fdv')} {formatCompactUsd(stats.fdvUsd)}</span>
+          <span>{showFdv ? `${tC('fdv')} ${formatCompactUsd(stats.fdvUsd)}` : null}</span>
           <span>{tC('age')} {formatAge(stats.pairCreatedAtMs)}</span>
         </div>
       </div>

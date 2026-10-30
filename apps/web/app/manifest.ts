@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Kamby',
     short_name: 'Kamby',
-    description: 'Trade meme coins on Solana, Base and BNB with USDC — gas-free.',
+    description: 'The social terminal for trading — USDC only, no gas.',
     id: '/',
     start_url: '/home',
     scope: '/',

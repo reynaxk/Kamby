@@ -30,7 +30,6 @@ export function LandingTour() {
       <div className="text-center">
         <p className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[#5BE3A0]">{t('tourKicker')}</p>
         <h2 className="mt-3 font-display text-[clamp(2rem,5vw,3.2rem)] font-black leading-tight tracking-tight text-white">{t('tourTitle')}</h2>
-        <p className="mx-auto mt-3 max-w-xl font-body text-base text-[#94A3B8]">{t('tourSub')}</p>
       </div>
       <div className="mt-12 grid items-center gap-6 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
         <div role="tablist" className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-col lg:overflow-visible">
