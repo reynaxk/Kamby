@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CallsModule } from '../calls/calls.module';
 import { DmModule } from '../dm/dm.module';
 import { IdentityModule } from '../identity/identity.module';
+import { MediaModule } from '../media/media.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { SolanaModule } from '../solana/solana.module';
@@ -12,7 +13,7 @@ import { LiveService } from './live.service';
 
 /** Live rooms (2026-10-17) — see LiveService. */
 @Module({
-  imports: [IdentityModule, RealtimeModule, CallsModule, NotificationsModule, DmModule, SolanaModule, TradingModule],
+  imports: [IdentityModule, RealtimeModule, CallsModule, NotificationsModule, DmModule, SolanaModule, TradingModule, MediaModule],
   controllers: [LiveController],
   providers: [LiveService, LiveTipsService],
 })

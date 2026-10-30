@@ -1154,7 +1154,22 @@
     "openCoin": "Abrir moeda",
     "prevLive": "Live anterior",
     "nextLive": "Próxima live",
-    "swipeNext": "Próxima: {name}"
+    "swipeNext": "Próxima: {name}",
+    "tapForSound": "Toque para som",
+    "reconnecting": "Reconectando…",
+    "connectionLost": "Conexão perdida — encerre e entre ao vivo de novo",
+    "weakConnection": "Conexão fraca",
+    "pip": "Picture-in-picture",
+    "fullscreen": "Tela cheia",
+    "cat_all": "Todos",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Papo",
+    "sortWatched": "Mais vistos",
+    "sortNew": "Novos",
+    "voiceOnly": "Voz"
   },
   "snipe": {
     "bought": "Comprado",

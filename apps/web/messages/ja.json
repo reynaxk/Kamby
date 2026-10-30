@@ -1154,7 +1154,22 @@
     "openCoin": "コインを開く",
     "prevLive": "前の配信",
     "nextLive": "次の配信",
-    "swipeNext": "次: {name}"
+    "swipeNext": "次: {name}",
+    "tapForSound": "タップで音声オン",
+    "reconnecting": "再接続中…",
+    "connectionLost": "接続が切れました — 終了して再配信してください",
+    "weakConnection": "接続が弱い",
+    "pip": "ピクチャーインピクチャー",
+    "fullscreen": "全画面",
+    "cat_all": "すべて",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "トーク",
+    "sortWatched": "人気順",
+    "sortNew": "新着",
+    "voiceOnly": "音声"
   },
   "snipe": {
     "bought": "購入",

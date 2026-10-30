@@ -19,6 +19,7 @@ import { CloudflareRealtimeClient, type RealtimeTracksResponse, type SessionDesc
 import { DmService } from '../dm/dm.service';
 import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { ImageModerationService } from '../media/image-moderation.service';
 import { markInRoom, pushLiveLine } from './live-lines';
 
 /** What Redis keeps for a room that's on air (the app sees LiveRoom). */
@@ -50,6 +51,7 @@ const ACTIVE_SET = 'kamby:live:active';
 export class LiveService {
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    private readonly moderation: ImageModerationService,
     private readonly realtime: CloudflareRealtimeClient,
     private readonly logger: PinoLogger,
     private readonly notifications: NotificationService,
@@ -179,6 +181,36 @@ export class LiveService {
   async stop(me: string, id: string): Promise<void> {
     await this.hostState(me, id);
     await this.end(id, 'host');
+  }
+
+  /**
+   * The stream's card picture on the Live page (2026-10-30): the host's browser sends a small
+   * frame; at most one is taken every 4 minutes, and only one that passes moderation is shown.
+   * Kept in Redis for an hour (rooms end long before).
+   */
+  async setThumb(me: string, id: string, file: { buffer: Buffer; mimetype: string; size: number } | undefined): Promise<{ saved: boolean }> {
+    await this.hostState(me, id);
+    if (!file || file.mimetype !== 'image/jpeg' || file.size > 200_000) throw new BadRequestException('Send a small JPEG.');
+    if (!this.moderation.isConfigured()) return { saved: false };
+    const slot = await this.redis.set(`kamby:live:thumbslot:${id}`, '1', 'EX', 240, 'NX').catch(() => null);
+    if (slot !== 'OK') return { saved: false };
+    const verdict = await this.moderation.check(file.buffer, file.mimetype);
+    if (!verdict.ok) {
+      // A refused frame takes the old picture down too.
+      await this.redis.del(this.thumbKey(id)).catch(() => 0);
+      return { saved: false };
+    }
+    await this.redis.set(this.thumbKey(id), file.buffer.toString('base64'), 'EX', 3600);
+    return { saved: true };
+  }
+
+  async thumb(id: string): Promise<Buffer | null> {
+    const b64 = await this.redis.get(this.thumbKey(id)).catch(() => null);
+    return b64 ? Buffer.from(b64, 'base64') : null;
+  }
+
+  private thumbKey(id: string) {
+    return `kamby:live:thumb:${id}`;
   }
 
   // --- viewers -----------------------------------------------------------------------------

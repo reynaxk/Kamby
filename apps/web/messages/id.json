@@ -1154,7 +1154,22 @@
     "openCoin": "Buka koin",
     "prevLive": "Live sebelumnya",
     "nextLive": "Live berikutnya",
-    "swipeNext": "Berikutnya: {name}"
+    "swipeNext": "Berikutnya: {name}",
+    "tapForSound": "Ketuk untuk suara",
+    "reconnecting": "Menyambung ulang…",
+    "connectionLost": "Koneksi putus — akhiri dan live lagi",
+    "weakConnection": "Koneksi lemah",
+    "pip": "Gambar dalam gambar",
+    "fullscreen": "Layar penuh",
+    "cat_all": "Semua",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Ngobrol",
+    "sortWatched": "Terpopuler",
+    "sortNew": "Terbaru",
+    "voiceOnly": "Suara"
   },
   "snipe": {
     "bought": "Dibeli",

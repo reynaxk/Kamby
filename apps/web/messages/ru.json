@@ -1154,7 +1154,22 @@
     "openCoin": "Открыть монету",
     "prevLive": "Предыдущий эфир",
     "nextLive": "Следующий эфир",
-    "swipeNext": "Далее: {name}"
+    "swipeNext": "Далее: {name}",
+    "tapForSound": "Нажмите для звука",
+    "reconnecting": "Переподключение…",
+    "connectionLost": "Связь потеряна — завершите и начните эфир снова",
+    "weakConnection": "Слабое соединение",
+    "pip": "Картинка в картинке",
+    "fullscreen": "Во весь экран",
+    "cat_all": "Все",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Разговор",
+    "sortWatched": "Популярные",
+    "sortNew": "Новые",
+    "voiceOnly": "Голос"
   },
   "snipe": {
     "bought": "Куплено",

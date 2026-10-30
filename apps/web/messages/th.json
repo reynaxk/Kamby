@@ -1154,7 +1154,22 @@
     "openCoin": "เปิดเหรียญ",
     "prevLive": "ไลฟ์ก่อนหน้า",
     "nextLive": "ไลฟ์ถัดไป",
-    "swipeNext": "ถัดไป: {name}"
+    "swipeNext": "ถัดไป: {name}",
+    "tapForSound": "แตะเพื่อเปิดเสียง",
+    "reconnecting": "กำลังเชื่อมต่อใหม่…",
+    "connectionLost": "การเชื่อมต่อหลุด — จบแล้วไลฟ์ใหม่",
+    "weakConnection": "สัญญาณอ่อน",
+    "pip": "ภาพซ้อนภาพ",
+    "fullscreen": "เต็มจอ",
+    "cat_all": "ทั้งหมด",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "คุยกัน",
+    "sortWatched": "ยอดนิยม",
+    "sortNew": "ใหม่ล่าสุด",
+    "voiceOnly": "เสียง"
   },
   "snipe": {
     "bought": "ซื้อแล้ว",

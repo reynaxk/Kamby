@@ -1154,7 +1154,22 @@
     "openCoin": "打开代币",
     "prevLive": "上一个直播",
     "nextLive": "下一个直播",
-    "swipeNext": "下一个：{name}"
+    "swipeNext": "下一个：{name}",
+    "tapForSound": "点按开启声音",
+    "reconnecting": "正在重新连接…",
+    "connectionLost": "连接已断开 — 结束后重新开播",
+    "weakConnection": "网络较弱",
+    "pip": "画中画",
+    "fullscreen": "全屏",
+    "cat_all": "全部",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "聊天",
+    "sortWatched": "最多观看",
+    "sortNew": "最新",
+    "voiceOnly": "语音"
   },
   "snipe": {
     "bought": "已买入",

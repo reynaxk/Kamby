@@ -1154,7 +1154,22 @@
     "openCoin": "코인 열기",
     "prevLive": "이전 라이브",
     "nextLive": "다음 라이브",
-    "swipeNext": "다음: {name}"
+    "swipeNext": "다음: {name}",
+    "tapForSound": "탭해서 소리 켜기",
+    "reconnecting": "다시 연결 중…",
+    "connectionLost": "연결 끊김 — 종료 후 다시 라이브하세요",
+    "weakConnection": "연결 약함",
+    "pip": "PIP 모드",
+    "fullscreen": "전체 화면",
+    "cat_all": "전체",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "토크",
+    "sortWatched": "인기순",
+    "sortNew": "최신",
+    "voiceOnly": "음성"
   },
   "snipe": {
     "bought": "매수",

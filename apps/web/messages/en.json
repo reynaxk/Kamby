@@ -1154,7 +1154,22 @@
     "openCoin": "Open coin",
     "prevLive": "Previous stream",
     "nextLive": "Next stream",
-    "swipeNext": "Next: {name}"
+    "swipeNext": "Next: {name}",
+    "tapForSound": "Tap for sound",
+    "reconnecting": "Reconnecting…",
+    "connectionLost": "Connection lost — end and go live again",
+    "weakConnection": "Weak connection",
+    "pip": "Picture in picture",
+    "fullscreen": "Full screen",
+    "cat_all": "All",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Talk",
+    "sortWatched": "Most watched",
+    "sortNew": "Newest",
+    "voiceOnly": "Voice"
   },
   "snipe": {
     "bought": "Bought",

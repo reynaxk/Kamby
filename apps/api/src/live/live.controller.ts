@@ -1,4 +1,7 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Sse, UseGuards, type MessageEvent } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Res, Sse, StreamableFile, UploadedFile, UseGuards, UseInterceptors, type MessageEvent } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
+import { memoryStorage } from 'multer';
 import { Throttle } from '@nestjs/throttler';
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
@@ -150,6 +153,26 @@ export class LiveController {
   @Get()
   list() {
     return this.live.list();
+  }
+
+  /** The Live page's card picture for a stream (moderated; see LiveService#setThumb). */
+  @Throttle({ default: { limit: 240, ttl: 60_000 } })
+  @Get(':id/thumb')
+  async thumb(@Param('id', ParseUUIDPipe) id: string, @Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+    const jpeg = await this.live.thumb(id);
+    if (!jpeg) throw new NotFoundException('No picture yet.');
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    return new StreamableFile(jpeg, { type: 'image/jpeg' });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 6, ttl: 60_000 } })
+  @Post(':id/thumb')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: 200_000 } }))
+  setThumb(@Param('id', ParseUUIDPipe) id: string, @UploadedFile() file: { buffer: Buffer; mimetype: string; size: number } | undefined, @CurrentUser() user: SessionUser) {
+    return this.live.setThumb(user.id, id, file);
   }
 
   @Throttle({ default: { limit: 60, ttl: 60_000 } })

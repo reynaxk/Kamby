@@ -1154,7 +1154,22 @@
     "openCoin": "Mở coin",
     "prevLive": "Live trước",
     "nextLive": "Live tiếp",
-    "swipeNext": "Tiếp: {name}"
+    "swipeNext": "Tiếp: {name}",
+    "tapForSound": "Chạm để bật tiếng",
+    "reconnecting": "Đang kết nối lại…",
+    "connectionLost": "Mất kết nối — kết thúc và phát lại",
+    "weakConnection": "Kết nối yếu",
+    "pip": "Hình trong hình",
+    "fullscreen": "Toàn màn hình",
+    "cat_all": "Tất cả",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Trò chuyện",
+    "sortWatched": "Xem nhiều",
+    "sortNew": "Mới nhất",
+    "voiceOnly": "Giọng nói"
   },
   "snipe": {
     "bought": "Đã mua",

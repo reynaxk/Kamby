@@ -7,7 +7,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
 import { LIVE_LIMITS, type LiveChatLine, type LiveRoom } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, reportLive, sayInLive, silenceInLive } from '@/lib/live-engine';
+import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, reportLive, sayInLive, silenceInLive, uploadLiveThumb } from '@/lib/live-engine';
 import { slugForIdentifier } from '@kamby/domain';
 import { TradeCard } from '@/components/social/TradeCard';
 import { PositionPicker } from '@/components/social/PositionPicker';
@@ -23,13 +23,14 @@ import { LiveCoinPanel, useCoinPrice } from './LiveCoinPanel';
 import { useLiveSwipe } from './useLiveSwipe';
 import { useMediaQuery } from '@/lib/use-media';
 
-function Media({ track, kind, className }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string }) {
+function Media({ track, kind, className, onBlocked }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string; onBlocked?: () => void }) {
   const ref = useRef<HTMLVideoElement & HTMLAudioElement>(null);
   useEffect(() => {
     if (!ref.current) return;
     ref.current.srcObject = new MediaStream([track]);
-    void ref.current.play().catch(() => undefined);
-  }, [track]);
+    // Phones (iPhone above all) refuse sound until the person taps — tell the room (2026-10-30).
+    void ref.current.play().catch(() => onBlocked?.());
+  }, [track]); // eslint-disable-line react-hooks/exhaustive-deps
   return kind === 'audio' ? <audio ref={ref} autoPlay /> : <video ref={ref} autoPlay playsInline muted className={className ?? 'h-full w-full object-contain'} />;
 }
 
@@ -76,6 +77,10 @@ export function LiveRoomScreen({ id }: { id: string }) {
   // Desktop (2026-10-30 redesign): the chat column has Chat / Trades tabs, the coin sits under the stage.
   const [tab, setTab] = useState<'chat' | 'trades'>('chat');
   const desktop = useMediaQuery('(min-width: 1024px)');
+  // Reliability (2026-10-30): a dropped call is joined again; sound the phone blocked waits for a tap.
+  const [retry, setRetry] = useState(0);
+  const [soundBlocked, setSoundBlocked] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
   // Phones: the coin's price on the stage's Trade pill (desktop has the whole panel below).
   const coinPrice = useCoinPrice(desktop === false ? (room?.coin ?? null) : null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -143,11 +148,16 @@ export function LiveRoomScreen({ id }: { id: string }) {
         engine = e;
         e.onChange = () => setTick((n) => n + 1);
         e.onEnded = () => undefined;
+        e.onFailed = () => {
+          e.end();
+          setViewer(null);
+          setTimeout(() => setRetry((n) => n + 1), 1_500);
+        };
         setViewer(e);
       })
       .catch((err: unknown) => setError(friendlyError(err)));
     return () => void engine?.leave();
-  }, [ready, authenticated, isHost, room?.id, ended]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready, authenticated, isHost, room?.id, ended, retry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // New room state → pull new tracks.
   useEffect(() => {
@@ -220,6 +230,21 @@ export function LiveRoomScreen({ id }: { id: string }) {
 
   const screen = host ? host.screenTrack() : (viewer?.track('screen') ?? null);
   const camera = host ? host.cameraTrack() : (viewer?.track('camera') ?? null);
+  // Host: a frame for the Live page card, 15 s in and then every 4.5 minutes (moderated server-side).
+  const showing = Boolean(host && (screen || camera));
+  useEffect(() => {
+    if (!showing) return;
+    const snap = () => {
+      const v = stageRef.current?.querySelector('video');
+      if (v) void uploadLiveThumb(id, v);
+    };
+    const first = setTimeout(snap, 15_000);
+    const every = setInterval(snap, 270_000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(every);
+    };
+  }, [showing, id]);
   const voice = viewer?.track('audio') ?? null;
   const coinHref = room?.coin ? marketHref(room.coin.chainIdentifier, room.coin.tokenAddress) : null;
 
@@ -240,7 +265,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
   return (
     <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-[#020203] text-white">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_26rem_at_50%_0%,rgba(255,59,105,0.12),transparent_60%),radial-gradient(36rem_24rem_at_100%_100%,rgba(72,88,255,0.14),transparent_62%)]" />
-      {voice && <Media track={voice} kind="audio" />}
+      {voice && <Media track={voice} kind="audio" onBlocked={() => setSoundBlocked(true)} />}
 
       <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
       <div className="relative flex min-h-0 flex-[1.15] flex-col lg:flex-1 lg:overflow-y-auto lg:px-3 lg:pb-4">
@@ -269,7 +294,57 @@ export function LiveRoomScreen({ id }: { id: string }) {
       </header>
 
       {/* Stage */}
-      <div {...swipe.handlers} className="relative z-0 mx-3 min-h-0 flex-1 touch-pan-x overflow-hidden rounded-3xl border border-white/10 bg-black/60 lg:aspect-video lg:max-h-[52vh] lg:flex-none">
+      <div ref={stageRef} {...swipe.handlers} className="relative z-0 mx-3 min-h-0 flex-1 touch-pan-x overflow-hidden rounded-3xl border border-white/10 bg-black/60 lg:aspect-video lg:max-h-[52vh] lg:flex-none">
+        {/* Sound the phone blocked: one tap turns it on */}
+        {soundBlocked && (
+          <button
+            type="button"
+            onClick={() => {
+              document.querySelectorAll('audio').forEach((a) => void a.play().catch(() => undefined));
+              setSoundBlocked(false);
+            }}
+            className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent px-5 py-3 font-display text-sm font-black text-black"
+          >
+            🔊 {t('tapForSound')}
+          </button>
+        )}
+        {/* How the call is doing */}
+        {(viewer?.connection === 'reconnecting' || !viewer && !isHost && authenticated && retry > 0 || host?.connection === 'reconnecting') && (
+          <span className="absolute left-3 top-3 z-20 rounded-full bg-black/80 px-3 py-1 font-display text-xs font-bold text-[#FFC94D]">{t('reconnecting')}</span>
+        )}
+        {host?.connection === 'failed' && <span className="absolute left-3 top-3 z-20 rounded-full bg-[#FF3B69] px-3 py-1 font-display text-xs font-bold text-white">{t('connectionLost')}</span>}
+        {host?.weak && host.connection === 'connected' && (
+          <span className="absolute left-3 top-3 z-20 rounded-full bg-black/80 px-3 py-1 font-display text-xs font-bold text-[#FFC94D]">{t('weakConnection')}</span>
+        )}
+        {/* Full screen and picture-in-picture */}
+        {(screen || camera) && (
+          <div className="absolute bottom-3 right-3 z-20 flex gap-1.5 max-lg:bottom-12">
+            {typeof document !== 'undefined' && 'pictureInPictureEnabled' in document && document.pictureInPictureEnabled && (
+              <button
+                type="button"
+                aria-label={t('pip')}
+                onClick={() => void stageRef.current?.querySelector('video')?.requestPictureInPicture().catch(() => undefined)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white ring-1 ring-white/15"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><rect x="2" y="4" width="20" height="16" rx="2" /><rect x="12" y="12" width="8" height="6" rx="1" fill="currentColor" /></svg>
+              </button>
+            )}
+            <button
+              type="button"
+              aria-label={t('fullscreen')}
+              onClick={() => {
+                const el = stageRef.current;
+                const video = el?.querySelector('video') as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+                if (document.fullscreenElement) void document.exitFullscreen();
+                else if (el?.requestFullscreen) void el.requestFullscreen().catch(() => video?.webkitEnterFullscreen?.());
+                else video?.webkitEnterFullscreen?.();
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white ring-1 ring-white/15"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+            </button>
+          </div>
+        )}
         {/* Next / previous stream: a hint on phones, buttons on a computer */}
         {(swipe.next || swipe.prev) && (
           <div className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 flex-col gap-2 lg:flex">

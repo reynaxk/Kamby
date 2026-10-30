@@ -1154,7 +1154,22 @@
     "openCoin": "Coini aç",
     "prevLive": "Önceki yayın",
     "nextLive": "Sonraki yayın",
-    "swipeNext": "Sıradaki: {name}"
+    "swipeNext": "Sıradaki: {name}",
+    "tapForSound": "Ses için dokun",
+    "reconnecting": "Yeniden bağlanıyor…",
+    "connectionLost": "Bağlantı koptu — bitir ve yeniden yayına başla",
+    "weakConnection": "Zayıf bağlantı",
+    "pip": "Resim içinde resim",
+    "fullscreen": "Tam ekran",
+    "cat_all": "Tümü",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Sohbet",
+    "sortWatched": "En çok izlenen",
+    "sortNew": "En yeni",
+    "voiceOnly": "Ses"
   },
   "snipe": {
     "bought": "Alındı",

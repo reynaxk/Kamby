@@ -1154,7 +1154,22 @@
     "openCoin": "Отвори монетата",
     "prevLive": "Предишен стрийм",
     "nextLive": "Следващ стрийм",
-    "swipeNext": "Следва: {name}"
+    "swipeNext": "Следва: {name}",
+    "tapForSound": "Натисни за звук",
+    "reconnecting": "Свързваме отново…",
+    "connectionLost": "Връзката падна — спри и пусни стрийма пак",
+    "weakConnection": "Слаба връзка",
+    "pip": "Картина в картина",
+    "fullscreen": "Цял екран",
+    "cat_all": "Всички",
+    "cat_solana": "Solana",
+    "cat_base": "Base",
+    "cat_bnb": "BNB",
+    "cat_robinhood": "Robinhood",
+    "cat_talk": "Разговор",
+    "sortWatched": "Най-гледани",
+    "sortNew": "Най-нови",
+    "voiceOnly": "Глас"
   },
   "snipe": {
     "bought": "Купено",
