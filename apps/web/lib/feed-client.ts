@@ -5,7 +5,7 @@ import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-cli
 
 /** On once the Feed's tables are in the production database (migration 20261030160000_feed_posts).
  *  Off: no Feed links, no profile Posts section, and /feed says it's coming. */
-export const FEED_ENABLED = false;
+export const FEED_ENABLED = true;
 
 /** Signed in: the server knows which posts you liked; signed out: plain public read. */
 async function get<T>(path: string, what: string): Promise<T> {
