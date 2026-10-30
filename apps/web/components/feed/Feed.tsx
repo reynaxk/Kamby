@@ -31,7 +31,7 @@ import { PositionPicker } from '@/components/social/PositionPicker';
  * Trade Card or PnL card from their real position. For You / Following tabs, likes, replies,
  * report (three hide it) and delete your own. `address` shows one trader's posts (their profile).
  */
-export function Feed({ address, composer = true, title }: { address?: string; composer?: boolean; title?: string }) {
+export function Feed({ address, composer = true, title, emptyText }: { address?: string; composer?: boolean; title?: string; emptyText?: string }) {
   const t = useTranslations('feed');
   const { authenticated } = usePrivy();
   const [tab, setTab] = useState<FeedTab>('foryou');
@@ -75,7 +75,9 @@ export function Feed({ address, composer = true, title }: { address?: string; co
 
   if (!FEED_ENABLED && !address) return <p className="rounded-2xl border border-line bg-surface px-6 py-10 text-center font-body text-sm text-ink-600">{t('soon')}</p>;
   // A trader's profile: no section at all until they have posts (or when the feed can't load).
-  if (address && (!items || items.length === 0)) return null;
+  if (address && (!items || items.length === 0)) {
+    return items && emptyText ? <p className="rounded-2xl border border-line bg-surface px-6 py-8 text-center font-body text-sm text-ink-600">{emptyText}</p> : null;
+  }
 
   const update = (p: FeedPost | null, id: string) => setItems((cur) => (cur ?? []).flatMap((x) => (x.id === id ? (p ? [p] : []) : [x])));
 

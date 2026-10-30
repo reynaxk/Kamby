@@ -19,6 +19,7 @@ import { getTranslations } from 'next-intl/server';
 import { BackPill } from '@/components/layout/BackPill';
 import { PnlDays, PnlRunLine, WinRing } from '@/components/social/TraderPnlBits';
 import { Feed } from '@/components/feed/Feed';
+import { ProfileTabs } from '@/components/social/ProfileTabs';
 
 export const revalidate = 15;
 
@@ -200,33 +201,34 @@ export default async function TraderProfilePage({ params }: { params: { address:
           </section>
         )}
 
-        {tokens.length > 0 && (
-          <section className="mt-8">
-            <h2 className="mb-3 font-display text-base font-bold text-ink-900">{tU('tokensTraded_4a89')}</h2>
-            <TraderTokensList tokens={tokens} />
-          </section>
-        )}
 
         </aside>
 
         <section className="mt-8 lg:col-start-1 lg:row-start-2">
-          {/* Their posts (2026-10-30 Feed) above their trades. */}
-          <div className="mb-8 empty:hidden">
-            <Feed address={profile.address} composer={false} title={tL('posts')} />
-          </div>
-          <h2 className="mb-3 font-display text-base font-bold text-ink-900">{tU('recentActivity_f7ce')}</h2>
-          {/* Their Kamby trades first — most never show in the indexed pools' swaps below. */}
-          {kambyTrades.length > 0 ? (
-            <KambyTradesList trades={kambyTrades} />
-          ) : (
-          <ActivityFeed
-            initialItems={activity.items}
-            initialCursor={activity.nextCursor}
-            scope={{ type: 'trader', address: profile.address }}
-            emptyTitle="No trades yet."
-            emptyDetail={`${truncateAddress(profile.address)} hasn't traded on a tracked market recently.`}
+          {/* Trades / Posts / Coins as tabs (2026-10-30 redesign, owner's concepts). */}
+          <ProfileTabs
+            tabs={[
+              {
+                key: 'trades',
+                label: tL('tabTrades'),
+                content:
+                  // Their Kamby trades first — most never show in the indexed pools' swaps below.
+                  kambyTrades.length > 0 ? (
+                    <KambyTradesList trades={kambyTrades} />
+                  ) : (
+                    <ActivityFeed
+                      initialItems={activity.items}
+                      initialCursor={activity.nextCursor}
+                      scope={{ type: 'trader', address: profile.address }}
+                      emptyTitle="No trades yet."
+                      emptyDetail={`${truncateAddress(profile.address)} hasn't traded on a tracked market recently.`}
+                    />
+                  ),
+              },
+              { key: 'posts', label: tL('posts'), content: <Feed address={profile.address} composer={false} emptyText={tL('noPosts')} /> },
+              ...(tokens.length > 0 ? [{ key: 'coins', label: tL('tabCoins'), content: <TraderTokensList tokens={tokens} /> }] : []),
+            ]}
           />
-          )}
         </section>
       </main>
     </div>

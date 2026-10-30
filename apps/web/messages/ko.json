@@ -724,7 +724,10 @@
     "lastSells": "최근 {n}건 매도",
     "moreStats": "통계 더보기",
     "pnlDays": "최근 28일",
-    "posts": "게시물"
+    "posts": "게시물",
+    "tabTrades": "거래",
+    "tabCoins": "코인",
+    "noPosts": "아직 게시물이 없어요."
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

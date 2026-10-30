@@ -724,7 +724,10 @@
     "lastSells": "最近 {n} 笔卖出",
     "moreStats": "更多统计",
     "pnlDays": "近 28 天",
-    "posts": "帖子"
+    "posts": "帖子",
+    "tabTrades": "交易",
+    "tabCoins": "代币",
+    "noPosts": "还没有帖子。"
   },
   "notif": {
     "kind_FOLLOW": "关注",

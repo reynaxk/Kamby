@@ -724,7 +724,10 @@
     "lastSells": "直近{n}件の売却",
     "moreStats": "その他の統計",
     "pnlDays": "直近28日",
-    "posts": "投稿"
+    "posts": "投稿",
+    "tabTrades": "取引",
+    "tabCoins": "コイン",
+    "noPosts": "まだ投稿はありません。"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

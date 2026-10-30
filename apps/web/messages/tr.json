@@ -724,7 +724,10 @@
     "lastSells": "Son {n} satış",
     "moreStats": "Daha fazla istatistik",
     "pnlDays": "Son 28 gün",
-    "posts": "Gönderiler"
+    "posts": "Gönderiler",
+    "tabTrades": "İşlemler",
+    "tabCoins": "Coinler",
+    "noPosts": "Henüz gönderi yok."
   },
   "notif": {
     "kind_FOLLOW": "Takip",

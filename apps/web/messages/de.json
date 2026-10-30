@@ -724,7 +724,10 @@
     "lastSells": "Letzte {n} Verkäufe",
     "moreStats": "Mehr Statistiken",
     "pnlDays": "Letzte 28 Tage",
-    "posts": "Posts"
+    "posts": "Posts",
+    "tabTrades": "Trades",
+    "tabCoins": "Coins",
+    "noPosts": "Noch keine Posts."
   },
   "notif": {
     "kind_FOLLOW": "Follow",

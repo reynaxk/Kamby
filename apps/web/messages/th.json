@@ -724,7 +724,10 @@
     "lastSells": "ขาย {n} ครั้งล่าสุด",
     "moreStats": "สถิติเพิ่มเติม",
     "pnlDays": "28 วันล่าสุด",
-    "posts": "โพสต์"
+    "posts": "โพสต์",
+    "tabTrades": "เทรด",
+    "tabCoins": "เหรียญ",
+    "noPosts": "ยังไม่มีโพสต์"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

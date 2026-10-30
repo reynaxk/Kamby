@@ -724,7 +724,10 @@
     "lastSells": "Последние {n} продаж",
     "moreStats": "Больше статистики",
     "pnlDays": "Последние 28 дней",
-    "posts": "Посты"
+    "posts": "Посты",
+    "tabTrades": "Сделки",
+    "tabCoins": "Монеты",
+    "noPosts": "Пока нет постов."
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

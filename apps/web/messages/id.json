@@ -724,7 +724,10 @@
     "lastSells": "{n} penjualan terakhir",
     "moreStats": "Statistik lainnya",
     "pnlDays": "28 hari terakhir",
-    "posts": "Postingan"
+    "posts": "Postingan",
+    "tabTrades": "Trade",
+    "tabCoins": "Koin",
+    "noPosts": "Belum ada postingan."
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

@@ -724,7 +724,10 @@
     "lastSells": "{n} lệnh bán gần nhất",
     "moreStats": "Thêm thống kê",
     "pnlDays": "28 ngày qua",
-    "posts": "Bài đăng"
+    "posts": "Bài đăng",
+    "tabTrades": "Giao dịch",
+    "tabCoins": "Coin",
+    "noPosts": "Chưa có bài đăng."
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",
