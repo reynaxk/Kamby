@@ -17,6 +17,7 @@ import { fetchTraderTokens } from '@/lib/discovery-api';
 import { settledOr } from '@/lib/settled-fetch';
 import { getTranslations } from 'next-intl/server';
 import { BackPill } from '@/components/layout/BackPill';
+import { PnlDays, PnlRunLine, WinRing } from '@/components/social/TraderPnlBits';
 
 export const revalidate = 15;
 
@@ -113,6 +114,9 @@ export default async function TraderProfilePage({ params }: { params: { address:
             </div>
           )}
 
+          {/* Their run, sell by sell (2026-10-30 redesign). */}
+          <PnlRunLine trades={kambyTrades} className="relative mt-4 h-16 w-full" />
+
           <div className="relative mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label={tU('totalTrades_c59a')} value={profile.stats.totalSwaps.toLocaleString('en-US')} />
             <Stat
@@ -154,6 +158,8 @@ export default async function TraderProfilePage({ params }: { params: { address:
             </div>
           </section>
         )}
+
+        <PnlDays trades={kambyTrades} title={tL('pnlDays')} />
 
         <TradeQuality trades={kambyTrades} t={{ title: tL('trackRecord'), winRate: tL('winRate'), bestTrade: tL('bestTrade'), spread: tL('pnlSpread'), lastSells: tL('lastSells', { n: '{n}' }) }} />
 
@@ -250,12 +256,15 @@ function TradeQuality({ trades, t }: { trades: KambyTradeRow[]; t: { title: stri
         <span className="font-body text-xs text-ink-400">{t.lastSells.replace('{n}', String(sells.length))}</span>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
+          <div>
           <div className="font-body text-[0.68rem] text-ink-400">{t.winRate}</div>
           <div className={cn('mt-0.5 font-display text-2xl font-black tabular-nums', winRate >= 50 ? 'text-up' : 'text-down')}>{winRate}%</div>
           <div className="font-body text-[0.68rem] tabular-nums text-ink-400">
             <span className="text-up">{wins}W</span> / <span className="text-down">{sells.length - wins}L</span>
           </div>
+          </div>
+          <WinRing rate={winRate} size={52} />
         </div>
         <div className="min-w-0 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
           <div className="font-body text-[0.68rem] text-ink-400">{t.bestTrade}</div>

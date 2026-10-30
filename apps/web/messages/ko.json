@@ -45,7 +45,9 @@
     "noPositions": "보유 포지션 없음",
     "topTraders": "이번 주 탑 트레이더",
     "totalBalance": "총 잔액",
-    "fundHint": "USDC를 넣고 거래를 시작하세요"
+    "fundHint": "USDC를 넣고 거래를 시작하세요",
+    "topGainers": "상승 상위",
+    "topTraded": "거래 상위"
   },
   "trade": {
     "title": "거래",
@@ -231,7 +233,11 @@
     "a5": "모든 스왑은 시뮬레이션되고 모든 코인은 거래 전 허니팟 검사를 거쳐요. 밈코인은 여전히 매우 위험하니 잃어도 되는 금액만 거래하세요.",
     "rcSwap": "스왑",
     "rcGas": "네트워크 가스",
-    "rcPaid": "Kamby가 지불"
+    "rcPaid": "Kamby가 지불",
+    "featTrades": "실시간 거래",
+    "featFeed": "소셜 피드",
+    "featChat": "DM",
+    "featStreams": "라이브"
   },
   "coin": {
     "price": "가격",
@@ -715,7 +721,8 @@
     "bestTrade": "최고 거래",
     "pnlSpread": "거래 결과 분포",
     "lastSells": "최근 {n}건 매도",
-    "moreStats": "통계 더보기"
+    "moreStats": "통계 더보기",
+    "pnlDays": "최근 28일"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

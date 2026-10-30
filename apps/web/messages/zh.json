@@ -45,7 +45,9 @@
     "noPositions": "暂无持仓",
     "topTraders": "本周顶尖交易员",
     "totalBalance": "总余额",
-    "fundHint": "充值 USDC 开始交易"
+    "fundHint": "充值 USDC 开始交易",
+    "topGainers": "涨幅榜",
+    "topTraded": "成交榜"
   },
   "trade": {
     "title": "交易",
@@ -231,7 +233,11 @@
     "a5": "每笔交易都会模拟，每个代币交易前都会检查貔貅盘。但 Meme 币风险依然很高 — 只用你亏得起的钱交易。",
     "rcSwap": "兑换",
     "rcGas": "网络 Gas",
-    "rcPaid": "Kamby 已支付"
+    "rcPaid": "Kamby 已支付",
+    "featTrades": "实时交易",
+    "featFeed": "社交动态",
+    "featChat": "私信",
+    "featStreams": "直播"
   },
   "coin": {
     "price": "价格",
@@ -715,7 +721,8 @@
     "bestTrade": "最佳交易",
     "pnlSpread": "盈亏分布",
     "lastSells": "最近 {n} 笔卖出",
-    "moreStats": "更多统计"
+    "moreStats": "更多统计",
+    "pnlDays": "近 28 天"
   },
   "notif": {
     "kind_FOLLOW": "关注",

@@ -45,7 +45,9 @@
     "noPositions": "保有ポジションなし",
     "topTraders": "今週のトップトレーダー",
     "totalBalance": "合計残高",
-    "fundHint": "USDC を入金して取引を始めよう"
+    "fundHint": "USDC を入金して取引を始めよう",
+    "topGainers": "値上がり上位",
+    "topTraded": "取引量上位"
   },
   "trade": {
     "title": "取引",
@@ -231,7 +233,11 @@
     "a5": "すべてのスワップはシミュレーションされ、すべてのコインはハニーポットを確認済み。ミームコインは非常にリスクが高いので、失ってもよい額だけで取引してください。",
     "rcSwap": "スワップ",
     "rcGas": "ネットワークガス",
-    "rcPaid": "Kambyが支払い"
+    "rcPaid": "Kambyが支払い",
+    "featTrades": "ライブ取引",
+    "featFeed": "ソーシャル",
+    "featChat": "DM",
+    "featStreams": "ライブ配信"
   },
   "coin": {
     "price": "価格",
@@ -715,7 +721,8 @@
     "bestTrade": "ベストトレード",
     "pnlSpread": "損益の分布",
     "lastSells": "直近{n}件の売却",
-    "moreStats": "その他の統計"
+    "moreStats": "その他の統計",
+    "pnlDays": "直近28日"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

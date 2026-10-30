@@ -15,11 +15,11 @@ import { openResilientEventSource } from '@/lib/resilient-event-source';
 import { useMyUsername } from '@/lib/use-my-username';
 import { friendlyError } from '@/lib/friendly-error';
 import { marketHref } from '@/lib/solana-links';
-import { cashtag } from '@/lib/format';
+import { cashtag, formatPercent, formatPrice } from '@/lib/format';
 import { DmAvatar } from '@/components/dm/DmAvatar';
 import { takePendingHost } from './pending-host';
 import { compactUsd, LiveDuelSheet, LivePositions, LiveTipSheet, useHostPerps } from './LiveWidgets';
-import { LiveCoinPanel } from './LiveCoinPanel';
+import { LiveCoinPanel, useCoinPrice } from './LiveCoinPanel';
 import { useMediaQuery } from '@/lib/use-media';
 
 function Media({ track, kind, className }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string }) {
@@ -75,6 +75,8 @@ export function LiveRoomScreen({ id }: { id: string }) {
   // Desktop (2026-10-30 redesign): the chat column has Chat / Trades tabs, the coin sits under the stage.
   const [tab, setTab] = useState<'chat' | 'trades'>('chat');
   const desktop = useMediaQuery('(min-width: 1024px)');
+  // Phones: the coin's price on the stage's Trade pill (desktop has the whole panel below).
+  const coinPrice = useCoinPrice(desktop === false ? (room?.coin ?? null) : null);
   const listRef = useRef<HTMLDivElement>(null);
   const elapsed = useElapsed(room?.startedAt);
 
@@ -289,6 +291,12 @@ export function LiveRoomScreen({ id }: { id: string }) {
           <Link href={coinHref} className="kamby-glass-solid absolute bottom-3 left-3 flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent font-display text-xs font-black text-black">{(room.coin.symbol ?? '?').slice(0, 1)}</span>
             <span className="font-display text-xs font-bold">{t('trade', { symbol: cashtag(room.coin.symbol ?? '') })}</span>
+            {coinPrice.price !== null && (
+              <span className="font-mono text-xs tabular-nums text-white/80">
+                {formatPrice(coinPrice.price)}
+                {coinPrice.change !== null && <span className={cn('ml-1', coinPrice.change >= 0 ? 'text-up' : 'text-down')}>{formatPercent(coinPrice.change)}</span>}
+              </span>
+            )}
           </Link>
         )}
       </div>

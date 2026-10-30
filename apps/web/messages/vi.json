@@ -45,7 +45,9 @@
     "noPositions": "Chưa có vị thế",
     "topTraders": "Trader hàng đầu tuần này",
     "totalBalance": "Tổng số dư",
-    "fundHint": "Nạp USDC để bắt đầu giao dịch"
+    "fundHint": "Nạp USDC để bắt đầu giao dịch",
+    "topGainers": "Tăng mạnh nhất",
+    "topTraded": "Giao dịch nhiều nhất"
   },
   "trade": {
     "title": "Giao dịch",
@@ -231,7 +233,11 @@
     "a5": "Mọi swap đều được mô phỏng và mọi coin đều được kiểm tra honeypot trước khi giao dịch. Meme coin vẫn rất rủi ro — chỉ giao dịch số tiền bạn chấp nhận mất.",
     "rcSwap": "Swap",
     "rcGas": "Phí gas mạng",
-    "rcPaid": "Kamby đã trả"
+    "rcPaid": "Kamby đã trả",
+    "featTrades": "Giao dịch live",
+    "featFeed": "Bảng tin",
+    "featChat": "Nhắn tin",
+    "featStreams": "Livestream"
   },
   "coin": {
     "price": "Giá",
@@ -715,7 +721,8 @@
     "bestTrade": "Lệnh tốt nhất",
     "pnlSpread": "Kết quả giao dịch",
     "lastSells": "{n} lệnh bán gần nhất",
-    "moreStats": "Thêm thống kê"
+    "moreStats": "Thêm thống kê",
+    "pnlDays": "28 ngày qua"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

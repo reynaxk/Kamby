@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { KambyLogo } from '@/components/layout/KambyLogo';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { ChatShowcase } from '@/components/landing/ChatShowcase';
-import { HeroPhone } from '@/components/landing/HeroPhone';
+import { HeroTrio } from '@/components/landing/HeroTrio';
 import { LandingTour } from '@/components/landing/LandingTour';
 import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
@@ -51,7 +51,7 @@ export default async function LandingPage() {
           </nav>
         </header>
 
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-24 lg:pt-12">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 lg:pb-24 lg:pt-12">
           <div className="text-center lg:text-left">
             <h1 className="kamby-gate-in kamby-gate-in-2 font-display text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.02] tracking-tight">
               {/* 2026-10-30 owner: "Social Terminal for trading" — the neon part first; each locale keeps its own spacing */}
@@ -61,6 +61,24 @@ export default async function LandingPage() {
             <p className="kamby-gate-in kamby-gate-in-3 mx-auto mt-6 max-w-xl font-body text-lg leading-relaxed text-[#94A3B8] lg:mx-0">
               {t('heroSub')}
             </p>
+            {/* What's inside, as four icons (2026-10-30 redesign, owner's concepts). */}
+            <ul className="kamby-gate-in kamby-gate-in-3 mx-auto mt-8 flex max-w-md justify-center gap-6 lg:mx-0 lg:justify-start">
+              {([
+                ['featTrades', <path key="a" d="M3 17l6-6 4 4 8-8M14 7h7v7" />],
+                ['featFeed', <path key="b" d="M4 6h16M4 12h16M4 18h10" />],
+                ['featChat', <path key="c" d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z" />],
+                ['featStreams', <path key="d" d="M2 7h14v10H2zM16 10l6-3v10l-6-3" />],
+              ] as const).map(([key, icon]) => (
+                <li key={key} className="flex w-[4.5rem] flex-col items-center gap-2 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-[#00FF87]">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      {icon}
+                    </svg>
+                  </span>
+                  <span className="font-display text-[0.7rem] font-bold leading-tight text-white/75">{t(key)}</span>
+                </li>
+              ))}
+            </ul>
             <div className="kamby-gate-in kamby-gate-in-4 mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <LandingCta label={t('heroCta')} variant="neon" arrow className="w-full px-9 py-4 text-base sm:w-auto" />
               <Link
@@ -72,7 +90,7 @@ export default async function LandingPage() {
             </div>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <HeroPhone />
+            <HeroTrio />
           </div>
         </div>
       </section>

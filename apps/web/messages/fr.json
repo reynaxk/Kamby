@@ -45,7 +45,9 @@
     "noPositions": "Aucune position ouverte",
     "topTraders": "Meilleurs traders de la semaine",
     "totalBalance": "Solde total",
-    "fundHint": "Ajoute des USDC pour commencer"
+    "fundHint": "Ajoute des USDC pour commencer",
+    "topGainers": "Plus fortes hausses",
+    "topTraded": "Plus échangés"
   },
   "trade": {
     "title": "Trader",
@@ -231,7 +233,11 @@
     "a5": "Chaque swap est simulé et chaque coin vérifié contre les honeypots avant le trade. Les meme coins restent très risqués — ne trade que ce que tu peux perdre.",
     "rcSwap": "Swap",
     "rcGas": "Gas réseau",
-    "rcPaid": "Payé par Kamby"
+    "rcPaid": "Payé par Kamby",
+    "featTrades": "Trades en direct",
+    "featFeed": "Fil social",
+    "featChat": "Chat privé",
+    "featStreams": "Lives"
   },
   "coin": {
     "price": "Prix",
@@ -715,7 +721,8 @@
     "bestTrade": "Meilleur trade",
     "pnlSpread": "Issue des trades",
     "lastSells": "{n} dernières ventes",
-    "moreStats": "Plus de stats"
+    "moreStats": "Plus de stats",
+    "pnlDays": "28 derniers jours"
   },
   "notif": {
     "kind_FOLLOW": "Abonné",

@@ -45,7 +45,9 @@
     "noPositions": "Sin posiciones abiertas",
     "topTraders": "Mejores traders de la semana",
     "totalBalance": "Saldo total",
-    "fundHint": "Añade USDC para empezar"
+    "fundHint": "Añade USDC para empezar",
+    "topGainers": "Más suben",
+    "topTraded": "Más negociados"
   },
   "trade": {
     "title": "Operar",
@@ -231,7 +233,11 @@
     "a5": "Cada swap se simula y cada moneda se revisa contra honeypots antes de operar. Las meme coins siguen siendo muy riesgosas — opera solo lo que puedas perder.",
     "rcSwap": "Swap",
     "rcGas": "Gas de red",
-    "rcPaid": "Pagado por Kamby"
+    "rcPaid": "Pagado por Kamby",
+    "featTrades": "Trades en vivo",
+    "featFeed": "Feed social",
+    "featChat": "Chat directo",
+    "featStreams": "Directos"
   },
   "coin": {
     "price": "Precio",
@@ -715,7 +721,8 @@
     "bestTrade": "Mejor operación",
     "pnlSpread": "Cómo terminaron",
     "lastSells": "Últimas {n} ventas",
-    "moreStats": "Más estadísticas"
+    "moreStats": "Más estadísticas",
+    "pnlDays": "Últimos 28 días"
   },
   "notif": {
     "kind_FOLLOW": "Seguidor",

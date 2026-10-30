@@ -45,7 +45,9 @@
     "noPositions": "Belum ada posisi",
     "topTraders": "Trader teratas minggu ini",
     "totalBalance": "Total saldo",
-    "fundHint": "Tambah USDC untuk mulai trading"
+    "fundHint": "Tambah USDC untuk mulai trading",
+    "topGainers": "Naik tertinggi",
+    "topTraded": "Paling ramai"
   },
   "trade": {
     "title": "Trading",
@@ -231,7 +233,11 @@
     "a5": "Setiap swap disimulasikan dan setiap koin dicek honeypot sebelum trading. Meme coin tetap sangat berisiko — trading hanya dengan uang yang siap hilang.",
     "rcSwap": "Swap",
     "rcGas": "Gas jaringan",
-    "rcPaid": "Dibayar Kamby"
+    "rcPaid": "Dibayar Kamby",
+    "featTrades": "Trade live",
+    "featFeed": "Feed sosial",
+    "featChat": "Chat langsung",
+    "featStreams": "Live stream"
   },
   "coin": {
     "price": "Harga",
@@ -715,7 +721,8 @@
     "bestTrade": "Trade terbaik",
     "pnlSpread": "Hasil trade",
     "lastSells": "{n} penjualan terakhir",
-    "moreStats": "Statistik lainnya"
+    "moreStats": "Statistik lainnya",
+    "pnlDays": "28 hari terakhir"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

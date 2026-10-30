@@ -45,7 +45,9 @@
     "noPositions": "No open positions",
     "topTraders": "Top traders this week",
     "totalBalance": "Total balance",
-    "fundHint": "Add USDC to start trading"
+    "fundHint": "Add USDC to start trading",
+    "topGainers": "Top Gainers",
+    "topTraded": "Top Traded"
   },
   "trade": {
     "title": "Trade",
@@ -231,7 +233,11 @@
     "a5": "Every swap is simulated and every coin is checked for honeypots before you trade. Meme coins are still very risky — only trade what you can afford to lose.",
     "rcSwap": "Swap",
     "rcGas": "Network gas",
-    "rcPaid": "Paid by Kamby"
+    "rcPaid": "Paid by Kamby",
+    "featTrades": "Live trades",
+    "featFeed": "Social feed",
+    "featChat": "Direct chat",
+    "featStreams": "Live streams"
   },
   "coin": {
     "price": "Price",
@@ -715,7 +721,8 @@
     "bestTrade": "Best trade",
     "pnlSpread": "How trades ended",
     "lastSells": "Last {n} sells",
-    "moreStats": "More stats"
+    "moreStats": "More stats",
+    "pnlDays": "Last 28 days"
   },
   "notif": {
     "kind_FOLLOW": "Follow",

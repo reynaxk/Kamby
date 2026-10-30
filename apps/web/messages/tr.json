@@ -45,7 +45,9 @@
     "noPositions": "Açık pozisyon yok",
     "topTraders": "Haftanın en iyi trader’ları",
     "totalBalance": "Toplam bakiye",
-    "fundHint": "İşleme başlamak için USDC ekle"
+    "fundHint": "İşleme başlamak için USDC ekle",
+    "topGainers": "En çok yükselenler",
+    "topTraded": "En çok işlem görenler"
   },
   "trade": {
     "title": "İşlem",
@@ -231,7 +233,11 @@
     "a5": "Her swap simüle edilir ve her coin işlem öncesi honeypot kontrolünden geçer. Meme coinler yine de çok risklidir — sadece kaybetmeyi göze alabileceğinle işlem yap.",
     "rcSwap": "Swap",
     "rcGas": "Ağ gas’ı",
-    "rcPaid": "Kamby ödedi"
+    "rcPaid": "Kamby ödedi",
+    "featTrades": "Canlı işlemler",
+    "featFeed": "Sosyal akış",
+    "featChat": "Mesajlar",
+    "featStreams": "Canlı yayın"
   },
   "coin": {
     "price": "Fiyat",
@@ -715,7 +721,8 @@
     "bestTrade": "En iyi işlem",
     "pnlSpread": "İşlemler nasıl bitti",
     "lastSells": "Son {n} satış",
-    "moreStats": "Daha fazla istatistik"
+    "moreStats": "Daha fazla istatistik",
+    "pnlDays": "Son 28 gün"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

@@ -233,6 +233,26 @@ export function DmInbox() {
         <CommunityRail items={items.filter((c) => c.group?.community)} onCreate={() => setCommunityOpen(true)} />
       )}
 
+      {/* Who's on Kamby right now, one tap from a chat (2026-10-30 redesign, owner's concepts). */}
+      {box === 'chats' && items && items.some((c) => !c.group && c.other && (c.onlineIds?.length ?? 0) > 0) && (
+        <div className="mt-5">
+          <p className="px-1 font-body text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink-400">{t('activeNow')}</p>
+          <div className="-mx-4 mt-2 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            {items
+              .filter((c) => !c.group && c.other && (c.onlineIds?.length ?? 0) > 0)
+              .map((c) => (
+                <Link key={c.id} href={`/messages/${c.id}`} className="flex w-14 shrink-0 flex-col items-center gap-1.5 active:scale-95">
+                  <span className="relative">
+                    <DmAvatar name={c.other!.username} src={c.other!.avatarUrl} className="h-12 w-12 text-sm" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-bg bg-up" aria-hidden />
+                  </span>
+                  <span className="w-full truncate text-center font-body text-[0.65rem] text-ink-600">{c.other!.username ?? ""}</span>
+                </Link>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Chats / Requests */}
       <div className="mt-4 flex gap-5 border-b border-line/60 px-1" role="tablist">
         {(['chats', 'requests'] as const).map((b) => (

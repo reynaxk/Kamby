@@ -23,6 +23,31 @@ function sourceFor(coin: Coin): ChartSource | null {
   return Number.isFinite(id) && id > 0 ? evmChartSource(coin.tokenAddress, id) : null;
 }
 
+/** The coin's latest price (its newest 5m candle), refreshed while the page is visible — the phone's
+ *  Trade pill on the stage. */
+export function useCoinPrice(coin: Coin | null): { price: number | null; change: number | null } {
+  const [candles, setCandles] = useState<Candle[] | null>(null);
+  useEffect(() => {
+    const source = coin ? sourceFor(coin) : null;
+    if (!source) return;
+    let cancelled = false;
+    const load = (force: boolean) =>
+      loadCandles(source, '5m', { force })
+        .then((c) => !cancelled && setCandles(c))
+        .catch(() => undefined);
+    void load(false);
+    const timer = setInterval(() => document.visibilityState === 'visible' && void load(true), 15_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coin?.chainIdentifier, coin?.tokenAddress]);
+  const price = candles?.at(-1)?.close ?? null;
+  const first = candles?.[0]?.open ?? null;
+  return { price, change: price !== null && first ? ((price - first) / first) * 100 : null };
+}
+
 /**
  * Desktop live room (2026-10-30 redesign, owner's concepts): the coin the stream is about, under
  * the stage — its chart and a buy box. Solana buys in one tap (gasless, the ⚡ quick-buy path);

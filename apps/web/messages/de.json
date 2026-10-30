@@ -45,7 +45,9 @@
     "noPositions": "Keine offenen Positionen",
     "topTraders": "Top-Trader der Woche",
     "totalBalance": "Gesamtguthaben",
-    "fundHint": "Füge USDC hinzu, um zu traden"
+    "fundHint": "Füge USDC hinzu, um zu traden",
+    "topGainers": "Top-Gewinner",
+    "topTraded": "Meistgehandelt"
   },
   "trade": {
     "title": "Handeln",
@@ -231,7 +233,11 @@
     "a5": "Jeder Swap wird simuliert und jeder Coin vor dem Trade auf Honeypots geprüft. Meme-Coins bleiben sehr riskant — trade nur, was du verlieren kannst.",
     "rcSwap": "Swap",
     "rcGas": "Netzwerk-Gas",
-    "rcPaid": "Von Kamby bezahlt"
+    "rcPaid": "Von Kamby bezahlt",
+    "featTrades": "Live-Trades",
+    "featFeed": "Social Feed",
+    "featChat": "Direktchat",
+    "featStreams": "Livestreams"
   },
   "coin": {
     "price": "Preis",
@@ -715,7 +721,8 @@
     "bestTrade": "Bester Trade",
     "pnlSpread": "Wie Trades endeten",
     "lastSells": "Letzte {n} Verkäufe",
-    "moreStats": "Mehr Statistiken"
+    "moreStats": "Mehr Statistiken",
+    "pnlDays": "Letzte 28 Tage"
   },
   "notif": {
     "kind_FOLLOW": "Follow",
