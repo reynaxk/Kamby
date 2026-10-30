@@ -288,8 +288,8 @@ export function LiveRoomScreen({ id }: { id: string }) {
 
       {/* Under the stage: the host's open perps, and for viewers ⚔️ Duel / 💸 Tip */}
       {room && (
-        <div className="relative z-10 mx-3 mt-2 flex items-center gap-2">
-          <div className="min-w-0 flex-1">
+        <div className="relative z-10 mx-3 mt-2 flex flex-wrap items-center justify-end gap-2">
+          <div className="min-w-0 basis-full empty:hidden md:basis-auto md:flex-1">
             <LivePositions positions={perps} />
           </div>
           {!isHost && authenticated && (
@@ -330,7 +330,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
                   l.kind === 'tip' ? 'bg-[#FACC15]/15 text-[#FDE68A]' : 'bg-accent/10 text-accent',
                 )}
               >
-                {l.kind === 'tip' ? '💸' : '🔥'} @{l.username} {l.kind === 'tip' && l.amountUsd ? t('tipped', { amount: `${l.amountUsd.toFixed(2)}` }) : l.body}
+                {l.kind === 'tip' ? '💸' : '🔥'} @{l.username} {l.kind === 'tip' && l.amountUsd ? t('tipped', { amount: `$${l.amountUsd.toFixed(2)}` }) : l.body}
               </p>
             ) : (
               <div key={l.id} className="kamby-chat-in">
