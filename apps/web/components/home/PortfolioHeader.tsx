@@ -134,10 +134,10 @@ export function PortfolioHeader() {
           <Link
             key={l.href}
             href={l.href}
-            className="flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl border border-white/[0.06] px-2 transition-colors active:bg-white/[0.06]"
+            className="flex h-11 min-w-0 items-center justify-center gap-1 rounded-2xl border border-white/[0.06] px-1.5 transition-colors active:bg-white/[0.06]"
           >
             <span aria-hidden>{l.icon}</span>
-            <span className="truncate font-display text-[0.8rem] font-bold text-ink-900">{l.label}</span>
+            <span className="truncate font-display text-[0.74rem] font-bold tracking-tight text-ink-900">{l.label}</span>
           </Link>
         ))}
       </div>
