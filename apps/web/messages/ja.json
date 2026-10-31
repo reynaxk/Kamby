@@ -13,7 +13,8 @@
     "feed": "フィード",
     "news": "ニュース",
     "toggleMenu": "メニューを折りたたむ／開く",
-    "narratives": "ナラティブ"
+    "narratives": "ナラティブ",
+    "predictions": "予想"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "このフィルターに合うものは今ありません。",
     "howHeat": "Heat Index（0〜100）は実際の動きから算出：この1時間の出来高と通常の1時間の比較、直近1時間のKambyでの取引、これらの銘柄の配信の視聴者数、今週のトップトレーダーの純買い。タグはKambyが検証した銘柄と銘柄名に基づきます。投資助言ではありません。",
     "pillsLabel": "ナラティブ"
+  },
+  "predictions": {
+    "title": "予想",
+    "subtitle": "次に起きることに投票。自動の投票は実際の価格で自動的に結果が出ます。",
+    "statVotes": "今日の投票",
+    "statOpen": "受付中",
+    "statMine": "あなたの投票",
+    "filter_all": "すべて",
+    "filter_ending": "まもなく終了",
+    "filter_popular": "投票数順",
+    "filter_streamers": "配信者",
+    "filter_mine": "自分の投票",
+    "cat_all": "すべて",
+    "cat_crypto": "暗号資産",
+    "cat_ai": "AI",
+    "cat_macro": "マクロ",
+    "cat_streamers": "配信者",
+    "cat_memes": "ミーム",
+    "endsIn": "残り {time}",
+    "ended": "終了",
+    "resolved": "確定",
+    "votes": "{count} 票",
+    "youVoted": "{answer} に投票済み",
+    "streamerLive": "{name} が配信中",
+    "ask": "質問する",
+    "askPlaceholder": "あなたの質問",
+    "answer": "回答 {n}",
+    "addAnswer": "回答を追加",
+    "removeAnswer": "回答を削除",
+    "askSubmit": "みんなに聞く",
+    "justForFun": "お楽しみ用 — 投票のみ。お金・ポイント・賞品はありません。投資助言ではありません。",
+    "failed": "予想を読み込めませんでした。",
+    "empty": "受付中の予想はありません — 数時間ごとに新しいものが届きます。",
+    "emptyMine": "まだ投票していません。",
+    "more": "さらに表示"
   }
 }

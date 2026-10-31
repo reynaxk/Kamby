@@ -13,7 +13,8 @@
     "feed": "Feed",
     "news": "Notícias",
     "toggleMenu": "Recolher ou abrir o menu",
-    "narratives": "Narrativas"
+    "narratives": "Narrativas",
+    "predictions": "Previsões"
   },
   "install": {
     "title": "Baixe o app Kamby",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Nada corresponde a este filtro agora.",
     "howHeat": "Heat Index (0–100) a partir de atividade real: volume desta hora vs uma hora normal, negociações na Kamby na última hora, pessoas assistindo lives sobre essas moedas e compras líquidas dos melhores traders da semana. As tags vêm das moedas verificadas da Kamby e dos nomes. Não é conselho.",
     "pillsLabel": "Narrativas"
+  },
+  "predictions": {
+    "title": "Previsões",
+    "subtitle": "Vote no que vai acontecer. As enquetes automáticas se resolvem com preços reais.",
+    "statVotes": "Votos hoje",
+    "statOpen": "Enquetes abertas",
+    "statMine": "Seus votos",
+    "filter_all": "Todas",
+    "filter_ending": "Acabam logo",
+    "filter_popular": "Mais votadas",
+    "filter_streamers": "De streamers",
+    "filter_mine": "Meus votos",
+    "cat_all": "Todas",
+    "cat_crypto": "Cripto",
+    "cat_ai": "IA",
+    "cat_macro": "Macro",
+    "cat_streamers": "Streamers",
+    "cat_memes": "Memes",
+    "endsIn": "Termina em {time}",
+    "ended": "Encerrada",
+    "resolved": "Resolvida",
+    "votes": "{count, plural, one {# voto} other {# votos}}",
+    "youVoted": "Você votou {answer}",
+    "streamerLive": "{name} está ao vivo",
+    "ask": "Perguntar",
+    "askPlaceholder": "Sua pergunta",
+    "answer": "Resposta {n}",
+    "addAnswer": "Adicionar resposta",
+    "removeAnswer": "Remover resposta",
+    "askSubmit": "Perguntar a todos",
+    "justForFun": "Só por diversão — só votos. Sem dinheiro, sem pontos, sem prêmios. Não é conselho.",
+    "failed": "As previsões não carregaram.",
+    "empty": "Nenhuma previsão aberta agora — novas chegam a cada poucas horas.",
+    "emptyMine": "Você ainda não votou.",
+    "more": "Carregar mais"
   }
 }

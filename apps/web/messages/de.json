@@ -13,7 +13,8 @@
     "feed": "Feed",
     "news": "News",
     "toggleMenu": "Menü ein- oder ausklappen",
-    "narratives": "Narrative"
+    "narratives": "Narrative",
+    "predictions": "Prognosen"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Gerade passt nichts zu diesem Filter.",
     "howHeat": "Heat Index (0–100) aus echter Aktivität: Volumen dieser Stunde gegenüber einer normalen Stunde, Kamby-Trades der letzten Stunde, Zuschauer in Streams zu diesen Coins und die Nettokäufe der Top-Trader dieser Woche. Tags stammen von Kambys verifizierten Coins und Coin-Namen. Keine Beratung.",
     "pillsLabel": "Narrative"
+  },
+  "predictions": {
+    "title": "Prognosen",
+    "subtitle": "Stimme ab, was als Nächstes passiert. Automatische Umfragen lösen sich mit echten Preisen auf.",
+    "statVotes": "Stimmen heute",
+    "statOpen": "Offene Umfragen",
+    "statMine": "Deine Stimmen",
+    "filter_all": "Alle",
+    "filter_ending": "Endet bald",
+    "filter_popular": "Meiste Stimmen",
+    "filter_streamers": "Von Streamern",
+    "filter_mine": "Meine Stimmen",
+    "cat_all": "Alle",
+    "cat_crypto": "Krypto",
+    "cat_ai": "KI",
+    "cat_macro": "Makro",
+    "cat_streamers": "Streamer",
+    "cat_memes": "Memes",
+    "endsIn": "Endet in {time}",
+    "ended": "Beendet",
+    "resolved": "Aufgelöst",
+    "votes": "{count, plural, one {# Stimme} other {# Stimmen}}",
+    "youVoted": "Du hast {answer} gewählt",
+    "streamerLive": "{name} ist live",
+    "ask": "Fragen",
+    "askPlaceholder": "Deine Frage",
+    "answer": "Antwort {n}",
+    "addAnswer": "Antwort hinzufügen",
+    "removeAnswer": "Antwort entfernen",
+    "askSubmit": "Alle fragen",
+    "justForFun": "Nur zum Spaß — nur Stimmen. Kein Geld, keine Punkte, keine Preise. Keine Beratung.",
+    "failed": "Prognosen konnten nicht geladen werden.",
+    "empty": "Gerade keine offenen Prognosen — alle paar Stunden kommen neue.",
+    "emptyMine": "Du hast noch nicht abgestimmt.",
+    "more": "Mehr laden"
   }
 }

@@ -13,7 +13,8 @@
     "feed": "Akış",
     "news": "Haberler",
     "toggleMenu": "Menüyü daralt veya aç",
-    "narratives": "Anlatılar"
+    "narratives": "Anlatılar",
+    "predictions": "Tahminler"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Şu an bu filtreye uyan bir şey yok.",
     "howHeat": "Heat Index (0–100) gerçek etkinlikten: bu saatin hacmi ile normal bir saatin karşılaştırması, son bir saatteki Kamby işlemleri, bu coinlerle ilgili yayınların izleyicileri ve bu haftanın en iyi traderlarının net alımları. Etiketler Kamby’nin doğruladığı coinlerden ve coin adlarından gelir. Tavsiye değildir.",
     "pillsLabel": "Anlatılar"
+  },
+  "predictions": {
+    "title": "Tahminler",
+    "subtitle": "Sırada ne olacağına oy ver. Otomatik anketler gerçek fiyatlarla kendiliğinden sonuçlanır.",
+    "statVotes": "Bugünkü oylar",
+    "statOpen": "Açık anketler",
+    "statMine": "Oyların",
+    "filter_all": "Tümü",
+    "filter_ending": "Yakında bitiyor",
+    "filter_popular": "En çok oy",
+    "filter_streamers": "Yayıncılardan",
+    "filter_mine": "Oylarım",
+    "cat_all": "Tümü",
+    "cat_crypto": "Kripto",
+    "cat_ai": "Yapay zekâ",
+    "cat_macro": "Makro",
+    "cat_streamers": "Yayıncılar",
+    "cat_memes": "Memeler",
+    "endsIn": "{time} kaldı",
+    "ended": "Bitti",
+    "resolved": "Sonuçlandı",
+    "votes": "{count} oy",
+    "youVoted": "{answer} oyladın",
+    "streamerLive": "{name} canlı yayında",
+    "ask": "Sor",
+    "askPlaceholder": "Sorun",
+    "answer": "Cevap {n}",
+    "addAnswer": "Cevap ekle",
+    "removeAnswer": "Cevabı kaldır",
+    "askSubmit": "Herkese sor",
+    "justForFun": "Sadece eğlence — yalnızca oy. Para, puan, ödül yok. Tavsiye değildir.",
+    "failed": "Tahminler yüklenemedi.",
+    "empty": "Şu an açık tahmin yok — birkaç saatte bir yenileri gelir.",
+    "emptyMine": "Henüz oy vermedin.",
+    "more": "Daha fazla"
   }
 }

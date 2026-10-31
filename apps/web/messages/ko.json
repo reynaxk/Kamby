@@ -13,7 +13,8 @@
     "feed": "피드",
     "news": "뉴스",
     "toggleMenu": "메뉴 접기/펼치기",
-    "narratives": "내러티브"
+    "narratives": "내러티브",
+    "predictions": "예측"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "지금 이 필터에 맞는 항목이 없습니다.",
     "howHeat": "Heat Index(0–100)는 실제 활동으로 계산합니다: 이번 시간 거래량과 평소 시간 비교, 최근 1시간 Kamby 거래, 이 코인 방송의 시청자 수, 이번 주 상위 트레이더의 순매수. 태그는 Kamby가 검증한 코인과 코인 이름에서 나옵니다. 투자 조언이 아닙니다.",
     "pillsLabel": "내러티브"
+  },
+  "predictions": {
+    "title": "예측",
+    "subtitle": "다음에 일어날 일에 투표하세요. 자동 투표는 실제 가격으로 결과가 납니다.",
+    "statVotes": "오늘 투표",
+    "statOpen": "진행 중",
+    "statMine": "내 투표",
+    "filter_all": "전체",
+    "filter_ending": "곧 마감",
+    "filter_popular": "투표 많은 순",
+    "filter_streamers": "스트리머",
+    "filter_mine": "내 투표",
+    "cat_all": "전체",
+    "cat_crypto": "크립토",
+    "cat_ai": "AI",
+    "cat_macro": "매크로",
+    "cat_streamers": "스트리머",
+    "cat_memes": "밈",
+    "endsIn": "{time} 남음",
+    "ended": "마감",
+    "resolved": "결과 확정",
+    "votes": "{count}표",
+    "youVoted": "{answer}에 투표함",
+    "streamerLive": "{name} 라이브 중",
+    "ask": "질문하기",
+    "askPlaceholder": "질문",
+    "answer": "답변 {n}",
+    "addAnswer": "답변 추가",
+    "removeAnswer": "답변 삭제",
+    "askSubmit": "모두에게 묻기",
+    "justForFun": "재미로만 — 투표만. 돈·포인트·상품 없음. 투자 조언 아님.",
+    "failed": "예측을 불러오지 못했습니다.",
+    "empty": "진행 중인 예측이 없습니다 — 몇 시간마다 새로 올라옵니다.",
+    "emptyMine": "아직 투표하지 않았습니다.",
+    "more": "더 보기"
   }
 }

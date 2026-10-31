@@ -13,7 +13,8 @@
     "feed": "Feed",
     "news": "News",
     "toggleMenu": "Fold or open the menu",
-    "narratives": "Narratives"
+    "narratives": "Narratives",
+    "predictions": "Predictions"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Nothing matches this filter right now.",
     "howHeat": "Heat Index (0–100) from real activity: volume this hour vs a normal hour, Kamby trades in the last hour, people watching streams about these coins, and this week’s top traders’ net buys. Tags come from Kamby’s verified coins and coin names. Not advice.",
     "pillsLabel": "Narratives"
+  },
+  "predictions": {
+    "title": "Predictions",
+    "subtitle": "Vote on what happens next. Auto polls settle themselves from real prices.",
+    "statVotes": "Votes today",
+    "statOpen": "Open polls",
+    "statMine": "Your votes",
+    "filter_all": "All",
+    "filter_ending": "Ending soon",
+    "filter_popular": "Most voted",
+    "filter_streamers": "Streamer specials",
+    "filter_mine": "My votes",
+    "cat_all": "All",
+    "cat_crypto": "Crypto",
+    "cat_ai": "AI",
+    "cat_macro": "Macro",
+    "cat_streamers": "Streamers",
+    "cat_memes": "Memes",
+    "endsIn": "Ends in {time}",
+    "ended": "Ended",
+    "resolved": "Resolved",
+    "votes": "{count, plural, one {# vote} other {# votes}}",
+    "youVoted": "You voted {answer}",
+    "streamerLive": "{name} is live",
+    "ask": "Ask",
+    "askPlaceholder": "Your question",
+    "answer": "Answer {n}",
+    "addAnswer": "Add an answer",
+    "removeAnswer": "Remove answer",
+    "askSubmit": "Ask everyone",
+    "justForFun": "Just for fun — votes only. No money, no points, no prizes. Not advice.",
+    "failed": "Predictions didn’t load.",
+    "empty": "No open predictions right now — new ones come every few hours.",
+    "emptyMine": "You haven’t voted yet.",
+    "more": "Load more"
   }
 }

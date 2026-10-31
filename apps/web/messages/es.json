@@ -13,7 +13,8 @@
     "feed": "Feed",
     "news": "Noticias",
     "toggleMenu": "Plegar o abrir el menú",
-    "narratives": "Narrativas"
+    "narratives": "Narrativas",
+    "predictions": "Predicciones"
   },
   "install": {
     "title": "Obtén la app de Kamby",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Nada coincide con este filtro ahora.",
     "howHeat": "Heat Index (0–100) con actividad real: el volumen de esta hora frente a una hora normal, operaciones en Kamby en la última hora, espectadores de directos sobre estas monedas y las compras netas de los mejores traders de la semana. Las etiquetas vienen de las monedas verificadas de Kamby y sus nombres. No es consejo.",
     "pillsLabel": "Narrativas"
+  },
+  "predictions": {
+    "title": "Predicciones",
+    "subtitle": "Vota qué pasará. Las encuestas automáticas se resuelven solas con precios reales.",
+    "statVotes": "Votos hoy",
+    "statOpen": "Encuestas abiertas",
+    "statMine": "Tus votos",
+    "filter_all": "Todas",
+    "filter_ending": "Terminan pronto",
+    "filter_popular": "Más votadas",
+    "filter_streamers": "De streamers",
+    "filter_mine": "Mis votos",
+    "cat_all": "Todas",
+    "cat_crypto": "Cripto",
+    "cat_ai": "IA",
+    "cat_macro": "Macro",
+    "cat_streamers": "Streamers",
+    "cat_memes": "Memes",
+    "endsIn": "Termina en {time}",
+    "ended": "Terminada",
+    "resolved": "Resuelta",
+    "votes": "{count, plural, one {# voto} other {# votos}}",
+    "youVoted": "Votaste {answer}",
+    "streamerLive": "{name} está en directo",
+    "ask": "Preguntar",
+    "askPlaceholder": "Tu pregunta",
+    "answer": "Respuesta {n}",
+    "addAnswer": "Añadir respuesta",
+    "removeAnswer": "Quitar respuesta",
+    "askSubmit": "Preguntar a todos",
+    "justForFun": "Solo por diversión — solo votos. Sin dinero, sin puntos, sin premios. No es consejo.",
+    "failed": "No se cargaron las predicciones.",
+    "empty": "No hay predicciones abiertas — llegan nuevas cada pocas horas.",
+    "emptyMine": "Aún no has votado.",
+    "more": "Cargar más"
   }
 }

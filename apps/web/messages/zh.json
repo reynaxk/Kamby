@@ -13,7 +13,8 @@
     "feed": "动态",
     "news": "新闻",
     "toggleMenu": "收起或展开菜单",
-    "narratives": "叙事"
+    "narratives": "叙事",
+    "predictions": "预测"
   },
   "install": {
     "title": "获取 Kamby 应用",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "目前没有符合此筛选的内容。",
     "howHeat": "Heat Index（0–100）来自真实活动：本小时成交量与正常小时的对比、最近一小时的 Kamby 交易、这些币相关直播的观看人数，以及本周顶级交易者的净买入。标签来自 Kamby 已验证的币和币名。非投资建议。",
     "pillsLabel": "叙事"
+  },
+  "predictions": {
+    "title": "预测",
+    "subtitle": "投票预测接下来会发生什么。自动投票会根据真实价格自行揭晓。",
+    "statVotes": "今日投票",
+    "statOpen": "进行中",
+    "statMine": "我的投票",
+    "filter_all": "全部",
+    "filter_ending": "即将结束",
+    "filter_popular": "最多投票",
+    "filter_streamers": "主播专场",
+    "filter_mine": "我的投票",
+    "cat_all": "全部",
+    "cat_crypto": "加密",
+    "cat_ai": "AI",
+    "cat_macro": "宏观",
+    "cat_streamers": "主播",
+    "cat_memes": "Meme",
+    "endsIn": "剩余 {time}",
+    "ended": "已结束",
+    "resolved": "已揭晓",
+    "votes": "{count} 票",
+    "youVoted": "你投了 {answer}",
+    "streamerLive": "{name} 正在直播",
+    "ask": "提问",
+    "askPlaceholder": "你的问题",
+    "answer": "答案 {n}",
+    "addAnswer": "添加答案",
+    "removeAnswer": "删除答案",
+    "askSubmit": "问所有人",
+    "justForFun": "仅供娱乐 — 只有投票。没有钱、积分或奖品。非投资建议。",
+    "failed": "预测加载失败。",
+    "empty": "目前没有进行中的预测 — 每隔几小时会有新的。",
+    "emptyMine": "你还没有投票。",
+    "more": "加载更多"
   }
 }

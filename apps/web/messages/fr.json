@@ -13,7 +13,8 @@
     "feed": "Fil",
     "news": "Actus",
     "toggleMenu": "Replier ou ouvrir le menu",
-    "narratives": "Narratifs"
+    "narratives": "Narratifs",
+    "predictions": "Prédictions"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Rien ne correspond à ce filtre pour l’instant.",
     "howHeat": "Heat Index (0–100) basé sur l’activité réelle : volume de cette heure vs une heure normale, trades Kamby de la dernière heure, spectateurs des lives sur ces cryptos et achats nets des meilleurs traders de la semaine. Les tags viennent des cryptos vérifiées par Kamby et de leurs noms. Pas un conseil.",
     "pillsLabel": "Narratifs"
+  },
+  "predictions": {
+    "title": "Prédictions",
+    "subtitle": "Vote sur ce qui va se passer. Les sondages auto se règlent seuls avec les vrais prix.",
+    "statVotes": "Votes aujourd’hui",
+    "statOpen": "Sondages ouverts",
+    "statMine": "Tes votes",
+    "filter_all": "Tous",
+    "filter_ending": "Bientôt finis",
+    "filter_popular": "Plus votés",
+    "filter_streamers": "Des streamers",
+    "filter_mine": "Mes votes",
+    "cat_all": "Tous",
+    "cat_crypto": "Crypto",
+    "cat_ai": "IA",
+    "cat_macro": "Macro",
+    "cat_streamers": "Streamers",
+    "cat_memes": "Memes",
+    "endsIn": "Fin dans {time}",
+    "ended": "Terminé",
+    "resolved": "Résolu",
+    "votes": "{count, plural, one {# vote} other {# votes}}",
+    "youVoted": "Tu as voté {answer}",
+    "streamerLive": "{name} est en live",
+    "ask": "Demander",
+    "askPlaceholder": "Ta question",
+    "answer": "Réponse {n}",
+    "addAnswer": "Ajouter une réponse",
+    "removeAnswer": "Retirer la réponse",
+    "askSubmit": "Demander à tous",
+    "justForFun": "Juste pour le fun — que des votes. Pas d’argent, pas de points, pas de prix. Pas un conseil.",
+    "failed": "Les prédictions n’ont pas chargé.",
+    "empty": "Aucune prédiction ouverte — de nouvelles arrivent toutes les quelques heures.",
+    "emptyMine": "Tu n’as pas encore voté.",
+    "more": "Voir plus"
   }
 }

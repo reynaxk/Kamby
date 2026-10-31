@@ -13,7 +13,8 @@
     "feed": "Bảng tin",
     "news": "Tin tức",
     "toggleMenu": "Thu gọn hoặc mở menu",
-    "narratives": "Câu chuyện"
+    "narratives": "Câu chuyện",
+    "predictions": "Dự đoán"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -1625,5 +1626,40 @@
     "emptyFilter": "Hiện không có gì khớp bộ lọc này.",
     "howHeat": "Heat Index (0–100) từ hoạt động thật: khối lượng giờ này so với một giờ bình thường, giao dịch trên Kamby trong giờ qua, người xem livestream về các coin này và lượng mua ròng của top trader tuần này. Nhãn lấy từ coin đã xác minh của Kamby và tên coin. Không phải lời khuyên.",
     "pillsLabel": "Câu chuyện"
+  },
+  "predictions": {
+    "title": "Dự đoán",
+    "subtitle": "Bình chọn điều gì xảy ra tiếp theo. Cuộc thăm dò tự động tự có kết quả theo giá thật.",
+    "statVotes": "Phiếu hôm nay",
+    "statOpen": "Đang mở",
+    "statMine": "Phiếu của bạn",
+    "filter_all": "Tất cả",
+    "filter_ending": "Sắp kết thúc",
+    "filter_popular": "Nhiều phiếu nhất",
+    "filter_streamers": "Từ streamer",
+    "filter_mine": "Phiếu của tôi",
+    "cat_all": "Tất cả",
+    "cat_crypto": "Crypto",
+    "cat_ai": "AI",
+    "cat_macro": "Vĩ mô",
+    "cat_streamers": "Streamer",
+    "cat_memes": "Meme",
+    "endsIn": "Còn {time}",
+    "ended": "Đã kết thúc",
+    "resolved": "Đã có kết quả",
+    "votes": "{count} phiếu",
+    "youVoted": "Bạn đã chọn {answer}",
+    "streamerLive": "{name} đang live",
+    "ask": "Hỏi",
+    "askPlaceholder": "Câu hỏi của bạn",
+    "answer": "Đáp án {n}",
+    "addAnswer": "Thêm đáp án",
+    "removeAnswer": "Xoá đáp án",
+    "askSubmit": "Hỏi mọi người",
+    "justForFun": "Chỉ để vui — chỉ bình chọn. Không tiền, không điểm, không giải thưởng. Không phải lời khuyên.",
+    "failed": "Không tải được dự đoán.",
+    "empty": "Hiện không có dự đoán mở — vài giờ lại có cái mới.",
+    "emptyMine": "Bạn chưa bình chọn.",
+    "more": "Xem thêm"
   }
 }
