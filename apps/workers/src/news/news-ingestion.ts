@@ -136,7 +136,9 @@ export class NewsIngestionService {
     const latest = [...merged.values()].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, NEWS_LATEST_MAX);
     await this.redis.set(NEWS_LATEST_REDIS_KEY, JSON.stringify(latest), 'EX', LATEST_TTL_SECONDS);
 
-    if (fresh.length > 0) await this.archive(fresh);
+    // The whole latest list, not just new items (duplicates are skipped): anything a failed write
+    // missed — e.g. before the table existed — lands on a later poll.
+    if (latest.length > 0) await this.archive(latest);
 
     const now = Date.now();
     const live = fresh
