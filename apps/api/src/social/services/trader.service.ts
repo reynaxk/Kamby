@@ -15,12 +15,26 @@ import {
 import { toTopTrader, toTraderProfile, toTraderStats, toTraderSummary, toTraderTokenStat } from '../social.mapper';
 import { FollowService } from './follow.service';
 
+type SwapStats = [
+  { _count: { _all: number }; _sum: { volumeUsd: Prisma.Decimal | null } },
+  number,
+  number,
+  { blockTimestamp: Date } | null,
+  { tokenMarketId: string; _sum: { volumeUsd: Prisma.Decimal | null } }[],
+  { _max: { volumeUsd: Prisma.Decimal | null } },
+  { _count: { _all: number }; _sum: { volumeUsd: Prisma.Decimal | null } },
+];
+
 export interface CursorPage<T> {
   items: T[];
   nextCursor: string | null;
 }
 
 const PNL_WINDOWS: PnlWindow[] = ['24h', '7d', '30d'];
+
+/** How long a trader's swap aggregates are reused (2026-10-31: a whale's profile took 4s+, and
+ *  lists open several profiles at once). Follow state is never cached. */
+const SWAP_STATS_TTL_MS = 60_000;
 
 /**
  * Trader identity: profiles, stats computed from indexed swaps, and follower/following
@@ -32,25 +46,49 @@ const PNL_WINDOWS: PnlWindow[] = ['24h', '7d', '30d'];
  */
 @Injectable()
 export class TraderService {
+  private readonly swapStatsCache = new Map<string, { at: number; value: Promise<SwapStats> }>();
+
   constructor(private readonly follows: FollowService) {}
+
+  /** Every swap-table aggregate the profile needs, shared by concurrent callers and kept a minute. */
+  private swapStats(normalized: string): Promise<SwapStats> {
+    const hit = this.swapStatsCache.get(normalized);
+    if (hit && Date.now() - hit.at < SWAP_STATS_TTL_MS) return hit.value;
+    const since24h = new Date(Date.now() - 24 * 60 * 60_000);
+    const value = Promise.all([
+      prisma.swap.aggregate({ where: { traderAddress: normalized }, _count: { _all: true }, _sum: { volumeUsd: true } }),
+      prisma.swap.count({ where: { traderAddress: normalized, side: 'buy' } }),
+      prisma.swap.count({ where: { traderAddress: normalized, side: 'sell' } }),
+      prisma.swap.findFirst({
+        where: { traderAddress: normalized },
+        orderBy: { blockTimestamp: 'desc' },
+        select: { blockTimestamp: true },
+      }),
+      // Phase 5 — see docs/TRADER_INTELLIGENCE.md#trader-statistics. One GROUP BY for
+      // uniqueTokensTraded + concentrationIndex, never a per-token query.
+      prisma.swap.groupBy({ by: ['tokenMarketId'], where: { traderAddress: normalized }, _sum: { volumeUsd: true } }),
+      prisma.swap.aggregate({ where: { traderAddress: normalized }, _max: { volumeUsd: true } }),
+      prisma.swap.aggregate({
+        where: { traderAddress: normalized, blockTimestamp: { gte: since24h } },
+        _count: { _all: true },
+        _sum: { volumeUsd: true },
+      }),
+    ]);
+    // A failed lookup is dropped at once so the next request tries again.
+    value.catch(() => this.swapStatsCache.delete(normalized));
+    if (this.swapStatsCache.size > 500) this.swapStatsCache.clear();
+    this.swapStatsCache.set(normalized, { at: Date.now(), value });
+    return value;
+  }
 
   async getProfile(address: string, viewerUserId: string | null): Promise<TraderProfile> {
     const normalized = normalizeTraderAddress(address);
     const wallet = await prisma.wallet.findUnique({ where: { address: normalized }, include: { user: true } });
     if (!wallet) throw new NotFoundException(`No tracked trader for wallet "${address}"`);
 
-    const since24h = new Date(Date.now() - 24 * 60 * 60_000);
-
-    const [agg, buyCount, sellCount, lastSwap, followerCount, followingCount, isFollowedByMe, perToken, largest, recent24h, realizedPnl] =
+    const [[agg, buyCount, sellCount, lastSwap, perToken, largest, recent24h], followerCount, followingCount, isFollowedByMe, realizedPnl] =
       await Promise.all([
-        prisma.swap.aggregate({ where: { traderAddress: normalized }, _count: { _all: true }, _sum: { volumeUsd: true } }),
-        prisma.swap.count({ where: { traderAddress: normalized, side: 'buy' } }),
-        prisma.swap.count({ where: { traderAddress: normalized, side: 'sell' } }),
-        prisma.swap.findFirst({
-          where: { traderAddress: normalized },
-          orderBy: { blockTimestamp: 'desc' },
-          select: { blockTimestamp: true },
-        }),
+        this.swapStats(normalized),
         prisma.follow.count({ where: { walletAddress: normalized } }),
         // Only ever non-zero once this wallet has been verified (Wallet.userId set — see
         // docs/TRADING.md#wallet-ownership) and that account has made follows of its own.
@@ -58,15 +96,6 @@ export class TraderService {
         // `null` — short-circuit instead of querying when this wallet is unclaimed.
         wallet.userId ? prisma.follow.count({ where: { userId: wallet.userId } }) : Promise.resolve(0),
         this.follows.isFollowing(viewerUserId, normalized),
-        // Phase 5 — see docs/TRADER_INTELLIGENCE.md#trader-statistics. One GROUP BY for
-        // uniqueTokensTraded + concentrationIndex, never a per-token query.
-        prisma.swap.groupBy({ by: ['tokenMarketId'], where: { traderAddress: normalized }, _sum: { volumeUsd: true } }),
-        prisma.swap.aggregate({ where: { traderAddress: normalized }, _max: { volumeUsd: true } }),
-        prisma.swap.aggregate({
-          where: { traderAddress: normalized, blockTimestamp: { gte: since24h } },
-          _count: { _all: true },
-          _sum: { volumeUsd: true },
-        }),
         // `realizedPnl` is `null` (the whole block, not zeroed stats) for a wallet with no
         // linked User — "no Kamby account" — see TraderRealizedPnlSchema's own comment.
         wallet.userId ? this.computeRealizedPnl(wallet.userId) : Promise.resolve(null),
