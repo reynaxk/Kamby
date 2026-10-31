@@ -1200,7 +1200,15 @@
     "sumPeak": "최고 시청자",
     "sumTips": "후원",
     "sumChat": "채팅 수",
-    "sumReactions": "리액션"
+    "sumReactions": "리액션",
+    "pollNew": "새 투표",
+    "pollQuestion": "질문하기",
+    "pollOption": "답변 {n}",
+    "pollAdd": "답변 추가",
+    "pollStart": "투표 시작",
+    "pollEnd": "투표 종료",
+    "pollVotes": "{count}표",
+    "pollClosed": "종료"
   },
   "snipe": {
     "bought": "매수",

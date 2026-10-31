@@ -1200,7 +1200,15 @@
     "sumPeak": "Max. Zuschauer",
     "sumTips": "Trinkgelder",
     "sumChat": "Chat-Nachrichten",
-    "sumReactions": "Reaktionen"
+    "sumReactions": "Reaktionen",
+    "pollNew": "Neue Umfrage",
+    "pollQuestion": "Frag etwas",
+    "pollOption": "Antwort {n}",
+    "pollAdd": "Antwort hinzufügen",
+    "pollStart": "Umfrage starten",
+    "pollEnd": "Umfrage beenden",
+    "pollVotes": "{count} Stimmen",
+    "pollClosed": "Beendet"
   },
   "snipe": {
     "bought": "Gekauft",

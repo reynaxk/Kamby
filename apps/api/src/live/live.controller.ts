@@ -114,6 +114,34 @@ class SlowDto {
   seconds!: number;
 }
 
+class PollDto {
+  @IsString()
+  @MaxLength(200)
+  question!: string;
+
+  @IsArray()
+  @ArrayMaxSize(4)
+  @IsString({ each: true })
+  @MaxLength(80, { each: true })
+  options!: string[];
+
+  @IsNumber()
+  @Min(10)
+  @Max(600)
+  seconds!: number;
+}
+
+class VoteDto {
+  @IsString()
+  @MaxLength(64)
+  pollId!: string;
+
+  @IsNumber()
+  @Min(0)
+  @Max(3)
+  option!: number;
+}
+
 class ReactDto {
   @IsString()
   @MaxLength(16)
@@ -313,6 +341,28 @@ export class LiveController {
   @Post(':id/trade')
   pinTrade(@Param('id', ParseUUIDPipe) id: string, @Body() body: PinTradeDto, @CurrentUser() user: SessionUser) {
     return this.live.pinTrade(user.id, id, body.chain && body.tokenAddress ? { chain: body.chain, tokenAddress: body.tokenAddress } : null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post(':id/poll')
+  startPoll(@Param('id', ParseUUIDPipe) id: string, @Body() body: PollDto, @CurrentUser() user: SessionUser) {
+    return this.live.startPoll(user.id, id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post(':id/poll/end')
+  endPoll(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
+    return this.live.endPoll(user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @HttpCode(204)
+  @Post(':id/poll/vote')
+  async vote(@Param('id', ParseUUIDPipe) id: string, @Body() body: VoteDto, @CurrentUser() user: SessionUser) {
+    await this.live.vote(user.id, id, body.pollId, body.option);
   }
 
   @UseGuards(JwtAuthGuard)

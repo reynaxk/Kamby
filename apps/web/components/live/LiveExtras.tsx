@@ -3,10 +3,10 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { LIVE_REACTIONS, LIVE_SLOW_OPTIONS, type LiveChatLine, type LiveReaction, type LiveRoom, type LiveSummary } from '@kamby/domain';
+import { LIVE_POLL_LIMITS, LIVE_REACTIONS, LIVE_SLOW_OPTIONS, type LiveChatLine, type LivePoll, type LiveReaction, type LiveRoom, type LiveSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { formatCompactCount } from '@/lib/format';
-import { reactInLive } from '@/lib/live-engine';
+import { reactInLive, startLivePoll, voteLivePoll } from '@/lib/live-engine';
 import { DmAvatar } from '@/components/dm/DmAvatar';
 import { FollowButton } from '@/components/social/FollowButton';
 import { ShareButton } from '@/components/social/ShareButton';
@@ -198,4 +198,131 @@ export function useTipHighlight(lines: LiveChatLine[]): LiveChatLine | null {
     return () => clearTimeout(timer);
   }, [last?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   return tip;
+}
+
+// --- Polls (Twitch / YouTube style — votes only, no money) -----------------------------------
+
+/** The poll over the chat: tap an answer to vote (tap another to change), live results. */
+export function PollCard({ roomId, poll, isHost, onEnd }: { roomId: string; poll: LivePoll; isHost: boolean; onEnd: () => void }) {
+  const t = useTranslations('live');
+  const [mine, setMine] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const left = Math.max(0, Math.ceil((Date.parse(poll.endsAt) - now) / 1000));
+  const closed = poll.closed || left === 0;
+  const total = poll.options.reduce((n, o) => n + o.votes, 0);
+  const top = Math.max(...poll.options.map((o) => o.votes));
+  return (
+    <div className="rounded-xl border border-[#5CEFFF]/25 bg-[#5CEFFF]/[0.05] p-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-display text-xs font-black text-white">📊 {poll.question}</p>
+        <span className="shrink-0 font-mono text-[0.6rem] text-white/50">{closed ? t('pollClosed') : `${left}s`}</span>
+      </div>
+      <div className="mt-2 flex flex-col gap-1">
+        {poll.options.map((o, i) => {
+          const pct = total ? Math.round((o.votes / total) * 100) : 0;
+          const showResult = closed || mine !== null || isHost;
+          return (
+            <button
+              key={i}
+              type="button"
+              disabled={closed || isHost}
+              onClick={() => {
+                setMine(i);
+                void voteLivePoll(roomId, poll.id, i).catch(() => undefined);
+              }}
+              className={cn(
+                'relative overflow-hidden rounded-lg border px-2.5 py-1.5 text-left font-display text-xs font-bold',
+                mine === i ? 'border-[#5CEFFF]/60 text-white' : 'border-white/10 text-white/85',
+                !closed && !isHost && 'hover:border-white/25',
+              )}
+            >
+              {showResult && <span className={cn('absolute inset-y-0 left-0', closed && o.votes === top && top > 0 ? 'bg-[#5CEFFF]/25' : 'bg-white/[0.07]')} style={{ width: `${pct}%` }} aria-hidden />}
+              <span className="relative flex justify-between gap-2">
+                <span className="truncate">{o.text}</span>
+                {showResult && <span className="font-mono text-[0.65rem] text-white/70">{pct}%</span>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-1.5 flex items-center justify-between font-mono text-[0.6rem] text-white/45">
+        <span>{t('pollVotes', { count: total })}</span>
+        {isHost && !closed && (
+          <button type="button" onClick={onEnd} className="font-display text-[0.65rem] font-bold text-[#FF8FA8]">
+            {t('pollEnd')}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** The host's "new poll" sheet: a question, 2–4 answers, how long. */
+export function PollSheet({ open, onClose, roomId, onError }: { open: boolean; onClose: () => void; roomId: string; onError: (msg: string) => void }) {
+  const t = useTranslations('live');
+  const [question, setQuestion] = useState('');
+  const [options, setOptions] = useState(['', '']);
+  const [seconds, setSeconds] = useState<number>(60);
+  const [busy, setBusy] = useState(false);
+  if (!open) return null;
+  const filled = options.filter((o) => o.trim()).length;
+  const can = question.trim().length > 0 && filled >= LIVE_POLL_LIMITS.minOptions && !busy;
+  async function start() {
+    setBusy(true);
+    try {
+      await startLivePoll(roomId, question.trim(), options.map((o) => o.trim()).filter(Boolean), seconds);
+      setQuestion('');
+      setOptions(['', '']);
+      onClose();
+    } catch (err) {
+      onError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 md:items-center" onClick={onClose}>
+      <div role="dialog" aria-label={t('pollNew')} className="w-full max-w-md rounded-t-3xl border border-white/10 bg-[#0A0B0F] p-5 md:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+        <p className="font-display text-lg font-black text-white">📊 {t('pollNew')}</p>
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value.slice(0, LIVE_POLL_LIMITS.questionMax))}
+          placeholder={t('pollQuestion')}
+          aria-label={t('pollQuestion')}
+          className="mt-4 h-11 w-full rounded-xl border border-white/10 bg-black px-3 font-body text-sm text-white placeholder:text-white/35 focus:outline-none"
+        />
+        <div className="mt-2 flex flex-col gap-2">
+          {options.map((o, i) => (
+            <input
+              key={i}
+              value={o}
+              onChange={(e) => setOptions((cur) => cur.map((x, j) => (j === i ? e.target.value.slice(0, LIVE_POLL_LIMITS.optionMax) : x)))}
+              placeholder={t('pollOption', { n: i + 1 })}
+              aria-label={t('pollOption', { n: i + 1 })}
+              className="h-10 w-full rounded-xl border border-white/10 bg-black px-3 font-body text-sm text-white placeholder:text-white/35 focus:outline-none"
+            />
+          ))}
+          {options.length < LIVE_POLL_LIMITS.maxOptions && (
+            <button type="button" onClick={() => setOptions((cur) => [...cur, ''])} className="self-start font-display text-xs font-bold text-accent">
+              + {t('pollAdd')}
+            </button>
+          )}
+        </div>
+        <div className="mt-4 flex gap-1.5">
+          {LIVE_POLL_LIMITS.durations.map((d) => (
+            <button key={d} type="button" onClick={() => setSeconds(d)} aria-pressed={seconds === d} className={cn('h-9 flex-1 rounded-lg border font-mono text-xs font-bold', seconds === d ? 'border-accent text-accent' : 'border-white/10 text-white/70')}>
+              {d < 60 ? `${d}s` : `${d / 60}m`}
+            </button>
+          ))}
+        </div>
+        <button type="button" disabled={!can} onClick={() => void start()} className="mt-5 h-12 w-full rounded-2xl bg-accent font-display text-sm font-black text-black disabled:opacity-40">
+          {busy ? '…' : t('pollStart')}
+        </button>
+      </div>
+    </div>
+  );
 }

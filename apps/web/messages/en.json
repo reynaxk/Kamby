@@ -1200,7 +1200,15 @@
     "sumPeak": "Peak viewers",
     "sumTips": "Tips",
     "sumChat": "Chat messages",
-    "sumReactions": "Reactions"
+    "sumReactions": "Reactions",
+    "pollNew": "New poll",
+    "pollQuestion": "Ask something",
+    "pollOption": "Answer {n}",
+    "pollAdd": "Add an answer",
+    "pollStart": "Start poll",
+    "pollEnd": "End poll",
+    "pollVotes": "{count} votes",
+    "pollClosed": "Closed"
   },
   "snipe": {
     "bought": "Bought",

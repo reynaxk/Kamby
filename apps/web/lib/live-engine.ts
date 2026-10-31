@@ -33,6 +33,11 @@ export const removeLiveLine = (id: string, lineId: string) => post<void>(`/live/
 export const reactInLive = (id: string, emoji: string) => post<void>(`/live/${id}/react`, { emoji }, 'react');
 export const pinLiveLine = (id: string, lineId: string | null) => post<LiveRoom>(`/live/${id}/pin-line`, lineId ? { lineId } : {}, 'pin');
 export const setLiveSlow = (id: string, seconds: number) => post<LiveRoom>(`/live/${id}/slow`, { seconds }, 'set slow mode');
+/** Polls (2026-10-31) — votes only. */
+export const startLivePoll = (id: string, question: string, options: string[], seconds: number) =>
+  post<LiveRoom>(`/live/${id}/poll`, { question, options, seconds }, 'start the poll');
+export const endLivePoll = (id: string) => post<LiveRoom>(`/live/${id}/poll/end`, undefined, 'end the poll');
+export const voteLivePoll = (id: string, pollId: string, option: number) => post<void>(`/live/${id}/poll/vote`, { pollId, option }, 'vote');
 export const silenceInLive = (id: string, userId: string) => post<void>(`/live/${id}/silence`, { userId }, 'silence them');
 
 /** Tips (2026-10-30): prepare → sign in the wallet → submit (see LiveTipSheet). */

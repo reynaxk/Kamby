@@ -1200,7 +1200,15 @@
     "sumPeak": "Người xem cao nhất",
     "sumTips": "Tip",
     "sumChat": "Tin nhắn",
-    "sumReactions": "Cảm xúc"
+    "sumReactions": "Cảm xúc",
+    "pollNew": "Bình chọn mới",
+    "pollQuestion": "Hỏi điều gì đó",
+    "pollOption": "Lựa chọn {n}",
+    "pollAdd": "Thêm lựa chọn",
+    "pollStart": "Bắt đầu",
+    "pollEnd": "Kết thúc",
+    "pollVotes": "{count} phiếu",
+    "pollClosed": "Đã đóng"
   },
   "snipe": {
     "bought": "Đã mua",

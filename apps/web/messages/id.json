@@ -1200,7 +1200,15 @@
     "sumPeak": "Penonton puncak",
     "sumTips": "Tip",
     "sumChat": "Pesan chat",
-    "sumReactions": "Reaksi"
+    "sumReactions": "Reaksi",
+    "pollNew": "Polling baru",
+    "pollQuestion": "Tanyakan sesuatu",
+    "pollOption": "Jawaban {n}",
+    "pollAdd": "Tambah jawaban",
+    "pollStart": "Mulai polling",
+    "pollEnd": "Akhiri polling",
+    "pollVotes": "{count} suara",
+    "pollClosed": "Ditutup"
   },
   "snipe": {
     "bought": "Dibeli",

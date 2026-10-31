@@ -1200,7 +1200,15 @@
     "sumPeak": "Най-много зрители",
     "sumTips": "Бакшиши",
     "sumChat": "Съобщения",
-    "sumReactions": "Реакции"
+    "sumReactions": "Реакции",
+    "pollNew": "Нова анкета",
+    "pollQuestion": "Попитай нещо",
+    "pollOption": "Отговор {n}",
+    "pollAdd": "Добави отговор",
+    "pollStart": "Пусни анкетата",
+    "pollEnd": "Спри анкетата",
+    "pollVotes": "{count} гласа",
+    "pollClosed": "Приключи"
   },
   "snipe": {
     "bought": "Купено",

@@ -8,6 +8,8 @@ import {
   LIVE_LIMITS,
   LIVE_REACTIONS,
   LIVE_SLOW_OPTIONS,
+  LIVE_POLL_LIMITS,
+  type LivePoll,
   LIVE_REALTIME_CHANNEL,
   type LiveChatLine,
   type LiveEvent,
@@ -40,6 +42,7 @@ interface LiveState {
   trade?: DmTrade | null;
   pinned?: LiveChatLine | null;
   slowSec?: number;
+  poll?: { id: string; question: string; options: string[]; endsAt: string; closedAt?: string } | null;
 }
 
 const KINDS: readonly LiveTrackKind[] = ['audio', 'screen', 'camera'];
@@ -470,7 +473,71 @@ export class LiveService {
       pinned: state.pinned ?? null,
       slowSec: state.slowSec ?? 0,
       topTippers: await this.topTippers(state.id),
+      poll: await this.pollView(state),
     };
+  }
+
+  private pollVotesKey(id: string, pollId: string) {
+    return `kamby:live:${id}:poll:${pollId}`;
+  }
+
+  /** The poll as viewers see it: counts per option; closes itself at endsAt; gone a minute after. */
+  private async pollView(state: LiveState): Promise<LivePoll | null> {
+    const p = state.poll;
+    if (!p) return null;
+    const ended = Date.now() >= Date.parse(p.endsAt) || Boolean(p.closedAt);
+    const closedAt = p.closedAt ?? (ended ? p.endsAt : null);
+    if (closedAt && Date.now() - Date.parse(closedAt) > 60_000) return null;
+    const votes = await this.redis.hvals(this.pollVotesKey(state.id, p.id)).catch(() => [] as string[]);
+    const counts = p.options.map((_, i) => votes.filter((v) => v === String(i)).length);
+    return { id: p.id, question: p.question, options: p.options.map((text, i) => ({ text, votes: counts[i]! })), endsAt: p.endsAt, closed: ended };
+  }
+
+  /** The host starts a poll (one at a time; a new one replaces the old). */
+  async startPoll(me: string, id: string, input: { question: string; options: string[]; seconds: number }): Promise<LiveRoom> {
+    const state = await this.hostState(me, id);
+    const question = input.question.replace(/\s+/g, ' ').trim();
+    const options = input.options.map((o) => o.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    if (!question || question.length > LIVE_POLL_LIMITS.questionMax) throw new BadRequestException(`Ask a question (up to ${LIVE_POLL_LIMITS.questionMax} characters).`);
+    if (options.length < LIVE_POLL_LIMITS.minOptions || options.length > LIVE_POLL_LIMITS.maxOptions) throw new BadRequestException('Give 2 to 4 answers.');
+    if (options.some((o) => o.length > LIVE_POLL_LIMITS.optionMax)) throw new BadRequestException(`Keep answers under ${LIVE_POLL_LIMITS.optionMax} characters.`);
+    if ([question, ...options].some((t) => containsLink(t))) throw new BadRequestException("Links aren't allowed in polls.");
+    if (!(LIVE_POLL_LIMITS.durations as readonly number[]).includes(input.seconds)) throw new BadRequestException('Pick a poll length.');
+    state.poll = { id: randomUUID(), question, options, endsAt: new Date(Date.now() + input.seconds * 1000).toISOString() };
+    await this.write(state);
+    const room = await this.toRoom(state);
+    await this.publish({ type: 'room', roomId: id, room });
+    return room;
+  }
+
+  /** The host ends the poll early (results stay up a minute). */
+  async endPoll(me: string, id: string): Promise<LiveRoom> {
+    const state = await this.hostState(me, id);
+    if (state.poll && !state.poll.closedAt) state.poll.closedAt = new Date().toISOString();
+    await this.write(state);
+    const room = await this.toRoom(state);
+    await this.publish({ type: 'room', roomId: id, room });
+    return room;
+  }
+
+  /** One vote per person per poll (a second tap changes it). Updates go out at most once a second. */
+  async vote(me: string, id: string, pollId: string, option: number): Promise<void> {
+    const state = await this.read(id);
+    const p = state?.poll;
+    if (!state || !p || p.id !== pollId) throw new NotFoundException('That poll is over.');
+    if (p.closedAt || Date.now() >= Date.parse(p.endsAt)) throw new BadRequestException('That poll is over.');
+    if (!Number.isInteger(option) || option < 0 || option >= p.options.length) throw new BadRequestException('Pick one of the answers.');
+    const key = this.pollVotesKey(id, pollId);
+    await this.redis.hset(key, me, String(option));
+    void this.redis.expire(key, 3600).catch(() => 0);
+    const go = await this.redis.set(`kamby:live:${id}:pollpub`, '1', 'PX', 1000, 'NX').catch(() => 'OK');
+    if (go === 'OK') {
+      setTimeout(() => {
+        void this.read(id).then(async (s) => {
+          if (s) await this.publish({ type: 'room', roomId: id, room: await this.toRoom(s) });
+        });
+      }, 1000);
+    }
   }
 
   private async topTippers(id: string): Promise<{ username: string; avatarUrl: string | null; usd: number }[]> {

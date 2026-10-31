@@ -1200,7 +1200,15 @@
     "sumPeak": "最大視聴者",
     "sumTips": "投げ銭",
     "sumChat": "チャット数",
-    "sumReactions": "リアクション"
+    "sumReactions": "リアクション",
+    "pollNew": "新しい投票",
+    "pollQuestion": "質問を入力",
+    "pollOption": "選択肢 {n}",
+    "pollAdd": "選択肢を追加",
+    "pollStart": "投票を開始",
+    "pollEnd": "投票を終了",
+    "pollVotes": "{count}票",
+    "pollClosed": "終了"
   },
   "snipe": {
     "bought": "購入",

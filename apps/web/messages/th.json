@@ -1200,7 +1200,15 @@
     "sumPeak": "ผู้ชมสูงสุด",
     "sumTips": "ทิป",
     "sumChat": "ข้อความแชท",
-    "sumReactions": "รีแอคชัน"
+    "sumReactions": "รีแอคชัน",
+    "pollNew": "โพลใหม่",
+    "pollQuestion": "ถามอะไรสักอย่าง",
+    "pollOption": "คำตอบ {n}",
+    "pollAdd": "เพิ่มคำตอบ",
+    "pollStart": "เริ่มโพล",
+    "pollEnd": "จบโพล",
+    "pollVotes": "{count} โหวต",
+    "pollClosed": "ปิดแล้ว"
   },
   "snipe": {
     "bought": "ซื้อแล้ว",

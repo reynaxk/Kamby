@@ -77,9 +77,25 @@ export interface LiveRoom {
   pinned?: LiveChatLine | null;
   /** Slow mode: seconds each person waits between messages (0 = off). */
   slowSec?: number;
+  /** The host's poll, open or just closed (results stay up a minute). */
+  poll?: LivePoll | null;
   /** This stream's biggest tippers, most first (up to 3). */
   topTippers?: { username: string; avatarUrl: string | null; usd: number }[];
 }
+
+/**
+ * A live poll (2026-10-31, like Twitch / YouTube Live): the host asks, viewers tap an answer.
+ * Votes only — no money, no stakes.
+ */
+export interface LivePoll {
+  id: string;
+  question: string;
+  options: { text: string; votes: number }[];
+  endsAt: string;
+  closed: boolean;
+}
+
+export const LIVE_POLL_LIMITS = { questionMax: 100, optionMax: 40, minOptions: 2, maxOptions: 4, durations: [30, 60, 120, 300] } as const;
 
 /** Slow mode choices, in seconds. */
 export const LIVE_SLOW_OPTIONS = [0, 5, 15, 30] as const;

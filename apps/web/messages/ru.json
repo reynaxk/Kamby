@@ -1200,7 +1200,15 @@
     "sumPeak": "Пик зрителей",
     "sumTips": "Донаты",
     "sumChat": "Сообщения",
-    "sumReactions": "Реакции"
+    "sumReactions": "Реакции",
+    "pollNew": "Новый опрос",
+    "pollQuestion": "Задайте вопрос",
+    "pollOption": "Ответ {n}",
+    "pollAdd": "Добавить ответ",
+    "pollStart": "Начать опрос",
+    "pollEnd": "Завершить опрос",
+    "pollVotes": "Голосов: {count}",
+    "pollClosed": "Завершён"
   },
   "snipe": {
     "bought": "Куплено",

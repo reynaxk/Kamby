@@ -1200,7 +1200,15 @@
     "sumPeak": "Pico de espectadores",
     "sumTips": "Gorjetas",
     "sumChat": "Mensagens",
-    "sumReactions": "Reações"
+    "sumReactions": "Reações",
+    "pollNew": "Nova enquete",
+    "pollQuestion": "Pergunte algo",
+    "pollOption": "Resposta {n}",
+    "pollAdd": "Adicionar resposta",
+    "pollStart": "Iniciar enquete",
+    "pollEnd": "Encerrar enquete",
+    "pollVotes": "{count} votos",
+    "pollClosed": "Encerrada"
   },
   "snipe": {
     "bought": "Comprado",

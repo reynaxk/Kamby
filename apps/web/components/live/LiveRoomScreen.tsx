@@ -7,7 +7,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
 import { LIVE_LIMITS, type LiveChatLine, type LiveRoom, type LiveSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, pinLiveLine, reportLive, sayInLive, setLiveSlow, silenceInLive, uploadLiveThumb } from '@/lib/live-engine';
+import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, endLivePoll, pinLiveLine, reportLive, sayInLive, setLiveSlow, silenceInLive, uploadLiveThumb } from '@/lib/live-engine';
 import { slugForIdentifier } from '@kamby/domain';
 import { TradeCard } from '@/components/social/TradeCard';
 import { PositionPicker } from '@/components/social/PositionPicker';
@@ -21,7 +21,7 @@ import { takePendingHost } from './pending-host';
 import { compactUsd, LiveDuelSheet, LivePositions, LiveTipSheet, useHostPerps } from './LiveWidgets';
 import { LiveCoinPanel, useCoinPrice } from './LiveCoinPanel';
 import { useLiveSwipe } from './useLiveSwipe';
-import { ChatTop, FloatingReactions, LiveSummaryView, ReactionBar, SlowButton, StreamInfo, useTipHighlight, type FloatingHandle } from './LiveExtras';
+import { ChatTop, FloatingReactions, LiveSummaryView, PollCard, PollSheet, ReactionBar, SlowButton, StreamInfo, useTipHighlight, type FloatingHandle } from './LiveExtras';
 import { useMediaQuery } from '@/lib/use-media';
 
 function Media({ track, kind, className, onBlocked }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string; onBlocked?: () => void }) {
@@ -91,6 +91,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
   const mineInFlight = useRef(new Map<string, number>());
   const tip = useTipHighlight(lines);
   const [summary, setSummary] = useState<LiveSummary | null>(null);
+  const [polling, setPolling] = useState(false);
 
   // The room, its chat, and its live stream.
   useEffect(() => {
@@ -472,6 +473,11 @@ export function LiveRoomScreen({ id }: { id: string }) {
           ))}
         </div>
       )}
+      {room?.poll && (
+        <div className="relative z-10 px-3 pt-2">
+          <PollCard key={room.poll.id} roomId={id} poll={room.poll} isHost={isHost} onEnd={() => void endLivePoll(id).catch((err: unknown) => setError(friendlyError(err)))} />
+        </div>
+      )}
       <ChatTop room={room} tip={tip} isHost={isHost} onUnpin={() => void pinLiveLine(id, null).catch((err: unknown) => setError(friendlyError(err)))} />
       {/* Chat */}
       <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)] lg:[mask-image:none]">
@@ -572,6 +578,9 @@ export function LiveRoomScreen({ id }: { id: string }) {
             <button type="button" onClick={() => setPicking(true)} aria-label={t('pinTrade')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-white">
               ⚡
             </button>
+            <button type="button" onClick={() => setPolling(true)} aria-label={t('pollNew')} title={t('pollNew')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-white">
+              📊
+            </button>
             <SlowButton seconds={room?.slowSec ?? 0} onChange={(sec) => void setLiveSlow(id, sec).catch((err: unknown) => setError(friendlyError(err)))} />
             <button
               type="button"
@@ -590,6 +599,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
           <LiveTipSheet open={sheet === 'tip'} onClose={() => setSheet(null)} roomId={id} host={room.host} />
         </>
       )}
+      {isHost && <PollSheet open={polling} onClose={() => setPolling(false)} roomId={id} onError={setError} />}
       {isHost && (
         <PositionPicker
           open={picking}

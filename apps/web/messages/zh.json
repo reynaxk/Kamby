@@ -1200,7 +1200,15 @@
     "sumPeak": "最高观看",
     "sumTips": "打赏",
     "sumChat": "聊天消息",
-    "sumReactions": "互动"
+    "sumReactions": "互动",
+    "pollNew": "新投票",
+    "pollQuestion": "提个问题",
+    "pollOption": "选项 {n}",
+    "pollAdd": "添加选项",
+    "pollStart": "开始投票",
+    "pollEnd": "结束投票",
+    "pollVotes": "{count} 票",
+    "pollClosed": "已结束"
   },
   "snipe": {
     "bought": "已买入",

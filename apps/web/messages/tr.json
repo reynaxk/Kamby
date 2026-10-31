@@ -1200,7 +1200,15 @@
     "sumPeak": "En yüksek izleyici",
     "sumTips": "Bahşişler",
     "sumChat": "Mesajlar",
-    "sumReactions": "Tepkiler"
+    "sumReactions": "Tepkiler",
+    "pollNew": "Yeni anket",
+    "pollQuestion": "Bir şey sor",
+    "pollOption": "Cevap {n}",
+    "pollAdd": "Cevap ekle",
+    "pollStart": "Anketi başlat",
+    "pollEnd": "Anketi bitir",
+    "pollVotes": "{count} oy",
+    "pollClosed": "Bitti"
   },
   "snipe": {
     "bought": "Alındı",
