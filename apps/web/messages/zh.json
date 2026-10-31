@@ -1214,7 +1214,14 @@
     "pollStart": "开始投票",
     "pollEnd": "结束投票",
     "pollVotes": "{count} 票",
-    "pollClosed": "已结束"
+    "pollClosed": "已结束",
+    "cat_chart": "图表分析",
+    "cat_launch": "新币发行",
+    "cat_voice": "语音",
+    "cat_memes": "Meme",
+    "sortTraded": "交易最多",
+    "traded": "已交易 {amount}",
+    "pickCategory": "直播主题是？"
   },
   "snipe": {
     "bought": "已买入",
@@ -1547,7 +1554,8 @@
     "video": "视频",
     "videoTooBig": "视频超过 20 MB。",
     "videoTooLong": "请控制在 {seconds} 秒内。",
-    "checkingVideo": "正在检查视频…"
+    "checkingVideo": "正在检查视频…",
+    "openCoin": "打开币种页面"
   },
   "coinCols": {
     "coin": "代币",
@@ -1581,12 +1589,13 @@
     "loadMore": "加载更多",
     "seeAll": "查看全部",
     "alertsTitle": "新闻提醒",
-    "alertsDetail": "当新闻提到你关注或正在查看的币种时",
+    "alertsDetail": "当新闻提到你持有、关注或正在查看的币种时",
     "soundTitle": "提醒音",
     "soundDetail": "新闻提醒时播放短提示音",
     "toastWatchlist": "关注",
     "toastOnScreen": "当前币种",
     "dismiss": "关闭",
-    "sources": "头条来自 {list}。文章在发布方网站打开。"
+    "sources": "头条来自 {list}。文章在发布方网站打开。",
+    "toastHolding": "已持有"
   }
 }

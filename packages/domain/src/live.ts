@@ -75,6 +75,10 @@ export interface LiveRoom {
   trade?: DmTrade | null;
   /** A chat line the host pinned over the chat (2026-10-31, like Twitch / YouTube). */
   pinned?: LiveChatLine | null;
+  /** What the stream is about — the host picks it when going live (2026-10-31). */
+  category?: LiveCategory;
+  /** Kamby trades by the host and viewers during this stream, in USD (2026-10-31). */
+  volumeUsd?: number;
   /** Slow mode: seconds each person waits between messages (0 = off). */
   slowSec?: number;
   /** The host's poll, open or just closed (results stay up a minute). */
@@ -111,6 +115,15 @@ export interface LiveChatLine {
   /** Not typed by anyone: a Kamby trade ("bought $120 of $WIF") or a tip, from the server. */
   kind?: 'trade' | 'tip';
   amountUsd?: number;
+  /** On a trade line: the coin and side, so a viewer can ⚡ copy it (2026-10-31). */
+  coin?: { chainIdentifier: string; tokenAddress: string; side: 'BUY' | 'SELL' };
+}
+
+/** Live categories (2026-10-31) for the Live page filter. */
+export const LIVE_CATEGORIES = ['chart', 'launch', 'voice', 'memes'] as const;
+export type LiveCategory = (typeof LIVE_CATEGORIES)[number];
+export function isLiveCategory(value: unknown): value is LiveCategory {
+  return typeof value === 'string' && (LIVE_CATEGORIES as readonly string[]).includes(value);
 }
 
 export const LIVE_REALTIME_CHANNEL = 'kamby:live';

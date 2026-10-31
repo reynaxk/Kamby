@@ -1214,7 +1214,14 @@
     "pollStart": "Iniciar encuesta",
     "pollEnd": "Terminar encuesta",
     "pollVotes": "{count} votos",
-    "pollClosed": "Cerrada"
+    "pollClosed": "Cerrada",
+    "cat_chart": "Análisis de gráficos",
+    "cat_launch": "Lanzamientos",
+    "cat_voice": "Voz",
+    "cat_memes": "Memes",
+    "sortTraded": "Más operados",
+    "traded": "{amount} operado",
+    "pickCategory": "¿De qué trata?"
   },
   "snipe": {
     "bought": "Comprado",
@@ -1547,7 +1554,8 @@
     "video": "Vídeo",
     "videoTooBig": "El vídeo supera 20 MB.",
     "videoTooLong": "Menos de {seconds} segundos.",
-    "checkingVideo": "Revisando el vídeo…"
+    "checkingVideo": "Revisando el vídeo…",
+    "openCoin": "Abrir la moneda"
   },
   "coinCols": {
     "coin": "Moneda",
@@ -1581,12 +1589,13 @@
     "loadMore": "Cargar más",
     "seeAll": "Ver todo",
     "alertsTitle": "Alertas de noticias",
-    "alertsDetail": "Cuando una noticia menciona una moneda que sigues o tienes abierta",
+    "alertsDetail": "Cuando una noticia menciona una moneda que tienes, sigues o tienes abierta",
     "soundTitle": "Sonido de alerta",
     "soundDetail": "Un breve aviso sonoro con las alertas",
     "toastWatchlist": "Seguidas",
     "toastOnScreen": "Esta moneda",
     "dismiss": "Cerrar",
-    "sources": "Titulares de {list}. Los artículos se abren en el sitio del medio."
+    "sources": "Titulares de {list}. Los artículos se abren en el sitio del medio.",
+    "toastHolding": "La tienes"
   }
 }

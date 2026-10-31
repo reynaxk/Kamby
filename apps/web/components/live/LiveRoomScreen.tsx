@@ -24,6 +24,10 @@ import { useLiveSwipe } from './useLiveSwipe';
 import { ChatTop, FloatingReactions, LiveSummaryView, PollCard, PollSheet, ReactionBar, SlowButton, StreamInfo, useTipHighlight, type FloatingHandle } from './LiveExtras';
 import { useMediaQuery } from '@/lib/use-media';
 import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
+import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy';
+
+/** A trade this big gets the whale in the chat. */
+const WHALE_USD = 1_000;
 
 function Media({ track, kind, className, onBlocked }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string; onBlocked?: () => void }) {
   const ref = useRef<HTMLVideoElement & HTMLAudioElement>(null);
@@ -481,20 +485,26 @@ export function LiveRoomScreen({ id }: { id: string }) {
       )}
       <ChatTop room={room} tip={tip} isHost={isHost} onUnpin={() => void pinLiveLine(id, null).catch((err: unknown) => setError(friendlyError(err)))} />
       {/* Chat */}
+      <QuickBuyProvider>
       <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)] lg:[mask-image:none]">
         <div className="flex min-h-full flex-col justify-end gap-1 py-2">
           {lines.slice(-LIVE_LIMITS.chatKeep).filter((l) => !desktop || tab === 'chat' || l.kind).map((l) =>
             l.kind ? (
-              // Not typed by anyone: a trade (🔥) or a tip (💸), from Kamby itself.
-              <p
-                key={l.id}
-                className={cn(
-                  'kamby-chat-in self-start rounded-xl px-2.5 py-1 font-display text-[0.8rem] font-bold leading-snug',
-                  l.kind === 'tip' ? 'bg-[#FACC15]/15 text-[#FDE68A]' : 'bg-accent/10 text-accent',
+              // Not typed by anyone: a trade (🔥, 🐋 when big) or a tip (💸), from Kamby itself. Someone
+              // else's buy carries a ⚡ that buys the same coin in one tap (the app-wide ⚡ amount).
+              <div key={l.id} className="kamby-chat-in flex items-center gap-1.5 self-start">
+                <p
+                  className={cn(
+                    'rounded-xl px-2.5 py-1 font-display text-[0.8rem] font-bold leading-snug',
+                    l.kind === 'tip' ? 'bg-[#FACC15]/15 text-[#FDE68A]' : 'bg-accent/10 text-accent',
+                  )}
+                >
+                  {l.kind === 'tip' ? '💸' : (l.amountUsd ?? 0) >= WHALE_USD ? '🐋' : '🔥'} @{l.username} {l.kind === 'tip' && l.amountUsd ? t('tipped', { amount: `$${l.amountUsd.toFixed(2)}` }) : l.body}
+                </p>
+                {l.kind === 'trade' && l.coin?.side === 'BUY' && l.username !== username && (
+                  <QuickBuyButton chainIdentifier={l.coin.chainIdentifier} address={l.coin.tokenAddress} label={l.body.split(' of ').pop() ?? ''} className="h-7" />
                 )}
-              >
-                {l.kind === 'tip' ? '💸' : '🔥'} @{l.username} {l.kind === 'tip' && l.amountUsd ? t('tipped', { amount: `$${l.amountUsd.toFixed(2)}` }) : l.body}
-              </p>
+              </div>
             ) : (
               <div key={l.id} className="kamby-chat-in">
                 <p
@@ -531,6 +541,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
           )}
         </div>
       </div>
+      </QuickBuyProvider>
 
       {error && <p className="relative z-10 mx-4 mb-1 rounded-xl bg-[#FF3B69]/15 px-3 py-1.5 text-center font-body text-xs text-[#FF8FA8]">{error}</p>}
 

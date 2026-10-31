@@ -1214,7 +1214,14 @@
     "pollStart": "Bắt đầu",
     "pollEnd": "Kết thúc",
     "pollVotes": "{count} phiếu",
-    "pollClosed": "Đã đóng"
+    "pollClosed": "Đã đóng",
+    "cat_chart": "Phân tích biểu đồ",
+    "cat_launch": "Ra mắt",
+    "cat_voice": "Giọng nói",
+    "cat_memes": "Meme",
+    "sortTraded": "Giao dịch nhiều nhất",
+    "traded": "Đã giao dịch {amount}",
+    "pickCategory": "Chủ đề là gì?"
   },
   "snipe": {
     "bought": "Đã mua",
@@ -1547,7 +1554,8 @@
     "video": "Video",
     "videoTooBig": "Video quá 20 MB.",
     "videoTooLong": "Dưới {seconds} giây nhé.",
-    "checkingVideo": "Đang kiểm tra video…"
+    "checkingVideo": "Đang kiểm tra video…",
+    "openCoin": "Mở trang coin"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1581,12 +1589,13 @@
     "loadMore": "Xem thêm",
     "seeAll": "Xem tất cả",
     "alertsTitle": "Thông báo tin tức",
-    "alertsDetail": "Khi tin tức nhắc đến coin bạn theo dõi hoặc đang mở",
+    "alertsDetail": "Khi tin tức nhắc đến coin bạn đang giữ, theo dõi hoặc đang mở",
     "soundTitle": "Âm báo",
     "soundDetail": "Âm báo ngắn kèm thông báo tin tức",
     "toastWatchlist": "Theo dõi",
     "toastOnScreen": "Coin này",
     "dismiss": "Đóng",
-    "sources": "Tiêu đề từ {list}. Bài viết mở trên trang của nhà xuất bản."
+    "sources": "Tiêu đề từ {list}. Bài viết mở trên trang của nhà xuất bản.",
+    "toastHolding": "Bạn đang giữ"
   }
 }

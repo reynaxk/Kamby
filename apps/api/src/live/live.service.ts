@@ -16,6 +16,7 @@ import {
   type LiveHost,
   type LiveRoom,
   type LiveTrackKind,
+  type LiveCategory,
   type LiveSummary,
   type LiveReaction,
 } from '@kamby/domain';
@@ -26,7 +27,7 @@ import { DmService } from '../dm/dm.service';
 import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { ImageModerationService } from '../media/image-moderation.service';
-import { markInRoom, pushLiveLine } from './live-lines';
+import { liveVolumeKey, markInRoom, pushLiveLine } from './live-lines';
 
 /** What Redis keeps for a room that's on air (the app sees LiveRoom). */
 interface LiveState {
@@ -43,6 +44,7 @@ interface LiveState {
   pinned?: LiveChatLine | null;
   slowSec?: number;
   poll?: { id: string; question: string; options: string[]; endsAt: string; closedAt?: string } | null;
+  category?: LiveCategory;
 }
 
 const KINDS: readonly LiveTrackKind[] = ['audio', 'screen', 'camera'];
@@ -110,7 +112,7 @@ export class LiveService {
 
   // --- host --------------------------------------------------------------------------------
 
-  async start(me: string, rawTitle: string, tokenKey?: string): Promise<{ room: LiveRoom; sessionId: string; iceServers: unknown[] }> {
+  async start(me: string, rawTitle: string, tokenKey?: string, category?: LiveCategory): Promise<{ room: LiveRoom; sessionId: string; iceServers: unknown[] }> {
     if (!this.realtime.enabled) throw new ServiceUnavailableException('Live is not available right now.');
     const title = rawTitle.replace(/\s+/g, ' ').trim();
     if (!title || title.length > LIVE_LIMITS.titleMax) throw new BadRequestException(`Give your live a title (up to ${LIVE_LIMITS.titleMax} characters).`);
@@ -137,6 +139,7 @@ export class LiveService {
       tracks: [],
       muted: false,
       peak: 0,
+      category: category ?? (tokenKey ? 'chart' : 'voice'),
     };
     await this.write(state);
     await this.redis.sadd(ACTIVE_SET, row.id);
@@ -472,6 +475,8 @@ export class LiveService {
       trade: state.trade ?? null,
       pinned: state.pinned ?? null,
       slowSec: state.slowSec ?? 0,
+      category: state.category ?? 'chart',
+      volumeUsd: Number(await this.redis.get(liveVolumeKey(state.id)).catch(() => null)) || 0,
       topTippers: await this.topTippers(state.id),
       poll: await this.pollView(state),
     };

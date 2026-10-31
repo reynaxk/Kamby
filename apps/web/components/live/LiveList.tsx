@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import type { LiveRoom } from '@kamby/domain';
+import { LIVE_CATEGORIES, type LiveCategory, type LiveRoom } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { formatCompactCount } from '@/lib/format';
+import { formatCompactCount, formatCompactUsd } from '@/lib/format';
 import { fetchLiveRooms, liveThumbUrl } from '@/lib/live-engine';
 import { hasStoredSession } from '@/lib/session-client';
 import { DmAvatar } from '@/components/dm/DmAvatar';
@@ -14,18 +14,33 @@ import { SafeImg } from '@/components/social/SafeImg';
 import { GoLiveSheet } from './GoLive';
 import { markStep } from '@/lib/onboarding';
 
-type Category = 'all' | 'solana' | 'base' | 'bnb' | 'robinhood' | 'talk';
-type Sort = 'watched' | 'new';
+type Chain = 'solana' | 'base' | 'bnb' | 'robinhood';
+type Category = 'all' | LiveCategory | Chain;
+type Sort = 'watched' | 'traded' | 'new';
+const CHAINS: Chain[] = ['solana', 'base', 'bnb', 'robinhood'];
 
-/** Which chip a stream sits under — the coin it's about decides; no coin = Talk. */
-function categoryOf(r: LiveRoom): Exclude<Category, 'all'> {
+/** The chain chip a stream sits under — the coin it's about decides. */
+function chainOf(r: LiveRoom): Chain | null {
   const c = r.coin?.chainIdentifier;
-  if (!c) return 'talk';
   if (c === 'solana') return 'solana';
   if (c === 'eip155:8453') return 'base';
   if (c === 'eip155:56') return 'bnb';
   if (c === 'eip155:4663') return 'robinhood';
-  return 'talk';
+  return null;
+}
+
+/** Exported for tests. Whether a stream belongs under a chip: its topic (the host's pick) or its coin's chain. */
+export function inCategory(r: LiveRoom, cat: Category): boolean {
+  if (cat === 'all') return true;
+  if ((CHAINS as string[]).includes(cat)) return chainOf(r) === cat;
+  return (r.category ?? 'chart') === cat;
+}
+
+/** Exported for tests. Most watched, most traded during the stream (viewers break ties), or newest. */
+export function compareRooms(sort: Sort): (a: LiveRoom, b: LiveRoom) => number {
+  if (sort === 'traded') return (a, b) => (b.volumeUsd ?? 0) - (a.volumeUsd ?? 0) || b.viewers - a.viewers;
+  if (sort === 'new') return (a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt);
+  return (a, b) => b.viewers - a.viewers || (b.volumeUsd ?? 0) - (a.volumeUsd ?? 0);
 }
 
 /** "12m" / "1h 05m" since the stream started. */
@@ -69,19 +84,18 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
     };
   }, []);
 
+  const cats: Category[] = ['all', ...LIVE_CATEGORIES, ...CHAINS];
   const counts = useMemo(() => {
-    const c: Record<Category, number> = { all: 0, solana: 0, base: 0, bnb: 0, robinhood: 0, talk: 0 };
-    for (const r of rooms ?? []) {
-      c.all += 1;
-      c[categoryOf(r)] += 1;
-    }
+    const c = Object.fromEntries(cats.map((k) => [k, 0])) as Record<Category, number>;
+    for (const r of rooms ?? []) for (const k of cats) if (inCategory(r, k)) c[k] += 1;
     return c;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cats is a constant list
   }, [rooms]);
 
   const shown = useMemo(() => {
     if (!rooms) return null;
-    const list = rooms.filter((r) => cat === 'all' || categoryOf(r) === cat);
-    list.sort((a, b) => (sort === 'watched' ? b.viewers - a.viewers : Date.parse(b.startedAt) - Date.parse(a.startedAt)));
+    const list = rooms.filter((r) => inCategory(r, cat));
+    list.sort(compareRooms(sort));
     return limit ? list.slice(0, limit) : list;
   }, [rooms, cat, sort, limit]);
 
@@ -110,7 +124,6 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
     );
   }
 
-  const cats: Category[] = ['all', 'solana', 'base', 'bnb', 'robinhood', 'talk'];
   return (
     <>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -147,9 +160,9 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
             ))}
         </div>
         <div className="flex gap-1 rounded-xl border border-line bg-surface p-1">
-          {(['watched', 'new'] as const).map((k) => (
+          {(['watched', 'traded', 'new'] as const).map((k) => (
             <button key={k} type="button" onClick={() => setSort(k)} aria-pressed={sort === k} className={cn('h-7 rounded-lg px-2.5 font-display text-xs font-bold', sort === k ? 'bg-white/[0.08] text-ink-900' : 'text-ink-400')}>
-              {t(k === 'watched' ? 'sortWatched' : 'sortNew')}
+              {t(k === 'watched' ? 'sortWatched' : k === 'traded' ? 'sortTraded' : 'sortNew')}
             </button>
           ))}
         </div>
@@ -170,7 +183,7 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((r, i) => (
             // The most watched stream leads, big (2026-10-31, like Twitch / Kick front pages).
-            <li key={r.id} className={i === 0 && shown.length >= 3 && sort === 'watched' ? 'sm:col-span-2 xl:row-span-2' : undefined}>
+            <li key={r.id} className={i === 0 && shown.length >= 3 && sort !== 'new' ? 'sm:col-span-2 xl:row-span-2' : undefined}>
               <LiveCard room={r} now={now} />
             </li>
           ))}
@@ -210,7 +223,10 @@ function LiveCard({ room, now }: { room: LiveRoom; now: number }) {
         <DmAvatar name={room.host.username} src={room.host.avatarUrl} className="h-9 w-9 shrink-0 text-sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-sm font-bold text-ink-900">{room.title}</p>
-          <p className="truncate font-body text-xs text-ink-600">@{room.host.username}</p>
+          <p className="truncate font-body text-xs text-ink-600">
+            @{room.host.username} · {t(`cat_${room.category ?? 'chart'}`)}
+            {(room.volumeUsd ?? 0) > 0 && <span className="text-accent"> · {t('traded', { amount: formatCompactUsd(room.volumeUsd!) })}</span>}
+          </p>
         </div>
         <span className="shrink-0 rounded-xl bg-accent px-3 py-2 font-display text-xs font-black text-black">{t('join')}</span>
       </div>

@@ -1214,7 +1214,14 @@
     "pollStart": "Start poll",
     "pollEnd": "End poll",
     "pollVotes": "{count} votes",
-    "pollClosed": "Closed"
+    "pollClosed": "Closed",
+    "cat_chart": "Chart analysis",
+    "cat_launch": "Launches",
+    "cat_voice": "Voice",
+    "cat_memes": "Memes",
+    "sortTraded": "Most traded",
+    "traded": "{amount} traded",
+    "pickCategory": "What is it about?"
   },
   "snipe": {
     "bought": "Bought",
@@ -1547,7 +1554,8 @@
     "video": "Video",
     "videoTooBig": "That video is over 20 MB.",
     "videoTooLong": "Keep it under {seconds} seconds.",
-    "checkingVideo": "Checking the video…"
+    "checkingVideo": "Checking the video…",
+    "openCoin": "Open coin page"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1581,12 +1589,13 @@
     "loadMore": "Load more",
     "seeAll": "See all",
     "alertsTitle": "News alerts",
-    "alertsDetail": "When news mentions a coin you watch or have open",
+    "alertsDetail": "When news mentions a coin you hold, watch or have open",
     "soundTitle": "Alert sound",
     "soundDetail": "A short chime with news alerts",
     "toastWatchlist": "Watchlist",
     "toastOnScreen": "This coin",
     "dismiss": "Dismiss",
-    "sources": "Headlines from {list}. Articles open on the publisher’s site."
+    "sources": "Headlines from {list}. Articles open on the publisher’s site.",
+    "toastHolding": "You hold"
   }
 }

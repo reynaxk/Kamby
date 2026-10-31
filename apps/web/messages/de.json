@@ -1214,7 +1214,14 @@
     "pollStart": "Umfrage starten",
     "pollEnd": "Umfrage beenden",
     "pollVotes": "{count} Stimmen",
-    "pollClosed": "Beendet"
+    "pollClosed": "Beendet",
+    "cat_chart": "Chartanalyse",
+    "cat_launch": "Launches",
+    "cat_voice": "Voice",
+    "cat_memes": "Memes",
+    "sortTraded": "Meist gehandelt",
+    "traded": "{amount} gehandelt",
+    "pickCategory": "Worum geht es?"
   },
   "snipe": {
     "bought": "Gekauft",
@@ -1547,7 +1554,8 @@
     "video": "Video",
     "videoTooBig": "Das Video ist über 20 MB.",
     "videoTooLong": "Bitte unter {seconds} Sekunden.",
-    "checkingVideo": "Video wird geprüft…"
+    "checkingVideo": "Video wird geprüft…",
+    "openCoin": "Coin-Seite öffnen"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1581,12 +1589,13 @@
     "loadMore": "Mehr laden",
     "seeAll": "Alle ansehen",
     "alertsTitle": "News-Hinweise",
-    "alertsDetail": "Wenn eine Meldung einen Coin erwähnt, den du beobachtest oder geöffnet hast",
+    "alertsDetail": "Wenn eine Meldung einen Coin erwähnt, den du hältst, beobachtest oder geöffnet hast",
     "soundTitle": "Hinweiston",
     "soundDetail": "Ein kurzer Ton bei News-Hinweisen",
     "toastWatchlist": "Watchlist",
     "toastOnScreen": "Dieser Coin",
     "dismiss": "Schließen",
-    "sources": "Schlagzeilen von {list}. Artikel öffnen sich auf der Seite des Verlags."
+    "sources": "Schlagzeilen von {list}. Artikel öffnen sich auf der Seite des Verlags.",
+    "toastHolding": "In deinem Besitz"
   }
 }

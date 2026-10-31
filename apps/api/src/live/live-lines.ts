@@ -6,6 +6,7 @@ import type { Redis } from 'ioredis';
 /** Which live room someone is in right now (host or viewer) — refreshed by every heartbeat. */
 const whereKey = (userId: string) => `kamby:live:where:${userId}`;
 const chatKey = (roomId: string) => `kamby:live:${roomId}:chat`;
+export const liveVolumeKey = (roomId: string) => `kamby:live:${roomId}:volume`;
 
 export async function markInRoom(redis: Redis, userId: string, roomId: string): Promise<void> {
   await redis.set(whereKey(userId), roomId, 'PX', LIVE_LIMITS.viewerStaleMs).catch(() => undefined);
@@ -50,7 +51,11 @@ export async function announceTradeInLive(
       host: trade.userId === hostId,
       kind: 'trade',
       amountUsd: trade.usd,
+      coin: { chainIdentifier: trade.chainIdentifier, tokenAddress: trade.tokenAddress, side: trade.side },
     });
+    // The stream's traded volume, for the Live page's "most traded" sort.
+    await redis.incrbyfloat(liveVolumeKey(roomId), trade.usd);
+    await redis.expire(liveVolumeKey(roomId), 12 * 3600);
   } catch {
     // best effort
   }

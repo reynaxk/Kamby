@@ -1214,7 +1214,14 @@
     "pollStart": "Пусни анкетата",
     "pollEnd": "Спри анкетата",
     "pollVotes": "{count} гласа",
-    "pollClosed": "Приключи"
+    "pollClosed": "Приключи",
+    "cat_chart": "Анализ на графики",
+    "cat_launch": "Лансирания",
+    "cat_voice": "Гласов",
+    "cat_memes": "Мемета",
+    "sortTraded": "Най-търгувани",
+    "traded": "{amount} търгувани",
+    "pickCategory": "За какво е?"
   },
   "snipe": {
     "bought": "Купено",
@@ -1547,7 +1554,8 @@
     "video": "Видео",
     "videoTooBig": "Видеото е над 20 MB.",
     "videoTooLong": "До {seconds} секунди, моля.",
-    "checkingVideo": "Проверяваме видеото…"
+    "checkingVideo": "Проверяваме видеото…",
+    "openCoin": "Отвори монетата"
   },
   "coinCols": {
     "coin": "Монета",
@@ -1581,12 +1589,13 @@
     "loadMore": "Още",
     "seeAll": "Виж всички",
     "alertsTitle": "Известия за новини",
-    "alertsDetail": "Когато новина споменава монета, която следиш или си отворил",
+    "alertsDetail": "Когато новина споменава монета, която държиш, следиш или си отворил",
     "soundTitle": "Звук при известие",
     "soundDetail": "Кратък звук с известията за новини",
     "toastWatchlist": "Следени",
     "toastOnScreen": "Тази монета",
     "dismiss": "Затвори",
-    "sources": "Заглавия от {list}. Статиите се отварят в сайта на издателя."
+    "sources": "Заглавия от {list}. Статиите се отварят в сайта на издателя.",
+    "toastHolding": "Държиш я"
   }
 }

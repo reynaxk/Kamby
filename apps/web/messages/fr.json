@@ -1214,7 +1214,14 @@
     "pollStart": "Lancer le sondage",
     "pollEnd": "Terminer",
     "pollVotes": "{count} votes",
-    "pollClosed": "Terminé"
+    "pollClosed": "Terminé",
+    "cat_chart": "Analyse de graphiques",
+    "cat_launch": "Lancements",
+    "cat_voice": "Vocal",
+    "cat_memes": "Memes",
+    "sortTraded": "Plus tradés",
+    "traded": "{amount} tradés",
+    "pickCategory": "De quoi ça parle ?"
   },
   "snipe": {
     "bought": "Acheté",
@@ -1547,7 +1554,8 @@
     "video": "Vidéo",
     "videoTooBig": "La vidéo dépasse 20 Mo.",
     "videoTooLong": "Moins de {seconds} secondes.",
-    "checkingVideo": "Vérification de la vidéo…"
+    "checkingVideo": "Vérification de la vidéo…",
+    "openCoin": "Ouvrir la crypto"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1581,12 +1589,13 @@
     "loadMore": "Voir plus",
     "seeAll": "Tout voir",
     "alertsTitle": "Alertes actus",
-    "alertsDetail": "Quand une actu mentionne une crypto que tu suis ou que tu as ouverte",
+    "alertsDetail": "Quand une actu mentionne une crypto que tu détiens, suis ou as ouverte",
     "soundTitle": "Son d’alerte",
     "soundDetail": "Un court son avec les alertes actus",
     "toastWatchlist": "Suivies",
     "toastOnScreen": "Cette crypto",
     "dismiss": "Fermer",
-    "sources": "Titres de {list}. Les articles s’ouvrent sur le site de l’éditeur."
+    "sources": "Titres de {list}. Les articles s’ouvrent sur le site de l’éditeur.",
+    "toastHolding": "Tu la détiens"
   }
 }

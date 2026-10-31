@@ -1214,7 +1214,14 @@
     "pollStart": "Anketi başlat",
     "pollEnd": "Anketi bitir",
     "pollVotes": "{count} oy",
-    "pollClosed": "Bitti"
+    "pollClosed": "Bitti",
+    "cat_chart": "Grafik analizi",
+    "cat_launch": "Lansmanlar",
+    "cat_voice": "Sesli",
+    "cat_memes": "Memeler",
+    "sortTraded": "En çok işlem",
+    "traded": "{amount} işlem",
+    "pickCategory": "Konusu ne?"
   },
   "snipe": {
     "bought": "Alındı",
@@ -1547,7 +1554,8 @@
     "video": "Video",
     "videoTooBig": "Video 20 MB üstü.",
     "videoTooLong": "{seconds} saniyenin altında olsun.",
-    "checkingVideo": "Video kontrol ediliyor…"
+    "checkingVideo": "Video kontrol ediliyor…",
+    "openCoin": "Coin sayfasını aç"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1581,12 +1589,13 @@
     "loadMore": "Daha fazla",
     "seeAll": "Tümünü gör",
     "alertsTitle": "Haber bildirimleri",
-    "alertsDetail": "Bir haber takip ettiğin ya da açık olan bir coinden bahsettiğinde",
+    "alertsDetail": "Bir haber elindeki, takip ettiğin ya da açık olan bir coinden bahsettiğinde",
     "soundTitle": "Bildirim sesi",
     "soundDetail": "Haber bildirimleriyle kısa bir ses",
     "toastWatchlist": "Takip",
     "toastOnScreen": "Bu coin",
     "dismiss": "Kapat",
-    "sources": "{list} manşetleri. Makaleler yayıncının sitesinde açılır."
+    "sources": "{list} manşetleri. Makaleler yayıncının sitesinde açılır.",
+    "toastHolding": "Sende var"
   }
 }

@@ -1214,7 +1214,14 @@
     "pollStart": "Mulai polling",
     "pollEnd": "Akhiri polling",
     "pollVotes": "{count} suara",
-    "pollClosed": "Ditutup"
+    "pollClosed": "Ditutup",
+    "cat_chart": "Analisis grafik",
+    "cat_launch": "Peluncuran",
+    "cat_voice": "Suara",
+    "cat_memes": "Meme",
+    "sortTraded": "Paling ramai",
+    "traded": "{amount} diperdagangkan",
+    "pickCategory": "Tentang apa?"
   },
   "snipe": {
     "bought": "Dibeli",
@@ -1547,7 +1554,8 @@
     "video": "Video",
     "videoTooBig": "Video lebih dari 20 MB.",
     "videoTooLong": "Maksimal {seconds} detik.",
-    "checkingVideo": "Memeriksa video…"
+    "checkingVideo": "Memeriksa video…",
+    "openCoin": "Buka halaman koin"
   },
   "coinCols": {
     "coin": "Koin",
@@ -1581,12 +1589,13 @@
     "loadMore": "Muat lagi",
     "seeAll": "Lihat semua",
     "alertsTitle": "Peringatan berita",
-    "alertsDetail": "Saat berita menyebut koin yang kamu pantau atau sedang kamu buka",
+    "alertsDetail": "Saat berita menyebut koin yang kamu punya, pantau, atau sedang kamu buka",
     "soundTitle": "Suara peringatan",
     "soundDetail": "Bunyi singkat untuk peringatan berita",
     "toastWatchlist": "Dipantau",
     "toastOnScreen": "Koin ini",
     "dismiss": "Tutup",
-    "sources": "Judul dari {list}. Artikel dibuka di situs penerbit."
+    "sources": "Judul dari {list}. Artikel dibuka di situs penerbit.",
+    "toastHolding": "Kamu punya"
   }
 }

@@ -28,11 +28,19 @@ export function NewsSourceMark({ sourceId, className }: { sourceId: string; clas
   );
 }
 
-/** A tagged coin — opens its trading page by contract address, never by symbol. */
-export function NewsTokenBadge({ token, onNavigate }: { token: NewsToken; onNavigate?: () => void }) {
+/** A tagged coin — opens its trading page by contract address, never by symbol (or, with
+ *  `onOpen`, opens it in place — the Feed). */
+export function NewsTokenBadge({ token, onNavigate, onOpen }: { token: NewsToken; onNavigate?: () => void; onOpen?: (token: NewsToken) => void }) {
   const href = marketHref(token.chainIdentifier, token.tokenAddress);
   const label = `$${token.symbol}`;
   const className = 'inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[0.7rem] font-semibold text-accent';
+  if (onOpen) {
+    return (
+      <button type="button" onClick={() => onOpen(token)} className={cn(className, 'transition-colors hover:border-accent/60 hover:bg-accent/20')}>
+        {label}
+      </button>
+    );
+  }
   if (!href) return <span className={className}>{label}</span>;
   return (
     <Link href={href} onClick={onNavigate} className={cn(className, 'transition-colors hover:border-accent/60 hover:bg-accent/20')}>
@@ -42,7 +50,21 @@ export function NewsTokenBadge({ token, onNavigate }: { token: NewsToken; onNavi
 }
 
 /** One headline: source and time, the title (opens the article), a short summary, coin tags. */
-export function NewsCard({ item, compact = false, className }: { item: NewsItem; compact?: boolean; className?: string }) {
+export function NewsCard({
+  item,
+  compact = false,
+  className,
+  onToken,
+  tokenAction,
+}: {
+  item: NewsItem;
+  compact?: boolean;
+  className?: string;
+  /** Open a tagged coin in place instead of navigating to it. */
+  onToken?: (token: NewsToken) => void;
+  /** Something next to each coin tag (the Feed's ⚡ quick buy). */
+  tokenAction?: (token: NewsToken) => React.ReactNode;
+}) {
   const now = useNow();
   return (
     <article className={cn('flex flex-col gap-1.5 rounded-xl border border-line bg-surface px-3.5 py-3 transition-colors hover:border-white/15', className)}>
@@ -60,7 +82,10 @@ export function NewsCard({ item, compact = false, className }: { item: NewsItem;
       {item.tokens.length > 0 && (
         <div className="flex flex-wrap gap-1.5 pt-0.5">
           {item.tokens.map((token) => (
-            <NewsTokenBadge key={`${token.chainIdentifier}:${token.tokenAddress}`} token={token} />
+            <span key={`${token.chainIdentifier}:${token.tokenAddress}`} className="inline-flex items-center gap-1">
+              <NewsTokenBadge token={token} onOpen={onToken} />
+              {tokenAction?.(token)}
+            </span>
           ))}
         </div>
       )}

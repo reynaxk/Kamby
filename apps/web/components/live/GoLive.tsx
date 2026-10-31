@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { LIVE_LIMITS } from '@kamby/domain';
+import { LIVE_CATEGORIES, LIVE_LIMITS, type LiveCategory } from '@kamby/domain';
+import { cn } from '@kamby/ui';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { startLive } from '@/lib/live-engine';
 import { friendlyError } from '@/lib/friendly-error';
@@ -15,6 +16,7 @@ export function GoLiveSheet({ open, onClose }: { open: boolean; onClose: () => v
   const t = useTranslations('live');
   const router = useRouter();
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<LiveCategory>('chart');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +24,7 @@ export function GoLiveSheet({ open, onClose }: { open: boolean; onClose: () => v
     setBusy(true);
     setError(null);
     try {
-      const join = await startLive(title.trim());
+      const join = await startLive(title.trim(), undefined, category);
       setPendingHost(join.room.id, { me: join.room.host.userId, join });
       router.push(`/live/${join.room.id}`);
     } catch (err) {
@@ -40,6 +42,20 @@ export function GoLiveSheet({ open, onClose }: { open: boolean; onClose: () => v
         placeholder={t('titlePlaceholder')}
         className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3.5 font-display text-base font-bold text-ink-900 placeholder:font-body placeholder:font-normal placeholder:text-ink-400 focus:border-accent focus:outline-none"
       />
+      <p className="mt-4 font-display text-xs font-bold text-ink-600">{t('pickCategory')}</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {LIVE_CATEGORIES.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => setCategory(c)}
+            aria-pressed={category === c}
+            className={cn('h-9 rounded-full border px-3.5 font-display text-xs font-bold', category === c ? 'border-accent/40 bg-accent/[0.1] text-accent' : 'border-line bg-surface text-ink-600')}
+          >
+            {t(`cat_${c}`)}
+          </button>
+        ))}
+      </div>
       <ul className="mt-3 space-y-1.5 font-body text-xs text-ink-400">
         <li>🎙️ {t('ruleVoice')}</li>
         <li>🖥️ {t('ruleScreen')}</li>

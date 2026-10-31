@@ -1214,7 +1214,14 @@
     "pollStart": "投票を開始",
     "pollEnd": "投票を終了",
     "pollVotes": "{count}票",
-    "pollClosed": "終了"
+    "pollClosed": "終了",
+    "cat_chart": "チャート分析",
+    "cat_launch": "ローンチ",
+    "cat_voice": "音声",
+    "cat_memes": "ミーム",
+    "sortTraded": "取引額順",
+    "traded": "取引額 {amount}",
+    "pickCategory": "テーマは？"
   },
   "snipe": {
     "bought": "購入",
@@ -1547,7 +1554,8 @@
     "video": "動画",
     "videoTooBig": "動画が20MBを超えています。",
     "videoTooLong": "{seconds}秒以内にしてください。",
-    "checkingVideo": "動画を確認中…"
+    "checkingVideo": "動画を確認中…",
+    "openCoin": "コインのページを開く"
   },
   "coinCols": {
     "coin": "コイン",
@@ -1581,12 +1589,13 @@
     "loadMore": "さらに表示",
     "seeAll": "すべて見る",
     "alertsTitle": "ニュース通知",
-    "alertsDetail": "ウォッチ中または表示中のコインがニュースに登場したとき",
+    "alertsDetail": "保有・ウォッチ中・表示中のコインがニュースに登場したとき",
     "soundTitle": "通知音",
     "soundDetail": "ニュース通知の短い音",
     "toastWatchlist": "ウォッチ中",
     "toastOnScreen": "このコイン",
     "dismiss": "閉じる",
-    "sources": "{list} の見出し。記事は各メディアのサイトで開きます。"
+    "sources": "{list} の見出し。記事は各メディアのサイトで開きます。",
+    "toastHolding": "保有中"
   }
 }

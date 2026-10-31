@@ -1214,7 +1214,14 @@
     "pollStart": "투표 시작",
     "pollEnd": "투표 종료",
     "pollVotes": "{count}표",
-    "pollClosed": "종료"
+    "pollClosed": "종료",
+    "cat_chart": "차트 분석",
+    "cat_launch": "런칭",
+    "cat_voice": "음성",
+    "cat_memes": "밈",
+    "sortTraded": "거래 많은 순",
+    "traded": "{amount} 거래",
+    "pickCategory": "무엇에 관한 방송인가요?"
   },
   "snipe": {
     "bought": "매수",
@@ -1547,7 +1554,8 @@
     "video": "동영상",
     "videoTooBig": "동영상이 20MB를 넘어요.",
     "videoTooLong": "{seconds}초 이내로 해주세요.",
-    "checkingVideo": "동영상 확인 중…"
+    "checkingVideo": "동영상 확인 중…",
+    "openCoin": "코인 페이지 열기"
   },
   "coinCols": {
     "coin": "코인",
@@ -1581,12 +1589,13 @@
     "loadMore": "더 보기",
     "seeAll": "전체 보기",
     "alertsTitle": "뉴스 알림",
-    "alertsDetail": "관심 코인이나 열어 둔 코인이 뉴스에 나오면",
+    "alertsDetail": "보유·관심·열어 둔 코인이 뉴스에 나오면",
     "soundTitle": "알림음",
     "soundDetail": "뉴스 알림과 함께 짧은 소리",
     "toastWatchlist": "관심 목록",
     "toastOnScreen": "이 코인",
     "dismiss": "닫기",
-    "sources": "{list}의 헤드라인. 기사는 언론사 사이트에서 열립니다."
+    "sources": "{list}의 헤드라인. 기사는 언론사 사이트에서 열립니다.",
+    "toastHolding": "보유 중"
   }
 }

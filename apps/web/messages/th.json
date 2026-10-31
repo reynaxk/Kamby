@@ -1214,7 +1214,14 @@
     "pollStart": "เริ่มโพล",
     "pollEnd": "จบโพล",
     "pollVotes": "{count} โหวต",
-    "pollClosed": "ปิดแล้ว"
+    "pollClosed": "ปิดแล้ว",
+    "cat_chart": "วิเคราะห์กราฟ",
+    "cat_launch": "เปิดตัวเหรียญ",
+    "cat_voice": "เสียง",
+    "cat_memes": "มีม",
+    "sortTraded": "เทรดมากสุด",
+    "traded": "เทรด {amount}",
+    "pickCategory": "เกี่ยวกับอะไร?"
   },
   "snipe": {
     "bought": "ซื้อแล้ว",
@@ -1547,7 +1554,8 @@
     "video": "วิดีโอ",
     "videoTooBig": "วิดีโอเกิน 20 MB",
     "videoTooLong": "ไม่เกิน {seconds} วินาที",
-    "checkingVideo": "กำลังตรวจวิดีโอ…"
+    "checkingVideo": "กำลังตรวจวิดีโอ…",
+    "openCoin": "เปิดหน้าเหรียญ"
   },
   "coinCols": {
     "coin": "เหรียญ",
@@ -1581,12 +1589,13 @@
     "loadMore": "โหลดเพิ่ม",
     "seeAll": "ดูทั้งหมด",
     "alertsTitle": "แจ้งเตือนข่าว",
-    "alertsDetail": "เมื่อข่าวพูดถึงเหรียญที่คุณติดตามหรือเปิดอยู่",
+    "alertsDetail": "เมื่อข่าวพูดถึงเหรียญที่คุณถือ ติดตาม หรือเปิดอยู่",
     "soundTitle": "เสียงแจ้งเตือน",
     "soundDetail": "เสียงสั้น ๆ พร้อมแจ้งเตือนข่าว",
     "toastWatchlist": "ติดตาม",
     "toastOnScreen": "เหรียญนี้",
     "dismiss": "ปิด",
-    "sources": "พาดหัวจาก {list} บทความเปิดบนเว็บไซต์ของสำนักข่าว"
+    "sources": "พาดหัวจาก {list} บทความเปิดบนเว็บไซต์ของสำนักข่าว",
+    "toastHolding": "คุณถืออยู่"
   }
 }

@@ -26,6 +26,7 @@ describe('toastReason', () => {
     expect(toastReason(news, new Set(), 'eip155:8453:0x4200000000000000000000000000000000000006')).toBe('onScreen');
     expect(toastReason(news, new Set(), null)).toBeNull();
     expect(toastReason(item('b', 1), new Set([`solana:${BONK.tokenAddress}`]), null)).toBeNull();
+    expect(toastReason(news, new Set([`solana:${BONK.tokenAddress}`]), null, new Set([`solana:${BONK.tokenAddress}`]))).toBe('holding');
   });
 });
 
@@ -34,5 +35,22 @@ describe('pickTickerItem', () => {
     expect(pickTickerItem([item('coin', 600, [BONK])], [item('all', 5)], now)?.id).toBe('coin');
     expect(pickTickerItem([item('coin', 2000, [BONK])], [item('all', 5)], now)?.id).toBe('all');
     expect(pickTickerItem([], [item('all', 400)], now)).toBeNull();
+  });
+});
+
+describe('feed helpers', () => {
+  it('weaves a headline in after every 4 posts', async () => {
+    const { mixNews } = await import('@/components/feed/Feed');
+    const posts = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}` }) as never);
+    const kinds = mixNews(posts, [item('n1', 1), item('n2', 2), item('n3', 3)]).map((e) => ('post' in e ? 'p' : 'n')).join('');
+    expect(kinds).toBe('ppppnppppnp');
+  });
+
+  it('only makes verified cashtags tappable', async () => {
+    const { splitCashtags } = await import('@/components/feed/FeedCoin');
+    const parts = splitCashtags('aped $bonk and $FAKECOIN today');
+    expect(parts[0]).toBe('aped ');
+    expect(parts[1]).toMatchObject({ symbol: 'BONK', chainIdentifier: 'solana', tokenAddress: BONK.tokenAddress });
+    expect(parts[2]).toBe(' and $FAKECOIN today');
   });
 });

@@ -5,7 +5,7 @@ import { memoryStorage } from 'multer';
 import { Throttle } from '@nestjs/throttler';
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
-import { LIVE_LIMITS, type LiveTipChain } from '@kamby/domain';
+import { LIVE_CATEGORIES, LIVE_LIMITS, type LiveCategory, type LiveTipChain } from '@kamby/domain';
 import { filter, interval, map, merge, type Observable } from 'rxjs';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
@@ -43,6 +43,10 @@ class StartDto {
   @IsString()
   @MaxLength(140)
   tokenKey?: string;
+
+  @IsOptional()
+  @IsIn(LIVE_CATEGORIES)
+  category?: LiveCategory;
 }
 
 class LocalTrackDto {
@@ -251,7 +255,7 @@ export class LiveController {
   @HttpCode(200)
   @Post()
   start(@Body() body: StartDto, @CurrentUser() user: SessionUser) {
-    return this.live.start(user.id, body.title, body.tokenKey);
+    return this.live.start(user.id, body.title, body.tokenKey, body.category);
   }
 
   @UseGuards(JwtAuthGuard)

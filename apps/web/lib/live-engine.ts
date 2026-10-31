@@ -1,6 +1,6 @@
 'use client';
 
-import { LIVE_LIMITS, type LiveChatLine, type LiveSummary, type LiveRoom, type LiveTipChain, type LiveTipQuote, type LiveTrackKind } from '@kamby/domain';
+import { LIVE_LIMITS, type LiveCategory, type LiveChatLine, type LiveSummary, type LiveRoom, type LiveTipChain, type LiveTipQuote, type LiveTrackKind } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk } from './session-client';
 
 /** Live rooms (2026-10-17) — browser side: the API wrappers and the host / viewer engines. */
@@ -58,7 +58,8 @@ export async function fetchLiveChat(id: string): Promise<LiveChatLine[]> {
   return res.ok ? ((await res.json()) as LiveChatLine[]) : [];
 }
 export const liveStreamUrl = (id: string) => `${API_BASE}/v1/live/${id}/stream`;
-export const startLive = (title: string, tokenKey?: string) => post<JoinResponse>('/live', { title, ...(tokenKey ? { tokenKey } : {}) }, 'go live');
+export const startLive = (title: string, tokenKey?: string, category?: LiveCategory) =>
+  post<JoinResponse>('/live', { title, ...(tokenKey ? { tokenKey } : {}), ...(category ? { category } : {}) }, 'go live');
 export const sayInLive = (id: string, body: string) => post<LiveChatLine>(`/live/${id}/chat`, { body }, 'send');
 export const pinLiveTrade = (id: string, coin: { chain: string; tokenAddress: string } | null) => post<LiveRoom>(`/live/${id}/trade`, coin ?? {}, 'pin the trade');
 /** The stream's card picture (2026-10-30) — a small frame of the stage; the server moderates it. */

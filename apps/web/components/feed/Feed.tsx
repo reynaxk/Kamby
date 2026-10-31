@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
-import { FEED_LIMITS, type DmPnl, type FeedPost, type FeedReply, type FeedTab } from '@kamby/domain';
+import { FEED_LIMITS, type DmPnl, type FeedPost, type FeedReply, type FeedTab, type NewsItem } from '@kamby/domain';
 import type { TokenPosition } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { cashtag, formatPercent, formatRelativeTime, formatSignedCompactUsd } from '@/lib/format';
@@ -30,6 +30,10 @@ import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { TradeCard } from '@/components/social/TradeCard';
 import { PositionPicker } from '@/components/social/PositionPicker';
 import { SafeImg } from '@/components/social/SafeImg';
+import { NewsCard } from '@/components/news/NewsCard';
+import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy';
+import { fetchNews } from '@/lib/news-client';
+import { FeedCoinProvider, PostBody, useOpenCoin } from './FeedCoin';
 
 /**
  * The Feed (2026-10-30, owner's concepts): what traders post — a few lines, optionally with a
@@ -44,6 +48,16 @@ export function Feed({ address, composer = true, title, emptyText }: { address?:
   const [next, setNext] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [news, setNews] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    if (address) return;
+    const controller = new AbortController();
+    fetchNews({ limit: 12 }, controller.signal)
+      .then((page) => setNews(page.items))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [address]);
 
   const load = useCallback(
     (which: FeedTab) => {
@@ -78,6 +92,9 @@ export function Feed({ address, composer = true, title, emptyText }: { address?:
     }
   }
 
+  // For You: the latest headlines woven in, one after every few posts (2026-10-31).
+  const mixed = useMemo(() => (items && !address && tab === 'foryou' ? mixNews(items, news) : (items ?? []).map((post) => ({ post }))), [items, news, address, tab]);
+
   if (!FEED_ENABLED && !address) return <p className="rounded-2xl border border-line bg-surface px-6 py-10 text-center font-body text-sm text-ink-600">{t('soon')}</p>;
   // A trader's profile: no section at all until they have posts (or when the feed can't load).
   if (address && (!items || items.length === 0)) {
@@ -87,6 +104,8 @@ export function Feed({ address, composer = true, title, emptyText }: { address?:
   const update = (p: FeedPost | null, id: string) => setItems((cur) => (cur ?? []).flatMap((x) => (x.id === id ? (p ? [p] : []) : [x])));
 
   return (
+    <FeedCoinProvider>
+    <QuickBuyProvider>
     <div className="flex flex-col gap-3">
       {title && <h2 className="font-display text-base font-bold text-ink-900">{title}</h2>}
       {composer && authenticated && <Composer onPosted={(p) => setItems((cur) => [p, ...(cur ?? [])])} />}
@@ -115,7 +134,7 @@ export function Feed({ address, composer = true, title, emptyText }: { address?:
           <p className="mt-1 font-body text-sm text-ink-600">{t('emptyHint')}</p>
         </div>
       ) : (
-        items.map((p) => <PostCard key={p.id} post={p} onChange={(np) => update(np, p.id)} />)
+        mixed.map((entry) => ('post' in entry ? <PostCard key={entry.post.id} post={entry.post} onChange={(np) => update(np, entry.post.id)} /> : <FeedNewsCard key={`news:${entry.news.id}`} item={entry.news} />))
       )}
       {next && items && items.length > 0 && (
         <button type="button" onClick={() => void more()} disabled={loadingMore} className="h-10 rounded-xl border border-line font-display text-sm font-bold text-ink-600 disabled:opacity-50">
@@ -123,6 +142,36 @@ export function Feed({ address, composer = true, title, emptyText }: { address?:
         </button>
       )}
     </div>
+    </QuickBuyProvider>
+    </FeedCoinProvider>
+  );
+}
+
+const NEWS_EVERY = 4;
+
+/** Exported for tests. Posts with a headline after every NEWS_EVERY of them (each headline once). */
+export function mixNews(posts: FeedPost[], news: NewsItem[]): ({ post: FeedPost } | { news: NewsItem })[] {
+  const out: ({ post: FeedPost } | { news: NewsItem })[] = [];
+  let n = 0;
+  posts.forEach((post, i) => {
+    out.push({ post });
+    if ((i + 1) % NEWS_EVERY === 0 && n < news.length) out.push({ news: news[n++]! });
+  });
+  // A quiet feed still shows a couple of headlines.
+  if (posts.length < NEWS_EVERY) for (; n < Math.min(news.length, 2); n++) out.push({ news: news[n]! });
+  return out;
+}
+
+/** A headline in the Feed: its coins open in place, each with a ⚡ quick buy. */
+function FeedNewsCard({ item }: { item: NewsItem }) {
+  const open = useOpenCoin();
+  return (
+    <NewsCard
+      item={item}
+      className="rounded-2xl px-4 py-3.5"
+      onToken={open ? (tk) => open({ chainIdentifier: tk.chainIdentifier, tokenAddress: tk.tokenAddress, symbol: tk.symbol, logoUrl: null }) : undefined}
+      tokenAction={(tk) => <QuickBuyButton chainIdentifier={tk.chainIdentifier} address={tk.tokenAddress} label={`$${tk.symbol}`} className="h-6 rounded-lg px-1.5 text-[0.7rem]" />}
+    />
   );
 }
 
@@ -391,7 +440,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
           </div>
         )}
       </div>
-      {post.body && <p className="mt-2.5 whitespace-pre-wrap break-words font-body text-[0.92rem] leading-relaxed text-ink-900/90">{post.body}</p>}
+      {post.body && <PostBody body={post.body} className="mt-2.5 whitespace-pre-wrap break-words font-body text-[0.92rem] leading-relaxed text-ink-900/90" />}
       {post.trade && <TradeCard trade={post.trade} mine={post.mine} by={`@${name}`} className="mt-3" />}
       {post.pnl && <PnlCard pnl={post.pnl} />}
       {post.video && <video src={post.video.url} controls playsInline preload="metadata" className="mt-3 max-h-[32rem] w-full rounded-xl border border-line bg-black" />}
@@ -418,6 +467,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
 
 function PnlCard({ pnl }: { pnl: DmPnl }) {
   const up = pnl.pnlUsd >= 0;
+  const open = useOpenCoin();
   const href = marketHref(pnl.chainIdentifier, pnl.tokenAddress);
   const body = (
     <div className="mt-3 flex items-center gap-4 rounded-2xl border border-white/10 bg-[#040507] p-4">
@@ -429,6 +479,14 @@ function PnlCard({ pnl }: { pnl: DmPnl }) {
       <p className={cn('font-display text-3xl font-black tabular-nums tracking-tight', up ? 'text-up' : 'text-down')}>{formatPercent(pnl.pnlPct)}</p>
     </div>
   );
+  // In the Feed the coin opens in place (chart + buy); elsewhere its page.
+  if (open) {
+    return (
+      <button type="button" onClick={() => open({ chainIdentifier: pnl.chainIdentifier, tokenAddress: pnl.tokenAddress, symbol: pnl.symbol, logoUrl: pnl.logoUrl })} className="block w-full text-left">
+        {body}
+      </button>
+    );
+  }
   return href ? <Link href={href}>{body}</Link> : body;
 }
 

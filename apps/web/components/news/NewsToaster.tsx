@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { CHAIN_REGISTRY, isChainSlug, newsTokenKey, type NewsItem } from '@kamby/domain';
 import { getNewsAlertPrefs, onNewsAlertPrefsChange, subscribeToNews, type NewsAlertPrefs } from '@/lib/news-client';
 import { fetchWatchlist, hasStoredSession } from '@/lib/watchlist-client';
+import { fetchMyPositions } from '@/lib/discovery-client';
 import { NewsSourceMark, NewsTokenBadge } from './NewsCard';
 
 const AUTO_DISMISS_MS = 9_000;
@@ -13,7 +14,7 @@ const MAX_TOASTS = 3;
 const WATCHLIST_REFRESH_MS = 5 * 60_000;
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
-type Reason = 'watchlist' | 'onScreen';
+type Reason = 'holding' | 'watchlist' | 'onScreen';
 interface Toast {
   item: NewsItem;
   reason: Reason;
@@ -28,8 +29,9 @@ export function coinKeyFromLocation(pathname: string, search: string): string | 
 }
 
 /** Exported for tests. Why this headline deserves a toast, or null (most don't). */
-export function toastReason(item: NewsItem, watched: ReadonlySet<string>, onScreen: string | null): Reason | null {
+export function toastReason(item: NewsItem, watched: ReadonlySet<string>, onScreen: string | null, held: ReadonlySet<string> = new Set()): Reason | null {
   const keys = item.tokens.map((t) => newsTokenKey(t.chainIdentifier, t.tokenAddress));
+  if (keys.some((k) => held.has(k))) return 'holding';
   if (keys.some((k) => watched.has(k))) return 'watchlist';
   if (onScreen && keys.includes(onScreen)) return 'onScreen';
   return null;
@@ -60,8 +62,8 @@ function chime(): void {
 }
 
 /**
- * News alerts (2026-10-31): a toast when a new headline mentions a coin on your watchlist or the
- * coin you have open — nothing for the rest, so it never turns into noise. Off/sound switches
+ * News alerts (2026-10-31): a toast when a new headline mentions a coin you hold, one on your
+ * watchlist, or the coin you have open — nothing for the rest, so it never turns into noise. Off/sound switches
  * live in notification settings (this browser).
  */
 export function NewsToaster() {
@@ -69,6 +71,7 @@ export function NewsToaster() {
   const [prefs, setPrefs] = useState<NewsAlertPrefs | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const watched = useRef<Set<string>>(new Set());
+  const held = useRef<Set<string>>(new Set());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
@@ -79,7 +82,7 @@ export function NewsToaster() {
   const enabled = prefs?.toasts === true;
   const sound = prefs?.sound === true;
 
-  // Watched coins, refreshed now and then.
+  // Coins you hold and watch, refreshed now and then.
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
@@ -88,6 +91,16 @@ export function NewsToaster() {
       fetchWatchlist({ limit: 100 })
         .then((page) => {
           if (!cancelled) watched.current = new Set(page.items.map((w) => newsTokenKey(w.chainIdentifier, w.tokenAddress)));
+        })
+        .catch(() => undefined);
+      fetchMyPositions()
+        .then((positions) => {
+          if (cancelled) return;
+          held.current = new Set(
+            positions
+              .filter((p) => p.quantity > 0)
+              .map((p) => newsTokenKey(p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : 'eip155:8453'), p.tokenAddress)),
+          );
         })
         .catch(() => undefined);
     };
@@ -103,7 +116,7 @@ export function NewsToaster() {
     if (!enabled) return;
     const timerMap = timers.current;
     const unsubscribe = subscribeToNews((item) => {
-      const reason = toastReason(item, watched.current, coinKeyFromLocation(window.location.pathname, window.location.search));
+      const reason = toastReason(item, watched.current, coinKeyFromLocation(window.location.pathname, window.location.search), held.current);
       if (!reason) return;
       setToasts((prev) => (prev.some((p) => p.item.id === item.id) ? prev : [{ item, reason }, ...prev].slice(0, MAX_TOASTS)));
       timerMap.set(item.id, setTimeout(() => dismiss(item.id), AUTO_DISMISS_MS));
@@ -135,7 +148,7 @@ export function NewsToaster() {
         >
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-accent px-2 py-0.5 font-display text-[0.65rem] font-bold uppercase tracking-wide text-bg">
-              {reason === 'watchlist' ? t('toastWatchlist') : t('toastOnScreen')}
+              {reason === 'holding' ? t('toastHolding') : reason === 'watchlist' ? t('toastWatchlist') : t('toastOnScreen')}
             </span>
             <NewsSourceMark sourceId={item.sourceId} />
             <button type="button" onClick={() => dismiss(item.id)} aria-label={t('dismiss')} className="ml-auto rounded-full p-1 text-ink-400 hover:text-ink-900">
