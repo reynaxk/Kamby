@@ -94,5 +94,9 @@ jobs:
       - name: E2e tests (apps/api health/market/social/identity/trade + apps/workers realized-PnL — against live Postgres + Redis)
         run: pnpm test:e2e
 
+      # One package at a time with a bigger heap: since 10-28 the web build aborted (exit 134,
+      # out of memory) while turbo built api/workers/web side by side on the runner.
       - name: Build
-        run: pnpm build
+        run: pnpm build --concurrency=1
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
