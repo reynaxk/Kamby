@@ -1169,7 +1169,17 @@
     "cat_talk": "Discussion",
     "sortWatched": "Plus vus",
     "sortNew": "Récents",
-    "voiceOnly": "Voix"
+    "voiceOnly": "Voix",
+    "react": "Réactions",
+    "topTippers": "Top pourboires",
+    "slowOn": "Mode lent : un message toutes les {seconds}s",
+    "slowMode": "Mode lent",
+    "pin": "Épingler",
+    "sumDuration": "En live",
+    "sumPeak": "Pic de spectateurs",
+    "sumTips": "Pourboires",
+    "sumChat": "Messages",
+    "sumReactions": "Réactions"
   },
   "snipe": {
     "bought": "Acheté",

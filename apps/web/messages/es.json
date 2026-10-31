@@ -1169,7 +1169,17 @@
     "cat_talk": "Charla",
     "sortWatched": "Más vistos",
     "sortNew": "Nuevos",
-    "voiceOnly": "Voz"
+    "voiceOnly": "Voz",
+    "react": "Reacciones",
+    "topTippers": "Top propinas",
+    "slowOn": "Modo lento: un mensaje cada {seconds}s",
+    "slowMode": "Modo lento",
+    "pin": "Fijar",
+    "sumDuration": "En vivo",
+    "sumPeak": "Pico de espectadores",
+    "sumTips": "Propinas",
+    "sumChat": "Mensajes",
+    "sumReactions": "Reacciones"
   },
   "snipe": {
     "bought": "Comprado",

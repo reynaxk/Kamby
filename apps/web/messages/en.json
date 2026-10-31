@@ -1169,7 +1169,17 @@
     "cat_talk": "Talk",
     "sortWatched": "Most watched",
     "sortNew": "Newest",
-    "voiceOnly": "Voice"
+    "voiceOnly": "Voice",
+    "react": "Reactions",
+    "topTippers": "Top tippers",
+    "slowOn": "Slow mode: one message every {seconds}s",
+    "slowMode": "Slow mode",
+    "pin": "Pin",
+    "sumDuration": "Live for",
+    "sumPeak": "Peak viewers",
+    "sumTips": "Tips",
+    "sumChat": "Chat messages",
+    "sumReactions": "Reactions"
   },
   "snipe": {
     "bought": "Bought",

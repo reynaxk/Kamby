@@ -1,6 +1,6 @@
 'use client';
 
-import { LIVE_LIMITS, type LiveChatLine, type LiveRoom, type LiveTipChain, type LiveTipQuote, type LiveTrackKind } from '@kamby/domain';
+import { LIVE_LIMITS, type LiveChatLine, type LiveSummary, type LiveRoom, type LiveTipChain, type LiveTipQuote, type LiveTrackKind } from '@kamby/domain';
 import { API_BASE, authedFetch, expectOk } from './session-client';
 
 /** Live rooms (2026-10-17) — browser side: the API wrappers and the host / viewer engines. */
@@ -29,6 +29,10 @@ async function post<T>(path: string, body?: unknown, what = 'update the live'): 
 
 /** Host moderation (2026-10-30). */
 export const removeLiveLine = (id: string, lineId: string) => post<void>(`/live/${id}/chat/${lineId}/remove`, undefined, 'remove the message');
+/** Floating reactions, pin a chat line, slow mode (2026-10-31). */
+export const reactInLive = (id: string, emoji: string) => post<void>(`/live/${id}/react`, { emoji }, 'react');
+export const pinLiveLine = (id: string, lineId: string | null) => post<LiveRoom>(`/live/${id}/pin-line`, lineId ? { lineId } : {}, 'pin');
+export const setLiveSlow = (id: string, seconds: number) => post<LiveRoom>(`/live/${id}/slow`, { seconds }, 'set slow mode');
 export const silenceInLive = (id: string, userId: string) => post<void>(`/live/${id}/silence`, { userId }, 'silence them');
 
 /** Tips (2026-10-30): prepare → sign in the wallet → submit (see LiveTipSheet). */
@@ -228,8 +232,11 @@ export class LiveHostEngine {
     await post(`/live/${this.id}/mute`, { muted }).catch(() => undefined);
   }
 
+  /** The host's numbers for the stream that just ended (null if the server couldn't say). */
+  summary: LiveSummary | null = null;
+
   async stop(): Promise<void> {
-    await post(`/live/${this.id}/stop`).catch(() => undefined);
+    this.summary = await post<LiveSummary>(`/live/${this.id}/stop`).catch(() => null);
     this.end();
   }
 

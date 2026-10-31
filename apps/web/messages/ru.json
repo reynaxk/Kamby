@@ -1169,7 +1169,17 @@
     "cat_talk": "Разговор",
     "sortWatched": "Популярные",
     "sortNew": "Новые",
-    "voiceOnly": "Голос"
+    "voiceOnly": "Голос",
+    "react": "Реакции",
+    "topTippers": "Топ донатов",
+    "slowOn": "Медленный режим: 1 сообщение в {seconds} с",
+    "slowMode": "Медленный режим",
+    "pin": "Закрепить",
+    "sumDuration": "В эфире",
+    "sumPeak": "Пик зрителей",
+    "sumTips": "Донаты",
+    "sumChat": "Сообщения",
+    "sumReactions": "Реакции"
   },
   "snipe": {
     "bought": "Куплено",

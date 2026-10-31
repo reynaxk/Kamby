@@ -6,12 +6,16 @@ import {
   containsLink,
   isChatTokenKey,
   LIVE_LIMITS,
+  LIVE_REACTIONS,
+  LIVE_SLOW_OPTIONS,
   LIVE_REALTIME_CHANNEL,
   type LiveChatLine,
   type LiveEvent,
   type LiveHost,
   type LiveRoom,
   type LiveTrackKind,
+  type LiveSummary,
+  type LiveReaction,
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
@@ -34,6 +38,8 @@ interface LiveState {
   muted: boolean;
   peak: number;
   trade?: DmTrade | null;
+  pinned?: LiveChatLine | null;
+  slowSec?: number;
 }
 
 const KINDS: readonly LiveTrackKind[] = ['audio', 'screen', 'camera'];
@@ -178,9 +184,40 @@ export class LiveService {
     await this.publish({ type: 'room', roomId: id, room: await this.toRoom(state) });
   }
 
-  async stop(me: string, id: string): Promise<void> {
-    await this.hostState(me, id);
+  /** Ends the stream and hands the host their numbers (read before the room's keys go). */
+  async stop(me: string, id: string): Promise<LiveSummary> {
+    const state = await this.hostState(me, id);
+    const stats = await this.redis.hgetall(this.statsKey(id)).catch(() => ({}) as Record<string, string>);
+    const summary: LiveSummary = {
+      durationSec: Math.max(0, Math.round((Date.now() - Date.parse(state.startedAt)) / 1000)),
+      peakViewers: state.peak,
+      tips: Number(stats.tips ?? 0),
+      tipsUsd: Math.round(Number(stats.tipsUsd ?? 0) * 100) / 100,
+      chatLines: Number(stats.chat ?? 0),
+      reactions: Number(stats.reactions ?? 0),
+    };
     await this.end(id, 'host');
+    return summary;
+  }
+
+  /**
+   * A floating reaction over the stage (2026-10-31) — anyone watching, signed in, one of
+   * LIVE_REACTIONS, at most 8 per person per 5 seconds (extra taps are dropped, not errors).
+   */
+  async react(me: string, id: string, emoji: string): Promise<void> {
+    if (!(LIVE_REACTIONS as readonly string[]).includes(emoji)) throw new BadRequestException('Pick one of the reactions.');
+    const state = await this.read(id);
+    if (!state) throw new NotFoundException('This live has ended.');
+    const key = `kamby:live:react:${id}:${me}`;
+    const n = await this.redis.incr(key).catch(() => 1);
+    if (n === 1) void this.redis.expire(key, 5).catch(() => 0);
+    if (n > 8) return;
+    void this.redis.hincrby(this.statsKey(id), 'reactions', 1).catch(() => 0);
+    await this.publish({ type: 'react', roomId: id, emoji: emoji as LiveReaction });
+  }
+
+  private statsKey(id: string) {
+    return `kamby:live:${id}:stats`;
   }
 
   /**
@@ -271,9 +308,12 @@ export class LiveService {
     const who = await this.person(me);
     if (!who) throw new ForbiddenException('Set a username in your profile to chat.');
     if (await this.redis.exists(this.silencedKey(id, me)).catch(() => 0)) throw new ForbiddenException('The host paused your chat for a few minutes.');
-    const ok = await this.redis.set(`kamby:live:cool:${me}`, '1', 'PX', LIVE_LIMITS.chatCooldownMs, 'NX').catch(() => 'OK');
-    if (ok !== 'OK') throw new HttpException('Slow down a little.', HttpStatus.TOO_MANY_REQUESTS);
+    // Slow mode (the host's choice) never applies to the host.
+    const wait = me === state.host.userId ? LIVE_LIMITS.chatCooldownMs : Math.max(LIVE_LIMITS.chatCooldownMs, (state.slowSec ?? 0) * 1000);
+    const ok = await this.redis.set(`kamby:live:cool:${me}`, '1', 'PX', wait, 'NX').catch(() => 'OK');
+    if (ok !== 'OK') throw new HttpException(state.slowSec ? `Slow mode — one message every ${state.slowSec} seconds.` : 'Slow down a little.', HttpStatus.TOO_MANY_REQUESTS);
     const line: LiveChatLine = { id: randomUUID(), userId: me, username: who.username, avatarUrl: who.avatarUrl, body, at: new Date().toISOString(), host: me === state.host.userId };
+    void this.redis.hincrby(this.statsKey(id), 'chat', 1).catch(() => 0);
     await this.pushLine(id, line);
     return line;
   }
@@ -306,6 +346,15 @@ export class LiveService {
     const state = await this.read(id);
     const who = await this.person(senderId);
     if (!state || !who) return;
+    await this.redis
+      .multi()
+      .hincrby(this.statsKey(id), 'tips', 1)
+      .hincrbyfloat(this.statsKey(id), 'tipsUsd', amountUsd)
+      .zincrby(this.tippersKey(id), amountUsd, senderId)
+      .hset(this.tipperNamesKey(id), senderId, JSON.stringify({ username: who.username, avatarUrl: who.avatarUrl }))
+      .exec()
+      .catch(() => null);
+    void this.toRoom(state).then((room) => this.publish({ type: 'room', roomId: id, room }));
     await this.pushLine(id, { id: randomUUID(), userId: senderId, username: who.username, avatarUrl: who.avatarUrl, body: `tipped ${amountUsd.toFixed(2)}`, at: new Date().toISOString(), host: false, kind: 'tip', amountUsd });
   }
 
@@ -418,12 +467,60 @@ export class LiveService {
       tracks: state.tracks,
       muted: state.muted,
       trade: state.trade ?? null,
+      pinned: state.pinned ?? null,
+      slowSec: state.slowSec ?? 0,
+      topTippers: await this.topTippers(state.id),
     };
+  }
+
+  private async topTippers(id: string): Promise<{ username: string; avatarUrl: string | null; usd: number }[]> {
+    const rows = await this.redis.zrevrange(this.tippersKey(id), 0, 2, 'WITHSCORES').catch(() => [] as string[]);
+    const out: { username: string; avatarUrl: string | null; usd: number }[] = [];
+    for (let i = 0; i < rows.length; i += 2) {
+      const who = await this.redis.hget(this.tipperNamesKey(id), rows[i]!).catch(() => null);
+      if (!who) continue;
+      const p = JSON.parse(who) as { username: string; avatarUrl: string | null };
+      out.push({ ...p, usd: Math.round(Number(rows[i + 1]) * 100) / 100 });
+    }
+    return out;
+  }
+
+  private tippersKey(id: string) {
+    return `kamby:live:${id}:tippers`;
+  }
+  private tipperNamesKey(id: string) {
+    return `kamby:live:${id}:tippernames`;
+  }
+
+  /** The host pins a chat line over the chat, or unpins (null). */
+  async pinLine(me: string, id: string, lineId: string | null): Promise<LiveRoom> {
+    const state = await this.hostState(me, id);
+    if (lineId) {
+      const lines = await this.chat(id);
+      const line = lines.find((l) => l.id === lineId);
+      if (!line) throw new NotFoundException('That message is gone.');
+      state.pinned = line;
+    } else state.pinned = null;
+    await this.write(state);
+    const room = await this.toRoom(state);
+    await this.publish({ type: 'room', roomId: id, room });
+    return room;
+  }
+
+  /** Slow mode — one of LIVE_SLOW_OPTIONS. */
+  async setSlow(me: string, id: string, seconds: number): Promise<LiveRoom> {
+    if (!(LIVE_SLOW_OPTIONS as readonly number[]).includes(seconds)) throw new BadRequestException('Pick a slow mode option.');
+    const state = await this.hostState(me, id);
+    state.slowSec = seconds;
+    await this.write(state);
+    const room = await this.toRoom(state);
+    await this.publish({ type: 'room', roomId: id, room });
+    return room;
   }
 
   private async end(id: string, reason: 'host' | 'dropped' | 'reports'): Promise<void> {
     await this.redis.srem(ACTIVE_SET, id).catch(() => 0);
-    await this.redis.del(this.key(id), this.viewersKey(id), this.hostSeenKey(id)).catch(() => 0);
+    await this.redis.del(this.key(id), this.viewersKey(id), this.hostSeenKey(id), this.statsKey(id), this.tippersKey(id), this.tipperNamesKey(id)).catch(() => 0);
     await prisma.liveRoom.updateMany({ where: { id, endedAt: null }, data: { endedAt: new Date(), endedReason: reason } }).catch(() => undefined);
     await this.publish({ type: 'ended', roomId: id });
   }

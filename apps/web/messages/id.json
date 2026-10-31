@@ -1169,7 +1169,17 @@
     "cat_talk": "Ngobrol",
     "sortWatched": "Terpopuler",
     "sortNew": "Terbaru",
-    "voiceOnly": "Suara"
+    "voiceOnly": "Suara",
+    "react": "Reaksi",
+    "topTippers": "Top tip",
+    "slowOn": "Mode lambat: satu pesan tiap {seconds}d",
+    "slowMode": "Mode lambat",
+    "pin": "Sematkan",
+    "sumDuration": "Live selama",
+    "sumPeak": "Penonton puncak",
+    "sumTips": "Tip",
+    "sumChat": "Pesan chat",
+    "sumReactions": "Reaksi"
   },
   "snipe": {
     "bought": "Dibeli",

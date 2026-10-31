@@ -1169,7 +1169,17 @@
     "cat_talk": "Trò chuyện",
     "sortWatched": "Xem nhiều",
     "sortNew": "Mới nhất",
-    "voiceOnly": "Giọng nói"
+    "voiceOnly": "Giọng nói",
+    "react": "Thả cảm xúc",
+    "topTippers": "Top tip",
+    "slowOn": "Chế độ chậm: 1 tin mỗi {seconds}s",
+    "slowMode": "Chế độ chậm",
+    "pin": "Ghim",
+    "sumDuration": "Thời gian live",
+    "sumPeak": "Người xem cao nhất",
+    "sumTips": "Tip",
+    "sumChat": "Tin nhắn",
+    "sumReactions": "Cảm xúc"
   },
   "snipe": {
     "bought": "Đã mua",

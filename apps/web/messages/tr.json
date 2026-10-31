@@ -1169,7 +1169,17 @@
     "cat_talk": "Sohbet",
     "sortWatched": "En çok izlenen",
     "sortNew": "En yeni",
-    "voiceOnly": "Ses"
+    "voiceOnly": "Ses",
+    "react": "Tepkiler",
+    "topTippers": "En çok bahşiş",
+    "slowOn": "Yavaş mod: {seconds} sn'de bir mesaj",
+    "slowMode": "Yavaş mod",
+    "pin": "Sabitle",
+    "sumDuration": "Yayın süresi",
+    "sumPeak": "En yüksek izleyici",
+    "sumTips": "Bahşişler",
+    "sumChat": "Mesajlar",
+    "sumReactions": "Tepkiler"
   },
   "snipe": {
     "bought": "Alındı",

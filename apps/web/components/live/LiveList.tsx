@@ -166,8 +166,9 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {shown.map((r) => (
-            <li key={r.id}>
+          {shown.map((r, i) => (
+            // The most watched stream leads, big (2026-10-31, like Twitch / Kick front pages).
+            <li key={r.id} className={i === 0 && shown.length >= 3 && sort === 'watched' ? 'sm:col-span-2 xl:row-span-2' : undefined}>
               <LiveCard room={r} now={now} />
             </li>
           ))}

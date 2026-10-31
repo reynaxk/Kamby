@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
 import { useDmUnread } from '@/lib/dm-client';
 import { KambyLogo } from './KambyLogo';
+import { SideNavLive } from './SideNavLive';
 import { FEED_ENABLED } from '@/lib/feed-client';
 
 type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread' };
@@ -88,7 +89,10 @@ export function DesktopSideNav() {
           );
         })}
       </ul>
-      <p className="mt-auto px-3 font-mono text-[0.6rem] tracking-[0.2em] text-accent/70">FIND.TRADE.REPEAT</p>
+      <div className="min-h-0 overflow-y-auto [scrollbar-width:none]">
+        <SideNavLive />
+      </div>
+      <p className="mt-auto px-3 pt-3 font-mono text-[0.6rem] tracking-[0.2em] text-accent/70">FIND.TRADE.REPEAT</p>
     </nav>
   );
 }

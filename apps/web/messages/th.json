@@ -1169,7 +1169,17 @@
     "cat_talk": "คุยกัน",
     "sortWatched": "ยอดนิยม",
     "sortNew": "ใหม่ล่าสุด",
-    "voiceOnly": "เสียง"
+    "voiceOnly": "เสียง",
+    "react": "รีแอคชัน",
+    "topTippers": "ทิปสูงสุด",
+    "slowOn": "โหมดช้า: 1 ข้อความทุก {seconds} วิ",
+    "slowMode": "โหมดช้า",
+    "pin": "ปักหมุด",
+    "sumDuration": "ไลฟ์นาน",
+    "sumPeak": "ผู้ชมสูงสุด",
+    "sumTips": "ทิป",
+    "sumChat": "ข้อความแชท",
+    "sumReactions": "รีแอคชัน"
   },
   "snipe": {
     "bought": "ซื้อแล้ว",

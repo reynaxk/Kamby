@@ -1169,7 +1169,17 @@
     "cat_talk": "聊天",
     "sortWatched": "最多观看",
     "sortNew": "最新",
-    "voiceOnly": "语音"
+    "voiceOnly": "语音",
+    "react": "互动",
+    "topTippers": "打赏榜",
+    "slowOn": "慢速模式：每 {seconds} 秒一条",
+    "slowMode": "慢速模式",
+    "pin": "置顶",
+    "sumDuration": "直播时长",
+    "sumPeak": "最高观看",
+    "sumTips": "打赏",
+    "sumChat": "聊天消息",
+    "sumReactions": "互动"
   },
   "snipe": {
     "bought": "已买入",

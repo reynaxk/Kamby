@@ -1169,7 +1169,17 @@
     "cat_talk": "Papo",
     "sortWatched": "Mais vistos",
     "sortNew": "Novos",
-    "voiceOnly": "Voz"
+    "voiceOnly": "Voz",
+    "react": "Reações",
+    "topTippers": "Top gorjetas",
+    "slowOn": "Modo lento: uma mensagem a cada {seconds}s",
+    "slowMode": "Modo lento",
+    "pin": "Fixar",
+    "sumDuration": "Ao vivo por",
+    "sumPeak": "Pico de espectadores",
+    "sumTips": "Gorjetas",
+    "sumChat": "Mensagens",
+    "sumReactions": "Reações"
   },
   "snipe": {
     "bought": "Comprado",

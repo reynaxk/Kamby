@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
-import { LIVE_LIMITS, type LiveChatLine, type LiveRoom } from '@kamby/domain';
+import { LIVE_LIMITS, type LiveChatLine, type LiveRoom, type LiveSummary } from '@kamby/domain';
 import { cn } from '@kamby/ui';
-import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, reportLive, sayInLive, silenceInLive, uploadLiveThumb } from '@/lib/live-engine';
+import { fetchLiveChat, fetchLiveRoom, liveStreamUrl, LiveHostEngine, LiveViewerEngine, pinLiveTrade, removeLiveLine, pinLiveLine, reportLive, sayInLive, setLiveSlow, silenceInLive, uploadLiveThumb } from '@/lib/live-engine';
 import { slugForIdentifier } from '@kamby/domain';
 import { TradeCard } from '@/components/social/TradeCard';
 import { PositionPicker } from '@/components/social/PositionPicker';
@@ -21,6 +21,7 @@ import { takePendingHost } from './pending-host';
 import { compactUsd, LiveDuelSheet, LivePositions, LiveTipSheet, useHostPerps } from './LiveWidgets';
 import { LiveCoinPanel, useCoinPrice } from './LiveCoinPanel';
 import { useLiveSwipe } from './useLiveSwipe';
+import { ChatTop, FloatingReactions, LiveSummaryView, ReactionBar, SlowButton, StreamInfo, useTipHighlight, type FloatingHandle } from './LiveExtras';
 import { useMediaQuery } from '@/lib/use-media';
 
 function Media({ track, kind, className, onBlocked }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string; onBlocked?: () => void }) {
@@ -85,6 +86,11 @@ export function LiveRoomScreen({ id }: { id: string }) {
   const coinPrice = useCoinPrice(desktop === false ? (room?.coin ?? null) : null);
   const listRef = useRef<HTMLDivElement>(null);
   const elapsed = useElapsed(room?.startedAt);
+  // Platform layer (2026-10-31): floating reactions, the highlighted tip, the host's end summary.
+  const floatRef = useRef<FloatingHandle>(null);
+  const mineInFlight = useRef(new Map<string, number>());
+  const tip = useTipHighlight(lines);
+  const [summary, setSummary] = useState<LiveSummary | null>(null);
 
   // The room, its chat, and its live stream.
   useEffect(() => {
@@ -111,6 +117,13 @@ export function LiveRoomScreen({ id }: { id: string }) {
           setLines((l) => l.filter((x) => x.id !== e.lineId));
         },
         ended: () => setEnded(true),
+        react: (data) => {
+          const e = JSON.parse(data) as { emoji: string };
+          // Your own tap already floated — skip its echo once.
+          const n = mineInFlight.current.get(e.emoji) ?? 0;
+          if (n > 0) mineInFlight.current.set(e.emoji, n - 1);
+          else floatRef.current?.add(e.emoji);
+        },
       },
       () => undefined,
     );
@@ -255,6 +268,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
           📡
         </span>
         <p className="mt-4 font-display text-xl font-black text-ink-900">{reported ? t('reported') : t('ended')}</p>
+        {summary && <LiveSummaryView summary={summary} />}
         <Link href="/home" className="mt-6 rounded-2xl bg-accent px-6 py-3 font-display text-sm font-bold text-black">
           {t('backHome')}
         </Link>
@@ -295,6 +309,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
 
       {/* Stage */}
       <div ref={stageRef} {...swipe.handlers} className="relative z-0 mx-3 min-h-0 flex-1 touch-pan-x overflow-hidden rounded-3xl border border-white/10 bg-black/60 lg:aspect-video lg:max-h-[52vh] lg:flex-none">
+        <FloatingReactions ref={floatRef} />
         {/* Sound the phone blocked: one tap turns it on */}
         {soundBlocked && (
           <button
@@ -426,6 +441,12 @@ export function LiveRoomScreen({ id }: { id: string }) {
         </div>
       )}
 
+      {/* Desktop: who's streaming, Follow and Share — like a channel bar */}
+      {desktop && room && (
+        <div className="relative z-10 mx-3 mt-3">
+          <StreamInfo room={room} elapsed={elapsed} />
+        </div>
+      )}
       {/* Desktop: the coin's chart and a buy box under the stage */}
       {desktop && room?.coin && (
         <div className="relative z-10 mx-3 mt-3">
@@ -451,6 +472,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
           ))}
         </div>
       )}
+      <ChatTop room={room} tip={tip} isHost={isHost} onUnpin={() => void pinLiveLine(id, null).catch((err: unknown) => setError(friendlyError(err)))} />
       {/* Chat */}
       <div ref={listRef} className="relative z-0 mt-2 min-h-0 flex-1 overflow-y-auto px-4 [mask-image:linear-gradient(transparent,#000_18%)] lg:[mask-image:none]">
         <div className="flex min-h-full flex-col justify-end gap-1 py-2">
@@ -479,6 +501,16 @@ export function LiveRoomScreen({ id }: { id: string }) {
                 </p>
                 {picked === l.id && (
                   <div className="mt-1 flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPicked(null);
+                        void pinLiveLine(id, l.id).catch((err: unknown) => setError(friendlyError(err)));
+                      }}
+                      className="rounded-full bg-accent/15 px-3 py-1 font-display text-[0.7rem] font-bold text-accent"
+                    >
+                      📌 {t('pin')}
+                    </button>
                     <button type="button" onClick={() => void moderate(l, 'remove')} className="rounded-full bg-white/[0.1] px-3 py-1 font-display text-[0.7rem] font-bold text-white">
                       {t('remove')}
                     </button>
@@ -495,6 +527,17 @@ export function LiveRoomScreen({ id }: { id: string }) {
 
       {error && <p className="relative z-10 mx-4 mb-1 rounded-xl bg-[#FF3B69]/15 px-3 py-1.5 text-center font-body text-xs text-[#FF8FA8]">{error}</p>}
 
+      {authenticated && room && (
+        <div className="relative z-10 px-3 pt-1">
+          <ReactionBar
+            roomId={id}
+            onLocal={(e) => {
+              mineInFlight.current.set(e, (mineInFlight.current.get(e) ?? 0) + 1);
+              floatRef.current?.add(e);
+            }}
+          />
+        </div>
+      )}
       {/* Bottom: chat input + host controls */}
       <div className="relative z-10 flex items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-1">
         {!authenticated ? (
@@ -529,7 +572,11 @@ export function LiveRoomScreen({ id }: { id: string }) {
             <button type="button" onClick={() => setPicking(true)} aria-label={t('pinTrade')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.12] text-white">
               ⚡
             </button>
-            <button type="button" onClick={() => void host.stop()} className="h-11 shrink-0 rounded-full bg-[#FF3B69] px-4 font-display text-xs font-black" aria-label={t('end')}>
+            <SlowButton seconds={room?.slowSec ?? 0} onChange={(sec) => void setLiveSlow(id, sec).catch((err: unknown) => setError(friendlyError(err)))} />
+            <button
+              type="button"
+              onClick={() => void host.stop().then(() => setSummary(host.summary))}
+              className="h-11 shrink-0 rounded-full bg-[#FF3B69] px-4 font-display text-xs font-black" aria-label={t('end')}>
               {t('end')}
             </button>
           </>

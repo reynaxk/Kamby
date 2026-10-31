@@ -1169,7 +1169,17 @@
     "cat_talk": "토크",
     "sortWatched": "인기순",
     "sortNew": "최신",
-    "voiceOnly": "음성"
+    "voiceOnly": "음성",
+    "react": "리액션",
+    "topTippers": "최고 후원자",
+    "slowOn": "슬로우 모드: {seconds}초마다 1개",
+    "slowMode": "슬로우 모드",
+    "pin": "고정",
+    "sumDuration": "방송 시간",
+    "sumPeak": "최고 시청자",
+    "sumTips": "후원",
+    "sumChat": "채팅 수",
+    "sumReactions": "리액션"
   },
   "snipe": {
     "bought": "매수",

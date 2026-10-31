@@ -1169,7 +1169,17 @@
     "cat_talk": "Talk",
     "sortWatched": "Meistgesehen",
     "sortNew": "Neueste",
-    "voiceOnly": "Stimme"
+    "voiceOnly": "Stimme",
+    "react": "Reaktionen",
+    "topTippers": "Top-Tipper",
+    "slowOn": "Slow-Mode: eine Nachricht alle {seconds}s",
+    "slowMode": "Slow-Mode",
+    "pin": "Anheften",
+    "sumDuration": "Live für",
+    "sumPeak": "Max. Zuschauer",
+    "sumTips": "Trinkgelder",
+    "sumChat": "Chat-Nachrichten",
+    "sumReactions": "Reaktionen"
   },
   "snipe": {
     "bought": "Gekauft",

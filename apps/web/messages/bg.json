@@ -1169,7 +1169,17 @@
     "cat_talk": "Разговор",
     "sortWatched": "Най-гледани",
     "sortNew": "Най-нови",
-    "voiceOnly": "Глас"
+    "voiceOnly": "Глас",
+    "react": "Реакции",
+    "topTippers": "Топ бакшиши",
+    "slowOn": "Бавен режим: 1 съобщение на {seconds} сек.",
+    "slowMode": "Бавен режим",
+    "pin": "Закачи",
+    "sumDuration": "На живо",
+    "sumPeak": "Най-много зрители",
+    "sumTips": "Бакшиши",
+    "sumChat": "Съобщения",
+    "sumReactions": "Реакции"
   },
   "snipe": {
     "bought": "Купено",

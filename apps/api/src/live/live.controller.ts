@@ -100,6 +100,26 @@ class RenegotiateDto {
   sessionDescription!: SdpDto;
 }
 
+class PinLineDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  lineId?: string;
+}
+
+class SlowDto {
+  @IsNumber()
+  @Min(0)
+  @Max(60)
+  seconds!: number;
+}
+
+class ReactDto {
+  @IsString()
+  @MaxLength(16)
+  emoji!: string;
+}
+
 class SayDto {
   @IsString()
   @MaxLength(300)
@@ -240,10 +260,11 @@ export class LiveController {
 
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  @HttpCode(204)
+  @HttpCode(200)
   @Post(':id/stop')
-  async stop(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
-    await this.live.stop(user.id, id);
+  stop(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: SessionUser) {
+    // The host's end-of-stream numbers (LiveSummary).
+    return this.live.stop(user.id, id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -292,6 +313,28 @@ export class LiveController {
   @Post(':id/trade')
   pinTrade(@Param('id', ParseUUIDPipe) id: string, @Body() body: PinTradeDto, @CurrentUser() user: SessionUser) {
     return this.live.pinTrade(user.id, id, body.chain && body.tokenAddress ? { chain: body.chain, tokenAddress: body.tokenAddress } : null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Post(':id/pin-line')
+  pinLine(@Param('id', ParseUUIDPipe) id: string, @Body() body: PinLineDto, @CurrentUser() user: SessionUser) {
+    return this.live.pinLine(user.id, id, body.lineId ?? null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Post(':id/slow')
+  setSlow(@Param('id', ParseUUIDPipe) id: string, @Body() body: SlowDto, @CurrentUser() user: SessionUser) {
+    return this.live.setSlow(user.id, id, body.seconds);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  @HttpCode(204)
+  @Post(':id/react')
+  async react(@Param('id', ParseUUIDPipe) id: string, @Body() body: ReactDto, @CurrentUser() user: SessionUser) {
+    await this.live.react(user.id, id, body.emoji);
   }
 
   @UseGuards(JwtAuthGuard)

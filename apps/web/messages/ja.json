@@ -1169,7 +1169,17 @@
     "cat_talk": "トーク",
     "sortWatched": "人気順",
     "sortNew": "新着",
-    "voiceOnly": "音声"
+    "voiceOnly": "音声",
+    "react": "リアクション",
+    "topTippers": "トップ投げ銭",
+    "slowOn": "スローモード：{seconds}秒に1件",
+    "slowMode": "スローモード",
+    "pin": "ピン留め",
+    "sumDuration": "配信時間",
+    "sumPeak": "最大視聴者",
+    "sumTips": "投げ銭",
+    "sumChat": "チャット数",
+    "sumReactions": "リアクション"
   },
   "snipe": {
     "bought": "購入",

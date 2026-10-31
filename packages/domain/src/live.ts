@@ -73,7 +73,16 @@ export interface LiveRoom {
   muted: boolean;
   /** The host's pinned Trade Card (2026-10-17) — viewers can ⚡ Copy Snipe it. */
   trade?: DmTrade | null;
+  /** A chat line the host pinned over the chat (2026-10-31, like Twitch / YouTube). */
+  pinned?: LiveChatLine | null;
+  /** Slow mode: seconds each person waits between messages (0 = off). */
+  slowSec?: number;
+  /** This stream's biggest tippers, most first (up to 3). */
+  topTippers?: { username: string; avatarUrl: string | null; usd: number }[];
 }
+
+/** Slow mode choices, in seconds. */
+export const LIVE_SLOW_OPTIONS = [0, 5, 15, 30] as const;
 
 export interface LiveChatLine {
   id: string;
@@ -89,8 +98,23 @@ export interface LiveChatLine {
 }
 
 export const LIVE_REALTIME_CHANNEL = 'kamby:live';
+/** Floating reactions (2026-10-31): the only emojis a viewer can send over the stage. */
+export const LIVE_REACTIONS = ['❤️', '🔥', '🚀', '💎', '😂', '👀'] as const;
+export type LiveReaction = (typeof LIVE_REACTIONS)[number];
+
+/** What the host sees when they end their stream (2026-10-31). */
+export interface LiveSummary {
+  durationSec: number;
+  peakViewers: number;
+  tips: number;
+  tipsUsd: number;
+  chatLines: number;
+  reactions: number;
+}
+
 export type LiveEvent =
   | { type: 'room'; roomId: string; room: LiveRoom }
+  | { type: 'react'; roomId: string; emoji: LiveReaction }
   | { type: 'chat'; roomId: string; line: LiveChatLine }
   | { type: 'removed'; roomId: string; lineId: string }
   | { type: 'ended'; roomId: string };
