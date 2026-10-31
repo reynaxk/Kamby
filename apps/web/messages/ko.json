@@ -261,7 +261,9 @@
     "feedChip1": "트레이드 카드",
     "feedChip2": "PnL 카드",
     "feedChip3": "사진·영상",
-    "feedChip4": "좋아요·답글"
+    "feedChip4": "좋아요·답글",
+    "pulseLive": "라이브 {count}개 · {viewers}명 시청 중",
+    "pulseNews": "최신 크립토 헤드라인"
   },
   "coin": {
     "price": "가격",

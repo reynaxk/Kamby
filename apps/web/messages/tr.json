@@ -261,7 +261,9 @@
     "feedChip1": "İşlem kartları",
     "feedChip2": "PnL kartları",
     "feedChip3": "Fotoğraf ve video",
-    "feedChip4": "Beğeni ve yanıtlar"
+    "feedChip4": "Beğeni ve yanıtlar",
+    "pulseLive": "{count} canlı yayın · {viewers} izleyici",
+    "pulseNews": "Son kripto manşetleri"
   },
   "coin": {
     "price": "Fiyat",

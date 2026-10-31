@@ -1,4 +1,5 @@
 import type { Candle, DiscoverSort, MarketFeedSnapshot, MarketSummary, PumpFunTokenSummary, Timeframe } from '@kamby/domain';
+import type { LiveRoom, NewsItem, NewsPage } from '@kamby/domain';
 import { env } from './env';
 
 /**
@@ -84,6 +85,16 @@ export async function fetchSolanaHistory(mint: string, timeframe: SolanaChartTim
  *  live over the stream (see lib/market-feeds.ts). */
 export async function fetchMarketFeeds(): Promise<MarketFeedSnapshot | null> {
   return apiGet<MarketFeedSnapshot>('/market/feeds', 10);
+}
+
+/** The latest headlines (the landing page's news strip). */
+export async function fetchLatestNews(limit = 10): Promise<NewsItem[]> {
+  return (await apiGet<NewsPage>(`/news?limit=${limit}`, 60))?.items ?? [];
+}
+
+/** Streams on air right now (the landing page's "live now" pill). */
+export async function fetchLiveRoomsNow(): Promise<LiveRoom[]> {
+  return (await apiGet<LiveRoom[]>('/live', 30)) ?? [];
 }
 
 /** Returns null only when the token genuinely isn't tracked — callers should render a

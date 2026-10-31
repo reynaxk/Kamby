@@ -261,7 +261,9 @@
     "feedChip1": "Cartes de trade",
     "feedChip2": "Cartes PnL",
     "feedChip3": "Photos et vidéos",
-    "feedChip4": "Likes et réponses"
+    "feedChip4": "Likes et réponses",
+    "pulseLive": "{count, plural, one {# live} other {# lives}} · {viewers} spectateurs",
+    "pulseNews": "Derniers titres crypto"
   },
   "coin": {
     "price": "Prix",

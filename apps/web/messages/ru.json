@@ -261,7 +261,9 @@
     "feedChip1": "Карточки сделок",
     "feedChip2": "PnL-карточки",
     "feedChip3": "Фото и видео",
-    "feedChip4": "Лайки и ответы"
+    "feedChip4": "Лайки и ответы",
+    "pulseLive": "{count, plural, one {# эфир} few {# эфира} other {# эфиров}} · {viewers} зрителей",
+    "pulseNews": "Последние крипто-новости"
   },
   "coin": {
     "price": "Цена",

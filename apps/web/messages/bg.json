@@ -261,7 +261,9 @@
     "feedChip1": "Карти на сделки",
     "feedChip2": "P&L карти",
     "feedChip3": "Снимки и видео",
-    "feedChip4": "Харесвания и отговори"
+    "feedChip4": "Харесвания и отговори",
+    "pulseLive": "{count, plural, one {# стрийм на живо} other {# стрийма на живо}} · {viewers} гледат",
+    "pulseNews": "Последни крипто новини"
   },
   "coin": {
     "price": "Цена",

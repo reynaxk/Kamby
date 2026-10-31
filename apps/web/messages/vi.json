@@ -261,7 +261,9 @@
     "feedChip1": "Thẻ giao dịch",
     "feedChip2": "Thẻ PnL",
     "feedChip3": "Ảnh và video",
-    "feedChip4": "Thích và trả lời"
+    "feedChip4": "Thích và trả lời",
+    "pulseLive": "{count} buổi live · {viewers} người xem",
+    "pulseNews": "Tin crypto mới nhất"
   },
   "coin": {
     "price": "Giá",

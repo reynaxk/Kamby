@@ -261,7 +261,9 @@
     "feedChip1": "การ์ดเทรด",
     "feedChip2": "การ์ด PnL",
     "feedChip3": "รูปและวิดีโอ",
-    "feedChip4": "ไลก์และตอบกลับ"
+    "feedChip4": "ไลก์และตอบกลับ",
+    "pulseLive": "ไลฟ์ {count} รายการ · {viewers} คนกำลังดู",
+    "pulseNews": "ข่าวคริปโตล่าสุด"
   },
   "coin": {
     "price": "ราคา",

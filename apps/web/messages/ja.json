@@ -261,7 +261,9 @@
     "feedChip1": "トレードカード",
     "feedChip2": "PnLカード",
     "feedChip3": "写真・動画",
-    "feedChip4": "いいね・返信"
+    "feedChip4": "いいね・返信",
+    "pulseLive": "ライブ配信 {count} 件 · {viewers} 人が視聴中",
+    "pulseNews": "最新の暗号資産ニュース"
   },
   "coin": {
     "price": "価格",

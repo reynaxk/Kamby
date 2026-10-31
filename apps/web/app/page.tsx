@@ -7,7 +7,8 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LiveShowcase } from '@/components/landing/LiveShowcase';
 import { LandingTicker } from '@/components/landing/LandingTicker';
 import { FeedShowcase } from '@/components/landing/FeedShowcase';
-import { fetchMarketFeeds } from '@/lib/market-api';
+import { fetchLatestNews, fetchLiveRoomsNow, fetchMarketFeeds } from '@/lib/market-api';
+import { LandingPulse } from '@/components/landing/LandingPulse';
 import { soft } from '@/lib/soft';
 import { LandingTour } from '@/components/landing/LandingTour';
 import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
 export default async function LandingPage() {
   const t = await getTranslations('landing');
   // Real coins for the ticker under the hero — capped, so a slow feed never holds the page.
-  const feeds = await soft(fetchMarketFeeds(), null);
+  const [feeds, news, rooms] = await Promise.all([soft(fetchMarketFeeds(), null), soft(fetchLatestNews(10), []), soft(fetchLiveRoomsNow(), [])]);
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#050608] text-white">
       <LandingHeader
@@ -108,6 +109,7 @@ export default async function LandingPage() {
             steps, the live tour, and what happens inside when you tap Buy — before the features. */}
         <div className="-mt-10 pb-10">
           <LandingTicker markets={feeds?.trending.markets ?? []} />
+          <LandingPulse news={news ?? []} rooms={rooms ?? []} />
         </div>
         <section className="pb-8">
           <ChainStrip />

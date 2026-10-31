@@ -261,7 +261,9 @@
     "feedChip1": "Kartu trade",
     "feedChip2": "Kartu PnL",
     "feedChip3": "Foto & video",
-    "feedChip4": "Suka & balasan"
+    "feedChip4": "Suka & balasan",
+    "pulseLive": "{count} siaran langsung · {viewers} menonton",
+    "pulseNews": "Berita kripto terbaru"
   },
   "coin": {
     "price": "Harga",

@@ -261,7 +261,9 @@
     "feedChip1": "交易卡",
     "feedChip2": "盈亏卡",
     "feedChip3": "照片和视频",
-    "feedChip4": "点赞和回复"
+    "feedChip4": "点赞和回复",
+    "pulseLive": "{count} 场直播 · {viewers} 人观看",
+    "pulseNews": "最新加密货币头条"
   },
   "coin": {
     "price": "价格",
