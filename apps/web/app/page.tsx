@@ -5,6 +5,10 @@ import { ChatShowcase } from '@/components/landing/ChatShowcase';
 import { HeroTrio } from '@/components/landing/HeroTrio';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LiveShowcase } from '@/components/landing/LiveShowcase';
+import { LandingTicker } from '@/components/landing/LandingTicker';
+import { FeedShowcase } from '@/components/landing/FeedShowcase';
+import { fetchMarketFeeds } from '@/lib/market-api';
+import { soft } from '@/lib/soft';
 import { LandingTour } from '@/components/landing/LandingTour';
 import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
@@ -27,6 +31,8 @@ export const metadata: Metadata = {
  */
 export default async function LandingPage() {
   const t = await getTranslations('landing');
+  // Real coins for the ticker under the hero — capped, so a slow feed never holds the page.
+  const feeds = await soft(fetchMarketFeeds(), null);
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#050608] text-white">
       <LandingHeader
@@ -34,6 +40,7 @@ export default async function LandingPage() {
         links={[
           { href: '#how', label: t('navHow') },
           { href: '#live', label: t('navLive') },
+          { href: '#feed', label: t('navFeed') },
           { href: '#chat', label: t('navChat') },
           { href: '#faq', label: t('navFaq') },
         ]}
@@ -97,7 +104,10 @@ export default async function LandingPage() {
       <main>
         {/* 2026-10-29 (owner: "more introducing and explaining"): the chains, how it works in three
             steps, the live tour, and what happens inside when you tap Buy — before the features. */}
-        <section className="-mt-8 pb-8">
+        <div className="-mt-10 pb-10">
+          <LandingTicker markets={feeds?.trending.markets ?? []} />
+        </div>
+        <section className="pb-8">
           <ChainStrip />
         </section>
         <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
@@ -119,6 +129,11 @@ export default async function LandingPage() {
               { icon: '💸', title: t('livePoint3'), body: t('livePoint3Body') },
             ]}
           />
+        </section>
+
+        {/* The Feed (2026-10-31) */}
+        <section id="feed" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+          <FeedShowcase kicker={t('feedKicker')} title={t('feedTitle')} body={t('feedBody')} chips={[t('feedChip1'), t('feedChip2'), t('feedChip3'), t('feedChip4')]} />
         </section>
 
         {/* Flex every win — the PnL cards marquee */}

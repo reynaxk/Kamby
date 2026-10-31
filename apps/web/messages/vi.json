@@ -251,7 +251,15 @@
     "livePoint2": "Sao chép một chạm",
     "livePoint2Body": "Giao dịch trong chat có nút Buy. Không gas, chỉ USDC.",
     "livePoint3": "Tip và cảm xúc",
-    "livePoint3Body": "Tip từ $5, thả cảm xúc, được ghim trên cùng chat."
+    "livePoint3Body": "Tip từ $5, thả cảm xúc, được ghim trên cùng chat.",
+    "navFeed": "Bảng tin",
+    "feedKicker": "Bảng tin",
+    "feedTitle": "Đăng giao dịch, không chỉ ý kiến.",
+    "feedBody": "Mỗi bài có thể kèm thẻ giao dịch hoặc PnL thật từ vị thế của bạn — không ai làm giả được số liệu. Thêm biểu đồ, ảnh hoặc clip.",
+    "feedChip1": "Thẻ giao dịch",
+    "feedChip2": "Thẻ PnL",
+    "feedChip3": "Ảnh và video",
+    "feedChip4": "Thích và trả lời"
   },
   "coin": {
     "price": "Giá",

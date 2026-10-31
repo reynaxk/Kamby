@@ -251,7 +251,15 @@
     "livePoint2": "Salin sekali ketuk",
     "livePoint2Body": "Trade di chat punya tombol Buy. Tanpa gas, cukup USDC.",
     "livePoint3": "Tip dan reaksi",
-    "livePoint3Body": "Kirim tip mulai $5, kirim reaksi, tersemat di atas chat."
+    "livePoint3Body": "Kirim tip mulai $5, kirim reaksi, tersemat di atas chat.",
+    "navFeed": "Feed",
+    "feedKicker": "Feed",
+    "feedTitle": "Posting trade-mu, bukan cuma opini.",
+    "feedBody": "Setiap posting bisa membawa kartu trade atau PnL asli dari posisimu — angkanya tak bisa dipalsukan. Tambah chart, foto, atau klip.",
+    "feedChip1": "Kartu trade",
+    "feedChip2": "Kartu PnL",
+    "feedChip3": "Foto & video",
+    "feedChip4": "Suka & balasan"
   },
   "coin": {
     "price": "Harga",

@@ -251,7 +251,15 @@
     "livePoint2": "ワンタップでコピー",
     "livePoint2Body": "チャットの取引にはBuyボタン。ガス不要、USDCだけ。",
     "livePoint3": "投げ銭とリアクション",
-    "livePoint3Body": "$5から投げ銭、リアクション、チャット上部にピン留め。"
+    "livePoint3Body": "$5から投げ銭、リアクション、チャット上部にピン留め。",
+    "navFeed": "フィード",
+    "feedKicker": "フィード",
+    "feedTitle": "意見だけでなく、トレードを投稿しよう。",
+    "feedBody": "投稿には実際のポジションからのトレードカードやPnLカードを添付でき、数字は偽れません。チャート、写真、動画も。",
+    "feedChip1": "トレードカード",
+    "feedChip2": "PnLカード",
+    "feedChip3": "写真・動画",
+    "feedChip4": "いいね・返信"
   },
   "coin": {
     "price": "価格",

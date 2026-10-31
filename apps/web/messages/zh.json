@@ -251,7 +251,15 @@
     "livePoint2": "一键跟单",
     "livePoint2Body": "聊天里的交易有 Buy 按钮。免 Gas，只用 USDC。",
     "livePoint3": "打赏与互动",
-    "livePoint3Body": "$5 起打赏、发送表情，置顶在聊天最上方。"
+    "livePoint3Body": "$5 起打赏、发送表情，置顶在聊天最上方。",
+    "navFeed": "动态",
+    "feedKicker": "动态",
+    "feedTitle": "晒交易，不只是观点。",
+    "feedBody": "每条帖子都能附上来自你真实仓位的交易卡或盈亏卡 — 数字造不了假。还能加图表、照片或短视频。",
+    "feedChip1": "交易卡",
+    "feedChip2": "盈亏卡",
+    "feedChip3": "照片和视频",
+    "feedChip4": "点赞和回复"
   },
   "coin": {
     "price": "价格",

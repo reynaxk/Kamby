@@ -251,7 +251,15 @@
     "livePoint2": "Copie en un geste",
     "livePoint2Body": "Un trade dans le chat a un bouton Buy. Sans gas, juste en USDC.",
     "livePoint3": "Pourboires et réactions",
-    "livePoint3Body": "Pourboire dès 5 $, réactions, et ton message épinglé en haut du chat."
+    "livePoint3Body": "Pourboire dès 5 $, réactions, et ton message épinglé en haut du chat.",
+    "navFeed": "Fil",
+    "feedKicker": "Le fil",
+    "feedTitle": "Publie tes trades, pas seulement tes avis.",
+    "feedBody": "Chaque post peut porter une vraie carte de trade ou de PnL tirée de ta position — impossible de truquer les chiffres. Ajoute un graphique, une photo ou un clip.",
+    "feedChip1": "Cartes de trade",
+    "feedChip2": "Cartes PnL",
+    "feedChip3": "Photos et vidéos",
+    "feedChip4": "Likes et réponses"
   },
   "coin": {
     "price": "Prix",

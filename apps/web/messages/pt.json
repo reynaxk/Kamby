@@ -251,7 +251,15 @@
     "livePoint2": "Copie com um toque",
     "livePoint2Body": "Um trade no chat tem botão Buy. Sem gas, só USDC.",
     "livePoint3": "Gorjetas e reações",
-    "livePoint3Body": "Gorjeta a partir de $5, reações e destaque fixado no topo do chat."
+    "livePoint3Body": "Gorjeta a partir de $5, reações e destaque fixado no topo do chat.",
+    "navFeed": "Feed",
+    "feedKicker": "O feed",
+    "feedTitle": "Poste seus trades, não só opiniões.",
+    "feedBody": "Cada post pode levar um card real de trade ou PnL da sua posição — ninguém falsifica os números. Adicione gráfico, foto ou clipe.",
+    "feedChip1": "Cards de trade",
+    "feedChip2": "Cards PnL",
+    "feedChip3": "Fotos e vídeos",
+    "feedChip4": "Curtidas e respostas"
   },
   "coin": {
     "price": "Preço",

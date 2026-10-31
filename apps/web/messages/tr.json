@@ -251,7 +251,15 @@
     "livePoint2": "Tek dokunuşla kopyala",
     "livePoint2Body": "Sohbetteki işlemin Buy butonu var. Gassız, sadece USDC.",
     "livePoint3": "Bahşiş ve tepkiler",
-    "livePoint3Body": "$5’tan bahşiş, tepkiler ve sohbetin en üstüne sabitlenme."
+    "livePoint3Body": "$5’tan bahşiş, tepkiler ve sohbetin en üstüne sabitlenme.",
+    "navFeed": "Akış",
+    "feedKicker": "Akış",
+    "feedTitle": "Sadece fikrini değil, işlemlerini paylaş.",
+    "feedBody": "Her gönderi gerçek pozisyonundan bir işlem ya da PnL kartı taşıyabilir — rakamlar uydurulamaz. Grafik, fotoğraf ya da klip ekle.",
+    "feedChip1": "İşlem kartları",
+    "feedChip2": "PnL kartları",
+    "feedChip3": "Fotoğraf ve video",
+    "feedChip4": "Beğeni ve yanıtlar"
   },
   "coin": {
     "price": "Fiyat",

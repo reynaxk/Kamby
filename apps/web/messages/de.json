@@ -251,7 +251,15 @@
     "livePoint2": "Mit einem Tipp kopieren",
     "livePoint2Body": "Ein Trade im Chat hat einen Buy-Button. Ohne Gas, nur USDC.",
     "livePoint3": "Trinkgeld & Reaktionen",
-    "livePoint3Body": "Trinkgeld ab $5, Reaktionen senden, oben im Chat angeheftet werden."
+    "livePoint3Body": "Trinkgeld ab $5, Reaktionen senden, oben im Chat angeheftet werden.",
+    "navFeed": "Feed",
+    "feedKicker": "Der Feed",
+    "feedTitle": "Poste deine Trades, nicht nur Meinungen.",
+    "feedBody": "Jeder Post kann eine echte Trade- oder PnL-Karte aus deiner Position tragen — niemand kann die Zahlen fälschen. Dazu Chart, Foto oder Clip.",
+    "feedChip1": "Trade-Karten",
+    "feedChip2": "PnL-Karten",
+    "feedChip3": "Fotos & Videos",
+    "feedChip4": "Likes & Antworten"
   },
   "coin": {
     "price": "Preis",

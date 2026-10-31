@@ -251,7 +251,15 @@
     "livePoint2": "Copy in one tap",
     "livePoint2Body": "A trade in chat has a Buy button. Gasless, with just USDC.",
     "livePoint3": "Tip and react",
-    "livePoint3Body": "Send a tip from $5, throw reactions, get pinned to the top of chat."
+    "livePoint3Body": "Send a tip from $5, throw reactions, get pinned to the top of chat.",
+    "navFeed": "Feed",
+    "feedKicker": "The feed",
+    "feedTitle": "Post your trades, not just your opinions.",
+    "feedBody": "Every post can carry a real Trade Card or PnL card from your actual position — nobody can fake the numbers. Add a chart, a photo or a clip.",
+    "feedChip1": "Trade cards",
+    "feedChip2": "PnL cards",
+    "feedChip3": "Photos & videos",
+    "feedChip4": "Likes & replies"
   },
   "coin": {
     "price": "Price",

@@ -251,7 +251,15 @@
     "livePoint2": "Copia con un toque",
     "livePoint2Body": "Una operación en el chat tiene botón Buy. Sin gas, solo USDC.",
     "livePoint3": "Propinas y reacciones",
-    "livePoint3Body": "Propinas desde $5, reacciones y tu mensaje fijado arriba del chat."
+    "livePoint3Body": "Propinas desde $5, reacciones y tu mensaje fijado arriba del chat.",
+    "navFeed": "Feed",
+    "feedKicker": "El feed",
+    "feedTitle": "Publica tus operaciones, no solo opiniones.",
+    "feedBody": "Cada post puede llevar una tarjeta real de trade o PnL de tu posición — nadie puede falsear los números. Añade un gráfico, foto o clip.",
+    "feedChip1": "Tarjetas de trade",
+    "feedChip2": "Tarjetas PnL",
+    "feedChip3": "Fotos y vídeos",
+    "feedChip4": "Likes y respuestas"
   },
   "coin": {
     "price": "Precio",

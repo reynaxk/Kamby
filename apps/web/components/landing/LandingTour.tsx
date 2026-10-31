@@ -71,7 +71,7 @@ export function LandingTour() {
           style={{ background: `radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, ${tab.tone} 14%, transparent), transparent 60%), #030305` }}
         >
           <div className="kw-grid pointer-events-none absolute inset-0" aria-hidden />
-          <div key={i} className="kw-in relative w-full max-w-[360px]">
+          <div key={i} className="kw-in relative w-full max-w-[420px]">
             {tab.art}
           </div>
         </div>

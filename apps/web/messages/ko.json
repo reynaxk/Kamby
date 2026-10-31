@@ -251,7 +251,15 @@
     "livePoint2": "한 번에 따라 사기",
     "livePoint2Body": "채팅의 거래에는 Buy 버튼. 가스 없이 USDC만.",
     "livePoint3": "후원과 리액션",
-    "livePoint3Body": "$5부터 후원, 리액션, 채팅 맨 위에 고정."
+    "livePoint3Body": "$5부터 후원, 리액션, 채팅 맨 위에 고정.",
+    "navFeed": "피드",
+    "feedKicker": "피드",
+    "feedTitle": "의견 말고 매매를 올리세요.",
+    "feedBody": "게시물에 실제 포지션의 트레이드 카드나 PnL 카드를 붙일 수 있어요 — 숫자는 조작할 수 없어요. 차트, 사진, 영상도 추가하세요.",
+    "feedChip1": "트레이드 카드",
+    "feedChip2": "PnL 카드",
+    "feedChip3": "사진·영상",
+    "feedChip4": "좋아요·답글"
   },
   "coin": {
     "price": "가격",
