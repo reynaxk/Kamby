@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "피드",
     "news": "뉴스",
-    "toggleMenu": "메뉴 접기/펼치기"
+    "toggleMenu": "메뉴 접기/펼치기",
+    "narratives": "내러티브"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -1602,5 +1603,27 @@
     "dismiss": "닫기",
     "sources": "{list}의 헤드라인. 기사는 언론사 사이트에서 열립니다.",
     "toastHolding": "보유 중"
+  },
+  "narratives": {
+    "title": "내러티브",
+    "subtitle": "지금 시장이 거래하는 이야기, 열기 순으로.",
+    "hottest": "가장 뜨거운 내러티브",
+    "filter_all": "전체",
+    "filter_superheated": "과열 🔥 80+",
+    "filter_live": "지금 라이브",
+    "filter_liquid": "높은 유동성",
+    "tier_superheated": "과열",
+    "tier_hot": "뜨거움",
+    "tier_warming": "데워지는 중",
+    "tier_cool": "식는 중",
+    "mc": "시총",
+    "vol1h": "거래량 1h",
+    "vol24h": "거래량 24h",
+    "streamingNow": "라이브 중",
+    "coins": "코인 {count}개",
+    "empty": "아직 내러티브가 없습니다 — 가격을 불러오는 중.",
+    "emptyFilter": "지금 이 필터에 맞는 항목이 없습니다.",
+    "howHeat": "Heat Index(0–100)는 실제 활동으로 계산합니다: 이번 시간 거래량과 평소 시간 비교, 최근 1시간 Kamby 거래, 이 코인 방송의 시청자 수, 이번 주 상위 트레이더의 순매수. 태그는 Kamby가 검증한 코인과 코인 이름에서 나옵니다. 투자 조언이 아닙니다.",
+    "pillsLabel": "내러티브"
   }
 }

@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Bảng tin",
     "news": "Tin tức",
-    "toggleMenu": "Thu gọn hoặc mở menu"
+    "toggleMenu": "Thu gọn hoặc mở menu",
+    "narratives": "Câu chuyện"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -1602,5 +1603,27 @@
     "dismiss": "Đóng",
     "sources": "Tiêu đề từ {list}. Bài viết mở trên trang của nhà xuất bản.",
     "toastHolding": "Bạn đang giữ"
+  },
+  "narratives": {
+    "title": "Câu chuyện",
+    "subtitle": "Những câu chuyện thị trường đang giao dịch, xếp theo độ nóng.",
+    "hottest": "Câu chuyện nóng nhất",
+    "filter_all": "Tất cả",
+    "filter_superheated": "Cực nóng 🔥 80+",
+    "filter_live": "Đang live",
+    "filter_liquid": "Thanh khoản cao",
+    "tier_superheated": "Cực nóng",
+    "tier_hot": "Nóng",
+    "tier_warming": "Đang ấm lên",
+    "tier_cool": "Đang nguội",
+    "mc": "MC",
+    "vol1h": "KL 1h",
+    "vol24h": "KL 24h",
+    "streamingNow": "Đang live",
+    "coins": "{count} coin",
+    "empty": "Chưa có câu chuyện — đang tải giá.",
+    "emptyFilter": "Hiện không có gì khớp bộ lọc này.",
+    "howHeat": "Heat Index (0–100) từ hoạt động thật: khối lượng giờ này so với một giờ bình thường, giao dịch trên Kamby trong giờ qua, người xem livestream về các coin này và lượng mua ròng của top trader tuần này. Nhãn lấy từ coin đã xác minh của Kamby và tên coin. Không phải lời khuyên.",
+    "pillsLabel": "Câu chuyện"
   }
 }

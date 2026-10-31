@@ -1,5 +1,5 @@
 import type { Candle, DiscoverSort, MarketFeedSnapshot, MarketSummary, PumpFunTokenSummary, Timeframe } from '@kamby/domain';
-import type { LiveRoom, NewsItem, NewsPage } from '@kamby/domain';
+import type { LiveRoom, NarrativesSnapshot, NewsItem, NewsPage } from '@kamby/domain';
 import { env } from './env';
 
 /**
@@ -90,6 +90,11 @@ export async function fetchMarketFeeds(): Promise<MarketFeedSnapshot | null> {
 /** The latest headlines (the landing page's news strip). */
 export async function fetchLatestNews(limit = 10): Promise<NewsItem[]> {
   return (await apiGet<NewsPage>(`/news?limit=${limit}`, 60))?.items ?? [];
+}
+
+/** Narratives and their Heat Index, for the Narratives page's first paint. */
+export async function fetchNarratives(): Promise<NarrativesSnapshot | null> {
+  return apiGet<NarrativesSnapshot>('/narratives', 30);
 }
 
 /** Streams on air right now (the landing page's "live now" pill). */

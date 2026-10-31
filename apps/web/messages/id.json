@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Feed",
     "news": "Berita",
-    "toggleMenu": "Ciutkan atau buka menu"
+    "toggleMenu": "Ciutkan atau buka menu",
+    "narratives": "Narasi"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -1602,5 +1603,27 @@
     "dismiss": "Tutup",
     "sources": "Judul dari {list}. Artikel dibuka di situs penerbit.",
     "toastHolding": "Kamu punya"
+  },
+  "narratives": {
+    "title": "Narasi",
+    "subtitle": "Cerita yang sedang diperdagangkan pasar, diurutkan dari yang terpanas.",
+    "hottest": "Narasi terpanas",
+    "filter_all": "Semua",
+    "filter_superheated": "Sangat panas 🔥 80+",
+    "filter_live": "Sedang live",
+    "filter_liquid": "Likuiditas tinggi",
+    "tier_superheated": "Sangat panas",
+    "tier_hot": "Panas",
+    "tier_warming": "Menghangat",
+    "tier_cool": "Mendingin",
+    "mc": "MC",
+    "vol1h": "Vol 1j",
+    "vol24h": "Vol 24j",
+    "streamingNow": "Sedang live",
+    "coins": "{count} koin",
+    "empty": "Belum ada narasi — harga sedang dimuat.",
+    "emptyFilter": "Tidak ada yang cocok dengan filter ini.",
+    "howHeat": "Heat Index (0–100) dari aktivitas nyata: volume jam ini dibanding jam biasa, transaksi Kamby dalam satu jam terakhir, penonton siaran tentang koin ini, dan pembelian bersih trader teratas minggu ini. Tag berasal dari koin terverifikasi Kamby dan nama koin. Bukan saran.",
+    "pillsLabel": "Narasi"
   }
 }

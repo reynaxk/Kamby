@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Akış",
     "news": "Haberler",
-    "toggleMenu": "Menüyü daralt veya aç"
+    "toggleMenu": "Menüyü daralt veya aç",
+    "narratives": "Anlatılar"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -1602,5 +1603,27 @@
     "dismiss": "Kapat",
     "sources": "{list} manşetleri. Makaleler yayıncının sitesinde açılır.",
     "toastHolding": "Sende var"
+  },
+  "narratives": {
+    "title": "Anlatılar",
+    "subtitle": "Piyasanın şu an işlem yaptığı hikâyeler, sıcaklığa göre.",
+    "hottest": "En sıcak anlatılar",
+    "filter_all": "Tümü",
+    "filter_superheated": "Kızgın 🔥 80+",
+    "filter_live": "Şu an canlı",
+    "filter_liquid": "Yüksek likidite",
+    "tier_superheated": "Kızgın",
+    "tier_hot": "Sıcak",
+    "tier_warming": "Isınıyor",
+    "tier_cool": "Soğuyor",
+    "mc": "MC",
+    "vol1h": "Hacim 1s",
+    "vol24h": "Hacim 24s",
+    "streamingNow": "Canlı yayında",
+    "coins": "{count} coin",
+    "empty": "Henüz anlatı yok — fiyatlar yükleniyor.",
+    "emptyFilter": "Şu an bu filtreye uyan bir şey yok.",
+    "howHeat": "Heat Index (0–100) gerçek etkinlikten: bu saatin hacmi ile normal bir saatin karşılaştırması, son bir saatteki Kamby işlemleri, bu coinlerle ilgili yayınların izleyicileri ve bu haftanın en iyi traderlarının net alımları. Etiketler Kamby’nin doğruladığı coinlerden ve coin adlarından gelir. Tavsiye değildir.",
+    "pillsLabel": "Anlatılar"
   }
 }

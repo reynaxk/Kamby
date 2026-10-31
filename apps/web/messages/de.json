@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Feed",
     "news": "News",
-    "toggleMenu": "Menü ein- oder ausklappen"
+    "toggleMenu": "Menü ein- oder ausklappen",
+    "narratives": "Narrative"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -1602,5 +1603,27 @@
     "dismiss": "Schließen",
     "sources": "Schlagzeilen von {list}. Artikel öffnen sich auf der Seite des Verlags.",
     "toastHolding": "In deinem Besitz"
+  },
+  "narratives": {
+    "title": "Narrative",
+    "subtitle": "Die Geschichten, die der Markt gerade handelt, nach Hitze sortiert.",
+    "hottest": "Heißeste Narrative",
+    "filter_all": "Alle",
+    "filter_superheated": "Glühend 🔥 80+",
+    "filter_live": "Gerade live",
+    "filter_liquid": "Hohe Liquidität",
+    "tier_superheated": "Glühend",
+    "tier_hot": "Heiß",
+    "tier_warming": "Wärmt auf",
+    "tier_cool": "Kühlt ab",
+    "mc": "MC",
+    "vol1h": "Vol 1h",
+    "vol24h": "Vol 24h",
+    "streamingNow": "Jetzt live",
+    "coins": "{count, plural, one {# Coin} other {# Coins}}",
+    "empty": "Noch keine Narrative — Preise laden.",
+    "emptyFilter": "Gerade passt nichts zu diesem Filter.",
+    "howHeat": "Heat Index (0–100) aus echter Aktivität: Volumen dieser Stunde gegenüber einer normalen Stunde, Kamby-Trades der letzten Stunde, Zuschauer in Streams zu diesen Coins und die Nettokäufe der Top-Trader dieser Woche. Tags stammen von Kambys verifizierten Coins und Coin-Namen. Keine Beratung.",
+    "pillsLabel": "Narrative"
   }
 }

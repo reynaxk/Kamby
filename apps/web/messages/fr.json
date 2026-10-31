@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Fil",
     "news": "Actus",
-    "toggleMenu": "Replier ou ouvrir le menu"
+    "toggleMenu": "Replier ou ouvrir le menu",
+    "narratives": "Narratifs"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -1602,5 +1603,27 @@
     "dismiss": "Fermer",
     "sources": "Titres de {list}. Les articles s’ouvrent sur le site de l’éditeur.",
     "toastHolding": "Tu la détiens"
+  },
+  "narratives": {
+    "title": "Narratifs",
+    "subtitle": "Les histoires que le marché trade en ce moment, classées par chaleur.",
+    "hottest": "Narratifs les plus chauds",
+    "filter_all": "Tous",
+    "filter_superheated": "Brûlants 🔥 80+",
+    "filter_live": "En live maintenant",
+    "filter_liquid": "Forte liquidité",
+    "tier_superheated": "Brûlant",
+    "tier_hot": "Chaud",
+    "tier_warming": "Se réchauffe",
+    "tier_cool": "Refroidit",
+    "mc": "MC",
+    "vol1h": "Vol 1h",
+    "vol24h": "Vol 24h",
+    "streamingNow": "En live",
+    "coins": "{count, plural, one {# crypto} other {# cryptos}}",
+    "empty": "Pas encore de narratifs — chargement des prix.",
+    "emptyFilter": "Rien ne correspond à ce filtre pour l’instant.",
+    "howHeat": "Heat Index (0–100) basé sur l’activité réelle : volume de cette heure vs une heure normale, trades Kamby de la dernière heure, spectateurs des lives sur ces cryptos et achats nets des meilleurs traders de la semaine. Les tags viennent des cryptos vérifiées par Kamby et de leurs noms. Pas un conseil.",
+    "pillsLabel": "Narratifs"
   }
 }

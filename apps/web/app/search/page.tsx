@@ -47,6 +47,7 @@ export default async function SearchPage() {
 async function ExploreLinks() {
   const t = await getTranslations('nav');
   const links = [
+    { href: '/narratives', icon: '🔥', label: t('narratives') },
     { href: '/news', icon: '📰', label: t('news') },
     { href: '/live', icon: '🔴', label: t('live') },
     ...(FEED_ENABLED ? [{ href: '/feed', icon: '💬', label: t('feed') }] : []),

@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Feed",
     "news": "Notícias",
-    "toggleMenu": "Recolher ou abrir o menu"
+    "toggleMenu": "Recolher ou abrir o menu",
+    "narratives": "Narrativas"
   },
   "install": {
     "title": "Baixe o app Kamby",
@@ -1602,5 +1603,27 @@
     "dismiss": "Fechar",
     "sources": "Manchetes de {list}. Os artigos abrem no site do veículo.",
     "toastHolding": "Você tem"
+  },
+  "narratives": {
+    "title": "Narrativas",
+    "subtitle": "As histórias que o mercado está negociando agora, por calor.",
+    "hottest": "Narrativas mais quentes",
+    "filter_all": "Todas",
+    "filter_superheated": "Superaquecidas 🔥 80+",
+    "filter_live": "Ao vivo agora",
+    "filter_liquid": "Alta liquidez",
+    "tier_superheated": "Superaquecida",
+    "tier_hot": "Quente",
+    "tier_warming": "Esquentando",
+    "tier_cool": "Esfriando",
+    "mc": "MC",
+    "vol1h": "Vol 1h",
+    "vol24h": "Vol 24h",
+    "streamingNow": "Ao vivo",
+    "coins": "{count, plural, one {# moeda} other {# moedas}}",
+    "empty": "Ainda não há narrativas — carregando preços.",
+    "emptyFilter": "Nada corresponde a este filtro agora.",
+    "howHeat": "Heat Index (0–100) a partir de atividade real: volume desta hora vs uma hora normal, negociações na Kamby na última hora, pessoas assistindo lives sobre essas moedas e compras líquidas dos melhores traders da semana. As tags vêm das moedas verificadas da Kamby e dos nomes. Não é conselho.",
+    "pillsLabel": "Narrativas"
   }
 }

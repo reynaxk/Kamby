@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "フィード",
     "news": "ニュース",
-    "toggleMenu": "メニューを折りたたむ／開く"
+    "toggleMenu": "メニューを折りたたむ／開く",
+    "narratives": "ナラティブ"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -1602,5 +1603,27 @@
     "dismiss": "閉じる",
     "sources": "{list} の見出し。記事は各メディアのサイトで開きます。",
     "toastHolding": "保有中"
+  },
+  "narratives": {
+    "title": "ナラティブ",
+    "subtitle": "今マーケットが取引しているテーマを熱量順に。",
+    "hottest": "最も熱いナラティブ",
+    "filter_all": "すべて",
+    "filter_superheated": "過熱 🔥 80+",
+    "filter_live": "ライブ配信中",
+    "filter_liquid": "高流動性",
+    "tier_superheated": "過熱",
+    "tier_hot": "ホット",
+    "tier_warming": "温まり中",
+    "tier_cool": "冷え気味",
+    "mc": "時価総額",
+    "vol1h": "出来高 1h",
+    "vol24h": "出来高 24h",
+    "streamingNow": "配信中",
+    "coins": "{count} 銘柄",
+    "empty": "まだナラティブがありません — 価格を読み込み中。",
+    "emptyFilter": "このフィルターに合うものは今ありません。",
+    "howHeat": "Heat Index（0〜100）は実際の動きから算出：この1時間の出来高と通常の1時間の比較、直近1時間のKambyでの取引、これらの銘柄の配信の視聴者数、今週のトップトレーダーの純買い。タグはKambyが検証した銘柄と銘柄名に基づきます。投資助言ではありません。",
+    "pillsLabel": "ナラティブ"
   }
 }

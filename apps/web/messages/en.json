@@ -12,7 +12,8 @@
     "launchpad": "LaunchPad",
     "feed": "Feed",
     "news": "News",
-    "toggleMenu": "Fold or open the menu"
+    "toggleMenu": "Fold or open the menu",
+    "narratives": "Narratives"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -1602,5 +1603,27 @@
     "dismiss": "Dismiss",
     "sources": "Headlines from {list}. Articles open on the publisher’s site.",
     "toastHolding": "You hold"
+  },
+  "narratives": {
+    "title": "Narratives",
+    "subtitle": "The stories the market is trading right now, ranked by heat.",
+    "hottest": "Hottest narratives",
+    "filter_all": "All",
+    "filter_superheated": "Superheated 🔥 80+",
+    "filter_live": "Live streamed now",
+    "filter_liquid": "High liquidity",
+    "tier_superheated": "Superheated",
+    "tier_hot": "Hot",
+    "tier_warming": "Warming up",
+    "tier_cool": "Cooling",
+    "mc": "MC",
+    "vol1h": "Vol 1h",
+    "vol24h": "Vol 24h",
+    "streamingNow": "Streaming now",
+    "coins": "{count, plural, one {# coin} other {# coins}}",
+    "empty": "No narratives yet — prices are loading.",
+    "emptyFilter": "Nothing matches this filter right now.",
+    "howHeat": "Heat Index (0–100) from real activity: volume this hour vs a normal hour, Kamby trades in the last hour, people watching streams about these coins, and this week’s top traders’ net buys. Tags come from Kamby’s verified coins and coin names. Not advice.",
+    "pillsLabel": "Narratives"
   }
 }

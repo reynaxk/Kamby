@@ -89,7 +89,8 @@ export const NARRATIVES: readonly NarrativeDef[] = [
     id: 'cats',
     name: 'Cat Coins',
     emoji: '🐱',
-    keywords: /(cat|kitty|kitten|meow|neko|mew|purr|toshi)/i,
+    // "toshi" left out (it tagged "Satoshi"); TOSHI is a seed. "cat" but not "…cation".
+    keywords: /(cat(?!ion)|kitty|kitten|meow|neko|\bmew\b|purr|gato)/i,
     seeds: [s(BASE, '0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4')],
   },
   {
