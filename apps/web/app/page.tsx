@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { KambyLogo } from '@/components/layout/KambyLogo';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { ChatShowcase } from '@/components/landing/ChatShowcase';
 import { HeroTrio } from '@/components/landing/HeroTrio';
+import { LandingHeader } from '@/components/landing/LandingHeader';
+import { LiveShowcase } from '@/components/landing/LiveShowcase';
 import { LandingTour } from '@/components/landing/LandingTour';
 import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
@@ -28,8 +29,17 @@ export default async function LandingPage() {
   const t = await getTranslations('landing');
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#050608] text-white">
+      <LandingHeader
+        signIn={t('signIn')}
+        links={[
+          { href: '#how', label: t('navHow') },
+          { href: '#live', label: t('navLive') },
+          { href: '#chat', label: t('navChat') },
+          { href: '#faq', label: t('navFaq') },
+        ]}
+      />
       {/* Hero */}
-      <section className="relative isolate overflow-hidden">
+      <section id="top" className="relative isolate -mt-[4.5rem] overflow-hidden pt-[4.5rem]">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           {/* Ambient light: a neon wash from the top and a deep emerald pool behind the terminal */}
           <div className="absolute left-1/2 top-[-18rem] h-[42rem] w-[70rem] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,255,102,0.16),transparent)]" />
@@ -39,17 +49,6 @@ export default async function LandingPage() {
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050608] to-transparent" />
         </div>
 
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
-          <div className="flex items-center gap-2">
-            <KambyLogo />
-          </div>
-          <nav className="flex items-center gap-1">
-            <Link href="/leaderboard" className="hidden rounded-lg px-3 py-2 font-mono text-xs uppercase tracking-wider text-[#64748B] transition-colors hover:text-white sm:block">
-              {t('leaderboard')}
-            </Link>
-            <LandingCta label={t('signIn')} variant="ghost" className="px-4 py-2" />
-          </nav>
-        </header>
 
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 lg:pb-24 lg:pt-12">
           <div className="text-center lg:text-left">
@@ -101,11 +100,25 @@ export default async function LandingPage() {
         <section className="-mt-8 pb-8">
           <ChainStrip />
         </section>
-        <section className="mx-auto max-w-6xl px-5 py-20">
+        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
           <HowItWorks />
         </section>
         <section className="mx-auto max-w-6xl px-5 py-20">
           <LandingTour />
+        </section>
+
+        {/* Live trading streams (2026-10-31) */}
+        <section id="live" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+          <LiveShowcase
+            kicker={t('liveKicker')}
+            title={t('liveTitle')}
+            body={t('liveBody')}
+            points={[
+              { icon: '📺', title: t('livePoint1'), body: t('livePoint1Body') },
+              { icon: '⚡', title: t('livePoint2'), body: t('livePoint2Body') },
+              { icon: '💸', title: t('livePoint3'), body: t('livePoint3Body') },
+            ]}
+          />
         </section>
 
         {/* Flex every win — the PnL cards marquee */}
@@ -114,7 +127,7 @@ export default async function LandingPage() {
         </section>
 
         {/* The chats */}
-        <section className="mx-auto max-w-6xl px-5 py-20">
+        <section id="chat" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
           <ChatShowcase
             title={t('chatTitle')}
             body={t('chatBody')}
@@ -129,7 +142,7 @@ export default async function LandingPage() {
           <UnderTheHood />
         </section>
 
-        <section className="mx-auto max-w-3xl px-5 py-20">
+        <section id="faq" className="scroll-mt-20 mx-auto max-w-3xl px-5 py-20">
           <LandingFaq />
         </section>
 

@@ -238,7 +238,20 @@
     "featTrades": "Canlı işlemler",
     "featFeed": "Sosyal akış",
     "featChat": "Mesajlar",
-    "featStreams": "Canlı yayın"
+    "featStreams": "Canlı yayın",
+    "navHow": "Nasıl çalışır",
+    "navLive": "Canlı",
+    "navChat": "Sohbet",
+    "navFaq": "SSS",
+    "liveKicker": "Canlı trading",
+    "liveTitle": "Trader’ları canlı izle.",
+    "liveBody": "Trading için yayınlar: yayıncı ekranını paylaşır, her alım sohbete düşer, tek dokunuşla kopyalarsın.",
+    "livePoint1": "Ekranı izle",
+    "livePoint1Body": "Grafiği, pozisyonları ve kamerası — bir saniyenin altında.",
+    "livePoint2": "Tek dokunuşla kopyala",
+    "livePoint2Body": "Sohbetteki işlemin Buy butonu var. Gassız, sadece USDC.",
+    "livePoint3": "Bahşiş ve tepkiler",
+    "livePoint3Body": "$5’tan bahşiş, tepkiler ve sohbetin en üstüne sabitlenme."
   },
   "coin": {
     "price": "Fiyat",

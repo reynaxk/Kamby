@@ -238,7 +238,20 @@
     "featTrades": "Trades en direct",
     "featFeed": "Fil social",
     "featChat": "Chat privé",
-    "featStreams": "Lives"
+    "featStreams": "Lives",
+    "navHow": "Comment ça marche",
+    "navLive": "Live",
+    "navChat": "Chat",
+    "navFaq": "FAQ",
+    "liveKicker": "Trading en direct",
+    "liveTitle": "Regarde des traders trader. En direct.",
+    "liveBody": "Des lives faits pour le trading : l’hôte partage son écran, chaque achat arrive dans le chat et tu le copies en un geste.",
+    "livePoint1": "Vois l’écran",
+    "livePoint1Body": "Son graphique, ses positions et sa caméra — moins d’une seconde de retard.",
+    "livePoint2": "Copie en un geste",
+    "livePoint2Body": "Un trade dans le chat a un bouton Buy. Sans gas, juste en USDC.",
+    "livePoint3": "Pourboires et réactions",
+    "livePoint3Body": "Pourboire dès 5 $, réactions, et ton message épinglé en haut du chat."
   },
   "coin": {
     "price": "Prix",

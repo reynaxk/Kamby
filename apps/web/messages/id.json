@@ -238,7 +238,20 @@
     "featTrades": "Trade live",
     "featFeed": "Feed sosial",
     "featChat": "Chat langsung",
-    "featStreams": "Live stream"
+    "featStreams": "Live stream",
+    "navHow": "Cara kerja",
+    "navLive": "Live",
+    "navChat": "Chat",
+    "navFaq": "FAQ",
+    "liveKicker": "Trading live",
+    "liveTitle": "Tonton trader trading. Live.",
+    "liveBody": "Stream untuk trading: host membagikan layar, setiap pembelian muncul di chat dan bisa kamu salin sekali ketuk.",
+    "livePoint1": "Lihat layarnya",
+    "livePoint1Body": "Chart, posisi, dan kameranya — kurang dari sedetik.",
+    "livePoint2": "Salin sekali ketuk",
+    "livePoint2Body": "Trade di chat punya tombol Buy. Tanpa gas, cukup USDC.",
+    "livePoint3": "Tip dan reaksi",
+    "livePoint3Body": "Kirim tip mulai $5, kirim reaksi, tersemat di atas chat."
   },
   "coin": {
     "price": "Harga",

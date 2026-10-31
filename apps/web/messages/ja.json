@@ -238,7 +238,20 @@
     "featTrades": "ライブ取引",
     "featFeed": "ソーシャル",
     "featChat": "DM",
-    "featStreams": "ライブ配信"
+    "featStreams": "ライブ配信",
+    "navHow": "使い方",
+    "navLive": "ライブ",
+    "navChat": "チャット",
+    "navFaq": "よくある質問",
+    "liveKicker": "ライブトレード",
+    "liveTitle": "トレーダーの取引をライブで見よう。",
+    "liveBody": "取引のための配信：配信者が画面を共有し、購入がチャットに流れ、ワンタップでコピーできます。",
+    "livePoint1": "画面を見る",
+    "livePoint1Body": "チャート、ポジション、カメラ — 遅延1秒未満。",
+    "livePoint2": "ワンタップでコピー",
+    "livePoint2Body": "チャットの取引にはBuyボタン。ガス不要、USDCだけ。",
+    "livePoint3": "投げ銭とリアクション",
+    "livePoint3Body": "$5から投げ銭、リアクション、チャット上部にピン留め。"
   },
   "coin": {
     "price": "価格",

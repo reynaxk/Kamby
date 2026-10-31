@@ -238,7 +238,20 @@
     "featTrades": "Live trades",
     "featFeed": "Social feed",
     "featChat": "Direct chat",
-    "featStreams": "Live streams"
+    "featStreams": "Live streams",
+    "navHow": "How it works",
+    "navLive": "Live",
+    "navChat": "Chat",
+    "navFaq": "FAQ",
+    "liveKicker": "Live trading",
+    "liveTitle": "Watch traders trade. Live.",
+    "liveBody": "Streams made for trading: the host shares their screen, every buy lands in chat, and you can copy it in one tap.",
+    "livePoint1": "Watch the screen",
+    "livePoint1Body": "Their chart, their positions and their camera — under a second behind.",
+    "livePoint2": "Copy in one tap",
+    "livePoint2Body": "A trade in chat has a Buy button. Gasless, with just USDC.",
+    "livePoint3": "Tip and react",
+    "livePoint3Body": "Send a tip from $5, throw reactions, get pinned to the top of chat."
   },
   "coin": {
     "price": "Price",

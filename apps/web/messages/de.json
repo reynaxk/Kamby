@@ -238,7 +238,20 @@
     "featTrades": "Live-Trades",
     "featFeed": "Social Feed",
     "featChat": "Direktchat",
-    "featStreams": "Livestreams"
+    "featStreams": "Livestreams",
+    "navHow": "So geht’s",
+    "navLive": "Live",
+    "navChat": "Chat",
+    "navFaq": "FAQ",
+    "liveKicker": "Live-Trading",
+    "liveTitle": "Schau Tradern live beim Traden zu.",
+    "liveBody": "Streams fürs Trading: Der Host teilt den Bildschirm, jeder Kauf landet im Chat — kopiere ihn mit einem Tipp.",
+    "livePoint1": "Bildschirm sehen",
+    "livePoint1Body": "Chart, Positionen und Kamera — unter einer Sekunde Verzögerung.",
+    "livePoint2": "Mit einem Tipp kopieren",
+    "livePoint2Body": "Ein Trade im Chat hat einen Buy-Button. Ohne Gas, nur USDC.",
+    "livePoint3": "Trinkgeld & Reaktionen",
+    "livePoint3Body": "Trinkgeld ab $5, Reaktionen senden, oben im Chat angeheftet werden."
   },
   "coin": {
     "price": "Preis",

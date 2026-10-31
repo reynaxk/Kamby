@@ -238,7 +238,20 @@
     "featTrades": "实时交易",
     "featFeed": "社交动态",
     "featChat": "私信",
-    "featStreams": "直播"
+    "featStreams": "直播",
+    "navHow": "如何使用",
+    "navLive": "直播",
+    "navChat": "聊天",
+    "navFaq": "常见问题",
+    "liveKicker": "直播交易",
+    "liveTitle": "看交易员实时交易。",
+    "liveBody": "为交易而生的直播：主播共享屏幕，每笔买入都出现在聊天里，一键跟单。",
+    "livePoint1": "看屏幕",
+    "livePoint1Body": "他的图表、仓位和摄像头 — 延迟不到一秒。",
+    "livePoint2": "一键跟单",
+    "livePoint2Body": "聊天里的交易有 Buy 按钮。免 Gas，只用 USDC。",
+    "livePoint3": "打赏与互动",
+    "livePoint3Body": "$5 起打赏、发送表情，置顶在聊天最上方。"
   },
   "coin": {
     "price": "价格",

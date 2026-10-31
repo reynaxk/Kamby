@@ -238,7 +238,20 @@
     "featTrades": "실시간 거래",
     "featFeed": "소셜 피드",
     "featChat": "DM",
-    "featStreams": "라이브"
+    "featStreams": "라이브",
+    "navHow": "이용 방법",
+    "navLive": "라이브",
+    "navChat": "채팅",
+    "navFaq": "FAQ",
+    "liveKicker": "라이브 트레이딩",
+    "liveTitle": "트레이더의 매매를 라이브로 보세요.",
+    "liveBody": "트레이딩을 위한 방송: 호스트가 화면을 공유하고, 매수가 채팅에 뜨며, 한 번에 따라 살 수 있어요.",
+    "livePoint1": "화면 보기",
+    "livePoint1Body": "차트, 포지션, 카메라 — 1초 미만 지연.",
+    "livePoint2": "한 번에 따라 사기",
+    "livePoint2Body": "채팅의 거래에는 Buy 버튼. 가스 없이 USDC만.",
+    "livePoint3": "후원과 리액션",
+    "livePoint3Body": "$5부터 후원, 리액션, 채팅 맨 위에 고정."
   },
   "coin": {
     "price": "가격",

@@ -238,7 +238,20 @@
     "featTrades": "Trades en vivo",
     "featFeed": "Feed social",
     "featChat": "Chat directo",
-    "featStreams": "Directos"
+    "featStreams": "Directos",
+    "navHow": "Cómo funciona",
+    "navLive": "En vivo",
+    "navChat": "Chat",
+    "navFaq": "Preguntas",
+    "liveKicker": "Trading en vivo",
+    "liveTitle": "Mira a traders operar. En vivo.",
+    "liveBody": "Directos hechos para el trading: el host comparte su pantalla, cada compra llega al chat y la copias con un toque.",
+    "livePoint1": "Mira la pantalla",
+    "livePoint1Body": "Su gráfico, sus posiciones y su cámara, con menos de un segundo de retraso.",
+    "livePoint2": "Copia con un toque",
+    "livePoint2Body": "Una operación en el chat tiene botón Buy. Sin gas, solo USDC.",
+    "livePoint3": "Propinas y reacciones",
+    "livePoint3Body": "Propinas desde $5, reacciones y tu mensaje fijado arriba del chat."
   },
   "coin": {
     "price": "Precio",

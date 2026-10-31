@@ -238,7 +238,20 @@
     "featTrades": "Giao dịch live",
     "featFeed": "Bảng tin",
     "featChat": "Nhắn tin",
-    "featStreams": "Livestream"
+    "featStreams": "Livestream",
+    "navHow": "Cách hoạt động",
+    "navLive": "Live",
+    "navChat": "Chat",
+    "navFaq": "Hỏi đáp",
+    "liveKicker": "Giao dịch trực tiếp",
+    "liveTitle": "Xem trader giao dịch. Trực tiếp.",
+    "liveBody": "Livestream cho giao dịch: host chia sẻ màn hình, mỗi lệnh mua hiện trong chat và bạn sao chép bằng một chạm.",
+    "livePoint1": "Xem màn hình",
+    "livePoint1Body": "Biểu đồ, vị thế và camera — trễ dưới một giây.",
+    "livePoint2": "Sao chép một chạm",
+    "livePoint2Body": "Giao dịch trong chat có nút Buy. Không gas, chỉ USDC.",
+    "livePoint3": "Tip và cảm xúc",
+    "livePoint3Body": "Tip từ $5, thả cảm xúc, được ghim trên cùng chat."
   },
   "coin": {
     "price": "Giá",
