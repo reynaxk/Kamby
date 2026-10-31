@@ -23,6 +23,7 @@ import { LiveTradesPanel } from './LiveTradesPanel';
 import { CurveTradePanel } from '@/components/trading/CurveTradePanel';
 import { TokenStreamChatLazy } from '@/components/chat/TokenStreamChatLazy';
 import { WatchButton } from '@/components/market/WatchButton';
+import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -133,36 +134,36 @@ export function KambyTerminal({
         initialMarketCapUsd={market.marketCapUsd}
         watch={<WatchButton address={market.tokenAddress} chainId={chainId} initialWatching={null} compact />}
         banner={banner}
-        chart={<TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" />}
+        chart={<WidgetBoundary name="chart" className="h-full"><TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" /></WidgetBoundary>}
         tabs={[
-          { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <HoldersPanel source={chartSource} onCount={setHolderCount} /> },
+          { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <WidgetBoundary name="holders"><HoldersPanel source={chartSource} onCount={setHolderCount} /></WidgetBoundary> },
           {
             id: 'chat',
             label: tChat('tab'),
-            content: <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} phone className="h-[560px]" />,
+            content: <WidgetBoundary name="token-chat"><TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} phone className="h-[560px]" /></WidgetBoundary>,
           },
-          { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={chartSource} /> },
-          { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></div> },
+          { id: 'trades', label: tU('trades_18da'), content: <WidgetBoundary name="live-trades"><LiveTradesPanel source={chartSource} /></WidgetBoundary> },
+          { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><WidgetBoundary name="traders"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></WidgetBoundary></div> },
           {
             id: 'about',
             label: tL('tab_about'),
             content: (
               <div className="flex flex-col gap-3 px-4 pt-3">
-                <MyPositionsPanel />
-                <CoinInfoTab
+                <WidgetBoundary name="positions"><MyPositionsPanel /></WidgetBoundary>
+                <WidgetBoundary name="coin-info"><CoinInfoTab
                   source={chartSource}
                   chain={chain === 'bnb' ? 'bnb' : chain === 'robinhood' ? 'robinhood' : 'base'}
                   address={market.tokenAddress}
                   chainIdentifier={market.chainIdentifier}
                   symbol={market.symbol}
                   fallback={{ marketCapUsd: market.marketCapUsd, liquidityUsd: market.liquidityUsd }}
-                />
+                /></WidgetBoundary>
               </div>
             ),
           },
         ]}
         canTrade={canTrade || onCurve}
-        renderTrade={(side) => onCurve ? (
+        renderTrade={(side) => <WidgetBoundary name="trade">{onCurve ? (
           <div className="px-1 pb-2">
             <CurveTradePanel key={side} tokenAddress={market.tokenAddress} tokenSymbol={market.symbol} initialSide={side} />
           </div>
@@ -180,7 +181,7 @@ export function KambyTerminal({
             quoteTokenDecimals={market.quoteDecimals as number}
             volatile={!isCuratedMarket(market.chainIdentifier, market.tokenAddress)}
           />
-        )}
+        )}</WidgetBoundary>}
       />
     );
   }
@@ -196,19 +197,23 @@ export function KambyTerminal({
           </div>
 
           <div className="flex min-w-0 flex-col gap-3">
-            <TokenMetricsBar market={market} />
+            <WidgetBoundary name="metrics"><TokenMetricsBar market={market} /></WidgetBoundary>
             {/* The visual hero of the terminal — elevated + a restrained accent glow rather
                 than glass: lightweight-charts renders to a <canvas>, so nothing sits behind
                 this card for a backdrop-blur to reveal. */}
-            <TokenChartCard
-              source={chartSource}
-              initialTimeframe={timeframe}
-              initialCandles={candles}
-              trades={traders.recentLargeTrades}
-              className="h-[320px]"
-            />
+            <WidgetBoundary name="chart" className="h-[320px]">
+              <TokenChartCard
+                source={chartSource}
+                initialTimeframe={timeframe}
+                initialCandles={candles}
+                trades={traders.recentLargeTrades}
+                className="h-[320px]"
+              />
+            </WidgetBoundary>
             <div className="h-[300px]">
-              <DataHub activity={activity} source={chartSource} />
+              <WidgetBoundary name="data-hub" className="h-full">
+                <DataHub activity={activity} source={chartSource} />
+              </WidgetBoundary>
             </div>
           </div>
 
@@ -216,14 +221,18 @@ export function KambyTerminal({
             {/* Same guard as the old page.tsx layout — decimals are nullable
                 (MarketSummarySchema) until the ingestion worker has resolved them live from
                 the token contract; never pass a null decimals into TradePanel. */}
-            {tradePanel}
+            <WidgetBoundary name="trade">{tradePanel}</WidgetBoundary>
             <div className="h-[440px] overflow-hidden rounded-2xl border border-line bg-surface">
-              <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} className="h-full" />
+              <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">
+                <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} className="h-full" />
+              </WidgetBoundary>
             </div>
-            <MyPositionsPanel />
-            <MarketInfoPanel market={market} />
+            <WidgetBoundary name="positions"><MyPositionsPanel /></WidgetBoundary>
+            <WidgetBoundary name="market-info"><MarketInfoPanel market={market} /></WidgetBoundary>
             <div className="rounded-2xl border border-line bg-surface p-4">
-              <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
+              <WidgetBoundary name="traders" className="border-0 p-0">
+                <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />
+              </WidgetBoundary>
             </div>
           </div>
         </div>

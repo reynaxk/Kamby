@@ -18,6 +18,7 @@ import { getTranslations } from 'next-intl/server';
 import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
 import { soft } from '@/lib/soft';
 import { SolanaCoinApp } from '@/components/market/SolanaCoinApp';
+import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -136,6 +137,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
         <PhoneSwitch
           phone={
             <SolanaCoinApp
+              key={market.tokenAddress}
               mint={market.tokenAddress}
               symbol={market.symbol}
               name={market.name}
@@ -166,7 +168,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               <CoinRail initial={feeds} selectedKey={`solana:${market.tokenAddress}`} />
             </aside>
           )}
-          <section className="min-w-0">
+          <section key={market.tokenAddress} className="min-w-0">
             {isSol ? (
               <h1 className="font-display text-xl font-bold text-ink-900">{tU('tradeOnSolana_e8eb')}</h1>
             ) : (
@@ -196,31 +198,39 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 launchpadSupply={market.isNewListing}
               />
             )}
-            {!isSol && <TokenStatsStrip source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" />}
-            <TokenChartCard
-              source={{ kind: 'solana', mint: market.tokenAddress }}
-              initialTimeframe={timeframe}
-              initialCandles={candles}
-              timeframes={SOLANA_TIMEFRAMES}
-              className="mt-3 h-[360px] sm:h-[400px]"
-            />
+            {!isSol && <WidgetBoundary name="stats" className="mt-3"><TokenStatsStrip source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" /></WidgetBoundary>}
+            <WidgetBoundary name="chart" className="mt-3 h-[360px] sm:h-[400px]">
+              <TokenChartCard
+                source={{ kind: 'solana', mint: market.tokenAddress }}
+                initialTimeframe={timeframe}
+                initialCandles={candles}
+                timeframes={SOLANA_TIMEFRAMES}
+                className="mt-3 h-[360px] sm:h-[400px]"
+              />
+            </WidgetBoundary>
             <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
               <p className="border-b border-line px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide text-ink-900">{tCoin('holders')}</p>
-              <HoldersPanel source={{ kind: 'solana', mint: market.tokenAddress }} />
+              <WidgetBoundary name="holders" className="rounded-none border-0">
+                <HoldersPanel source={{ kind: 'solana', mint: market.tokenAddress }} />
+              </WidgetBoundary>
             </div>
           </section>
 
           <aside>
             <div className="rounded-2xl border border-line bg-surface p-4">
-              <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
+              <WidgetBoundary name="trade" className="border-0 p-0">
+                <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
+              </WidgetBoundary>
             </div>
             {!isSol && (
               <div className="mt-3 h-[440px] overflow-hidden rounded-2xl border border-line bg-surface">
-                <TokenStreamChatLazy chainIdentifier="solana" address={market.tokenAddress} symbol={market.symbol} className="h-full" />
+                <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">
+                  <TokenStreamChatLazy chainIdentifier="solana" address={market.tokenAddress} symbol={market.symbol} className="h-full" />
+                </WidgetBoundary>
               </div>
             )}
             <div className="mt-3">
-              <MyPositionsPanel />
+              <WidgetBoundary name="positions"><MyPositionsPanel /></WidgetBoundary>
             </div>
             <TokenLinks chain="solana" address={market.tokenAddress} cardTitle={`About $${market.symbol}`} />
           </aside>

@@ -126,7 +126,10 @@ export default async function TokenDetailPage({
         )}
       </div>
 
+      {/* Keyed by chain + address: opening another coin starts every widget fresh — no rows,
+          price or holder list from the previous coin can linger or be overwritten late. */}
       <KambyTerminal
+        key={`${chainId}:${market.tokenAddress.toLowerCase()}`}
         chainId={chainId}
         chain={params.chain}
         market={market}

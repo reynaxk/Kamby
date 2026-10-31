@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "USDC kamu",
     "yourWatchlist_38e2": "Watchlist kamu",
     "newTradeOne": "1 trade baru",
-    "newTradesMany": "{count} trade baru"
+    "newTradesMany": "{count} trade baru",
+    "widgetFailed": "Bagian ini gagal dimuat."
   },
   "labels": {
     "status_PENDING": "Tertunda",

@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "Твоят USDC",
     "yourWatchlist_38e2": "Твоят списък за наблюдение",
     "newTradeOne": "1 нова сделка",
-    "newTradesMany": "{count} нови сделки"
+    "newTradesMany": "{count} нови сделки",
+    "widgetFailed": "Тази част не се зареди."
   },
   "labels": {
     "status_PENDING": "Изчакване",

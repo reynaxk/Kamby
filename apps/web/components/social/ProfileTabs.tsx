@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@kamby/ui';
+import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
 
 /**
  * A trader profile's tabs (2026-10-30 redesign, owner's concepts): Trades / Posts / Coins in one
@@ -31,7 +32,7 @@ export function ProfileTabs({ tabs }: { tabs: { key: string; label: string; cont
       </div>
       {tabs.map((t) => (
         <div key={t.key} role="tabpanel" hidden={active !== t.key}>
-          {t.content}
+          <WidgetBoundary name={`tab:${t.key}`}>{t.content}</WidgetBoundary>
         </div>
       ))}
     </div>

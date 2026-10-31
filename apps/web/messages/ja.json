@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "あなたの USDC",
     "yourWatchlist_38e2": "あなたのウォッチリスト",
     "newTradeOne": "新しい取引 1 件",
-    "newTradesMany": "新しい取引 {count} 件"
+    "newTradesMany": "新しい取引 {count} 件",
+    "widgetFailed": "この部分を読み込めませんでした。"
   },
   "labels": {
     "status_PENDING": "保留中",

@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "USDC của bạn",
     "yourWatchlist_38e2": "Danh sách theo dõi của bạn",
     "newTradeOne": "1 giao dịch mới",
-    "newTradesMany": "{count} giao dịch mới"
+    "newTradesMany": "{count} giao dịch mới",
+    "widgetFailed": "Phần này chưa tải được."
   },
   "labels": {
     "status_PENDING": "Đang chờ",

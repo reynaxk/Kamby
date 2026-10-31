@@ -3,6 +3,14 @@
 const EM_DASH = '—';
 
 /**
+ * Whether `abs` already reads as one `limit` once the smaller unit rounds it (2026-10-31: $999,960
+ * showed "$1000.0K" — at 1 decimal of K it rounds up to 1000, so it's "$1.00M").
+ */
+function reaches(abs: number, limit: number, smallerUnit: number, smallerDigits: number): boolean {
+  return abs >= limit - 0.5 * smallerUnit * 10 ** -smallerDigits;
+}
+
+/**
  * Prices in this product range from ~$100,000 (cbBTC) to fractions of a cent (meme
  * tokens) — a fixed decimal count would either truncate the second case to "$0.00" or
  * pad the first with meaningless zeros. Scales precision to the magnitude instead.
@@ -11,6 +19,8 @@ export function formatPrice(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return EM_DASH;
   if (value === 0) return '$0.00';
   const abs = Math.abs(value);
+  // Below $0.000001, 4 significant digits — a fixed 8 decimals showed a $0.000000003 coin as "$0.00000000".
+  if (abs < 0.000001) return `$${value.toLocaleString('en-US', { maximumSignificantDigits: 4 })}`;
   const digits = abs >= 1 ? 2 : abs >= 0.01 ? 4 : abs >= 0.0001 ? 6 : 8;
   return `$${value.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 }
@@ -20,24 +30,25 @@ export function formatCompactUsd(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return EM_DASH;
   const sign = value < 0 ? '-' : '';
   const abs = Math.abs(value);
-  if (abs >= 1_000_000_000) return `${sign}$${(abs / 1_000_000_000).toFixed(2)}B`;
-  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(2)}M`;
-  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(1)}K`;
+  if (reaches(abs, 1e9, 1e6, 2)) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+  if (reaches(abs, 1e6, 1e3, 1)) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+  if (reaches(abs, 1e3, 1, 2)) return `${sign}$${(abs / 1e3).toFixed(1)}K`;
   return `${sign}$${abs.toFixed(2)}`;
 }
 
 /** A count the short way — 1.02M, 15.0K, 840. */
 export function formatCompactCount(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (!Number.isFinite(value)) return EM_DASH;
+  if (reaches(value, 1e6, 1e3, 1)) return `${(value / 1e6).toFixed(2)}M`;
   if (value >= 10_000) return `${(value / 1_000).toFixed(1)}K`;
   return value.toLocaleString('en-US');
 }
 
 /** How many coins you hold, readable at a glance — 1.23B, 4.56M, 12,345, 3.5, 0.004521. */
 export function formatTokenAmount(value: number): string {
-  if (!(value > 0)) return '0';
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (!(value > 0) || !Number.isFinite(value)) return '0';
+  if (reaches(value, 1e9, 1e6, 2)) return `${(value / 1e9).toFixed(2)}B`;
+  if (reaches(value, 1e6, 1, 0)) return `${(value / 1e6).toFixed(2)}M`;
   if (value >= 1_000) return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
   if (value >= 1) return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
   return value.toLocaleString('en-US', { maximumSignificantDigits: 4 });
@@ -47,9 +58,9 @@ export function formatTokenAmount(value: number): string {
  *  → 650.16): 2 decimals with thousands separators, M/B for huge counts, and 2 significant
  *  digits only when 2 decimals would round a real amount down to 0.00. */
 export function formatTradeAmount(value: number): string {
-  if (!(value > 0)) return '0';
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+  if (!(value > 0) || !Number.isFinite(value)) return '0';
+  if (reaches(value, 1e9, 1e6, 2)) return `${(value / 1e9).toFixed(2)}B`;
+  if (reaches(value, 1e6, 1, 2)) return `${(value / 1e6).toFixed(2)}M`;
   if (value >= 0.01) return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return value.toLocaleString('en-US', { maximumSignificantDigits: 2 });
 }
@@ -60,9 +71,9 @@ export function formatPercent(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return EM_DASH;
   const sign = value > 0 ? '+' : '';
   const abs = Math.abs(value);
-  if (abs >= 1_000_000) return `${sign}${(value / 1_000_000).toFixed(1)}M%`;
-  if (abs >= 1_000) return `${sign}${(value / 1_000).toFixed(1)}K%`;
-  if (abs >= 100) return `${sign}${value.toFixed(1)}%`;
+  if (reaches(abs, 1e6, 1e3, 1)) return `${sign}${(value / 1e6).toFixed(1)}M%`;
+  if (reaches(abs, 1e3, 1, 1)) return `${sign}${(value / 1e3).toFixed(1)}K%`;
+  if (reaches(abs, 100, 1, 2)) return `${sign}${value.toFixed(1)}%`;
   return `${sign}${value.toFixed(2)}%`;
 }
 

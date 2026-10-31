@@ -603,7 +603,8 @@
     "couldnTLoadYourWatchlist_1f12": "Couldn't load your watchlist.",
     "noWatchlistYet_c5d8": "No watchlist yet.",
     "newTradeOne": "1 new trade",
-    "newTradesMany": "{count} new trades"
+    "newTradesMany": "{count} new trades",
+    "widgetFailed": "This part didn't load."
   },
   "labels": {
     "status_PENDING": "Pending",

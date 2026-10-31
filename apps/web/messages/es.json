@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "Tu USDC",
     "yourWatchlist_38e2": "Tu lista de seguimiento",
     "newTradeOne": "1 operación nueva",
-    "newTradesMany": "{count} operaciones nuevas"
+    "newTradesMany": "{count} operaciones nuevas",
+    "widgetFailed": "Esta parte no se cargó."
   },
   "labels": {
     "status_PENDING": "Pendiente",

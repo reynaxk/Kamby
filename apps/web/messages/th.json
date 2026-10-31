@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "USDC ของคุณ",
     "yourWatchlist_38e2": "รายการเฝ้าดูของคุณ",
     "newTradeOne": "เทรดใหม่ 1 รายการ",
-    "newTradesMany": "เทรดใหม่ {count} รายการ"
+    "newTradesMany": "เทรดใหม่ {count} รายการ",
+    "widgetFailed": "ส่วนนี้โหลดไม่สำเร็จ"
   },
   "labels": {
     "status_PENDING": "รอดำเนินการ",

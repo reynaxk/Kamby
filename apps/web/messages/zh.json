@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "你的 USDC",
     "yourWatchlist_38e2": "你的自选列表",
     "newTradeOne": "1 笔新交易",
-    "newTradesMany": "{count} 笔新交易"
+    "newTradesMany": "{count} 笔新交易",
+    "widgetFailed": "这部分没有加载出来。"
   },
   "labels": {
     "status_PENDING": "待处理",

@@ -9,6 +9,8 @@ import {
   formatSignedCompactUsd,
   priceDirection,
   truncateAddress,
+  formatCompactCount,
+  formatTradeAmount,
 } from './format';
 
 describe('formatPrice', () => {
@@ -136,5 +138,26 @@ describe('formatTokenAmount', () => {
     expect(formatTokenAmount(3.5)).toBe('3.5');
     expect(formatTokenAmount(0.004521)).toBe('0.004521');
     expect(formatTokenAmount(0)).toBe('0');
+  });
+});
+
+describe('unit edges (2026-10-31)', () => {
+  it('moves up a unit when rounding would show 1000 of the smaller one', () => {
+    expect(formatCompactUsd(999_960)).toBe('$1.00M');
+    expect(formatCompactUsd(999_940)).toBe('$999.9K');
+    expect(formatCompactUsd(999.996)).toBe('$1.0K');
+    expect(formatCompactUsd(999_996_000)).toBe('$1.00B');
+    expect(formatPercent(999.97)).toBe('+1.0K%');
+    expect(formatPercent(99.996)).toBe('+100.0%');
+    expect(formatCompactCount(999_960)).toBe('1.00M');
+  });
+  it('never shows a real tiny price as zero', () => {
+    expect(formatPrice(0.000000003)).toBe('$0.000000003');
+    expect(formatPrice(0.00001234)).toBe('$0.00001234');
+  });
+  it('never prints NaN', () => {
+    expect(formatCompactCount(Number.NaN)).toBe('—');
+    expect(formatTokenAmount(Number.NaN)).toBe('0');
+    expect(formatTradeAmount(Number.POSITIVE_INFINITY)).toBe('0');
   });
 });

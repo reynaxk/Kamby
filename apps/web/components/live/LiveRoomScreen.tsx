@@ -23,6 +23,7 @@ import { LiveCoinPanel, useCoinPrice } from './LiveCoinPanel';
 import { useLiveSwipe } from './useLiveSwipe';
 import { ChatTop, FloatingReactions, LiveSummaryView, PollCard, PollSheet, ReactionBar, SlowButton, StreamInfo, useTipHighlight, type FloatingHandle } from './LiveExtras';
 import { useMediaQuery } from '@/lib/use-media';
+import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
 
 function Media({ track, kind, className, onBlocked }: { track: MediaStreamTrack; kind: 'audio' | 'video'; className?: string; onBlocked?: () => void }) {
   const ref = useRef<HTMLVideoElement & HTMLAudioElement>(null);
@@ -451,7 +452,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
       {/* Desktop: the coin's chart and a buy box under the stage */}
       {desktop && room?.coin && (
         <div className="relative z-10 mx-3 mt-3">
-          <LiveCoinPanel coin={room.coin} />
+          <WidgetBoundary name="live-coin"><LiveCoinPanel coin={room.coin} /></WidgetBoundary>
         </div>
       )}
       </div>

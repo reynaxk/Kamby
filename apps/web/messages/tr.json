@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "USDC'n",
     "yourWatchlist_38e2": "İzleme listen",
     "newTradeOne": "1 yeni işlem",
-    "newTradesMany": "{count} yeni işlem"
+    "newTradesMany": "{count} yeni işlem",
+    "widgetFailed": "Bu bölüm yüklenemedi."
   },
   "labels": {
     "status_PENDING": "Bekliyor",

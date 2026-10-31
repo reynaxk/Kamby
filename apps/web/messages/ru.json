@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "Ваш USDC",
     "yourWatchlist_38e2": "Ваш список наблюдения",
     "newTradeOne": "1 новая сделка",
-    "newTradesMany": "Новых сделок: {count}"
+    "newTradesMany": "Новых сделок: {count}",
+    "widgetFailed": "Эта часть не загрузилась."
   },
   "labels": {
     "status_PENDING": "В ожидании",

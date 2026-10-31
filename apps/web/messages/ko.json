@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "내 USDC",
     "yourWatchlist_38e2": "내 관심 목록",
     "newTradeOne": "새 거래 1건",
-    "newTradesMany": "새 거래 {count}건"
+    "newTradesMany": "새 거래 {count}건",
+    "widgetFailed": "이 부분을 불러오지 못했어요."
   },
   "labels": {
     "status_PENDING": "대기 중",

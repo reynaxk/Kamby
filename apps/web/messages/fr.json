@@ -603,7 +603,8 @@
     "yourUsdc_8d00": "Tes USDC",
     "yourWatchlist_38e2": "Ta watchlist",
     "newTradeOne": "1 nouveau trade",
-    "newTradesMany": "{count} nouveaux trades"
+    "newTradesMany": "{count} nouveaux trades",
+    "widgetFailed": "Cette partie ne s’est pas chargée."
   },
   "labels": {
     "status_PENDING": "En attente",
