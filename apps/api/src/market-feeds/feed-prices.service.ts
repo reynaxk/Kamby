@@ -7,6 +7,10 @@ const DEXSCREENER_CHAIN: Record<TokenInfoChain, string> = { base: 'base', bnb: '
 const BATCH_SIZE = 30; // DexScreener's tokens endpoint takes up to 30 addresses per call
 const FRESH_MS = 8_000; // shared by every tab rebuilt in the same 10s cycle
 const FETCH_TIMEOUT_MS = 4_000;
+/** Re-basing a stored 24h change on a fresh price is only sound while the stored price is recent:
+ *  2026-10-31 a coin whose stored price was hours old showed +2.8K% in the list next to +404% on
+ *  its own page (the rise since then was counted twice). */
+const REBASE_MAX_AGE_MS = 60 * 60_000;
 
 function chainOf(chainIdentifier: string): TokenInfoChain | null {
   if (chainIdentifier === 'solana') return 'solana';
@@ -16,21 +20,29 @@ function chainOf(chainIdentifier: string): TokenInfoChain | null {
 }
 
 /** Exported for tests. A list row with a fresh price: market cap scales with the price (same
- *  supply), and the 24h change is re-based on the fresh price. Untouched without one. */
+ *  supply). The 24h change is the price source's own (same pool as the price) when it has one;
+ *  otherwise the stored change is re-based on the fresh price, but only while the stored price is
+ *  under an hour old — an older one is left as it is. Untouched without a fresh price. */
 export function withFreshPrice<T extends Pick<MarketSummary, 'priceUsd' | 'marketCapUsd' | 'priceChange24hPct' | 'lastPriceUpdateAt'>>(
   market: T,
   freshUsd: number | undefined,
   atIso: string,
+  freshChange24hPct?: number,
+  now: number = Date.now(),
 ): T {
   if (freshUsd === undefined || !(freshUsd > 0)) return market;
   const old = market.priceUsd;
   const ratio = old && old > 0 ? freshUsd / old : null;
+  const storedAge = market.lastPriceUpdateAt ? now - Date.parse(market.lastPriceUpdateAt) : Number.NaN;
+  const rebased =
+    market.priceChange24hPct !== null && ratio !== null && storedAge <= REBASE_MAX_AGE_MS
+      ? ((1 + market.priceChange24hPct / 100) * ratio - 1) * 100
+      : market.priceChange24hPct;
   return {
     ...market,
     priceUsd: freshUsd,
     marketCapUsd: market.marketCapUsd !== null && ratio !== null ? market.marketCapUsd * ratio : market.marketCapUsd,
-    priceChange24hPct:
-      market.priceChange24hPct !== null && ratio !== null ? ((1 + market.priceChange24hPct / 100) * ratio - 1) * 100 : market.priceChange24hPct,
+    priceChange24hPct: freshChange24hPct !== undefined && Number.isFinite(freshChange24hPct) ? freshChange24hPct : rebased,
     lastPriceUpdateAt: atIso,
   };
 }
@@ -44,7 +56,7 @@ export function withFreshPrice<T extends Pick<MarketSummary, 'priceUsd' | 'marke
  */
 @Injectable()
 export class FeedPricesService {
-  private readonly cache = new Map<string, { usd: number; at: number }>();
+  private readonly cache = new Map<string, { usd: number; at: number; change24hPct?: number }>();
   /** Logos DexScreener has for coins listed without one (they're often added after launch). */
   private readonly logos = new Map<string, string>();
 
@@ -73,7 +85,7 @@ export class FeedPricesService {
       const chain = chainOf(m.chainIdentifier);
       const fresh = chain ? this.cache.get(this.key(chain, m.tokenAddress)) : undefined;
       // Only a price fetched this cycle or the last few seconds — never an old cached one.
-      const priced = fresh && Date.now() - fresh.at <= FRESH_MS * 2 ? withFreshPrice(m, fresh.usd, atIso) : m;
+      const priced = fresh && Date.now() - fresh.at <= FRESH_MS * 2 ? withFreshPrice(m, fresh.usd, atIso, fresh.change24hPct) : m;
       // A missing logo filled from the same DexScreener answer (2026-10-06: Base launches showed none).
       const logo = !priced.logoUrl && chain ? this.logos.get(this.key(chain, m.tokenAddress)) : undefined;
       return logo ? { ...priced, logoUrl: logo } : priced;
@@ -102,9 +114,19 @@ export class FeedPricesService {
       }
       const pairs = Array.isArray(body) ? (body as Parameters<typeof pricesFromPairs>[0]) : [];
       const prices = pricesFromPairs(pairs, chain);
+      // Each coin's 24h change from the very pool its price came from.
+      const changes = new Map<string, number>();
+      for (const pair of pairs) {
+        const address = pair.baseToken?.address;
+        const h24 = pair.priceChange?.h24;
+        if (!address || typeof h24 !== 'number' || !Number.isFinite(h24)) continue;
+        const key = chain === 'solana' ? address : address.toLowerCase();
+        if (prices.get(key) === Number(pair.priceUsd)) changes.set(key, h24);
+      }
       // Graduated coins DexScreener still prices off the old launch curve (see launchPoolOnly).
       if (chain === 'solana') {
         const suspect = launchPoolOnly(pairs, addresses);
+        for (const mint of suspect) changes.delete(mint); // that pool's change is the curve's, not the coin's
         if (suspect.length > 0) {
           const jup = await jupiterPrices(suspect);
           for (const mint of suspect) {
@@ -115,7 +137,7 @@ export class FeedPricesService {
         }
       }
       const at = Date.now();
-      for (const [key, usd] of prices) this.cache.set(`${chain}:${key}`, { usd, at });
+      for (const [key, usd] of prices) this.cache.set(`${chain}:${key}`, { usd, at, change24hPct: changes.get(key) });
     } catch (error) {
       this.logger.warn({ err: error, chain }, 'DexScreener unreachable for list prices — keeping stored prices');
     }
