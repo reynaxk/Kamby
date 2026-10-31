@@ -13,6 +13,7 @@ import {
   type PredictionStatus,
   type PredictionUpdate,
   type PredictionsPage,
+  type ProfilePredictions,
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
@@ -80,9 +81,15 @@ export class PredictionsService {
     this.logger.setContext('PredictionsService');
   }
 
-  async list(me: string | null, filter: PredictionFilter, category: PredictionCategory | undefined, before: string | undefined): Promise<PredictionsPage> {
+  async list(
+    me: string | null,
+    filter: PredictionFilter,
+    category: PredictionCategory | undefined,
+    before: string | undefined,
+    coin?: { chainIdentifier: string; tokenAddress: string },
+  ): Promise<PredictionsPage> {
     const now = new Date();
-    const cat = category ? { category } : {};
+    const cat = { ...(category ? { category } : {}), ...(coin ? { chainIdentifier: coin.chainIdentifier, tokenAddress: { equals: coin.tokenAddress, mode: 'insensitive' as const } } : {}) };
     const beforeDate = before ? new Date(before) : undefined;
     const open = { status: 'ACTIVE', expiresAt: { gt: now } };
     let rows: PredictionRow[];
@@ -113,6 +120,27 @@ export class PredictionsService {
     const nextBefore = rows.length > PAGE ? page[page.length - 1]!.createdAt.toISOString() : null;
     const [items, stats, canCreate] = await Promise.all([this.present(page, me), this.stats(me), me ? this.canCreate(me) : Promise.resolve(false)]);
     return { items, nextBefore, stats, canCreate };
+  }
+
+  /** A trader's profile tab: polls they asked, polls they voted on, and their hit rate. */
+  async forProfile(viewer: string | null, address: string): Promise<ProfilePredictions> {
+    const wallet = await prisma.wallet.findFirst({ where: { address: { equals: address, mode: 'insensitive' }, verifiedAt: { not: null } }, select: { userId: true } });
+    const empty: ProfilePredictions = { created: [], voted: [], stats: { votes: 0, resolved: 0, correct: 0, accuracyPct: null } };
+    if (!wallet?.userId) return empty;
+    const userId = wallet.userId;
+    const [createdRows, votes] = await Promise.all([
+      prisma.prediction.findMany({ where: { createdByUserId: userId }, orderBy: { createdAt: 'desc' }, take: 20 }),
+      prisma.predictionVote.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 500, include: { prediction: true } }),
+    ]);
+    const resolved = votes.filter((v) => v.prediction.status === 'RESOLVED' && v.prediction.resolvedOptionIndex !== null);
+    const correct = resolved.filter((v) => v.optionIndex === v.prediction.resolvedOptionIndex).length;
+    const recent = votes.slice(0, 30);
+    const [created, voted] = await Promise.all([this.present(createdRows, viewer), this.present(recent.map((v) => v.prediction), viewer)]);
+    return {
+      created,
+      voted: voted.map((p, i) => ({ ...p, theirVote: recent[i]!.optionIndex })),
+      stats: { votes: votes.length, resolved: resolved.length, correct, accuracyPct: resolved.length > 0 ? Math.round((correct / resolved.length) * 100) : null },
+    };
   }
 
   async vote(me: string, id: string, option: number): Promise<Prediction> {

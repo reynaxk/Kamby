@@ -59,6 +59,15 @@ export interface PredictionsPage {
 
 export type PredictionFilter = 'all' | 'ending' | 'popular' | 'streamers' | 'mine';
 
+/** A trader's predictions on their profile (2026-10-31): what they asked, what they voted, and
+ *  how often their vote matched the outcome. A plain stat — nothing to win. */
+export interface ProfilePredictions {
+  created: Prediction[];
+  /** Their vote is `theirVote`; `myVote` stays the viewer's own. */
+  voted: (Prediction & { theirVote: number })[];
+  stats: { votes: number; resolved: number; correct: number; accuracyPct: number | null };
+}
+
 export interface PredictionUpdate {
   id: string;
   counts: number[];

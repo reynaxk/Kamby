@@ -31,8 +31,8 @@ class FeedQueryDto {
 }
 
 class AttachDto {
-  @IsIn(['trade', 'pnl', 'photo', 'video'])
-  kind!: 'trade' | 'pnl' | 'photo' | 'video';
+  @IsIn(['trade', 'pnl', 'photo', 'video', 'chart'])
+  kind!: 'trade' | 'pnl' | 'photo' | 'video' | 'chart';
 
   @IsOptional()
   @IsString()

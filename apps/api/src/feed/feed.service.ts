@@ -9,6 +9,7 @@ import {
   type DmTrade,
   type FeedPhoto,
   type FeedVideo,
+  type FeedChart,
   type FeedAuthor,
   type FeedPage,
   type FeedPost,
@@ -21,6 +22,12 @@ import { NotificationService } from '../notifications/notification.service';
 import { ImageModerationService } from '../media/image-moderation.service';
 import { R2StorageService, type UploadableFile } from '../media/r2-storage.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { tokenFromPairs, type NarrativePair } from '../narratives/narratives.service';
+
+const CHART_DEX_CHAIN: Record<string, string> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bsc', 'eip155:4663': 'robinhood' };
+const CHART_SLUGS: Record<string, string> = { solana: 'solana', base: 'eip155:8453', bnb: 'eip155:56', robinhood: 'eip155:4663' };
+/** A chart card needs a real pool behind it — a dust pool's "price" is noise. */
+const CHART_MIN_LIQUIDITY_USD = 10_000;
 
 const AUTHOR = {
   select: {
@@ -146,7 +153,7 @@ export class FeedService {
     return this.list(me, 'foryou', before, wallet.userId);
   }
 
-  async post(me: string, input: { body: string; attach?: { kind: 'trade' | 'pnl' | 'photo' | 'video'; chain?: string; tokenAddress?: string; photoId?: string; videoId?: string } }): Promise<FeedPost> {
+  async post(me: string, input: { body: string; attach?: { kind: 'trade' | 'pnl' | 'photo' | 'video' | 'chart'; chain?: string; tokenAddress?: string; photoId?: string; videoId?: string } }): Promise<FeedPost> {
     const body = cleanBody(input.body, FEED_LIMITS.maxLength, Boolean(input.attach));
     const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
     if (!user?.username) throw new ForbiddenException('Set a username in your profile to post.');
@@ -160,8 +167,12 @@ export class FeedService {
     }
 
     let kind: FeedPost['kind'] = 'text';
-    let data: DmTrade | DmPnl | FeedPhoto | FeedVideo | null = null;
-    if (input.attach?.kind === 'video') {
+    let data: DmTrade | DmPnl | FeedPhoto | FeedVideo | FeedChart | null = null;
+    if (input.attach?.kind === 'chart') {
+      if (!input.attach.chain || !input.attach.tokenAddress) throw new BadRequestException('Pick a coin for the chart.');
+      kind = 'chart';
+      data = await this.chartSnapshot(CHART_SLUGS[input.attach.chain] ?? input.attach.chain, input.attach.tokenAddress);
+    } else if (input.attach?.kind === 'video') {
       const ticket = input.attach.videoId ? await this.redis.getdel(`kamby:feed:video:${input.attach.videoId}`) : null;
       const parsed = ticket ? (JSON.parse(ticket) as { userId: string; url: string }) : null;
       if (!parsed || parsed.userId !== me) throw new BadRequestException('Upload the video again.');
@@ -184,6 +195,33 @@ export class FeedService {
       include: { user: AUTHOR },
     });
     return this.toDto(row, me);
+  }
+
+  /** The coin's price and numbers right now, from its own deepest pool. */
+  private async chartSnapshot(chainIdentifier: string, tokenAddress: string): Promise<FeedChart> {
+    const dexChain = CHART_DEX_CHAIN[chainIdentifier];
+    if (!dexChain || !/^[A-Za-z0-9]{32,64}$/.test(tokenAddress)) throw new BadRequestException('Kamby can’t chart that coin.');
+    let pairs: NarrativePair[] = [];
+    try {
+      const res = await fetch(`https://api.dexscreener.com/tokens/v1/${dexChain}/${tokenAddress}`, { signal: AbortSignal.timeout(5_000) });
+      const body = res.ok ? ((await res.json()) as unknown) : [];
+      pairs = Array.isArray(body) ? (body as NarrativePair[]) : [];
+    } catch {
+      throw new ServiceUnavailableException('Couldn’t read the price — try again in a moment.');
+    }
+    const token = tokenFromPairs({ chainIdentifier, tokenAddress, symbol: null, name: null, logoUrl: null }, pairs);
+    if (!token?.priceUsd || (token.liquidityUsd ?? 0) < CHART_MIN_LIQUIDITY_USD) throw new BadRequestException('That coin has no real pool to chart yet.');
+    return {
+      chainIdentifier,
+      tokenAddress,
+      symbol: token.symbol,
+      name: token.name,
+      logoUrl: token.logoUrl,
+      priceUsd: token.priceUsd,
+      change24hPct: token.change24hPct,
+      marketCapUsd: token.marketCapUsd,
+      atIso: new Date().toISOString(),
+    };
   }
 
   /** Like or unlike; returns the new count. */
@@ -248,7 +286,7 @@ export class FeedService {
   }
 
   private toDto(row: Prisma.FeedPostGetPayload<{ include: { user: typeof AUTHOR } }> & { likes?: { userId: string }[] }, me: string | null): FeedPost {
-    const kind = (row.kind === 'trade' || row.kind === 'pnl' || row.kind === 'photo' || row.kind === 'video' ? row.kind : 'text') as FeedPost['kind'];
+    const kind = (row.kind === 'trade' || row.kind === 'pnl' || row.kind === 'photo' || row.kind === 'video' || row.kind === 'chart' ? row.kind : 'text') as FeedPost['kind'];
     return {
       id: row.id,
       author: author(row.user),
@@ -258,6 +296,7 @@ export class FeedService {
       pnl: kind === 'pnl' ? (row.data as unknown as DmPnl) : null,
       photo: kind === 'photo' ? (row.data as unknown as FeedPhoto) : null,
       video: kind === 'video' ? (row.data as unknown as FeedVideo) : null,
+      chart: kind === 'chart' ? (row.data as unknown as FeedChart) : null,
       likeCount: Math.max(0, row.likeCount),
       replyCount: row.replyCount,
       likedByMe: Boolean(row.likes?.length),

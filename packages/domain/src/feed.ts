@@ -23,7 +23,21 @@ export const FEED_LIMITS = {
 } as const;
 
 export type FeedTab = 'foryou' | 'following';
-export type FeedPostKind = 'text' | 'trade' | 'pnl' | 'photo' | 'video';
+export type FeedPostKind = 'text' | 'trade' | 'pnl' | 'photo' | 'video' | 'chart';
+
+/** A coin shared with its chart (2026-10-31): the price when it was posted, so the card can
+ *  show how it has moved since. Built by the API from the coin's own pool — never typed in. */
+export interface FeedChart {
+  chainIdentifier: string;
+  tokenAddress: string;
+  symbol: string | null;
+  name: string | null;
+  logoUrl: string | null;
+  priceUsd: number;
+  change24hPct: number | null;
+  marketCapUsd: number | null;
+  atIso: string;
+}
 
 export interface FeedPhoto {
   url: string;
@@ -50,6 +64,7 @@ export interface FeedPost {
   pnl: DmPnl | null;
   photo: FeedPhoto | null;
   video: FeedVideo | null;
+  chart?: FeedChart | null;
   likeCount: number;
   replyCount: number;
   likedByMe: boolean;
