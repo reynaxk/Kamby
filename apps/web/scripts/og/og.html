@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- The share picture (app/opengraph-image.png, 1200x630). Regenerate: open this file in a 1200x630 headless browser and screenshot it (2026-10-31). -->
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1200px; height: 630px; background: #020203; font-family: Manrope, sans-serif; color: #fff; overflow: hidden; position: relative; }
+  .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size: 48px 48px; }
+  .left { position: absolute; left: 80px; top: 92px; width: 600px; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand span { font-size: 34px; font-weight: 800; letter-spacing: 0.06em; }
+  h1 { margin-top: 48px; font-size: 82px; line-height: 0.98; font-weight: 800; letter-spacing: -0.04em; }
+  h1 .n { background: linear-gradient(100deg, #00FF87 0%, #B8FFE0 45%, #00E5FF 100%); -webkit-background-clip: text; color: transparent; }
+  p { margin-top: 28px; font-size: 26px; color: #94A3B8; font-weight: 500; }
+  .chips { position: absolute; left: 80px; bottom: 70px; display: flex; gap: 12px; }
+  .chip { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); border-radius: 999px; padding: 10px 18px; font-size: 19px; font-weight: 700; color: #E6E8EF; }
+  .chip b { color: #00FF87; }
+  .card { position: absolute; right: 70px; top: 96px; width: 380px; height: 440px; border-radius: 36px; border: 1px solid rgba(255,255,255,0.12); background: #07080B; padding: 28px; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .coin { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,201,77,0.15); color: #FFC94D; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+  .sym { font-size: 22px; font-weight: 800; }
+  .price { margin-top: 18px; font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 700; }
+  .ch { font-family: 'JetBrains Mono', monospace; color: #00E676; font-size: 20px; margin-top: 4px; }
+  .buy { position: absolute; left: 28px; right: 28px; bottom: 28px; height: 60px; border-radius: 18px; background: #00FF87; color: #02100A; font-weight: 800; font-size: 22px; display: flex; align-items: center; justify-content: center; }
+  .live { position: absolute; right: 24px; top: 24px; background: #FF3B69; border-radius: 8px; padding: 4px 10px; font-weight: 800; font-size: 14px; letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="left">
+    <div class="brand"><img src="../../public/brand/kamby-mark.svg" width="56" height="56"><span>KAMBY</span></div>
+    <h1><span class="n">Social Terminal</span><br>for trading</h1>
+    <p>Find coins, follow whales and trade live — with just USDC, no gas.</p>
+  </div>
+  <div class="chips">
+    <span class="chip"><b>●</b> Live streams</span><span class="chip">Feed</span><span class="chip">Chat</span><span class="chip">$0 gas</span>
+  </div>
+  <div class="card">
+    <span class="live">LIVE</span>
+    <div class="row"><span class="coin">W</span><span class="sym">$WIF</span></div>
+    <div class="price">$2.4135</div>
+    <div class="ch">▲ +12.4% · 24h</div>
+    <svg viewBox="0 0 320 150" width="324" height="150" style="margin-top:14px">
+      <g id="c"></g>
+    </svg>
+    <div class="buy">⚡ Buy $10</div>
+  </div>
+  <script>
+    const g = document.getElementById('c'); let p = 135, s = 11; const r = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    for (let i = 0; i < 24; i++) { const o = p, c = Math.max(12, Math.min(140, o - (r() - 0.35) * 22)); const up = c < o; const x = i * 13 + 6;
+      const col = up ? '#00E676' : '#FF3B69'; const hi = Math.min(o, c) - r() * 8, lo = Math.max(o, c) + r() * 8;
+      g.insertAdjacentHTML('beforeend', `<line x1="${x}" x2="${x}" y1="${hi}" y2="${lo}" stroke="${col}" stroke-width="1.5"/><rect x="${x - 4}" y="${Math.min(o, c)}" width="8" height="${Math.max(2, Math.abs(o - c))}" fill="${col}"/>`); p = c; }
+  </script>
+</body>
+</html>

@@ -50,6 +50,18 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://kambesh.com'),
   title: 'Kamby',
   description: 'The social terminal for trading — find coins, follow whales and chat with traders, all with USDC.',
+  // Shared links (X, Telegram, Discord): the big picture card, 2026-10-31 (app/opengraph-image.png).
+  openGraph: {
+    type: 'website',
+    siteName: 'Kamby',
+    title: 'Kamby — Social Terminal for trading',
+    description: 'Find coins, follow whales and trade live — with just USDC, no gas.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kamby — Social Terminal for trading',
+    description: 'Find coins, follow whales and trade live — with just USDC, no gas.',
+  },
   // Installable app (see app/manifest.ts): full-screen on iPhone home screens too.
   appleWebApp: {
     capable: true,
