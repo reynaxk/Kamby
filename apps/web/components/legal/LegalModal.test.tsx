@@ -67,7 +67,7 @@ describe('LegalAgreementNote', () => {
     render(<LegalAgreementNote />);
 
     expect(screen.getByText(/By connecting your wallet, you agree to our/)).toBeInTheDocument();
-    expect(screen.getByText(/at least 18 years of age/)).toBeInTheDocument();
+    expect(screen.getByText(/at least 18 years old/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Terms of Service' }));
     expect(screen.getByRole('heading', { level: 2, name: 'Terms of Service' })).toBeInTheDocument();
   });
