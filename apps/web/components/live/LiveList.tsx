@@ -178,6 +178,12 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
         <div className="rounded-2xl border border-line bg-surface px-5 py-7 text-center">
           <p className="font-display text-lg font-bold text-ink-900">{t('nobodyLive')}</p>
           <p className="mt-1 font-body text-sm text-ink-600">{t('nobodyLiveHint')}</p>
+          {signedIn && (
+            <button type="button" onClick={() => setGoLive(true)} className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-[#FF3B69] px-5 font-display text-sm font-black text-white active:scale-95">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-white" />
+              {t('goLive')}
+            </button>
+          )}
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
