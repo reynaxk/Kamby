@@ -1,14 +1,11 @@
 'use client';
 
 import { createContext, useContext, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { NEWS_VERIFIED_TICKERS, type LiveRoom } from '@kamby/domain';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { LiveCoinPanel } from '@/components/live/LiveCoinPanel';
 import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
 import { cashtag } from '@/lib/format';
-import { marketHref } from '@/lib/solana-links';
 
 export type FeedCoinRef = NonNullable<LiveRoom['coin']>;
 
@@ -24,24 +21,15 @@ export function useOpenCoin(): ((coin: FeedCoinRef) => void) | null {
  * with its live chart and buy panel (the same one as in a live stream) — no leaving the feed.
  */
 export function FeedCoinProvider({ children }: { children: React.ReactNode }) {
-  const t = useTranslations('feed');
   const [coin, setCoin] = useState<FeedCoinRef | null>(null);
-  const href = coin ? marketHref(coin.chainIdentifier, coin.tokenAddress) : null;
   return (
     <OpenCoinContext.Provider value={setCoin}>
       {children}
       <MobileDrawer open={coin !== null} onClose={() => setCoin(null)} title={coin ? cashtag(coin.symbol ?? '') : ''} desktop>
         {coin && (
-          <div className="flex flex-col gap-3">
-            <WidgetBoundary name="feed-coin">
-              <LiveCoinPanel key={`${coin.chainIdentifier}:${coin.tokenAddress}`} coin={coin} />
-            </WidgetBoundary>
-            {href && (
-              <Link href={href} onClick={() => setCoin(null)} className="text-center font-display text-sm font-bold text-accent hover:underline">
-                {t('openCoin')}
-              </Link>
-            )}
-          </div>
+          <WidgetBoundary name="feed-coin">
+            <LiveCoinPanel key={`${coin.chainIdentifier}:${coin.tokenAddress}`} coin={coin} stacked />
+          </WidgetBoundary>
         )}
       </MobileDrawer>
     </OpenCoinContext.Provider>

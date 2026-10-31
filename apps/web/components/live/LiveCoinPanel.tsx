@@ -53,15 +53,16 @@ export function useCoinPrice(coin: Coin | null): { price: number | null; change:
  * the stage — its chart and a buy box. Solana buys in one tap (gasless, the ⚡ quick-buy path);
  * Base/BNB/Robinhood open the coin's own screen, where approvals and the fee step live.
  */
-export function LiveCoinPanel({ coin }: { coin: Coin }) {
+/** `stacked`: chart above the buy box, for narrow places (the Feed's coin sheet). */
+export function LiveCoinPanel({ coin, stacked = false }: { coin: Coin; stacked?: boolean }) {
   return (
     <ToastProvider>
-      <Inner coin={coin} />
+      <Inner coin={coin} stacked={stacked} />
     </ToastProvider>
   );
 }
 
-function Inner({ coin }: { coin: Coin }) {
+function Inner({ coin, stacked }: { coin: Coin; stacked: boolean }) {
   const t = useTranslations('live');
   const [frame, setFrame] = useState<Timeframe>('5m');
   const [candles, setCandles] = useState<Candle[] | null>(null);
@@ -95,7 +96,7 @@ function Inner({ coin }: { coin: Coin }) {
   const change = last !== null && first ? ((last - first) / first) * 100 : null;
 
   return (
-    <div className="flex gap-3">
+    <div className={cn('flex gap-3', stacked && 'flex-col')}>
       <section className="min-w-0 flex-[2] rounded-2xl border border-white/10 bg-[#07080B] p-3">
         <div className="flex items-center gap-2.5">
           <TokenAvatar src={coin.logoUrl} seed={coin.tokenAddress} label={coin.symbol} className="h-8 w-8 text-xs" />
@@ -126,7 +127,7 @@ function Inner({ coin }: { coin: Coin }) {
         </div>
       </section>
 
-      <section className="flex w-[260px] shrink-0 flex-col gap-2.5 rounded-2xl border border-white/10 bg-[#07080B] p-3">
+      <section className={cn('flex shrink-0 flex-col', stacked ? 'w-full' : 'w-[260px]', 'gap-2.5 rounded-2xl border border-white/10 bg-[#07080B] p-3')}>
         <p className="font-display text-sm font-bold text-white">{t('buyCoin', { symbol: label })}</p>
         <div className="grid grid-cols-4 gap-1.5">
           {AMOUNTS.map((a) => (
