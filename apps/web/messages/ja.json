@@ -10,7 +10,8 @@
     "live": "ライブ",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "フィード"
+    "feed": "フィード",
+    "news": "ニュース"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -1569,5 +1570,23 @@
     "explore": "見て回る",
     "exploreBody": "トレーダーのライブを見るか、フィードを見よう。",
     "exploreCta": "Liveを開く"
+  },
+  "news": {
+    "title": "ニュース",
+    "subtitle": "暗号資産の最新ヘッドライン — コインをタップして取引。",
+    "breaking": "速報",
+    "empty": "まだニュースはありません。",
+    "emptyCoin": "{symbol} のニュースはまだありません。",
+    "failed": "ニュースを読み込めませんでした。",
+    "loadMore": "さらに表示",
+    "seeAll": "すべて見る",
+    "alertsTitle": "ニュース通知",
+    "alertsDetail": "ウォッチ中または表示中のコインがニュースに登場したとき",
+    "soundTitle": "通知音",
+    "soundDetail": "ニュース通知の短い音",
+    "toastWatchlist": "ウォッチ中",
+    "toastOnScreen": "このコイン",
+    "dismiss": "閉じる",
+    "sources": "{list} の見出し。記事は各メディアのサイトで開きます。"
   }
 }

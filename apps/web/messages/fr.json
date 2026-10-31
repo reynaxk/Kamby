@@ -10,7 +10,8 @@
     "live": "Live",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Fil"
+    "feed": "Fil",
+    "news": "Actus"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -1569,5 +1570,23 @@
     "explore": "Fais le tour",
     "exploreBody": "Regarde un trader en live ou parcours le fil.",
     "exploreCta": "Ouvrir Live"
+  },
+  "news": {
+    "title": "Actus",
+    "subtitle": "Les titres crypto en direct — touche une crypto pour la trader.",
+    "breaking": "Dernière minute",
+    "empty": "Pas encore d’actus.",
+    "emptyCoin": "Pas encore d’actus sur {symbol}.",
+    "failed": "Les actus n’ont pas chargé.",
+    "loadMore": "Voir plus",
+    "seeAll": "Tout voir",
+    "alertsTitle": "Alertes actus",
+    "alertsDetail": "Quand une actu mentionne une crypto que tu suis ou que tu as ouverte",
+    "soundTitle": "Son d’alerte",
+    "soundDetail": "Un court son avec les alertes actus",
+    "toastWatchlist": "Suivies",
+    "toastOnScreen": "Cette crypto",
+    "dismiss": "Fermer",
+    "sources": "Titres de {list}. Les articles s’ouvrent sur le site de l’éditeur."
   }
 }

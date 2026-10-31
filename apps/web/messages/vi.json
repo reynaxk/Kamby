@@ -10,7 +10,8 @@
     "live": "Trực tiếp",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Bảng tin"
+    "feed": "Bảng tin",
+    "news": "Tin tức"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -1569,5 +1570,23 @@
     "explore": "Khám phá",
     "exploreBody": "Xem trader live hoặc lướt bảng tin.",
     "exploreCta": "Mở Live"
+  },
+  "news": {
+    "title": "Tin tức",
+    "subtitle": "Tin crypto nóng hổi — chạm vào một coin để giao dịch.",
+    "breaking": "Nóng",
+    "empty": "Chưa có tin tức.",
+    "emptyCoin": "Chưa có tin về {symbol}.",
+    "failed": "Không tải được tin tức.",
+    "loadMore": "Xem thêm",
+    "seeAll": "Xem tất cả",
+    "alertsTitle": "Thông báo tin tức",
+    "alertsDetail": "Khi tin tức nhắc đến coin bạn theo dõi hoặc đang mở",
+    "soundTitle": "Âm báo",
+    "soundDetail": "Âm báo ngắn kèm thông báo tin tức",
+    "toastWatchlist": "Theo dõi",
+    "toastOnScreen": "Coin này",
+    "dismiss": "Đóng",
+    "sources": "Tiêu đề từ {list}. Bài viết mở trên trang của nhà xuất bản."
   }
 }

@@ -5,6 +5,7 @@ import { prisma } from '@kamby/db';
 import { Connection } from '@solana/web3.js';
 import { Redis } from 'ioredis';
 import { NotificationExtrasService } from './notifications/notification-extras.service';
+import { NewsIngestionService } from './news/news-ingestion';
 import { EnvSchema } from './config/env';
 import { createLogger } from './lib/logger';
 import { MarketIngestionService } from './market/ingestion';
@@ -553,6 +554,9 @@ async function main(): Promise<void> {
     every('Trade outcome notifications', 15_000, () => extras.notifyTradeOutcomes());
     every('Price move notifications', 5 * 60_000, () => extras.notifyPriceMoves());
     every('Push dispatch', 5_000, () => extras.dispatchPush());
+    // Crypto news from public RSS feeds — see news/news-ingestion.ts.
+    const news = new NewsIngestionService(redis, logger);
+    every('News poll', 150_000, () => news.poll().then((r) => ({ added: r.added, live: r.live, failedFeeds: r.failedFeeds })));
   }
 
   logger.info('Worker ready');

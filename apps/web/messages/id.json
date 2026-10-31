@@ -10,7 +10,8 @@
     "live": "Live",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Feed"
+    "feed": "Feed",
+    "news": "Berita"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -1569,5 +1570,23 @@
     "explore": "Lihat-lihat",
     "exploreBody": "Tonton trader live atau gulir Feed.",
     "exploreCta": "Buka Live"
+  },
+  "news": {
+    "title": "Berita",
+    "subtitle": "Berita kripto terkini — ketuk koin untuk memperdagangkannya.",
+    "breaking": "Terkini",
+    "empty": "Belum ada berita.",
+    "emptyCoin": "Belum ada berita tentang {symbol}.",
+    "failed": "Berita gagal dimuat.",
+    "loadMore": "Muat lagi",
+    "seeAll": "Lihat semua",
+    "alertsTitle": "Peringatan berita",
+    "alertsDetail": "Saat berita menyebut koin yang kamu pantau atau sedang kamu buka",
+    "soundTitle": "Suara peringatan",
+    "soundDetail": "Bunyi singkat untuk peringatan berita",
+    "toastWatchlist": "Dipantau",
+    "toastOnScreen": "Koin ini",
+    "dismiss": "Tutup",
+    "sources": "Judul dari {list}. Artikel dibuka di situs penerbit."
   }
 }

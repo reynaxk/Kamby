@@ -12,6 +12,7 @@ import {
 import { useStoredSession } from '@/hooks/useStoredSession';
 import { useTranslations } from 'next-intl';
 import { PushToggle } from './PushToggle';
+import { NewsAlertSettings } from '@/components/news/NewsAlertSettings';
 
 const FIELDS: { key: keyof NotificationPreferences; label: string; detail: string }[] = [
   { key: 'messages', label: 'Messages', detail: 'When someone sends you a private message' },
@@ -124,6 +125,7 @@ export function NotificationPreferencesPanel() {
         </div>
         );
       })}
+      <NewsAlertSettings />
     </Surface>
   );
 }

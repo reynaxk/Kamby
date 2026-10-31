@@ -5,6 +5,8 @@ import {
   type DmEvent,
   LIVE_REALTIME_CHANNEL,
   type LiveEvent,
+  NEWS_REALTIME_CHANNEL,
+  type NewsItem,
   NOTIFICATION_REALTIME_CHANNEL,
   PUMPFUN_REALTIME_CHANNEL,
   PULSE_REALTIME_CHANNEL,
@@ -56,6 +58,7 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly tokenChatSubject = new Subject<TokenChatEvent>();
   private readonly dmSubject = new Subject<DmEvent>();
   private readonly liveSubject = new Subject<LiveEvent>();
+  private readonly newsSubject = new Subject<NewsItem>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -86,13 +89,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.dmSubject.next(JSON.parse(message) as DmEvent);
         } else if (channel === LIVE_REALTIME_CHANNEL) {
           this.liveSubject.next(JSON.parse(message) as LiveEvent);
+        } else if (channel === NEWS_REALTIME_CHANNEL) {
+          this.newsSubject.next(JSON.parse(message) as NewsItem);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL, DM_REALTIME_CHANNEL, LIVE_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL, DM_REALTIME_CHANNEL, LIVE_REALTIME_CHANNEL, NEWS_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -142,5 +147,10 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   /** Live-room events (chat, track/viewer changes, the end) — each room's stream filters to it. */
   get liveEvents$() {
     return this.liveSubject.asObservable();
+  }
+
+  /** New headlines from the workers' RSS poll (full NewsItem). */
+  get newsEvents$() {
+    return this.newsSubject.asObservable();
   }
 }

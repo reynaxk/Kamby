@@ -1616,3 +1616,25 @@ model FeedReport {
   @@id([postId, userId])
   @@map("feed_reports")
 }
+
+/// Crypto news archive (2026-10-31) — headlines from public RSS feeds, polled by the workers.
+/// Only title, a short summary and the link back are kept. The latest 100 also live in Redis
+/// (kamby:news:latest) for the fast first page.
+model NewsArticle {
+  /// sha256 of the normalised title — the same story re-posted or re-dated hashes the same.
+  id          String   @id
+  sourceId    String   @map("source_id")
+  title       String
+  summary     String
+  url         String   @unique
+  publishedAt DateTime @map("published_at")
+  /// [{ symbol, chainIdentifier, tokenAddress }] — verified coins only.
+  tokens      Json     @default("[]")
+  /// newsTokenKey() of each tag, for "news about this coin".
+  tokenKeys   String[] @map("token_keys")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([publishedAt])
+  @@index([tokenKeys], type: Gin)
+  @@map("news_articles")
+}

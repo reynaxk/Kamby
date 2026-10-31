@@ -10,7 +10,8 @@
     "live": "Live",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Feed"
+    "feed": "Feed",
+    "news": "News"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -1569,5 +1570,23 @@
     "explore": "Schau dich um",
     "exploreBody": "Schau einem Trader live zu oder scroll durch den Feed.",
     "exploreCta": "Live öffnen"
+  },
+  "news": {
+    "title": "News",
+    "subtitle": "Krypto-Schlagzeilen in Echtzeit — tippe auf einen Coin, um ihn zu handeln.",
+    "breaking": "Eilmeldung",
+    "empty": "Noch keine News.",
+    "emptyCoin": "Noch keine News zu {symbol}.",
+    "failed": "News konnten nicht geladen werden.",
+    "loadMore": "Mehr laden",
+    "seeAll": "Alle ansehen",
+    "alertsTitle": "News-Hinweise",
+    "alertsDetail": "Wenn eine Meldung einen Coin erwähnt, den du beobachtest oder geöffnet hast",
+    "soundTitle": "Hinweiston",
+    "soundDetail": "Ein kurzer Ton bei News-Hinweisen",
+    "toastWatchlist": "Watchlist",
+    "toastOnScreen": "Dieser Coin",
+    "dismiss": "Schließen",
+    "sources": "Schlagzeilen von {list}. Artikel öffnen sich auf der Seite des Verlags."
   }
 }

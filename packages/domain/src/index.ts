@@ -29,3 +29,4 @@ export * from './stories';
 export * from './live';
 export * from './squads';
 export * from './duels';
+export * from './news';

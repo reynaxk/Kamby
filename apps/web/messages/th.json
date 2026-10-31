@@ -10,7 +10,8 @@
     "live": "ไลฟ์",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "ฟีด"
+    "feed": "ฟีด",
+    "news": "ข่าว"
   },
   "install": {
     "title": "ติดตั้งแอป Kamby",
@@ -1569,5 +1570,23 @@
     "explore": "ลองดูรอบๆ",
     "exploreBody": "ดูเทรดเดอร์ไลฟ์ หรือเลื่อนดูฟีด",
     "exploreCta": "เปิด Live"
+  },
+  "news": {
+    "title": "ข่าว",
+    "subtitle": "พาดหัวข่าวคริปโตล่าสุด — แตะเหรียญเพื่อเทรด",
+    "breaking": "ด่วน",
+    "empty": "ยังไม่มีข่าว",
+    "emptyCoin": "ยังไม่มีข่าวเกี่ยวกับ {symbol}",
+    "failed": "โหลดข่าวไม่สำเร็จ",
+    "loadMore": "โหลดเพิ่ม",
+    "seeAll": "ดูทั้งหมด",
+    "alertsTitle": "แจ้งเตือนข่าว",
+    "alertsDetail": "เมื่อข่าวพูดถึงเหรียญที่คุณติดตามหรือเปิดอยู่",
+    "soundTitle": "เสียงแจ้งเตือน",
+    "soundDetail": "เสียงสั้น ๆ พร้อมแจ้งเตือนข่าว",
+    "toastWatchlist": "ติดตาม",
+    "toastOnScreen": "เหรียญนี้",
+    "dismiss": "ปิด",
+    "sources": "พาดหัวจาก {list} บทความเปิดบนเว็บไซต์ของสำนักข่าว"
   }
 }

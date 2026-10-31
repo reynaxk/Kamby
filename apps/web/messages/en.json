@@ -10,7 +10,8 @@
     "live": "Live",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Feed"
+    "feed": "Feed",
+    "news": "News"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -1569,5 +1570,23 @@
     "explore": "Look around",
     "exploreBody": "Watch a trader live or scroll the Feed.",
     "exploreCta": "Open Live"
+  },
+  "news": {
+    "title": "News",
+    "subtitle": "Crypto headlines as they break — tap a coin to trade it.",
+    "breaking": "Breaking",
+    "empty": "No news yet.",
+    "emptyCoin": "No news about {symbol} yet.",
+    "failed": "News didn't load.",
+    "loadMore": "Load more",
+    "seeAll": "See all",
+    "alertsTitle": "News alerts",
+    "alertsDetail": "When news mentions a coin you watch or have open",
+    "soundTitle": "Alert sound",
+    "soundDetail": "A short chime with news alerts",
+    "toastWatchlist": "Watchlist",
+    "toastOnScreen": "This coin",
+    "dismiss": "Dismiss",
+    "sources": "Headlines from {list}. Articles open on the publisher’s site."
   }
 }

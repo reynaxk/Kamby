@@ -10,7 +10,8 @@
     "live": "라이브",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "피드"
+    "feed": "피드",
+    "news": "뉴스"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -1569,5 +1570,23 @@
     "explore": "둘러보기",
     "exploreBody": "트레이더 라이브를 보거나 피드를 넘겨 보세요.",
     "exploreCta": "Live 열기"
+  },
+  "news": {
+    "title": "뉴스",
+    "subtitle": "실시간 크립토 헤드라인 — 코인을 눌러 바로 거래하세요.",
+    "breaking": "속보",
+    "empty": "아직 뉴스가 없습니다.",
+    "emptyCoin": "{symbol} 관련 뉴스가 아직 없습니다.",
+    "failed": "뉴스를 불러오지 못했습니다.",
+    "loadMore": "더 보기",
+    "seeAll": "전체 보기",
+    "alertsTitle": "뉴스 알림",
+    "alertsDetail": "관심 코인이나 열어 둔 코인이 뉴스에 나오면",
+    "soundTitle": "알림음",
+    "soundDetail": "뉴스 알림과 함께 짧은 소리",
+    "toastWatchlist": "관심 목록",
+    "toastOnScreen": "이 코인",
+    "dismiss": "닫기",
+    "sources": "{list}의 헤드라인. 기사는 언론사 사이트에서 열립니다."
   }
 }

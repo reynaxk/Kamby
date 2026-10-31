@@ -58,7 +58,8 @@ describe('NotificationPreferencesPanel', () => {
     const follows = await screen.findByRole('switch', { name: 'New followers' });
     expect(follows).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('switch', { name: 'Likes' })).toHaveAttribute('aria-checked', 'false');
-    expect(screen.getAllByRole('switch')).toHaveLength(8);
+    // 8 server preferences + the 2 news-alert switches (this browser).
+    expect(screen.getAllByRole('switch')).toHaveLength(10);
   });
 
   it('flips the real toggle optimistically before the request resolves', async () => {

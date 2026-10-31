@@ -7,6 +7,8 @@ import { useTranslations } from 'next-intl';
 import { formatCompactCount } from '@/lib/format';
 import { MobileCoinScreen } from './MobileCoinScreen';
 import { NewListingBanner } from './NewListingBanner';
+import { NewsFeed } from '@/components/news/NewsFeed';
+import { NewsTickerLine } from '@/components/news/NewsTickerLine';
 import { CoinInfoTab } from './CoinInfoTab';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
@@ -47,6 +49,7 @@ export function SolanaCoinApp({
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
   const tChat = useTranslations('tokenChat');
+  const tNews = useTranslations('news');
   const source: ChartSource = { kind: 'solana', mint };
   const [holderCount, setHolderCount] = useState<number | null>(null);
   return (
@@ -60,7 +63,7 @@ export function SolanaCoinApp({
       initialPrice={initialPrice}
       initialChange24hPct={change24hPct}
       initialMarketCapUsd={marketCapUsd}
-      banner={isNewListing ? <NewListingBanner onBondingCurve={onBondingCurve} compact /> : undefined}
+      banner={<div className="flex flex-col gap-2">{isNewListing && <NewListingBanner onBondingCurve={onBondingCurve} compact />}<NewsTickerLine chainIdentifier="solana" tokenAddress={mint} /></div>}
       chart={<TokenChartCard bare source={source} initialTimeframe={timeframe} initialCandles={candles} timeframes={timeframes} className="h-full" />}
       tabs={[
         { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <HoldersPanel source={source} onCount={setHolderCount} /> },
@@ -70,6 +73,7 @@ export function SolanaCoinApp({
           content: <TokenStreamChatLazy chainIdentifier="solana" address={mint} symbol={symbol} phone className="h-[560px]" />,
         },
         { id: 'trades', label: tU('trades_18da'), content: <LiveTradesPanel source={source} /> },
+        { id: 'news', label: tNews('title'), content: <div className="px-4 pt-3"><NewsFeed chainIdentifier="solana" tokenAddress={mint} symbol={symbol} limit={10} compact /></div> },
         {
           id: 'about',
           label: tL('tab_about'),

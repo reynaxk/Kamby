@@ -7,6 +7,7 @@ import { HomeHoldings } from '@/components/home/HomeHoldings';
 import { TrackFeed } from '@/components/track/TrackFeed';
 import { HomeSocialTop } from '@/components/home/HomeSocialTop';
 import { HomeMarketsAside } from '@/components/home/HomeMarketsAside';
+import { HomeNews } from '@/components/news/HomeNews';
 import { fetchMarketFeeds } from '@/lib/market-api';
 import { soft } from '@/lib/soft';
 
@@ -36,6 +37,7 @@ export default async function HomePage() {
         <HomeHoldings />
         {/* Wide screens: the column under your money was empty — whales trading right now. */}
         <TrackFeed compact />
+        <HomeNews />
         <div className="hidden xl:block">
           <HomeMarketsAside feeds={feeds} />
         </div>

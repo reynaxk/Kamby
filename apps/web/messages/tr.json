@@ -10,7 +10,8 @@
     "live": "Canlı",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Akış"
+    "feed": "Akış",
+    "news": "Haberler"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -1569,5 +1570,23 @@
     "explore": "Etrafa bak",
     "exploreBody": "Bir trader’ı canlı izle ya da akışa göz at.",
     "exploreCta": "Live’ı aç"
+  },
+  "news": {
+    "title": "Haberler",
+    "subtitle": "Anlık kripto manşetleri — işlem yapmak için bir coine dokun.",
+    "breaking": "Son dakika",
+    "empty": "Henüz haber yok.",
+    "emptyCoin": "{symbol} hakkında henüz haber yok.",
+    "failed": "Haberler yüklenemedi.",
+    "loadMore": "Daha fazla",
+    "seeAll": "Tümünü gör",
+    "alertsTitle": "Haber bildirimleri",
+    "alertsDetail": "Bir haber takip ettiğin ya da açık olan bir coinden bahsettiğinde",
+    "soundTitle": "Bildirim sesi",
+    "soundDetail": "Haber bildirimleriyle kısa bir ses",
+    "toastWatchlist": "Takip",
+    "toastOnScreen": "Bu coin",
+    "dismiss": "Kapat",
+    "sources": "{list} manşetleri. Makaleler yayıncının sitesinde açılır."
   }
 }

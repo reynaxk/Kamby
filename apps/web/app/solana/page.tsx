@@ -19,6 +19,8 @@ import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
 import { soft } from '@/lib/soft';
 import { SolanaCoinApp } from '@/components/market/SolanaCoinApp';
 import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
+import { NewsTickerLine } from '@/components/news/NewsTickerLine';
+import { NewsFeed } from '@/components/news/NewsFeed';
 
 // Entirely wallet/session-scoped — nothing here has a meaningful static version, and
 // statically prerendering it depends on wagmi/Privy's provider tree initializing during the
@@ -198,6 +200,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 launchpadSupply={market.isNewListing}
               />
             )}
+            <WidgetBoundary name="news-line" className="mt-3"><NewsTickerLine chainIdentifier="solana" tokenAddress={market.tokenAddress} className="mt-3" /></WidgetBoundary>
             {!isSol && <WidgetBoundary name="stats" className="mt-3"><TokenStatsStrip source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" /></WidgetBoundary>}
             <WidgetBoundary name="chart" className="mt-3 h-[360px] sm:h-[400px]">
               <TokenChartCard
@@ -232,6 +235,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             <div className="mt-3">
               <WidgetBoundary name="positions"><MyPositionsPanel /></WidgetBoundary>
             </div>
+            <WidgetBoundary name="news" className="mt-3"><NewsFeed chainIdentifier="solana" tokenAddress={market.tokenAddress} symbol={market.symbol} limit={4} fixed compact hideWhenEmpty className="mt-3" /></WidgetBoundary>
             <TokenLinks chain="solana" address={market.tokenAddress} cardTitle={`About $${market.symbol}`} />
           </aside>
         </main>

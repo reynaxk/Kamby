@@ -24,6 +24,8 @@ import { CurveTradePanel } from '@/components/trading/CurveTradePanel';
 import { TokenStreamChatLazy } from '@/components/chat/TokenStreamChatLazy';
 import { WatchButton } from '@/components/market/WatchButton';
 import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
+import { NewsFeed } from '@/components/news/NewsFeed';
+import { NewsTickerLine } from '@/components/news/NewsTickerLine';
 
 /**
  * The full 3-column Void-theme terminal layout — ported to production 2026-09-16 (was a
@@ -89,6 +91,7 @@ export function KambyTerminal({
   const isMobile = useIsMobile();
   const tL = useTranslations('labels');
   const tC = useTranslations('coin');
+  const tNews = useTranslations('news');
   const tChat = useTranslations('tokenChat');
   const [holderCount, setHolderCount] = useState<number | null>(null);
   const canTrade = market.decimals !== null && market.quoteDecimals !== null;
@@ -133,7 +136,7 @@ export function KambyTerminal({
         initialChange24hPct={market.priceChange24hPct}
         initialMarketCapUsd={market.marketCapUsd}
         watch={<WatchButton address={market.tokenAddress} chainId={chainId} initialWatching={null} compact />}
-        banner={banner}
+        banner={<div className="flex flex-col gap-2">{banner}<WidgetBoundary name="news-line"><NewsTickerLine chainIdentifier={market.chainIdentifier} tokenAddress={market.tokenAddress} /></WidgetBoundary></div>}
         chart={<WidgetBoundary name="chart" className="h-full"><TokenChartCard bare source={chartSource} initialTimeframe={timeframe} initialCandles={candles} trades={traders.recentLargeTrades} className="h-full" /></WidgetBoundary>}
         tabs={[
           { id: 'holders', label: tC('holders'), badge: holderCount !== null ? formatCompactCount(holderCount) : undefined, content: <WidgetBoundary name="holders"><HoldersPanel source={chartSource} onCount={setHolderCount} /></WidgetBoundary> },
@@ -143,6 +146,7 @@ export function KambyTerminal({
             content: <WidgetBoundary name="token-chat"><TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} phone className="h-[560px]" /></WidgetBoundary>,
           },
           { id: 'trades', label: tU('trades_18da'), content: <WidgetBoundary name="live-trades"><LiveTradesPanel source={chartSource} /></WidgetBoundary> },
+          { id: 'news', label: tNews('title'), content: <div className="px-4 pt-3"><WidgetBoundary name="news"><NewsFeed chainIdentifier={market.chainIdentifier} tokenAddress={market.tokenAddress} symbol={market.symbol} limit={10} compact /></WidgetBoundary></div> },
           { id: 'traders', label: tU('traders_d5d8'), content: <div className="px-4 pt-3"><WidgetBoundary name="traders"><TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} /></WidgetBoundary></div> },
           {
             id: 'about',
@@ -198,6 +202,7 @@ export function KambyTerminal({
 
           <div className="flex min-w-0 flex-col gap-3">
             <WidgetBoundary name="metrics"><TokenMetricsBar market={market} /></WidgetBoundary>
+            <WidgetBoundary name="news-line"><NewsTickerLine chainIdentifier={market.chainIdentifier} tokenAddress={market.tokenAddress} /></WidgetBoundary>
             {/* The visual hero of the terminal — elevated + a restrained accent glow rather
                 than glass: lightweight-charts renders to a <canvas>, so nothing sits behind
                 this card for a backdrop-blur to reveal. */}
@@ -229,6 +234,7 @@ export function KambyTerminal({
             </div>
             <WidgetBoundary name="positions"><MyPositionsPanel /></WidgetBoundary>
             <WidgetBoundary name="market-info"><MarketInfoPanel market={market} /></WidgetBoundary>
+            <WidgetBoundary name="news"><NewsFeed chainIdentifier={market.chainIdentifier} tokenAddress={market.tokenAddress} symbol={market.symbol} limit={4} fixed compact hideWhenEmpty /></WidgetBoundary>
             <div className="rounded-2xl border border-line bg-surface p-4">
               <WidgetBoundary name="traders" className="border-0 p-0">
                 <TokenTradersPanel connection={traders} tokenAddress={market.tokenAddress} chainId={chainId} />

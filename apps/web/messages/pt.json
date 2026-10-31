@@ -10,7 +10,8 @@
     "live": "Ao vivo",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "Feed"
+    "feed": "Feed",
+    "news": "Notícias"
   },
   "install": {
     "title": "Baixe o app Kamby",
@@ -1569,5 +1570,23 @@
     "explore": "Dê uma olhada",
     "exploreBody": "Assista um trader ao vivo ou role o feed.",
     "exploreCta": "Abrir Live"
+  },
+  "news": {
+    "title": "Notícias",
+    "subtitle": "Manchetes cripto em tempo real — toque numa moeda para negociá-la.",
+    "breaking": "Urgente",
+    "empty": "Ainda não há notícias.",
+    "emptyCoin": "Ainda não há notícias sobre {symbol}.",
+    "failed": "As notícias não carregaram.",
+    "loadMore": "Carregar mais",
+    "seeAll": "Ver tudo",
+    "alertsTitle": "Alertas de notícias",
+    "alertsDetail": "Quando uma notícia menciona uma moeda que você acompanha ou abriu",
+    "soundTitle": "Som do alerta",
+    "soundDetail": "Um som curto com os alertas",
+    "toastWatchlist": "Acompanhadas",
+    "toastOnScreen": "Esta moeda",
+    "dismiss": "Fechar",
+    "sources": "Manchetes de {list}. Os artigos abrem no site do veículo."
   }
 }

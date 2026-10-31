@@ -10,7 +10,8 @@
     "live": "直播",
     "perps": "Perps",
     "launchpad": "LaunchPad",
-    "feed": "动态"
+    "feed": "动态",
+    "news": "新闻"
   },
   "install": {
     "title": "获取 Kamby 应用",
@@ -1569,5 +1570,23 @@
     "explore": "四处看看",
     "exploreBody": "看交易员直播或刷刷动态。",
     "exploreCta": "打开直播"
+  },
+  "news": {
+    "title": "新闻",
+    "subtitle": "实时加密货币头条 — 点击币种即可交易。",
+    "breaking": "快讯",
+    "empty": "暂无新闻。",
+    "emptyCoin": "暂无关于 {symbol} 的新闻。",
+    "failed": "新闻加载失败。",
+    "loadMore": "加载更多",
+    "seeAll": "查看全部",
+    "alertsTitle": "新闻提醒",
+    "alertsDetail": "当新闻提到你关注或正在查看的币种时",
+    "soundTitle": "提醒音",
+    "soundDetail": "新闻提醒时播放短提示音",
+    "toastWatchlist": "关注",
+    "toastOnScreen": "当前币种",
+    "dismiss": "关闭",
+    "sources": "头条来自 {list}。文章在发布方网站打开。"
   }
 }
