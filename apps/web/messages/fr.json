@@ -1559,7 +1559,8 @@
     "videoTooBig": "La vidéo dépasse 20 Mo.",
     "videoTooLong": "Moins de {seconds} secondes.",
     "checkingVideo": "Vérification de la vidéo…",
-    "openCoin": "Ouvrir la crypto"
+    "openCoin": "Ouvrir la crypto",
+    "verifiedPnl": "Trades vérifiés"
   },
   "coinCols": {
     "coin": "Coin",

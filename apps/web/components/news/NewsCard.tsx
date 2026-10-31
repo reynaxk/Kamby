@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { newsSourceById, type NewsItem, type NewsToken } from '@kamby/domain';
+import { newsSourceById, newsTokenKey, type NewsItem, type NewsToken } from '@kamby/domain';
+import { useTranslations } from 'next-intl';
+import { useMyCoins } from '@/lib/my-coins';
 import { cn } from '@kamby/ui';
 import { formatRelativeTime } from '@/lib/format';
 import { marketHref } from '@/lib/solana-links';
@@ -69,6 +71,8 @@ export function NewsCard({
   tokenAction?: (token: NewsToken) => React.ReactNode;
 }) {
   const now = useNow();
+  const t = useTranslations('news');
+  const mine = useMyCoins();
   return (
     <article className={cn('flex flex-col rounded-xl border border-line bg-surface transition-colors hover:border-white/15', large ? 'gap-2.5 rounded-2xl px-5 py-[1.125rem] max-md:px-4 max-md:py-4' : 'gap-1.5 px-3.5 py-3', className)}>
       <div className="flex items-center gap-2">
@@ -87,6 +91,7 @@ export function NewsCard({
           {item.tokens.map((token) => (
             <span key={`${token.chainIdentifier}:${token.tokenAddress}`} className="inline-flex items-center gap-1">
               <NewsTokenBadge token={token} onOpen={onToken} />
+              <MineTag kind={mine.held.has(newsTokenKey(token.chainIdentifier, token.tokenAddress)) ? 'held' : mine.watched.has(newsTokenKey(token.chainIdentifier, token.tokenAddress)) ? 'watched' : null} label={t('toastHolding')} />
               {tokenAction?.(token)}
             </span>
           ))}
@@ -94,4 +99,11 @@ export function NewsCard({
       )}
     </article>
   );
+}
+
+/** "You hold" beside a coin you hold; a small star for one on your watchlist. */
+function MineTag({ kind, label }: { kind: 'held' | 'watched' | null; label: string }) {
+  if (kind === 'held') return <span className="rounded-full bg-accent px-1.5 py-px font-display text-[0.6rem] font-bold uppercase tracking-wide text-bg">{label}</span>;
+  if (kind === 'watched') return <span aria-hidden className="text-[0.7rem] text-[#FACC15]">★</span>;
+  return null;
 }

@@ -1559,7 +1559,8 @@
     "videoTooBig": "Video 20 MB üstü.",
     "videoTooLong": "{seconds} saniyenin altında olsun.",
     "checkingVideo": "Video kontrol ediliyor…",
-    "openCoin": "Coin sayfasını aç"
+    "openCoin": "Coin sayfasını aç",
+    "verifiedPnl": "Doğrulanmış işlemler"
   },
   "coinCols": {
     "coin": "Coin",

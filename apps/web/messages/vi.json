@@ -1559,7 +1559,8 @@
     "videoTooBig": "Video quá 20 MB.",
     "videoTooLong": "Dưới {seconds} giây nhé.",
     "checkingVideo": "Đang kiểm tra video…",
-    "openCoin": "Mở trang coin"
+    "openCoin": "Mở trang coin",
+    "verifiedPnl": "Giao dịch đã xác minh"
   },
   "coinCols": {
     "coin": "Coin",

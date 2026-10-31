@@ -1559,7 +1559,8 @@
     "videoTooBig": "동영상이 20MB를 넘어요.",
     "videoTooLong": "{seconds}초 이내로 해주세요.",
     "checkingVideo": "동영상 확인 중…",
-    "openCoin": "코인 페이지 열기"
+    "openCoin": "코인 페이지 열기",
+    "verifiedPnl": "검증된 거래"
   },
   "coinCols": {
     "coin": "코인",

@@ -1559,7 +1559,8 @@
     "videoTooBig": "El vídeo supera 20 MB.",
     "videoTooLong": "Menos de {seconds} segundos.",
     "checkingVideo": "Revisando el vídeo…",
-    "openCoin": "Abrir la moneda"
+    "openCoin": "Abrir la moneda",
+    "verifiedPnl": "Operaciones verificadas"
   },
   "coinCols": {
     "coin": "Moneda",

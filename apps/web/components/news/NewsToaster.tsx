@@ -5,13 +5,11 @@ import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 import { CHAIN_REGISTRY, isChainSlug, newsTokenKey, type NewsItem } from '@kamby/domain';
 import { getNewsAlertPrefs, onNewsAlertPrefsChange, subscribeToNews, type NewsAlertPrefs } from '@/lib/news-client';
-import { fetchWatchlist, hasStoredSession } from '@/lib/watchlist-client';
-import { fetchMyPositions } from '@/lib/discovery-client';
+import { subscribeMyCoins } from '@/lib/my-coins';
 import { NewsSourceMark, NewsTokenBadge } from './NewsCard';
 
 const AUTO_DISMISS_MS = 9_000;
 const MAX_TOASTS = 3;
-const WATCHLIST_REFRESH_MS = 5 * 60_000;
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
 type Reason = 'holding' | 'watchlist' | 'onScreen';
@@ -70,8 +68,8 @@ export function NewsToaster() {
   const t = useTranslations('news');
   const [prefs, setPrefs] = useState<NewsAlertPrefs | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const watched = useRef<Set<string>>(new Set());
-  const held = useRef<Set<string>>(new Set());
+  const watched = useRef<ReadonlySet<string>>(new Set());
+  const held = useRef<ReadonlySet<string>>(new Set());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
@@ -82,34 +80,13 @@ export function NewsToaster() {
   const enabled = prefs?.toasts === true;
   const sound = prefs?.sound === true;
 
-  // Coins you hold and watch, refreshed now and then.
+  // Coins you hold and watch — shared with the news cards' "You hold" tags.
   useEffect(() => {
     if (!enabled) return;
-    let cancelled = false;
-    const load = () => {
-      if (!hasStoredSession()) return;
-      fetchWatchlist({ limit: 50 })
-        .then((page) => {
-          if (!cancelled) watched.current = new Set(page.items.map((w) => newsTokenKey(w.chainIdentifier, w.tokenAddress)));
-        })
-        .catch(() => undefined);
-      fetchMyPositions()
-        .then((positions) => {
-          if (cancelled) return;
-          held.current = new Set(
-            positions
-              .filter((p) => p.quantity > 0)
-              .map((p) => newsTokenKey(p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : 'eip155:8453'), p.tokenAddress)),
-          );
-        })
-        .catch(() => undefined);
-    };
-    load();
-    const timer = setInterval(load, WATCHLIST_REFRESH_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
+    return subscribeMyCoins((coins) => {
+      watched.current = coins.watched;
+      held.current = coins.held;
+    });
   }, [enabled]);
 
   useEffect(() => {

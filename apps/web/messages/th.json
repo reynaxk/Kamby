@@ -1559,7 +1559,8 @@
     "videoTooBig": "วิดีโอเกิน 20 MB",
     "videoTooLong": "ไม่เกิน {seconds} วินาที",
     "checkingVideo": "กำลังตรวจวิดีโอ…",
-    "openCoin": "เปิดหน้าเหรียญ"
+    "openCoin": "เปิดหน้าเหรียญ",
+    "verifiedPnl": "การเทรดที่ยืนยันแล้ว"
   },
   "coinCols": {
     "coin": "เหรียญ",

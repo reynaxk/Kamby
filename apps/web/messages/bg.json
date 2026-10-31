@@ -1559,7 +1559,8 @@
     "videoTooBig": "Видеото е над 20 MB.",
     "videoTooLong": "До {seconds} секунди, моля.",
     "checkingVideo": "Проверяваме видеото…",
-    "openCoin": "Отвори монетата"
+    "openCoin": "Отвори монетата",
+    "verifiedPnl": "Проверени сделки"
   },
   "coinCols": {
     "coin": "Монета",

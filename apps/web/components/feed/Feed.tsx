@@ -452,6 +452,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
 }
 
 function PnlCard({ pnl }: { pnl: DmPnl }) {
+  const t = useTranslations('feed');
   const up = pnl.pnlUsd >= 0;
   const open = useOpenCoin();
   const href = marketHref(pnl.chainIdentifier, pnl.tokenAddress);
@@ -461,6 +462,12 @@ function PnlCard({ pnl }: { pnl: DmPnl }) {
       <div className="min-w-0 flex-1">
         <p className="font-display text-sm font-bold text-ink-900">{cashtag(pnl.symbol ?? pnl.tokenAddress.slice(0, 6))}</p>
         <p className="font-mono text-xs text-ink-400">{formatSignedCompactUsd(pnl.pnlUsd)}</p>
+        {/* Kamby builds a PnL card from the poster's own confirmed trades (FeedService.post →
+            pnlCard) — it can't be typed in, so it says so. */}
+        <p className="mt-1 inline-flex items-center gap-1 rounded-full border border-accent/25 bg-accent/[0.08] px-1.5 py-px font-display text-[0.6rem] font-bold uppercase tracking-wide text-accent">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m5 12 5 5L20 7" /></svg>
+          {t('verifiedPnl')}
+        </p>
       </div>
       <p className={cn('font-display text-3xl font-black tabular-nums tracking-tight', up ? 'text-up' : 'text-down')}>{formatPercent(pnl.pnlPct)}</p>
     </div>

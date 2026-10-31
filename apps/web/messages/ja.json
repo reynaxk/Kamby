@@ -1559,7 +1559,8 @@
     "videoTooBig": "動画が20MBを超えています。",
     "videoTooLong": "{seconds}秒以内にしてください。",
     "checkingVideo": "動画を確認中…",
-    "openCoin": "コインのページを開く"
+    "openCoin": "コインのページを開く",
+    "verifiedPnl": "検証済みの取引"
   },
   "coinCols": {
     "coin": "コイン",

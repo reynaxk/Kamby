@@ -1559,7 +1559,8 @@
     "videoTooBig": "Video lebih dari 20 MB.",
     "videoTooLong": "Maksimal {seconds} detik.",
     "checkingVideo": "Memeriksa video…",
-    "openCoin": "Buka halaman koin"
+    "openCoin": "Buka halaman koin",
+    "verifiedPnl": "Transaksi terverifikasi"
   },
   "coinCols": {
     "coin": "Koin",
