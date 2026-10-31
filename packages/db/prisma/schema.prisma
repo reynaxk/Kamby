@@ -948,6 +948,9 @@ enum NotificationType {
   CALL_MISSED
   /// 2026-10-17 — someone the recipient follows went live.
   LIVE_STARTED
+  /// 2026-10-31 — someone liked / replied to the recipient's Feed post.
+  FEED_LIKE
+  FEED_REPLY
 }
 
 /// One notification for `user` (the recipient — always resolved from the authenticated

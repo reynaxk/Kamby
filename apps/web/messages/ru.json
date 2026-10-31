@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} в эфире — нажми, чтобы смотреть",
     "kind_CALL_MISSED": "Пропущенный звонок",
     "CALL_MISSED": "{actor} звонил(а) тебе — пропущен",
-    "CALL_MISSED_VIDEO": "{actor} звонил(а) по видео — пропущен"
+    "CALL_MISSED_VIDEO": "{actor} звонил(а) по видео — пропущен",
+    "kind_FEED_LIKE": "Лайки",
+    "kind_FEED_REPLY": "Ответы",
+    "FEED_LIKE": "{actor} лайкнул ваш пост",
+    "FEED_REPLY": "{actor} ответил: {preview}"
   },
   "pulse": {
     "live": "Онлайн — трейдеры со всего мира",

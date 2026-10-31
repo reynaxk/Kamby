@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} está ao vivo — toque para assistir",
     "kind_CALL_MISSED": "Chamada perdida",
     "CALL_MISSED": "{actor} te ligou — chamada perdida",
-    "CALL_MISSED_VIDEO": "{actor} fez uma videochamada — chamada perdida"
+    "CALL_MISSED_VIDEO": "{actor} fez uma videochamada — chamada perdida",
+    "kind_FEED_LIKE": "Curtidas",
+    "kind_FEED_REPLY": "Respostas",
+    "FEED_LIKE": "{actor} curtiu seu post",
+    "FEED_REPLY": "{actor} respondeu: {preview}"
   },
   "pulse": {
     "live": "Ao vivo — traders do mundo todo",

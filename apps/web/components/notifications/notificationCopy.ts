@@ -41,6 +41,10 @@ export function notificationCopy(n: NotificationDto, t: Translate): string {
       return t(n.video ? 'CALL_MISSED_VIDEO' : 'CALL_MISSED', values);
     case 'LIVE_STARTED':
       return t('LIVE_STARTED', values);
+    case 'FEED_LIKE':
+      return t('FEED_LIKE', values);
+    case 'FEED_REPLY':
+      return t('FEED_REPLY', { ...values, preview: n.preview ?? '' });
   }
 }
 

@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} đang live — chạm để xem",
     "kind_CALL_MISSED": "Cuộc gọi nhỡ",
     "CALL_MISSED": "{actor} đã gọi cho bạn — cuộc gọi nhỡ",
-    "CALL_MISSED_VIDEO": "{actor} đã gọi video cho bạn — cuộc gọi nhỡ"
+    "CALL_MISSED_VIDEO": "{actor} đã gọi video cho bạn — cuộc gọi nhỡ",
+    "kind_FEED_LIKE": "Lượt thích",
+    "kind_FEED_REPLY": "Trả lời",
+    "FEED_LIKE": "{actor} đã thích bài của bạn",
+    "FEED_REPLY": "{actor} đã trả lời: {preview}"
   },
   "pulse": {
     "live": "Trực tiếp — trader toàn thế giới",

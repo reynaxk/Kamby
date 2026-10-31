@@ -35,12 +35,16 @@ const EN: Copy = {
   CALL_MISSED: { title: '📞 Missed call', body: 'from @{actor}' },
   missedVideo: '🎥 Missed video call',
   LIVE_STARTED: { title: '🔴 @{actor} is live', body: 'Tap to watch and chat' },
+  FEED_LIKE: { title: '❤️ @{actor}', body: 'liked your post' },
+  FEED_REPLY: { title: '💬 @{actor}', body: 'replied: {preview}' },
 };
 
 const COPY: Record<string, Partial<Copy>> = {
   en: EN,
   bg: {
     LIVE_STARTED: { title: '🔴 @{actor} е на живо', body: 'Докосни, за да гледаш и пишеш' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'хареса поста ти' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'отговори: {preview}' },
     USDC_RECEIVED: { title: "💸 Получи {amount}", body: "@{actor} ти прати {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ти писа" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "ти звъни" },
@@ -59,6 +63,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   zh: {
     LIVE_STARTED: { title: '🔴 @{actor} 正在直播', body: '点击观看并聊天' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: '赞了你的帖子' },
+    FEED_REPLY: { title: '💬 @{actor}', body: '回复：{preview}' },
     USDC_RECEIVED: { title: "💸 收到 {amount}", body: "@{actor} 给你发了 {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "给你发了一条消息" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "正在呼叫你" },
@@ -77,6 +83,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   ko: {
     LIVE_STARTED: { title: '🔴 @{actor}님이 라이브 중', body: '눌러서 시청하고 채팅하세요' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: '님이 게시물을 좋아해요' },
+    FEED_REPLY: { title: '💬 @{actor}', body: '답글: {preview}' },
     USDC_RECEIVED: { title: "💸 {amount} 받았어요", body: "@{actor}님이 {amount}를 보냈어요" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "님이 메시지를 보냈어요" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "님이 전화하고 있어요" },
@@ -95,6 +103,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   ja: {
     LIVE_STARTED: { title: '🔴 @{actor} がライブ中', body: 'タップして視聴・チャット' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'があなたの投稿にいいね' },
+    FEED_REPLY: { title: '💬 @{actor}', body: '返信：{preview}' },
     USDC_RECEIVED: { title: "💸 {amount} 受け取りました", body: "@{actor} から {amount} が届きました" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "からメッセージが届きました" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "から着信中" },
@@ -113,6 +123,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   tr: {
     LIVE_STARTED: { title: '🔴 @{actor} canlı yayında', body: 'İzlemek ve yazmak için dokun' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'gönderini beğendi' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'yanıtladı: {preview}' },
     USDC_RECEIVED: { title: "💸 {amount} geldi", body: "@{actor} sana {amount} gönderdi" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "sana mesaj gönderdi" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "seni arıyor" },
@@ -131,6 +143,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   ru: {
     LIVE_STARTED: { title: '🔴 @{actor} в эфире', body: 'Нажми, чтобы смотреть и писать' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'лайкнул ваш пост' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'ответил: {preview}' },
     USDC_RECEIVED: { title: "💸 Получено {amount}", body: "@{actor} отправил тебе {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "написал тебе" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "звонит тебе" },
@@ -149,6 +163,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   es: {
     LIVE_STARTED: { title: '🔴 @{actor} está en directo', body: 'Toca para ver y chatear' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'le gustó tu post' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'respondió: {preview}' },
     USDC_RECEIVED: { title: "💸 Recibiste {amount}", body: "@{actor} te envió {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te envió un mensaje" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "te está llamando" },
@@ -167,6 +183,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   pt: {
     LIVE_STARTED: { title: '🔴 @{actor} está ao vivo', body: 'Toque para assistir e conversar' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'curtiu seu post' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'respondeu: {preview}' },
     USDC_RECEIVED: { title: "💸 {amount} recebidos", body: "@{actor} te enviou {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "te enviou uma mensagem" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "está te ligando" },
@@ -185,6 +203,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   vi: {
     LIVE_STARTED: { title: '🔴 @{actor} đang phát live', body: 'Chạm để xem và chat' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'đã thích bài của bạn' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'đã trả lời: {preview}' },
     USDC_RECEIVED: { title: "💸 Đã nhận {amount}", body: "@{actor} đã gửi bạn {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "đã nhắn tin cho bạn" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "đang gọi cho bạn" },
@@ -203,6 +223,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   id: {
     LIVE_STARTED: { title: '🔴 @{actor} sedang live', body: 'Ketuk untuk menonton & chat' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'menyukai postinganmu' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'membalas: {preview}' },
     USDC_RECEIVED: { title: "💸 {amount} diterima", body: "@{actor} mengirimimu {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "mengirimimu pesan" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "sedang meneleponmu" },
@@ -221,6 +243,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   th: {
     LIVE_STARTED: { title: '🔴 @{actor} กำลังไลฟ์', body: 'แตะเพื่อดูและแชท' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'ถูกใจโพสต์ของคุณ' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'ตอบกลับ: {preview}' },
     USDC_RECEIVED: { title: "💸 ได้รับ {amount}", body: "@{actor} ส่ง {amount} ให้คุณ" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "ส่งข้อความถึงคุณ" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "กำลังโทรหาคุณ" },
@@ -239,6 +263,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   de: {
     LIVE_STARTED: { title: '🔴 @{actor} ist live', body: 'Tippe zum Zuschauen & Chatten' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'gefällt dein Post' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'hat geantwortet: {preview}' },
     USDC_RECEIVED: { title: "💸 {amount} erhalten", body: "@{actor} hat dir {amount} geschickt" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "hat dir geschrieben" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "ruft dich an" },
@@ -257,6 +283,8 @@ const COPY: Record<string, Partial<Copy>> = {
   },
   fr: {
     LIVE_STARTED: { title: '🔴 @{actor} est en live', body: 'Touche pour regarder et chatter' },
+    FEED_LIKE: { title: '❤️ @{actor}', body: 'a aimé ton post' },
+    FEED_REPLY: { title: '💬 @{actor}', body: 'a répondu : {preview}' },
     USDC_RECEIVED: { title: "💸 {amount} reçus", body: "@{actor} t'a envoyé {amount}" },
     DM_MESSAGE: { title: "💬 @{actor}", body: "t'a envoyé un message" },
     CALL_INCOMING: { title: "📞 @{actor}", body: "t'appelle" },

@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} がライブ中 — タップで視聴",
     "kind_CALL_MISSED": "不在着信",
     "CALL_MISSED": "{actor} からの不在着信",
-    "CALL_MISSED_VIDEO": "{actor} からの不在ビデオ通話"
+    "CALL_MISSED_VIDEO": "{actor} からの不在ビデオ通話",
+    "kind_FEED_LIKE": "いいね",
+    "kind_FEED_REPLY": "返信",
+    "FEED_LIKE": "{actor} があなたの投稿にいいね",
+    "FEED_REPLY": "{actor} が返信：{preview}"
   },
   "pulse": {
     "live": "ライブ — 世界中のトレーダー",

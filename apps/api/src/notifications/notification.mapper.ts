@@ -70,6 +70,7 @@ export function toNotificationDto(row: NotificationRow): NotificationDto {
     side: row.swap ? (row.swap.side === 'buy' ? 'BUY' : 'SELL') : (payload?.side ?? null),
     pct: payload?.pct ?? null,
     video: payload?.callVideo ?? null,
+    preview: row.type === 'FEED_REPLY' ? (payload?.preview ?? null) : null,
     deepLink: notificationDeepLink(row.type, {
       actorWalletAddress: actor?.address ?? null,
       tokenAddress: token?.address ?? null,

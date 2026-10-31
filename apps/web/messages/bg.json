@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} е на живо — докосни, за да гледаш",
     "kind_CALL_MISSED": "Пропуснато обаждане",
     "CALL_MISSED": "{actor} ти звъня — пропусна го",
-    "CALL_MISSED_VIDEO": "{actor} ти звъня по видео — пропусна го"
+    "CALL_MISSED_VIDEO": "{actor} ти звъня по видео — пропусна го",
+    "kind_FEED_LIKE": "Харесвания",
+    "kind_FEED_REPLY": "Отговори",
+    "FEED_LIKE": "{actor} хареса поста ти",
+    "FEED_REPLY": "{actor} отговори: {preview}"
   },
   "pulse": {
     "live": "На живо — трейдъри от цял свят",

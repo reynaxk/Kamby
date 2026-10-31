@@ -22,6 +22,8 @@ const KIND_COLOR: Record<NotificationDto['type'], string> = {
   CALL_INCOMING: 'text-accent',
   CALL_MISSED: 'text-down',
   LIVE_STARTED: 'text-down',
+  FEED_LIKE: 'text-down',
+  FEED_REPLY: 'text-accent',
 };
 
 /** Each kind's own line icon (2026-10-15, the landing page's icon style) and its tint. */
@@ -38,6 +40,8 @@ const KIND_ICON: Record<NotificationDto['type'], { path: string; tile: string }>
   USDC_RECEIVED: { path: 'm22 2-7 20-4-9-9-4ZM22 2 11 13', tile: 'bg-up/10 text-up border-up/20' },
   DM_MESSAGE: { path: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12Z', tile: 'bg-accent/10 text-accent border-accent/20' },
   LIVE_STARTED: { path: 'M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19.1 4.9a10 10 0 0 1 0 14.2M4.9 19.1a10 10 0 0 1 0-14.2', tile: 'bg-down/10 text-down border-down/20' },
+  FEED_LIKE: { path: 'M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1Z', tile: 'bg-down/10 text-down border-down/20' },
+  FEED_REPLY: { path: 'M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z', tile: 'bg-accent/10 text-accent border-accent/20' },
   CALL_MISSED: { path: 'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2ZM16 3l5 5M21 3l-5 5', tile: 'bg-down/10 text-down border-down/20' },
   CALL_INCOMING: { path: 'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z', tile: 'bg-accent/10 text-accent border-accent/20' },
 };

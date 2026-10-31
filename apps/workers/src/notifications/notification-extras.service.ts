@@ -363,6 +363,12 @@ export class NotificationExtrasService {
               })
             : row.type === 'CALL_MISSED' && payload?.callVideo
               ? { ...pushCopy(sub.locale, row.type, { actor: actorName, token: '', amount: '', pct: '', side: null }), title: missedVideoTitle(sub.locale) }
+            : row.type === 'FEED_REPLY'
+              ? (() => {
+                  // The reply's own words go into the body (2026-10-31).
+                  const c = pushCopy(sub.locale, row.type, { actor: actorName, token: '', amount: '', pct: '', side: null });
+                  return { ...c, body: c.body.replace('{preview}', payload?.preview ?? '') };
+                })()
             : row.type === 'LIVE_STARTED' && payload?.liveTitle
               ? { ...pushCopy(sub.locale, row.type, { actor: actorName, token: '', amount: '', pct: '', side: null }), body: payload.liveTitle }
               : pushCopy(sub.locale, row.type, {

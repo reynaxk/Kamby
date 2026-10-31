@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor}님이 라이브 중 — 눌러서 시청",
     "kind_CALL_MISSED": "부재중 전화",
     "CALL_MISSED": "{actor}님의 부재중 전화",
-    "CALL_MISSED_VIDEO": "{actor}님의 부재중 영상 통화"
+    "CALL_MISSED_VIDEO": "{actor}님의 부재중 영상 통화",
+    "kind_FEED_LIKE": "좋아요",
+    "kind_FEED_REPLY": "답글",
+    "FEED_LIKE": "{actor}님이 게시물을 좋아해요",
+    "FEED_REPLY": "{actor}님의 답글: {preview}"
   },
   "pulse": {
     "live": "실시간 — 전 세계 트레이더",

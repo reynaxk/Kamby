@@ -99,6 +99,21 @@ export class NotificationService {
     });
   }
 
+  /** A like or reply on someone's Feed post (2026-10-31) — never to yourself, and only when the
+   *  post's owner has likes switched on. One per liker per post; one per reply. */
+  async notifyFeed(input: { ownerId: string; actorId: string; kind: 'like' | 'reply'; postId: string; dedupe: string; preview?: string }): Promise<void> {
+    if (input.ownerId === input.actorId) return;
+    const type = input.kind === 'like' ? 'FEED_LIKE' : 'FEED_REPLY';
+    if (!(await this.isEnabled(input.ownerId, type))) return;
+    await this.create({
+      userId: input.ownerId,
+      type,
+      dedupeKey: input.dedupe,
+      actorUserId: input.actorId,
+      payload: { feedPostId: input.postId, ...(input.preview ? { preview: input.preview } : {}) },
+    });
+  }
+
   /**
    * The shared creation path every notification type (API and worker) ultimately goes
    * through — see FOLLOWED_TRADER_TRADE/WHALE_TRADE/TRENDING_TOKEN creation in

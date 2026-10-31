@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} กำลังไลฟ์ — แตะเพื่อดู",
     "kind_CALL_MISSED": "สายที่ไม่ได้รับ",
     "CALL_MISSED": "{actor} โทรหาคุณ — ไม่ได้รับสาย",
-    "CALL_MISSED_VIDEO": "{actor} วิดีโอคอลหาคุณ — ไม่ได้รับสาย"
+    "CALL_MISSED_VIDEO": "{actor} วิดีโอคอลหาคุณ — ไม่ได้รับสาย",
+    "kind_FEED_LIKE": "ถูกใจ",
+    "kind_FEED_REPLY": "ตอบกลับ",
+    "FEED_LIKE": "{actor} ถูกใจโพสต์ของคุณ",
+    "FEED_REPLY": "{actor} ตอบกลับ: {preview}"
   },
   "pulse": {
     "live": "สด — เทรดเดอร์ทั่วโลก",

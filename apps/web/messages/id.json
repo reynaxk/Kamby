@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} sedang live — ketuk untuk menonton",
     "kind_CALL_MISSED": "Panggilan tak terjawab",
     "CALL_MISSED": "{actor} meneleponmu — tak terjawab",
-    "CALL_MISSED_VIDEO": "{actor} melakukan panggilan video — tak terjawab"
+    "CALL_MISSED_VIDEO": "{actor} melakukan panggilan video — tak terjawab",
+    "kind_FEED_LIKE": "Suka",
+    "kind_FEED_REPLY": "Balasan",
+    "FEED_LIKE": "{actor} menyukai postinganmu",
+    "FEED_REPLY": "{actor} membalas: {preview}"
   },
   "pulse": {
     "live": "Live — trader dari seluruh dunia",

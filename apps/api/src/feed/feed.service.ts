@@ -17,6 +17,7 @@ import {
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { DmService } from '../dm/dm.service';
+import { NotificationService } from '../notifications/notification.service';
 import { ImageModerationService } from '../media/image-moderation.service';
 import { R2StorageService, type UploadableFile } from '../media/r2-storage.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
@@ -58,6 +59,7 @@ export class FeedService {
     private readonly dm: DmService,
     private readonly moderation: ImageModerationService,
     private readonly r2: R2StorageService,
+    private readonly notifications: NotificationService,
   ) {}
 
   /** Photos are on only when moderation is configured (Sightengine keys on the API). */
@@ -186,11 +188,12 @@ export class FeedService {
 
   /** Like or unlike; returns the new count. */
   async like(me: string, postId: string, on: boolean): Promise<{ likeCount: number; likedByMe: boolean }> {
-    const post = await prisma.feedPost.findFirst({ where: { id: postId, hiddenAt: null }, select: { id: true } });
+    const post = await prisma.feedPost.findFirst({ where: { id: postId, hiddenAt: null }, select: { id: true, userId: true } });
     if (!post) throw new NotFoundException('That post is gone.');
     const exists = await prisma.feedLike.findUnique({ where: { postId_userId: { postId, userId: me } } });
     if (on && !exists) {
       await prisma.$transaction([prisma.feedLike.create({ data: { postId, userId: me } }), prisma.feedPost.update({ where: { id: postId }, data: { likeCount: { increment: 1 } } })]);
+      void this.notifications.notifyFeed({ ownerId: post.userId, actorId: me, kind: 'like', postId, dedupe: `feedlike:${postId}:${me}` }).catch(() => undefined);
     } else if (!on && exists) {
       await prisma.$transaction([prisma.feedLike.delete({ where: { postId_userId: { postId, userId: me } } }), prisma.feedPost.update({ where: { id: postId }, data: { likeCount: { decrement: 1 } } })]);
     }
@@ -212,7 +215,7 @@ export class FeedService {
     const body = cleanBody(raw, FEED_LIMITS.replyMaxLength);
     const user = await prisma.user.findUnique({ where: { id: me }, select: { username: true } });
     if (!user?.username) throw new ForbiddenException('Set a username in your profile to reply.');
-    const post = await prisma.feedPost.findFirst({ where: { id: postId, hiddenAt: null }, select: { id: true } });
+    const post = await prisma.feedPost.findFirst({ where: { id: postId, hiddenAt: null }, select: { id: true, userId: true } });
     if (!post) throw new NotFoundException('That post is gone.');
     const cooled = await this.redis.set(`kamby:feed:reply:${me}`, '1', 'EX', FEED_LIMITS.replyCooldownSeconds, 'NX').catch(() => 'OK');
     if (cooled !== 'OK') throw new HttpException('Slow down a little.', HttpStatus.TOO_MANY_REQUESTS);
@@ -220,6 +223,7 @@ export class FeedService {
       prisma.feedReply.create({ data: { postId, userId: me, body }, include: { user: AUTHOR } }),
       prisma.feedPost.update({ where: { id: postId }, data: { replyCount: { increment: 1 } } }),
     ]);
+    void this.notifications.notifyFeed({ ownerId: post.userId, actorId: me, kind: 'reply', postId, dedupe: `feedreply:${row.id}`, preview: body.slice(0, 80) }).catch(() => undefined);
     return { id: row.id, author: author(row.user), body: row.body, mine: true, createdAt: row.createdAt.toISOString() };
   }
 

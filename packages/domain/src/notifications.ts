@@ -29,6 +29,9 @@ export const NotificationTypeSchema = z.enum([
   'CALL_INCOMING',
   /** 2026-10-28 — a call (voice or video) you didn't pick up; listed and pushed. */
   'CALL_MISSED',
+  /** 2026-10-31 — someone liked / replied to your Feed post. */
+  'FEED_LIKE',
+  'FEED_REPLY',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -100,6 +103,8 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   CALL_INCOMING: 'messages',
   CALL_MISSED: 'messages',
   LIVE_STARTED: 'follows',
+  FEED_LIKE: 'likes',
+  FEED_REPLY: 'likes',
 };
 
 /**
@@ -132,6 +137,8 @@ export const NotificationPayloadSchema = z.object({
   liveTitle: z.string().optional(),
   /** CALL_MISSED: a video call (true) or a voice call. */
   callVideo: z.boolean().optional(),
+  /** FEED_LIKE / FEED_REPLY: the post (the reply's words go in `preview`). */
+  feedPostId: z.string().optional(),
 });
 export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
 
@@ -230,6 +237,9 @@ export function notificationDeepLink(
       return ctx.conversationId ? `/messages/${ctx.conversationId}` : '/messages';
     case 'LIVE_STARTED':
       return ctx.liveRoomId ? `/live/${ctx.liveRoomId}` : '/home';
+    case 'FEED_LIKE':
+    case 'FEED_REPLY':
+      return '/feed';
   }
 }
 
@@ -269,6 +279,8 @@ export const NotificationDtoSchema = z.object({
   pct: z.number().nullable().optional(),
   /** CALL_MISSED: whether it was a video call. */
   video: z.boolean().nullable().optional(),
+  /** FEED_REPLY (2026-10-31): the start of the reply. */
+  preview: z.string().nullable().optional(),
   deepLink: z.string().nullable(),
 });
 export type NotificationDto = z.infer<typeof NotificationDtoSchema>;

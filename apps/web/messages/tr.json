@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} canlı yayında — izlemek için dokun",
     "kind_CALL_MISSED": "Cevapsız arama",
     "CALL_MISSED": "{actor} seni aradı — cevapsız",
-    "CALL_MISSED_VIDEO": "{actor} seni görüntülü aradı — cevapsız"
+    "CALL_MISSED_VIDEO": "{actor} seni görüntülü aradı — cevapsız",
+    "kind_FEED_LIKE": "Beğeniler",
+    "kind_FEED_REPLY": "Yanıtlar",
+    "FEED_LIKE": "{actor} gönderini beğendi",
+    "FEED_REPLY": "{actor} yanıtladı: {preview}"
   },
   "pulse": {
     "live": "Canlı — dünyanın dört bir yanından trader’lar",

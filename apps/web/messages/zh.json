@@ -786,7 +786,11 @@
     "LIVE_STARTED": "{actor} 正在直播——点击观看",
     "kind_CALL_MISSED": "未接来电",
     "CALL_MISSED": "{actor} 给你打过电话 — 未接",
-    "CALL_MISSED_VIDEO": "{actor} 给你打过视频电话 — 未接"
+    "CALL_MISSED_VIDEO": "{actor} 给你打过视频电话 — 未接",
+    "kind_FEED_LIKE": "点赞",
+    "kind_FEED_REPLY": "回复",
+    "FEED_LIKE": "{actor} 赞了你的帖子",
+    "FEED_REPLY": "{actor} 回复：{preview}"
   },
   "pulse": {
     "live": "实时 — 全球交易者",
