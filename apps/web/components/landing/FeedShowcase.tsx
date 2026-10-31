@@ -18,14 +18,14 @@ export function FeedShowcase({ kicker, title, body, chips }: { kicker: string; t
             <span className="rounded-lg bg-[#00FF87] px-2.5 py-1.5 font-display text-[0.7rem] font-black text-black">⚡ Copy</span>
           </div>
         </Post>
-        <Post who="lunatrades" tone="#5CEFFF" ago="18m" text="Closed $BONK 🔥" className="relative z-20 -mt-6 ml-10 rotate-[1.5deg] lg:ml-16">
+        <Post who="lunatrades" tone="#5CEFFF" ago="18m" text="Closed $BONK 🔥" className="relative z-20 mt-3 ml-8 rotate-[1.5deg] lg:ml-14">
           <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 p-4" style={{ background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#020203 100%)' }}>
             <span className="font-display text-sm font-bold text-white">$BONK</span>
             <p className="mt-2 font-display text-4xl font-black leading-none tracking-tight text-[#00E676]">+236%</p>
             <p className="mt-1 font-mono text-xs font-bold text-[#00E676]">+$118.00</p>
           </div>
         </Post>
-        <Post who="moonboi" tone="#FFC94D" ago="1h" text="SOL 4H — who’s in? 📈" className="relative z-10 -mt-6 -rotate-[1.5deg]">
+        <Post who="moonboi" tone="#FFC94D" ago="1h" text="SOL 4H — who’s in? 📈" className="relative z-10 mt-3 -rotate-[1.5deg]">
           <svg viewBox="0 0 300 90" preserveAspectRatio="none" className="mt-3 h-24 w-full rounded-2xl border border-white/10 bg-[#040507]">
             <path d="M0,80 L25,72 L50,76 L75,60 L100,64 L125,48 L150,52 L175,36 L200,40 L225,26 L250,30 L275,14 L300,18 L300,90 L0,90 Z" fill="rgba(0,230,118,0.1)" />
             <path d="M0,80 L25,72 L50,76 L75,60 L100,64 L125,48 L150,52 L175,36 L200,40 L225,26 L250,30 L275,14 L300,18" fill="none" stroke="#00E676" strokeWidth="2" />
