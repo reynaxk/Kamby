@@ -19,6 +19,14 @@ export const AGGREGATOR_DEX_PREFIX = 'agg:';
 
 const DEXSCREENER_CHAIN: Record<number, string> = { 8453: 'base', 56: 'bsc', 4663: 'robinhood' };
 const SAFETY_CHAIN: Record<number, string> = { 8453: '8453', 56: '56', 4663: '4663' };
+/** Fits Postgres' Decimal(38,18) (< 10^20) — anything bigger is a broken or fake figure. */
+function fitsDecimal(v: number): boolean {
+  return Number.isFinite(v) && Math.abs(v) < 1e19;
+}
+function fitOrNull(v: number | null | undefined): number | null {
+  return v !== null && v !== undefined && fitsDecimal(v) ? v : null;
+}
+
 const MIN_RESERVE_USD = 10_000;
 const MIN_BUYERS_24H = 20;
 const MIN_SELLERS_24H = 10;
@@ -169,18 +177,25 @@ export class AggregatorMarketService {
         if (!m.token.logoUrl && image?.startsWith('https://')) {
           await prisma.token.update({ where: { id: m.token.id }, data: { logoUrl: image } }).catch(() => undefined);
         }
-        await prisma.tokenMarket.update({
-          where: { id: m.id },
-          data: {
-            priceUsd: price,
-            liquidityUsd: best.liquidity?.usd ?? null,
-            volume24hUsd: best.volume?.h24 ?? null,
-            priceChange24hPct: clampPct(best.priceChange?.h24),
-            marketCapUsd: best.marketCap ?? best.fdv ?? null,
-            lastPriceUpdateAt: new Date(),
-          },
-        });
-        updated += 1;
+        // One coin with an absurd figure (a scam token's "$10^25 market cap") used to throw
+        // Postgres' numeric overflow and fail the whole tick (2026-10-31): such figures are dropped,
+        // and a coin that still won't save is skipped, not fatal.
+        if (!fitsDecimal(price)) continue;
+        const saved = await prisma.tokenMarket
+          .update({
+            where: { id: m.id },
+            data: {
+              priceUsd: price,
+              liquidityUsd: fitOrNull(best.liquidity?.usd),
+              volume24hUsd: fitOrNull(best.volume?.h24),
+              priceChange24hPct: clampPct(best.priceChange?.h24),
+              marketCapUsd: fitOrNull(best.marketCap ?? best.fdv),
+              lastPriceUpdateAt: new Date(),
+            },
+          })
+          .then(() => true)
+          .catch(() => false);
+        if (saved) updated += 1;
       }
     }
     return updated;

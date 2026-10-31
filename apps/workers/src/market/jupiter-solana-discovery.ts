@@ -141,10 +141,18 @@ export class JupiterSolanaDiscoveryService {
     }
   }
 
+  /** Until when Jupiter told us to back off (a 429) — calls before then are skipped (2026-10-31:
+   *  a tick fired its lists and searches back to back and drew bursts of 429s). */
+  private coolUntil = 0;
+
   private async fetchList(url: string): Promise<JupiterToken[]> {
+    if (Date.now() < this.coolUntil) return [];
+    // A little space between calls — the free tier counts requests per second too.
+    await new Promise((r) => setTimeout(r, 250));
     try {
       const response = await fetch(url, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10_000) });
       if (!response.ok) {
+        if (response.status === 429) this.coolUntil = Date.now() + 30_000;
         this.logger.warn({ status: response.status, url: url.split('?')[0] }, 'Jupiter discovery request failed');
         return [];
       }
