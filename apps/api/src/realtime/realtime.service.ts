@@ -6,6 +6,9 @@ import {
   LIVE_REALTIME_CHANNEL,
   type LiveEvent,
   NEWS_REALTIME_CHANNEL,
+  PREDICTION_REALTIME_CHANNEL,
+  type Prediction,
+  type PredictionUpdate,
   type NewsItem,
   NOTIFICATION_REALTIME_CHANNEL,
   PUMPFUN_REALTIME_CHANNEL,
@@ -21,6 +24,8 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { Subject } from 'rxjs';
 import { REDIS_CLIENT } from '../redis/redis.module';
+
+export type PredictionEvent = { type: 'update'; update: PredictionUpdate } | { type: 'created'; prediction: Prediction };
 
 export interface ActivityPing {
   tokenMarketId: string;
@@ -59,6 +64,7 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   private readonly dmSubject = new Subject<DmEvent>();
   private readonly liveSubject = new Subject<LiveEvent>();
   private readonly newsSubject = new Subject<NewsItem>();
+  private readonly predictionSubject = new Subject<PredictionEvent>();
   private subscriber: Redis | null = null;
 
   constructor(
@@ -91,13 +97,15 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
           this.liveSubject.next(JSON.parse(message) as LiveEvent);
         } else if (channel === NEWS_REALTIME_CHANNEL) {
           this.newsSubject.next(JSON.parse(message) as NewsItem);
+        } else if (channel === PREDICTION_REALTIME_CHANNEL) {
+          this.predictionSubject.next(JSON.parse(message) as PredictionEvent);
         }
       } catch (error) {
         this.logger.warn({ err: error }, 'Dropped a malformed realtime message');
       }
     });
     try {
-      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL, DM_REALTIME_CHANNEL, LIVE_REALTIME_CHANNEL, NEWS_REALTIME_CHANNEL);
+      await this.subscriber.subscribe(ACTIVITY_REALTIME_CHANNEL, NOTIFICATION_REALTIME_CHANNEL, SOLANA_ACTIVITY_REALTIME_CHANNEL, PUMPFUN_REALTIME_CHANNEL, PULSE_REALTIME_CHANNEL, TOKEN_CHAT_REALTIME_CHANNEL, DM_REALTIME_CHANNEL, LIVE_REALTIME_CHANNEL, NEWS_REALTIME_CHANNEL, PREDICTION_REALTIME_CHANNEL);
     } catch (error) {
       // A down Redis at boot must not crash the API — both feeds just fall back to their
       // "reconnecting"/persisted-fetch states client-side until it reconnects on its own
@@ -152,5 +160,10 @@ export class RealtimeService implements OnModuleInit, OnModuleDestroy {
   /** New headlines from the workers' RSS poll (full NewsItem). */
   get newsEvents$() {
     return this.newsSubject.asObservable();
+  }
+
+  /** Prediction vote counts/outcomes and new polls (PredictionsService publishes them). */
+  get predictionEvents$() {
+    return this.predictionSubject.asObservable();
   }
 }

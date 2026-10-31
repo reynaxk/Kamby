@@ -18,6 +18,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PulseModule } from './pulse/pulse.module';
 import { NewsModule } from './news/news.module';
 import { NarrativesModule } from './narratives/narratives.module';
+import { PredictionsModule } from './predictions/predictions.module';
 import { FeedModule } from './feed/feed.module';
 import { DmModule } from './dm/dm.module';
 import { CallsModule } from './calls/calls.module';
@@ -91,6 +92,7 @@ import { MarketFeedsModule } from './market-feeds/market-feeds.module';
     PulseModule,
     NewsModule,
     NarrativesModule,
+    PredictionsModule,
     FeedModule,
     DmModule,
     CallsModule,

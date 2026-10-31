@@ -48,6 +48,7 @@ describe('RealtimeService', () => {
       'kamby:dm',
       'kamby:live',
       'kamby:news:new',
+      'kamby:predictions',
     );
   });
 

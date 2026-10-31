@@ -10,5 +10,6 @@ import { NarrativesService } from './narratives.service';
   imports: [MarketFeedsModule, LiveModule, SocialModule],
   controllers: [NarrativesController],
   providers: [NarrativesService],
+  exports: [NarrativesService],
 })
 export class NarrativesModule {}

@@ -31,3 +31,4 @@ export * from './squads';
 export * from './duels';
 export * from './news';
 export * from './narratives';
+export * from './predictions';

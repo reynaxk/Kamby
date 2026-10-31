@@ -1638,3 +1638,54 @@ model NewsArticle {
   @@index([tokenKeys], type: Gin)
   @@map("news_articles")
 }
+
+/// Predictions (2026-10-31) — free community forecasts: people vote on what happens next.
+/// Votes only: no money, no stakes, no points, no prizes — ever. See PredictionsService.
+model Prediction {
+  id          String    @id @default(uuid())
+  title       String
+  /// crypto | ai | macro | streamers | memes
+  category    String
+  /// BINARY | MULTI_CHOICE | OVER_UNDER | RANGES
+  kind        String
+  /// The answers, in order (2-4). Votes and the outcome refer to them by index.
+  options     String[]
+  /// ACTIVE | EXPIRED | RESOLVED
+  status      String    @default("ACTIVE")
+  /// PRICE_TARGET | PRICE_RANGE | TOP_GAINER | STREAMER_POLL | MANUAL
+  resolutionType String @map("resolution_type")
+  /// AUTO_PRICE | AUTO_NEWS | AUTO_GAINER | STREAMER | USER
+  source      String
+  chainIdentifier String? @map("chain_identifier")
+  tokenAddress    String? @map("token_address")
+  /// How it resolves: thresholds, range bounds, the coins and start prices of a top-gainer poll.
+  meta        Json      @default("{}")
+  expiresAt   DateTime  @map("expires_at")
+  resolvedOptionIndex Int? @map("resolved_option_index")
+  resolvedAt  DateTime? @map("resolved_at")
+  createdByUserId String? @map("created_by_user_id")
+  liveRoomId  String?   @map("live_room_id")
+  /// One poll per template, coin and day — the generator can run again without duplicates.
+  dedupeKey   String?   @unique @map("dedupe_key")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  votes PredictionVote[]
+
+  @@index([status, expiresAt])
+  @@index([createdAt])
+  @@map("predictions")
+}
+
+model PredictionVote {
+  predictionId String   @map("prediction_id")
+  userId       String   @map("user_id")
+  optionIndex  Int      @map("option_index")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  prediction Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@id([predictionId, userId])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("prediction_votes")
+}
