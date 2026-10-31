@@ -18,13 +18,6 @@ import { EvmGasRelayerQuoteService } from './relayer/evm-gas-relayer-quote.servi
 import { TransactionService } from './transaction.service';
 import { TradingPausedGuard } from './trading-paused.guard';
 
-/**
- * Every endpoint here requires a session, and every mutation additionally verifies the
- * wallet in play belongs to that session (see docs/TRADING.md#authorization) —
- * unlike apps/api/src/social, nothing in trading is meant to be publicly browsable, since
- * it's all inherently tied to one person's funds and history.
- */
-@UseGuards(JwtAuthGuard)
 class EnsureGasDto {
   @IsIn([8453, 56, 4663])
   chainId!: number;
@@ -33,6 +26,17 @@ class EnsureGasDto {
   walletAddress!: string;
 }
 
+/**
+ * Every endpoint here requires a session, and every mutation additionally verifies the
+ * wallet in play belongs to that session (see docs/TRADING.md#authorization) —
+ * unlike apps/api/src/social, nothing in trading is meant to be publicly browsable, since
+ * it's all inherently tied to one person's funds and history.
+ *
+ * 2026-10-31: EnsureGasDto had been inserted between this guard and the class (10-21), so the
+ * guard decorated the DTO and every /trade route ran without a session — `user.id` threw and
+ * quote, relay, transactions, fee, gas and history all answered 500. Keep DTOs above this comment.
+ */
+@UseGuards(JwtAuthGuard)
 @Controller('trade')
 export class TradingController {
   constructor(
