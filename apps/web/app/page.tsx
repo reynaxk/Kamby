@@ -12,6 +12,7 @@ import { soft } from '@/lib/soft';
 import { LandingTour } from '@/components/landing/LandingTour';
 import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
+import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
@@ -94,6 +95,7 @@ export default async function LandingPage() {
                 {t('leaderboard')}
               </Link>
             </div>
+            <LegalAgreementNote className="kamby-gate-in kamby-gate-in-4 mt-4 lg:mx-0 lg:justify-start lg:text-left" />
           </div>
           <div className="flex justify-center lg:justify-end">
             <HeroTrio />

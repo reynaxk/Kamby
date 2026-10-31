@@ -8,6 +8,7 @@ import { CHAIN_REGISTRY, slugForChainId } from '@kamby/domain';
 import { useAccount, useSwitchChain } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { ProfileMenu } from '@/components/account/ProfileMenu';
+import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS, WALLET_SETUP_SLOW_MS } from '@/lib/embedded-wallet-creation';
 import { useTranslations } from 'next-intl';
 
@@ -182,6 +183,7 @@ export function ConnectWalletButton({
             </button>
           )
         )}
+        {block && !authenticated && <LegalAgreementNote className="mt-1" />}
       </div>
     );
   }

@@ -115,6 +115,12 @@ export const privyConfig = {
   externalWallets: {
     walletConnect: { enabled: false },
   },
+  // Privy's own sign-in modal links the Terms and Privacy Policy too (2026-10-31); Kamby's
+  // 18+ agreement line sits under the buttons that open it (components/legal/LegalAgreementNote).
+  legal: {
+    termsAndConditionsUrl: 'https://kambesh.com/terms',
+    privacyPolicyUrl: 'https://kambesh.com/privacy',
+  },
   ...(solanaRpcUrl && {
     solana: {
       rpcs: {

@@ -809,7 +809,7 @@
     "rules": "Sei nett. Keine Links. Keine Anlageberatung."
   },
   "legal": {
-    "agree": "Mit der Anmeldung akzeptierst du Kambys <terms>Nutzungsbedingungen</terms> und <privacy>Datenschutzerklärung</privacy>."
+    "agree": "Mit dem Verbinden deiner Wallet stimmst du unseren <terms>Nutzungsbedingungen</terms> zu und bestätigst, dass du mindestens 18 Jahre alt bist."
   },
   "gate": {
     "cta": "Anmelden oder registrieren",

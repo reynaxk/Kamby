@@ -45,8 +45,9 @@ export function LegalModal({ open, initialDocument = 'terms', onClose }: { open:
   if (!open || typeof document === 'undefined') return null;
   const { title, href, Content } = DOCUMENTS[document_];
 
+  // z-95: above the sign-in wall (#kamby-gate, z-90), which links here too.
   return createPortal(
-    <div className="kamby-void fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="kamby-void fixed inset-0 z-[95] flex items-end justify-center sm:items-center">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} aria-hidden="true" />
       <div
         role="dialog"
