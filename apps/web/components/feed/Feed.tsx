@@ -269,11 +269,11 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
         </div>
       )}
       {error && <p className="mt-2 font-body text-xs text-down">{error}</p>}
-      <div className="mt-2.5 flex items-center gap-1.5">
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
         {photosOn && (
           <>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => void pickPhoto(e.target.files?.[0])} />
-            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
+            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
               <span className="text-[#5CEFFF]">▣</span> {t('photo')}
             </button>
           </>
@@ -281,15 +281,15 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
         {videosOn && (
           <>
             <input ref={videoRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => void pickVideo(e.target.files?.[0])} />
-            <button type="button" disabled={uploading} onClick={() => videoRef.current?.click()} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
+            <button type="button" disabled={uploading} onClick={() => videoRef.current?.click()} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
               <span className="text-[#FF5CA8]">▶</span> {t('video')}
             </button>
           </>
         )}
-        <button type="button" onClick={() => setPicking('trade')} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
+        <button type="button" onClick={() => setPicking('trade')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
           <span className="text-accent">↗</span> {t('tradeCard')}
         </button>
-        <button type="button" onClick={() => setPicking('pnl')} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
+        <button type="button" onClick={() => setPicking('pnl')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
           <span className="text-[#FFC94D]">%</span> {t('pnlCard')}
         </button>
         <span className="ml-auto font-mono text-[0.65rem] text-ink-400">{body.length}/{FEED_LIMITS.maxLength}</span>
