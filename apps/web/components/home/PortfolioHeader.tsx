@@ -32,6 +32,7 @@ export function PortfolioHeader() {
   const tP = useTranslations('perps');
   const t = useTranslations('home');
   const tF = useTranslations('feed');
+  const tN = useTranslations('news');
   const { ready, authenticated, login } = usePrivy();
   const { address } = useAccount();
   const { wallets } = useSolanaWallets();
@@ -126,19 +127,20 @@ export function PortfolioHeader() {
           in the left menu (DesktopSideNav). */}
       {/* Phones (2026-10-31 tidy pass): Feed, LaunchPad and Perps as one row of three, so the coins
           start higher. From lg up they're in the left menu. */}
-      <div className={cn('mt-2 grid gap-2 lg:hidden', FEED_ENABLED ? 'grid-cols-3' : 'grid-cols-2')}>
+      <div className={cn('mt-2 grid gap-2 lg:hidden', FEED_ENABLED ? 'grid-cols-4' : 'grid-cols-3')}>
         {[
-          ...(FEED_ENABLED ? [{ href: '/feed', icon: '📰', label: tF('title') }] : []),
+          ...(FEED_ENABLED ? [{ href: '/feed', icon: '💬', label: tF('title') }] : []),
+          { href: '/news', icon: '📰', label: tN('title') },
           { href: '/launch', icon: '🚀', label: 'LaunchPad' },
           { href: '/perps', icon: '⚡', label: tP('card') },
         ].map((l) => (
           <Link
             key={l.href}
             href={l.href}
-            className="flex h-11 min-w-0 items-center justify-center gap-1 rounded-2xl border border-white/[0.06] px-1.5 transition-colors active:bg-white/[0.06]"
+            className="flex h-14 min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl border border-white/[0.06] px-1 transition-colors active:bg-white/[0.06]"
           >
-            <span aria-hidden>{l.icon}</span>
-            <span className="truncate font-display text-[0.74rem] font-bold tracking-tight text-ink-900">{l.label}</span>
+            <span aria-hidden className="text-base leading-none">{l.icon}</span>
+            <span className="max-w-full truncate font-display text-[0.72rem] font-bold tracking-tight text-ink-900">{l.label}</span>
           </Link>
         ))}
       </div>

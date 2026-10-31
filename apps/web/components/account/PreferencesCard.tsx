@@ -5,6 +5,7 @@ import { cn } from '@kamby/ui';
 import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 import { setTickerEnabled, useTickerEnabled } from '@/lib/ticker-pref';
 import { useBalanceVisibility } from './BalanceVisibilityContext';
+import { NewsAlertSettings } from '@/components/news/NewsAlertSettings';
 
 /** An iOS-style switch in Kamby's accent. */
 function Switch({ on, onChange, label }: { on: boolean; onChange: (next: boolean) => void; label: string }) {
@@ -67,6 +68,9 @@ export function PreferencesCard({ className }: { className?: string }) {
         <Row icon={icon('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18')} title={t('languageTitle')} hint={t('languageHint')}>
           <LanguageSelect bare className="w-auto min-w-[9rem] max-w-[13rem] shrink-0" />
         </Row>
+        <li className="-mx-3">
+          <NewsAlertSettings />
+        </li>
       </ul>
     </section>
   );

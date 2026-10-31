@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "Feed",
-    "news": "Noticias"
+    "news": "Noticias",
+    "toggleMenu": "Plegar o abrir el menú"
   },
   "install": {
     "title": "Obtén la app de Kamby",

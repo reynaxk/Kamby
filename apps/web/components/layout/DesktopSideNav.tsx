@@ -11,6 +11,21 @@ import { FEED_ENABLED } from '@/lib/feed-client';
 
 type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread' };
 
+const NAV_KEY = 'kamby:nav';
+/** Before first paint: a menu the user folded stays folded (no jump on load). */
+export const NAV_GATE_SCRIPT = `try{if(localStorage.getItem('${NAV_KEY}')==='mini')document.documentElement.dataset.nav='mini'}catch(e){}`;
+
+function toggleNav(): void {
+  const mini = document.documentElement.dataset.nav !== 'mini';
+  if (mini) document.documentElement.dataset.nav = 'mini';
+  else delete document.documentElement.dataset.nav;
+  try {
+    localStorage.setItem(NAV_KEY, mini ? 'mini' : 'full');
+  } catch {
+    // private mode — still folds for this visit
+  }
+}
+
 /** Pages that keep the whole width: the landing page, the legal pages and invite links. */
 export function showsDesktopSideNav(pathname: string): boolean {
   if (pathname === '/') return false;
@@ -47,11 +62,27 @@ export function DesktopSideNav() {
   return (
     <nav
       aria-label={t('menu')}
-      className="kamby-void fixed bottom-[var(--ticker-h)] left-0 top-0 z-40 hidden w-[232px] flex-col border-r border-line bg-bg px-3.5 pb-4 pt-5 lg:flex"
+      className="kamby-void kamby-side-nav fixed bottom-[var(--ticker-h)] left-0 top-0 z-40 hidden w-[232px] flex-col border-r border-line bg-bg px-3.5 pb-4 pt-5 transition-[width] duration-200 lg:flex"
     >
-      <Link href="/home" className="mb-6 flex items-center gap-2 px-2.5">
-        <KambyLogo />
-      </Link>
+      {/* Folded (2026-10-31, owner): icons only, the page gets the room. The choice is remembered. */}
+      <div className="kamby-nav-head mb-6 flex items-center gap-2">
+        <Link href="/home" className="kamby-nav-label flex min-w-0 flex-1 items-center gap-2 px-2.5">
+          <KambyLogo />
+        </Link>
+        <button
+          type="button"
+          onClick={toggleNav}
+          aria-label={t('toggleMenu')}
+          title={t('toggleMenu')}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ink-400 transition-colors hover:bg-surface hover:text-ink-900"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="3" y="4" width="18" height="16" rx="3" />
+            <path d="M9 4v16" />
+            <path className="kamby-nav-chevron" d="m15 10-2 2 2 2" />
+          </svg>
+        </button>
+      </div>
       <ul className="flex flex-col gap-0.5">
         {items.map((item) => {
           const active = item.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
@@ -60,8 +91,9 @@ export function DesktopSideNav() {
               <Link
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
+                title={item.label}
                 className={cn(
-                  'flex h-11 items-center gap-3 rounded-xl px-3 font-display text-sm font-bold transition-colors',
+                  'kamby-nav-item relative flex h-11 items-center gap-3 rounded-xl px-3 font-display text-sm font-bold transition-colors',
                   active ? 'bg-accent/[0.07] text-ink-900 ring-1 ring-inset ring-accent/15' : 'text-ink-600 hover:bg-surface hover:text-ink-900',
                 )}
               >
@@ -79,9 +111,9 @@ export function DesktopSideNav() {
                 >
                   {item.icon}
                 </svg>
-                <span className="flex-1 truncate">{item.label}</span>
+                <span className="kamby-nav-label flex-1 truncate">{item.label}</span>
                 {item.badge === 'unread' && unreadCount > 0 && (
-                  <span className="min-w-5 rounded-full bg-accent px-1.5 py-px text-center font-mono text-[0.65rem] font-bold text-black">
+                  <span className="kamby-nav-badge min-w-5 rounded-full bg-accent px-1.5 py-px text-center font-mono text-[0.65rem] font-bold text-black">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -90,10 +122,10 @@ export function DesktopSideNav() {
           );
         })}
       </ul>
-      <div className="min-h-0 overflow-y-auto [scrollbar-width:none]">
+      <div className="kamby-nav-label min-h-0 overflow-y-auto [scrollbar-width:none]">
         <SideNavLive />
       </div>
-      <p className="mt-auto px-3 pt-3 font-mono text-[0.6rem] tracking-[0.2em] text-accent/70">FIND.TRADE.REPEAT</p>
+      <p className="kamby-nav-label mt-auto px-3 pt-3 font-mono text-[0.6rem] tracking-[0.2em] text-accent/70">FIND.TRADE.REPEAT</p>
     </nav>
   );
 }
@@ -102,5 +134,5 @@ export function DesktopSideNav() {
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
   // --nav-w: how far fixed side panes (Messages' chat list) start from the left edge.
-  return <div className={showsDesktopSideNav(pathname) ? 'lg:pl-[232px] lg:[--nav-w:232px]' : undefined}>{children}</div>;
+  return <div className={showsDesktopSideNav(pathname) ? 'kamby-app-frame lg:pl-[232px] lg:[--nav-w:232px]' : undefined}>{children}</div>;
 }

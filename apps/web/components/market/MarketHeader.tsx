@@ -67,7 +67,8 @@ export function MarketHeader({
           <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
         </div>
         <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
-          <MessagesButton screen="desktop" />
+          {/* Messages has its own place in the left menu from lg up (owner 2026-10-31) — here only for tablets. */}
+          <span className="lg:hidden"><MessagesButton screen="desktop" /></span>
           <UsdcBalancePill />
           <ConnectWalletButton expectedChainId={expectedWalletChainId} enforceChain={false} />
         </div>

@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "动态",
-    "news": "新闻"
+    "news": "新闻",
+    "toggleMenu": "收起或展开菜单"
   },
   "install": {
     "title": "获取 Kamby 应用",

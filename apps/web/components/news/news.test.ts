@@ -40,7 +40,7 @@ describe('pickTickerItem', () => {
 
 describe('feed helpers', () => {
   it('weaves a headline in after every 4 posts', async () => {
-    const { mixNews } = await import('@/components/feed/Feed');
+    const { mixNews } = await import('@/components/feed/mix-news');
     const posts = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}` }) as never);
     const kinds = mixNews(posts, [item('n1', 1), item('n2', 2), item('n3', 3)]).map((e) => ('post' in e ? 'p' : 'n')).join('');
     expect(kinds).toBe('ppppnppppnp');

@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "Лента",
-    "news": "Новини"
+    "news": "Новини",
+    "toggleMenu": "Скрий или покажи менюто"
   },
   "install": {
     "title": "Вземи приложението Kamby",

@@ -1,5 +1,6 @@
 'use client';
 
+import { NewsAlertSettings } from '@/components/news/NewsAlertSettings';
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
@@ -201,6 +202,11 @@ export function AppProfileMenu() {
             </div>
             <div className="px-4 py-2">
               <LanguageSelect />
+            </div>
+          </MenuGroup>
+          <MenuGroup>
+            <div className="px-1">
+              <NewsAlertSettings />
             </div>
           </MenuGroup>
           <div id="profile" className="mt-4 scroll-mt-6">

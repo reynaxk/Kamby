@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "ฟีด",
-    "news": "ข่าว"
+    "news": "ข่าว",
+    "toggleMenu": "ย่อหรือขยายเมนู"
   },
   "install": {
     "title": "ติดตั้งแอป Kamby",

@@ -12,7 +12,7 @@ import { WhatsNew } from '@/components/home/WhatsNew';
 import { NewsToaster } from '@/components/news/NewsToaster';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
-import { AppFrame, DesktopSideNav } from '@/components/layout/DesktopSideNav';
+import { AppFrame, DesktopSideNav, NAV_GATE_SCRIPT } from '@/components/layout/DesktopSideNav';
 import { CallProvider } from '@/components/calls/CallProvider';
 import { SessionGuard } from '@/components/account/SessionGuard';
 import { ChatPulse } from '@/components/dm/ChatPulse';
@@ -91,6 +91,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: SPLASH_GATE_SCRIPT }} />
         {/* Decides before first paint whether the sign-in wall shows — see AuthGate. */}
         <script dangerouslySetInnerHTML={{ __html: AUTH_GATE_SCRIPT }} />
+        {/* A folded left menu stays folded from the first paint — see DesktopSideNav. */}
+        <script dangerouslySetInnerHTML={{ __html: NAV_GATE_SCRIPT }} />
       </head>
       <body className="kamby-void font-body antialiased">
         <AppSplash />

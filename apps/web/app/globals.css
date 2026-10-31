@@ -851,3 +851,14 @@ body:has(.kamby-void) {
 @media (prefers-reduced-motion: reduce) {
   .kamby-float-up { animation-duration: 0.01s; }
 }
+
+/* Folded left menu (2026-10-31) — DesktopSideNav's toggle sets html[data-nav='mini']. */
+@media (min-width: 1024px) {
+  html[data-nav='mini'] .kamby-app-frame { padding-left: 72px; --nav-w: 72px; }
+  html[data-nav='mini'] .kamby-side-nav { width: 72px; padding-left: 0.75rem; padding-right: 0.75rem; }
+  html[data-nav='mini'] .kamby-side-nav .kamby-nav-label { display: none; }
+  html[data-nav='mini'] .kamby-side-nav .kamby-nav-head { justify-content: center; }
+  html[data-nav='mini'] .kamby-side-nav .kamby-nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+  html[data-nav='mini'] .kamby-side-nav .kamby-nav-badge { position: absolute; right: 2px; top: 4px; min-width: 1rem; padding: 0 4px; }
+  html[data-nav='mini'] .kamby-side-nav .kamby-nav-chevron { transform: rotate(180deg); transform-origin: 14px 12px; }
+}

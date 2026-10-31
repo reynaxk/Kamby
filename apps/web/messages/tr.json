@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "Akış",
-    "news": "Haberler"
+    "news": "Haberler",
+    "toggleMenu": "Menüyü daralt veya aç"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",

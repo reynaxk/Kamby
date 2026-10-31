@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "フィード",
-    "news": "ニュース"
+    "news": "ニュース",
+    "toggleMenu": "メニューを折りたたむ／開く"
   },
   "install": {
     "title": "Kamby アプリを入手",

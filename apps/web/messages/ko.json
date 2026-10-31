@@ -11,7 +11,8 @@
     "perps": "Perps",
     "launchpad": "LaunchPad",
     "feed": "피드",
-    "news": "뉴스"
+    "news": "뉴스",
+    "toggleMenu": "메뉴 접기/펼치기"
   },
   "install": {
     "title": "Kamby 앱 받기",

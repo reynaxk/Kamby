@@ -19,11 +19,13 @@ interface Props {
   compact?: boolean;
   /** Render nothing rather than an empty state when there's no news. */
   hideWhenEmpty?: boolean;
+  /** Bigger cards (the News page). */
+  large?: boolean;
   className?: string;
 }
 
 /** Headlines newest first, new ones slotting in live at the top. */
-export function NewsFeed({ chainIdentifier, tokenAddress, symbol, limit = 20, fixed = false, compact = false, hideWhenEmpty = false, className }: Props) {
+export function NewsFeed({ chainIdentifier, tokenAddress, symbol, limit = 20, fixed = false, compact = false, hideWhenEmpty = false, large = false, className }: Props) {
   const t = useTranslations('news');
   const [items, setItems] = useState<NewsItem[] | null>(null);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
@@ -86,9 +88,9 @@ export function NewsFeed({ chainIdentifier, tokenAddress, symbol, limit = 20, fi
   }
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn('flex flex-col', large ? 'gap-3' : 'gap-2', className)}>
       {items.map((item) => (
-        <NewsCard key={item.id} item={item} compact={compact} />
+        <NewsCard key={item.id} item={item} compact={compact} large={large} />
       ))}
       {!fixed && nextBefore && (
         <button
