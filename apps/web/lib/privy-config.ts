@@ -93,7 +93,7 @@ export const privyConfig = {
   appearance: {
     // Retuned 2026-09-22 alongside globals.css's `.kamby-void` block — kept in sync there,
     // not here, since Privy's modal renders outside our CSS scope and needs a literal hex.
-    theme: '#06070C' as const,
+    theme: '#020203' as const,
     accentColor: '#00FF87' as const,
     logo: 'https://kambesh.com/icon.png',
   },
@@ -108,6 +108,12 @@ export const privyConfig = {
       createOnLogin: 'users-without-wallets' as const,
     },
     showWalletUIs: false,
+  },
+  // No external wallets in Kamby (sign-in is email / Google, everyone trades from the embedded
+  // wallet), so Privy shouldn't start WalletConnect: it downloaded a 1.2 MB wallet list on every
+  // page, the landing page included (2026-10-31).
+  externalWallets: {
+    walletConnect: { enabled: false },
   },
   ...(solanaRpcUrl && {
     solana: {
