@@ -1503,5 +1503,11 @@
     "videoTooBig": "视频超过 20 MB。",
     "videoTooLong": "请控制在 {seconds} 秒内。",
     "checkingVideo": "正在检查视频…"
+  },
+  "coinCols": {
+    "coin": "代币",
+    "vol": "24h 成交额",
+    "liq": "流动性",
+    "price": "价格"
   }
 }

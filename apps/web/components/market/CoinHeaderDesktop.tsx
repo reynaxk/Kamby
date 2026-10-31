@@ -81,7 +81,9 @@ export function CoinHeaderDesktop({
       </div>
       <div className="flex items-center gap-6">
         <Fact label={tC('mcap')} value={formatCompactUsd(marketCapUsd)} />
-        <Fact label={tC('liq')} value={stats?.liquidityUsd != null ? formatCompactUsd(stats.liquidityUsd) : '—'} />
+        {/* Only what's known (2026-10-31 tidy pass) — no lone dash while the stats load. */}
+        {stats?.volumeUsd.h24 ? <Fact label={tC('vol24')} value={formatCompactUsd(stats.volumeUsd.h24)} /> : null}
+        {stats?.liquidityUsd != null && <Fact label={tC('liq')} value={formatCompactUsd(stats.liquidityUsd)} />}
         <div className="text-right">
           <p className="font-display text-2xl font-black tabular-nums leading-none text-ink-900">
             <PriceText value={price} flash />

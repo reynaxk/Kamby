@@ -123,28 +123,23 @@ export function PortfolioHeader() {
       </div>
       {/* Kamby's LaunchPad (2026-10-14) and ⚡ Perps (2026-10-21), side by side — from lg up they're
           in the left menu (DesktopSideNav). */}
-      {/* Phones: the Feed one tap from Home (2026-10-30); from lg up it is in the left menu. */}
-      {FEED_ENABLED && <Link href="/feed" className="mt-2 flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] lg:hidden">
-        <span className="font-display text-sm font-bold text-ink-900">📰 {tF('title')}</span>
-        <span className="font-display text-base font-bold text-accent" aria-hidden>→</span>
-      </Link>}
-      <div className="mt-2 grid grid-cols-2 gap-2 lg:hidden">
-        <Link href="/launch" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
-          <span className="flex min-w-0 items-baseline gap-1.5">
-            <span className="shrink-0 font-display text-sm font-bold text-ink-900">🚀 LaunchPad</span>
-          </span>
-          <span className="shrink-0 font-display text-base font-bold text-accent" aria-hidden>
-            →
-          </span>
-        </Link>
-        <Link href="/perps" className="flex h-11 items-center justify-between gap-2 rounded-2xl border border-white/[0.06] px-3.5 transition-colors active:bg-white/[0.06] md:hover:bg-white/[0.04]">
-          <span className="flex min-w-0 items-baseline gap-1.5">
-            <span className="shrink-0 font-display text-sm font-bold text-ink-900">⚡ {tP('card')}</span>
-          </span>
-          <span className="shrink-0 font-display text-base font-bold text-accent" aria-hidden>
-            →
-          </span>
-        </Link>
+      {/* Phones (2026-10-31 tidy pass): Feed, LaunchPad and Perps as one row of three, so the coins
+          start higher. From lg up they're in the left menu. */}
+      <div className={cn('mt-2 grid gap-2 lg:hidden', FEED_ENABLED ? 'grid-cols-3' : 'grid-cols-2')}>
+        {[
+          ...(FEED_ENABLED ? [{ href: '/feed', icon: '📰', label: tF('title') }] : []),
+          { href: '/launch', icon: '🚀', label: 'LaunchPad' },
+          { href: '/perps', icon: '⚡', label: tP('card') },
+        ].map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className="flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl border border-white/[0.06] px-2 transition-colors active:bg-white/[0.06]"
+          >
+            <span aria-hidden>{l.icon}</span>
+            <span className="truncate font-display text-[0.8rem] font-bold text-ink-900">{l.label}</span>
+          </Link>
+        ))}
       </div>
     </section>
     <GoLiveSheet open={goLive} onClose={() => setGoLive(false)} />

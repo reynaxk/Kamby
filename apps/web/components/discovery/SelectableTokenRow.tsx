@@ -44,7 +44,7 @@ function SelectableTokenRowView({
   const unavailable = !chainSlug && disabled;
 
   return (
-    <div className="relative flex items-center border-b border-line/60 max-md:border-0">
+    <div className="kamby-coin-row relative flex items-center border-b border-line/60 max-md:border-0">
     <button
       type="button"
       onClick={() => onSelect(market)}
@@ -61,14 +61,14 @@ function SelectableTokenRowView({
           : undefined
       }
       className={cn(
-        'terminal-token-row relative flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2.5 text-left transition-all max-md:gap-3 max-md:px-4 max-md:py-3',
+        'terminal-token-row relative flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2 text-left transition-colors max-md:gap-3 max-md:px-4 max-md:py-3',
         selected ? 'bg-surface-raised' : 'hover:bg-surface-raised max-md:active:bg-white/[0.05]',
         disabled && !selected && 'cursor-not-allowed opacity-50',
       )}
     >
       {selected && (
         <span
-          className="absolute inset-y-0 left-0 w-0.5 bg-accent shadow-glow-accent"
+          className="absolute inset-y-0 left-0 w-0.5 bg-accent"
           aria-hidden
         />
       )}
@@ -88,9 +88,14 @@ function SelectableTokenRowView({
           <LaunchpadBadge chain={market.chainIdentifier} address={market.tokenAddress} className="ml-1 align-middle max-md:hidden" />
         </span>
         <span className="terminal-token-row-meta block truncate font-mono text-[0.7rem] tabular-nums text-ink-400">
-          <span className="max-md:hidden">{chainLabel} · </span>{formatCompactUsd(market.marketCapUsd)} MC
+          <span className="max-md:hidden">{chainLabel}<span className="kamby-coin-meta-mc"> · </span></span>
+          <span className="kamby-coin-meta-mc">{formatCompactUsd(market.marketCapUsd)} MC</span>
         </span>
       </span>
+      {/* Wide lists (the home's main column): MC, 24h volume and liquidity as their own columns. */}
+      <span className="kamby-coin-col w-[4.75rem] shrink-0 text-right font-mono text-xs tabular-nums text-ink-600">{formatCompactUsd(market.marketCapUsd)}</span>
+      <span className="kamby-coin-col w-[4.75rem] shrink-0 text-right font-mono text-xs tabular-nums text-ink-600">{formatCompactUsd(market.volume24hUsd)}</span>
+      <span className="kamby-coin-col w-[4.75rem] shrink-0 text-right font-mono text-xs tabular-nums text-ink-600">{formatCompactUsd(market.liquidityUsd)}</span>
       {market.recentCloses && market.recentCloses.length >= 2 && (
         // Phones too (2026-10-15, Robinhood-app feel) — only where there's real history to draw.
         <span className="terminal-token-sparkline max-md:hidden">
@@ -122,7 +127,7 @@ function SelectableTokenRowView({
   );
 }
 
-const SHOWN_FIELDS = ['tokenAddress', 'chainIdentifier', 'symbol', 'logoUrl', 'priceUsd', 'priceChange24hPct', 'marketCapUsd'] as const;
+const SHOWN_FIELDS = ['tokenAddress', 'chainIdentifier', 'symbol', 'logoUrl', 'priceUsd', 'priceChange24hPct', 'marketCapUsd', 'volume24hUsd', 'liquidityUsd'] as const;
 
 function sameCloses(a: readonly number[] | undefined, b: readonly number[] | undefined): boolean {
   if (a === b) return true;

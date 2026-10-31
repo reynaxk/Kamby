@@ -38,9 +38,10 @@ module.exports = {
       // want it (an active order, the terminal's chart card), never baked into a shared
       // component as ambient decoration. No `glow-warn` — no call site needs it yet.
       boxShadow: {
-        'glow-accent': '0 0 0 1px rgb(var(--kamby-accent) / 0.4), 0 0 24px -4px rgb(var(--kamby-accent) / 0.35)',
-        'glow-up': '0 0 0 1px rgb(var(--kamby-up) / 0.35), 0 0 20px -6px rgb(var(--kamby-up) / 0.4)',
-        'glow-down': '0 0 0 1px rgb(var(--kamby-down) / 0.35), 0 0 20px -6px rgb(var(--kamby-down) / 0.4)',
+        // A crisp 1px ring, no blur (owner: no glows — 2026-10-31 tidy pass).
+        'glow-accent': '0 0 0 1px rgb(var(--kamby-accent) / 0.45)',
+        'glow-up': '0 0 0 1px rgb(var(--kamby-up) / 0.4)',
+        'glow-down': '0 0 0 1px rgb(var(--kamby-down) / 0.4)',
       },
       // Named for its one purpose (Surface's `glass` variant) rather than a generic scale
       // step, so its meaning can't silently drift later. Same numeric value as Tailwind's

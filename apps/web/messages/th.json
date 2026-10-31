@@ -1503,5 +1503,11 @@
     "videoTooBig": "วิดีโอเกิน 20 MB",
     "videoTooLong": "ไม่เกิน {seconds} วินาที",
     "checkingVideo": "กำลังตรวจวิดีโอ…"
+  },
+  "coinCols": {
+    "coin": "เหรียญ",
+    "vol": "วอลุ่ม 24ชม.",
+    "liq": "สภาพคล่อง",
+    "price": "ราคา"
   }
 }

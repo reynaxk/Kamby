@@ -1503,5 +1503,11 @@
     "videoTooBig": "동영상이 20MB를 넘어요.",
     "videoTooLong": "{seconds}초 이내로 해주세요.",
     "checkingVideo": "동영상 확인 중…"
+  },
+  "coinCols": {
+    "coin": "코인",
+    "vol": "24h 거래량",
+    "liq": "유동성",
+    "price": "가격"
   }
 }

@@ -1503,5 +1503,11 @@
     "videoTooBig": "Видеото е над 20 MB.",
     "videoTooLong": "До {seconds} секунди, моля.",
     "checkingVideo": "Проверяваме видеото…"
+  },
+  "coinCols": {
+    "coin": "Монета",
+    "vol": "Обем 24ч",
+    "liq": "Ликвидност",
+    "price": "Цена"
   }
 }

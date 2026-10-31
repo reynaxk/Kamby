@@ -1503,5 +1503,11 @@
     "videoTooBig": "La vidéo dépasse 20 Mo.",
     "videoTooLong": "Moins de {seconds} secondes.",
     "checkingVideo": "Vérification de la vidéo…"
+  },
+  "coinCols": {
+    "coin": "Coin",
+    "vol": "Vol 24h",
+    "liq": "Liquidité",
+    "price": "Prix"
   }
 }

@@ -12,6 +12,7 @@ import { CryptoFeedRow } from './feeds/CryptoFeedRow';
 import { PumpFunFeedRow } from './feeds/PumpFunFeedRow';
 import { LeaderboardSidebar } from './LeaderboardSidebar';
 import { SelectableTokenRow } from './SelectableTokenRow';
+import { CoinListHeader } from './CoinListHeader';
 import { PulseChat } from '@/components/pulse/PulseChat';
 import { useTranslations } from 'next-intl';
 import { useSteadyOrder } from '@/lib/use-steady-order';
@@ -120,6 +121,7 @@ export function DiscoverTokenList({
 }) {
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
+  const tCols = useTranslations('coinCols');
   const tLists = useTranslations('lists');
   const router = useRouter();
   const openSolana = useCallback((market: MarketSummary) => router.push(solanaMarketHref(market.tokenAddress)), [router]);
@@ -202,7 +204,12 @@ export function DiscoverTokenList({
   const graduatedMarkets = uniqueMarkets(feeds.graduated.markets).filter((m) => matchesChain(chainFilter, m.chainIdentifier));
   const graduatedPumpfun = solanaShown ? feeds.graduated.pumpfun : [];
   const tabContent: Record<MarketFeedTab, ReactNode> = {
-    trending: list(trendingRows.filter((m) => matchesChain(chainFilter, m.chainIdentifier)).map(marketRow), tU('nothingTrendingYet_a318')),
+    trending: (
+      <>
+        <CoinListHeader labels={{ coin: tCols('coin'), mc: 'MC', vol: tCols('vol'), liq: tCols('liq'), price: tCols('price') }} />
+        {list(trendingRows.filter((m) => matchesChain(chainFilter, m.chainIdentifier)).map(marketRow), tU('nothingTrendingYet_a318'))}
+      </>
+    ),
     trenches: list(
       (solanaShown ? feeds.trenches.tokens : []).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
       tU('noNewPumpFunLaunches_09ad'),

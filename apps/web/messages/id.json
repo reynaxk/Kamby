@@ -1503,5 +1503,11 @@
     "videoTooBig": "Video lebih dari 20 MB.",
     "videoTooLong": "Maksimal {seconds} detik.",
     "checkingVideo": "Memeriksa video…"
+  },
+  "coinCols": {
+    "coin": "Koin",
+    "vol": "Vol 24j",
+    "liq": "Likuiditas",
+    "price": "Harga"
   }
 }

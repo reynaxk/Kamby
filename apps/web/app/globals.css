@@ -817,3 +817,25 @@ body:has(.kamby-void) {
   .kamby-gate-in-3 { animation-delay: 0.16s; }
   .kamby-gate-in-4 { animation-delay: 0.24s; }
 }
+
+/* Wide coin lists (2026-10-31 tidy pass): a row measures its own width — in the home's wide main
+   column it shows MC, 24h volume and liquidity as columns under a header; in the terminal's narrow
+   rail it stays the compact two-line row. */
+.kamby-coin-row {
+  container-type: inline-size;
+}
+.kamby-coin-col,
+.kamby-coin-head {
+  display: none;
+}
+@container (min-width: 620px) {
+  .kamby-coin-col {
+    display: block;
+  }
+  .kamby-coin-head {
+    display: flex;
+  }
+  .kamby-coin-meta-mc {
+    display: none;
+  }
+}

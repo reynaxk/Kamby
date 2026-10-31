@@ -1503,5 +1503,11 @@
     "videoTooBig": "動画が20MBを超えています。",
     "videoTooLong": "{seconds}秒以内にしてください。",
     "checkingVideo": "動画を確認中…"
+  },
+  "coinCols": {
+    "coin": "コイン",
+    "vol": "24h出来高",
+    "liq": "流動性",
+    "price": "価格"
   }
 }

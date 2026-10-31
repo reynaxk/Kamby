@@ -1503,5 +1503,11 @@
     "videoTooBig": "Video 20 MB üstü.",
     "videoTooLong": "{seconds} saniyenin altında olsun.",
     "checkingVideo": "Video kontrol ediliyor…"
+  },
+  "coinCols": {
+    "coin": "Coin",
+    "vol": "Hacim 24s",
+    "liq": "Likidite",
+    "price": "Fiyat"
   }
 }
