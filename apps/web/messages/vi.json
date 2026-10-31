@@ -1562,7 +1562,20 @@
     "videoTooLong": "Dưới {seconds} giây nhé.",
     "checkingVideo": "Đang kiểm tra video…",
     "openCoin": "Mở trang coin",
-    "verifiedPnl": "Giao dịch đã xác minh"
+    "verifiedPnl": "Giao dịch đã xác minh",
+    "chartCard": "Biểu đồ",
+    "postChart": "Đăng biểu đồ",
+    "quickTrade": "Giao dịch nhanh",
+    "predict": "Dự đoán",
+    "share": "Chia sẻ",
+    "copied": "Đã sao chép liên kết",
+    "shareText": "{author} về {symbol} — Kamby",
+    "postedAt": "Đăng lúc giá {price}",
+    "sincePosted": "{pct} từ khi đăng",
+    "predictTitle": "Dự đoán về {symbol}",
+    "predictNone": "Hiện chưa có dự đoán mở cho coin này.",
+    "predictAll": "Xem tất cả dự đoán",
+    "rankTitle": "Thứ hạng tuần này trong top trader"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1660,6 +1673,14 @@
     "failed": "Không tải được dự đoán.",
     "empty": "Hiện không có dự đoán mở — vài giờ lại có cái mới.",
     "emptyMine": "Bạn chưa bình chọn.",
-    "more": "Xem thêm"
+    "more": "Xem thêm",
+    "profilePostsTab": "Bài đăng & Biểu đồ",
+    "profileAccuracy": "Tỉ lệ đúng",
+    "profileRight": "Đúng",
+    "profileVotes": "Phiếu",
+    "profileAsked": "Đã hỏi",
+    "profileVoted": "Đã bình chọn",
+    "profileNone": "Chưa có phiếu nào.",
+    "profiletheirVote": "Đã chọn {answer}"
   }
 }

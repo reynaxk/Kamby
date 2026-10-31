@@ -1562,7 +1562,20 @@
     "videoTooLong": "Menos de {seconds} segundos.",
     "checkingVideo": "Revisando el vídeo…",
     "openCoin": "Abrir la moneda",
-    "verifiedPnl": "Operaciones verificadas"
+    "verifiedPnl": "Operaciones verificadas",
+    "chartCard": "Gráfico",
+    "postChart": "Publicar gráfico",
+    "quickTrade": "Operar rápido",
+    "predict": "Predecir",
+    "share": "Compartir",
+    "copied": "Enlace copiado",
+    "shareText": "{author} sobre {symbol} — Kamby",
+    "postedAt": "Publicado a {price}",
+    "sincePosted": "{pct} desde la publicación",
+    "predictTitle": "Predicciones sobre {symbol}",
+    "predictNone": "No hay predicciones abiertas sobre esta moneda ahora.",
+    "predictAll": "Ver todas las predicciones",
+    "rankTitle": "Puesto esta semana entre los mejores traders"
   },
   "coinCols": {
     "coin": "Moneda",
@@ -1660,6 +1673,14 @@
     "failed": "No se cargaron las predicciones.",
     "empty": "No hay predicciones abiertas — llegan nuevas cada pocas horas.",
     "emptyMine": "Aún no has votado.",
-    "more": "Cargar más"
+    "more": "Cargar más",
+    "profilePostsTab": "Posts y gráficos",
+    "profileAccuracy": "Acierto",
+    "profileRight": "Aciertos",
+    "profileVotes": "Votos",
+    "profileAsked": "Preguntó",
+    "profileVoted": "Votó",
+    "profileNone": "Aún no hay votos.",
+    "profiletheirVote": "Votó {answer}"
   }
 }

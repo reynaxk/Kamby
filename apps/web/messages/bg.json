@@ -1562,7 +1562,20 @@
     "videoTooLong": "До {seconds} секунди, моля.",
     "checkingVideo": "Проверяваме видеото…",
     "openCoin": "Отвори монетата",
-    "verifiedPnl": "Проверени сделки"
+    "verifiedPnl": "Проверени сделки",
+    "chartCard": "Графика",
+    "postChart": "Публикувай графика",
+    "quickTrade": "Бърза сделка",
+    "predict": "Прогноза",
+    "share": "Сподели",
+    "copied": "Линкът е копиран",
+    "shareText": "{author} за {symbol} — Kamby",
+    "postedAt": "Публикувано при {price}",
+    "sincePosted": "{pct} от публикуването",
+    "predictTitle": "Прогнози за {symbol}",
+    "predictNone": "В момента няма отворени прогнози за тази монета.",
+    "predictAll": "Всички прогнози",
+    "rankTitle": "Място тази седмица сред топ трейдърите"
   },
   "coinCols": {
     "coin": "Монета",
@@ -1660,6 +1673,14 @@
     "failed": "Прогнозите не се заредиха.",
     "empty": "В момента няма отворени прогнози — нови идват на няколко часа.",
     "emptyMine": "Още не си гласувал.",
-    "more": "Още"
+    "more": "Още",
+    "profilePostsTab": "Постове и графики",
+    "profileAccuracy": "Точност",
+    "profileRight": "Познати",
+    "profileVotes": "Гласа",
+    "profileAsked": "Попитал",
+    "profileVoted": "Гласувал",
+    "profileNone": "Още няма гласове.",
+    "profiletheirVote": "Гласува: {answer}"
   }
 }

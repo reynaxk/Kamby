@@ -27,7 +27,7 @@ export function fetchFeed(tab: FeedTab, before?: string | null, address?: string
   return get<FeedPage>(`/feed?${q.toString()}`, 'load the feed');
 }
 
-export const createFeedPost = (body: string, attach?: { kind: 'trade' | 'pnl' | 'photo' | 'video'; chain?: string; tokenAddress?: string; photoId?: string; videoId?: string }) =>
+export const createFeedPost = (body: string, attach?: { kind: 'trade' | 'pnl' | 'photo' | 'video' | 'chart'; chain?: string; tokenAddress?: string; photoId?: string; videoId?: string }) =>
   post<FeedPost>('/feed/posts', { body, attach }, 'post');
 export const likeFeedPost = (id: string, on: boolean) => post<{ likeCount: number; likedByMe: boolean }>(`/feed/posts/${id}/like`, { on }, 'like');
 export const fetchFeedReplies = (id: string) => get<FeedReply[]>(`/feed/posts/${id}/replies`, 'load the replies');

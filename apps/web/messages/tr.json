@@ -1562,7 +1562,20 @@
     "videoTooLong": "{seconds} saniyenin altında olsun.",
     "checkingVideo": "Video kontrol ediliyor…",
     "openCoin": "Coin sayfasını aç",
-    "verifiedPnl": "Doğrulanmış işlemler"
+    "verifiedPnl": "Doğrulanmış işlemler",
+    "chartCard": "Grafik",
+    "postChart": "Grafik paylaş",
+    "quickTrade": "Hızlı işlem",
+    "predict": "Tahmin",
+    "share": "Paylaş",
+    "copied": "Bağlantı kopyalandı",
+    "shareText": "{author}, {symbol} hakkında — Kamby",
+    "postedAt": "{price} seviyesinde paylaşıldı",
+    "sincePosted": "Paylaşımdan beri {pct}",
+    "predictTitle": "{symbol} tahminleri",
+    "predictNone": "Şu an bu coin için açık tahmin yok.",
+    "predictAll": "Tüm tahminler",
+    "rankTitle": "Bu hafta en iyi traderlar arasındaki sıra"
   },
   "coinCols": {
     "coin": "Coin",
@@ -1660,6 +1673,14 @@
     "failed": "Tahminler yüklenemedi.",
     "empty": "Şu an açık tahmin yok — birkaç saatte bir yenileri gelir.",
     "emptyMine": "Henüz oy vermedin.",
-    "more": "Daha fazla"
+    "more": "Daha fazla",
+    "profilePostsTab": "Gönderiler ve grafikler",
+    "profileAccuracy": "İsabet",
+    "profileRight": "Doğru",
+    "profileVotes": "Oylar",
+    "profileAsked": "Sorduğu",
+    "profileVoted": "Oyladığı",
+    "profileNone": "Henüz oy yok.",
+    "profiletheirVote": "{answer} oyladı"
   }
 }

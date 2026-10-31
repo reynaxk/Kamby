@@ -19,3 +19,11 @@ describe('predictions UI', () => {
     expect(applyUpdate([p], { id: 'zzz', counts: [9, 9], total: 18 })[0]).toBe(p);
   });
 });
+
+describe('token post card', () => {
+  it('measures the move since posting', async () => {
+    const { sincePosted } = await import('@/components/feed/TokenPostCard');
+    expect(sincePosted(2, 3)).toBeCloseTo(50);
+    expect(sincePosted(2, null)).toBeNull();
+  });
+});

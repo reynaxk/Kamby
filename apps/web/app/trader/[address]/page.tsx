@@ -20,6 +20,7 @@ import { BackPill } from '@/components/layout/BackPill';
 import { PnlDays, PnlRunLine, WinRing } from '@/components/social/TraderPnlBits';
 import { Feed } from '@/components/feed/Feed';
 import { ProfileTabs } from '@/components/social/ProfileTabs';
+import { ProfilePredictionsTab } from '@/components/predictions/ProfilePredictionsTab';
 
 export const revalidate = 15;
 
@@ -50,6 +51,7 @@ const PNL_WINDOWS = ['24h', '7d', '30d'] as const;
 export default async function TraderProfilePage({ params }: { params: { address: string } }) {
   const tU = await getTranslations('ui');
   const tL = await getTranslations('labels');
+  const tPred = await getTranslations('predictions');
   const profile = await fetchTraderProfile(params.address);
   if (!profile) notFound();
 
@@ -225,7 +227,8 @@ export default async function TraderProfilePage({ params }: { params: { address:
                     />
                   ),
               },
-              { key: 'posts', label: tL('posts'), content: <Feed address={profile.address} composer={false} emptyText={tL('noPosts')} /> },
+              { key: 'posts', label: tPred('profilePostsTab'), content: <Feed address={profile.address} composer={false} emptyText={tL('noPosts')} /> },
+              { key: 'predictions', label: tPred('title'), content: <ProfilePredictionsTab address={profile.address} /> },
               ...(tokens.length > 0 ? [{ key: 'coins', label: tL('tabCoins'), content: <TraderTokensList tokens={tokens} /> }] : []),
             ]}
           />

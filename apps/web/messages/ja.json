@@ -1562,7 +1562,20 @@
     "videoTooLong": "{seconds}秒以内にしてください。",
     "checkingVideo": "動画を確認中…",
     "openCoin": "コインのページを開く",
-    "verifiedPnl": "検証済みの取引"
+    "verifiedPnl": "検証済みの取引",
+    "chartCard": "チャート",
+    "postChart": "チャートを投稿",
+    "quickTrade": "クイック取引",
+    "predict": "予想",
+    "share": "シェア",
+    "copied": "リンクをコピーしました",
+    "shareText": "{author} の {symbol} — Kamby",
+    "postedAt": "{price} で投稿",
+    "sincePosted": "投稿から {pct}",
+    "predictTitle": "{symbol} の予想",
+    "predictNone": "このコインの受付中の予想は今ありません。",
+    "predictAll": "すべての予想を見る",
+    "rankTitle": "今週のトップトレーダー内の順位"
   },
   "coinCols": {
     "coin": "コイン",
@@ -1660,6 +1673,14 @@
     "failed": "予想を読み込めませんでした。",
     "empty": "受付中の予想はありません — 数時間ごとに新しいものが届きます。",
     "emptyMine": "まだ投票していません。",
-    "more": "さらに表示"
+    "more": "さらに表示",
+    "profilePostsTab": "投稿とチャート",
+    "profileAccuracy": "的中率",
+    "profileRight": "的中",
+    "profileVotes": "投票",
+    "profileAsked": "質問した予想",
+    "profileVoted": "投票した予想",
+    "profileNone": "まだ投票がありません。",
+    "profiletheirVote": "{answer} に投票"
   }
 }

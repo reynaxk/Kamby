@@ -1,6 +1,6 @@
 'use client';
 
-import type { Prediction, PredictionCategory, PredictionFilter, PredictionUpdate, PredictionsPage } from '@kamby/domain';
+import type { Prediction, PredictionCategory, PredictionFilter, PredictionUpdate, PredictionsPage, ProfilePredictions } from '@kamby/domain';
 import { openResilientEventSource } from './resilient-event-source';
 import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
@@ -9,11 +9,23 @@ import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-cli
  * session (a signed-out browser reads anonymously); voting and asking do.
  */
 
-export async function fetchPredictions(params: { filter: PredictionFilter; category?: PredictionCategory; before?: string }): Promise<PredictionsPage> {
+export async function fetchPredictions(params: { filter: PredictionFilter; category?: PredictionCategory; before?: string; coin?: { chainIdentifier: string; tokenAddress: string } }): Promise<PredictionsPage> {
   const query = new URLSearchParams({ filter: params.filter });
+  if (params.coin) {
+    query.set('chain', params.coin.chainIdentifier);
+    query.set('address', params.coin.tokenAddress);
+  }
   if (params.category) query.set('category', params.category);
   if (params.before) query.set('before', params.before);
   const path = `/predictions?${query.toString()}`;
+  const res = hasStoredSession() ? await authedFetch(path) : await fetch(`${API_BASE}/v1${path}`);
+  await expectOk(res, 'load predictions');
+  return res.json();
+}
+
+/** A trader's profile tab: what they asked, what they voted, their hit rate. */
+export async function fetchProfilePredictions(address: string): Promise<ProfilePredictions> {
+  const path = `/predictions/by/${encodeURIComponent(address)}`;
   const res = hasStoredSession() ? await authedFetch(path) : await fetch(`${API_BASE}/v1${path}`);
   await expectOk(res, 'load predictions');
   return res.json();

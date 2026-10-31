@@ -1562,7 +1562,20 @@
     "videoTooLong": "ไม่เกิน {seconds} วินาที",
     "checkingVideo": "กำลังตรวจวิดีโอ…",
     "openCoin": "เปิดหน้าเหรียญ",
-    "verifiedPnl": "การเทรดที่ยืนยันแล้ว"
+    "verifiedPnl": "การเทรดที่ยืนยันแล้ว",
+    "chartCard": "กราฟ",
+    "postChart": "โพสต์กราฟ",
+    "quickTrade": "เทรดด่วน",
+    "predict": "ทำนาย",
+    "share": "แชร์",
+    "copied": "คัดลอกลิงก์แล้ว",
+    "shareText": "{author} เกี่ยวกับ {symbol} — Kamby",
+    "postedAt": "โพสต์ที่ {price}",
+    "sincePosted": "{pct} ตั้งแต่โพสต์",
+    "predictTitle": "การทำนาย {symbol}",
+    "predictNone": "ตอนนี้ไม่มีการทำนายที่เปิดอยู่สำหรับเหรียญนี้",
+    "predictAll": "ดูการทำนายทั้งหมด",
+    "rankTitle": "อันดับสัปดาห์นี้ในเทรดเดอร์ชั้นนำ"
   },
   "coinCols": {
     "coin": "เหรียญ",
@@ -1660,6 +1673,14 @@
     "failed": "โหลดการทำนายไม่สำเร็จ",
     "empty": "ตอนนี้ไม่มีการทำนายที่เปิดอยู่ — มีใหม่ทุกไม่กี่ชั่วโมง",
     "emptyMine": "คุณยังไม่ได้โหวต",
-    "more": "โหลดเพิ่ม"
+    "more": "โหลดเพิ่ม",
+    "profilePostsTab": "โพสต์และกราฟ",
+    "profileAccuracy": "อัตราทายถูก",
+    "profileRight": "ถูก",
+    "profileVotes": "โหวต",
+    "profileAsked": "ที่ถาม",
+    "profileVoted": "ที่โหวต",
+    "profileNone": "ยังไม่มีโหวต",
+    "profiletheirVote": "โหวต {answer}"
   }
 }

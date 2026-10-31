@@ -1562,7 +1562,20 @@
     "videoTooLong": "{seconds}초 이내로 해주세요.",
     "checkingVideo": "동영상 확인 중…",
     "openCoin": "코인 페이지 열기",
-    "verifiedPnl": "검증된 거래"
+    "verifiedPnl": "검증된 거래",
+    "chartCard": "차트",
+    "postChart": "차트 게시",
+    "quickTrade": "빠른 거래",
+    "predict": "예측",
+    "share": "공유",
+    "copied": "링크 복사됨",
+    "shareText": "{author}의 {symbol} — Kamby",
+    "postedAt": "{price}에 게시",
+    "sincePosted": "게시 후 {pct}",
+    "predictTitle": "{symbol} 예측",
+    "predictNone": "지금 이 코인에 대한 진행 중인 예측이 없습니다.",
+    "predictAll": "모든 예측 보기",
+    "rankTitle": "이번 주 상위 트레이더 순위"
   },
   "coinCols": {
     "coin": "코인",
@@ -1660,6 +1673,14 @@
     "failed": "예측을 불러오지 못했습니다.",
     "empty": "진행 중인 예측이 없습니다 — 몇 시간마다 새로 올라옵니다.",
     "emptyMine": "아직 투표하지 않았습니다.",
-    "more": "더 보기"
+    "more": "더 보기",
+    "profilePostsTab": "게시물 & 차트",
+    "profileAccuracy": "적중률",
+    "profileRight": "적중",
+    "profileVotes": "투표",
+    "profileAsked": "질문함",
+    "profileVoted": "투표함",
+    "profileNone": "아직 투표가 없습니다.",
+    "profiletheirVote": "{answer}에 투표"
   }
 }

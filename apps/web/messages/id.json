@@ -1562,7 +1562,20 @@
     "videoTooLong": "Maksimal {seconds} detik.",
     "checkingVideo": "Memeriksa video…",
     "openCoin": "Buka halaman koin",
-    "verifiedPnl": "Transaksi terverifikasi"
+    "verifiedPnl": "Transaksi terverifikasi",
+    "chartCard": "Grafik",
+    "postChart": "Posting grafik",
+    "quickTrade": "Trade cepat",
+    "predict": "Prediksi",
+    "share": "Bagikan",
+    "copied": "Tautan disalin",
+    "shareText": "{author} tentang {symbol} — Kamby",
+    "postedAt": "Diposting di {price}",
+    "sincePosted": "{pct} sejak diposting",
+    "predictTitle": "Prediksi tentang {symbol}",
+    "predictNone": "Belum ada prediksi terbuka untuk koin ini.",
+    "predictAll": "Lihat semua prediksi",
+    "rankTitle": "Peringkat minggu ini di antara trader teratas"
   },
   "coinCols": {
     "coin": "Koin",
@@ -1660,6 +1673,14 @@
     "failed": "Prediksi gagal dimuat.",
     "empty": "Belum ada prediksi terbuka — yang baru datang setiap beberapa jam.",
     "emptyMine": "Kamu belum memilih.",
-    "more": "Muat lagi"
+    "more": "Muat lagi",
+    "profilePostsTab": "Postingan & Grafik",
+    "profileAccuracy": "Ketepatan",
+    "profileRight": "Benar",
+    "profileVotes": "Suara",
+    "profileAsked": "Ditanyakan",
+    "profileVoted": "Dipilih",
+    "profileNone": "Belum ada suara.",
+    "profiletheirVote": "Memilih {answer}"
   }
 }

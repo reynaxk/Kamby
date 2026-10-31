@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
 import { FEED_LIMITS, type DmPnl, type FeedPost, type FeedReply, type FeedTab, type NewsItem } from '@kamby/domain';
-import type { TokenPosition } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { cashtag, formatPercent, formatRelativeTime, formatSignedCompactUsd } from '@/lib/format';
 import { friendlyError } from '@/lib/friendly-error';
@@ -35,6 +34,7 @@ import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy'
 import { fetchNews } from '@/lib/news-client';
 import { FeedCoinProvider, PostBody, useOpenCoin } from './FeedCoin';
 import { mixNews } from './mix-news';
+import { RankBadge, TokenPostCard } from './TokenPostCard';
 
 /**
  * The Feed (2026-10-30, owner's concepts): what traders post — a few lines, optionally with a
@@ -166,7 +166,18 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
   const { authenticated } = usePrivy();
   const [username] = useMyUsername(authenticated);
   const [body, setBody] = useState('');
-  const [attach, setAttach] = useState<{ kind: 'trade' | 'pnl'; position: TokenPosition } | null>(null);
+  const [attach, setAttach] = useState<{ kind: 'trade' | 'pnl' | 'chart'; chain: string; tokenAddress: string; symbol: string | null; logoUrl: string | null } | null>(null);
+  // /feed?chart=<chain>:<address>&symbol=… (a coin's "post this chart") starts with that chart attached.
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const raw = q.get('chart');
+      const cut = raw ? raw.lastIndexOf(':') : -1;
+      if (raw && cut > 0) setAttach({ kind: 'chart', chain: raw.slice(0, cut), tokenAddress: raw.slice(cut + 1), symbol: q.get('symbol'), logoUrl: null });
+    } catch {
+      // no prefill
+    }
+  }, []);
   // A photo (2026-10-30): shown only when the server says moderation is on; checked on upload.
   const [photosOn, setPhotosOn] = useState(false);
   const [photo, setPhoto] = useState<{ photoId: string; url: string } | null>(null);
@@ -221,7 +232,7 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
       if (fileRef.current) fileRef.current.value = '';
     }
   }
-  const [picking, setPicking] = useState<'trade' | 'pnl' | null>(null);
+  const [picking, setPicking] = useState<'trade' | 'pnl' | 'chart' | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const can = !busy && !uploading && (body.trim().length > 0 || attach !== null || photo !== null || video !== null);
@@ -231,10 +242,9 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
     setBusy(true);
     setError(null);
     try {
-      const chain = attach ? (attach.position.chainIdentifier ?? (attach.position.chain === 'solana' ? 'solana' : '')) : '';
       const p = await createFeedPost(
         body.trim(),
-        video ? { kind: 'video', videoId: video.videoId } : photo ? { kind: 'photo', photoId: photo.photoId } : attach ? { kind: attach.kind, chain, tokenAddress: attach.position.tokenAddress } : undefined,
+        video ? { kind: 'video', videoId: video.videoId } : photo ? { kind: 'photo', photoId: photo.photoId } : attach ? { kind: attach.kind, chain: attach.chain, tokenAddress: attach.tokenAddress } : undefined,
       );
       onPosted(p);
       setBody('');
@@ -294,9 +304,9 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
       )}
       {attach && (
         <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-accent/20 bg-accent/[0.05] px-3 py-2">
-          <TokenAvatar src={attach.position.logoUrl} seed={attach.position.tokenAddress} label={attach.position.symbol} className="h-6 w-6 text-[0.6rem]" />
+          <TokenAvatar src={attach.logoUrl} seed={attach.tokenAddress} label={attach.symbol} className="h-6 w-6 text-[0.6rem]" />
           <span className="flex-1 truncate font-display text-xs font-bold text-ink-900">
-            {attach.kind === 'trade' ? t('tradeCard') : t('pnlCard')} · {cashtag(attach.position.symbol ?? '')}
+            {attach.kind === 'trade' ? t('tradeCard') : attach.kind === 'chart' ? t('chartCard') : t('pnlCard')} · {cashtag(attach.symbol ?? '')}
           </span>
           <button type="button" onClick={() => setAttach(null)} aria-label={t('removeCard')} className="text-ink-400 hover:text-ink-900">
             ✕
@@ -327,6 +337,9 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
         <button type="button" onClick={() => setPicking('pnl')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
           <span className="text-[#FFC94D]">%</span> {t('pnlCard')}
         </button>
+        <button type="button" onClick={() => setPicking('chart')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
+          <span className="text-[#38BDF8]">📈</span> {t('chartCard')}
+        </button>
         <span className="ml-auto font-mono text-[0.65rem] text-ink-400">{body.length}/{FEED_LIMITS.maxLength}</span>
         <button type="button" disabled={!can} onClick={() => void submit()} className="h-9 rounded-xl bg-accent px-4 font-display text-sm font-black text-black disabled:opacity-40">
           {busy ? '…' : t('post')}
@@ -334,11 +347,11 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
       </div>
       <PositionPicker
         open={picking !== null}
-        title={picking === 'pnl' ? t('pnlCard') : t('tradeCard')}
+        title={picking === 'pnl' ? t('pnlCard') : picking === 'chart' ? t('chartCard') : t('tradeCard')}
         onClose={() => setPicking(null)}
         onPick={(p) => {
           if (picking) {
-            setAttach({ kind: picking, position: p });
+            setAttach({ kind: picking, chain: p.chainIdentifier ?? (p.chain === 'solana' ? 'solana' : ''), tokenAddress: p.tokenAddress, symbol: p.symbol, logoUrl: p.logoUrl });
             setPhoto(null);
             setVideo(null);
           }
@@ -391,7 +404,10 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
     <>
       <DmAvatar name={post.author.username} src={post.author.avatarUrl} className="h-10 w-10 shrink-0 text-sm" />
       <span className="min-w-0">
-        <span className="block truncate font-display text-sm font-bold text-ink-900">{name}</span>
+        <span className="flex items-center gap-1.5 truncate font-display text-sm font-bold text-ink-900">
+          {name}
+          <RankBadge userId={post.author.userId} />
+        </span>
         <span className="block font-body text-xs text-ink-400">{formatRelativeTime(post.createdAt)}</span>
       </span>
     </>
@@ -429,6 +445,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
       {post.body && <PostBody body={post.body} className="mt-2.5 whitespace-pre-wrap break-words font-body text-[0.92rem] leading-relaxed text-ink-900/90" />}
       {post.trade && <TradeCard trade={post.trade} mine={post.mine} by={`@${name}`} className="mt-3" />}
       {post.pnl && <PnlCard pnl={post.pnl} />}
+      {post.chart && <TokenPostCard chart={post.chart} author={`@${name}`} />}
       {post.video && <video src={post.video.url} controls playsInline preload="metadata" className="mt-3 max-h-[32rem] w-full rounded-xl border border-line bg-black" />}
       {post.photo && <SafeImg src={post.photo.url} className="mt-3 max-h-[32rem] w-full rounded-xl border border-line object-cover" fallback={null} />}
       {error && <p className="mt-2 font-body text-xs text-ink-400">{error}</p>}

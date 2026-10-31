@@ -1,3 +1,4 @@
+import { PostChartLink } from '@/components/feed/PostChartLink';
 import type { Metadata } from 'next';
 import { CHAIN_REGISTRY, isChainSlug, isCuratedMarket, TIMEFRAMES, type Timeframe } from '@kamby/domain';
 import { Surface } from '@kamby/ui';
@@ -113,6 +114,7 @@ export default async function TokenDetailPage({
           </div>
           <div className="flex items-center gap-2">
             <WatchButton address={market.tokenAddress} chainId={chainId} initialWatching={null} />
+            <PostChartLink chainIdentifier={market.chainIdentifier} tokenAddress={market.tokenAddress} symbol={market.symbol} />
             <ShareButton
               title={`${market.symbol ?? market.name ?? tU('token_459a')} on Kamby`}
               path={`/market/${params.chain}/${market.tokenAddress}`}

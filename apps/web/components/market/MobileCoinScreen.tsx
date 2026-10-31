@@ -1,5 +1,6 @@
 'use client';
 
+import { PostChartLink } from '@/components/feed/PostChartLink';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -181,6 +182,7 @@ export function MobileCoinScreen({
           )}
         </span>
         {watch}
+        <PostChartLink chainIdentifier={chainIdentifier} tokenAddress={address} symbol={symbol} round />
         <button
           type="button"
           aria-label={tU('share_5a95')}

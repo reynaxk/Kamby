@@ -1562,7 +1562,20 @@
     "videoTooLong": "请控制在 {seconds} 秒内。",
     "checkingVideo": "正在检查视频…",
     "openCoin": "打开币种页面",
-    "verifiedPnl": "已验证交易"
+    "verifiedPnl": "已验证交易",
+    "chartCard": "图表",
+    "postChart": "发布图表",
+    "quickTrade": "快速交易",
+    "predict": "预测",
+    "share": "分享",
+    "copied": "链接已复制",
+    "shareText": "{author} 谈 {symbol} — Kamby",
+    "postedAt": "发布时价格 {price}",
+    "sincePosted": "发布以来 {pct}",
+    "predictTitle": "{symbol} 的预测",
+    "predictNone": "目前没有关于此币的进行中预测。",
+    "predictAll": "查看全部预测",
+    "rankTitle": "本周顶级交易者排名"
   },
   "coinCols": {
     "coin": "代币",
@@ -1660,6 +1673,14 @@
     "failed": "预测加载失败。",
     "empty": "目前没有进行中的预测 — 每隔几小时会有新的。",
     "emptyMine": "你还没有投票。",
-    "more": "加载更多"
+    "more": "加载更多",
+    "profilePostsTab": "帖子与图表",
+    "profileAccuracy": "命中率",
+    "profileRight": "猜中",
+    "profileVotes": "投票",
+    "profileAsked": "提问",
+    "profileVoted": "投票过",
+    "profileNone": "还没有投票。",
+    "profiletheirVote": "投了 {answer}"
   }
 }
