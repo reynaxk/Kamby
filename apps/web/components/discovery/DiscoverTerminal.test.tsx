@@ -15,6 +15,8 @@ const { fetchTokenHistoryMock, fetchLatestActivityMock, fetchTokenTradersMock } 
 
 const routerPush = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: routerPush }) }));
+// ⚡ quick buy (2026-10-29) needs Privy's Solana provider — not what this suite tests.
+vi.mock('@/components/trading/QuickBuy', () => ({ QuickBuyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>, QuickBuyButton: () => null }));
 vi.mock('@/lib/market-feeds', () => ({ useMarketFeeds: (initial: MarketFeedSnapshot) => ({ feeds: initial, status: 'live' }) }));
 vi.mock('@/lib/market-client', () => ({ fetchTokenHistory: fetchTokenHistoryMock }));
 vi.mock('@/lib/social-client', () => ({ fetchLatestActivity: fetchLatestActivityMock, checkFollowStatus: vi.fn().mockResolvedValue(false) }));
