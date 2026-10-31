@@ -1540,5 +1540,21 @@
     "vol": "Vol 24h",
     "liq": "Liquidez",
     "price": "Precio"
+  },
+  "start": {
+    "title": "Empieza en Kamby",
+    "progress": "{done} de {total} listos",
+    "close": "Cerrar",
+    "name": "Elige un nombre",
+    "nameBody": "Así te encuentran y siguen otros traders.",
+    "nameCta": "Elegir",
+    "usdc": "Añade USDC",
+    "usdcBody": "Un saldo en todas las redes, sin monedas para gas.",
+    "trade": "Haz tu primera operación",
+    "tradeBody": "Elige una moneda y compra desde $2. Kamby paga el gas.",
+    "tradeCta": "Buscar moneda",
+    "explore": "Echa un vistazo",
+    "exploreBody": "Mira a un trader en vivo o recorre el feed.",
+    "exploreCta": "Abrir Live"
   }
 }

@@ -1540,5 +1540,21 @@
     "vol": "24h出来高",
     "liq": "流動性",
     "price": "価格"
+  },
+  "start": {
+    "title": "Kambyをはじめよう",
+    "progress": "{total}件中{done}件完了",
+    "close": "閉じる",
+    "name": "ユーザー名を決める",
+    "nameBody": "他のトレーダーに見つけてフォローしてもらえます。",
+    "nameCta": "設定",
+    "usdc": "USDCを追加",
+    "usdcBody": "全チェーン共通の残高 — ガス用コインは不要。",
+    "trade": "初めてのトレード",
+    "tradeBody": "コインを選んで$2から購入。ガスはKambyが負担。",
+    "tradeCta": "コインを探す",
+    "explore": "見て回る",
+    "exploreBody": "トレーダーのライブを見るか、フィードを見よう。",
+    "exploreCta": "Liveを開く"
   }
 }

@@ -1540,5 +1540,21 @@
     "vol": "Vol 24h",
     "liq": "Liquidität",
     "price": "Preis"
+  },
+  "start": {
+    "title": "Leg los mit Kamby",
+    "progress": "{done} von {total} erledigt",
+    "close": "Schließen",
+    "name": "Wähle einen Namen",
+    "nameBody": "So finden und folgen dir Trader.",
+    "nameCta": "Festlegen",
+    "usdc": "USDC hinzufügen",
+    "usdcBody": "Ein Guthaben auf jeder Chain — keine Gas-Coins nötig.",
+    "trade": "Mach deinen ersten Trade",
+    "tradeBody": "Wähle einen Coin und kaufe ab $2. Kamby zahlt das Gas.",
+    "tradeCta": "Coin finden",
+    "explore": "Schau dich um",
+    "exploreBody": "Schau einem Trader live zu oder scroll durch den Feed.",
+    "exploreCta": "Live öffnen"
   }
 }

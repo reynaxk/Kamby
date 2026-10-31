@@ -1540,5 +1540,21 @@
     "vol": "Hacim 24s",
     "liq": "Likidite",
     "price": "Fiyat"
+  },
+  "start": {
+    "title": "Kamby’ye başla",
+    "progress": "{total} adımdan {done} tamam",
+    "close": "Kapat",
+    "name": "Kullanıcı adı seç",
+    "nameBody": "Trader’lar seni böyle bulup takip eder.",
+    "nameCta": "Seç",
+    "usdc": "USDC ekle",
+    "usdcBody": "Her ağda tek bakiye — gas coin’ine gerek yok.",
+    "trade": "İlk işlemini yap",
+    "tradeBody": "Bir coin seç, $2’dan al. Gas’ı Kamby öder.",
+    "tradeCta": "Coin bul",
+    "explore": "Etrafa bak",
+    "exploreBody": "Bir trader’ı canlı izle ya da akışa göz at.",
+    "exploreCta": "Live’ı aç"
   }
 }

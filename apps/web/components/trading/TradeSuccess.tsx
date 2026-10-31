@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { markStep } from '@/lib/onboarding';
 import { useTranslations } from 'next-intl';
 import { ShareTradeSheet, type ShareChain } from '@/components/social/ShareTradeSheet';
 import { Bolt } from '@/components/social/Bolt';
@@ -16,6 +17,7 @@ export function TradeSuccess({ title, share }: { title: string; share?: { chain:
   const t = useTranslations('snipe');
   const [sharing, setSharing] = useState(false);
   useEffect(() => {
+    markStep('traded');
     try {
       navigator.vibrate?.(30);
     } catch {

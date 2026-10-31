@@ -1540,5 +1540,21 @@
     "vol": "Vol 24j",
     "liq": "Likuiditas",
     "price": "Harga"
+  },
+  "start": {
+    "title": "Mulai di Kamby",
+    "progress": "{done} dari {total} selesai",
+    "close": "Tutup",
+    "name": "Pilih username",
+    "nameBody": "Begitu trader lain menemukan dan mengikutimu.",
+    "nameCta": "Atur",
+    "usdc": "Tambah USDC",
+    "usdcBody": "Satu saldo di semua chain — tanpa koin gas.",
+    "trade": "Lakukan trade pertamamu",
+    "tradeBody": "Pilih koin dan beli mulai $2. Kamby bayar gasnya.",
+    "tradeCta": "Cari koin",
+    "explore": "Lihat-lihat",
+    "exploreBody": "Tonton trader live atau gulir Feed.",
+    "exploreCta": "Buka Live"
   }
 }

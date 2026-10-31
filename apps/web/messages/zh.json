@@ -1540,5 +1540,21 @@
     "vol": "24h 成交额",
     "liq": "流动性",
     "price": "价格"
+  },
+  "start": {
+    "title": "开始使用 Kamby",
+    "progress": "已完成 {done}/{total}",
+    "close": "关闭",
+    "name": "设置用户名",
+    "nameBody": "其他交易员靠它找到并关注你。",
+    "nameCta": "去设置",
+    "usdc": "充值 USDC",
+    "usdcBody": "一个余额通用所有链 — 无需 Gas 币。",
+    "trade": "完成第一笔交易",
+    "tradeBody": "选一个代币，$2 起买。Gas 由 Kamby 支付。",
+    "tradeCta": "找代币",
+    "explore": "四处看看",
+    "exploreBody": "看交易员直播或刷刷动态。",
+    "exploreCta": "打开直播"
   }
 }

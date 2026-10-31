@@ -10,6 +10,7 @@ import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification
 import { friendlyError } from '@/lib/friendly-error';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
 import { getSolanaTransaction, getSponsoredSolanaQuote, submitSponsoredSolanaTransaction } from '@/lib/solana-trading-client';
+import { markStep } from '@/lib/onboarding';
 import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 
 /** Snipes move fast: 10% (the top of the panel's Auto range for brand-new coins is 15%). */
@@ -91,6 +92,7 @@ export function useQuickSolanaBuy(amountUsd: number) {
         if (latest?.status === 'CONFIRMED') {
           notifyTradeConfirmed();
           toast.update(id, { variant: 'success', title: t('bought', { token: label }), description: `$${amountUsd}`, solscanUrl });
+          markStep('traded');
           break;
         }
         if (latest?.status === 'FAILED' || latest?.status === 'EXPIRED') throw new Error(latest.failureReason ?? tTrade('toastFailed'));

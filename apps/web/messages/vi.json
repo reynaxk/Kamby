@@ -1540,5 +1540,21 @@
     "vol": "KL 24h",
     "liq": "Thanh khoản",
     "price": "Giá"
+  },
+  "start": {
+    "title": "Bắt đầu với Kamby",
+    "progress": "Xong {done}/{total}",
+    "close": "Đóng",
+    "name": "Chọn tên người dùng",
+    "nameBody": "Để trader khác tìm và theo dõi bạn.",
+    "nameCta": "Đặt tên",
+    "usdc": "Nạp USDC",
+    "usdcBody": "Một số dư trên mọi chain — không cần coin gas.",
+    "trade": "Giao dịch đầu tiên",
+    "tradeBody": "Chọn coin và mua từ $2. Kamby trả phí gas.",
+    "tradeCta": "Tìm coin",
+    "explore": "Khám phá",
+    "exploreBody": "Xem trader live hoặc lướt bảng tin.",
+    "exploreCta": "Mở Live"
   }
 }

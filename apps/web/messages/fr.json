@@ -1540,5 +1540,21 @@
     "vol": "Vol 24h",
     "liq": "Liquidité",
     "price": "Prix"
+  },
+  "start": {
+    "title": "Bien démarrer sur Kamby",
+    "progress": "{done} sur {total}",
+    "close": "Fermer",
+    "name": "Choisis un pseudo",
+    "nameBody": "C’est ainsi que les traders te trouvent et te suivent.",
+    "nameCta": "Choisir",
+    "usdc": "Ajoute des USDC",
+    "usdcBody": "Un solde sur toutes les chaînes — pas besoin de coins pour le gas.",
+    "trade": "Fais ton premier trade",
+    "tradeBody": "Choisis un coin et achète dès 2 $. Kamby paie le gas.",
+    "tradeCta": "Trouver un coin",
+    "explore": "Fais le tour",
+    "exploreBody": "Regarde un trader en live ou parcours le fil.",
+    "exploreCta": "Ouvrir Live"
   }
 }

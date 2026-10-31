@@ -20,6 +20,7 @@ import { formatSignedCompactUsd } from '@/lib/format';
 import { useMyPositions } from '@/lib/my-positions';
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
 import { FEED_ENABLED } from '@/lib/feed-client';
+import { GettingStarted } from './GettingStarted';
 import { useMediaQuery, XL_QUERY } from '@/lib/use-media';
 
 /**
@@ -142,6 +143,8 @@ export function PortfolioHeader() {
         ))}
       </div>
     </section>
+    {/* First-run checklist (2026-10-31) — goes away once done or closed. */}
+    <GettingStarted cash={cash} holding={Boolean(positions && positions.length > 0)} />
     <GoLiveSheet open={goLive} onClose={() => setGoLive(false)} />
     </>
   );

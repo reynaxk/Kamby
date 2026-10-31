@@ -1540,5 +1540,21 @@
     "vol": "24h 거래량",
     "liq": "유동성",
     "price": "가격"
+  },
+  "start": {
+    "title": "Kamby 시작하기",
+    "progress": "{total}개 중 {done}개 완료",
+    "close": "닫기",
+    "name": "사용자 이름 정하기",
+    "nameBody": "다른 트레이더가 당신을 찾고 팔로우하는 방법이에요.",
+    "nameCta": "정하기",
+    "usdc": "USDC 추가",
+    "usdcBody": "모든 체인에서 하나의 잔고 — 가스 코인 불필요.",
+    "trade": "첫 거래 하기",
+    "tradeBody": "코인을 골라 $2부터 사세요. 가스는 Kamby가 내요.",
+    "tradeCta": "코인 찾기",
+    "explore": "둘러보기",
+    "exploreBody": "트레이더 라이브를 보거나 피드를 넘겨 보세요.",
+    "exploreCta": "Live 열기"
   }
 }

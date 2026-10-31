@@ -12,6 +12,7 @@ import { DmAvatar } from '@/components/dm/DmAvatar';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { SafeImg } from '@/components/social/SafeImg';
 import { GoLiveSheet } from './GoLive';
+import { markStep } from '@/lib/onboarding';
 
 type Category = 'all' | 'solana' | 'base' | 'bnb' | 'robinhood' | 'talk';
 type Sort = 'watched' | 'new';
@@ -49,6 +50,7 @@ export function LiveList({ limit, strip = false }: { limit?: number; strip?: boo
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
+    if (!strip) markStep('explored');
     setSignedIn(hasStoredSession());
     let cancelled = false;
     const load = () =>
