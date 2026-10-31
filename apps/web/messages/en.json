@@ -810,7 +810,7 @@
     "rules": "Be nice. No links. Not financial advice."
   },
   "legal": {
-    "agree": "By connecting your wallet, you agree to our <terms>Terms of Service</terms> and confirm that you are at least 18 years old."
+    "agree": "By signing in, you agree to our <terms>Terms of Service</terms> and confirm that you are at least 18 years old."
   },
   "gate": {
     "cta": "Sign in or sign up",

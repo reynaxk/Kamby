@@ -7,7 +7,7 @@ import { LEGAL_DETAILS_CONFIRMED } from '@/lib/legal';
 import { LegalModal } from './LegalModal';
 
 /**
- * "By connecting your wallet, you agree to our Terms of Service and confirm that you are at
+ * "By signing in, you agree to our Terms of Service and confirm that you are at
  * least 18…" under the sign-in buttons (owner, 2026-10-31), the Terms opening in a modal. Privy's
  * own modal links the Terms too (`legal` in lib/privy-config.ts). Renders nothing until the
  * legal documents are published (LEGAL_DETAILS_CONFIRMED) — never a link to terms that aren't live.
