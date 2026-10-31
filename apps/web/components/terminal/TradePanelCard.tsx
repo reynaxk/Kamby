@@ -38,10 +38,11 @@ export function TradePanelCard({ dense = false, ...props }: TradePanelProps & { 
 
   return (
     <Surface
+      data-in-flight={inFlight || undefined}
       className={cn(
         'trade-panel-card p-3.5 transition-shadow duration-300',
         dense && 'trade-panel-compact',
-        inFlight && 'shadow-glow-accent',
+        inFlight && 'ring-1 ring-accent/50',
       )}
     >
       <TradePanel {...props} dense={dense} onStepChange={handleStepChange} />

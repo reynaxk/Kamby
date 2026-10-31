@@ -37,7 +37,7 @@ describe('TradePanelCard', () => {
 
   it('never glows while the panel is on the idle form step', () => {
     const { container } = render(<TradePanelCard {...baseProps} />);
-    expect(container.querySelector('.shadow-glow-accent')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-in-flight]')).not.toBeInTheDocument();
   });
 
   it.each(['review', 'approving', 'signing', 'pending'] as const)(
@@ -48,7 +48,7 @@ describe('TradePanelCard', () => {
 
       await user.click(screen.getByRole('button', { name: `Go to ${step}` }));
 
-      expect(container.querySelector('.shadow-glow-accent')).toBeInTheDocument();
+      expect(container.querySelector('[data-in-flight]')).toBeInTheDocument();
     },
   );
 
@@ -60,7 +60,7 @@ describe('TradePanelCard', () => {
 
       await user.click(screen.getByRole('button', { name: `Go to ${step}` }));
 
-      expect(container.querySelector('.shadow-glow-accent')).not.toBeInTheDocument();
+      expect(container.querySelector('[data-in-flight]')).not.toBeInTheDocument();
     },
   );
 
@@ -68,11 +68,11 @@ describe('TradePanelCard', () => {
     const user = userEvent.setup();
     const { container } = render(<TradePanelCard {...baseProps} />);
     await user.click(screen.getByRole('button', { name: 'Go to review' }));
-    expect(container.querySelector('.shadow-glow-accent')).toBeInTheDocument();
+    expect(container.querySelector('[data-in-flight]')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Go to confirmed' }));
 
-    expect(container.querySelector('.shadow-glow-accent')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-in-flight]')).not.toBeInTheDocument();
   });
 
   it('calls a real caller-supplied onStepChange for every step transition, never instead of its own internal tracking', async () => {
@@ -83,7 +83,7 @@ describe('TradePanelCard', () => {
     await user.click(screen.getByRole('button', { name: 'Go to review' }));
 
     expect(onStepChange).toHaveBeenCalledWith('review');
-    expect(container.querySelector('.shadow-glow-accent')).toBeInTheDocument(); // internal tracking still fired too
+    expect(container.querySelector('[data-in-flight]')).toBeInTheDocument(); // internal tracking still fired too
   });
 
   it('never crashes when no onStepChange prop was given at all', async () => {

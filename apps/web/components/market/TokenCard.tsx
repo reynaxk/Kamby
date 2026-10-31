@@ -15,7 +15,7 @@ export function TokenCard({ market }: { market: MarketSummary }) {
     <>
       {/* Lift + soft accent glow on hover only, not an idle/constant glow — matches the
           visual overhaul's Hyperliquid-restraint direction (interactive-only emphasis). */}
-      <Surface className="flex h-full flex-col gap-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent">
+      <Surface className="flex h-full flex-col gap-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-surface-raised">
         <div className="flex items-start justify-between gap-2">
           <TokenIdentity symbol={market.symbol} name={market.name} logoUrl={market.logoUrl} />
           {market.isStale && <StaleBadge />}

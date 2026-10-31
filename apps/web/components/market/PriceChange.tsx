@@ -20,8 +20,8 @@ export function PriceChange({ value, className }: { value: number | null; classN
     <span
       className={cn(
         'inline-block rounded px-0.5 font-mono text-sm tabular-nums transition-[box-shadow,color,background-color] duration-500',
-        flash === 'up' && 'bg-up/10 text-up shadow-glow-up',
-        flash === 'down' && 'bg-down/10 text-down shadow-glow-down',
+        flash === 'up' && 'bg-up/10 text-up',
+        flash === 'down' && 'bg-down/10 text-down',
         !flash && direction === 'up' && 'text-up',
         !flash && direction === 'down' && 'text-down',
         !flash && direction === 'flat' && 'text-ink-400',

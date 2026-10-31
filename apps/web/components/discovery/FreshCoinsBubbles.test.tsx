@@ -112,7 +112,7 @@ describe('FreshCoinsBubbles', () => {
     expect(link).toHaveStyle({ width: '116px', height: '116px' }); // clamped to 100%, same as MAX_RADIUS
   });
 
-  it('applies the real glow treatment only once a token is close to graduation (>=70%)', async () => {
+  it('marks a token with an accent border only only once a token is close to graduation (>=70%)', async () => {
     fetchTrenches.mockResolvedValue([
       fakeToken({ mintAddress: 'Mint1', symbol: 'CLOSE', graduationProgressPct: 85 }),
       fakeToken({ mintAddress: 'Mint2', symbol: 'FAR', graduationProgressPct: 20 }),
@@ -121,8 +121,8 @@ describe('FreshCoinsBubbles', () => {
 
     const close = await screen.findByRole('link', { name: /\$CLOSE/ });
     const far = screen.getByRole('link', { name: /\$FAR/ });
-    expect(close.className).toContain('shadow-glow-accent');
-    expect(far.className).not.toContain('shadow-glow-accent');
+    expect(close.className).toContain('border-accent/70');
+    expect(far.className).not.toContain('border-accent/70');
   });
 
   it('polls again for fresh tokens every 12s', async () => {

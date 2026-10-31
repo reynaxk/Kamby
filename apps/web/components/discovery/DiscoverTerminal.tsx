@@ -329,7 +329,7 @@ export function DiscoverTerminal({
               className={cn(
                 'rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors',
                 gridMode === mode
-                  ? 'bg-accent text-accent-ink shadow-glow-accent'
+                  ? 'bg-accent text-accent-ink'
                   : 'text-ink-400 hover:text-ink-900',
               )}
             >

@@ -87,7 +87,7 @@ export function TokenTradersPanel({
             <Link
               key={trader.address}
               href={`/trader/${trader.address}`}
-              className="flex items-center justify-between gap-3 rounded-lg border border-line p-2.5 transition-all hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent"
+              className="flex items-center justify-between gap-3 rounded-lg border border-line p-2.5 transition-all hover:border-accent/50 hover:bg-surface-raised"
             >
               <TraderIdentity
                 address={trader.address}
@@ -113,7 +113,7 @@ export function TokenTradersPanel({
               <Link
                 key={trader.address}
                 href={`/trader/${trader.address}`}
-                className="flex items-center justify-between gap-3 rounded-lg border border-line p-2.5 transition-all hover:border-accent/50 hover:bg-surface-raised hover:shadow-glow-accent"
+                className="flex items-center justify-between gap-3 rounded-lg border border-line p-2.5 transition-all hover:border-accent/50 hover:bg-surface-raised"
               >
                 <TraderIdentity
                   address={trader.address}

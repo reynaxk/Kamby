@@ -31,8 +31,8 @@ export function PnlValue({
       className={cn(
         'inline-flex items-baseline gap-1.5 rounded px-0.5 font-mono tabular-nums transition-[box-shadow,color,background-color] duration-500',
         sizeClass,
-        flash === 'up' && 'bg-up/10 text-up shadow-glow-up',
-        flash === 'down' && 'bg-down/10 text-down shadow-glow-down',
+        flash === 'up' && 'bg-up/10 text-up',
+        flash === 'down' && 'bg-down/10 text-down',
         !flash && direction === 'up' && 'text-up',
         !flash && direction === 'down' && 'text-down',
         !flash && direction === 'flat' && 'text-ink-400',

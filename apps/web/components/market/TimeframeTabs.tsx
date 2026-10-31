@@ -14,7 +14,7 @@ export function TimeframeTabs({ chain, address, active }: { chain: string; addre
           href={`/market/${chain}/${address}?timeframe=${tf}`}
           className={cn(
             'rounded-md px-2.5 py-1 font-mono text-xs font-medium tracking-tight transition-all',
-            tf === active ? 'bg-accent text-accent-ink shadow-glow-accent' : 'text-ink-400 hover:text-ink-900',
+            tf === active ? 'bg-accent text-accent-ink' : 'text-ink-400 hover:text-ink-900',
           )}
         >
           {tf}

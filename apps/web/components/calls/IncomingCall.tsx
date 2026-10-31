@@ -48,7 +48,7 @@ export function IncomingCall({ call, conv, onAccept, onDecline }: { call: CallSt
           </button>
         )}
         <button type="button" onClick={() => onAccept(false)} className="flex flex-col items-center gap-2" aria-label={t('accept')}>
-          <span className="flex h-16 w-16 animate-bounce items-center justify-center rounded-full bg-accent text-black shadow-[0_10px_30px_rgba(0,255,135,0.35)] [animation-duration:1.4s]">
+          <span className="flex h-16 w-16 animate-bounce items-center justify-center rounded-full bg-accent text-black [animation-duration:1.4s]">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8Z" />
             </svg>

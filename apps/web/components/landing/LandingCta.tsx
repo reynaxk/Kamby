@@ -42,7 +42,7 @@ export function LandingCta({
         variant === 'neon'
           ? 'bg-[#00FF87] px-8 py-3.5 text-black hover:brightness-110 active:scale-[0.98]'
           : variant === 'primary'
-            ? 'bg-accent text-accent-ink shadow-glow-accent hover:brightness-110'
+            ? 'bg-accent text-accent-ink hover:brightness-110'
             : 'border border-white/15 bg-white/[0.04] text-ink-900 backdrop-blur hover:border-[#00FF87]/50',
         className,
       )}

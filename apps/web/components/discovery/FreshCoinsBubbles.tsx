@@ -235,7 +235,7 @@ function BubbleNode({
       title={`${token.symbol ? cashtag(token.symbol) : token.mintAddress} — ${token.graduationProgressPct.toFixed(0)}% to graduation`}
       className={cn(
         'absolute left-0 top-0 flex select-none items-center justify-center overflow-hidden rounded-full border border-line bg-surface-raised text-center transition-shadow hover:border-accent/60',
-        close && 'shadow-glow-accent',
+        close && 'border-accent/70',
       )}
       style={{ width: r * 2, height: r * 2, willChange: 'transform' }}
     >

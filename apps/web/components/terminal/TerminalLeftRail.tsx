@@ -39,7 +39,7 @@ export function TerminalLeftRail() {
             onClick={() => setTab(t)}
             className={cn(
               'rounded-lg px-1.5 py-1.5 font-display text-[0.65rem] font-bold uppercase tracking-wide transition-all',
-              tab === t ? 'bg-accent/10 text-accent shadow-glow-accent' : 'text-ink-400 hover:text-ink-600',
+              tab === t ? 'bg-accent/10 text-accent' : 'text-ink-400 hover:text-ink-600',
             )}
           >
             {t === 'trenches' ? tU('trenches_a6e3') : tU('traders_d5d8')}

@@ -25,8 +25,8 @@ describe('PriceChange', () => {
   it('never flashes on the very first render — nothing to compare against yet', () => {
     render(<PriceChange value={5} />);
     const el = screen.getByText('+5.00%');
-    expect(el).not.toHaveClass('shadow-glow-up');
-    expect(el).not.toHaveClass('shadow-glow-down');
+    expect(el).not.toHaveClass('bg-up/10');
+    expect(el).not.toHaveClass('bg-down/10');
   });
 
   it('flashes up when the value increases between renders, overriding the plain direction color', () => {
@@ -34,7 +34,7 @@ describe('PriceChange', () => {
     rerender(<PriceChange value={6} />);
 
     const el = screen.getByText('+6.00%');
-    expect(el).toHaveClass('shadow-glow-up', 'bg-up/10', 'text-up');
+    expect(el).toHaveClass('bg-up/10', 'text-up');
   });
 
   it('flashes on the real delta direction, not the value\'s own sign — a still-negative value that moved up still flashes up', () => {
@@ -44,7 +44,7 @@ describe('PriceChange', () => {
     rerender(<PriceChange value={-3} />);
 
     const el = screen.getByText('-3.00%');
-    expect(el).toHaveClass('shadow-glow-up', 'text-up');
+    expect(el).toHaveClass('text-up');
     expect(el).not.toHaveClass('text-down');
   });
 
@@ -53,7 +53,7 @@ describe('PriceChange', () => {
     rerender(<PriceChange value={3} />);
 
     const el = screen.getByText('+3.00%');
-    expect(el).toHaveClass('shadow-glow-down', 'bg-down/10', 'text-down');
+    expect(el).toHaveClass('bg-down/10', 'text-down');
   });
 
   it('never flashes on a re-render with the same value', () => {
@@ -61,8 +61,8 @@ describe('PriceChange', () => {
     rerender(<PriceChange value={5} />);
 
     const el = screen.getByText('+5.00%');
-    expect(el).not.toHaveClass('shadow-glow-up');
-    expect(el).not.toHaveClass('shadow-glow-down');
+    expect(el).not.toHaveClass('bg-up/10');
+    expect(el).not.toHaveClass('bg-down/10');
     expect(el).toHaveClass('text-up'); // falls back to the plain direction color
   });
 

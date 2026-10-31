@@ -32,7 +32,7 @@ export function TradeSuccess({ title, share }: { title: string; share?: { chain:
           initial={{ scale: 0.4, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 18 }}
-          className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent text-black shadow-[0_0_32px_rgba(0,255,135,0.6)]"
+          className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent text-black ring-8 ring-accent/15"
         >
           <Check className="h-8 w-8" strokeWidth={3} aria-hidden />
         </motion.span>
