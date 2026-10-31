@@ -16,5 +16,6 @@ import { LiveService } from './live.service';
   imports: [IdentityModule, RealtimeModule, CallsModule, NotificationsModule, DmModule, SolanaModule, TradingModule, MediaModule],
   controllers: [LiveController],
   providers: [LiveService, LiveTipsService],
+  exports: [LiveService],
 })
 export class LiveModule {}

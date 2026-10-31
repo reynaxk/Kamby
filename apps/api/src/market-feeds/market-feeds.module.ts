@@ -20,6 +20,6 @@ import { FeedPricesService } from './feed-prices.service';
   controllers: [MarketFeedsController, SolanaChartController, TokenInfoController],
   providers: [CryptoPriceService, MarketFeedsService, SolanaChartService, TokenInfoService, LivePriceService, PumpFunIconService, XxxRiskService, HoldersService, FeedPricesService],
   // Positions price Solana holdings off the same live feed the charts use.
-  exports: [LivePriceService],
+  exports: [LivePriceService, MarketFeedsService],
 })
 export class MarketFeedsModule {}
