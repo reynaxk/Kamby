@@ -88,7 +88,7 @@ export function NewsToaster() {
     let cancelled = false;
     const load = () => {
       if (!hasStoredSession()) return;
-      fetchWatchlist({ limit: 100 })
+      fetchWatchlist({ limit: 50 })
         .then((page) => {
           if (!cancelled) watched.current = new Set(page.items.map((w) => newsTokenKey(w.chainIdentifier, w.tokenAddress)));
         })
