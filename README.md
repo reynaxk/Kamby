@@ -1,184 +1,180 @@
-# Kamby (working title)
+# Kamby
 
-A social crypto discovery and trading platform. Phase 0 built the production foundation;
-Phase 1 added the first real product surface — market discovery for a curated set of real
-tokens on Base, with genuine on-chain price/liquidity/volume, not mock data (see
-`docs/MARKET_DATA.md`). Phase 2 added the social layer — real trading activity as a live
-feed, wallet-first trader identity and profiles, follows, and activity-based trending — on
-the same indexed data. **Phase 3 closes the loop**: connect a wallet, prove ownership with a
-real signature (SIWE), get a real executable quote, review it, sign and broadcast the
-transaction yourself, and watch it confirm — all non-custodially, Kamby's backend never
-holding a key or signing anything. See `docs/TRADING.md` for exactly how, `docs/SOCIAL.md`
-for Phase 2's, and the architecture spec for the product vision and roadmap beyond this.
+**Find. Trade. Repeat.** Kamby is a social crypto trading app. You find coins, trade them with
+one tap from a USDC balance, and see what other traders do and say, live.
 
-Not yet built: comments, notifications delivery, multi-chain execution, email/passkey login.
-See [`docs/`](./docs) and the roadmap for when each lands.
+Live at **[kambesh.com](https://kambesh.com)**. It works on the web and installs as an app on
+phones (PWA), in 14 languages.
 
-## Repository structure
+---
+
+## What's in the app
+
+| Area | Route | What it does |
+|---|---|---|
+| **Home** | `/home` | Your balance, top traders this week, your holdings, whales trading now, the latest news, and the live coin lists. |
+| **Trade** | `/terminal`, `/market/[chain]/[address]`, `/solana?mint=` | The trading screen: chart (1s → 1D), holders, live trades, top traders, token chat, a news line and the buy/sell panel. ⚡ quick buy sits on every coin row. |
+| **Feed** | `/feed` | Posts from traders: text, photos, videos, Trade Cards and PnL cards. Headlines are mixed in. Tapping a coin opens its chart and buy panel without leaving the feed. |
+| **News** | `/news` | Crypto headlines from CoinDesk, Cointelegraph, Decrypt, Blockworks and Bitcoin Magazine, streamed live and tagged with verified coins. |
+| **Live** | `/live`, `/live/[id]` | Live streams (voice, screen, camera) with chat, tips, polls and a coin panel. Every Kamby trade by someone in the room shows up in chat, and viewers can copy it with ⚡. Sorted by viewers or traded volume, filtered by topic. |
+| **Messages** | `/messages` | Direct messages and groups, voice/video/screen calls, and communities. |
+| **Leaders** | `/leaderboard` | PnL leaderboard by chain, plus Squads, no-stake Duels and Track (whales and people you follow). |
+| **Perps** | `/perps` | Perpetuals on Hyperliquid (web, geo-restricted). |
+| **LaunchPad** | `/launch` | Launch a coin on Pump.fun (Solana), Clanker (Base) or Four.meme (BNB). |
+| **Profile** | `/account`, `/trader/[address]` | Your profile, P&L calendar, trade history, referrals and notification settings. Every trader has a public profile. |
+
+**Chains:** Solana, Base, BNB Chain and Robinhood Chain.
+**Money:** users hold USDC only. Network gas is covered by Kamby's gas tank, so trades are
+gas-free for the user. Kamby's fee appears in the trade summary as a dollar amount before you
+confirm.
+
+---
+
+## How it fits together
+
+```mermaid
+flowchart LR
+  subgraph Browser["Browser / phone app (PWA)"]
+    WEB["apps/web<br/>Next.js on Cloudflare"]
+    PRIVY["Privy embedded wallets<br/>(user keys never leave Privy)"]
+  end
+
+  subgraph Railway
+    API["apps/api<br/>NestJS modular monolith"]
+    WORK["apps/workers<br/>ingestion, sweeps, notifications, news"]
+    PG[("Postgres<br/>(TimescaleDB)")]
+    RD[("Redis<br/>cache + pub/sub")]
+  end
+
+  EXT["DEX routing: Jupiter (Solana), KyberSwap (EVM)<br/>Bridge: Relay · Perps: Hyperliquid<br/>Data: DexScreener, GeckoTerminal, Pump.fun<br/>RPC: public + paid failover<br/>News: 5 public RSS feeds"]
+  CF["Cloudflare Realtime (live + calls)<br/>R2 (media) · Web Push"]
+
+  WEB -- "REST + SSE" --> API
+  WEB -- "sign" --> PRIVY
+  API --> PG
+  API <--> RD
+  WORK --> PG
+  WORK -- "publish" --> RD
+  API --> EXT
+  WORK --> EXT
+  WEB <--> CF
+  API --> CF
+```
+
+- **apps/web** renders the app. Server components fetch the first paint from the API, and
+  the browser then keeps it live over Server-Sent Events.
+- **apps/api** owns every read and write: market data, trading quotes and transactions,
+  social, live, DMs, news and notifications. It never stores or uses a user's private key.
+- **apps/workers** runs on timers. It ingests prices and swaps, discovers pools, confirms
+  trades on-chain, sweeps PnL, sends notifications and push messages, and polls the news
+  feeds. Results go into Postgres, and events are published on Redis.
+- **Redis pub/sub → SSE:** a worker or the API publishes an event on a channel (new trade,
+  chat line, headline…). The API keeps one subscriber per process and fans each event out
+  to every connected browser over SSE. There are no WebSockets between browser and API.
+
+### A trade, end to end
+
+1. The trade panel asks the API for a **quote**: Jupiter for Solana, KyberSwap for EVM. Kamby's
+   fee is built into the same swap, so the user signs once.
+2. The user **signs** in the browser with their Privy wallet. On Solana, Kamby can sponsor
+   network gas as fee payer, but it can't move the user's funds.
+3. The transaction is broadcast, and a worker **confirms** it on-chain. Only a confirmed
+   trade is recorded, charged a fee, and added to PnL.
+4. The confirmed trade fans out: the coin's live trades and token chat, a live room if the
+   trader is in one, the leaderboard and notifications.
+
+### News, end to end
+
+Every 2.5 minutes the workers poll the five feeds in parallel, with a 5 s timeout per feed.
+They then:
+
+- clean the HTML, drop tracking and keep only links to the publisher's own site;
+- de-duplicate by a hash of the normalised title;
+- tag coins **only** from a verified list (Kamby's own markets, which must still hold real
+  liquidity), so a headline never points to a copycat token.
+
+The latest 100 headlines stay in Redis and the full history is kept in Postgres. New
+headlines stream to the app. An alert toast appears only for coins you hold, watch, or have
+open.
+
+---
+
+## Repository
 
 ```text
 apps/
-  web/        Next.js app — Discover (/), token detail (/market/[address]), trader profiles
-              (/trader/[address]), and (Phase 3) trade history (/trades, /trades/[id]) are
-              real. The live activity feed, follow/like mutations, and all wallet/trading
-              calls are the places the browser talks to the API directly — see
-              docs/SOCIAL.md#realtime and docs/TRADING.md.
-  api/        NestJS modular monolith — Market (read-only), Identity (anonymous sessions +
-              Phase 3 wallet-ownership verification), Social (activity/trending/follows/
-              likes), and Trading (quotes/transactions/history, see docs/TRADING.md) are
-              real; Notifications remains an empty module boundary.
-  workers/    Independently deployable process. Runs real market-data ingestion on a
-              timer (apps/workers/src/market/) — see docs/MARKET_DATA.md — captures trader
-              identity and publishes a realtime activity ping (docs/SOCIAL.md), and (Phase
-              3) sweeps PENDING trades for a real on-chain receipt (apps/workers/src/trading/).
-
+  web/        Next.js 14 (App Router) on Cloudflare Workers via OpenNext. Tailwind, next-intl
+              (14 locales), Privy, lightweight-charts.
+  api/        NestJS. Modules: market, market-feeds, trading, solana, chain, social,
+              identity, notifications, pulse (chats), dm, calls, live, feed, news, duels,
+              squads, launchpad, bridge, transfers, referrals, media, health.
+  workers/    Plain Node process: market + Solana ingestion, pool discovery, Pump.fun /
+              PumpPortal ingestion, trade sweeps, PnL ledger, notification extras, news.
 packages/
-  config/          Shared tsconfig, ESLint, and Tailwind presets.
-  domain/          Shared TypeScript types, Zod schemas, parseEnv(), the Discovery Score /
-                    staleness logic market ranking is built on, trader identity types,
-                    activity-cursor pagination, the Trending Score (Phase 2), and (Phase 3)
-                    the SIWE message builder and fee/slippage/price-impact math.
-  db/              Prisma schema, migrations, and a shared PrismaClient singleton.
-  ui/              Shared React components (Button, Surface) and the `cn()` helper.
-  chain-adapters/  ChainDataProvider (generic EVM reads) + UniswapV3PoolReader (Phase 1's
-                    pool/swap reads) + the pure price/liquidity math, unit-tested
-                    separately from the RPC calls.
-
-docs/         Architectural principles — read before extending the schema or auth.
+  domain/          Shared types, Zod schemas and pure logic (scores, fees, PnL, news matching).
+  db/              Prisma schema + migrations, shared PrismaClient.
+  chain-adapters/  EVM reads, pool readers and RPC usage accounting.
+  ui/              Shared React primitives and cn().
+  config/          Shared tsconfig / ESLint / Tailwind presets.
+docs/              Design notes per area (trading, market data, social, notifications,
+                   wallet security, deployment, testing…).
 ```
 
-Package boundaries map onto future service boundaries on purpose — see
-`docs/SOURCE_OF_TRUTH.md` and `docs/CHAIN_ADAPTERS.md`.
+## Running it locally
 
-## Prerequisites
-
-- Node.js 20+ (`.node-version` pins the exact version)
-- pnpm 9 — via Corepack (`corepack enable`) or `npm install -g pnpm`
-- Docker (for local Postgres + Redis via `docker-compose.yml`)
-
-## Local setup
+Prerequisites: Node 20 (see `.node-version`), pnpm 9 (`corepack enable`) and Docker.
 
 ```bash
 pnpm install
-
 cp apps/web/.env.example apps/web/.env.local
 cp apps/api/.env.example apps/api/.env
 cp apps/workers/.env.example apps/workers/.env
-# The default CHAIN_RPC_URL (Base's public RPC) works with no signup — fine for local dev.
 
-docker compose up -d              # Postgres (+ TimescaleDB) and Redis
-pnpm db:migrate:deploy            # applies every migration, Phase 0 through Phase 3
-pnpm dev                          # runs web, api, and workers together, via Turborepo
+docker compose up -d          # Postgres (TimescaleDB) + Redis
+pnpm db:migrate:deploy
+pnpm dev                      # web :3000, api :4000, workers
 ```
 
-- Web: http://localhost:3000 — Discover populates itself once the worker's first
-  ingestion tick completes (seeds the tracked markets, then backfills ~24h of real swap
-  history — takes a minute or two on first run, see `docs/MARKET_DATA.md`).
-- API: http://localhost:4000 (health check: http://localhost:4000/health)
-- Workers: no HTTP surface — watch the logs for seeding/ingestion progress.
-
-Run a single app instead of all three with Turborepo's filter flag, e.g.
-`pnpm --filter @kamby/api dev`.
-
-## Environment variables
-
-Each app documents its own required variables in its `.env.example` (`apps/web`,
-`apps/api`, `apps/workers`). All of them are validated at boot with Zod
-(`packages/domain`'s `parseEnv`) — a missing or malformed required variable fails
-immediately with a clear message naming exactly what's wrong, rather than failing later at
-the point of use. **Never commit `.env` files** (`.gitignore` already excludes them) and
-never hardcode an RPC URL, API key, database credential, or secret anywhere in source.
-
-## Database
-
-PostgreSQL 16 with the TimescaleDB extension (declared in
-`packages/db/prisma/schema.prisma` via Prisma's `postgresqlExtensions` preview feature).
-`candles` is a real Timescale hypertable as of the Phase 1 migration.
+Every app validates its environment at boot with Zod, so a missing variable fails
+immediately with its name. **Never commit `.env` files or keys.** Production secrets live
+only in the hosting provider's settings.
 
 ```bash
-pnpm db:generate         # regenerate the Prisma client after a schema change
-pnpm db:migrate:dev       # create + apply a new migration locally
-pnpm db:migrate:deploy    # apply existing migrations (production/CI)
-pnpm db:studio            # browse the database
-```
-
-Phase 0's migration creates `chains`, `tokens`, `token_markets`. Phase 1's adds `swaps`,
-`candles`, `ingestion_cursors`, and price/liquidity/volume columns on `token_markets`.
-Phase 2's adds `wallets`, `users`, `follows`, `activity_likes`, plus
-`trader_address`/`sender_address` on `swaps` and `trade_count_24h`/`unique_traders_24h` on
-`token_markets`. Phase 3's (`20260906180000_wallet_trading`) adds `wallet_challenges`,
-`trade_quotes`, `trade_transactions`, links a `Wallet` to a `User` only after signature
-verification (`wallets.user_id`/`verified_at`), and drops the always-`null`
-`users.wallet_address` column Phase 2 never actually populated — all additive/nullable
-where the fact predates the migration, per `docs/SOCIAL.md`/`docs/TRADING.md`. See
-`docs/SOURCE_OF_TRUTH.md` for why token metadata fields are nullable rather than defaulted
-and why price/liquidity live on `token_markets` rather than `tokens`, `docs/MARKET_DATA.md`
-for the Phase 1 tables, `docs/SOCIAL.md` for Phase 2's, and `docs/TRADING.md` for Phase 3's.
-
-## Testing
-
-```bash
-pnpm test                            # every package's unit tests (now includes component
-                                      # tests in apps/web via @testing-library/react + jsdom)
-pnpm --filter @kamby/api test:e2e     # API e2e tests — requires docker compose up -d
-```
-
-See `docs/TESTING.md` for what's covered where and why the e2e suite is a separate step.
-
-## Linting, type checking, building
-
-```bash
+pnpm test        # unit + component tests (Vitest / Jest)
 pnpm lint
 pnpm typecheck
 pnpm build
 ```
 
-All three run through Turborepo, so each only re-runs for packages that actually changed.
-
-## CI
-
-`.github/workflows/ci.yml` runs on every pull request and push to `main`:
-install → lint → typecheck → validate & apply migrations (against real Postgres/Redis
-service containers) → unit tests → API e2e tests (health, `/market`, `/social` +
-`/identity`, and `/trade` — the last two with real ECDSA signatures and a placeholder 0x
-API key, seeded against that same live database) → build. Any failure blocks the merge.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, migrations against real Postgres/Redis,
+unit tests, API and worker e2e tests, and the build on every push to `main`.
 
 ## Deployment
 
-See `docs/DEPLOYMENT.md` for the full runbook — Vercel (web), Fly.io (API and workers, via
-their `Dockerfile`s), Neon (Postgres), Upstash (Redis).
+- **Web:** `cd apps/web && pnpm cf:deploy` (OpenNext → Cloudflare Workers).
+- **API + workers:** Railway, deployed automatically on push to `main`. The workers run one
+  instance per chain, and the main instance also runs notifications and news.
+- **Database migrations** run against production with `prisma migrate deploy` inside the
+  API service.
 
-## Architectural boundaries
+See [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) and [`docs/LAUNCH_RUNBOOK.md`](./docs/LAUNCH_RUNBOOK.md).
 
-- **`apps/web` never reads the database directly** — only the API, and only in Server
-  Components/Route Handlers for read-only data (`API_BASE_URL` is server-only, never sent
-  to the browser). The deliberate exceptions are Phase 2's live activity stream and
-  follow/like mutations, and Phase 3's wallet-ownership and trading calls (all of which
-  structurally require a real browser-to-API connection, and the browser's own wagmi
-  connection reading the connected wallet's chain/balance directly) — see
-  `docs/SOCIAL.md#realtime`, `docs/TRADING.md`, and the separate, explicitly-public
-  `NEXT_PUBLIC_API_BASE_URL`/`NEXT_PUBLIC_CHAIN_RPC_URL`.
-- **`apps/api` is a modular monolith, not microservices.** `Identity` (now including
-  Phase 3 wallet-ownership), `Social`, and `Trading` all have real logic; `Notifications`
-  remains an empty module boundary; `Market` is read-only — it never writes, only the
-  worker does. Same internal boundary as always, so any module can become its own service
-  later without a rewrite — see the architecture spec.
-- **`apps/workers` is deployed independently from `apps/api`** from day one, because
-  indexing scales on a different axis (chain event volume) than request-serving
-  (concurrent users).
-- **Chain-specific code lives only in `packages/chain-adapters`** — see
-  `docs/CHAIN_ADAPTERS.md`.
-- **No table is a second source of truth for a fact another table already owns** — see
-  `docs/SOURCE_OF_TRUTH.md`.
-- **The backend never custodies a private key or signs a transaction** — see
-  `docs/WALLET_SECURITY.md` and, for how Phase 3's trading flow specifically upholds this,
-  `docs/TRADING.md#non-custodial-security`.
+## Principles
 
-## Full architecture
+- **Non-custodial.** Kamby never holds a user's private key and never signs a trade for them.
+  See [`docs/WALLET_SECURITY.md`](./docs/WALLET_SECURITY.md).
+- **Real data or nothing.** Prices, liquidity, PnL and stats come from chain or market data.
+  A value Kamby can't verify shows as unknown, never as a guess.
+- **Verified coins only where it matters.** News tags, cashtags in posts and curated lists
+  link to contract addresses Kamby has verified, never to a lookalike ticker.
+- **One failing widget never takes down the page.** Every widget sits in its own error
+  boundary with a Retry, and the app recovers by itself when a stream drops.
+- **Money is shown in dollars.** Fees appear as their dollar amount before you confirm.
 
-The product vision, full data model, phased roadmap beyond Phase 0, and the reasoning
-behind each technology choice were captured in a separate architecture review before this
-repository was scaffolded — it isn't tracked in this repo. What matters for building on
-top of Phase 0 *is* checked in: the load-bearing principles live in [`docs/`](./docs)
-(source-of-truth rules, wallet security, chain-adapter boundaries), and each phase's scope
-is enforced in code as it's built, not just described in a document elsewhere.
+## Docs
+
+[Trading](./docs/TRADING.md) · [Market data](./docs/MARKET_DATA.md) ·
+[Social](./docs/SOCIAL.md) · [Notifications](./docs/NOTIFICATIONS.md) ·
+[Wallet security](./docs/WALLET_SECURITY.md) · [Chain adapters](./docs/CHAIN_ADAPTERS.md) ·
+[Source of truth](./docs/SOURCE_OF_TRUTH.md) · [Testing](./docs/TESTING.md) ·
+[Deployment](./docs/DEPLOYMENT.md)
