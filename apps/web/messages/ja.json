@@ -619,7 +619,7 @@
     "jito_Low": "低",
     "jito_Medium": "中",
     "jito_High": "高",
-    "hub_transactions": "スワップ",
+    "hub_transactions": "Kambyで",
     "hub_holders": "保有者",
     "hub_caller_alpha": "意見",
     "trench_FRESH": "新着",
@@ -753,7 +753,8 @@
     "posts": "投稿",
     "tabTrades": "取引",
     "tabCoins": "コイン",
-    "noPosts": "まだ投稿はありません。"
+    "noPosts": "まだ投稿はありません。",
+    "hub_live": "取引"
   },
   "notif": {
     "kind_FOLLOW": "フォロー",

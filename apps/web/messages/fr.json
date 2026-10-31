@@ -619,7 +619,7 @@
     "jito_Low": "Faible",
     "jito_Medium": "Moyen",
     "jito_High": "Élevé",
-    "hub_transactions": "Swaps",
+    "hub_transactions": "Sur Kamby",
     "hub_holders": "Détenteurs",
     "hub_caller_alpha": "Thèse",
     "trench_FRESH": "Nouveaux",
@@ -753,7 +753,8 @@
     "posts": "Posts",
     "tabTrades": "Trades",
     "tabCoins": "Coins",
-    "noPosts": "Aucun post pour le moment."
+    "noPosts": "Aucun post pour le moment.",
+    "hub_live": "Trades"
   },
   "notif": {
     "kind_FOLLOW": "Abonné",

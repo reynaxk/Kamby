@@ -619,7 +619,7 @@
     "jito_Low": "Rendah",
     "jito_Medium": "Sedang",
     "jito_High": "Tinggi",
-    "hub_transactions": "Swap",
+    "hub_transactions": "Di Kamby",
     "hub_holders": "Holder",
     "hub_caller_alpha": "Tesis",
     "trench_FRESH": "Baru",
@@ -753,7 +753,8 @@
     "posts": "Postingan",
     "tabTrades": "Trade",
     "tabCoins": "Koin",
-    "noPosts": "Belum ada postingan."
+    "noPosts": "Belum ada postingan.",
+    "hub_live": "Transaksi"
   },
   "notif": {
     "kind_FOLLOW": "Ikuti",

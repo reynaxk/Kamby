@@ -619,7 +619,7 @@
     "jito_Low": "ต่ำ",
     "jito_Medium": "กลาง",
     "jito_High": "สูง",
-    "hub_transactions": "สวอป",
+    "hub_transactions": "บน Kamby",
     "hub_holders": "ผู้ถือ",
     "hub_caller_alpha": "ความเห็น",
     "trench_FRESH": "ใหม่",
@@ -753,7 +753,8 @@
     "posts": "โพสต์",
     "tabTrades": "เทรด",
     "tabCoins": "เหรียญ",
-    "noPosts": "ยังไม่มีโพสต์"
+    "noPosts": "ยังไม่มีโพสต์",
+    "hub_live": "เทรด"
   },
   "notif": {
     "kind_FOLLOW": "ติดตาม",

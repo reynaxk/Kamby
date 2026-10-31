@@ -12,6 +12,9 @@ const CACHE_TTL_SECONDS = 30;
  *  sorting — see resolveNearGraduated's own doc comment for why this can't be a plain
  *  database ORDER BY. */
 const NEAR_GRADUATED_CANDIDATE_POOL_SIZE = 500;
+/** A live Pump.fun curve completes at ~85 SOL raised, so anything over 100 SOL is a misread
+ *  account, not a coin (2026-10-31: rows showing "17,299,467,970 SOL raised" topped Near grad). */
+export const MAX_CURVE_REAL_SOL_LAMPORTS = 100_000_000_000n;
 
 /**
  * A launchpad-lifecycle-style token filter, a 4-category "Trenches" endpoint (FRESH /
@@ -103,7 +106,7 @@ export class TokenTrenchesService {
         orderBy: { lastStateUpdateAt: 'desc' },
         take: NEAR_GRADUATED_CANDIDATE_POOL_SIZE,
       });
-      const sorted = candidates.sort((a, b) => {
+      const sorted = candidates.filter((c) => isPlausibleCurve(c.realSolReserves)).sort((a, b) => {
         const diff = BigInt(b.realSolReserves) - BigInt(a.realSolReserves);
         return diff > 0n ? 1 : diff < 0n ? -1 : 0;
       });
@@ -212,4 +215,14 @@ function toPumpFunTokenSummary(row: {
     createdAt: row.createdAt.toISOString(),
     graduatedAt: row.graduatedAt?.toISOString() ?? null,
   };
+}
+
+/** Exported for tests. Whether a curve's raised SOL is one a real Pump.fun curve can hold. */
+export function isPlausibleCurve(realSolReserves: string): boolean {
+  try {
+    const v = BigInt(realSolReserves);
+    return v >= 0n && v <= MAX_CURVE_REAL_SOL_LAMPORTS;
+  } catch {
+    return false;
+  }
 }

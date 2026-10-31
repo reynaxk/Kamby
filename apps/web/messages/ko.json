@@ -619,7 +619,7 @@
     "jito_Low": "낮음",
     "jito_Medium": "보통",
     "jito_High": "높음",
-    "hub_transactions": "스왑",
+    "hub_transactions": "Kamby에서",
     "hub_holders": "보유자",
     "hub_caller_alpha": "의견",
     "trench_FRESH": "신규",
@@ -753,7 +753,8 @@
     "posts": "게시물",
     "tabTrades": "거래",
     "tabCoins": "코인",
-    "noPosts": "아직 게시물이 없어요."
+    "noPosts": "아직 게시물이 없어요.",
+    "hub_live": "거래"
   },
   "notif": {
     "kind_FOLLOW": "팔로우",

@@ -619,7 +619,7 @@
     "jito_Low": "Düşük",
     "jito_Medium": "Orta",
     "jito_High": "Yüksek",
-    "hub_transactions": "Swap'ler",
+    "hub_transactions": "Kamby'de",
     "hub_holders": "Sahipler",
     "hub_caller_alpha": "Görüş",
     "trench_FRESH": "Yeni",
@@ -753,7 +753,8 @@
     "posts": "Gönderiler",
     "tabTrades": "İşlemler",
     "tabCoins": "Coinler",
-    "noPosts": "Henüz gönderi yok."
+    "noPosts": "Henüz gönderi yok.",
+    "hub_live": "İşlemler"
   },
   "notif": {
     "kind_FOLLOW": "Takip",

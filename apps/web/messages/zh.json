@@ -619,7 +619,7 @@
     "jito_Low": "低",
     "jito_Medium": "中",
     "jito_High": "高",
-    "hub_transactions": "成交",
+    "hub_transactions": "在 Kamby",
     "hub_holders": "持有者",
     "hub_caller_alpha": "观点",
     "trench_FRESH": "新币",
@@ -753,7 +753,8 @@
     "posts": "帖子",
     "tabTrades": "交易",
     "tabCoins": "代币",
-    "noPosts": "还没有帖子。"
+    "noPosts": "还没有帖子。",
+    "hub_live": "成交"
   },
   "notif": {
     "kind_FOLLOW": "关注",

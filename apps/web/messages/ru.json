@@ -619,7 +619,7 @@
     "jito_Low": "Низкий",
     "jito_Medium": "Средний",
     "jito_High": "Высокий",
-    "hub_transactions": "Свопы",
+    "hub_transactions": "В Kamby",
     "hub_holders": "Держатели",
     "hub_caller_alpha": "Мнение",
     "trench_FRESH": "Новые",
@@ -753,7 +753,8 @@
     "posts": "Посты",
     "tabTrades": "Сделки",
     "tabCoins": "Монеты",
-    "noPosts": "Пока нет постов."
+    "noPosts": "Пока нет постов.",
+    "hub_live": "Сделки"
   },
   "notif": {
     "kind_FOLLOW": "Подписка",

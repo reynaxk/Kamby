@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { SocialActivity } from '@kamby/domain';
 import { DataHub } from './DataHub';
+
+vi.mock('./LiveTradesPanel', () => ({ LiveTradesPanel: () => <p>on-chain trades</p> }));
+vi.mock('./HoldersPanel', () => ({ HoldersPanel: () => <p>holders list</p> }));
+const SOURCE = { kind: 'solana', mint: 'Mint111' } as const;
 
 function fakeActivity(overrides: Partial<SocialActivity> = {}): SocialActivity {
   return {
@@ -36,30 +40,25 @@ function fakeActivity(overrides: Partial<SocialActivity> = {}): SocialActivity {
 }
 
 describe('DataHub', () => {
-  it('asks for a coin, never shows fake rows, under the Holders tab when no coin is selected', async () => {
-    const user = userEvent.setup();
-    render(<DataHub activity={[fakeActivity()]} />);
-
-    await user.click(screen.getByRole('button', { name: 'Holders' }));
-
-    expect(screen.getByText('Pick a coin to see its holders.')).toBeInTheDocument();
+  it('opens on the on-chain trades tape for a coin, never a fake order book or a Thesis placeholder', () => {
+    render(<DataHub activity={[fakeActivity()]} source={SOURCE} />);
+    expect(screen.getByRole('tab', { name: /Trades/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('on-chain trades')).toBeInTheDocument();
+    expect(screen.queryByText(/Trade theses/)).not.toBeInTheDocument();
   });
 
-  it('shows a real honest placeholder, not fake rows, under the Thesis tab', async () => {
-    const user = userEvent.setup();
+  it('offers only the Kamby trades when no coin is selected', () => {
     render(<DataHub activity={[fakeActivity()]} />);
-
-    await user.click(screen.getByRole('button', { name: 'Thesis' }));
-
-    expect(screen.getByText(/Trade theses/)).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /On Kamby/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByRole('tab', { name: /Holders/ })).not.toBeInTheDocument();
   });
 
-  it('never shows the filter row under Holders or Thesis, even with real activity present', async () => {
+  it('never shows the filter row under Trades or Holders, even with real activity present', async () => {
     const user = userEvent.setup();
-    render(<DataHub activity={[fakeActivity()]} />);
-
-    await user.click(screen.getByRole('button', { name: 'Holders' }));
-
+    render(<DataHub activity={[fakeActivity()]} source={SOURCE} />);
+    expect(screen.queryByPlaceholderText('Filter by trader address…')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: /Holders/ }));
+    expect(screen.getByText('holders list')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('Filter by trader address…')).not.toBeInTheDocument();
   });
 

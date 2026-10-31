@@ -619,7 +619,7 @@
     "jito_Low": "Thấp",
     "jito_Medium": "Vừa",
     "jito_High": "Cao",
-    "hub_transactions": "Swap",
+    "hub_transactions": "Trên Kamby",
     "hub_holders": "Người nắm giữ",
     "hub_caller_alpha": "Nhận định",
     "trench_FRESH": "Mới",
@@ -753,7 +753,8 @@
     "posts": "Bài đăng",
     "tabTrades": "Giao dịch",
     "tabCoins": "Coin",
-    "noPosts": "Chưa có bài đăng."
+    "noPosts": "Chưa có bài đăng.",
+    "hub_live": "Giao dịch"
   },
   "notif": {
     "kind_FOLLOW": "Theo dõi",

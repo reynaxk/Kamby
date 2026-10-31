@@ -6,14 +6,13 @@ import { cn } from '@kamby/ui';
 import { formatRelativeTime, truncateAddress } from '@/lib/format';
 import type { ChartSource } from '@/lib/chart-data';
 import { HoldersPanel } from './HoldersPanel';
+import { LiveTradesPanel } from './LiveTradesPanel';
 import { useTranslations } from 'next-intl';
 
-type Tab = 'transactions' | 'holders' | 'caller-alpha';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'transactions', label: 'Swaps' },
-  { id: 'holders', label: 'Holders' },
-  { id: 'caller-alpha', label: 'Thesis' },
-];
+// 2026-10-31 polish: every on-chain trade first (the terminal's tape — DEX coins have no order
+// book), then the ones made on Kamby, then holders. The "Thesis — soon" placeholder is gone.
+type Tab = 'live' | 'transactions' | 'holders';
+const TABS: Tab[] = ['live', 'transactions', 'holders'];
 
 type ActionFilter = 'ALL' | ActivityAction;
 const ACTION_FILTERS: ActionFilter[] = ['ALL', 'BUY', 'SELL'];
@@ -32,7 +31,7 @@ const MIN_SIZE_OPTIONS = [0, 1_000, 5_000] as const;
 export function DataHub({ activity, source = null }: { activity: SocialActivity[]; source?: ChartSource | null }) {
   const tU = useTranslations('ui');
   const tL = useTranslations('labels');
-  const [tab, setTab] = useState<Tab>('transactions');
+  const [tab, setTab] = useState<Tab>(source ? 'live' : 'transactions');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('ALL');
   const [minSizeUsd, setMinSizeUsd] = useState<number>(0);
   const [traderQuery, setTraderQuery] = useState('');
@@ -50,19 +49,21 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="flex border-b border-line">
-        {TABS.map((t) => (
+        {TABS.filter((id) => id === 'transactions' || source).map((id) => (
           <button
-            key={t.id}
+            key={id}
             type="button"
-            onClick={() => setTab(t.id)}
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
             className={cn(
-              'px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide transition-all',
-              tab === t.id
-                ? 'border-b-2 border-accent text-ink-900 shadow-[inset_0_-8px_12px_-10px_rgb(var(--kamby-accent)/0.5)]'
-                : 'text-ink-400 hover:text-ink-600',
+              '-mb-px flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-display text-xs font-bold uppercase tracking-wide transition-colors',
+              tab === id ? 'border-accent text-ink-900' : 'border-transparent text-ink-400 hover:text-ink-700',
             )}
           >
-            {tL(`hub_${t.id.replace('-', '_')}`)}
+            {id === 'live' && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-up" />}
+            {tL(`hub_${id}`)}
+            {id === 'transactions' && activity.length > 0 && <span className="font-mono text-[0.6rem] text-ink-400">{activity.length}</span>}
           </button>
         ))}
       </div>
@@ -151,13 +152,8 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
               </tbody>
             </table>
           ))}
+        {tab === 'live' && source && <LiveTradesPanel source={source} />}
         {tab === 'holders' && (source ? <HoldersPanel source={source} /> : <p className="p-4 text-ink-400">{tU('pickACoinToSee_a97d')}</p>)}
-        {tab === 'caller-alpha' && (
-          <p className="p-4 text-ink-400">
-            Trade theses <span className="text-ink-400">— soon</span>. Post a thesis from the
-            token&apos;s trader panel when you have a view to share.
-          </p>
-        )}
       </div>
     </div>
   );
