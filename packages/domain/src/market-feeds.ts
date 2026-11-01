@@ -90,6 +90,11 @@ export interface XxxRiskToken {
   snipersPct?: number | null;
   insidersPct?: number | null;
   bundlersPct?: number | null;
+  /** The dev's record (2026-11-01 filters): coins of theirs that left the curve, coins they made. */
+  devMigrations?: number | null;
+  devLaunches?: number | null;
+  /** Last 5 minutes' buy volume minus sell volume. */
+  netBuy5mUsd?: number | null;
 }
 export type XxxRiskColumn = 'new' | 'soon' | 'migrated';
 export type XxxRiskFlag = 'mintable' | 'freezable' | 'dev-holds-over-20pct' | 'top-holders-over-50pct' | 'unverified-audit';
@@ -102,8 +107,8 @@ export const XXXRISK_FILTER = {
   maxLiquidityUsd: 10_000,
   minMarketCapUsd: 3_000,
   maxMarketCapUsd: 50_000,
-  /** 2026-10-28: three columns of up to ~60 each. */
-  limit: 180,
+  /** Three columns of up to 100 each (2026-11-01: every Solana launchpad, not just Pump.fun). */
+  limit: 300,
 } as const;
 
 /** Server-Sent Event names on GET /v1/market/feeds/stream, and each one's `data`. */

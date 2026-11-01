@@ -17,43 +17,21 @@ import { ToastProvider } from '@/components/terminal/ToastProvider';
 import { cashtag, formatCompactUsd, formatPercent, truncateAddress } from '@/lib/format';
 import { useQuickSolanaBuy } from '@/lib/use-quick-solana-buy';
 import { QUICK_AMOUNT_EVENT } from '@/components/trading/QuickBuy';
+import { NO_COLUMN_FILTERS, activeCount, passes, readColumnFilters, type ColumnFilters } from './xxxrisk-filters';
+import { XxxRiskFilterPanel, launchpadInfo } from './XxxRiskFilterPanel';
 
 type Sort = 'new' | 'vol' | 'mc';
 
-interface Filters {
-  maxAgeMin: number | null;
-  mcMin: number | null;
-  mcMax: number | null;
-  liqMin: number | null;
-  volMin: number | null;
-  holdersMin: number | null;
-  hideMint: boolean;
-  hideDev: boolean;
-  auditedOnly: boolean;
-  socialsOnly: boolean;
-}
-
 interface View {
   sort: Sort;
-  filters: Filters;
+  /** One set per column (2026-11-01). */
+  filters: ColumnFilters;
   quickUsd: number;
   /** The column a phone shows (desktop shows all three). */
   column: XxxRiskColumn;
 }
 
-const NO_FILTERS: Filters = {
-  maxAgeMin: null,
-  mcMin: null,
-  mcMax: null,
-  liqMin: null,
-  volMin: null,
-  holdersMin: null,
-  hideMint: false,
-  hideDev: false,
-  auditedOnly: false,
-  socialsOnly: false,
-};
-const DEFAULT_VIEW: View = { sort: 'new', filters: NO_FILTERS, quickUsd: 5, column: 'new' };
+const DEFAULT_VIEW: View = { sort: 'new', filters: NO_COLUMN_FILTERS, quickUsd: 5, column: 'new' };
 const STORE_KEY = 'kamby:xxxrisk-view';
 const QUICK_PRESETS = [2, 5, 10, 25];
 const COLUMNS: { id: XxxRiskColumn; key: 'colNew' | 'colSoon' | 'colMigrated' }[] = [
@@ -62,15 +40,6 @@ const COLUMNS: { id: XxxRiskColumn; key: 'colNew' | 'colSoon' | 'colMigrated' }[
   { id: 'migrated', key: 'colMigrated' },
 ];
 
-const CHOICES = {
-  maxAgeMin: [1, 3, 5],
-  mcMin: [5_000, 10_000, 20_000],
-  mcMax: [15_000, 30_000],
-  liqMin: [1_000, 3_000],
-  volMin: [500, 2_000, 5_000],
-  holdersMin: [10, 25, 50],
-} as const;
-
 /** Dev and top-holder shares show as numbers; these are the flags that have no number. */
 const FLAG_KEY: Partial<Record<XxxRiskFlag, string>> = {
   mintable: 'flagMint',
@@ -78,24 +47,14 @@ const FLAG_KEY: Partial<Record<XxxRiskFlag, string>> = {
   'unverified-audit': 'flagNoAudit',
 };
 
-/** A small mark on the picture for where the coin launched. */
-const LAUNCHPADS: Record<string, { mark: string; name: string; color: string }> = {
-  'pump.fun': { mark: 'P', name: 'Pump.fun', color: '#5BE38F' },
-  'met-dbc': { mark: 'M', name: 'Meteora', color: '#F5A524' },
-  Meteora: { mark: 'M', name: 'Meteora', color: '#F5A524' },
-  'raydium-launchlab': { mark: 'R', name: 'LaunchLab', color: '#8B9BFF' },
-  'letsbonk.fun': { mark: 'B', name: 'Bonk', color: '#FF8A3D' },
-  'bags.fun': { mark: 'B', name: 'Bags', color: '#C084FC' },
-};
-
 function loadView(): View {
   try {
     const raw = window.localStorage.getItem(STORE_KEY);
     if (raw) {
-      const v = JSON.parse(raw) as Partial<View> & { filters?: Partial<Filters> };
+      const v = JSON.parse(raw) as Partial<View> & { filters?: unknown };
       return {
         sort: v.sort ?? 'new',
-        filters: { ...NO_FILTERS, ...v.filters },
+        filters: readColumnFilters(v.filters),
         quickUsd:
           typeof v.quickUsd === 'number' && v.quickUsd > 0 ? v.quickUsd : DEFAULT_VIEW.quickUsd,
         column: COLUMNS.some((c) => c.id === v.column) ? v.column! : 'new',
@@ -105,28 +64,6 @@ function loadView(): View {
     // a fresh view
   }
   return DEFAULT_VIEW;
-}
-
-function activeCount(f: Filters): number {
-  return (Object.keys(NO_FILTERS) as (keyof Filters)[]).filter((k) => f[k] !== NO_FILTERS[k])
-    .length;
-}
-
-/** Max age only narrows New — migrated coins are hours old by nature. */
-function passes(t: XxxRiskToken, f: Filters, ageS: number): boolean {
-  if (f.maxAgeMin !== null && (t.column ?? 'new') === 'new' && ageS > f.maxAgeMin * 60)
-    return false;
-  if (f.mcMin !== null && t.marketCapUsd < f.mcMin) return false;
-  if (f.mcMax !== null && t.marketCapUsd > f.mcMax) return false;
-  if (f.liqMin !== null && t.liquidityUsd < f.liqMin) return false;
-  if (f.volMin !== null && (t.volume5mUsd ?? 0) < f.volMin) return false;
-  if (f.holdersMin !== null && (t.holders ?? 0) < f.holdersMin) return false;
-  if (f.hideMint && (t.riskFlags.includes('mintable') || t.riskFlags.includes('freezable')))
-    return false;
-  if (f.hideDev && t.riskFlags.includes('dev-holds-over-20pct')) return false;
-  if (f.auditedOnly && t.riskFlags.includes('unverified-audit')) return false;
-  if (f.socialsOnly && !(t.socials && Object.keys(t.socials).length > 0)) return false;
-  return true;
 }
 
 /** "10k" → 10000, "1.5m" → 1500000, "250" → 250; anything else → null. Exported for tests. */
@@ -247,12 +184,13 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   const byColumn = useMemo(() => {
     const out: Record<XxxRiskColumn, XxxRiskToken[]> = { new: [], soon: [], migrated: [] };
     for (const token of source)
-      if (passes(token, view.filters, ageOf(token))) out[token.column ?? 'new'].push(token);
+      if (passes(token, view.filters[token.column ?? 'new'], ageOf(token))) out[token.column ?? 'new'].push(token);
     for (const c of COLUMNS) order(out[c.id], c.id, view.sort, launchedAt.current);
     return out;
   }, [source, view.filters, view.sort, now]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const count = activeCount(view.filters);
+  const count = activeCount(view.filters.new) + activeCount(view.filters.soon) + activeCount(view.filters.migrated);
+  const launchpadsSeen = [...new Set(source.map((x) => x.launchpad ?? 'pump.fun'))];
   const total = byColumn.new.length + byColumn.soon.length + byColumn.migrated.length;
 
   const card = (token: XxxRiskToken) => (
@@ -277,7 +215,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
       {count > 0 && (
         <button
           type="button"
-          onClick={() => update({ filters: NO_FILTERS })}
+          onClick={() => update({ filters: NO_COLUMN_FILTERS })}
           className="h-9 rounded-xl bg-white/[0.06] px-4 font-display text-xs font-bold text-ink-900"
         >
           {t('reset')}
@@ -453,10 +391,12 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
         title={t('filters')}
         desktop
       >
-        <FilterSheet
-          filters={view.filters}
+        <XxxRiskFilterPanel
+          value={view.filters}
           onChange={(filters) => update({ filters })}
-          matching={total}
+          column={view.column}
+          launchpadsSeen={launchpadsSeen}
+          matching={{ new: byColumn.new.length, soon: byColumn.soon.length, migrated: byColumn.migrated.length }}
           onDone={() => setSheet(null)}
         />
       </MobileDrawer>
@@ -537,7 +477,7 @@ function XxxRiskCard({
   const clean =
     token.riskFlags.length === 0 &&
     !((top ?? 0) > 50 || (dev ?? 0) > 20 || [token.snipersPct, token.insidersPct, token.bundlersPct].some((v) => (v ?? 0) > 30));
-  const pad = token.launchpad ? LAUNCHPADS[token.launchpad] : undefined;
+  const pad = token.launchpad ? launchpadInfo(token.launchpad) : undefined;
   const migrated = token.column === 'migrated';
   const age =
     migrated && token.graduatedAtMs
@@ -791,157 +731,6 @@ const chip = (on: boolean) =>
 
 /** A typed value next to the preset chips ("10k", "250") — shows the current value when it
  *  isn't one of the presets. */
-function CustomInput({
-  value,
-  presets,
-  onValue,
-  prefix,
-  suffix,
-}: {
-  value: number | null;
-  presets: readonly number[];
-  onValue: (v: number | null) => void;
-  prefix?: string;
-  suffix?: string;
-}) {
-  const t = useTranslations('xxxrisk');
-  const custom = value !== null && !presets.includes(value);
-  const [text, setText] = useState(custom ? String(value) : '');
-  useEffect(() => {
-    if (!custom) setText('');
-  }, [custom]);
-  return (
-    <label
-      className={cn(
-        'flex h-8 w-24 items-center gap-0.5 rounded-xl border px-2 font-display text-xs font-bold',
-        custom
-          ? 'border-accent/60 bg-accent/10 text-accent'
-          : 'border-white/10 bg-white/[0.03] text-ink-900',
-      )}
-    >
-      {prefix && <span className="text-ink-400">{prefix}</span>}
-      <input
-        inputMode="decimal"
-        value={text}
-        placeholder={t('custom')}
-        aria-label={t('custom')}
-        onChange={(e) => {
-          setText(e.target.value);
-          onValue(e.target.value.trim() === '' ? null : parseAmount(e.target.value));
-        }}
-        className="min-w-0 flex-1 bg-transparent placeholder:font-semibold placeholder:text-ink-400 focus:outline-none"
-      />
-      {suffix && <span className="text-ink-400">{suffix}</span>}
-    </label>
-  );
-}
-
-function FilterSheet({
-  filters,
-  onChange,
-  matching,
-  onDone,
-}: {
-  filters: Filters;
-  onChange: (f: Filters) => void;
-  matching: number;
-  onDone: () => void;
-}) {
-  const t = useTranslations('xxxrisk');
-  const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
-  const row = (
-    key: keyof typeof CHOICES,
-    title: string,
-    fmt: (v: number) => string,
-    prefix?: string,
-    suffix?: string,
-  ) => (
-    <div>
-      <p className="mb-1.5 font-body text-xs font-semibold text-ink-400">{title}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {[null, ...CHOICES[key]].map((v) => (
-          <button
-            key={String(v)}
-            type="button"
-            aria-pressed={filters[key] === v}
-            onClick={() => set({ [key]: v } as Partial<Filters>)}
-            className={chip(filters[key] === v)}
-          >
-            {v === null ? t('any') : fmt(v)}
-          </button>
-        ))}
-        <CustomInput
-          value={filters[key]}
-          presets={CHOICES[key]}
-          prefix={prefix}
-          suffix={suffix}
-          onValue={(v) => set({ [key]: v } as Partial<Filters>)}
-        />
-      </div>
-    </div>
-  );
-  const toggle = (key: 'hideMint' | 'hideDev' | 'auditedOnly' | 'socialsOnly', title: string) => (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={filters[key]}
-      onClick={() => set({ [key]: !filters[key] })}
-      className="flex w-full items-center justify-between gap-3 py-2 text-left font-body text-sm text-ink-900"
-    >
-      {title}
-      <span
-        className={cn(
-          'relative h-5 w-9 shrink-0 rounded-full transition-colors',
-          filters[key] ? 'bg-accent' : 'bg-white/15',
-        )}
-      >
-        <span
-          className={cn(
-            'absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform',
-            filters[key] ? 'translate-x-[18px]' : 'translate-x-0.5',
-          )}
-        />
-      </span>
-    </button>
-  );
-
-  return (
-    <div className="space-y-4">
-      {row('maxAgeMin', t('maxAge'), (v) => t('underMin', { n: v }), undefined, t('minShort'))}
-      {row('mcMin', t('mcMin'), money, '$')}
-      {row('mcMax', t('mcMax'), money, '$')}
-      {row('liqMin', t('liqMin'), money, '$')}
-      {row('volMin', t('volMin'), money, '$')}
-      {row('holdersMin', t('holdersMin'), String)}
-      <div>
-        <p className="mb-0.5 font-body text-xs font-semibold text-ink-400">{t('safety')}</p>
-        <div className="divide-y divide-white/[0.05]">
-          {toggle('hideMint', t('hideMint'))}
-          {toggle('hideDev', t('hideDev'))}
-          {toggle('auditedOnly', t('auditedOnly'))}
-          {toggle('socialsOnly', t('socialsOnly'))}
-        </div>
-      </div>
-      <div className="grid grid-cols-[auto_1fr] gap-2 pt-1">
-        <button
-          type="button"
-          onClick={() => onChange(NO_FILTERS)}
-          className="h-12 rounded-2xl bg-white/[0.06] px-5 font-display text-sm font-bold text-ink-900"
-        >
-          {t('reset')}
-        </button>
-        <button
-          type="button"
-          onClick={onDone}
-          className="h-12 rounded-2xl bg-accent font-display text-sm font-black text-black"
-        >
-          {t('show', { n: matching })}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function QuickAmountSheet({
   value,
   onChange,

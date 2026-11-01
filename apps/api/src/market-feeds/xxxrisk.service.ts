@@ -12,7 +12,13 @@ const REDIS_KEY = 'feeds:xxxrisk';
 const REDIS_TTL_SECONDS = 10;
 const GEMS_URL = 'https://datapi.jup.ag/v1/pools/gems';
 /** Per column, after merging — GMGN-style lists that scroll. */
-const PER_COLUMN = 60;
+const PER_COLUMN = 100;
+/** Every Solana launchpad besides Pump.fun (2026-11-01, owner: "all the launchpads, more means
+ *  more choices") — asked for on their own so Pump.fun's volume doesn't crowd them out. */
+export const OTHER_LAUNCHPADS = [
+  ['letsbonk.fun', 'raydium-launchlab'],
+  ['met-dbc', 'bags.fun', 'moonshot', 'memefun', 'boop.fun', 'heaven', 'jup-studio', 'believe', 'time.fun', 'cooking.city', 'dealr', 'moonit'],
+];
 
 interface CurveRow {
   mintAddress: string;
@@ -49,6 +55,9 @@ interface JupiterStats {
     sniperPct?: number;
     insiderPct?: number;
     bundlerStats?: { holdingPct?: number };
+    /** How many of the dev's coins left their curve, and how many they made. */
+    devMigrations?: number;
+    devMints?: number;
   };
   stats5m?: { buyVolume?: number; sellVolume?: number; numTraders?: number; numBuys?: number; numSells?: number; priceChange?: number };
 }
@@ -124,6 +133,9 @@ export function gemsToken(pool: GemsPool, column: XxxRiskColumn, now: number): X
     snipersPct: num(a.audit?.sniperPct),
     insidersPct: num(a.audit?.insiderPct),
     bundlersPct: num(a.audit?.bundlerStats?.holdingPct),
+    devMigrations: num(a.audit?.devMigrations),
+    devLaunches: num(a.audit?.devMints),
+    netBuy5mUsd: s5 ? (s5.buyVolume ?? 0) - (s5.sellVolume ?? 0) : null,
   };
 }
 
@@ -185,11 +197,14 @@ export class XxxRiskService {
   }
 
   /** Jupiter's launchpad board: 30 per column per call, so a second call with market-cap
-   *  floors brings in different (bigger) coins. */
+   *  floors brings in different (bigger) coins, and one per group of other launchpads brings
+   *  in Bonk, LaunchLab, Meteora, Bags, Moonshot and the rest. */
   private async board(now: number): Promise<XxxRiskToken[]> {
+    const all = (launchpads?: string[]) => ({ timeframe: '24h', ...(launchpads && { launchpads }) });
     const bodies = [
-      { recent: { timeframe: '24h' }, aboutToGraduate: { timeframe: '24h' }, graduated: { timeframe: '24h' } },
+      { recent: all(), aboutToGraduate: all(), graduated: all() },
       { recent: { timeframe: '24h', minMcap: 8_000 }, aboutToGraduate: { timeframe: '24h', minMcap: 30_000 }, graduated: { timeframe: '24h', minMcap: 60_000 } },
+      ...OTHER_LAUNCHPADS.map((group) => ({ recent: all(group), aboutToGraduate: all(group), graduated: all(group) })),
     ];
     const replies = await Promise.all(
       bodies.map(async (body) => {
