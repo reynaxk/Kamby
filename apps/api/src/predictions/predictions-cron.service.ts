@@ -15,7 +15,7 @@ import { NarrativesService, tokenFromPairs, type NarrativePair } from '../narrat
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { PredictionsService } from './predictions.service';
 
-const GENERATE_EVERY_MS = 4 * 3600_000;
+const GENERATE_EVERY_MS = 2 * 3600_000;
 const RESOLVE_EVERY_MS = 2 * 60_000;
 const POLL_HOURS = 24;
 /** A coin needs this much in its pools before Kamby asks about its price. */
@@ -165,7 +165,7 @@ export function resolveByPrice(row: Pick<PredictionRow, 'resolutionType' | 'meta
 }
 
 /**
- * Predictions' automation (2026-10-31): every 4 hours it asks a handful of new questions from real
+ * Predictions' automation (2026-10-31): every 2 hours it asks a handful of new questions from real
  * data (the hottest coins, the deepest coin, the hottest narrative, a fresh headline); every 2
  * minutes it closes finished polls — price polls resolve from the coin's own pool price, the
  * narrative poll from the Heat Index, streamers' and users' polls just close. One API instance
@@ -203,7 +203,7 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
     if (ok === 'OK') await run();
   }
 
-  /** At most once per 4h block (the dedupe keys carry the block). */
+  /** At most once per 2h block (the dedupe keys carry the block). */
   async generate(): Promise<void> {
     const block = String(Math.floor(Date.now() / GENERATE_EVERY_MS));
     if ((await this.redis.get('kamby:pred:last-block')) === block) return;
