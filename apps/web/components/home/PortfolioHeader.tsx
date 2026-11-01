@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useTranslations } from 'next-intl';
+import { MessageCircle, Newspaper, Rocket, Zap } from 'lucide-react';
 import { AppBell } from '@/components/notifications/AppBell';
 import { StoriesRow } from '@/components/stories/Stories';
 import { GoLiveSheet } from '@/components/live/GoLive';
@@ -115,7 +116,7 @@ export function PortfolioHeader() {
           onClick={() => setGoLive(true)}
           aria-label={tS('goLive')}
           title={tS('goLive')}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF3B69]/[0.12] text-[#FF5C83] transition-transform active:scale-[0.97]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[#FF5C83] transition-transform active:scale-[0.97]"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <circle cx="12" cy="12" r="2.5" />
@@ -129,17 +130,17 @@ export function PortfolioHeader() {
           start higher. From lg up they're in the left menu. */}
       <div className={cn('mt-2 grid gap-2 lg:hidden', FEED_ENABLED ? 'grid-cols-4' : 'grid-cols-3')}>
         {[
-          ...(FEED_ENABLED ? [{ href: '/feed', icon: '💬', label: tF('title') }] : []),
-          { href: '/news', icon: '📰', label: tN('title') },
-          { href: '/launch', icon: '🚀', label: 'LaunchPad' },
-          { href: '/perps', icon: '⚡', label: tP('card') },
+          ...(FEED_ENABLED ? [{ href: '/feed', icon: <MessageCircle />, label: tF('title') }] : []),
+          { href: '/news', icon: <Newspaper />, label: tN('title') },
+          { href: '/launch', icon: <Rocket />, label: 'LaunchPad' },
+          { href: '/perps', icon: <Zap />, label: tP('card') },
         ].map((l) => (
           <Link
             key={l.href}
             href={l.href}
-            className="flex h-14 min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl border border-white/[0.06] px-1 transition-colors active:bg-white/[0.06]"
+            className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-white/[0.04] px-1 transition-colors active:bg-white/[0.08]"
           >
-            <span aria-hidden className="text-base leading-none">{l.icon}</span>
+            <span aria-hidden className="text-accent [&>svg]:h-[18px] [&>svg]:w-[18px]">{l.icon}</span>
             <span className="max-w-full truncate font-display text-[0.72rem] font-bold tracking-tight text-ink-900">{l.label}</span>
           </Link>
         ))}

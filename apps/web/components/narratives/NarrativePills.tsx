@@ -51,7 +51,7 @@ export function NarrativePills({ value, onChange, className }: { value: string |
           >
             <span aria-hidden>{n.emoji}</span>
             {n.name}
-            <span className={cn('font-mono text-[0.6rem] tabular-nums', n.heat >= 80 ? 'text-[#FF3B69]' : n.heat >= 60 ? 'text-[#FB923C]' : 'text-ink-400')}>{n.heat}</span>
+            {n.heat >= 80 && <span aria-hidden className="text-[0.65rem]">🔥</span>}
           </button>
         );
       })}

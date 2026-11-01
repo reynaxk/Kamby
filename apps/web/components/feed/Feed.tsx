@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowUpRight, Clapperboard, Image as ImageIcon, LineChart, Percent } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
@@ -41,6 +42,9 @@ import { RankBadge, TokenPostCard } from './TokenPostCard';
  * Trade Card or PnL card from their real position. For You / Following tabs, likes, replies,
  * report (three hide it) and delete your own. `address` shows one trader's posts (their profile).
  */
+/** The composer's attach buttons: icons only, one colour (2026-11-01 tidy pass). */
+const TOOL = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ink-600 transition-colors hover:bg-white/[0.05] hover:text-ink-900 disabled:opacity-50 [&>svg]:h-[18px] [&>svg]:w-[18px]';
+
 export function Feed({ address, composer = true, title, emptyText }: { address?: string; composer?: boolean; title?: string; emptyText?: string }) {
   const t = useTranslations('feed');
   const { authenticated } = usePrivy();
@@ -314,33 +318,33 @@ function Composer({ onPosted }: { onPosted: (p: FeedPost) => void }) {
         </div>
       )}
       {error && <p className="mt-2 font-body text-xs text-down">{error}</p>}
-      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+      <div className="mt-2.5 flex items-center gap-0.5">
         {photosOn && (
           <>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => void pickPhoto(e.target.files?.[0])} />
-            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
-              <span className="text-[#5CEFFF]">▣</span> {t('photo')}
+            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} aria-label={t('photo')} title={t('photo')} className={TOOL}>
+              <ImageIcon />
             </button>
           </>
         )}
         {videosOn && (
           <>
             <input ref={videoRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={(e) => void pickVideo(e.target.files?.[0])} />
-            <button type="button" disabled={uploading} onClick={() => videoRef.current?.click()} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05] disabled:opacity-50">
-              <span className="text-[#FF5CA8]">▶</span> {t('video')}
+            <button type="button" disabled={uploading} onClick={() => videoRef.current?.click()} aria-label={t('video')} title={t('video')} className={TOOL}>
+              <Clapperboard />
             </button>
           </>
         )}
-        <button type="button" onClick={() => setPicking('trade')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
-          <span className="text-accent">↗</span> {t('tradeCard')}
+        <button type="button" onClick={() => setPicking('trade')} aria-label={t('tradeCard')} title={t('tradeCard')} className={TOOL}>
+          <ArrowUpRight />
         </button>
-        <button type="button" onClick={() => setPicking('pnl')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
-          <span className="text-[#FFC94D]">%</span> {t('pnlCard')}
+        <button type="button" onClick={() => setPicking('pnl')} aria-label={t('pnlCard')} title={t('pnlCard')} className={TOOL}>
+          <Percent />
         </button>
-        <button type="button" onClick={() => setPicking('chart')} className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 font-display text-xs font-bold text-ink-600 hover:bg-white/[0.05]">
-          <span className="text-[#38BDF8]">📈</span> {t('chartCard')}
+        <button type="button" onClick={() => setPicking('chart')} aria-label={t('chartCard')} title={t('chartCard')} className={TOOL}>
+          <LineChart />
         </button>
-        <span className="ml-auto font-mono text-[0.65rem] text-ink-400">{body.length}/{FEED_LIMITS.maxLength}</span>
+        <span className="ml-auto font-mono text-[0.65rem] text-ink-400">{body.length > FEED_LIMITS.maxLength * 0.8 ? `${body.length}/${FEED_LIMITS.maxLength}` : ''}</span>
         <button type="button" disabled={!can} onClick={() => void submit()} className="h-9 rounded-xl bg-accent px-4 font-display text-sm font-black text-black disabled:opacity-40">
           {busy ? '…' : t('post')}
         </button>

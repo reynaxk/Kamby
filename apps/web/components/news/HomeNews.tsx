@@ -15,7 +15,7 @@ export function HomeNews() {
           {t('seeAll')}
         </Link>
       </div>
-      <NewsFeed limit={3} fixed compact hideWhenEmpty />
+      <NewsFeed limit={2} fixed compact hideWhenEmpty />
     </section>
   );
 }
