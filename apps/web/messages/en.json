@@ -326,7 +326,10 @@
     "otherWays": "← Other ways to add funds",
     "settingUpChain": "Setting up your {chain} wallet…",
     "otherNetworks": "Sending from an exchange that needs another network?",
-    "depositOneNetwork": "Send USDC on the Base network to this address — it lands in your one Kamby balance."
+    "depositOneNetwork": "Send USDC on the Base network to this address — it lands in your one Kamby balance.",
+    "depositCrypto": "Deposit crypto",
+    "depositCryptoDetail": "SOL on Solana, ETH on Base or Robinhood, BNB on BSC — from another wallet or an exchange.",
+    "sendOnlyCoin": "Send only <b>{coin}</b> on <b>{network}</b> to this address. Other coins or networks can be lost."
   },
   "leaderboard": {
     "title": "Leaderboard",

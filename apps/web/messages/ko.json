@@ -326,7 +326,10 @@
     "otherWays": "← 다른 충전 방법",
     "settingUpChain": "{chain} 지갑을 준비하는 중…",
     "otherNetworks": "다른 네트워크가 필요한 거래소에서 보내나요?",
-    "depositOneNetwork": "이 주소로 Base 네트워크의 USDC를 보내세요 — 하나의 Kamby 잔액에 들어가요."
+    "depositOneNetwork": "이 주소로 Base 네트워크의 USDC를 보내세요 — 하나의 Kamby 잔액에 들어가요.",
+    "depositCrypto": "코인 입금",
+    "depositCryptoDetail": "Solana의 SOL, Base 또는 Robinhood의 ETH, BSC의 BNB — 다른 지갑이나 거래소에서.",
+    "sendOnlyCoin": "이 주소로는 <b>{network}</b>의 <b>{coin}</b>만 보내세요. 다른 코인이나 네트워크는 잃을 수 있어요."
   },
   "leaderboard": {
     "title": "리더보드",

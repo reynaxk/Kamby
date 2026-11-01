@@ -326,7 +326,10 @@
     "otherWays": "← Други начини за зареждане",
     "settingUpChain": "Подготвяме портфейла ти в {chain}…",
     "otherNetworks": "Пращаш от борса, която иска друга мрежа?",
-    "depositOneNetwork": "Прати USDC по мрежата Base на този адрес — влиза в единния ти баланс в Kamby."
+    "depositOneNetwork": "Прати USDC по мрежата Base на този адрес — влиза в единния ти баланс в Kamby.",
+    "depositCrypto": "Депозирай крипто",
+    "depositCryptoDetail": "SOL в Solana, ETH в Base или Robinhood, BNB в BSC — от друг портфейл или борса.",
+    "sendOnlyCoin": "Изпращай само <b>{coin}</b> в <b>{network}</b> на този адрес. Други монети или мрежи може да се загубят."
   },
   "leaderboard": {
     "title": "Класация",

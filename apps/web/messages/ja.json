@@ -326,7 +326,10 @@
     "otherWays": "← ほかの入金方法",
     "settingUpChain": "{chain}ウォレットを準備中…",
     "otherNetworks": "別のネットワークが必要な取引所から送金しますか？",
-    "depositOneNetwork": "このアドレスへBaseネットワークでUSDCを送金してください。1つのKamby残高に入ります。"
+    "depositOneNetwork": "このアドレスへBaseネットワークでUSDCを送金してください。1つのKamby残高に入ります。",
+    "depositCrypto": "暗号資産を入金",
+    "depositCryptoDetail": "Solana の SOL、Base または Robinhood の ETH、BSC の BNB — 別のウォレットや取引所から。",
+    "sendOnlyCoin": "このアドレスには <b>{network}</b> の <b>{coin}</b> だけを送ってください。他のコインやネットワークは失われる可能性があります。"
   },
   "leaderboard": {
     "title": "ランキング",

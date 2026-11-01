@@ -1,5 +1,6 @@
 'use client';
 
+import { useNativeTrading } from '@/lib/native-trading';
 import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useMemo, useState } from 'react';
 import { useAddFunds, usePrivy } from '@privy-io/react-auth';
@@ -41,8 +42,11 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
   const { wallets: solanaWallets } = useSolanaWallets();
   const solanaWallet = solanaWallets[0];
   const { addFunds } = useAddFunds();
+  // Native-coin trading (2026-11-01): deposits are each chain's own coin, and every network shows.
+  const native = useNativeTrading();
 
   const [chain, setChain] = useState<SendChainOption>(SEND_CHAINS[1]!); // Base — matches privyConfig.defaultChain
+  const coin = chain.kind === 'evm' ? (chain.slug === 'bnb' ? 'BNB' : 'ETH') : 'SOL';
   // One deposit network (2026-10-13): Base, unless someone's exchange needs another.
   const [showNetworks, setShowNetworks] = useState(false);
   // Opened from a chain's own "Deposit" button: start on that chain.
@@ -83,7 +87,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         destination: {
           address: depositAddress,
           chain: chain.kind === 'evm' ? CHAIN_REGISTRY[chain.slug === 'bnb' ? 'bnb' : 'base'].identifier : SOLANA_FUND_CHAIN,
-          asset: usdc.address,
+          asset: native ? 'native-currency' : usdc.address,
         },
         fiat: {},
       });
@@ -115,7 +119,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : step === 'choose' ? (
         <div className="mt-4 flex flex-col gap-2">
-          <MethodButton icon={<DepositGlyph />} title={tF('depositUsdc')} detail={tF('depositUsdcDetail')} onClick={() => setStep('deposit')} />
+          <MethodButton icon={<DepositGlyph />} title={native ? tF('depositCrypto') : tF('depositUsdc')} detail={native ? tF('depositCryptoDetail') : tF('depositUsdcDetail')} onClick={() => setStep('deposit')} />
           <MethodButton
             icon={<CreditCard className="h-5 w-5" aria-hidden />}
             title={tF('buyWithCard')}
@@ -125,7 +129,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : step === 'deposit' ? (
         <div className="mt-4 flex flex-col gap-4">
-          {showNetworks || chain.slug !== 'base' ? (
+          {native || showNetworks || chain.slug !== 'base' ? (
             networkPicker
           ) : (
             <div>
@@ -136,7 +140,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
             </div>
           )}
           {depositAddress ? (
-            <DepositAddress address={depositAddress} networkName={chain.name} />
+            <DepositAddress address={depositAddress} networkName={chain.name} coin={native ? coin : undefined} />
           ) : (
             <p className="font-body text-sm text-ink-600">{tF('settingUpChain', { chain: chain.name })}</p>
           )}
@@ -144,7 +148,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       ) : step === 'buy' ? (
         <div className="mt-4 flex flex-col gap-4">
-          {showNetworks || chain.slug !== 'base' ? (
+          {native || showNetworks || chain.slug !== 'base' ? (
             networkPicker
           ) : (
             <div>
@@ -209,7 +213,7 @@ function MethodButton({ icon, title, detail, onClick }: { icon: React.ReactNode;
 }
 
 /** This wallet's own address for the picked network: text, a QR code and a copy button. */
-function DepositAddress({ address, networkName }: { address: string; networkName: string }) {
+function DepositAddress({ address, networkName, coin }: { address: string; networkName: string; coin?: string }) {
   const tF = useTranslations('fund');
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -244,7 +248,9 @@ function DepositAddress({ address, networkName }: { address: string; networkName
         {copied ? tF('copied') : tF('copyAddress')}
       </Button>
       <p className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 font-body text-xs text-ink-900">
-        {tF.rich('sendOnly', { network: networkName, b: (chunks) => <span className="font-semibold">{chunks}</span> })}
+        {coin
+          ? tF.rich('sendOnlyCoin', { coin, network: networkName, b: (chunks) => <span className="font-semibold">{chunks}</span> })
+          : tF.rich('sendOnly', { network: networkName, b: (chunks) => <span className="font-semibold">{chunks}</span> })}
       </p>
     </div>
   );

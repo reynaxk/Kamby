@@ -326,7 +326,10 @@
     "otherWays": "← วิธีเติมเงินอื่นๆ",
     "settingUpChain": "กำลังเตรียมกระเป๋า {chain} ของคุณ…",
     "otherNetworks": "ส่งจากกระดานเทรดที่ต้องใช้เครือข่ายอื่นใช่ไหม",
-    "depositOneNetwork": "ส่ง USDC ผ่านเครือข่าย Base มายังที่อยู่นี้ — จะเข้าสู่ยอด Kamby เดียวของคุณ"
+    "depositOneNetwork": "ส่ง USDC ผ่านเครือข่าย Base มายังที่อยู่นี้ — จะเข้าสู่ยอด Kamby เดียวของคุณ",
+    "depositCrypto": "ฝากคริปโต",
+    "depositCryptoDetail": "SOL บน Solana, ETH บน Base หรือ Robinhood, BNB บน BSC — จากวอลเล็ตอื่นหรือกระดานเทรด",
+    "sendOnlyCoin": "ส่งเฉพาะ <b>{coin}</b> บน <b>{network}</b> มาที่อยู่นี้ เหรียญหรือเครือข่ายอื่นอาจสูญหาย"
   },
   "leaderboard": {
     "title": "อันดับ",

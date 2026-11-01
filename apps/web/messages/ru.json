@@ -326,7 +326,10 @@
     "otherWays": "← Другие способы пополнения",
     "settingUpChain": "Готовим твой кошелёк {chain}…",
     "otherNetworks": "Отправляешь с биржи, которой нужна другая сеть?",
-    "depositOneNetwork": "Отправь USDC по сети Base на этот адрес — он попадёт в твой единый баланс Kamby."
+    "depositOneNetwork": "Отправь USDC по сети Base на этот адрес — он попадёт в твой единый баланс Kamby.",
+    "depositCrypto": "Пополнить криптой",
+    "depositCryptoDetail": "SOL в Solana, ETH в Base или Robinhood, BNB в BSC — с другого кошелька или биржи.",
+    "sendOnlyCoin": "Отправляйте на этот адрес только <b>{coin}</b> в сети <b>{network}</b>. Другие монеты или сети могут потеряться."
   },
   "leaderboard": {
     "title": "Таблица лидеров",

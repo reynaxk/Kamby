@@ -326,7 +326,10 @@
     "otherWays": "← 其他充值方式",
     "settingUpChain": "正在设置你的 {chain} 钱包…",
     "otherNetworks": "从需要其他网络的交易所转账？",
-    "depositOneNetwork": "通过 Base 网络把 USDC 转到这个地址——会进入你唯一的 Kamby 余额。"
+    "depositOneNetwork": "通过 Base 网络把 USDC 转到这个地址——会进入你唯一的 Kamby 余额。",
+    "depositCrypto": "充值加密货币",
+    "depositCryptoDetail": "Solana 上的 SOL、Base 或 Robinhood 上的 ETH、BSC 上的 BNB — 从其他钱包或交易所转入。",
+    "sendOnlyCoin": "此地址只接收 <b>{network}</b> 上的 <b>{coin}</b>。其他币种或网络可能会丢失。"
   },
   "leaderboard": {
     "title": "排行榜",

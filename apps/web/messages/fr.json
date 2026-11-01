@@ -326,7 +326,10 @@
     "otherWays": "← Autres façons d’ajouter des fonds",
     "settingUpChain": "Préparation de ton portefeuille {chain}…",
     "otherNetworks": "Tu envoies depuis un exchange qui demande un autre réseau ?",
-    "depositOneNetwork": "Envoie de l’USDC sur le réseau Base à cette adresse — il arrive dans ton solde Kamby unique."
+    "depositOneNetwork": "Envoie de l’USDC sur le réseau Base à cette adresse — il arrive dans ton solde Kamby unique.",
+    "depositCrypto": "Déposer des cryptos",
+    "depositCryptoDetail": "SOL sur Solana, ETH sur Base ou Robinhood, BNB sur BSC — depuis un autre wallet ou un exchange.",
+    "sendOnlyCoin": "Envoie uniquement du <b>{coin}</b> sur <b>{network}</b> à cette adresse. D’autres coins ou réseaux peuvent être perdus."
   },
   "leaderboard": {
     "title": "Classement",

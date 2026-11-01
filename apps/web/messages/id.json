@@ -326,7 +326,10 @@
     "otherWays": "← Cara lain menambah dana",
     "settingUpChain": "Menyiapkan dompet {chain} kamu…",
     "otherNetworks": "Mengirim dari exchange yang butuh jaringan lain?",
-    "depositOneNetwork": "Kirim USDC lewat jaringan Base ke alamat ini — masuk ke satu saldo Kamby kamu."
+    "depositOneNetwork": "Kirim USDC lewat jaringan Base ke alamat ini — masuk ke satu saldo Kamby kamu.",
+    "depositCrypto": "Deposit kripto",
+    "depositCryptoDetail": "SOL di Solana, ETH di Base atau Robinhood, BNB di BSC — dari wallet lain atau exchange.",
+    "sendOnlyCoin": "Kirim hanya <b>{coin}</b> di <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang."
   },
   "leaderboard": {
     "title": "Peringkat",

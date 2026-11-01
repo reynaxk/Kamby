@@ -326,7 +326,10 @@
     "otherWays": "← Cách nạp tiền khác",
     "settingUpChain": "Đang thiết lập ví {chain} của bạn…",
     "otherNetworks": "Gửi từ sàn cần mạng khác?",
-    "depositOneNetwork": "Gửi USDC qua mạng Base đến địa chỉ này — tiền vào số dư Kamby duy nhất của bạn."
+    "depositOneNetwork": "Gửi USDC qua mạng Base đến địa chỉ này — tiền vào số dư Kamby duy nhất của bạn.",
+    "depositCrypto": "Nạp crypto",
+    "depositCryptoDetail": "SOL trên Solana, ETH trên Base hoặc Robinhood, BNB trên BSC — từ ví khác hoặc sàn.",
+    "sendOnlyCoin": "Chỉ gửi <b>{coin}</b> trên <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất."
   },
   "leaderboard": {
     "title": "Bảng xếp hạng",

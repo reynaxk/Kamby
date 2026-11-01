@@ -326,7 +326,10 @@
     "otherWays": "← Para eklemenin diğer yolları",
     "settingUpChain": "{chain} cüzdanın hazırlanıyor…",
     "otherNetworks": "Başka bir ağ isteyen bir borsadan mı gönderiyorsun?",
-    "depositOneNetwork": "Bu adrese Base ağında USDC gönder — tek Kamby bakiyene düşer."
+    "depositOneNetwork": "Bu adrese Base ağında USDC gönder — tek Kamby bakiyene düşer.",
+    "depositCrypto": "Kripto yatır",
+    "depositCryptoDetail": "Solana’da SOL, Base veya Robinhood’da ETH, BSC’de BNB — başka bir cüzdandan ya da borsadan.",
+    "sendOnlyCoin": "Bu adrese yalnızca <b>{network}</b> ağında <b>{coin}</b> gönder. Başka coin veya ağlar kaybolabilir."
   },
   "leaderboard": {
     "title": "Liderlik tablosu",
