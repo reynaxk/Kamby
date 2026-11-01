@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { MarketSummary, TokenInfoChain } from '@kamby/domain';
+import type { FeedMarketWindows, MarketSummary, TokenInfoChain } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { correctedLaunchPrice, jupiterPrices, launchPoolOnly, pricesFromPairs } from './live-price.service';
 
@@ -56,7 +56,7 @@ export function withFreshPrice<T extends Pick<MarketSummary, 'priceUsd' | 'marke
  */
 @Injectable()
 export class FeedPricesService {
-  private readonly cache = new Map<string, { usd: number; at: number; change24hPct?: number }>();
+  private readonly cache = new Map<string, { usd: number; at: number; change24hPct?: number; windows?: FeedMarketWindows }>();
   /** Logos DexScreener has for coins listed without one (they're often added after launch). */
   private readonly logos = new Map<string, string>();
 
@@ -85,7 +85,9 @@ export class FeedPricesService {
       const chain = chainOf(m.chainIdentifier);
       const fresh = chain ? this.cache.get(this.key(chain, m.tokenAddress)) : undefined;
       // Only a price fetched this cycle or the last few seconds — never an old cached one.
-      const priced = fresh && Date.now() - fresh.at <= FRESH_MS * 2 ? withFreshPrice(m, fresh.usd, atIso, fresh.change24hPct) : m;
+      const priced0 = fresh && Date.now() - fresh.at <= FRESH_MS * 2 ? withFreshPrice(m, fresh.usd, atIso, fresh.change24hPct) : m;
+      // 5m / 1h / 6h moves, volumes, trades and pool age for the Trending table (2026-11-01).
+      const priced = fresh?.windows ? { ...priced0, windows: fresh.windows } : priced0;
       // A missing logo filled from the same DexScreener answer (2026-10-06: Base launches showed none).
       const logo = !priced.logoUrl && chain ? this.logos.get(this.key(chain, m.tokenAddress)) : undefined;
       return logo ? { ...priced, logoUrl: logo } : priced;
@@ -116,17 +118,36 @@ export class FeedPricesService {
       const prices = pricesFromPairs(pairs, chain);
       // Each coin's 24h change from the very pool its price came from.
       const changes = new Map<string, number>();
+      const windows = new Map<string, FeedMarketWindows>();
+      const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
       for (const pair of pairs) {
         const address = pair.baseToken?.address;
         const h24 = pair.priceChange?.h24;
         if (!address || typeof h24 !== 'number' || !Number.isFinite(h24)) continue;
         const key = chain === 'solana' ? address : address.toLowerCase();
-        if (prices.get(key) === Number(pair.priceUsd)) changes.set(key, h24);
+        if (prices.get(key) === Number(pair.priceUsd)) {
+          changes.set(key, h24);
+          const p = pair as typeof pair & { volume?: Record<string, number>; txns?: Record<string, { buys?: number; sells?: number }>; pairCreatedAt?: number; priceChange?: Record<string, number> };
+          windows.set(key, {
+            change5mPct: num(p.priceChange?.m5),
+            change1hPct: num(p.priceChange?.h1),
+            change6hPct: num(p.priceChange?.h6),
+            volume5mUsd: num(p.volume?.m5),
+            volume1hUsd: num(p.volume?.h1),
+            volume6hUsd: num(p.volume?.h6),
+            buys24h: num(p.txns?.h24?.buys),
+            sells24h: num(p.txns?.h24?.sells),
+            poolCreatedAtMs: num(p.pairCreatedAt),
+          });
+        }
       }
       // Graduated coins DexScreener still prices off the old launch curve (see launchPoolOnly).
       if (chain === 'solana') {
         const suspect = launchPoolOnly(pairs, addresses);
-        for (const mint of suspect) changes.delete(mint); // that pool's change is the curve's, not the coin's
+        for (const mint of suspect) {
+          changes.delete(mint); // that pool's change is the curve's, not the coin's
+          windows.delete(mint);
+        }
         if (suspect.length > 0) {
           const jup = await jupiterPrices(suspect);
           for (const mint of suspect) {
@@ -137,7 +158,7 @@ export class FeedPricesService {
         }
       }
       const at = Date.now();
-      for (const [key, usd] of prices) this.cache.set(`${chain}:${key}`, { usd, at, change24hPct: changes.get(key) });
+      for (const [key, usd] of prices) this.cache.set(`${chain}:${key}`, { usd, at, change24hPct: changes.get(key), windows: windows.get(key) });
     } catch (error) {
       this.logger.warn({ err: error, chain }, 'DexScreener unreachable for list prices — keeping stored prices');
     }

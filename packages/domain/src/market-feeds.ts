@@ -42,8 +42,24 @@ export interface CryptoPrice {
  * just-graduated Pump.fun coin, shown with a "New · high risk" badge: it cleared the
  * liquidity floor and the lookalike filter, and nothing more — no rug or honeypot checks.
  */
+/** A list row's short-window numbers (2026-11-01, Trending like GMGN) — from the same DexScreener
+ *  pool its live price comes from. Any of them can be missing. */
+export interface FeedMarketWindows {
+  change5mPct?: number;
+  change1hPct?: number;
+  change6hPct?: number;
+  volume5mUsd?: number;
+  volume1hUsd?: number;
+  volume6hUsd?: number;
+  buys24h?: number;
+  sells24h?: number;
+  /** When that pool was created (ms) — the coin's age on the list. */
+  poolCreatedAtMs?: number;
+}
+
 export type FeedMarket = MarketSummary & {
   listing: 'vetted' | 'new';
+  windows?: FeedMarketWindows;
   /** When Kamby started tracking this market — present for Graduated tab rows. */
   listedAtIso?: string | null;
 };
