@@ -19,8 +19,6 @@ import { useSteadyOrder } from '@/lib/use-steady-order';
 import { WatchlistTokens } from './WatchlistTokens';
 import { QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { ChainFilter, matchesChain, useChainFilter } from './ChainFilter';
-import { NarrativeMenu, NarrativePills, filterByNarrative } from '@/components/narratives/NarrativePills';
-import { useNarratives } from '@/lib/narratives-client';
 export type PrimaryTab = 'watchlist' | 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
 const PRIMARY_TABS: { id: PrimaryTab; label: string }[] = [
@@ -142,17 +140,6 @@ export function DiscoverTokenList({
 
   const [chainFilter, setChainFilter] = useChainFilter();
   const solanaShown = chainFilter === 'all' || chainFilter === 'solana';
-  // Narrative pills (2026-10-31): one narrative's coins, hottest first — see NarrativePills.
-  const [narrative, setNarrative] = useState<string | null>(null);
-  const narratives = useNarratives();
-  const byNarrative = <T,>(rows: T[], coin: (row: T) => { chainIdentifier: string; tokenAddress: string; symbol: string | null; name: string | null }) =>
-    filterByNarrative(rows, narrative, coin, narratives);
-  const asMarket = (m: FeedMarket) => m;
-  const asCurve = (t: { mintAddress: string; symbol: string | null; name: string | null }) => ({ chainIdentifier: 'solana', tokenAddress: t.mintAddress, symbol: t.symbol, name: t.name });
-  const narrativeBar =
-    tokenTab !== 'crypto' && tokenTab !== 'xxxrisk' ? (
-      <NarrativePills value={narrative} onChange={setNarrative} className={cn('px-1 max-md:px-4', pageScroll && 'md:px-3')} />
-    ) : null;
   const tokenChips = (
           <div role="tablist" aria-label={tU('marketFeeds_b66a')} className={cn('flex gap-2 overflow-x-auto px-1 pb-0.5 max-md:px-4 max-md:pt-2', pageScroll && 'md:px-3 md:pt-3')}>
             {TOKEN_TABS.map((t) => (
@@ -214,21 +201,21 @@ export function DiscoverTokenList({
   const list = (rows: ReactNode[], emptyText: string) =>
     rows.length === 0 ? <p className="col-span-full p-3 font-body text-xs text-ink-400">{emptyText}</p> : rows;
 
-  const graduatedMarkets = byNarrative(uniqueMarkets(feeds.graduated.markets).filter((m) => matchesChain(chainFilter, m.chainIdentifier)), asMarket);
-  const graduatedPumpfun = byNarrative(solanaShown ? feeds.graduated.pumpfun : [], asCurve);
+  const graduatedMarkets = uniqueMarkets(feeds.graduated.markets).filter((m) => matchesChain(chainFilter, m.chainIdentifier));
+  const graduatedPumpfun = solanaShown ? feeds.graduated.pumpfun : [];
   const tabContent: Record<MarketFeedTab, ReactNode> = {
     trending: (
       <>
         <CoinListHeader labels={{ coin: tCols('coin'), mc: 'MC', vol: tCols('vol'), liq: tCols('liq'), price: tCols('price') }} />
-        {list(byNarrative(trendingRows.filter((m) => matchesChain(chainFilter, m.chainIdentifier)), asMarket).map(marketRow), tU('nothingTrendingYet_a318'))}
+        {list(trendingRows.filter((m) => matchesChain(chainFilter, m.chainIdentifier)).map(marketRow), tU('nothingTrendingYet_a318'))}
       </>
     ),
     trenches: list(
-      byNarrative(solanaShown ? feeds.trenches.tokens : [], asCurve).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
+      (solanaShown ? feeds.trenches.tokens : []).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} />),
       tU('noNewPumpFunLaunches_09ad'),
     ),
     bonding: list(
-      byNarrative(solanaShown ? bondingRows : [], asCurve).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
+      (solanaShown ? bondingRows : []).map((token) => <PumpFunFeedRow key={token.mintAddress} token={token} emphasizeProgress />),
       tU('nothingCloseToGraduatingRight_e349'),
     ),
     graduated: (
@@ -269,8 +256,6 @@ export function DiscoverTokenList({
       {primaryTab === 'tokens' && pageScroll && (
         <div className="flex items-center">
           <div className="min-w-0 flex-1 [mask-image:linear-gradient(to_right,black_88%,transparent)]">{tokenChips}</div>
-          {/* Narratives as a chip here too (2026-11-01 tidy pass) — no extra row of pills. */}
-          {narrativeBar && <NarrativeMenu value={narrative} onChange={setNarrative} className="shrink-0 pl-1.5 max-md:pt-2 md:pt-3" />}
           {tokenTab !== 'crypto' && <ChainFilter compact value={chainFilter} onChange={setChainFilter} className="shrink-0 !pl-1.5 max-md:pt-2 md:pt-3" />}
         </div>
       )}
@@ -279,7 +264,6 @@ export function DiscoverTokenList({
       <div className={cn('flex min-h-0 flex-1 flex-col gap-1.5', pageScroll && 'max-md:flex-none')}>
         {primaryTab === 'tokens' && !pageScroll && tokenChips}
         {primaryTab === 'tokens' && !pageScroll && tokenTab !== 'crypto' && <ChainFilter value={chainFilter} onChange={setChainFilter} />}
-        {primaryTab === 'tokens' && !pageScroll && narrativeBar}
 
         {primaryTab === 'leaderboard' ? (
           <div className="min-h-0 flex-1">
