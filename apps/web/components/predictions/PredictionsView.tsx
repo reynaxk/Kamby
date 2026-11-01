@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PREDICTION_CATEGORIES, PREDICTION_LIMITS, type Prediction, type PredictionCategory, type PredictionFilter, type PredictionsPage } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -123,6 +123,18 @@ export function PredictionsView() {
 
   const replace = useCallback((next: Prediction) => setPage((cur) => (cur ? { ...cur, items: cur.items.map((p) => (p.id === next.id ? next : p)) } : cur)), []);
 
+  const sentinel = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<() => void>(() => undefined);
+  moreRef.current = () => void more();
+  // Endless list (2026-11-01): the next page loads as the bottom comes near — no button.
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && moreRef.current(), { rootMargin: '800px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [page?.nextBefore]);
+
   async function more() {
     if (!page?.nextBefore || loadingMore) return;
     setLoadingMore(true);
@@ -130,7 +142,7 @@ export function PredictionsView() {
       const next = await fetchPredictions({ filter, category, before: page.nextBefore });
       setPage((cur) => (cur ? { ...cur, items: [...cur.items, ...next.items.filter((p) => !cur.items.some((x) => x.id === p.id))], nextBefore: next.nextBefore } : next));
     } catch {
-      // the button stays
+      // the next scroll tries again
     } finally {
       setLoadingMore(false);
     }
@@ -188,9 +200,9 @@ export function PredictionsView() {
         </div>
       )}
       {page?.nextBefore && (
-        <button type="button" onClick={() => void more()} disabled={loadingMore} className="h-11 rounded-xl border border-line font-display text-sm font-bold text-ink-600 disabled:opacity-50">
-          {loadingMore ? '…' : t('more')}
-        </button>
+        <div ref={sentinel} aria-hidden className="grid gap-3 md:grid-cols-2">
+          {loadingMore && [0, 1].map((i) => <Skeleton key={i} className="h-40 rounded-2xl" />)}
+        </div>
       )}
       <p className="font-body text-xs leading-relaxed text-ink-400">{t('justForFun')}</p>
       <AskSheet open={asking} onClose={() => setAsking(false)} onCreated={(p) => setPage((cur) => (cur && !cur.items.some((x) => x.id === p.id) ? { ...cur, items: [p, ...cur.items] } : cur))} />

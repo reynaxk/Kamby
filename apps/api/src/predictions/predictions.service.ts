@@ -94,7 +94,8 @@ export class PredictionsService {
     const open = { status: 'ACTIVE', expiresAt: { gt: now } };
     let rows: PredictionRow[];
     if (filter === 'ending') {
-      rows = await prisma.prediction.findMany({ where: { ...open, ...cat }, orderBy: { expiresAt: 'asc' }, take: PAGE });
+      // Paged by end time: `before` is the last poll's end on the previous page.
+      rows = await prisma.prediction.findMany({ where: { ...open, ...cat, ...(beforeDate && { expiresAt: { gt: beforeDate } }) }, orderBy: { expiresAt: 'asc' }, take: PAGE + 1 });
     } else if (filter === 'popular') {
       rows = await prisma.prediction.findMany({ where: { ...open, ...cat }, orderBy: [{ votes: { _count: 'desc' } }, { createdAt: 'desc' }], take: PAGE });
     } else if (filter === 'mine') {
@@ -117,7 +118,8 @@ export class PredictionsService {
       });
     }
     const page = rows.slice(0, PAGE);
-    const nextBefore = rows.length > PAGE ? page[page.length - 1]!.createdAt.toISOString() : null;
+    const last = page[page.length - 1];
+    const nextBefore = rows.length > PAGE && last ? (filter === 'ending' ? last.expiresAt : last.createdAt).toISOString() : null;
     const [items, stats, canCreate] = await Promise.all([this.present(page, me), this.stats(me), me ? this.canCreate(me) : Promise.resolve(false)]);
     return { items, nextBefore, stats, canCreate };
   }
