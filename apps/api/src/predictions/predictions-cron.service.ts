@@ -13,6 +13,7 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { NarrativesService, tokenFromPairs, type NarrativePair } from '../narratives/narratives.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
+import { EVENT_CAPS, fetchEventDrafts, fetchEventOutcome } from './polymarket-events';
 import { PredictionsService } from './predictions.service';
 
 const GENERATE_EVERY_MS = 2 * 3600_000;
@@ -23,6 +24,10 @@ const OPEN_AUTO_CAP = 300;
 const MIN_LIQUIDITY_USD = 100_000;
 /** Give up on a poll whose price can't be read this long after it ends. */
 const GIVE_UP_MS = 6 * 3600_000;
+/** A real-world event can take a while to settle after its end date. */
+const EVENT_GIVE_UP_MS = 14 * 86_400_000;
+/** How often a settled-yet? check runs per event poll. */
+const EVENT_CHECK_SECONDS = 30 * 60;
 const DEX_CHAIN: Record<string, string> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bsc', 'eip155:4663': 'robinhood' };
 const MEME_NARRATIVES = new Set(['solana-memes', 'base-memes', 'bnb-memes', 'dogs', 'cats', 'frogs']);
 
@@ -47,12 +52,14 @@ export interface Draft {
   category: PredictionCategory;
   kind: 'BINARY' | 'MULTI_CHOICE' | 'OVER_UNDER' | 'RANGES';
   options: string[];
-  resolutionType: 'PRICE_TARGET' | 'PRICE_RANGE' | 'TOP_GAINER' | 'NARRATIVE_TOP';
-  source: 'AUTO_PRICE' | 'AUTO_NEWS' | 'AUTO_GAINER';
+  resolutionType: 'PRICE_TARGET' | 'PRICE_RANGE' | 'TOP_GAINER' | 'NARRATIVE_TOP' | 'EXTERNAL_EVENT';
+  source: 'AUTO_PRICE' | 'AUTO_NEWS' | 'AUTO_GAINER' | 'AUTO_EVENT';
   coin?: { chainIdentifier: string; tokenAddress: string };
   meta: Record<string, unknown>;
   /** How long the poll stays open. */
   hours: number;
+  /** A real-world event's own end (epoch ms) — used instead of `hours`. */
+  endsAt?: number;
   dedupeKey: string;
 }
 
@@ -308,33 +315,55 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
     for (const d of draftPolls(snapshot, news, block)) {
       if (room <= 0) break;
       if (asked.has(draftStem(d.dedupeKey))) continue;
-      const res = await prisma.prediction.createMany({
-        data: [
-          {
-            title: d.title,
-            category: d.category,
-            kind: d.kind,
-            options: d.options,
-            resolutionType: d.resolutionType,
-            source: d.source,
-            chainIdentifier: d.coin?.chainIdentifier ?? null,
-            tokenAddress: d.coin?.tokenAddress ?? null,
-            meta: d.meta as object,
-            expiresAt: new Date(Date.now() + d.hours * 3600_000),
-            dedupeKey: d.dedupeKey,
-          },
-        ],
-        skipDuplicates: true,
-      });
-      created += res.count;
-      room -= res.count;
+      const n = await this.insert(d);
+      created += n;
+      room -= n;
+    }
+    // Politics and crypto events, topped up to their own caps.
+    for (const category of ['politics', 'crypto'] as const) {
+      try {
+        const openEvents = await prisma.prediction.findMany({ where: { status: 'ACTIVE', source: 'AUTO_EVENT', category }, select: { dedupeKey: true } });
+        const have = new Set(openEvents.map((r) => r.dedupeKey));
+        let left = EVENT_CAPS[category] - openEvents.length;
+        for (const d of await fetchEventDrafts(category)) {
+          if (left <= 0) break;
+          if (have.has(d.dedupeKey)) continue;
+          const n = await this.insert(d);
+          created += n;
+          left -= n;
+        }
+      } catch (error) {
+        this.logger.warn({ err: error, category }, 'Predictions: event questions unavailable');
+      }
     }
     await this.redis.set('kamby:pred:last-block', block, 'EX', GENERATE_EVERY_MS / 1000);
     if (created > 0) this.logger.info({ created }, 'Predictions generated');
   }
 
+  private async insert(d: Draft): Promise<number> {
+    const res = await prisma.prediction.createMany({
+      data: [
+        {
+          title: d.title,
+          category: d.category,
+          kind: d.kind,
+          options: d.options,
+          resolutionType: d.resolutionType,
+          source: d.source,
+          chainIdentifier: d.coin?.chainIdentifier ?? null,
+          tokenAddress: d.coin?.tokenAddress ?? null,
+          meta: d.meta as object,
+          expiresAt: new Date(d.endsAt ?? Date.now() + d.hours * 3600_000),
+          dedupeKey: d.dedupeKey,
+        },
+      ],
+      skipDuplicates: true,
+    });
+    return res.count;
+  }
+
   async resolve(): Promise<void> {
-    const due = await prisma.prediction.findMany({ where: { status: 'ACTIVE', expiresAt: { lte: new Date() } }, take: 100 });
+    const due = await prisma.prediction.findMany({ where: { status: 'ACTIVE', expiresAt: { lte: new Date() } }, orderBy: { expiresAt: 'desc' }, take: 200 });
     if (due.length === 0) return;
     const coins = new Map<string, { chainIdentifier: string; tokenAddress: string }>();
     for (const row of due) {
@@ -358,6 +387,13 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
         if (field.length > 0 && field.every((x) => x !== null)) outcome = field.indexOf(Math.max(...(field as number[])));
       } else if (row.resolutionType === 'NARRATIVE_TOP' && snapshot) {
         outcome = snapshot.narratives[0]?.id === (row.meta as { narrativeId?: string }).narrativeId ? 0 : 1;
+      } else if (row.resolutionType === 'EXTERNAL_EVENT') {
+        // The real event settles on its own time — ask about each at most every 30 min.
+        const marketId = (row.meta as { marketId?: string }).marketId;
+        if (marketId && (await this.redis.set(`kamby:pred:ext:${row.id}`, '1', 'EX', EVENT_CHECK_SECONDS, 'NX')) === 'OK') outcome = await fetchEventOutcome(marketId).catch(() => null);
+        if (outcome !== null) await this.finish(row, 'RESOLVED', outcome);
+        else if (Date.now() - row.expiresAt.getTime() > EVENT_GIVE_UP_MS) await this.finish(row, 'EXPIRED', null);
+        continue;
       } else {
         // A streamer's or user's poll: it just closes; the votes are the result.
         await this.finish(row, 'EXPIRED', null);

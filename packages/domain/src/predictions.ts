@@ -4,7 +4,7 @@
  * no points, no prizes, ever (Kamby's owner is under 18; this must never become betting).
  */
 
-export const PREDICTION_CATEGORIES = ['crypto', 'ai', 'macro', 'streamers', 'memes'] as const;
+export const PREDICTION_CATEGORIES = ['crypto', 'politics', 'ai', 'macro', 'streamers', 'memes'] as const;
 export type PredictionCategory = (typeof PREDICTION_CATEGORIES)[number];
 
 export const PREDICTION_KINDS = ['BINARY', 'MULTI_CHOICE', 'OVER_UNDER', 'RANGES'] as const;

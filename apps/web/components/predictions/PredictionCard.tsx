@@ -13,6 +13,7 @@ import { marketHref } from '@/lib/solana-links';
 
 const CATEGORY_STYLE: Record<Prediction['category'], string> = {
   crypto: 'border-[#38BDF8]/30 text-[#7DD3FC]',
+  politics: 'border-[#FB923C]/30 text-[#FDBA74]',
   ai: 'border-[#A78BFA]/30 text-[#C4B5FD]',
   macro: 'border-[#FACC15]/30 text-[#FDE68A]',
   streamers: 'border-[#FF3B69]/30 text-[#FF8FA8]',
