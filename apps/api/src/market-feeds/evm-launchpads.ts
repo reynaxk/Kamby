@@ -4,7 +4,8 @@ import type { XxxRiskColumn, XxxRiskToken } from '@kamby/domain';
  * New coins on Kamby's EVM chains for the launchpad board (2026-11-01, owner: "all the launchpads,
  * not only Pump.fun"): GeckoTerminal's newest pools on BNB, Base and Robinhood, each labelled with
  * the launchpad it came from where that's certain — Four.meme's own curve pools (and its "…4444"
- * coins once they move to PancakeSwap), Clanker's "…b07" coins, Pons on Robinhood — and with the
+ * and "…ffff" coins once they move to a DEX), Flap's "…7777" coins on BNB, Clanker's "…b07" coins,
+ * Pons on Robinhood — and with the
  * DEX otherwise. These have no Jupiter audit, so every one is marked unaudited.
  */
 
@@ -50,7 +51,8 @@ const n = (v: string | number | null | undefined): number | null => {
 export function launchpadOf(dex: string, tokenAddress: string): { launchpad: string; column: XxxRiskColumn } {
   const a = tokenAddress.toLowerCase();
   if (dex === 'four-meme') return { launchpad: 'four.meme', column: 'new' };
-  if (a.endsWith('4444') && dex.startsWith('pancakeswap')) return { launchpad: 'four.meme', column: 'migrated' };
+  if ((a.endsWith('4444') || a.endsWith('ffff')) && !dex.startsWith('uniswap-v4-base')) return { launchpad: 'four.meme', column: 'migrated' };
+  if (a.endsWith('7777') && (dex.startsWith('pancakeswap') || dex.startsWith('uniswap-v4-bsc'))) return { launchpad: 'flap', column: 'migrated' };
   if (a.endsWith('b07')) return { launchpad: 'clanker', column: 'new' };
   if (dex.startsWith('pons')) return { launchpad: 'pons', column: 'new' };
   if (dex.startsWith('uniswap-v4')) return { launchpad: 'uniswap-v4', column: 'new' };

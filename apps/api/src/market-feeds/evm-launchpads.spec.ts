@@ -14,6 +14,7 @@ describe('EVM launchpads', () => {
     expect(launchpadOf('pancakeswap_v2', '0xabc4444')).toEqual({ launchpad: 'four.meme', column: 'migrated' });
     expect(launchpadOf('uniswap-v4-base', '0x960b42d0Db862af3102672A2e20bB5267FDb0B07').launchpad).toBe('clanker');
     expect(launchpadOf('pons-v2', '0xabc').launchpad).toBe('pons');
+    expect(launchpadOf('pancakeswap_v2', '0xabc7777')).toEqual({ launchpad: 'flap', column: 'migrated' });
     expect(launchpadOf('uniswap-v4-base', '0xabc').launchpad).toBe('uniswap-v4');
   });
 
