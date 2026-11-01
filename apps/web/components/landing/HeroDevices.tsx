@@ -70,7 +70,7 @@ export function HeroDevices() {
           ))}
           <span className="mx-auto rounded-[0.8cqw] bg-white/[0.05] px-[4cqw] py-[0.5cqw] font-body text-[1.4cqw] text-white/45">kambesh.com</span>
         </div>
-        <div className="grid grid-cols-[7cqw_1fr_25cqw]">
+        <div className="grid grid-cols-[7cqw_24cqw_1fr]">
           {/* Side menu */}
           <div className="flex flex-col items-center gap-[2cqw] border-r border-white/[0.05] py-[2cqw]">
             <span className="flex h-[3.6cqw] w-[3.6cqw] items-center justify-center rounded-[1cqw] bg-[#00FF87]/10 font-display text-[2cqw] font-black text-[#00FF87]">K</span>
@@ -78,8 +78,26 @@ export function HeroDevices() {
               <span key={i} className={i === 1 ? 'h-[2.4cqw] w-[2.4cqw] rounded-[0.7cqw] bg-[#00FF87]/25' : 'h-[2.4cqw] w-[2.4cqw] rounded-[0.7cqw] bg-white/[0.07]'} />
             ))}
           </div>
+          {/* Trending */}
+          <div className="border-r border-white/[0.05] p-[1.8cqw]">
+            <p className="font-display text-[1.4cqw] font-bold text-white/70">Trending</p>
+            <ul className="mt-[1.2cqw] flex flex-col gap-[1.1cqw]">
+              {TRENDING.map((x) => (
+                <li key={x.s} className="flex items-center gap-[0.9cqw]">
+                  <span className="flex h-[3cqw] w-[3cqw] shrink-0 items-center justify-center rounded-full font-display text-[1.2cqw] font-black text-black" style={{ backgroundColor: x.c }}>
+                    {x.s[0]}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate font-display text-[1.3cqw] font-bold text-white">${x.s}</span>
+                  <svg viewBox="0 0 40 16" className="h-[2cqw] w-[4.4cqw] shrink-0">
+                    <path d={x.d} fill="none" stroke={x.p.startsWith('−') ? '#FF4D6D' : '#00E676'} strokeWidth="1.6" />
+                  </svg>
+                </li>
+              ))}
+            </ul>
+            <span className="mt-[2cqw] flex h-[3.8cqw] items-center justify-center rounded-[1cqw] bg-[#00FF87] font-display text-[1.4cqw] font-black text-black">Buy</span>
+          </div>
           {/* Coin + chart */}
-          <div className="min-w-0 p-[2.2cqw]">
+          <div className="min-w-0 p-[2.2cqw] pr-[12cqw]">
             <div className="flex items-center gap-[1.2cqw]">
               <span className="flex h-[4.4cqw] w-[4.4cqw] items-center justify-center rounded-full bg-[#00FF87]/15 font-display text-[1.9cqw] font-black text-[#00FF87]">N</span>
               <span className="leading-tight">
@@ -112,24 +130,6 @@ export function HeroDevices() {
               ))}
             </div>
           </div>
-          {/* Trending */}
-          <div className="border-l border-white/[0.05] p-[1.8cqw]">
-            <p className="font-display text-[1.4cqw] font-bold text-white/70">Trending</p>
-            <ul className="mt-[1.2cqw] flex flex-col gap-[1.1cqw]">
-              {TRENDING.map((x) => (
-                <li key={x.s} className="flex items-center gap-[0.9cqw]">
-                  <span className="flex h-[3cqw] w-[3cqw] shrink-0 items-center justify-center rounded-full font-display text-[1.2cqw] font-black text-black" style={{ backgroundColor: x.c }}>
-                    {x.s[0]}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate font-display text-[1.3cqw] font-bold text-white">${x.s}</span>
-                  <svg viewBox="0 0 40 16" className="h-[2cqw] w-[4.4cqw] shrink-0">
-                    <path d={x.d} fill="none" stroke={x.p.startsWith('−') ? '#FF4D6D' : '#00E676'} strokeWidth="1.6" />
-                  </svg>
-                </li>
-              ))}
-            </ul>
-            <span className="mt-[2cqw] flex h-[3.8cqw] items-center justify-center rounded-[1cqw] bg-[#00FF87] font-display text-[1.4cqw] font-black text-black">Buy</span>
-          </div>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export function HeroDevices() {
             </div>
             <p className="mt-[5cqw] px-[6cqw] font-display text-[9cqw] font-black tabular-nums leading-none text-white">${price}</p>
             <p className="mt-[1.5cqw] px-[6cqw] font-body text-[4cqw] font-bold tabular-nums text-[#00FF87]">▲ {change.toFixed(1)}% · 24h</p>
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="mt-[5cqw] h-[70cqw] w-full">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="mt-[4cqw] h-[52cqw] w-full">
               {candles.slice(-18).map((k, n, arr) => {
                 const h2 = Math.max(...arr.map((x) => x.h));
                 const l2 = Math.min(...arr.map((x) => x.l));
@@ -168,6 +168,19 @@ export function HeroDevices() {
                 );
               })}
             </svg>
+            <div className="mx-[5cqw] mt-[4cqw] grid grid-cols-3 gap-[2cqw]">
+              {[['MC', '$4.8M'], ['Vol', '$1.2M'], ['Holders', '2.4K']].map(([k, v]) => (
+                <span key={k} className="rounded-[3cqw] bg-white/[0.05] px-[2.5cqw] py-[2cqw] leading-tight">
+                  <span className="block font-body text-[3cqw] text-white/40">{k}</span>
+                  <span className="block font-display text-[4cqw] font-bold text-white">{v}</span>
+                </span>
+              ))}
+            </div>
+            <div className="mx-[5cqw] mt-[3cqw] flex items-center gap-[2.5cqw] rounded-[3cqw] bg-[#00FF87]/[0.07] px-[3cqw] py-[2.4cqw]">
+              <span className="text-[5cqw]">🐋</span>
+              <span className="min-w-0 flex-1 truncate font-display text-[3.6cqw] font-bold text-white">0x7a…91 bought</span>
+              <span className="font-display text-[3.8cqw] font-black text-[#00FF87]">$12.4K</span>
+            </div>
             <div className="absolute inset-x-[5cqw] bottom-[9cqw] flex gap-[2cqw]">
               <span className="flex h-[13cqw] flex-1 items-center justify-center rounded-[5cqw] bg-[#00FF87] font-display text-[4.6cqw] font-black text-black">Buy</span>
               <span className="flex h-[13cqw] items-center gap-[0.5cqw] rounded-[5cqw] border border-[#00FF87]/50 bg-[#00FF87]/10 px-[3.5cqw] font-display text-[4.4cqw] font-extrabold text-[#00FF87]">
