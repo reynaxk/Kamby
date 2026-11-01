@@ -269,6 +269,7 @@ export function KambyChart({
   trades = NO_TRADES,
   chartStyle = 'candles',
   entryPrice,
+  bare = false,
 }: {
   candles: Candle[];
   trades?: SocialActivity[];
@@ -276,6 +277,8 @@ export function KambyChart({
   chartStyle?: ChartStyle;
   /** Your average entry price in this coin, drawn as a dashed line. */
   entryPrice?: number | null;
+  /** A small chart inside a card (feed posts): no indicator picker over it. */
+  bare?: boolean;
 }) {
   const tU = useTranslations('ui');
   const tL = useTranslations('labels');
@@ -577,7 +580,7 @@ export function KambyChart({
       <div ref={containerRef} className="h-full w-full" />
       {!canvasReady && <CandlePreview candles={candles} trades={trades} />}
       {/* Top-left: at top-right it covered the price axis and the live price (2026-10-06). */}
-      <div ref={pickerRef} className="absolute left-2 top-2 z-10">
+      <div ref={pickerRef} className={cn('absolute left-2 top-2 z-10', bare && 'hidden')}>
         <button
           type="button"
           onClick={() => setPickerOpen((open) => !open)}

@@ -174,7 +174,7 @@ export function TokenPostCard({ chart, author }: { chart: FeedChart; author: str
       </div>
       <div className="mt-2 h-[160px] px-1">
         {candles && candles.length > 1 ? (
-          <KambyChart candles={candles} chartStyle="line" entryPrice={chart.priceUsd} />
+          <KambyChart candles={candles} chartStyle="line" bare />
         ) : (
           <div className={cn('mx-2 h-full rounded-xl bg-white/[0.03]', candles === null && 'animate-pulse')} />
         )}
