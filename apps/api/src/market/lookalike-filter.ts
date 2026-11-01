@@ -1,4 +1,4 @@
-import { isCuratedMarket, isOffensiveCoin, type MarketSummary } from '@kamby/domain';
+import { isCuratedMarket, type MarketSummary } from '@kamby/domain';
 
 /** "$WIF", " wif " and "WIF" are the same ticker to a reader. */
 function normalizedSymbol(symbol: string | null): string | null {
@@ -64,8 +64,5 @@ export function hideLookalikes(markets: MarketSummary[]): MarketSummary[] {
     }
   }
   const keep = new Set([...winners.values()].flat());
-  // Slur-named coins never show in a list either (2026-11-01, see isOffensiveCoin).
-  return markets.filter(
-    (market) => !impostors.has(market) && !isOffensiveCoin(market) && (!normalizedSymbol(market.symbol) || keep.has(market)),
-  );
+  return markets.filter((market) => !impostors.has(market) && (!normalizedSymbol(market.symbol) || keep.has(market)));
 }
