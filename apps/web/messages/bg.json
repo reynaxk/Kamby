@@ -1776,7 +1776,10 @@
     "cat_chaos": "Скорост и хаос",
     "cat_flex": "Общност и фукня",
     "cat_easter": "Великденски яйца",
-    "feedback": "Изпрати отзив"
+    "feedback": "Изпрати отзив",
+    "payNative": "Търгувай със SOL / ETH / BNB (бета)",
+    "on": "Вкл.",
+    "off": "Изкл."
   },
   "trenchesPage": {
     "title": "Trenches",
@@ -1803,5 +1806,11 @@
     "sub": "Монетите в тренд на всяка верига и твоят watchlist.",
     "trending": "Trending",
     "watchlist": "Watchlist"
+  },
+  "nativePay": {
+    "payNative": "Търгувай със SOL / ETH / BNB (бета)",
+    "payNativeHint": "Купувай и продавай с монетата на всяка верига вместо с USDC — плащаш таксата на мрежата.",
+    "on": "Вкл.",
+    "off": "Изкл."
   }
 }

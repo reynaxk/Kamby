@@ -5,6 +5,7 @@ import { formatUnits } from 'viem';
 import { useAccount, useBalance } from 'wagmi';
 import { useTranslations } from 'next-intl';
 import { formatTradeAmount } from '@/lib/format';
+import { isNativeAddress } from '@/lib/native-trading';
 import { applyNumpadKey, Numpad } from './Numpad';
 
 const PRESET_FRACTIONS = [0.25, 0.5, 1] as const;
@@ -40,9 +41,11 @@ export function AmountInput({
 }) {
   const tTrade = useTranslations('trade');
   const { address } = useAccount();
+  // The chain's own coin (ETH / BNB, 2026-11-01) has no token contract to read.
+  const native = isNativeAddress(inputTokenAddress);
   const { data: balance } = useBalance({
     address,
-    token: inputTokenAddress as `0x${string}`,
+    token: native ? undefined : (inputTokenAddress as `0x${string}`),
     query: { refetchInterval: 15_000 },
   });
 
@@ -55,7 +58,10 @@ export function AmountInput({
       return;
     }
     if (!balance) return;
-    const raw = (balance.value * BigInt(Math.round(fraction * 10_000))) / 10_000n;
+    // Max on a native balance leaves a little behind for the network fee.
+    const reserveRaw = native && fraction === 1 ? (balance.value * 2n) / 100n + 300_000_000_000_000n : 0n;
+    const base = balance.value > reserveRaw ? balance.value - reserveRaw : 0n;
+    const raw = (base * BigInt(Math.round(fraction * 10_000))) / 10_000n;
     onChange(formatUnits(raw, inputTokenDecimals));
   };
 

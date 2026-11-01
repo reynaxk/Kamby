@@ -3,6 +3,8 @@
 import { takeQuickPrefill } from './QuickBuy';
 import type { ShareChain } from '@/components/social/ShareTradeSheet';
 import { USDC_BY_CHAIN_ID } from '@/lib/usdc';
+import { NATIVE_BY_CHAIN_ID, NATIVE_TOKEN_ADDRESS, useNativeTrading } from '@/lib/native-trading';
+import { useMajorPrices } from '@/lib/use-native-balances';
 import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useRef, useState } from 'react';
 import { useSignTypedData } from '@privy-io/react-auth';
@@ -183,10 +185,13 @@ export function TradePanel({
   // Every trade pays with / sells into this chain's USDC, not the pool's pair token (WETH,
   // WBNB…) — the API quotes it the same way (QuoteService#createQuote).
   const usdc = USDC_BY_CHAIN_ID[chainId];
-  const useUsdc = usdc !== undefined && usdc.address.toLowerCase() !== tokenAddress.toLowerCase();
-  const quoteTokenAddress = useUsdc ? usdc.address : poolPairAddress;
-  const quoteTokenSymbol = useUsdc ? usdc.symbol : poolPairSymbol;
-  const quoteTokenDecimals = useUsdc ? usdc.decimals : poolPairDecimals;
+  // 2026-11-01: or the chain's own coin (ETH / BNB) when native trading is on.
+  const nativeOn = useNativeTrading();
+  const nativeCoin = nativeOn ? NATIVE_BY_CHAIN_ID[chainId] : undefined;
+  const useUsdc = !nativeCoin && usdc !== undefined && usdc.address.toLowerCase() !== tokenAddress.toLowerCase();
+  const quoteTokenAddress = nativeCoin ? NATIVE_TOKEN_ADDRESS : useUsdc ? usdc.address : poolPairAddress;
+  const quoteTokenSymbol = nativeCoin ? nativeCoin.symbol : useUsdc ? usdc.symbol : poolPairSymbol;
+  const quoteTokenDecimals = nativeCoin ? nativeCoin.decimals : useUsdc ? usdc.decimals : poolPairDecimals;
   const { address, isConnected, chainId: walletChainId } = useAccount();
   const walletVerification = useWalletVerification();
   const { signTypedData } = useSignTypedData();
@@ -195,7 +200,8 @@ export function TradePanel({
 
   const [side, setSide] = useState<TradeSide>(initialSide);
   // Opened from a list row's ⚡: starts on that amount (2026-10-29).
-  const [amount, setAmount] = useState(() => (sheet && initialSide === 'BUY' && typeof window !== 'undefined' ? takeQuickPrefill(tokenAddress) : ''));
+  const [prefillUsd] = useState(() => (sheet && initialSide === 'BUY' && typeof window !== 'undefined' ? takeQuickPrefill(tokenAddress) : ''));
+  const [amount, setAmount] = useState(prefillUsd);
   // Slippage: "Auto" by default (see autoSlippageBps), or the user's own pick.
   const [autoSlippage, setAutoSlippage] = useState(true);
   const [autoBps, setAutoBps] = useState(() => autoSlippageBps(null, volatile));
@@ -219,7 +225,15 @@ export function TradePanel({
   // One USDC (2026-10-13): short on this chain but enough on another → the buy moves it over
   // first (the API refuses to quote a buy the wallet can't pay for, so this is decided here).
   const moveTarget = chainId === 56 ? 'bnb' : chainId === 4663 ? 'robinhood' : 'base';
-  const buyUsd = side === 'BUY' && Number.parseFloat(amount) > 0 ? Number.parseFloat(amount) : null;
+  // Moving USDC between chains only matters while trades pay in USDC.
+  // The ⚡ prefill is dollars: in native mode, the same dollars in ETH / BNB at the live price.
+  const majorUsd = useMajorPrices(Boolean(nativeCoin));
+  const nativeUsd = nativeCoin ? majorUsd[nativeCoin.symbol] : undefined;
+  useEffect(() => {
+    if (!prefillUsd || !nativeCoin || !nativeUsd) return;
+    setAmount((current) => (current === prefillUsd ? (Number(prefillUsd) / nativeUsd).toFixed(6) : current));
+  }, [prefillUsd, nativeCoin, nativeUsd]);
+  const buyUsd = !nativeCoin && side === 'BUY' && Number.parseFloat(amount) > 0 ? Number.parseFloat(amount) : null;
   const funding = useCrossChainFunding(moveTarget, buyUsd);
   const chainUsdc = funding.balances[moveTarget];
   const shortOnChain = buyUsd !== null && chainUsdc !== null && buyUsd > chainUsdc;
@@ -227,7 +241,7 @@ export function TradePanel({
   // One balance line for a buy: all your USDC, and what one buy can reach (this chain plus the
   // biggest other balance, which a single move can bring over, less a few cents for the move).
   const otherBest = Math.max(0, ...(['base', 'bnb', 'robinhood', 'solana'] as const).filter((c) => c !== moveTarget).map((c) => (funding.balances[c] ?? 0) - 0.1));
-  const usdBalance = side === 'BUY' && funding.balances.total !== null ? { shown: funding.balances.total, spendable: (chainUsdc ?? 0) + otherBest } : null;
+  const usdBalance = !nativeCoin && side === 'BUY' && funding.balances.total !== null ? { shown: funding.balances.total, spendable: (chainUsdc ?? 0) + otherBest } : null;
   const moveBusy = isMoveBusy(funding);
   const moveLabel = useMoveButtonLabel(funding, moveTarget);
   const [buyAfterMove, setBuyAfterMove] = useState(false);
@@ -295,7 +309,8 @@ export function TradePanel({
     }
     // $2 minimum: a buy's USDC amount is checked right here; a sell's USDC value is only known
     // from the quote, so the API answers with the same message.
-    if (side === 'BUY' && amountNum < MIN_TRADE_USD) {
+    // (A native-coin buy's dollar size is the API's to check — it knows the coin's price.)
+    if (!nativeCoin && side === 'BUY' && amountNum < MIN_TRADE_USD) {
       setQuote(null);
       setQuoteStatus('error');
       setQuoteError(MIN_TRADE_MESSAGE);
@@ -310,7 +325,7 @@ export function TradePanel({
       setPriceImpactAcknowledged(false);
     }
     const timeout = setTimeout(() => {
-      getQuote({ chainId, side, tokenAddress, walletAddress: address, amount, slippageBps, sponsorshipRequested: gasless })
+      getQuote({ chainId, side, tokenAddress, walletAddress: address, amount, slippageBps, sponsorshipRequested: gasless && !nativeCoin, ...(nativeCoin ? { payWith: 'native' as const } : {}) })
         .then((result) => {
           setQuote(result);
           setQuoteStatus('ready');
@@ -323,7 +338,7 @@ export function TradePanel({
     }, silent ? 0 : 500);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick, gasless, overBalance]);
+  }, [canQuote, side, amount, slippageBps, address, tokenAddress, chainId, refreshTick, gasless, overBalance, nativeCoin]);
 
   // Quotes live 30s — keep the one on screen fresh while the user decides, so a tap never
   // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly

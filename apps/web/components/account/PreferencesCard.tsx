@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
 import { LanguageSelect } from '@/components/i18n/LanguageSelect';
 import { setTickerEnabled, useTickerEnabled } from '@/lib/ticker-pref';
+import { setNativeTrading, useNativeTrading } from '@/lib/native-trading';
+import { useTranslations as useAchT } from 'next-intl';
 import { useBalanceVisibility } from './BalanceVisibilityContext';
 import { NewsAlertSettings } from '@/components/news/NewsAlertSettings';
 
@@ -52,6 +54,8 @@ const icon = (d: string) => (
 export function PreferencesCard({ className }: { className?: string }) {
   const t = useTranslations('account');
   const ticker = useTickerEnabled();
+  const native = useNativeTrading();
+  const tA = useAchT('nativePay');
   const { hidden, toggle } = useBalanceVisibility();
   return (
     <section aria-labelledby="settings-heading" className={cn('rounded-2xl border border-line bg-surface px-4 pt-4', className)}>
@@ -59,6 +63,9 @@ export function PreferencesCard({ className }: { className?: string }) {
         {t('settings')}
       </h2>
       <ul className="mt-1 divide-y divide-white/[0.05]">
+        <Row icon={icon('M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6')} title={tA('payNative')} hint={tA('payNativeHint')}>
+          <Switch on={native} onChange={setNativeTrading} label={tA('payNative')} />
+        </Row>
         <Row icon={icon('M3 17l6-6 4 4 8-8M15 7h6v6')} title={t('ticker')} hint={t('tickerHint')}>
           <Switch on={ticker} onChange={setTickerEnabled} label={t('ticker')} />
         </Row>

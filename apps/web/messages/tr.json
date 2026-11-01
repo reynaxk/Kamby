@@ -1776,7 +1776,10 @@
     "cat_chaos": "Hız & kaos",
     "cat_flex": "Topluluk & hava",
     "cat_easter": "Paskalya yumurtaları",
-    "feedback": "Geri bildirim gönder"
+    "feedback": "Geri bildirim gönder",
+    "payNative": "SOL / ETH / BNB ile işlem (beta)",
+    "on": "Açık",
+    "off": "Kapalı"
   },
   "trenchesPage": {
     "title": "Siperler",
@@ -1803,5 +1806,11 @@
     "sub": "Her ağdaki trend coinler ve izleme listen.",
     "trending": "Trend",
     "watchlist": "İzleme listesi"
+  },
+  "nativePay": {
+    "payNative": "SOL / ETH / BNB ile işlem (beta)",
+    "payNativeHint": "USDC yerine her ağın kendi coin’iyle al-sat — ağ ücretini sen ödersin.",
+    "on": "Açık",
+    "off": "Kapalı"
   }
 }

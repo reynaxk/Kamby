@@ -36,6 +36,7 @@ import { realizedShare, useSellSnapshot } from '@/components/share/SellShare';
 import { formatTokenAmount, useMintDecimals } from '@/lib/solana-mint';
 import { createEmbeddedWalletOnce, WALLET_CREATION_FALLBACK_DELAY_MS } from '@/lib/embedded-wallet-creation';
 import { UsdPresetAmountInput, USD_PRESETS, usdToRawUsdc } from './UsdPresetAmountInput';
+import { useNativeTrading } from '@/lib/native-trading';
 import { ChainUsdcLine } from './ChainUsdcLine';
 import { PositionChip } from './PositionChip';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
@@ -86,8 +87,9 @@ const USDC_DECIMALS = 6;
  *  BUY's output is the traded token, scaled by its on-chain decimals (see useMintDecimals);
  *  SELL's output is always USDC — same "always one fixed leg" reasoning as
  *  toSocialActivity's own comment on the backend. */
-function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string | null, decimals: number | null): string {
+function formatReceivedAmount(side: TradeSide, rawAmount: string, symbol: string | null, decimals: number | null, inSol = false): string {
   if (side === 'BUY') return formatTokenAmount(rawAmount, decimals, symbol);
+  if (inSol) return `${(Number(rawAmount) / 1e9).toLocaleString('en-US', { maximumFractionDigits: 4 })} SOL`;
   return `$${(Number(rawAmount) / 10 ** USDC_DECIMALS).toLocaleString('en-US', { maximumFractionDigits: 2 })} USDC`;
 }
 
@@ -163,18 +165,22 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   tokenDecimalsRef.current = tokenDecimals;
 
   const [side, setSide] = useState<TradeSide>(initialSide);
+  // Native-coin trading (2026-11-01): pay with / sell into SOL instead of USDC.
+  const payNative = useNativeTrading();
+  const payNativeRef = useRef(payNative);
+  payNativeRef.current = payNative;
   // The wallet's Solana USDC (raw), from the amount input — a buy above it can't go through
   // (2026-10-11: a $1.77 buy from a $0.81 balance failed three times with a vague error).
   const [usdcBalanceRaw, setUsdcBalanceRaw] = useState<bigint | null>(null);
   const tL = useTranslations('labels');
   const dock = dockProp ?? !sheet;
   const [amount, setAmount] = useState('');
-  const overBalance = side === 'BUY' && usdcBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > usdcBalanceRaw;
+  const overBalance = !payNative && side === 'BUY' && usdcBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > usdcBalanceRaw;
   // A sell can't be more than you hold (2026-10-18, same fix as the EVM panel).
   const [coinBalanceRaw, setCoinBalanceRaw] = useState<bigint | null>(null);
   const sellOverBalance = side === 'SELL' && !isNativeSol && coinBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > coinBalanceRaw;
   // One USDC (2026-10-13): short on Solana but enough on Base/BNB → the buy moves it over first.
-  const funding = useCrossChainFunding('solana', side === 'BUY' && /^\d+$/.test(amount) ? Number(amount) / 1e6 : null);
+  const funding = useCrossChainFunding('solana', !payNative && side === 'BUY' && /^\d+$/.test(amount) ? Number(amount) / 1e6 : null);
   const needsMove = overBalance && funding.canCover && funding.stage !== 'done';
   const blockedByBalance = overBalance && !needsMove && funding.stage !== 'done';
   const moveBusy = isMoveBusy(funding);
@@ -190,7 +196,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const jitoTipLamports = 0; // Jito tips only apply to self-paid trades, which no longer exist
   // Always gasless (2026-10-04): users hold only USDC, never SOL, so Kamby's relayer pays every
   // network fee. The old on/off switch defaulted to off — a USDC-only wallet can't pay its own fee.
-  const gasless = true;
+  // Native-coin trading: SOL in and out, and the wallet pays its own fee — no relayer.
+  const gasless = !payNative;
   const [refreshTick, setRefreshTick] = useState(0);
   const silentRefreshRef = useRef(false);
 
@@ -221,7 +228,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       return;
     }
     // $2 minimum — `amount` is raw USDC on a buy; a sell's value comes back from the API's check.
-    if (side === 'BUY' && Number(amount) < MIN_TRADE_USD * 10 ** 6) {
+    if (!payNative && side === 'BUY' && Number(amount) < MIN_TRADE_USD * 10 ** 6) {
       setQuote(null);
       setQuoteStatus('error');
       setQuoteError(MIN_TRADE_MESSAGE);
@@ -240,7 +247,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
       // build never supports it (see SolanaController's own doc comment on the backend).
       const fetchQuote = gasless
         ? getSponsoredSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps })
-        : getSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps, jitoTipLamports });
+        : getSolanaQuote({ side, tokenMint, walletAddress: wallet!.address, amount, slippageBps, jitoTipLamports, ...(payNative ? { payWith: 'native' as const } : {}) });
       fetchQuote
         .then((result) => {
           setQuote(result);
@@ -254,7 +261,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
     }, silent ? 0 : 500);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, gasless, canQuote, refreshTick, sellOverBalance]);
+  }, [side, tokenMint, amount, slippageBps, jitoTipLamports, gasless, payNative, canQuote, refreshTick, sellOverBalance]);
 
   // Quotes live 30s — keep the one on screen fresh while the user decides, so a tap never
   // lands on an expired quote ("This quote expired", reported 2026-10-04). Refetched quietly
@@ -291,7 +298,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
             toast.update(activeToastIdRef.current, {
               variant: 'success',
               title: tTrade('toastConfirmed'),
-              description: formatReceivedAmount(tx.side, tx.expectedOutputAmount, tokenSymbol, tokenDecimalsRef.current),
+              description: formatReceivedAmount(tx.side, tx.expectedOutputAmount, tokenSymbol, tokenDecimalsRef.current, payNativeRef.current && tx.outputMint === 'So11111111111111111111111111111111111111112'),
               solscanUrl: `https://solscan.io/tx/${tx.signature}`,
             });
           }
@@ -670,7 +677,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           </span>
           <CopyAddressButton address={wallet.address} />
         </div>
-        {side === 'BUY' ? (
+        {side === 'BUY' && payNative ? (
+          // A SOL buy: the amount is SOL (lamports), Max keeps 0.01 SOL for fees.
+          <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+        ) : side === 'BUY' ? (
           <>
             <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} onBalance={setUsdcBalanceRaw} usdBalance={usdBalance} />
             {/* Only when there isn't enough USDC anywhere — then it's the Deposit shortcut. */}

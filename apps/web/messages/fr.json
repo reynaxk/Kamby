@@ -1776,7 +1776,10 @@
     "cat_chaos": "Vitesse & chaos",
     "cat_flex": "Communauté & flex",
     "cat_easter": "Easter eggs",
-    "feedback": "Envoyer un avis"
+    "feedback": "Envoyer un avis",
+    "payNative": "Trader en SOL / ETH / BNB (bêta)",
+    "on": "Oui",
+    "off": "Non"
   },
   "trenchesPage": {
     "title": "Trenches",
@@ -1803,5 +1806,11 @@
     "sub": "Les coins tendance sur chaque chaîne et ta watchlist.",
     "trending": "Tendances",
     "watchlist": "Watchlist"
+  },
+  "nativePay": {
+    "payNative": "Trader en SOL / ETH / BNB (bêta)",
+    "payNativeHint": "Achète et vends avec la crypto de chaque chaîne au lieu d’USDC — tu paies les frais réseau.",
+    "on": "Oui",
+    "off": "Non"
   }
 }

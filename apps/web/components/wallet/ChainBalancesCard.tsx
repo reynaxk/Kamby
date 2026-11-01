@@ -6,6 +6,8 @@ import { useAccount } from 'wagmi';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
 import { useTranslations } from 'next-intl';
+import { useNativeTrading } from '@/lib/native-trading';
+import { NativeBalancesList, useWalletTotalUsd } from './NativeBalancesList';
 
 
 // $0.00 until a balance is known — never a dash (owner 2026-10-11).
@@ -24,9 +26,20 @@ export function ChainBalancesCard() {
   const { wallets } = useSolanaWallets();
   const balances = useUsdcBalances(address, wallets[0]?.address);
   const { hidden } = useBalanceVisibility();
+  const native = useNativeTrading();
+  const walletTotal = useWalletTotalUsd();
 
   // One USDC (owner + dad, 2026-10-13): no per-chain list — one balance. The Deposit button sits
   // under this card (2026-10-29: it was here too, twice on the same screen).
+  // Native-coin trading (2026-11-01): one balance per chain, in its own coin.
+  if (native) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <p className={cn('font-display text-3xl font-extrabold tabular-nums text-ink-900', hidden && 'select-none blur-sm')}>{usd(walletTotal)}</p>
+        <NativeBalancesList className="mt-4" />
+      </div>
+    );
+  }
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
       <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-ink-400">{tU('yourUsdc_8d00')}</p>

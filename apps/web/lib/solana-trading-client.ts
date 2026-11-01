@@ -20,6 +20,8 @@ export interface GetSolanaQuoteParams {
   /** See SolanaTradeDto's own doc comment — 0/undefined omits Jito tip support entirely,
    *  same as the backend's own default. */
   jitoTipLamports?: number;
+  /** 2026-11-01: pay with / sell into SOL (a buy's amount is then lamports). */
+  payWith?: 'native';
 }
 
 export async function getSolanaQuote(params: GetSolanaQuoteParams): Promise<SolanaTradeQuoteDto> {

@@ -8,6 +8,8 @@ import { useAccount } from 'wagmi';
 import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
 import { FundModal } from './FundModal';
+import { useNativeTrading } from '@/lib/native-trading';
+import { useWalletTotalUsd } from './NativeBalancesList';
 
 /**
  * The signed-in header's balance (2026-10-03, user's spec): one USDC total across Base, BNB
@@ -18,7 +20,11 @@ export function UsdcBalancePill() {
   const { authenticated } = usePrivy();
   const { address } = useAccount();
   const { wallets } = useSolanaWallets();
-  const { total } = useUsdcBalances(address, wallets[0]?.address);
+  const { total: usdcTotal } = useUsdcBalances(address, wallets[0]?.address);
+  // 2026-11-01: with native-coin trading, the pill is every coin's dollar value plus any USDC.
+  const native = useNativeTrading();
+  const walletTotal = useWalletTotalUsd();
+  const total = native ? walletTotal : usdcTotal;
   const { hidden } = useBalanceVisibility();
   const [open, setOpen] = useState(false);
 

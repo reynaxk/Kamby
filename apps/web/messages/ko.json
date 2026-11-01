@@ -1776,7 +1776,10 @@
     "cat_chaos": "속도 & 혼돈",
     "cat_flex": "커뮤니티 & 플렉스",
     "cat_easter": "이스터 에그",
-    "feedback": "피드백 보내기"
+    "feedback": "피드백 보내기",
+    "payNative": "SOL / ETH / BNB로 거래 (베타)",
+    "on": "켜짐",
+    "off": "꺼짐"
   },
   "trenchesPage": {
     "title": "트렌치",
@@ -1803,5 +1806,11 @@
     "sub": "모든 체인의 트렌딩 코인과 관심 목록.",
     "trending": "트렌딩",
     "watchlist": "관심 목록"
+  },
+  "nativePay": {
+    "payNative": "SOL / ETH / BNB로 거래 (베타)",
+    "payNativeHint": "USDC 대신 각 체인의 코인으로 사고팔아요 — 네트워크 수수료는 직접 내요.",
+    "on": "켜짐",
+    "off": "꺼짐"
   }
 }

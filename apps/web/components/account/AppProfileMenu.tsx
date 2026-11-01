@@ -8,8 +8,10 @@ import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { useAccount } from 'wagmi';
 import { useTranslations } from 'next-intl';
-import { Bell, ChevronRight, Copy, Eye, Gift, History, LogOut, MessageSquareHeart, Pencil, Star, User } from 'lucide-react';
+import { Bell, ChevronRight, Coins, Copy, Eye, Gift, History, LogOut, MessageSquareHeart, Pencil, Star, User } from 'lucide-react';
 import { sendAchievementEvent } from '@/lib/achievements-client';
+import { setNativeTrading, useNativeTrading } from '@/lib/native-trading';
+import { NativeBalancesList, useWalletTotalUsd } from '@/components/wallet/NativeBalancesList';
 import { LEGAL_CONTACT_EMAIL } from '@/lib/legal';
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
@@ -54,6 +56,9 @@ export function AppProfileMenu() {
   const balances = useUsdcBalances(address, wallets[0]?.address);
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
+  // 2026-11-01: with native-coin trading, cash is every coin's dollar value plus any USDC.
+  const native = useNativeTrading();
+  const walletTotal = useWalletTotalUsd();
 
   useEffect(() => {
     if (!authenticated) return;
@@ -97,7 +102,7 @@ export function AppProfileMenu() {
   }
 
   const name = profile?.username ? `@${profile.username}` : tU('yourAccount_f2fc');
-  const cash = balances.total;
+  const cash = native ? walletTotal : balances.total;
   const held = positions?.reduce((sum, p) => sum + (p.currentValueUsd ?? 0), 0) ?? 0;
   const openPnl = positions?.reduce((sum, p) => sum + (p.unrealizedPnlUsd ?? 0), 0) ?? 0;
   const total = cash === null ? null : cash + held;
@@ -159,6 +164,8 @@ export function AppProfileMenu() {
         <SendButton variant="pill" toUser />
       </div>
 
+      {native && <NativeBalancesList className="mt-5" />}
+
       {/* Titles (2026-11-01). */}
       <AchievementsShowcase own username={profile?.username ?? null} className="mt-6" />
 
@@ -200,6 +207,8 @@ export function AppProfileMenu() {
             <MenuLink href="/notifications" icon={<Bell />} label={t('menu_notifications')} />
             <MenuLink href="/referrals" icon={<Gift />} label={t('menu_referrals')} />
             <InstallAppRow />
+            {/* Native-coin trading (beta, 2026-11-01): trades pay with SOL / ETH / BNB. */}
+            <MenuButton icon={<Coins />} label={`${tA('payNative')}: ${native ? tA('on') : tA('off')}`} onClick={() => setNativeTrading(!native)} />
             {/* Feedback to the team (2026-11-01) — also the "To the Moon" title. */}
             <MenuButton
               icon={<MessageSquareHeart />}

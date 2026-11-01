@@ -2,14 +2,17 @@
 
 import { useRef, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { useSignTransaction, useWallets } from '@privy-io/react-auth/solana';
+import { useSignAndSendTransaction, useSignTransaction, useWallets } from '@privy-io/react-auth/solana';
+import bs58 from 'bs58';
 import { useTranslations } from 'next-intl';
 import { MIN_TRADE_USD } from '@kamby/domain';
 import { useTerminalToast } from '@/components/terminal/ToastProvider';
 import { useSolanaWalletVerification } from '@/hooks/useSolanaWalletVerification';
 import { friendlyError } from '@/lib/friendly-error';
 import { notifyTradeConfirmed } from '@/lib/my-positions';
-import { getSolanaTransaction, getSponsoredSolanaQuote, submitSponsoredSolanaTransaction } from '@/lib/solana-trading-client';
+import { getSolanaQuote, getSolanaTransaction, getSponsoredSolanaQuote, submitSolanaTransaction, submitSponsoredSolanaTransaction } from '@/lib/solana-trading-client';
+import { useNativeTrading } from '@/lib/native-trading';
+import { useMajorPrices } from '@/lib/use-native-balances';
 import { markStep } from '@/lib/onboarding';
 import { useCrossChainFunding } from '@/lib/use-cross-chain-funding';
 
@@ -45,6 +48,11 @@ export function useQuickSolanaBuy(amountUsd: number) {
   const wallet = wallets[0];
   const verification = useSolanaWalletVerification();
   const { signTransaction } = useSignTransaction();
+  const { signAndSendTransaction } = useSignAndSendTransaction();
+  // Native-coin trading (2026-11-01): the $ amount is paid in SOL at its live price, and the
+  // wallet pays its own network fee (no relayer).
+  const payNative = useNativeTrading();
+  const solUsd = useMajorPrices(payNative).SOL;
   const toast = useTerminalToast();
   const funding = useCrossChainFunding('solana', amountUsd);
   const [busy, setBusy] = useState<string | null>(null);
@@ -64,8 +72,45 @@ export function useQuickSolanaBuy(amountUsd: number) {
     }
     busyRef.current = true;
     setBusy(mint);
-    const id = toast.push({ variant: 'pending', title: t('buying', { token: label }), description: `$${amountUsd}` });
+    const id = toast.push({ variant: 'pending', title: t('buying', { token: label }), description: `${amountUsd}` });
+    // Until it confirms (or a minute passes, then it says it's still on its way).
+    const waitFor = async (txId: string, solscanUrl: string) => {
+      toast.update(id, { title: tTrade('toastSubmitted'), description: tTrade('toastWaitingNetwork'), solscanUrl });
+      const startedAt = Date.now();
+      for (;;) {
+        await new Promise((r) => setTimeout(r, 1_000));
+        const latest = await getSolanaTransaction(txId).catch(() => null);
+        if (latest?.status === 'CONFIRMED') {
+          notifyTradeConfirmed();
+          toast.update(id, { variant: 'success', title: t('bought', { token: label }), description: `${amountUsd}`, solscanUrl });
+          markStep('traded');
+          return;
+        }
+        if (latest?.status === 'FAILED' || latest?.status === 'EXPIRED') throw new Error(latest.failureReason ?? tTrade('toastFailed'));
+        if (Date.now() - startedAt > 60_000) {
+          toast.update(id, { variant: 'success', title: tTrade('toastSubmitted'), description: tTrade('toastWaitingNetwork'), solscanUrl });
+          return;
+        }
+      }
+    };
     try {
+      if (payNative) {
+        if (!solUsd) throw new Error(tTrade('toastFailed'));
+        const quote = await getSolanaQuote({
+          side: 'BUY',
+          tokenMint: mint,
+          walletAddress: wallet.address,
+          amount: String(Math.round((amountUsd / solUsd) * 1e9)),
+          slippageBps: QUICK_SLIPPAGE_BPS,
+          payWith: 'native',
+        });
+        if ((quote.priceImpactBps ?? 0) >= MAX_IMPACT_BPS) throw new Error(t('impactHigh'));
+        toast.update(id, { description: tTrade('confirmInWalletDots') });
+        const sent = await signAndSendTransaction({ transaction: b64ToBytes(quote.unsignedTxBase64), wallet });
+        const sentTx = await submitSolanaTransaction({ quoteId: quote.id, walletAddress: wallet.address, signature: bs58.encode(sent.signature) });
+        await waitFor(sentTx.id, `https://solscan.io/tx/${sentTx.signature}`);
+        return;
+      }
       const have = funding.balances.solana;
       if (have !== null && have < amountUsd) {
         if (!funding.canCover) throw new Error(t('notEnough'));
@@ -83,24 +128,7 @@ export function useQuickSolanaBuy(amountUsd: number) {
       toast.update(id, { description: tTrade('confirmInWalletDots') });
       const { signedTransaction } = await signTransaction({ transaction: b64ToBytes(quote.unsignedTxBase64), wallet });
       const tx = await submitSponsoredSolanaTransaction({ quoteId: quote.id, walletAddress: wallet.address, partiallySignedTxBase64: bytesToB64(signedTransaction) });
-      const solscanUrl = `https://solscan.io/tx/${tx.signature}`;
-      toast.update(id, { title: tTrade('toastSubmitted'), description: tTrade('toastWaitingNetwork'), solscanUrl });
-      const startedAt = Date.now();
-      for (;;) {
-        await new Promise((r) => setTimeout(r, 1_000));
-        const latest = await getSolanaTransaction(tx.id).catch(() => null);
-        if (latest?.status === 'CONFIRMED') {
-          notifyTradeConfirmed();
-          toast.update(id, { variant: 'success', title: t('bought', { token: label }), description: `$${amountUsd}`, solscanUrl });
-          markStep('traded');
-          break;
-        }
-        if (latest?.status === 'FAILED' || latest?.status === 'EXPIRED') throw new Error(latest.failureReason ?? tTrade('toastFailed'));
-        if (Date.now() - startedAt > 60_000) {
-          toast.update(id, { variant: 'success', title: tTrade('toastSubmitted'), description: tTrade('toastWaitingNetwork'), solscanUrl });
-          break;
-        }
-      }
+      await waitFor(tx.id, `https://solscan.io/tx/${tx.signature}`);
     } catch (err) {
       toast.update(id, { variant: 'error', title: tTrade('toastFailed'), description: friendlyError(err) });
     } finally {

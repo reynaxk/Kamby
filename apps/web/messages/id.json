@@ -1776,7 +1776,10 @@
     "cat_chaos": "Cepat & kacau",
     "cat_flex": "Komunitas & pamer",
     "cat_easter": "Easter egg",
-    "feedback": "Kirim masukan"
+    "feedback": "Kirim masukan",
+    "payNative": "Trading pakai SOL / ETH / BNB (beta)",
+    "on": "Nyala",
+    "off": "Mati"
   },
   "trenchesPage": {
     "title": "Trenches",
@@ -1803,5 +1806,11 @@
     "sub": "Koin trending di semua chain dan watchlist-mu.",
     "trending": "Trending",
     "watchlist": "Watchlist"
+  },
+  "nativePay": {
+    "payNative": "Trading pakai SOL / ETH / BNB (beta)",
+    "payNativeHint": "Beli dan jual dengan koin tiap chain, bukan USDC — kamu bayar biaya jaringan.",
+    "on": "Nyala",
+    "off": "Mati"
   }
 }

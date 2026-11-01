@@ -1776,7 +1776,10 @@
     "cat_chaos": "Velocidade e caos",
     "cat_flex": "Comunidade e flex",
     "cat_easter": "Easter eggs",
-    "feedback": "Enviar feedback"
+    "feedback": "Enviar feedback",
+    "payNative": "Negociar com SOL / ETH / BNB (beta)",
+    "on": "Ligado",
+    "off": "Desligado"
   },
   "trenchesPage": {
     "title": "Trenches",
@@ -1803,5 +1806,11 @@
     "sub": "Moedas em alta em toda rede e sua watchlist.",
     "trending": "Em alta",
     "watchlist": "Watchlist"
+  },
+  "nativePay": {
+    "payNative": "Negociar com SOL / ETH / BNB (beta)",
+    "payNativeHint": "Compre e venda com a moeda de cada rede em vez de USDC — você paga a taxa de rede.",
+    "on": "Ligado",
+    "off": "Desligado"
   }
 }

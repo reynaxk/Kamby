@@ -1776,7 +1776,10 @@
     "cat_chaos": "速度与混乱",
     "cat_flex": "社区与炫耀",
     "cat_easter": "彩蛋",
-    "feedback": "发送反馈"
+    "feedback": "发送反馈",
+    "payNative": "使用 SOL / ETH / BNB 交易（测试版）",
+    "on": "开",
+    "off": "关"
   },
   "trenchesPage": {
     "title": "战壕",
@@ -1803,5 +1806,11 @@
     "sub": "各链的趋势代币和你的自选。",
     "trending": "趋势",
     "watchlist": "自选"
+  },
+  "nativePay": {
+    "payNative": "使用 SOL / ETH / BNB 交易（测试版）",
+    "payNativeHint": "用各链自己的币而不是 USDC 买卖 — 网络费由你支付。",
+    "on": "开",
+    "off": "关"
   }
 }

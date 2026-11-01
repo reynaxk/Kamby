@@ -1776,7 +1776,10 @@
     "cat_chaos": "Speed & Chaos",
     "cat_flex": "Community & Flex",
     "cat_easter": "Easter eggs",
-    "feedback": "Send feedback"
+    "feedback": "Send feedback",
+    "payNative": "Trade with SOL / ETH / BNB (beta)",
+    "on": "On",
+    "off": "Off"
   },
   "trenchesPage": {
     "title": "Trenches",
@@ -1803,5 +1806,11 @@
     "sub": "Trending coins on every chain, and your watchlist.",
     "trending": "Trending",
     "watchlist": "Watchlist"
+  },
+  "nativePay": {
+    "payNative": "Trade with SOL / ETH / BNB (beta)",
+    "payNativeHint": "Buy and sell with each chain's own coin instead of USDC — you pay the network fee.",
+    "on": "On",
+    "off": "Off"
   }
 }

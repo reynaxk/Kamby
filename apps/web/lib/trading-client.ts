@@ -30,6 +30,8 @@ export interface GetQuoteParams {
    *  design — see `EvmGasRelayerQuoteService#attachSponsorshipIfEligible`'s own doc
    *  comment. Optional, defaults to no request sent (the existing self-paid behavior). */
   sponsorshipRequested?: boolean;
+  /** 2026-11-01: pay with / sell into the chain's own ETH or BNB. */
+  payWith?: 'native';
 }
 
 export async function getQuote(params: GetQuoteParams): Promise<TradeQuoteDto> {
@@ -42,6 +44,7 @@ export async function getQuote(params: GetQuoteParams): Promise<TradeQuoteDto> {
     slippageBps: String(params.slippageBps),
   });
   if (params.sponsorshipRequested) query.set('sponsorshipRequested', 'true');
+  if (params.payWith) query.set('payWith', params.payWith);
   const res = await authedFetch(`/trade/quote?${query.toString()}`);
   await expectOk(res, 'get a quote');
   return res.json();
