@@ -26,6 +26,7 @@ export function MarketHeader({
   searchValue,
   expectedWalletChainId,
   wide = false,
+  search = true,
   className,
 }: {
   searchValue?: string;
@@ -41,6 +42,8 @@ export function MarketHeader({
   /** Use the wider terminal shell on dense discovery surfaces without changing the
    * narrower content rhythm used by the rest of the app. */
   wide?: boolean;
+  /** false: no search bar (pages where it adds nothing, e.g. Predictions — owner 2026-11-01). */
+  search?: boolean;
   /** Extra classes on the header itself — e.g. hiding it under a page's own phone screen. */
   className?: string;
 }) {
@@ -64,7 +67,7 @@ export function MarketHeader({
             Keyed on the server-known term so navigating between searches (or back to plain
             Discover) fully remounts SearchBar and resets its typeahead state. */}
         <div className={`order-last w-full sm:order-none ${wide ? 'sm:mx-auto sm:max-w-xl sm:flex-1' : sideNav ? 'sm:ml-auto sm:w-auto lg:ml-0 lg:mr-auto lg:max-w-xl lg:flex-1' : 'sm:ml-auto sm:w-auto'}`}>
-          <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />
+          {search && <SearchBar key={searchValue ?? ''} defaultValue={searchValue} />}
         </div>
         <div className={`ml-auto flex items-center gap-2 sm:ml-0 ${wide ? 'kamby-header-actions' : 'sm:gap-3'}`}>
           {/* Messages has its own place in the left menu from lg up (owner 2026-10-31) — here only for tablets. */}

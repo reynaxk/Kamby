@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { PREDICTION_CATEGORIES, PREDICTION_LIMITS, type Prediction, type PredictionCategory, type PredictionFilter, type PredictionsPage } from '@kamby/domain';
+import { PREDICTION_LIMITS, type Prediction, type PredictionCategory, type PredictionFilter, type PredictionsPage } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { Skeleton } from '@/components/market/Skeleton';
@@ -10,23 +10,12 @@ import { friendlyError } from '@/lib/friendly-error';
 import { createPrediction, fetchPredictions, subscribePredictions } from '@/lib/predictions-client';
 import { PredictionCard } from './PredictionCard';
 
-const FILTERS: PredictionFilter[] = ['all', 'ending', 'popular', 'streamers', 'mine'];
-
 /** Exported for tests. Folds a live update into the list (counts, outcome); unknown ids are ignored. */
 export function applyUpdate(list: Prediction[], u: { id: string; counts: number[]; total: number; status?: Prediction['status']; resolvedOptionIndex?: number | null }): Prediction[] {
   return list.map((p) =>
     p.id === u.id
       ? { ...p, counts: u.counts, total: u.total, ...(u.status && { status: u.status }), ...(u.resolvedOptionIndex !== undefined && { resolvedOptionIndex: u.resolvedOptionIndex }) }
       : p,
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface px-4 py-3">
-      <p className="font-mono text-[0.6rem] uppercase tracking-wide text-ink-400">{label}</p>
-      <p className="mt-0.5 font-display text-xl font-extrabold tabular-nums text-ink-900">{value}</p>
-    </div>
   );
 }
 
@@ -90,11 +79,12 @@ function AskSheet({ open, onClose, onCreated }: { open: boolean; onClose: () => 
   );
 }
 
-/** The Predictions page: today's numbers, filters, categories, and the polls — live. */
+/** The Predictions page: the polls, live, in one endless list. */
 export function PredictionsView() {
   const t = useTranslations('predictions');
-  const [filter, setFilter] = useState<PredictionFilter>('all');
-  const [category, setCategory] = useState<PredictionCategory | undefined>(undefined);
+  // Just the list (owner 2026-11-01: no title, stats or filter rows).
+  const filter: PredictionFilter = 'all';
+  const category: PredictionCategory | undefined = undefined;
   const [page, setPage] = useState<PredictionsPage | null>(null);
   const [failed, setFailed] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -148,39 +138,14 @@ export function PredictionsView() {
     }
   }
 
-  const chip = (on: boolean) => cn('h-9 shrink-0 rounded-full border px-3.5 font-display text-xs font-bold transition-colors', on ? 'border-accent/40 bg-accent/10 text-accent' : 'border-line bg-surface text-ink-600 hover:text-ink-900');
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2 md:gap-3">
-        <Stat label={t('statVotes')} value={page ? page.stats.votesToday : '—'} />
-        <Stat label={t('statOpen')} value={page ? page.stats.active : '—'} />
-        <Stat label={t('statMine')} value={page ? page.stats.myVotes : '—'} />
-      </div>
-      <div className="flex items-center gap-2">
-        <div role="tablist" aria-label={t('title')} className="-mx-4 flex min-w-0 flex-1 gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
-          {FILTERS.map((f) => (
-            <button key={f} type="button" role="tab" aria-selected={filter === f} onClick={() => setFilter(f)} className={chip(filter === f)}>
-              {t(`filter_${f}`)}
-            </button>
-          ))}
-        </div>
-        {page?.canCreate && (
-          <button type="button" onClick={() => setAsking(true)} className="h-9 shrink-0 rounded-full bg-accent px-4 font-display text-xs font-black text-black">
-            + {t('ask')}
-          </button>
-        )}
-      </div>
-      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
-        <button type="button" onClick={() => setCategory(undefined)} aria-pressed={!category} className={chip(!category)}>
-          {t('cat_all')}
+      {page?.canCreate && (
+        <button type="button" onClick={() => setAsking(true)} className="h-9 self-end rounded-full bg-accent px-4 font-display text-xs font-black text-black">
+          + {t('ask')}
         </button>
-        {PREDICTION_CATEGORIES.map((c) => (
-          <button key={c} type="button" onClick={() => setCategory(c)} aria-pressed={category === c} className={chip(category === c)}>
-            {t(`cat_${c}`)}
-          </button>
-        ))}
-      </div>
+      )}
 
       {failed ? (
         <p className="rounded-2xl border border-line bg-surface px-5 py-8 text-center font-body text-sm text-ink-400">{t('failed')}</p>
@@ -191,7 +156,7 @@ export function PredictionsView() {
           ))}
         </div>
       ) : page.items.length === 0 ? (
-        <p className="rounded-2xl border border-line bg-surface px-5 py-8 text-center font-body text-sm text-ink-400">{filter === 'mine' ? t('emptyMine') : t('empty')}</p>
+        <p className="rounded-2xl border border-line bg-surface px-5 py-8 text-center font-body text-sm text-ink-400">{t('empty')}</p>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {page.items.map((p) => (

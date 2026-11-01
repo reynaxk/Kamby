@@ -16,14 +16,9 @@ export default async function PredictionsPage() {
   const t = await getTranslations('predictions');
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader className="max-md:hidden" />
+      <MarketHeader className="max-md:hidden" search={false} />
       <AppBackBar title={t('title')} fallback="/home" />
       <main className="mx-auto max-w-[1400px] px-6 py-8 max-md:px-4 max-md:pt-2">
-        <h1 className="flex items-center gap-2 font-display text-2xl font-extrabold text-ink-900 max-md:hidden">
-          <span aria-hidden>🎯</span>
-          {t('title')}
-        </h1>
-        <p className="mb-5 mt-1 font-body text-sm text-ink-400">{t('subtitle')}</p>
         <WidgetBoundary name="predictions">
           <PredictionsView />
         </WidgetBoundary>
