@@ -10,7 +10,7 @@ import { fetchConversations, openConversation, useDmUnread } from '@/lib/dm-clie
 import { subscribePrivateStream } from '@/lib/private-stream';
 import { hasStoredSession } from '@/lib/session-client';
 import { friendlyError } from '@/lib/friendly-error';
-import { formatRelativeTime } from '@/lib/format';
+import { formatAge } from '@/lib/format';
 import { fetchPeopleResults, type PersonResult } from '@/lib/market-client';
 import { useMyUsername } from '@/lib/use-my-username';
 import { DmAvatar } from './DmAvatar';
@@ -329,7 +329,7 @@ export function DmInbox() {
                   </span>
                 </span>
                 <span className="flex shrink-0 flex-col items-end gap-1">
-                  {c.lastMessage && <span className="font-body text-[0.68rem] text-ink-400">{formatRelativeTime(c.lastMessage.createdAt)}</span>}
+                  {c.lastMessage && <span className="shrink-0 whitespace-nowrap font-body text-[0.68rem] text-ink-400">{formatAge(c.lastMessage.createdAt)}</span>}
                   {c.unread > 0 && (
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-body text-[0.65rem] font-bold text-black">{c.unread > 99 ? '99+' : c.unread}</span>
                   )}

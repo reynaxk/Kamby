@@ -164,9 +164,9 @@ export function MobileCoinScreen({
                 );
               }}
               title={address}
-              className="flex max-w-full items-center gap-1 font-body text-xs text-ink-400 active:text-accent"
+              className="flex min-w-0 max-w-full items-center gap-1 whitespace-nowrap font-body text-xs text-ink-400 active:text-accent"
             >
-              <span className="tabular-nums">{`${address.slice(0, 4)}…${address.slice(-4)}`}</span>
+              <span className="shrink-0 tabular-nums">{`${address.slice(0, 4)}…${address.slice(-4)}`}</span>
               {copied ? (
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent" aria-hidden>
                   <path d="M20 6 9 17l-5-5" />
