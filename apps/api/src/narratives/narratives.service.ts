@@ -26,7 +26,7 @@ export const NARRATIVES_REFRESH_MS = 30_000;
 const DEX_CHAIN: Record<string, string> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bsc', 'eip155:4663': 'robinhood' };
 const DEX_BATCH = 30;
 const FETCH_TIMEOUT_MS = 5_000;
-const TOKENS_PER_NARRATIVE = 10;
+const TOKENS_PER_NARRATIVE = 25;
 const TOP_TRADERS = 50;
 
 /** The parts of a DexScreener pair this reads. */

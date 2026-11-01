@@ -17,9 +17,10 @@ import { PredictionsService } from './predictions.service';
 
 const GENERATE_EVERY_MS = 2 * 3600_000;
 const RESOLVE_EVERY_MS = 2 * 60_000;
-const POLL_HOURS = 24;
+/** Kamby keeps about this many automatic polls open at once. */
+const OPEN_AUTO_CAP = 300;
 /** A coin needs this much in its pools before Kamby asks about its price. */
-const MIN_LIQUIDITY_USD = 250_000;
+const MIN_LIQUIDITY_USD = 100_000;
 /** Give up on a poll whose price can't be read this long after it ends. */
 const GIVE_UP_MS = 6 * 3600_000;
 const DEX_CHAIN: Record<string, string> = { solana: 'solana', 'eip155:8453': 'base', 'eip155:56': 'bsc', 'eip155:4663': 'robinhood' };
@@ -50,98 +51,176 @@ export interface Draft {
   source: 'AUTO_PRICE' | 'AUTO_NEWS' | 'AUTO_GAINER';
   coin?: { chainIdentifier: string; tokenAddress: string };
   meta: Record<string, unknown>;
+  /** How long the poll stays open. */
+  hours: number;
   dedupeKey: string;
 }
 
-/** Exported for tests. The polls one generator run asks, from real prices, narratives and news. */
+const MILESTONES = [1, 2, 5].flatMap((m) => [1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12].map((x) => m * x)).sort((a, b) => a - b);
+
+/** "$50M" / "$1.2B" — market-cap milestones in titles. */
+function compactUsd(v: number): string {
+  const [div, unit] = v >= 1e12 ? [1e12, 'T'] : v >= 1e9 ? [1e9, 'B'] : [1e6, 'M'];
+  return `$${Number((v / div).toFixed(1))}${unit}`;
+}
+
+/**
+ * Exported for tests. Every poll one generator run could ask, from real prices, narratives and
+ * news (2026-11-01: up to ~300 at once). Each `stem` — template + coin — is asked at most once
+ * at a time; the generator skips stems that still have an open poll, so no two open polls are
+ * the same question. Interleaved by template so a page never shows 30 of one kind in a row.
+ */
 export function draftPolls(snapshot: NarrativesSnapshot, news: NewsItem[], block: string): Draft[] {
   const tokens = new Map<string, NarrativeToken>();
   for (const n of snapshot.narratives) for (const t of n.tokens) tokens.set(newsTokenKey(t.chainIdentifier, t.tokenAddress), t);
-  const liquid = [...tokens.values()].filter((t) => (t.liquidityUsd ?? 0) >= MIN_LIQUIDITY_USD && (t.priceUsd ?? 0) > 0);
-  const hottest = [...liquid].sort((a, b) => b.heat - a.heat);
-  const drafts: Draft[] = [];
+  const liquid = [...tokens.values()].filter((t) => (t.liquidityUsd ?? 0) >= MIN_LIQUIDITY_USD && (t.priceUsd ?? 0) > 0).sort((a, b) => b.heat - a.heat);
   const coinOf = (t: NarrativeToken) => ({ chainIdentifier: t.chainIdentifier, tokenAddress: t.tokenAddress });
-  const k = (template: string, t?: NarrativeToken) => `${template}:${t ? newsTokenKey(t.chainIdentifier, t.tokenAddress) : 'all'}:${block}`;
+  const id = (t: NarrativeToken) => newsTokenKey(t.chainIdentifier, t.tokenAddress);
+  const k = (stem: string) => `${stem}|${block}`;
+  const lanes: Draft[][] = [];
+  const lane = (): Draft[] => {
+    const l: Draft[] = [];
+    lanes.push(l);
+    return l;
+  };
+  const up = lane();
+  const down = lane();
+  const greenRed = lane();
+  const ranges = lane();
+  const mcap = lane();
+  const versus = lane();
+  const groups = lane();
 
-  // Binary: the two hottest coins, 5% up.
-  for (const t of hottest.slice(0, 2)) {
-    const target = t.priceUsd! * 1.05;
-    drafts.push({
-      title: `Will ${sym(t)} be above ${usd(target)} in 24 hours?`,
+  for (const [i, t] of liquid.entries()) {
+    const p = t.priceUsd!;
+    const swing = Math.abs(t.change24hPct ?? 0);
+    // A step that fits the coin: majors move 5%, hot memes 20%.
+    const step = swing >= 15 ? 0.2 : swing >= 6 ? 0.1 : 0.05;
+    const pct = Math.round(step * 100);
+    up.push({
+      title: `Will ${sym(t)} be above ${usd(p * (1 + step))} in 12 hours?`,
       category: categoryOf(t),
       kind: 'BINARY',
       options: ['Yes', 'No'],
       resolutionType: 'PRICE_TARGET',
       source: 'AUTO_PRICE',
       coin: coinOf(t),
-      meta: { threshold: target, symbol: t.symbol, yesIs: 0 },
-      dedupeKey: k('above5', t),
+      meta: { threshold: p * (1 + step), symbol: t.symbol, yesIs: 0 },
+      hours: 12,
+      dedupeKey: k(`up:${id(t)}`),
     });
-  }
-  // Over / under and ranges on the deepest coin.
-  const deepest = [...liquid].sort((a, b) => (b.liquidityUsd ?? 0) - (a.liquidityUsd ?? 0))[0];
-  if (deepest) {
-    const p = deepest.priceUsd!;
-    drafts.push({
-      title: `${sym(deepest)} in 24 hours: over or under ${usd(p)}?`,
-      category: categoryOf(deepest),
-      kind: 'OVER_UNDER',
-      options: [`Over ${usd(p)}`, `Under ${usd(p)}`],
+    down.push({
+      title: `Will ${sym(t)} drop ${pct}% (below ${usd(p * (1 - step))}) in the next 10 hours?`,
+      category: categoryOf(t),
+      kind: 'BINARY',
+      options: ['Yes', 'No'],
       resolutionType: 'PRICE_TARGET',
       source: 'AUTO_PRICE',
-      coin: coinOf(deepest),
-      meta: { threshold: p, symbol: deepest.symbol, yesIs: 0 },
-      dedupeKey: k('overunder', deepest),
+      coin: coinOf(t),
+      meta: { threshold: p * (1 - step), below: true, symbol: t.symbol, yesIs: 0 },
+      hours: 10,
+      dedupeKey: k(`down:${id(t)}`),
     });
-    const lo = p * 0.97;
-    const hi = p * 1.03;
-    drafts.push({
-      title: `Where will ${sym(deepest)} be in 24 hours?`,
-      category: categoryOf(deepest),
+    greenRed.push({
+      title: `${sym(t)} in 10 hours: green or red from ${usd(p)}?`,
+      category: categoryOf(t),
+      kind: 'OVER_UNDER',
+      options: ['🟢 Green', '🔴 Red'],
+      resolutionType: 'PRICE_TARGET',
+      source: 'AUTO_PRICE',
+      coin: coinOf(t),
+      meta: { threshold: p, symbol: t.symbol, yesIs: 0 },
+      hours: 10,
+      dedupeKey: k(`greenred:${id(t)}`),
+    });
+    const lo = p * (1 - step / 2);
+    const hi = p * (1 + step / 2);
+    ranges.push({
+      title: `Where will ${sym(t)} be in 12 hours?`,
+      category: categoryOf(t),
       kind: 'RANGES',
       options: [`Below ${usd(lo)}`, `${usd(lo)} – ${usd(hi)}`, `Above ${usd(hi)}`],
       resolutionType: 'PRICE_RANGE',
       source: 'AUTO_PRICE',
-      coin: coinOf(deepest),
-      meta: { bounds: [lo, hi], symbol: deepest.symbol },
-      dedupeKey: k('ranges', deepest),
+      coin: coinOf(t),
+      meta: { bounds: [lo, hi], symbol: t.symbol },
+      hours: 12,
+      dedupeKey: k(`ranges:${id(t)}`),
     });
+    // The next round market cap — only when it's within reach (≤ +50%).
+    const mc = t.marketCapUsd ?? 0;
+    const milestone = MILESTONES.find((m) => m > mc);
+    if (mc > 0 && milestone && milestone <= mc * 1.5) {
+      const threshold = p * (milestone / mc);
+      mcap.push({
+        title: `Will ${sym(t)} reach a ${compactUsd(milestone)} market cap in 12 hours?`,
+        category: categoryOf(t),
+        kind: 'BINARY',
+        options: ['Yes', 'No'],
+        resolutionType: 'PRICE_TARGET',
+        source: 'AUTO_PRICE',
+        coin: coinOf(t),
+        meta: { threshold, symbol: t.symbol, yesIs: 0, marketCapUsd: milestone },
+        hours: 12,
+        dedupeKey: k(`mcap:${id(t)}`),
+      });
+    }
+    // Head to head with the next coin of the same kind.
+    const rival = liquid.slice(i + 1).find((r) => categoryOf(r) === categoryOf(t) && r.symbol !== t.symbol);
+    if (rival) {
+      versus.push({
+        title: `${sym(t)} vs ${sym(rival)}: which gains more in the next 10 hours?`,
+        category: categoryOf(t),
+        kind: 'MULTI_CHOICE',
+        options: [sym(t), sym(rival)],
+        resolutionType: 'TOP_GAINER',
+        source: 'AUTO_GAINER',
+        meta: { coins: [t, rival].map((c) => ({ ...coinOf(c), start: c.priceUsd })) },
+        hours: 10,
+        dedupeKey: k(`vs:${id(t)}:${id(rival)}`),
+      });
+    }
   }
-  // Multi-choice: which of the hottest narrative's coins gains most.
-  const top = snapshot.narratives[0];
-  const field = top?.tokens.filter((t) => (t.liquidityUsd ?? 0) >= MIN_LIQUIDITY_USD / 5 && (t.priceUsd ?? 0) > 0).slice(0, 4) ?? [];
-  if (top && field.length >= 3) {
-    drafts.push({
-      title: `${top.emoji} ${top.name}: which gains the most in the next 24 hours?`,
-      category: top.id === 'ai-agents' ? 'ai' : MEME_NARRATIVES.has(top.id) ? 'memes' : 'crypto',
+
+  // Each narrative: which of its coins gains most.
+  for (const n of snapshot.narratives) {
+    const field = n.tokens.filter((t) => (t.liquidityUsd ?? 0) >= MIN_LIQUIDITY_USD / 2 && (t.priceUsd ?? 0) > 0).slice(0, 4);
+    if (field.length < 3) continue;
+    groups.push({
+      title: `${n.emoji} ${n.name}: which gains the most in the next 12 hours?`,
+      category: n.id === 'ai-agents' ? 'ai' : MEME_NARRATIVES.has(n.id) ? 'memes' : 'crypto',
       kind: 'MULTI_CHOICE',
       options: field.map(sym),
       resolutionType: 'TOP_GAINER',
       source: 'AUTO_GAINER',
       meta: { coins: field.map((t) => ({ ...coinOf(t), start: t.priceUsd })) },
-      dedupeKey: k(`gainer-${top.id}`),
+      hours: 12,
+      dedupeKey: k(`gainer-${n.id}`),
     });
   }
-  // Narrative: does the hottest stay on top?
+  // Does the hottest narrative stay on top?
+  const top = snapshot.narratives[0];
   if (top && snapshot.narratives.length >= 3) {
-    drafts.push({
-      title: `Will ${top.name} still be the hottest narrative on Kamby in 24 hours?`,
+    groups.push({
+      title: `Will ${top.name} still be the hottest narrative on Kamby in 12 hours?`,
       category: top.id === 'ai-agents' ? 'ai' : MEME_NARRATIVES.has(top.id) ? 'memes' : 'crypto',
       kind: 'BINARY',
       options: ['Yes', 'No'],
       resolutionType: 'NARRATIVE_TOP',
       source: 'AUTO_GAINER',
       meta: { narrativeId: top.id },
+      hours: 12,
       dedupeKey: k(`narrative-${top.id}`),
     });
   }
-  // News: a fresh headline about a liquid coin.
-  for (const item of news.slice(0, 20)) {
+  // News: fresh headlines about liquid coins, one per headline.
+  const headlines = lane();
+  for (const item of news.slice(0, 30)) {
     const tag = item.tokens.map((tk) => tokens.get(newsTokenKey(tk.chainIdentifier, tk.tokenAddress))).find((t) => t && (t.liquidityUsd ?? 0) >= MIN_LIQUIDITY_USD);
     if (!tag) continue;
     const headline = item.title.length > 70 ? `${item.title.slice(0, 67).trimEnd()}…` : item.title;
-    drafts.push({
-      title: `“${headline}” — will ${sym(tag)} be higher in 24 hours?`,
+    headlines.push({
+      title: `“${headline}” — will ${sym(tag)} be higher in 10 hours?`,
       category: categoryOf(tag) === 'crypto' ? 'macro' : categoryOf(tag),
       kind: 'BINARY',
       options: ['Bullish', 'Bearish'],
@@ -149,24 +228,34 @@ export function draftPolls(snapshot: NarrativesSnapshot, news: NewsItem[], block
       source: 'AUTO_NEWS',
       coin: coinOf(tag),
       meta: { threshold: tag.priceUsd, symbol: tag.symbol, yesIs: 0, newsId: item.id },
+      hours: 10,
       dedupeKey: `news:${item.id}`,
     });
-    break;
+    if (headlines.length >= 8) break;
   }
-  return drafts;
+
+  const out: Draft[] = [];
+  for (let i = 0; lanes.some((l) => i < l.length); i++) for (const l of lanes) if (l[i]) out.push(l[i]!);
+  return out;
+}
+
+/** A draft's "same question" identity — template + coin, without the time block. */
+export function draftStem(dedupeKey: string): string {
+  return dedupeKey.split('|')[0]!;
 }
 
 /** Exported for tests. The winning option for a price poll, given the price at the end. */
 export function resolveByPrice(row: Pick<PredictionRow, 'resolutionType' | 'meta'>, price: number): number | null {
-  const meta = (row.meta ?? {}) as { threshold?: number; bounds?: [number, number] };
-  if (row.resolutionType === 'PRICE_TARGET' && typeof meta.threshold === 'number') return price > meta.threshold ? 0 : 1;
+  const meta = (row.meta ?? {}) as { threshold?: number; below?: boolean; bounds?: [number, number] };
+  if (row.resolutionType === 'PRICE_TARGET' && typeof meta.threshold === 'number') return (meta.below ? price < meta.threshold : price > meta.threshold) ? 0 : 1;
   if (row.resolutionType === 'PRICE_RANGE' && Array.isArray(meta.bounds)) return price < meta.bounds[0] ? 0 : price <= meta.bounds[1] ? 1 : 2;
   return null;
 }
 
 /**
- * Predictions' automation (2026-10-31): every 2 hours it asks a handful of new questions from real
- * data (the hottest coins, the deepest coin, the hottest narrative, a fresh headline); every 2
+ * Predictions' automation (2026-10-31): every 2 hours it tops the open automatic polls back up to
+ * ~300 different questions from real data (each liquid coin's price, market cap and rivals, every
+ * narrative, fresh headlines — 2026-11-01); every 2
  * minutes it closes finished polls — price polls resolve from the coin's own pool price, the
  * narrative poll from the Heat Index, streamers' and users' polls just close. One API instance
  * does each run (Redis lock).
@@ -209,10 +298,16 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
     if ((await this.redis.get('kamby:pred:last-block')) === block) return;
     const [snapshot, newsRaw] = await Promise.all([this.narratives.snapshot(), this.redis.get(NEWS_LATEST_REDIS_KEY).catch(() => null)]);
     const news = newsRaw ? (JSON.parse(newsRaw) as NewsItem[]) : [];
-    const drafts = draftPolls(snapshot, news, block);
-    const expiresAt = new Date(Date.now() + POLL_HOURS * 3600_000);
+    const open = await prisma.prediction.findMany({
+      where: { status: 'ACTIVE', expiresAt: { gt: new Date() }, source: { in: ['AUTO_PRICE', 'AUTO_NEWS', 'AUTO_GAINER'] } },
+      select: { dedupeKey: true },
+    });
+    const asked = new Set(open.map((r) => (r.dedupeKey ? draftStem(r.dedupeKey) : '')));
+    let room = OPEN_AUTO_CAP - open.length;
     let created = 0;
-    for (const d of drafts) {
+    for (const d of draftPolls(snapshot, news, block)) {
+      if (room <= 0) break;
+      if (asked.has(draftStem(d.dedupeKey))) continue;
       const res = await prisma.prediction.createMany({
         data: [
           {
@@ -225,13 +320,14 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
             chainIdentifier: d.coin?.chainIdentifier ?? null,
             tokenAddress: d.coin?.tokenAddress ?? null,
             meta: d.meta as object,
-            expiresAt,
+            expiresAt: new Date(Date.now() + d.hours * 3600_000),
             dedupeKey: d.dedupeKey,
           },
         ],
         skipDuplicates: true,
       });
       created += res.count;
+      room -= res.count;
     }
     await this.redis.set('kamby:pred:last-block', block, 'EX', GENERATE_EVERY_MS / 1000);
     if (created > 0) this.logger.info({ created }, 'Predictions generated');

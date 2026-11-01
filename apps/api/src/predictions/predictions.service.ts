@@ -23,7 +23,7 @@ import { LeaderboardService } from '../social/services/leaderboard.service';
 
 const PAGE = 30;
 const COUNTS_TTL_SECONDS = 3 * 24 * 3600;
-const RECENTLY_RESOLVED_MS = 24 * 3600_000;
+const RECENTLY_RESOLVED_MS = 2 * 3600_000;
 /** A person's own polls running at once. */
 const MAX_OPEN_PER_USER = 3;
 const TOP_TRADERS = 50;
