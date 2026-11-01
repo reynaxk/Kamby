@@ -12,7 +12,8 @@ import { markStep, readStep, START_KEYS } from '@/lib/onboarding';
 /**
  * Home's first-run checklist (2026-10-31, owner: "perfect for someone's first time"): pick a
  * username, add USDC, make a first trade, look around Live and the Feed — ticks itself off,
- * can be closed, and goes away once everything's done.
+ * can be closed, and goes away once everything's done. Since 2026-11-01 (tidy pass) it's one slim
+ * row — progress, the next step and its action — that opens into the full list on tap.
  */
 export function GettingStarted({ cash, holding }: { cash: number | null; holding: boolean }) {
   const t = useTranslations('start');
@@ -21,6 +22,7 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
   const [off, setOff] = useState(true);
   const [traded, setTraded] = useState(false);
   const [explored, setExplored] = useState(false);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     setOff(readStep(START_KEYS.dismissed));
     setTraded(readStep(START_KEYS.traded));
@@ -39,12 +41,19 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
   const next = steps.find((s) => !s.done)!;
 
   return (
-    <section className="mt-4 rounded-2xl border border-accent/20 bg-accent/[0.04] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="font-display text-sm font-extrabold text-ink-900">{t('title')}</p>
-          <p className="font-body text-xs text-ink-600">{t('progress', { done, total: steps.length })}</p>
-        </div>
+    <section className="mt-4 rounded-2xl border border-accent/20 bg-accent/[0.04] px-3.5 py-3">
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+          <span aria-hidden className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-[0.7rem] font-black text-accent" style={{ background: `conic-gradient(#00FF87 ${(done / steps.length) * 360}deg, rgba(255,255,255,0.08) 0)` }}>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-bg">{done}/{steps.length}</span>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-body text-[0.7rem] text-ink-600">{t('title')}</span>
+            <span className="block truncate font-display text-sm font-bold text-ink-900">{next.title}</span>
+          </span>
+          <span aria-hidden className={cn('text-ink-400 transition-transform', open && 'rotate-180')}>⌄</span>
+        </button>
+        {!open && <span className="shrink-0 font-display text-xs font-bold">{next.action}</span>}
         <button
           type="button"
           onClick={() => {
@@ -52,14 +61,12 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
             setOff(true);
           }}
           aria-label={t('close')}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 hover:bg-white/[0.06]"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-400 hover:bg-white/[0.06]"
         >
           ✕
         </button>
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-        <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${(done / steps.length) * 100}%` }} />
-      </div>
+      {open && (
       <ol className="mt-3 flex flex-col gap-1">
         {steps.map((s, i) => (
           <li key={s.key} className={cn('flex items-start gap-3 rounded-xl px-2 py-2', s === next && 'bg-white/[0.03]')}>
@@ -84,6 +91,7 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
           </li>
         ))}
       </ol>
+      )}
     </section>
   );
 }

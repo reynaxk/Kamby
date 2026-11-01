@@ -19,7 +19,7 @@ import { useSteadyOrder } from '@/lib/use-steady-order';
 import { WatchlistTokens } from './WatchlistTokens';
 import { QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { ChainFilter, matchesChain, useChainFilter } from './ChainFilter';
-import { NarrativePills, filterByNarrative } from '@/components/narratives/NarrativePills';
+import { NarrativeMenu, NarrativePills, filterByNarrative } from '@/components/narratives/NarrativePills';
 import { useNarratives } from '@/lib/narratives-client';
 export type PrimaryTab = 'watchlist' | 'alerts' | 'tokens' | 'leaderboard' | 'traders';
 
@@ -269,10 +269,11 @@ export function DiscoverTokenList({
       {primaryTab === 'tokens' && pageScroll && (
         <div className="flex items-center">
           <div className="min-w-0 flex-1 [mask-image:linear-gradient(to_right,black_88%,transparent)]">{tokenChips}</div>
-          {tokenTab !== 'crypto' && <ChainFilter compact value={chainFilter} onChange={setChainFilter} className="shrink-0 !pl-0 max-md:pt-2 md:pt-3" />}
+          {/* Narratives as a chip here too (2026-11-01 tidy pass) — no extra row of pills. */}
+          {narrativeBar && <NarrativeMenu value={narrative} onChange={setNarrative} className="shrink-0 pl-1.5 max-md:pt-2 md:pt-3" />}
+          {tokenTab !== 'crypto' && <ChainFilter compact value={chainFilter} onChange={setChainFilter} className="shrink-0 !pl-1.5 max-md:pt-2 md:pt-3" />}
         </div>
       )}
-      {primaryTab === 'tokens' && pageScroll && narrativeBar && <div className="pt-1.5">{narrativeBar}</div>}
       </div>
 
       <div className={cn('flex min-h-0 flex-1 flex-col gap-1.5', pageScroll && 'max-md:flex-none')}>
