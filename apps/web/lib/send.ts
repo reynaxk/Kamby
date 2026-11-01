@@ -62,7 +62,7 @@ export const SEND_CHAINS: SendChainOption[] = [
   {
     slug: 'bnb',
     kind: 'evm',
-    name: 'BNB Chain',
+    name: 'BSC',
     nativeSymbol: 'BNB',
     evmChainId: 56,
     explorerName: 'BscScan',

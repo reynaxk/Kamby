@@ -4,7 +4,7 @@ import { ChainBadge, type BadgeChain } from '@/components/market/ChainBadge';
 const CHAINS: { id: BadgeChain; name: string }[] = [
   { id: 'solana', name: 'Solana' },
   { id: 'base', name: 'Base' },
-  { id: 'bnb', name: 'BNB Chain' },
+  { id: 'bnb', name: 'BSC' },
   { id: 'robinhood', name: 'Robinhood Chain' },
 ];
 

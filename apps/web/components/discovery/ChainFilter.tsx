@@ -10,7 +10,7 @@ export type ChainFilterValue = 'all' | BadgeChain;
 const CHAINS: { chain: BadgeChain; label: string }[] = [
   { chain: 'solana', label: 'Solana' },
   { chain: 'base', label: 'Base' },
-  { chain: 'bnb', label: 'BNB' },
+  { chain: 'bnb', label: 'BSC' },
   { chain: 'robinhood', label: 'Robinhood' },
 ];
 const STORAGE_KEY = 'kamby:chain-filter';

@@ -126,7 +126,7 @@ describe('LeaderboardSidebar', () => {
     render(<LeaderboardSidebar />);
 
     await user.click(screen.getByRole('button', { name: 'Blockchain' }));
-    for (const name of [/All/, /Solana/, /Base/, /BNB/, /Robinhood/]) expect(screen.getByRole('option', { name })).toBeInTheDocument();
+    for (const name of [/All/, /Solana/, /Base/, /BSC/, /Robinhood/]) expect(screen.getByRole('option', { name })).toBeInTheDocument();
   });
 
   it('refetches with the picked chain, keeping the current window', async () => {
@@ -147,7 +147,7 @@ describe('LeaderboardSidebar', () => {
     render(<LeaderboardSidebar />);
     await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, null));
     await user.click(screen.getByRole('button', { name: 'Blockchain' }));
-    await user.click(screen.getByRole('option', { name: /BNB/ }));
+    await user.click(screen.getByRole('option', { name: /BSC/ }));
     await waitFor(() => expect(fetchLeaderboard).toHaveBeenCalledWith('24h', 15, 'bnb'));
 
     await user.click(screen.getByRole('button', { name: '7D' }));

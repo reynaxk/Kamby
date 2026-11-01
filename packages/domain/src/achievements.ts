@@ -190,8 +190,8 @@ const LADDERS: Ladder[] = [
     tiers: [[1, 'Based', 'c'], [25, 'Base Builder', 'r'], [100, 'Base Maxi', 'e']],
   },
   {
-    metric: 'bnbTrades', kind: 'personality', unit: 'trades on BNB Chain',
-    describe: (t, n) => `Make ${t} ${s(n, 'trade', 'trades')} on BNB Chain.`,
+    metric: 'bnbTrades', kind: 'personality', unit: 'trades on BSC',
+    describe: (t, n) => `Make ${t} ${s(n, 'trade', 'trades')} on BSC.`,
     tiers: [[1, 'Yellow Pill', 'c'], [25, 'BNB Regular', 'r'], [100, 'BNB Maxi', 'e']],
   },
   {

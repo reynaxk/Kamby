@@ -26,7 +26,7 @@ export const CHAIN_REGISTRY = {
   bnb: {
     identifier: 'eip155:56',
     numericId: 56,
-    name: 'BNB Chain',
+    name: 'BSC',
     nativeSymbol: 'BNB',
   },
   /** Robinhood Chain (Arbitrum Orbit L2, live since 2026-07; added 2026-10-13). Its dollar is

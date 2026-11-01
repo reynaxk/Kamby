@@ -8,7 +8,7 @@ import type { PnlShare } from './PnlShareCard';
 export const SHARE_CHAIN_NAME: Record<string, string> = {
   solana: 'Solana',
   'eip155:8453': 'Base',
-  'eip155:56': 'BNB Chain',
+  'eip155:56': 'BSC',
   'eip155:4663': 'Robinhood',
 };
 

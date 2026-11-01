@@ -143,7 +143,7 @@ const TIP_PRESETS = [5, 10, 25, 50] as const;
 const TIP_CHAINS: { chain: LiveTipChain; name: string }[] = [
   { chain: 'solana', name: 'Solana' },
   { chain: 'base', name: 'Base' },
-  { chain: 'bnb', name: 'BNB' },
+  { chain: 'bnb', name: 'BSC' },
   { chain: 'robinhood', name: 'Robinhood' },
 ];
 

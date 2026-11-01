@@ -101,7 +101,7 @@ export class FourMemeCurveService {
 
   private ready() {
     const usdc = EVM_USDC_BY_CHAIN_ID[BNB_CHAIN_ID];
-    if (!this.client || !this.feeRecipient || !usdc) throw new UnprocessableEntityException('Trading on BNB Chain is not available right now');
+    if (!this.client || !this.feeRecipient || !usdc) throw new UnprocessableEntityException('Trading on BSC is not available right now');
     return { client: this.client, feeRecipient: this.feeRecipient, usdc };
   }
 
@@ -151,7 +151,7 @@ export class FourMemeCurveService {
     const { usdc, feeRecipient } = this.ready();
     if (!(amountUsd >= MIN_TRADE_USD)) throw new BadRequestException(MIN_TRADE_MESSAGE);
     await this.checkTrader(userId, wallet, token);
-    if ((await this.gas.ensureGas(BNB_CHAIN_ID, wallet, usdc)) === 'stranded') throw new UnprocessableEntityException('Trading on BNB Chain is getting ready — try again in a few minutes.');
+    if ((await this.gas.ensureGas(BNB_CHAIN_ID, wallet, usdc)) === 'stranded') throw new UnprocessableEntityException('Trading on BSC is getting ready — try again in a few minutes.');
     const unit = 10 ** usdc.decimals;
     const feeRaw = BigInt(Math.round(amountUsd * (resolveTierFeeBps(amountUsd) / 10_000) * unit));
     const swapRaw = BigInt(Math.round(amountUsd * unit)) - feeRaw;
@@ -175,7 +175,7 @@ export class FourMemeCurveService {
     if (!(amountRaw > 0n)) throw new BadRequestException('Enter an amount to sell');
     await this.checkTrader(userId, wallet, token);
     const { usdc } = this.ready();
-    if ((await this.gas.ensureGas(BNB_CHAIN_ID, wallet, usdc)) === 'stranded') throw new UnprocessableEntityException('Trading on BNB Chain is getting ready — try again in a few minutes.');
+    if ((await this.gas.ensureGas(BNB_CHAIN_ID, wallet, usdc)) === 'stranded') throw new UnprocessableEntityException('Trading on BSC is getting ready — try again in a few minutes.');
     const [, , funds] = await client.readContract({ address: HELPER_3, abi: HELPER_ABI, functionName: 'trySell', args: [token, amountRaw] });
     if ((Number(funds) / 1e18) * (await this.bnbPriceUsd(wallet)) < MIN_TRADE_USD) throw new BadRequestException(MIN_TRADE_MESSAGE);
     const allowance = await client.readContract({ address: token, abi: erc20Abi, functionName: 'allowance', args: [wallet, TOKEN_MANAGER_2] });

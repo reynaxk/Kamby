@@ -157,7 +157,7 @@ describe('ConnectWalletButton', () => {
 
     render(<ConnectWalletButton expectedChainId={56} />);
 
-    expect(screen.getByRole('button', { name: /wrong network.*bnb chain/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /wrong network.*bsc/i })).toBeInTheDocument();
     await waitFor(() => expect(switchChain).toHaveBeenCalledWith({ chainId: 56 }));
   });
 

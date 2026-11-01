@@ -9,7 +9,7 @@ import { z } from 'zod';
 export const LAUNCHPADS = [
   { id: 'pumpfun', chainIdentifier: 'solana', chainName: 'Solana', name: 'Pump.fun', live: true },
   { id: 'clanker', chainIdentifier: 'eip155:8453', chainName: 'Base', name: 'Clanker', live: true },
-  { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BNB Chain', name: 'Four.meme', live: true },
+  { id: 'fourmeme', chainIdentifier: 'eip155:56', chainName: 'BSC', name: 'Four.meme', live: true },
   // Robinhood Chain (2026-10-15): Clanker deploys there too (its SDK has the factory); Kyber routes its pools.
   { id: 'clanker-rh', chainIdentifier: 'eip155:4663', chainName: 'Robinhood', name: 'Clanker', live: true },
 ] as const;

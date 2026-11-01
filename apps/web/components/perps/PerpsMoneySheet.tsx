@@ -93,7 +93,7 @@ export function PerpsMoneySheet({ mode, open, onClose, address, withdrawableUsd,
       ) : (
         <div className="space-y-4">
           <p className="text-center font-body text-xs text-ink-400">
-            {mode === 'deposit' ? `${t('depositFrom')} ${source.slug === 'bnb' ? 'BNB Chain' : 'Base'} · ${usd(available)}` : `${t('withdrawTo')} · ${usd(available)}`}
+            {mode === 'deposit' ? `${t('depositFrom')} ${source.slug === 'bnb' ? 'BSC' : 'Base'} · ${usd(available)}` : `${t('withdrawTo')} · ${usd(available)}`}
           </p>
           <div className="flex items-baseline justify-center py-2 font-display font-bold text-ink-900">
             <span className={cn('text-5xl', !text && 'text-ink-400')}>$</span>

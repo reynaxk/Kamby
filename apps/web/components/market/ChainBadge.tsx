@@ -12,7 +12,7 @@ export function badgeChainFor(chainIdentifier: string): BadgeChain | null {
   return null;
 }
 
-const NAMES: Record<BadgeChain, string> = { base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood Chain', solana: 'Solana' };
+const NAMES: Record<BadgeChain, string> = { base: 'Base', bnb: 'BSC', robinhood: 'Robinhood Chain', solana: 'Solana' };
 
 /**
  * The chain a coin trades on, as a tiny mark on the corner of its logo (user request

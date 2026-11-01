@@ -20,7 +20,7 @@ const CHAINS = [
   { id: 'all', label: 'All' },
   { id: 'solana', label: 'Solana' },
   { id: 'eip155:8453', label: 'Base' },
-  { id: 'eip155:56', label: 'BNB' },
+  { id: 'eip155:56', label: 'BSC' },
   { id: 'eip155:4663', label: 'Robinhood' },
 ] as const;
 

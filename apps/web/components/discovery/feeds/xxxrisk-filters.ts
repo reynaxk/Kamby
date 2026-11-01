@@ -208,7 +208,7 @@ export const LAUNCHPADS: Record<string, { mark: string; name: string; color: str
 /** The chains on the board, for the filter's chain chips. */
 export const BOARD_CHAINS: { id: string; name: string }[] = [
   { id: 'solana', name: 'Solana' },
-  { id: 'eip155:56', name: 'BNB' },
+  { id: 'eip155:56', name: 'BSC' },
   { id: 'eip155:8453', name: 'Base' },
   { id: 'eip155:4663', name: 'Robinhood' },
 ];

@@ -13,7 +13,7 @@ import { API_BASE } from '@/lib/session-client';
 import { useTokenStats } from '@/lib/use-live-price';
 
 const WINDOW_LABEL: Record<TokenStatsWindow, string> = { m5: '5M', h1: '1H', h6: '6H', h24: '24H' };
-const CHAIN_NAME: Record<TokenInfoChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood Chain' };
+const CHAIN_NAME: Record<TokenInfoChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BSC', robinhood: 'Robinhood Chain' };
 
 /** "2 years ago" / "преди 2 години" — the coin's age in the reader's own language. */
 export function relativeAge(createdAtMs: number, locale: string, now = Date.now()): string {

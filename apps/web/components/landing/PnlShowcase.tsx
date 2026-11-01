@@ -20,7 +20,7 @@ interface Sample {
   chain: BadgeChain;
 }
 
-const CHAIN_NAME: Record<BadgeChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BNB Chain', robinhood: 'Robinhood' };
+const CHAIN_NAME: Record<BadgeChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BSC', robinhood: 'Robinhood' };
 
 const SAMPLES: Sample[] = [
   { theme: 'neon', ticker: '$CAT', user: '@sandy', pct: '+412%', usd: '+$494.40', invested: '$120.00', worth: '$614.40', chain: 'base' },

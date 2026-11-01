@@ -146,7 +146,7 @@ describe('FundModal', () => {
     render(<FundModal open onClose={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: /Buy with Apple Pay/ }));
     await user.click(screen.getByRole('button', { name: /another network/ }));
-    await user.click(screen.getByRole('button', { name: 'BNB Chain' }));
+    await user.click(screen.getByRole('button', { name: 'BSC' }));
 
     expect(await screen.findByRole('button', { name: 'Continue' })).toBeEnabled();
   });
