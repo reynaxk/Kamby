@@ -14,7 +14,9 @@
     "news": "Tin tức",
     "toggleMenu": "Thu gọn hoặc mở menu",
     "narratives": "Câu chuyện",
-    "predictions": "Dự đoán"
+    "predictions": "Dự đoán",
+    "trenches": "Chiến hào",
+    "trending": "Xu hướng"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Cộng đồng & flex",
     "cat_easter": "Trứng phục sinh",
     "feedback": "Gửi góp ý"
+  },
+  "trenchesPage": {
+    "title": "Chiến hào",
+    "sub": "Coin mới ra, sắp bond và vừa di chuyển — mọi launchpad, mọi chuỗi."
+  },
+  "trendingPage": {
+    "title": "Xu hướng",
+    "sub": "Những coin nóng nhất trên mọi chuỗi lúc này.",
+    "count": "{n} coin",
+    "empty": "Hiện chưa có xu hướng."
   }
 }

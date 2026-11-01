@@ -14,7 +14,9 @@
     "news": "Actus",
     "toggleMenu": "Replier ou ouvrir le menu",
     "narratives": "Narratifs",
-    "predictions": "Prédictions"
+    "predictions": "Prédictions",
+    "trenches": "Trenches",
+    "trending": "Tendances"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Communauté & flex",
     "cat_easter": "Easter eggs",
     "feedback": "Envoyer un avis"
+  },
+  "trenchesPage": {
+    "title": "Trenches",
+    "sub": "Nouveaux lancements, coins presque bondés et migrations fraîches — chaque launchpad, chaque chaîne."
+  },
+  "trendingPage": {
+    "title": "Tendances",
+    "sub": "Les coins les plus chauds sur chaque chaîne en ce moment.",
+    "count": "{n} coins",
+    "empty": "Rien en tendance pour l’instant."
   }
 }

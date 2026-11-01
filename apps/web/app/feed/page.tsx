@@ -13,7 +13,7 @@ export default async function FeedPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader search={false} />
-      <AppBackBar title={t('title')} fallback="/home" />
+      <AppBackBar title={t('title')} fallback="/trenches" />
       <main className="mx-auto max-w-2xl px-4 pb-16 md:pt-6">
         <h1 className="mb-4 font-display text-2xl font-extrabold text-ink-900 max-md:hidden">{t('title')}</h1>
         <WidgetBoundary name="feed"><Feed /></WidgetBoundary>

@@ -34,7 +34,7 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
   const steps = [
     { key: 'name', done: Boolean(username), title: t('name'), body: t('nameBody'), action: <Link href="/account" className="text-accent">{t('nameCta')} →</Link> },
     { key: 'usdc', done: cash > 0 || holding, title: t('usdc'), body: t('usdcBody'), action: <FundButton variant="pill" /> },
-    { key: 'trade', done: holding || traded, title: t('trade'), body: t('tradeBody'), action: <Link href="/terminal" className="text-accent">{t('tradeCta')} →</Link> },
+    { key: 'trade', done: holding || traded, title: t('trade'), body: t('tradeBody'), action: <Link href="/trending" className="text-accent">{t('tradeCta')} →</Link> },
     { key: 'explore', done: explored, title: t('explore'), body: t('exploreBody'), action: <Link href="/live" className="text-accent">{t('exploreCta')} →</Link> },
   ];
   const done = steps.filter((s) => s.done).length;

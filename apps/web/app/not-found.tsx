@@ -21,7 +21,7 @@ export default function NotFound() {
         <p className="mt-3 font-body text-sm text-[#94A3B8]">{tU('theCoinOrPageYou_9a29')}</p>
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
           <Link
-            href="/terminal"
+            href="/trenches"
             className="rounded-xl bg-[#00FF87] px-8 py-3.5 font-display text-sm font-bold text-black transition-transform active:scale-[0.97]"
           >
             {tU('goTrade_95a9')}

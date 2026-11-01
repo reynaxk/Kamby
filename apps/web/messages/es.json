@@ -14,7 +14,9 @@
     "news": "Noticias",
     "toggleMenu": "Plegar o abrir el menú",
     "narratives": "Narrativas",
-    "predictions": "Predicciones"
+    "predictions": "Predicciones",
+    "trenches": "Trenches",
+    "trending": "Tendencias"
   },
   "install": {
     "title": "Obtén la app de Kamby",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Comunidad y flex",
     "cat_easter": "Easter eggs",
     "feedback": "Enviar opinión"
+  },
+  "trenchesPage": {
+    "title": "Trenches",
+    "sub": "Lanzamientos nuevos, monedas a punto de bondear y migraciones recientes — cada launchpad, cada red."
+  },
+  "trendingPage": {
+    "title": "Tendencias",
+    "sub": "Las monedas más calientes de cada red ahora.",
+    "count": "{n} monedas",
+    "empty": "Nada en tendencia ahora."
   }
 }

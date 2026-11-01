@@ -14,7 +14,9 @@
     "news": "ニュース",
     "toggleMenu": "メニューを折りたたむ／開く",
     "narratives": "ナラティブ",
-    "predictions": "予想"
+    "predictions": "予想",
+    "trenches": "トレンチ",
+    "trending": "トレンド"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -1773,5 +1775,15 @@
     "cat_flex": "コミュニティ＆自慢",
     "cat_easter": "イースターエッグ",
     "feedback": "フィードバックを送る"
+  },
+  "trenchesPage": {
+    "title": "トレンチ",
+    "sub": "新規ローンチ、ボンド間近、移行したてのコイン — すべてのローンチパッドとチェーン。"
+  },
+  "trendingPage": {
+    "title": "トレンド",
+    "sub": "今すべてのチェーンで最も熱いコイン。",
+    "count": "{n} コイン",
+    "empty": "今はトレンドがありません。"
   }
 }

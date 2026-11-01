@@ -32,10 +32,10 @@ export function MessagesShell({ children, home = null }: { children: React.React
   if (!wide) return <div className="kamby-void min-h-screen bg-bg">{home ?? children}</div>;
   return (
     <div className="kamby-void min-h-screen bg-bg [--dm-left:calc(var(--nav-w,0px)+340px)] xl:[--dm-left:calc(var(--nav-w,0px)+380px)]">
-      <aside className="fixed bottom-[var(--ticker-h)] left-[var(--nav-w,0px)] top-0 z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#020203]/70 xl:w-[380px]">
+      <aside className="fixed bottom-[var(--ticker-h)] left-[var(--nav-w,0px)] top-[var(--top-h,0px)] z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#020203]/70 xl:w-[380px]">
         <div className="flex items-center justify-between px-5 pb-2 pt-5">
           {/* From lg up the logo is in the left menu (DesktopSideNav) — the pane just says Messages. */}
-          <Link href="/home" className="flex items-center gap-2 lg:hidden" aria-label="Kamby">
+          <Link href="/trenches" className="flex items-center gap-2 lg:hidden" aria-label="Kamby">
             <KambyLogo size="sm" />
           </Link>
           <span className="font-display text-sm font-bold text-ink-400 lg:text-xl lg:font-extrabold lg:text-ink-900">{t('title')}</span>
@@ -66,7 +66,7 @@ function EmptyPane() {
         <p className="mx-auto mt-2 max-w-sm font-body text-sm text-ink-400">{t('pickBody')}</p>
       </div>
     </div>
-    <div className="sticky top-0 hidden h-[calc(100dvh-var(--ticker-h))] w-[340px] shrink-0 xl:block">
+    <div className="sticky top-[var(--top-h,0px)] hidden h-[calc(100dvh-var(--ticker-h)-var(--top-h,0px))] w-[340px] shrink-0 xl:block">
       <CommunitiesPane />
     </div>
     </div>

@@ -14,7 +14,9 @@
     "news": "News",
     "toggleMenu": "Menü ein- oder ausklappen",
     "narratives": "Narrative",
-    "predictions": "Prognosen"
+    "predictions": "Prognosen",
+    "trenches": "Trenches",
+    "trending": "Trending"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Community & Flex",
     "cat_easter": "Easter Eggs",
     "feedback": "Feedback senden"
+  },
+  "trenchesPage": {
+    "title": "Trenches",
+    "sub": "Neue Launches, fast gebondete Coins und frische Migrationen — jedes Launchpad, jede Chain."
+  },
+  "trendingPage": {
+    "title": "Trending",
+    "sub": "Die heißesten Coins auf jeder Chain gerade.",
+    "count": "{n} Coins",
+    "empty": "Gerade nichts im Trend."
   }
 }

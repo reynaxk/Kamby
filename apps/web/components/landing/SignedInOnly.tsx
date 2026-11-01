@@ -15,7 +15,7 @@ export function SignedInOnly({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Inside the phone app the website's landing page would drop you out of the app
     // (2026-10-10) — the app's own Home (welcome + sign in) instead.
-    if (ready && !authenticated) router.replace(window.matchMedia('(max-width: 767px)').matches ? '/home' : '/');
+    if (ready && !authenticated) router.replace(window.matchMedia('(max-width: 767px)').matches ? '/trenches' : '/');
   }, [ready, authenticated, router]);
   if (!ready || !authenticated) {
     return <div className="kamby-void min-h-screen bg-bg" aria-busy="true" />;

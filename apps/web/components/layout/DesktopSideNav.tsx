@@ -6,7 +6,9 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@kamby/ui';
 import { useDmUnread } from '@/lib/dm-client';
 import { KambyLogo } from './KambyLogo';
-import { SideNavLive } from './SideNavLive';
+import { SearchBar } from '@/components/market/SearchBar';
+import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import { UsdcBalancePill } from '@/components/wallet/UsdcBalancePill';
 import { FEED_ENABLED } from '@/lib/feed-client';
 
 type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread' };
@@ -33,9 +35,8 @@ export function showsDesktopSideNav(pathname: string): boolean {
 }
 
 /**
- * The desktop app's left menu (2026-10-30 redesign, owner's concepts): every part of Kamby one
- * click away — Home, Trade, Live, Chat, Top Traders, Perps, LaunchPad, Watchlist, Profile — from
- * lg up. Phones keep MobileTabBar. AppFrame moves the page right by the menu's width.
+ * The desktop app's menu: every part of Kamby one click away from lg up. 2026-10-30 a left
+ * column; 2026-11-01 one row across the top, like GMGN. Phones keep MobileTabBar.
  */
 export function DesktopSideNav() {
   const pathname = usePathname() ?? '/';
@@ -46,9 +47,10 @@ export function DesktopSideNav() {
   if (!showsDesktopSideNav(pathname)) return null;
 
   const items: Item[] = [
-    { href: '/home', label: t('home'), match: ['/home'], icon: <path d="M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5" /> },
+    // Trenches and Trending replaced Home and Trade (2026-11-01, owner: "like GMGN").
+    { href: '/trenches', label: t('trenches'), match: ['/trenches'], icon: <path d="M12 3c.6 3.8 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1.1-3.8 2.2-4.9.3 1.8 1.3 2.9 2.4 3.1C11.3 9.4 11.4 6 12 3Z" /> },
+    { href: '/trending', label: t('trending'), match: ['/trending', '/market', '/solana', '/search'], icon: <><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></> },
     ...(FEED_ENABLED ? [{ href: '/feed', label: t('feed'), match: ['/feed'], icon: <path d="M4 6h16M4 12h16M4 18h10" /> }] : []),
-    { href: '/terminal', label: t('trade'), match: ['/terminal', '/market', '/solana', '/search'], icon: <><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></> },
     { href: '/news', label: t('news'), match: ['/news'], icon: <><path d="M4 5h13v14H6a2 2 0 0 1-2-2z" /><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5" /></> },
     { href: '/narratives', label: t('narratives'), match: ['/narratives'], icon: <path d="M12 3c.6 3.8 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1.1-3.8 2.2-4.9.3 1.8 1.3 2.9 2.4 3.1C11.3 9.4 11.4 6 12 3Z" /> },
     { href: '/predictions', label: t('predictions'), match: ['/predictions'], icon: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></> },
@@ -61,73 +63,45 @@ export function DesktopSideNav() {
     { href: '/account', label: t('profile'), match: ['/account', '/trades', '/notifications', '/referrals'], icon: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></> },
   ];
 
+  // One row across the top, like GMGN (owner 2026-11-01): logo, every section as a word,
+  // then search, balance and your account. It replaced the left menu.
   return (
     <nav
       aria-label={t('menu')}
-      className="kamby-void kamby-side-nav fixed bottom-[var(--ticker-h)] left-0 top-0 z-40 hidden w-[232px] flex-col border-r border-line bg-bg px-3.5 pb-4 pt-5 transition-[width] duration-200 lg:flex"
+      className="kamby-void sticky top-0 z-50 hidden h-14 items-center gap-1 border-b border-line bg-bg/95 px-4 lg:flex"
     >
-      {/* Folded (2026-10-31, owner): icons only, the page gets the room. The choice is remembered. */}
-      <div className="kamby-nav-head mb-6 flex items-center gap-2">
-        <Link href="/home" className="kamby-nav-label flex min-w-0 flex-1 items-center gap-2 px-2.5">
-          <KambyLogo />
-        </Link>
-        <button
-          type="button"
-          onClick={toggleNav}
-          aria-label={t('toggleMenu')}
-          title={t('toggleMenu')}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ink-400 transition-colors hover:bg-surface hover:text-ink-900"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <rect x="3" y="4" width="18" height="16" rx="3" />
-            <path d="M9 4v16" />
-            <path className="kamby-nav-chevron" d="m15 10-2 2 2 2" />
-          </svg>
-        </button>
-      </div>
-      <ul className="flex flex-col gap-0.5">
-        {items.map((item) => {
+      <Link href="/trenches" className="mr-3 flex shrink-0 items-center" aria-label="Kamby">
+        <KambyLogo size="sm" />
+      </Link>
+      <ul className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
+        {items.filter((item) => item.href !== '/account').map((item) => {
           const active = item.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
           return (
-            <li key={item.href}>
+            <li key={item.href} className="shrink-0">
               <Link
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                title={item.label}
                 className={cn(
-                  'kamby-nav-item relative flex h-11 items-center gap-3 rounded-xl px-3 font-display text-sm font-bold transition-colors',
-                  active ? 'bg-accent/[0.07] text-ink-900 ring-1 ring-inset ring-accent/15' : 'text-ink-600 hover:bg-surface hover:text-ink-900',
+                  'relative flex h-9 items-center gap-1.5 rounded-lg px-2.5 font-display text-[0.86rem] font-bold transition-colors',
+                  active ? 'text-accent' : 'text-ink-600 hover:bg-surface hover:text-ink-900',
                 )}
               >
-                <svg
-                  width="19"
-                  height="19"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={active ? 'text-accent' : undefined}
-                  aria-hidden
-                >
-                  {item.icon}
-                </svg>
-                <span className="kamby-nav-label flex-1 truncate">{item.label}</span>
+                {item.label}
                 {item.badge === 'unread' && unreadCount > 0 && (
-                  <span className="kamby-nav-badge min-w-5 rounded-full bg-accent px-1.5 py-px text-center font-mono text-[0.65rem] font-bold text-black">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+                  <span className="min-w-4 rounded-full bg-accent px-1 text-center font-mono text-[0.6rem] font-bold text-black">{unreadCount > 9 ? '9+' : unreadCount}</span>
                 )}
               </Link>
             </li>
           );
         })}
       </ul>
-      <div className="kamby-nav-label min-h-0 overflow-y-auto [scrollbar-width:none]">
-        <SideNavLive />
+      <div className="ml-2 w-44 shrink-0 2xl:w-52">
+        <SearchBar compact />
       </div>
-      <p className="kamby-nav-label mt-auto px-3 pt-3 font-mono text-[0.6rem] tracking-[0.2em] text-accent/70">FIND.TRADE.REPEAT</p>
+      <div className="ml-2 flex shrink-0 items-center gap-2">
+        <UsdcBalancePill />
+        <ConnectWalletButton enforceChain={false} />
+      </div>
     </nav>
   );
 }
@@ -136,5 +110,6 @@ export function DesktopSideNav() {
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
   // --nav-w: how far fixed side panes (Messages' chat list) start from the left edge.
-  return <div className={showsDesktopSideNav(pathname) ? 'kamby-app-frame lg:pl-[232px] lg:[--nav-w:232px]' : undefined}>{children}</div>;
+  // --top-h: how far fixed panes (Messages' chat list) start below the top menu.
+  return <div className={showsDesktopSideNav(pathname) ? 'kamby-app-frame lg:[--top-h:56px]' : undefined}>{children}</div>;
 }

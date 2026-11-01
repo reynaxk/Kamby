@@ -315,7 +315,7 @@ export function DuelArena({ id }: { id: string }) {
           </div>
         )}
         {duel.status === 'live' && isDuelist && (
-          <Link href="/home" className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-accent py-3.5 font-display text-base font-black text-black transition-transform active:scale-[0.98]">
+          <Link href="/trenches" className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-accent py-3.5 font-display text-base font-black text-black transition-transform active:scale-[0.98]">
             {t('goTrade')}
           </Link>
         )}

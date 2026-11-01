@@ -14,7 +14,9 @@
     "news": "新闻",
     "toggleMenu": "收起或展开菜单",
     "narratives": "叙事",
-    "predictions": "预测"
+    "predictions": "预测",
+    "trenches": "战壕",
+    "trending": "趋势"
   },
   "install": {
     "title": "获取 Kamby 应用",
@@ -1773,5 +1775,15 @@
     "cat_flex": "社区与炫耀",
     "cat_easter": "彩蛋",
     "feedback": "发送反馈"
+  },
+  "trenchesPage": {
+    "title": "战壕",
+    "sub": "新发行、即将毕业和刚迁移的代币 — 所有发射台、所有链。"
+  },
+  "trendingPage": {
+    "title": "趋势",
+    "sub": "此刻每条链上最热的代币。",
+    "count": "{n} 个代币",
+    "empty": "当前没有趋势代币。"
   }
 }

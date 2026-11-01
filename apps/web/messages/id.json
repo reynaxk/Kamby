@@ -14,7 +14,9 @@
     "news": "Berita",
     "toggleMenu": "Ciutkan atau buka menu",
     "narratives": "Narasi",
-    "predictions": "Prediksi"
+    "predictions": "Prediksi",
+    "trenches": "Trenches",
+    "trending": "Trending"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Komunitas & pamer",
     "cat_easter": "Easter egg",
     "feedback": "Kirim masukan"
+  },
+  "trenchesPage": {
+    "title": "Trenches",
+    "sub": "Peluncuran baru, koin hampir bond dan migrasi baru — semua launchpad, semua chain."
+  },
+  "trendingPage": {
+    "title": "Trending",
+    "sub": "Koin terpanas di semua chain saat ini.",
+    "count": "{n} koin",
+    "empty": "Belum ada yang trending."
   }
 }

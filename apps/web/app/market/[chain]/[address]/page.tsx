@@ -99,7 +99,7 @@ export default async function TokenDetailPage({
       <div className="mx-auto max-w-[1600px] px-3 pt-3 max-lg:hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <BackPill href="/terminal" />
+            <BackPill href="/trending" />
             <TokenIdentity
               symbol={market.symbol}
               name={market.name}

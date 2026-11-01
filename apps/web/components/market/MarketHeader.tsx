@@ -53,12 +53,12 @@ export function MarketHeader({
     <>
     {/* Phones have no site header (app screens, 2026-10-10) — just room for the status bar. */}
     {!className && <div aria-hidden className="h-[max(env(safe-area-inset-top),0.75rem)] md:hidden" />}
-    <header className={`sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur max-md:hidden ${className ?? ''}`}>
+    <header className={`sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur max-md:hidden ${sideNav ? 'lg:hidden' : ''} ${className ?? ''}`}>
       <div
         className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 ${wide ? 'py-2.5' : 'py-3 sm:py-4'} ${shellClass}`}
       >
         {/* From lg up the logo and LaunchPad/Perps live in the left menu (DesktopSideNav, 2026-10-30). */}
-        <Link href="/terminal" className={`flex items-center gap-2 ${sideNav ? 'lg:hidden' : ''}`}>
+        <Link href="/trenches" className={`flex items-center gap-2 ${sideNav ? 'lg:hidden' : ''}`}>
           <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
         {/* Phones: logo + bell + Sign in share the first row and search gets its own full-width

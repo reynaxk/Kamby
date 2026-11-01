@@ -36,7 +36,9 @@ type Hit = { kind: 'coin'; market: MarketSummary; href: string | null } | { kind
  * so this always debounces and drops stale responses. Enter with nothing highlighted still
  * submits to the full results page, as before.
  */
-export function SearchBar({ defaultValue, screen = false, onActiveChange }: { defaultValue?: string; screen?: boolean; onActiveChange?: (active: boolean) => void }) {
+/** `compact`: the small field in the top menu (2026-11-01, like GMGN) — short placeholder and a
+ *  "/" key that jumps to it; results still open in the wide panel. */
+export function SearchBar({ defaultValue, screen = false, compact = false, onActiveChange }: { defaultValue?: string; screen?: boolean; compact?: boolean; onActiveChange?: (active: boolean) => void }) {
   const tU = useTranslations('ui');
   const tAuth = useTranslations('auth');
   const t = useTranslations('search');
@@ -52,6 +54,19 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
   const rootRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // "/" focuses the compact field from anywhere, unless you're typing somewhere else.
+  useEffect(() => {
+    if (!compact) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable))) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [compact]);
 
   const term = value.trim();
   const address = looksLikeAddress(term);
@@ -282,7 +297,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
   return (
     <form
       ref={rootRef}
-      action="/terminal"
+      action="/search"
       method="get"
       role="search"
       className="relative w-full max-w-none"
@@ -298,7 +313,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
         className={cn(
           'group flex items-center gap-2.5 transition-colors',
           'kamby-frost relative',
-          screen ? 'h-14 rounded-[1.4rem] px-4' : 'h-10 rounded-2xl px-3',
+          screen ? 'h-14 rounded-[1.4rem] px-4' : compact ? 'h-8 gap-2 rounded-lg px-2.5' : 'h-10 rounded-2xl px-3',
         )}
       >
         <svg aria-hidden width={screen ? 18 : 15} height={screen ? 18 : 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" className="shrink-0 text-ink-400 transition-colors group-focus-within:text-accent">
@@ -311,7 +326,7 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
           name="search"
           type="text"
           enterKeyHint="search"
-          placeholder={screen ? t('placeholder') : tAuth('searchPlaceholder')}
+          placeholder={screen || compact ? t('placeholder') : tAuth('searchPlaceholder')}
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
@@ -323,8 +338,11 @@ export function SearchBar({ defaultValue, screen = false, onActiveChange }: { de
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          className={cn('w-full min-w-0 bg-transparent font-body text-ink-900 placeholder:text-ink-400 focus:outline-none', screen ? 'text-base' : 'text-sm')}
+          className={cn('w-full min-w-0 bg-transparent font-body text-ink-900 placeholder:text-ink-400 focus:outline-none', screen ? 'text-base' : compact ? 'text-[0.8rem]' : 'text-sm')}
         />
+        {compact && !value && (
+          <kbd aria-hidden className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-white/15 font-mono text-[0.65rem] text-ink-400">/</kbd>
+        )}
         {loading && <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white/15 border-t-accent" aria-hidden />}
         {value ? (
           <button

@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl';
  * Profile or a leaderboard row had no site header any more, so no way back but the tab bar.
  * Goes back in history, or to `fallback` when the screen was opened directly. Phones only.
  */
-export function AppBackBar({ title, fallback = '/home' }: { title?: string; fallback?: string }) {
+export function AppBackBar({ title, fallback = '/trenches' }: { title?: string; fallback?: string }) {
   const router = useRouter();
   const tU = useTranslations('ui');
   return (

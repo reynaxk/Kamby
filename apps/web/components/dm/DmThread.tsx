@@ -390,7 +390,7 @@ export function DmThread({ id }: { id: string }) {
     <div className={cn('flex min-h-[100dvh] flex-col', community && 'lg:pl-[260px] lg:[--dm-left:calc(var(--nav-w,0px)+600px)] xl:[--dm-left:calc(var(--nav-w,0px)+640px)]')}>
       {/* Desktop: the community's channels stay open on the left (Discord) */}
       {community && conv && (
-        <aside className="fixed bottom-[var(--ticker-h)] top-0 z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#050609]/80 px-3 pb-6 pt-4 [left:calc(var(--nav-w,0px)+340px)] lg:block xl:[left:calc(var(--nav-w,0px)+380px)]">
+        <aside className="fixed bottom-[var(--ticker-h)] top-[var(--top-h,0px)] z-20 hidden w-[260px] overflow-y-auto border-r border-white/[0.06] bg-[#050609]/80 px-3 pb-6 pt-4 [left:calc(var(--nav-w,0px)+340px)] lg:block xl:[left:calc(var(--nav-w,0px)+380px)]">
           <CommunityPanel
             tall
             onClose={() => undefined}
@@ -410,7 +410,7 @@ export function DmThread({ id }: { id: string }) {
         </aside>
       )}
       {/* Header */}
-      <header className="kamby-frost-bar-phone sticky top-0 z-30 flex items-center gap-2 border-b border-white/[0.05] px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:bg-bg/90">
+      <header className="kamby-frost-bar-phone sticky top-0 z-30 lg:top-[var(--top-h,0px)] flex items-center gap-2 border-b border-white/[0.05] px-2 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:bg-bg/90">
         <button
           type="button"
           aria-label={t('back')}

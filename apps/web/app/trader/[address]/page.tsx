@@ -78,7 +78,7 @@ export default async function TraderProfilePage({ params }: { params: { address:
       <MarketHeader className="max-md:hidden" />
       <AppBackBar fallback="/leaderboard" />
       <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-0 lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-x-6">
-        <BackPill href="/terminal" className="max-md:hidden lg:hidden" />
+        <BackPill href="/trending" className="max-md:hidden lg:hidden" />
 
         {/* The trader's card (2026-10-15): the midnight PnL-card look — who, follow, and the
             realized PnL big in its own colour, with the faint neon K behind. */}

@@ -11,7 +11,7 @@ export default async function LivePage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader search={false} />
-      <AppBackBar title={t('liveNow')} fallback="/home" />
+      <AppBackBar title={t('liveNow')} fallback="/trenches" />
       <main className="mx-auto max-w-6xl px-4 pb-16 md:px-6 md:pt-6">
         <LiveList />
       </main>

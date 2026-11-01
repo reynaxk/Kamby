@@ -65,5 +65,5 @@ export function LandingCta({
  *  terminal opens on a coin), the terminal on a desktop browser. */
 function signedInHome(): string {
   const phone = window.matchMedia('(max-width: 767px)').matches || window.matchMedia('(display-mode: standalone)').matches;
-  return phone ? '/home' : '/terminal';
+  return '/trenches';
 }

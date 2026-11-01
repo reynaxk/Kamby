@@ -14,7 +14,9 @@
     "news": "뉴스",
     "toggleMenu": "메뉴 접기/펼치기",
     "narratives": "내러티브",
-    "predictions": "예측"
+    "predictions": "예측",
+    "trenches": "트렌치",
+    "trending": "트렌딩"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -1773,5 +1775,15 @@
     "cat_flex": "커뮤니티 & 플렉스",
     "cat_easter": "이스터 에그",
     "feedback": "피드백 보내기"
+  },
+  "trenchesPage": {
+    "title": "트렌치",
+    "sub": "새 런칭, 본딩 임박, 막 마이그레이션된 코인 — 모든 런치패드, 모든 체인."
+  },
+  "trendingPage": {
+    "title": "트렌딩",
+    "sub": "지금 모든 체인에서 가장 뜨거운 코인.",
+    "count": "{n}개 코인",
+    "empty": "지금은 트렌딩이 없어요."
   }
 }

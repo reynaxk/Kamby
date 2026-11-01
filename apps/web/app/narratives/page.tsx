@@ -20,7 +20,7 @@ export default async function NarrativesPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader className="max-md:hidden" />
-      <AppBackBar title={t('title')} fallback="/home" />
+      <AppBackBar title={t('title')} fallback="/trenches" />
       <main className="mx-auto max-w-[1560px] px-6 py-8 max-md:px-4 max-md:pt-2">
         <h1 className="flex items-center gap-2 font-display text-2xl font-extrabold text-ink-900 max-md:hidden">
           <span aria-hidden>🔥</span>

@@ -14,7 +14,9 @@
     "news": "Haberler",
     "toggleMenu": "Menüyü daralt veya aç",
     "narratives": "Anlatılar",
-    "predictions": "Tahminler"
+    "predictions": "Tahminler",
+    "trenches": "Siperler",
+    "trending": "Trend"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Topluluk & hava",
     "cat_easter": "Paskalya yumurtaları",
     "feedback": "Geri bildirim gönder"
+  },
+  "trenchesPage": {
+    "title": "Siperler",
+    "sub": "Yeni çıkışlar, bond’a yakın ve yeni taşınan coinler — her launchpad, her ağ."
+  },
+  "trendingPage": {
+    "title": "Trend",
+    "sub": "Şu an her ağdaki en sıcak coinler.",
+    "count": "{n} coin",
+    "empty": "Şu an trend yok."
   }
 }

@@ -14,7 +14,9 @@
     "news": "Новини",
     "toggleMenu": "Скрий или покажи менюто",
     "narratives": "Наративи",
-    "predictions": "Прогнози"
+    "predictions": "Прогнози",
+    "trenches": "Trenches",
+    "trending": "Trending"
   },
   "install": {
     "title": "Вземи приложението Kamby",
@@ -1773,5 +1775,15 @@
     "cat_flex": "Общност и фукня",
     "cat_easter": "Великденски яйца",
     "feedback": "Изпрати отзив"
+  },
+  "trenchesPage": {
+    "title": "Trenches",
+    "sub": "Нови монети, почти bonded и току-що мигрирали — всеки launchpad, всяка верига."
+  },
+  "trendingPage": {
+    "title": "Trending",
+    "sub": "Най-горещите монети на всяка верига в момента.",
+    "count": "{n} монети",
+    "empty": "В момента няма нищо в Trending."
   }
 }

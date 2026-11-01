@@ -7,8 +7,9 @@ import { cn } from '@kamby/ui';
 import { useDmUnread } from '@/lib/dm-client';
 
 const TABS = [
-  { href: '/home', label: 'home', match: ['/home'], icon: HomeIcon },
-  { href: '/search', label: 'search', match: ['/search'], icon: SearchIcon },
+  // Trenches and Trending replaced Home and Search (2026-11-01); search sits at the top of both.
+  { href: '/trenches', label: 'trenches', match: ['/trenches'], icon: FlameIcon },
+  { href: '/trending', label: 'trending', match: ['/trending', '/search'], icon: TrendIcon },
   // Private messages, Instagram-style, one tap away (2026-10-17).
   { href: '/messages', label: 'messages', match: ['/messages'], icon: ChatIcon },
   { href: '/leaderboard', label: 'leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },
@@ -96,4 +97,12 @@ function ChatIcon({ active = false }: { active?: boolean }) {
 }
 function UserIcon({ active = false }: { active?: boolean }) {
   return svg(<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>, active);
+}
+
+// Trenches and Trending (2026-11-01), drawn like the others.
+function FlameIcon({ active = false }: { active?: boolean }) {
+  return svg(<path d="M12 3c.6 3.8 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1.1-3.8 2.2-4.9.3 1.8 1.3 2.9 2.4 3.1C11.3 9.4 11.4 6 12 3Z" />, active);
+}
+function TrendIcon({ active = false }: { active?: boolean }) {
+  return svg(<><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></>, active);
 }
