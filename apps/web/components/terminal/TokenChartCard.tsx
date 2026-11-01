@@ -1,5 +1,6 @@
 'use client';
 
+import { sendAchievementEvent } from '@/lib/achievements-client';
 import { useEffect, useState } from 'react';
 import type { Candle, SocialActivity, Timeframe } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -47,6 +48,14 @@ export function TokenChartCard({
   const [chartStyle, setChartStyle] = useChartStyle();
   const entry = useEntryPrice(source.kind === 'solana' ? source.mint : source.address);
   const candleTimeframe: Timeframe = candleWidthFor(timeframe);
+  // Chart Stalker (2026-11-01): a minute on this coin's chart for every visible minute.
+  const chartToken = source.kind === 'solana' ? `solana:${source.mint}` : source.address;
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') sendAchievementEvent('chart', chartToken);
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, [chartToken]);
   const [candles, setCandles] = useState<Candle[] | null>(initialCandles);
   /** Which width `candles` actually are — the previous chart stays up until the new one lands. */
   const [candlesFor, setCandlesFor] = useState<Timeframe>(candleWidthFor(initialTimeframe));
@@ -90,6 +99,7 @@ export function TokenChartCard({
 
   function choose(tf: ChartTimeframe) {
     setTimeframe(tf);
+    sendAchievementEvent('chartClick');
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('timeframe', tf);

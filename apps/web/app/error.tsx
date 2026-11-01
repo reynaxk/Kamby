@@ -4,11 +4,13 @@ import { Button, Surface } from '@kamby/ui';
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { reloadIfStaleDeploy } from '@/lib/reload-on-stale-deploy';
+import { sendAchievementEvent } from '@/lib/achievements-client';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const tU = useTranslations('ui');
   useEffect(() => {
     if (reloadIfStaleDeploy(error)) return;
+    sendAchievementEvent('errorReload'); // Error 404, the easter-egg title
     // eslint-disable-next-line no-console
     console.error('Unhandled route error', { digest: error.digest, message: error.message });
   }, [error]);

@@ -1766,6 +1766,12 @@
     "rarity_rare": "Nadir",
     "rarity_epic": "Destansı",
     "rarity_legendary": "Efsane",
-    "rarity_mythic": "Mitik"
+    "rarity_mythic": "Mitik",
+    "cat_nocturnal": "Gece & degen",
+    "cat_brain": "Beyin & duygu",
+    "cat_chaos": "Hız & kaos",
+    "cat_flex": "Topluluk & hava",
+    "cat_easter": "Paskalya yumurtaları",
+    "feedback": "Geri bildirim gönder"
   }
 }

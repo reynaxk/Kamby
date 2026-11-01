@@ -1766,6 +1766,12 @@
     "rarity_rare": "Langka",
     "rarity_epic": "Epik",
     "rarity_legendary": "Legendaris",
-    "rarity_mythic": "Mitos"
+    "rarity_mythic": "Mitos",
+    "cat_nocturnal": "Malam & degen",
+    "cat_brain": "Otak & sentimen",
+    "cat_chaos": "Cepat & kacau",
+    "cat_flex": "Komunitas & pamer",
+    "cat_easter": "Easter egg",
+    "feedback": "Kirim masukan"
   }
 }

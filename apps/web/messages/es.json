@@ -1766,6 +1766,12 @@
     "rarity_rare": "Raro",
     "rarity_epic": "Épico",
     "rarity_legendary": "Legendario",
-    "rarity_mythic": "Mítico"
+    "rarity_mythic": "Mítico",
+    "cat_nocturnal": "Nocturno y degen",
+    "cat_brain": "Mente y sentimiento",
+    "cat_chaos": "Velocidad y caos",
+    "cat_flex": "Comunidad y flex",
+    "cat_easter": "Easter eggs",
+    "feedback": "Enviar opinión"
   }
 }

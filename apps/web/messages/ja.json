@@ -1766,6 +1766,12 @@
     "rarity_rare": "レア",
     "rarity_epic": "エピック",
     "rarity_legendary": "レジェンダリー",
-    "rarity_mythic": "ミシック"
+    "rarity_mythic": "ミシック",
+    "cat_nocturnal": "夜型＆ディジェン",
+    "cat_brain": "頭脳＆センチメント",
+    "cat_chaos": "スピード＆カオス",
+    "cat_flex": "コミュニティ＆自慢",
+    "cat_easter": "イースターエッグ",
+    "feedback": "フィードバックを送る"
   }
 }

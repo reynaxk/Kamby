@@ -11,6 +11,7 @@ import { Providers } from './providers';
 import { WhatsNew } from '@/components/home/WhatsNew';
 import { NewsToaster } from '@/components/news/NewsToaster';
 import { InstallApp } from '@/components/pwa/InstallApp';
+import { AchievementBeacon } from '@/components/achievements/AchievementBeacon';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { AppFrame, DesktopSideNav, NAV_GATE_SCRIPT } from '@/components/layout/DesktopSideNav';
 import { CallProvider } from '@/components/calls/CallProvider';
@@ -124,6 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <NewsToaster />
         </Providers>
         <InstallApp />
+        <AchievementBeacon />
         <LaunchOnHome />
         </NextIntlClientProvider>
       </body>

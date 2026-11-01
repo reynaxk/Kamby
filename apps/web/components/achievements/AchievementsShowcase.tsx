@@ -43,15 +43,15 @@ export function AchievementsShowcase({ own, username, className }: { own: boolea
   const unlocked = data.achievements.filter((p) => p.unlocked);
   if (!own && unlocked.length === 0) return null;
   const byId = new Map(data.achievements.map((p) => [p.id, p]));
-  // Pinned first; with none pinned, the rarest unlocked ones stand in.
+  // Up to six: your pinned ones first, then your rarest others.
   const order = ['mythic', 'legendary', 'epic', 'rare', 'common'];
-  const pinned = data.showcaseTitleIds.length
-    ? data.showcaseTitleIds
-    : unlocked
-        .map((p) => ACHIEVEMENTS_BY_ID.get(p.id)!)
-        .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity))
-        .slice(0, 3)
-        .map((a) => a.id);
+  const pinnedOwn = data.showcaseTitleIds;
+  const rest = unlocked
+    .filter((p) => !pinnedOwn.includes(p.id))
+    .map((p) => ACHIEVEMENTS_BY_ID.get(p.id)!)
+    .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity))
+    .map((a) => a.id);
+  const pinned = [...pinnedOwn, ...rest].slice(0, 6);
 
   return (
     <section ref={ref} className={cn('rounded-3xl border border-white/[0.07] bg-white/[0.02] p-4', className)}>

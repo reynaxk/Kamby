@@ -1766,6 +1766,12 @@
     "rarity_rare": "Редкий",
     "rarity_epic": "Эпический",
     "rarity_legendary": "Легендарный",
-    "rarity_mythic": "Мифический"
+    "rarity_mythic": "Мифический",
+    "cat_nocturnal": "Ночные и дегены",
+    "cat_brain": "Мозг и настроение",
+    "cat_chaos": "Скорость и хаос",
+    "cat_flex": "Сообщество и флекс",
+    "cat_easter": "Пасхалки",
+    "feedback": "Отправить отзыв"
   }
 }

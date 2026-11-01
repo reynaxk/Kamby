@@ -48,8 +48,8 @@ describe('computeAchievementMetrics', () => {
 });
 
 describe('evaluateAchievements', () => {
-  it('has 250 titles and counts the meta title from the first pass', () => {
-    expect(ACHIEVEMENTS).toHaveLength(250);
+  it('has 300 titles and counts the meta title from the first pass', () => {
+    expect(ACHIEVEMENTS).toHaveLength(300);
     const m = computeAchievementMetrics({ now, other: { ...other, posts: 60, likesReceived: 120, follows: 12, watchlist: 12 }, trades: [], lots: [], sells: [], votes: [] });
     const r = evaluateAchievements(m);
     const hunter = r.find((x) => x.id === 'badge-hunter')!;
@@ -57,3 +57,33 @@ describe('evaluateAchievements', () => {
     expect(hunter.unlocked).toBe(true);
   });
 });
+
+describe("the owner's 50", () => {
+  it("counts quantum flips, rug survivals, wipeouts, Lucky 777 and failed snipes", () => {
+    const t0 = at("2026-11-02T10:00:00Z");
+    const m = computeAchievementMetrics({
+      now, other,
+      trades: Array.from({ length: 20 }, (_, i) => ({ at: new Date(t0.getTime() + i * 5_000), side: "BUY" as const, chain: "solana" as const })),
+      lots: [{ id: "a", token: "sol:Z", acquiredAt: new Date(t0.getTime() + 30_000), costUsd: 7.77 }],
+      sells: [
+        { token: "sol:Z", at: t0, costUsd: 10, proceedsUsd: 0.05, pnlUsd: -9.95, heldMs: 2_000 },
+        { token: "sol:Y", at: t0, costUsd: 0.5, proceedsUsd: 150, pnlUsd: 149.5, heldMs: 3_600_000 },
+      ],
+      votes: [],
+      failed: [{ at: t0, side: "BUY", token: "sol:Z" }],
+    });
+    expect(m).toMatchObject({ quantumFlips: 1, rugSurvivals: 1, wipeouts: 1, speedrunZero: 1, zeroToHero: 1, lucky777: 1, ghostOrders: 1, snipeMisses: 1, tradesIn2Min: 20, antiSocialTrades: 20 });
+  });
+
+  it("reads contrarian and majority votes from vote shares", () => {
+    const votes = Array.from({ length: 10 }, (_, i) => ({ correct: true, decidedAt: new Date(t(i)), label: "Down", share: 0.05 }));
+    const m = computeAchievementMetrics({ now, other, trades: [], lots: [], sells: [], votes });
+    expect(m.galaxyBrain).toBe(10);
+    expect(m.doomStreak).toBe(10);
+    expect(m.echoVotes).toBe(0);
+  });
+});
+
+function t(i: number) {
+  return Date.parse("2026-10-01T00:00:00Z") + i * 3_600_000;
+}

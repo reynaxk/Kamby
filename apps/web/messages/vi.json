@@ -1766,6 +1766,12 @@
     "rarity_rare": "Hiếm",
     "rarity_epic": "Sử thi",
     "rarity_legendary": "Huyền thoại",
-    "rarity_mythic": "Thần thoại"
+    "rarity_mythic": "Thần thoại",
+    "cat_nocturnal": "Cú đêm & degen",
+    "cat_brain": "Trí óc & tâm lý",
+    "cat_chaos": "Tốc độ & hỗn loạn",
+    "cat_flex": "Cộng đồng & flex",
+    "cat_easter": "Trứng phục sinh",
+    "feedback": "Gửi góp ý"
   }
 }

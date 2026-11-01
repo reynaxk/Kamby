@@ -61,26 +61,24 @@ export function AchievementCard({
   const body = (
     <div
       className={cn(
-        'relative flex h-full flex-col rounded-2xl border bg-gradient-to-b from-white/[0.05] to-white/[0.015] p-3.5',
+        'relative flex h-full flex-col rounded-2xl border bg-gradient-to-b from-white/[0.05] to-white/[0.015] p-3',
         humorous ? 'border-dashed border-red-500/70' : BORDER[a.rarity],
         a.rarity === 'mythic' && !humorous && 'border-0 bg-[#0B0B10]',
         !isUnlocked && 'bg-none bg-white/[0.02]',
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className={cn('min-w-0 font-display font-black leading-tight', compact ? 'text-sm' : 'text-[0.95rem]', isUnlocked ? 'text-white' : 'text-white/55')}>
+        <p className={cn('min-w-0 font-display font-black leading-tight', compact ? 'text-sm' : 'text-[0.85rem]', isUnlocked ? 'text-white' : 'text-white/55')}>
           {hidden ? '???' : a.name}
         </p>
-        {!compact && <span className={cn('shrink-0 font-mono text-[0.58rem] font-bold uppercase tracking-wider', TONE[a.rarity])}>{t(`rarity_${a.rarity}`)}</span>}
-      </div>
-      {/* Small cards (the profile showcase): just the rarity under the name, so nothing overlaps. */}
-      {compact ? (
-        <p className={cn('mt-1 font-mono text-[0.58rem] font-bold uppercase tracking-wider', TONE[a.rarity])}>{t(`rarity_${a.rarity}`)}</p>
-      ) : (
-        <p className="mt-0.5 font-mono text-[0.58rem] uppercase tracking-wider text-white/35">{t(`cat_${a.category}`)}</p>
-      )}
+              </div>
+      {/* Rarity · category under the name, so nothing overlaps in a narrow card. */}
+      <p className="mt-1 truncate font-mono text-[0.56rem] font-bold uppercase tracking-wider">
+        <span className={TONE[a.rarity]}>{t(`rarity_${a.rarity}`)}</span>
+        {!compact && <span className="text-white/35"> · {t(`cat_${a.category}`)}</span>}
+      </p>
       {!compact && (
-        <p className="mt-2 font-body text-[0.78rem] leading-snug text-white/60">{hidden ? t('lockedSecret') : a.description}</p>
+        <p className="mt-1.5 line-clamp-3 font-body text-[0.72rem] leading-snug text-white/60">{hidden ? t('lockedSecret') : a.description}</p>
       )}
 
       {!isUnlocked && !compact && (

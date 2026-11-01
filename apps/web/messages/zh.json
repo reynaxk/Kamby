@@ -1766,6 +1766,12 @@
     "rarity_rare": "稀有",
     "rarity_epic": "史诗",
     "rarity_legendary": "传说",
-    "rarity_mythic": "神话"
+    "rarity_mythic": "神话",
+    "cat_nocturnal": "夜猫子与赌狗",
+    "cat_brain": "头脑与情绪",
+    "cat_chaos": "速度与混乱",
+    "cat_flex": "社区与炫耀",
+    "cat_easter": "彩蛋",
+    "feedback": "发送反馈"
   }
 }

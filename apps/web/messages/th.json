@@ -1766,6 +1766,12 @@
     "rarity_rare": "หายาก",
     "rarity_epic": "มหากาพย์",
     "rarity_legendary": "ระดับตำนาน",
-    "rarity_mythic": "ปรัมปรา"
+    "rarity_mythic": "ปรัมปรา",
+    "cat_nocturnal": "สายดึก & ดีเจ้น",
+    "cat_brain": "สมอง & อารมณ์ตลาด",
+    "cat_chaos": "ความเร็ว & ความวุ่น",
+    "cat_flex": "คอมมูนิตี้ & อวด",
+    "cat_easter": "อีสเตอร์เอ้ก",
+    "feedback": "ส่งความคิดเห็น"
   }
 }

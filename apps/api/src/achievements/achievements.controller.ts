@@ -1,10 +1,10 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../identity/current-user.decorator';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard';
 import type { SessionUser } from '../identity/identity.service';
 import { AchievementsService, TitleLockedError } from './achievements.service';
-import { SetTitlesDto } from './set-titles.dto';
+import { AchievementEventDto, SetTitlesDto } from './set-titles.dto';
 
 const USERNAME = /^[a-z0-9_]{1,20}$/i;
 
@@ -41,6 +41,15 @@ export class AchievementsController {
   @Patch('title')
   setTitle(@CurrentUser() user: SessionUser, @Body() body: SetTitlesDto) {
     return setTitles(this.achievements, user.id, body);
+  }
+
+  /** Screen time, chart time, clicks and easter eggs, reported by the app. */
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  @HttpCode(204)
+  @Post('event')
+  async event(@CurrentUser() user: SessionUser, @Body() body: AchievementEventDto): Promise<void> {
+    await this.achievements.clientEvent(user.id, body.kind, body.token);
   }
 }
 

@@ -1766,6 +1766,12 @@
     "rarity_rare": "희귀",
     "rarity_epic": "영웅",
     "rarity_legendary": "전설",
-    "rarity_mythic": "신화"
+    "rarity_mythic": "신화",
+    "cat_nocturnal": "야행성 & 디젠",
+    "cat_brain": "두뇌 & 심리",
+    "cat_chaos": "속도 & 혼돈",
+    "cat_flex": "커뮤니티 & 플렉스",
+    "cat_easter": "이스터 에그",
+    "feedback": "피드백 보내기"
   }
 }

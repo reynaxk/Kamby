@@ -28,6 +28,20 @@ export interface SellFact {
 export interface VoteFact {
   correct: boolean | null; // null = not decided yet
   decidedAt: Date | null;
+  /** The answer picked, its share of all votes on the poll (0–1), and the poll's coin / window. */
+  label?: string;
+  share?: number;
+  optionIndex?: number;
+  pollToken?: string | null;
+  openFrom?: Date;
+  openUntil?: Date;
+}
+
+/** A trade that failed on-chain. */
+export interface FailedFact {
+  at: Date;
+  side: 'BUY' | 'SELL';
+  token: string | null;
 }
 
 export interface OtherFacts {
@@ -54,6 +68,20 @@ export interface OtherFacts {
   createdAt: Date;
   hasUsername: boolean;
   hasAvatar: boolean;
+  // The owner's 50 (2026-11-01).
+  followers?: number;
+  messageTimes?: Date[];
+  questionsAsked?: number;
+  communitiesTalkedIn?: number;
+  reactionsReceived?: number;
+  laughsReceived?: number;
+  memePosts?: number;
+  chartPostLikes?: number[];
+  equippedRarity?: string | null;
+  /** When Kamby's first account was made (its "first week"). */
+  kambyStartAt?: Date;
+  /** Distinct calendar months with a trade or a post. */
+  activeMonths?: number;
 }
 
 const MIN = 60_000;
@@ -79,9 +107,13 @@ export function computeAchievementMetrics(input: {
   votes: VoteFact[];
   other: OtherFacts;
   now: Date;
+  failed?: FailedFact[];
+  /** Metrics the service counts itself (they need other users' rows) or that the app reports. */
+  extra?: Partial<AchievementMetrics>;
 }): AchievementMetrics {
   const m = emptyAchievementMetrics();
   const { trades, lots, sells, votes, other } = input;
+  const failed = input.failed ?? [];
 
   // Trades — counts, chains, days and times of day.
   m.trades = trades.length;
@@ -190,9 +222,149 @@ export function computeAchievementMetrics(input: {
   m.earlyAdopter = other.createdAt.getTime() < EARLY_ADOPTER_BEFORE ? 1 : 0;
   m.profileComplete = (other.hasUsername ? 1 : 0) + (other.hasAvatar ? 1 : 0);
 
+  owners50(m, input.now, trades, lots, sells, votes, other, failed);
+  Object.assign(m, input.extra ?? {});
+
   for (const k of Object.keys(m) as (keyof AchievementMetrics)[]) {
     if (!Number.isFinite(m[k])) m[k] = 0;
     else m[k] = Math.round(m[k] * 100) / 100;
   }
   return m;
+}
+
+const LAUNCH_AT = Date.parse('2026-11-20T00:00:00Z');
+const BEARISH = /\b(down|below|lower|red|dump|drop|fall|under|no)\b/i;
+const BULLISH = /\b(up|above|higher|green|pump|rise|over|yes)\b/i;
+
+function maxInWindow(times: number[], windowMs: number): number {
+  const t = [...times].sort((a, b) => a - b);
+  let best = 0;
+  for (let i = 0, j = 0; j < t.length; j++) {
+    while (t[j]! - t[i]! > windowMs) i++;
+    best = Math.max(best, j - i + 1);
+  }
+  return best;
+}
+
+/** The owner's 50 titles (2026-11-01) — every one counted from the same real facts. */
+function owners50(
+  m: AchievementMetrics,
+  now: Date,
+  trades: TradeFact[],
+  lots: LotFact[],
+  sells: SellFact[],
+  votes: VoteFact[],
+  other: OtherFacts,
+  failed: FailedFact[],
+): void {
+  const pctOf = (x: SellFact) => (x.costUsd > 0 ? (x.pnlUsd / x.costUsd) * 100 : 0);
+  const ordered = [...sells].sort((a, b) => a.at.getTime() - b.at.getTime());
+
+  for (const x of ordered) {
+    const pct = pctOf(x);
+    const judged = x.costUsd >= MIN_PCT_COST_USD;
+    const bought = x.at.getTime() - x.heldMs;
+    if (x.pnlUsd < 0 && utcDay(new Date(bought)) !== utcDay(x.at)) m.lossAfterMidnight += 1;
+    if (judged && pct <= -99) m.wipeouts += 1;
+    if (x.pnlUsd < 0) m.maxLossHoldHours = Math.max(m.maxLossHoldHours, Math.floor(x.heldMs / 3600_000));
+    if (judged && pct <= -90 && x.heldMs <= DAY) m.rugSurvivals += 1;
+    if (x.costUsd < 1 && x.costUsd > 0 && x.proceedsUsd > 100) m.zeroToHero += 1;
+    if (x.heldMs < 3000) m.quantumFlips += 1;
+    if (judged && pct <= -95 && x.heldMs < 5 * MIN) m.speedrunZero += 1;
+    if (x.pnlUsd > 0 && x.at.getUTCDate() === 13 && x.at.getUTCDay() === 5) m.friday13Wins += 1;
+    if (judged && pct > 0 && pct < 0.5) m.paperHandsSupreme += 1;
+    if (Math.abs(x.proceedsUsd - 7.77) < 0.005) m.lucky777 += 1;
+  }
+  for (const l of lots) if (Math.abs(l.costUsd - 7.77) < 0.005) m.lucky777 += 1;
+
+  // Fake bottoms: a loss on a coin, a buy back, then another 50%+ loss on it.
+  const lossAt = new Map<string, number>();
+  for (const x of ordered) {
+    const first = lossAt.get(x.token);
+    if (first !== undefined && pctOf(x) <= -50 && lots.some((l) => l.token === x.token && l.acquiredAt.getTime() > first && l.acquiredAt.getTime() < x.at.getTime())) m.fakeBottoms += 1;
+    if (x.pnlUsd < 0 && first === undefined) lossAt.set(x.token, x.at.getTime());
+  }
+
+  // Mood swings: buy/sell flips on one coin, 3 switches within 10 minutes.
+  const sides = new Map<string, { t: number; side: 'B' | 'S' }[]>();
+  for (const l of lots) (sides.get(l.token) ?? sides.set(l.token, []).get(l.token)!).push({ t: l.acquiredAt.getTime(), side: 'B' });
+  for (const x of sells) (sides.get(x.token) ?? sides.set(x.token, []).get(x.token)!).push({ t: x.at.getTime(), side: 'S' });
+  for (const list of sides.values()) {
+    list.sort((a, b) => a.t - b.t);
+    const flips: number[] = [];
+    for (let i = 1; i < list.length; i++) if (list[i]!.side !== list[i - 1]!.side) flips.push(list[i]!.t);
+    if (maxInWindow(flips, 10 * MIN) >= 3) m.moodSwings += 1;
+  }
+
+  // Early bird streak: consecutive UTC days with a trade before 06:00.
+  const early = [...new Set(trades.filter((t) => t.at.getUTCHours() < 6).map((t) => utcDay(t.at)))].sort();
+  let run = 0;
+  for (let i = 0; i < early.length; i++) {
+    run = i > 0 && Date.parse(early[i]!) - Date.parse(early[i - 1]!) === DAY ? run + 1 : 1;
+    m.earlyBirdStreak = Math.max(m.earlyBirdStreak, run);
+  }
+  m.tradesIn2Min = maxInWindow(trades.map((t) => t.at.getTime()), 2 * MIN);
+  m.nightTrades0420 = trades.filter((t) => t.at.getUTCHours() === 4 && t.at.getUTCMinutes() === 20).length;
+
+  m.failedTrades = failed.length;
+  m.ghostOrders = failed.filter((f) => f.side === 'BUY').length;
+  m.snipeMisses = failed.filter(
+    (f) => f.side === 'BUY' && f.token && lots.some((l) => l.token === f.token && l.acquiredAt.getTime() >= f.at.getTime() && l.acquiredAt.getTime() - f.at.getTime() <= MIN),
+  ).length;
+
+  // Predictions: streaks by answer, majority / contrarian calls, two-faced votes.
+  const decided = votes.filter((v) => v.correct !== null).sort((a, b) => (a.decidedAt?.getTime() ?? 0) - (b.decidedAt?.getTime() ?? 0));
+  let hope = 0;
+  let doom = 0;
+  for (const v of decided) {
+    const label = v.label ?? '';
+    hope = BULLISH.test(label) && !v.correct ? hope + 1 : 0;
+    doom = BEARISH.test(label) && v.correct ? doom + 1 : 0;
+    m.hopiumStreak = Math.max(m.hopiumStreak, hope);
+    m.doomStreak = Math.max(m.doomStreak, doom);
+    if (v.correct && v.share !== undefined && v.share <= 0.1) m.galaxyBrain += 1;
+  }
+  m.echoVotes = votes.filter((v) => v.share !== undefined && v.share >= 0.8).length;
+  const coinVotes = votes.filter((v) => v.pollToken && v.openFrom && v.openUntil && v.optionIndex !== undefined);
+  outer: for (let i = 0; i < coinVotes.length; i++) {
+    for (let j = i + 1; j < coinVotes.length; j++) {
+      const a = coinVotes[i]!;
+      const b = coinVotes[j]!;
+      if (a.pollToken === b.pollToken && a.optionIndex !== b.optionIndex && a.openFrom! < b.openUntil! && b.openFrom! < a.openUntil!) {
+        m.doubleAgent = 1;
+        break outer;
+      }
+    }
+  }
+
+  // After the first 100 sells: as many wins as losses.
+  if (ordered.length >= 100) {
+    const first = ordered.slice(0, 100);
+    const wins = first.filter((x) => x.pnlUsd > 0).length;
+    const losses = first.filter((x) => x.pnlUsd < 0).length;
+    m.chaoticNeutral = wins === losses ? 1 : 0;
+  }
+
+  // Social.
+  const words = other.posts + other.replies + other.pulseMessages + other.dmMessages;
+  m.antiSocialTrades = words === 0 ? trades.length : 0;
+  m.silentWhaleVolume = (other.followers ?? 0) === 0 && other.posts === 0 ? m.volumeUsd : 0;
+  m.memeAlchemy = (other.chartPostLikes ?? []).filter((n) => n >= 50).length;
+  m.messagesInHour = maxInWindow((other.messageTimes ?? []).map((d) => d.getTime()), 60 * MIN);
+  m.reactionsReceived = other.reactionsReceived ?? 0;
+  m.laughsReceived = other.laughsReceived ?? 0;
+  m.lurkerDays = words === 0 ? m.accountAgeDays : 0;
+  m.memePosts = other.memePosts ?? 0;
+  m.communitiesTalkedIn = other.communitiesTalkedIn ?? 0;
+  m.questionsAsked = other.questionsAsked ?? 0;
+  m.alphaLeaks = m.bestTradePct >= 500 && other.tradeCardPosts > 0 ? 1 : 0;
+  m.legendInMind = other.equippedRarity === 'mythic' && m.winningSells < 10 ? 1 : 0;
+  const start = other.kambyStartAt?.getTime();
+  m.grandfather = start !== undefined && other.createdAt.getTime() - start <= 7 * DAY && (other.activeMonths ?? 0) >= 6 ? 1 : 0;
+
+  // Easter eggs.
+  m.palindrome = trades.length >= 131 || votes.length >= 434 ? 1 : 0;
+  m.preLaunchVisit = other.createdAt.getTime() < LAUNCH_AT ? 1 : 0;
+  m.betaJoined = other.createdAt.getTime() < LAUNCH_AT && trades.some((t) => t.at.getTime() < LAUNCH_AT) ? 1 : 0;
+  void now;
 }

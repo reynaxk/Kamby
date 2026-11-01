@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { AchievementsDto } from '@kamby/domain';
-import { API_BASE, authedFetch, expectOk } from './session-client';
+import type { AchievementsDto, ClientAchievementEvent } from '@kamby/domain';
+import { API_BASE, authedFetch, expectOk, hasStoredSession } from './session-client';
 
 /** Achievements & titles (2026-11-01) — see AchievementsService in the API. */
 
@@ -28,6 +28,16 @@ export async function saveTitles(input: { equippedTitleId?: string | null; showc
   await expectOk(res, 'save your title');
   const dto = (await res.json()) as AchievementsDto;
   return dto;
+}
+
+/** Report an app-side counter (screen time, chart time, clicks, easter eggs). Fire and forget. */
+export function sendAchievementEvent(kind: ClientAchievementEvent, token?: string): void {
+  if (!hasStoredSession()) return;
+  void authedFetch('/achievements/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(token ? { kind, token } : { kind }),
+  }).catch(() => undefined);
 }
 
 // --- Worn titles next to names: one batched lookup for every name on screen. ---

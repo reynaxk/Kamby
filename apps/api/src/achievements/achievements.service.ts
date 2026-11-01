@@ -5,13 +5,15 @@ import {
   ACHIEVEMENTS_BY_ID,
   MAX_SHOWCASE_TITLES,
   evaluateAchievements,
+  type AchievementMetrics,
   type AchievementsDto,
+  type ClientAchievementEvent,
 } from '@kamby/domain';
 import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { NotificationService } from '../notifications/notification.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
-import { computeAchievementMetrics, type LotFact, type SellFact, type TradeFact } from './achievement-metrics';
+import { computeAchievementMetrics, type FailedFact, type LotFact, type SellFact, type TradeFact, type VoteFact } from './achievement-metrics';
 
 /** A user is re-evaluated at most this often from page loads. */
 const EVAL_COOLDOWN_S = 30;
@@ -26,6 +28,12 @@ const SCARCITY_TTL_S = 10 * 60;
 const MAX_NOTIFY_PER_EVAL = 3;
 
 const CHAIN_BY_ID: Record<number, TradeFact['chain']> = { 8453: 'base', 56: 'bnb', 4663: 'robinhood' };
+/** Newest messages read for the chat titles (enough for any real "200 in an hour"). */
+const MESSAGE_SCAN = 20_000;
+/** A session breaks after this long without a heartbeat from the app. */
+const SESSION_GAP_MS = 12 * 60_000;
+const clientKey = (userId: string) => `kamby:ach:c:${userId}`;
+const chartKey = (userId: string) => `kamby:ach:chart:${userId}`;
 
 /**
  * Achievements & titles (2026-11-01). Progress is recomputed from the user's real rows (trades,
@@ -42,6 +50,7 @@ const CHAIN_BY_ID: Record<number, TradeFact['chain']> = { 8453: 'base', 56: 'bnb
 @Injectable()
 export class AchievementsService implements OnModuleInit, OnModuleDestroy {
   private timer: NodeJS.Timeout | null = null;
+  private kambyStart: Date | null = null;
 
   constructor(
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
@@ -98,6 +107,52 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy {
     }
     await prisma.user.update({ where: { id: userId }, data });
     return this.dto(userId, true);
+  }
+
+  /**
+   * What the app reports (2026-11-01, the owner's 50): screen time, chart time, clicks and a few
+   * easter eggs the server can't see. Heartbeats count at most once a minute, so leaving more tabs
+   * open doesn't speed anything up.
+   */
+  async clientEvent(userId: string, kind: ClientAchievementEvent, token?: string): Promise<void> {
+    const now = Date.now();
+    const key = clientKey(userId);
+    if (kind === 'session' || kind === 'chart') {
+      if ((await this.redis.set(`kamby:ach:beat:${kind}:${userId}`, '1', 'EX', 55, 'NX')) !== 'OK') return;
+    }
+    if (kind === 'session') {
+      const raw = await this.redis.get(`kamby:ach:sess:${userId}`);
+      const prev = raw ? (JSON.parse(raw) as { start: number; last: number }) : null;
+      const start = prev && now - prev.last <= SESSION_GAP_MS ? prev.start : now;
+      await this.redis.set(`kamby:ach:sess:${userId}`, JSON.stringify({ start, last: now }), 'EX', 24 * 3600);
+      const hours = Math.floor(((now - start) / 3600_000) * 10) / 10;
+      const best = Number((await this.redis.hget(key, 'sessionHours')) ?? 0);
+      if (hours > best) await this.redis.hset(key, 'sessionHours', String(hours));
+    } else if (kind === 'chart' && token) {
+      await this.redis.hincrby(chartKey(userId), token.slice(0, 140), 1);
+    } else if (kind === 'chartClick') {
+      await this.redis.hincrby(key, 'chartClicks', 1);
+    } else if (kind === 'errorReload') {
+      await this.redis.hincrby(key, 'errorReloads', 1);
+    } else if (kind === 'matrix') {
+      await this.redis.hset(key, 'matrixGlitch', '1');
+    } else if (kind === 'feedback') {
+      await this.redis.hset(key, 'feedbackClicks', '1');
+    }
+    // The click-type eggs show up right away; heartbeats wait for the next evaluation.
+    if (kind !== 'session' && kind !== 'chart') await this.evaluate(userId).catch(() => undefined);
+  }
+
+  private async clientMetrics(userId: string): Promise<Partial<AchievementMetrics>> {
+    const [c, chart] = await Promise.all([this.redis.hgetall(clientKey(userId)), this.redis.hvals(chartKey(userId))]);
+    return {
+      sessionHours: Math.floor(Number(c.sessionHours ?? 0)),
+      chartHours: Math.floor(Math.max(0, ...chart.map(Number)) / 60),
+      chartClicks: Number(c.chartClicks ?? 0),
+      errorReloads: Number(c.errorReloads ?? 0),
+      matrixGlitch: Number(c.matrixGlitch ?? 0),
+      feedbackClicks: Number(c.feedbackClicks ?? 0),
+    };
   }
 
   /** Recompute and store one user's progress. Returns the ids unlocked by this run. */
@@ -217,19 +272,28 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async facts(userId: string) {
-    const [evm, sol, lots, events, votes, user] = await Promise.all([
+    const [evm, sol, lots, events, votes, user, evmFailed, solFailed] = await Promise.all([
       prisma.tradeTransaction.findMany({ where: { userId, status: 'CONFIRMED' }, select: { side: true, chainId: true, confirmedAt: true, submittedAt: true } }),
       prisma.solanaTradeTransaction.findMany({ where: { userId, status: 'CONFIRMED' }, select: { side: true, confirmedAt: true, submittedAt: true } }),
-      prisma.tokenLot.findMany({ where: { userId }, select: { id: true, evmTokenId: true, solanaMint: true, acquiredAt: true, costBasisUsd: true } }),
+      prisma.tokenLot.findMany({ where: { userId }, select: { id: true, evmTokenId: true, solanaMint: true, acquiredAt: true, costBasisUsd: true, quantityOriginalRaw: true } }),
       prisma.realizedPnlEvent.findMany({
         where: { userId },
         select: {
           evmSellTransactionId: true, solanaSellTransactionId: true, evmTokenId: true, solanaMint: true, confirmedAt: true,
-          costBasisUsd: true, proceedsUsd: true, realizedPnlUsd: true, lot: { select: { acquiredAt: true } },
+          costBasisUsd: true, proceedsUsd: true, realizedPnlUsd: true, quantityMatchedRaw: true, lot: { select: { acquiredAt: true } },
         },
       }),
-      prisma.predictionVote.findMany({ where: { userId }, select: { optionIndex: true, prediction: { select: { resolvedOptionIndex: true, resolvedAt: true } } } }),
-      prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { createdAt: true, longestStreakDays: true, username: true, avatarUrl: true } }),
+      prisma.predictionVote.findMany({
+        where: { userId },
+        select: {
+          predictionId: true,
+          optionIndex: true,
+          prediction: { select: { resolvedOptionIndex: true, resolvedAt: true, options: true, tokenAddress: true, createdAt: true, expiresAt: true } },
+        },
+      }),
+      prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { createdAt: true, longestStreakDays: true, username: true, avatarUrl: true, equippedTitleId: true } }),
+      prisma.tradeTransaction.findMany({ where: { userId, status: 'FAILED' }, select: { side: true, submittedAt: true, tokenMarket: { select: { tokenId: true } } } }),
+      prisma.solanaTradeTransaction.findMany({ where: { userId, status: 'FAILED' }, select: { side: true, submittedAt: true, inputMint: true, outputMint: true } }),
     ]);
 
     const trades: TradeFact[] = [
@@ -237,6 +301,19 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy {
       ...sol.map((t) => ({ at: t.confirmedAt ?? t.submittedAt, side: sideOf(t.side), chain: 'solana' as const })),
     ];
     const lotFacts: LotFact[] = lots.map((l) => ({ id: l.id, token: l.evmTokenId ?? `sol:${l.solanaMint}`, acquiredAt: l.acquiredAt, costUsd: Number(l.costBasisUsd) }));
+    const failed: FailedFact[] = [
+      ...evmFailed.map((f) => ({ at: f.submittedAt, side: sideOf(f.side), token: f.tokenMarket.tokenId })),
+      ...solFailed.map((f) => ({ at: f.submittedAt, side: sideOf(f.side), token: `sol:${sideOf(f.side) === 'BUY' ? f.outputMint : f.inputMint}` })),
+    ];
+    // Unit prices (USD per raw unit — comparable within one coin) for the price-based titles.
+    const sellPrices: { token: string; at: number; price: number }[] = [];
+    for (const e of events) {
+      const qty = Number(e.quantityMatchedRaw);
+      if (qty > 0) sellPrices.push({ token: e.evmTokenId ?? `sol:${e.solanaMint}`, at: e.confirmedAt.getTime(), price: Number(e.proceedsUsd) / qty });
+    }
+    const myLotPrices = lots
+      .map((l) => ({ token: l.evmTokenId ?? `sol:${l.solanaMint}`, at: l.acquiredAt.getTime(), price: Number(l.costBasisUsd) / Number(l.quantityOriginalRaw || 0) }))
+      .filter((l) => Number.isFinite(l.price) && l.price > 0);
     const bySell = new Map<string, SellFact>();
     for (const e of events) {
       const key = e.evmSellTransactionId ?? e.solanaSellTransactionId ?? '';
@@ -277,6 +354,12 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy {
         prisma.duel.findMany({ where: { status: 'done', OR: [{ challengerId: userId }, { opponentId: userId }] }, select: { winnerId: true } }),
         prisma.tokenLaunch.count({ where: { userId, status: 'LIVE' } }),
       ]);
+    const social = await this.socialFacts(userId);
+    const market = await this.marketExtras(lots, myLotPrices, sellPrices);
+    const months = new Set([...trades.map((t) => t.at.toISOString().slice(0, 7)), ...social.postMonths]);
+    if (!this.kambyStart) this.kambyStart = (await prisma.user.findFirst({ orderBy: { createdAt: 'asc' }, select: { createdAt: true } }))?.createdAt ?? null;
+    const equipped = user.equippedTitleId ? ACHIEVEMENTS_BY_ID.get(user.equippedTitleId) : undefined;
+    const pollShares = await this.pollShares(votes.map((v) => v.predictionId));
     const now = Date.now();
     // A stream counts for at most 12h, so one left open by accident can't mint "24/7".
     const liveHours = rooms.reduce((a, r) => a + Math.min(12 * 3600_000, (r.endedAt?.getTime() ?? now) - r.startedAt.getTime()), 0) / 3600_000;
@@ -285,9 +368,17 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy {
       trades,
       lots: lotFacts,
       sells: [...bySell.values()],
-      votes: votes.map((v) => ({
+      failed,
+      extra: { ...market, communityTop3: social.communityTop3, ...(await this.clientMetrics(userId)) },
+      votes: votes.map((v): VoteFact => ({
         correct: v.prediction.resolvedOptionIndex === null ? null : v.prediction.resolvedOptionIndex === v.optionIndex,
         decidedAt: v.prediction.resolvedAt,
+        label: v.prediction.options[v.optionIndex] ?? '',
+        share: pollShares.get(v.predictionId)?.[v.optionIndex],
+        optionIndex: v.optionIndex,
+        pollToken: v.prediction.tokenAddress,
+        openFrom: v.prediction.createdAt,
+        openUntil: v.prediction.expiresAt,
       })),
       other: {
         pollsCreated,
@@ -313,8 +404,124 @@ export class AchievementsService implements OnModuleInit, OnModuleDestroy {
         createdAt: user.createdAt,
         hasUsername: !!user.username,
         hasAvatar: !!user.avatarUrl,
+        followers: social.followers,
+        messageTimes: social.messageTimes,
+        questionsAsked: social.questions,
+        communitiesTalkedIn: social.communities,
+        reactionsReceived: social.reactions,
+        laughsReceived: social.laughs,
+        memePosts: social.memePosts,
+        chartPostLikes: social.chartPostLikes,
+        equippedRarity: equipped?.rarity ?? null,
+        kambyStartAt: this.kambyStart ?? undefined,
+        activeMonths: months.size,
       },
     };
+  }
+
+  /** Each poll's vote share per answer (0–1). */
+  private async pollShares(ids: string[]): Promise<Map<string, number[]>> {
+    const out = new Map<string, number[]>();
+    if (!ids.length) return out;
+    const groups = await prisma.predictionVote.groupBy({ by: ['predictionId', 'optionIndex'], where: { predictionId: { in: ids.slice(0, 2000) } }, _count: { _all: true } });
+    const totals = new Map<string, number>();
+    for (const g of groups) totals.set(g.predictionId, (totals.get(g.predictionId) ?? 0) + g._count._all);
+    for (const g of groups) {
+      const arr = out.get(g.predictionId) ?? [];
+      arr[g.optionIndex] = g._count._all / (totals.get(g.predictionId) || 1);
+      out.set(g.predictionId, arr);
+    }
+    return out;
+  }
+
+  /** Chats, reactions, communities, followers and Feed posts for the social titles. */
+  private async socialFacts(userId: string) {
+    const [dms, pulse, wallets, posts] = await Promise.all([
+      prisma.dmMessage.findMany({ where: { senderId: userId }, orderBy: { createdAt: 'desc' }, take: MESSAGE_SCAN, select: { createdAt: true, body: true, reactions: true, conversationId: true } }),
+      prisma.pulseMessage.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: MESSAGE_SCAN, select: { createdAt: true, body: true } }),
+      prisma.wallet.findMany({ where: { userId }, select: { address: true } }),
+      prisma.feedPost.findMany({ where: { userId, hiddenAt: null }, select: { kind: true, likeCount: true, createdAt: true } }),
+    ]);
+    let reactions = 0;
+    let laughs = 0;
+    for (const m of dms) {
+      const r = (m.reactions ?? {}) as Record<string, string[]>;
+      for (const [emoji, who] of Object.entries(r)) {
+        const others = (who ?? []).filter((id) => id !== userId).length;
+        reactions += others;
+        if (emoji === '😂') laughs += others;
+      }
+    }
+    const convIds = [...new Set(dms.map((m) => m.conversationId))];
+    const communities = convIds.length
+      ? await prisma.dmConversation.findMany({ where: { id: { in: convIds }, isCommunity: true }, select: { id: true } })
+      : [];
+    let top3 = 0;
+    for (const c of communities.slice(0, 20)) {
+      const members = await prisma.dmMember.count({ where: { conversationId: c.id } });
+      if (members < 10) continue;
+      const leaders = await prisma.dmMessage.groupBy({ by: ['senderId'], where: { conversationId: c.id }, _count: { _all: true }, orderBy: { _count: { senderId: 'desc' } }, take: 3 });
+      if (leaders.some((l) => l.senderId === userId)) {
+        top3 = 1;
+        break;
+      }
+    }
+    const followers = wallets.length ? await prisma.follow.count({ where: { walletAddress: { in: wallets.map((w) => w.address) } } }) : 0;
+    return {
+      followers,
+      messageTimes: [...dms.map((m) => m.createdAt), ...pulse.map((m) => m.createdAt)],
+      questions: [...dms, ...pulse].filter((m) => m.body.includes('?')).length,
+      communities: communities.length,
+      communityTop3: top3,
+      reactions,
+      laughs,
+      memePosts: posts.filter((p) => p.kind === 'photo' || p.kind === 'chart' || p.kind === 'video').length,
+      chartPostLikes: posts.filter((p) => p.kind === 'chart').map((p) => p.likeCount),
+      postMonths: posts.map((p) => p.createdAt.toISOString().slice(0, 7)),
+    };
+  }
+
+  /** Titles that compare against everyone's buys on Kamby: early apes, tops bought, sells before a pump. */
+  private async marketExtras(
+    lots: { evmTokenId: string | null; solanaMint: string | null; acquiredAt: Date }[],
+    mine: { token: string; at: number; price: number }[],
+    sells: { token: string; at: number; price: number }[],
+  ): Promise<Partial<AchievementMetrics>> {
+    const mints = [...new Set(lots.map((l) => l.solanaMint).filter((m): m is string => !!m))].slice(0, 500);
+    const launched = mints.length ? await prisma.pumpFunToken.findMany({ where: { mintAddress: { in: mints } }, select: { mintAddress: true, createdAt: true } }) : [];
+    const launchAt = new Map(launched.map((p) => [p.mintAddress, p.createdAt.getTime()]));
+    const apeBuys = lots.filter((l) => l.solanaMint && launchAt.has(l.solanaMint) && l.acquiredAt.getTime() - launchAt.get(l.solanaMint)! <= 10 * 60_000).length;
+
+    const tokens = [...new Set([...mine, ...sells].map((x) => x.token))].slice(0, 200);
+    const evmIds = tokens.filter((t) => !t.startsWith('sol:'));
+    const solMints = tokens.filter((t) => t.startsWith('sol:')).map((t) => t.slice(4));
+    const all = tokens.length
+      ? await prisma.tokenLot.findMany({
+          where: { OR: [{ evmTokenId: { in: evmIds } }, { solanaMint: { in: solMints } }] },
+          select: { evmTokenId: true, solanaMint: true, acquiredAt: true, costBasisUsd: true, quantityOriginalRaw: true },
+          take: 50_000,
+        })
+      : [];
+    const byToken = new Map<string, { at: number; price: number }[]>();
+    for (const l of all) {
+      const price = Number(l.costBasisUsd) / Number(l.quantityOriginalRaw || 0);
+      if (!Number.isFinite(price) || price <= 0) continue;
+      const key = l.evmTokenId ?? `sol:${l.solanaMint}`;
+      (byToken.get(key) ?? byToken.set(key, []).get(key)!).push({ at: l.acquiredAt.getTime(), price });
+    }
+    let athBuys = 0;
+    for (const m of mine) {
+      const list = byToken.get(m.token) ?? [];
+      if (list.length < 5) continue;
+      const max = Math.max(...list.map((x) => x.price));
+      if (m.price >= max * 0.999 && list.some((x) => x.at > m.at && x.price <= max * 0.8)) athBuys += 1;
+    }
+    let shadowSells = 0;
+    for (const s of sells) {
+      const list = byToken.get(s.token) ?? [];
+      if (list.some((x) => x.at > s.at && x.at - s.at <= 10 * 60_000 && x.price >= s.price * 1.2)) shadowSells += 1;
+    }
+    return { apeBuys, athBuys, shadowSells };
   }
 }
 

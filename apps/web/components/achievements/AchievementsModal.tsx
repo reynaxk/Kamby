@@ -110,7 +110,7 @@ export function AchievementsModal({
           ))}
         </div>
         {error && <p className="px-5 pb-2 font-body text-xs text-down">{error}</p>}
-        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 gap-2.5 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-2 gap-2 overflow-y-auto px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:grid-cols-3 lg:grid-cols-4">
           {list.length === 0 && <p className="col-span-full py-10 text-center font-body text-sm text-white/45">{t('none')}</p>}
           {list.map((a) => {
             const p = byId.get(a.id);
@@ -131,7 +131,7 @@ export function AchievementsModal({
                         type="button"
                         disabled={busy}
                         onClick={() => void apply({ equippedTitleId: worn ? null : a.id })}
-                        className={cn('h-8 flex-1 rounded-lg font-display text-xs font-bold disabled:opacity-50', worn ? 'bg-white text-black' : 'bg-white/[0.07] text-white hover:bg-white/[0.12]')}
+                        className={cn('h-7 flex-1 rounded-lg font-display text-[0.7rem] font-bold disabled:opacity-50', worn ? 'bg-white text-black' : 'bg-white/[0.07] text-white hover:bg-white/[0.12]')}
                       >
                         {worn ? t('wearing') : t('wear')}
                       </button>
@@ -139,7 +139,7 @@ export function AchievementsModal({
                         type="button"
                         disabled={busy || (!shown && full)}
                         onClick={() => void apply({ showcaseTitleIds: shown ? data.showcaseTitleIds.filter((x) => x !== a.id) : [...data.showcaseTitleIds, a.id] })}
-                        className={cn('h-8 flex-1 rounded-lg font-display text-xs font-bold disabled:opacity-40', shown ? 'bg-white/[0.16] text-white' : 'bg-white/[0.07] text-white/80 hover:bg-white/[0.12]')}
+                        className={cn('h-7 flex-1 rounded-lg font-display text-[0.7rem] font-bold disabled:opacity-40', shown ? 'bg-white/[0.16] text-white' : 'bg-white/[0.07] text-white/80 hover:bg-white/[0.12]')}
                       >
                         {shown ? t('pinned') : t('pin')}
                       </button>

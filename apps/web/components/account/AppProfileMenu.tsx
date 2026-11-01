@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { useAccount } from 'wagmi';
 import { useTranslations } from 'next-intl';
-import { Bell, ChevronRight, Copy, Eye, Gift, History, LogOut, Pencil, Star, User } from 'lucide-react';
+import { Bell, ChevronRight, Copy, Eye, Gift, History, LogOut, MessageSquareHeart, Pencil, Star, User } from 'lucide-react';
+import { sendAchievementEvent } from '@/lib/achievements-client';
+import { LEGAL_CONTACT_EMAIL } from '@/lib/legal';
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
 import { SESSION_CHANGED_EVENT } from '@/lib/session-client';
@@ -47,6 +49,7 @@ export function AppProfileMenu() {
   const [tab, setTab] = useState<'holdings' | 'pnl' | 'settings'>('holdings');
   const tH = useTranslations('home');
   const tY = useTranslations('you');
+  const tA = useTranslations('achievements');
   const { wallets } = useSolanaWallets();
   const balances = useUsdcBalances(address, wallets[0]?.address);
   const positions = useMyPositions();
@@ -197,6 +200,15 @@ export function AppProfileMenu() {
             <MenuLink href="/notifications" icon={<Bell />} label={t('menu_notifications')} />
             <MenuLink href="/referrals" icon={<Gift />} label={t('menu_referrals')} />
             <InstallAppRow />
+            {/* Feedback to the team (2026-11-01) — also the "To the Moon" title. */}
+            <MenuButton
+              icon={<MessageSquareHeart />}
+              label={tA('feedback')}
+              onClick={() => {
+                sendAchievementEvent('feedback');
+                window.location.href = `mailto:${LEGAL_CONTACT_EMAIL}?subject=Kamby%20feedback`;
+              }}
+            />
           </MenuGroup>
           <MenuGroup>
             <div className="flex items-center gap-3 px-4 py-3">

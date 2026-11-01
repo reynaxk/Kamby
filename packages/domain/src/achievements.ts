@@ -9,11 +9,13 @@
  * history (trades, P&L, votes, posts, streams…), so nothing here can be claimed by hand. Titles
  * carry no points, no XP and no prizes: they're only something to show.
  *
+ * 2026-11-01 later: the owner added 50 more (5 new categories) — 300 in all.
+ *
  * Names and descriptions are English on purpose (badges, like game achievements); the UI around
  * them is translated.
  */
 
-export const ACHIEVEMENT_CATEGORIES = ['beginner', 'personality', 'advanced', 'elite', 'mythic', 'humorous'] as const;
+export const ACHIEVEMENT_CATEGORIES = ['beginner', 'personality', 'advanced', 'elite', 'mythic', 'humorous', 'nocturnal', 'brain', 'chaos', 'flex', 'easter'] as const;
 export type AchievementCategory = (typeof ACHIEVEMENT_CATEGORIES)[number];
 
 export const ACHIEVEMENT_RARITIES = ['common', 'rare', 'epic', 'legendary', 'mythic'] as const;
@@ -37,7 +39,22 @@ export const ACHIEVEMENT_METRICS = [
   'liveStreams', 'peakViewers', 'liveHours', 'duelsPlayed', 'duelsWon', 'launches',
   // Loyalty & meta
   'longestStreakDays', 'accountAgeDays', 'earlyAdopter', 'profileComplete', 'titlesUnlocked',
+  // The owner's 50 (2026-11-01) — Nocturnal & Degenerate
+  'lossAfterMidnight', 'wipeouts', 'earlyBirdStreak', 'maxLossHoldHours', 'rugSurvivals', 'hopiumStreak', 'fakeBottoms', 'zeroToHero', 'failedTrades', 'sessionHours',
+  // Brain & Sentiment
+  'moodSwings', 'doomStreak', 'echoVotes', 'antiSocialTrades', 'chartHours', 'quantumFlips', 'silentWhaleVolume', 'memeAlchemy', 'galaxyBrain', 'shadowSells',
+  // Speed & Chaos
+  'speedrunZero', 'messagesInHour', 'snipeMisses', 'apeBuys', 'doubleAgent', 'tradesIn2Min', 'chaoticNeutral', 'chartClicks', 'ghostOrders', 'athBuys',
+  // Community & Flex
+  'reactionsReceived', 'laughsReceived', 'communityTop3', 'lurkerDays', 'memePosts', 'grandfather', 'alphaLeaks', 'communitiesTalkedIn', 'questionsAsked', 'legendInMind',
+  // Easter eggs
+  'nightTrades0420', 'lucky777', 'palindrome', 'matrixGlitch', 'friday13Wins', 'preLaunchVisit', 'errorReloads', 'paperHandsSupreme', 'feedbackClicks', 'betaJoined',
 ] as const;
+
+/** Counted by the app itself (the server can't see clicks or screen time) — reported by the
+ *  browser through POST /achievements/event, so they're the only titles that could be faked. */
+export const CLIENT_ACHIEVEMENT_EVENTS = ['session', 'chart', 'chartClick', 'matrix', 'errorReload', 'feedback'] as const;
+export type ClientAchievementEvent = (typeof CLIENT_ACHIEVEMENT_EVENTS)[number];
 export type AchievementMetric = (typeof ACHIEVEMENT_METRICS)[number];
 export type AchievementMetrics = Record<AchievementMetric, number>;
 
@@ -78,6 +95,8 @@ function compact(n: number, usd: boolean): string {
 interface Ladder {
   metric: AchievementMetric;
   kind: Kind;
+  /** Puts every tier in this category (the owner's 50 come in their own categories). */
+  category?: AchievementCategory;
   unit: string;
   usd?: boolean;
   /** Every tier of this ladder is secret (most humorous ones are). */
@@ -418,6 +437,60 @@ const LADDERS: Ladder[] = [
     describe: (t) => `Unlock ${t} other titles.`,
     tiers: [[10, 'Badge Hunter', 'c'], [25, 'Trophy Case', 'r'], [50, 'Completionist in Training', 'e'], [100, 'Hall of Fame', 'l'], [150, 'Living Legend', 'l'], [200, 'Kamby Immortal', 'm']],
   },
+
+  // ------------------------------------------------------------------ The owner's 50 (2026-11-01)
+  // Each is one real, countable condition — where the idea needs data Kamby doesn't keep (perps
+  // liquidations, gas, balance history, who bought first), the description says exactly what counts.
+  { metric: 'lossAfterMidnight', kind: 'humorous', category: 'nocturnal', unit: "midnight bags", describe: () => "Hold a losing position past midnight (UTC), then sell it.", tiers: [[1, "Wife's Boyfriend", 'r']] },
+  { metric: 'wipeouts', kind: 'humorous', category: 'nocturnal', unit: "wipeouts", describe: () => "Close a trade down 99% or more — fully wiped.", tiers: [[1, "Liquidated & Lovin' It", 'r']] },
+  { metric: 'earlyBirdStreak', kind: 'humorous', category: 'nocturnal', unit: "early days in a row", describe: () => "Trade before 6 AM (UTC) on 5 days in a row.", tiers: [[5, "Coffee IV", 'e']] },
+  { metric: 'maxLossHoldHours', kind: 'humorous', category: 'nocturnal', unit: "hours in the red", describe: () => "Sit through 10+ hours in the red on a position before selling.", tiers: [[10, "Red Candle Connoisseur", 'r']] },
+  { metric: 'rugSurvivals', kind: 'humorous', category: 'nocturnal', unit: "rugs survived", describe: () => "Get out of a coin down 90%+ within a day of buying it.", tiers: [[1, "The Rug Pull Survivor", 'e']] },
+  { metric: 'hopiumStreak', kind: 'humorous', category: 'nocturnal', unit: "wrong bullish calls in a row", describe: () => "Vote bullish 5 times in a row and be wrong every time.", tiers: [[5, "Hopium Overdose", 'r']] },
+  { metric: 'fakeBottoms', kind: 'humorous', category: 'nocturnal', unit: "fake bottoms", describe: () => "Buy back a coin you sold at a loss — and lose 50%+ again.", tiers: [[1, "Bottom Finder (Fake)", 'r']] },
+  { metric: 'zeroToHero', kind: 'humorous', category: 'nocturnal', unit: "trades", describe: () => "Turn under $1 into over $100 on a single trade.", tiers: [[1, "Zero to Hero", 'l']] },
+  { metric: 'failedTrades', kind: 'humorous', category: 'nocturnal', unit: "failed trades", describe: () => "Have 50 trades fail on-chain. Kamby pays the gas, so it only cost you nerves.", tiers: [[50, "Gas Fee Victim", 'r']] },
+  { metric: 'sessionHours', kind: 'humorous', category: 'nocturnal', unit: "hours straight", describe: () => "Keep Kamby open and active for 12 hours straight.", tiers: [[12, "The Terminal Rat", 'e']] },
+  { metric: 'moodSwings', kind: 'humorous', category: 'brain', unit: "flips", describe: () => "Flip between buying and selling the same coin 3 times in 10 minutes.", tiers: [[1, "Bipolar Trader", 'r']] },
+  { metric: 'doomStreak', kind: 'humorous', category: 'brain', unit: "correct bearish calls in a row", describe: () => "Call 5 drops in a row correctly (down / below / red answers).", tiers: [[5, "The Prophet of Doom", 'l']] },
+  { metric: 'echoVotes', kind: 'humorous', category: 'brain', unit: "majority votes", describe: () => "Vote with an 80%+ majority on 20 predictions.", tiers: [[20, "Echo Chamber Resident", 'r']] },
+  { metric: 'antiSocialTrades', kind: 'humorous', category: 'brain', unit: "silent trades", describe: () => "Make 100 trades without writing a single post, reply or message.", tiers: [[100, "The Anti-Social", 'e']] },
+  { metric: 'chartHours', kind: 'humorous', category: 'brain', unit: "hours on one chart", describe: () => "Spend 500 hours on one coin's chart.", tiers: [[500, "Chart Stalker", 'm']] },
+  { metric: 'quantumFlips', kind: 'humorous', category: 'brain', unit: "quantum flips", describe: () => "Buy and sell the same coin within 3 seconds.", tiers: [[1, "Quantum Degen", 'e']] },
+  { metric: 'silentWhaleVolume', kind: 'humorous', category: 'brain', unit: "silent volume", usd: true, describe: () => "Trade $10K+ in volume with zero followers and zero posts.", tiers: [[10000, "The Silent Whale", 'l']] },
+  { metric: 'memeAlchemy', kind: 'humorous', category: 'brain', unit: "charts with 50+ likes", describe: () => "Post 10 charts that each get 50+ likes.", tiers: [[10, "Meme Alchemist", 'l']] },
+  { metric: 'galaxyBrain', kind: 'humorous', category: 'brain', unit: "contrarian wins", describe: () => "Be right 10 times while 90%+ of voters picked the other side.", tiers: [[10, "Galaxy Brain", 'm']] },
+  { metric: 'shadowSells', kind: 'humorous', category: 'brain', unit: "sells before a pump", describe: () => "Sell a coin, then watch it trade 20%+ higher on Kamby within 10 minutes.", tiers: [[1, "The Liquidator's Shadow", 'e']] },
+  { metric: 'speedrunZero', kind: 'humorous', category: 'chaos', unit: "speedruns", describe: () => "Lose 95%+ on a position in under 5 minutes.", tiers: [[1, "Speedrun to Zero", 'r']] },
+  { metric: 'messagesInHour', kind: 'humorous', category: 'chaos', unit: "messages in an hour", describe: () => "Send 200 messages within one hour.", tiers: [[200, "Keyboard Destroyer", 'e']] },
+  { metric: 'snipeMisses', kind: 'humorous', category: 'chaos', unit: "missed snipes", describe: () => "Have a buy fail, then land the same coin within a minute.", tiers: [[1, "The Sniper's Miss", 'r']] },
+  { metric: 'apeBuys', kind: 'humorous', category: 'chaos', unit: "early apes", describe: () => "Buy 10 Pump.fun coins within 10 minutes of their launch.", tiers: [[10, "Ape King", 'l']] },
+  { metric: 'doubleAgent', kind: 'humorous', category: 'chaos', unit: "double votes", describe: () => "Pick opposite answers on two polls about the same coin that were open at the same time.", tiers: [[1, "Double Agent", 'r']] },
+  { metric: 'tradesIn2Min', kind: 'humorous', category: 'chaos', unit: "trades in 2 minutes", describe: () => "Make 20 trades within 2 minutes.", tiers: [[20, "The Fast and the Rekt", 'e']] },
+  { metric: 'chaoticNeutral', kind: 'humorous', category: 'chaos', unit: "perfect balance", describe: () => "After your first 100 sells: exactly as many wins as losses.", tiers: [[1, "Chaotic Neutral", 'e']] },
+  { metric: 'chartClicks', kind: 'humorous', category: 'chaos', unit: "chart clicks", describe: () => "Switch chart timeframes 1,000 times.", tiers: [[1000, "Button Smash Hero", 'r']] },
+  { metric: 'ghostOrders', kind: 'humorous', category: 'chaos', unit: "ghost orders", describe: () => "Try to buy a coin and have the order fail.", tiers: [[1, "The Ghost Order", 'c']] },
+  { metric: 'athBuys', kind: 'humorous', category: 'chaos', unit: "tops bought", describe: () => "Pay the highest price anyone on Kamby ever paid for a coin — then see it bought cheaper.", tiers: [[1, "FOMO Intensifies", 'r']] },
+  { metric: 'reactionsReceived', kind: 'humorous', category: 'flex', unit: "reactions", describe: () => "Collect 5,000 reactions on your messages.", tiers: [[5000, "Chief Hype Officer", 'l']] },
+  { metric: 'laughsReceived', kind: 'humorous', category: 'flex', unit: "laughs", describe: () => "Get 100 😂 reactions on your messages.", tiers: [[100, "The Village Idiot", 'r']] },
+  { metric: 'communityTop3', kind: 'humorous', category: 'flex', unit: "communities", describe: () => "Be a top-3 voice (by messages) in a community of 10+ members.", tiers: [[1, "Chad of Kamby", 'l']] },
+  { metric: 'lurkerDays', kind: 'humorous', category: 'flex', unit: "silent days", describe: () => "Spend 60 days on Kamby without writing a single word.", tiers: [[60, "The Lurker", 'r']] },
+  { metric: 'memePosts', kind: 'humorous', category: 'flex', unit: "memes", describe: () => "Share 50 photos, charts or videos on the Feed.", tiers: [[50, "Meme Lord", 'e']] },
+  { metric: 'grandfather', kind: 'humorous', category: 'flex', unit: "legacy", describe: () => "Join in Kamby's first week and stay active across 6 different months.", tiers: [[1, "The Grandfather", 'm']] },
+  { metric: 'alphaLeaks', kind: 'humorous', category: 'flex', unit: "leaks", describe: () => "Close a trade at +500% or more after posting a Trade or PnL card.", tiers: [[1, "Alpha Leaker", 'l']] },
+  { metric: 'communitiesTalkedIn', kind: 'humorous', category: 'flex', unit: "communities", describe: () => "Talk in 15 different communities.", tiers: [[15, "The Diplomat", 'e']] },
+  { metric: 'questionsAsked', kind: 'humorous', category: 'flex', unit: "questions", describe: () => "Ask 50 questions in chats.", tiers: [[50, "Nightmare Moderator", 'r']] },
+  { metric: 'legendInMind', kind: 'humorous', category: 'flex', unit: "delusions", describe: () => "Wear a Mythic title with fewer than 10 winning trades.", tiers: [[1, "The Legend in His Own Mind", 'e']] },
+  { metric: 'nightTrades0420', kind: 'humorous', category: 'easter', unit: "trades", secret: true, describe: () => "Make a trade at exactly 04:20 at night (UTC).", tiers: [[1, "The 4:20 Trader", 'r']] },
+  { metric: 'lucky777', kind: 'humorous', category: 'easter', unit: "lucky trades", secret: true, describe: () => "Make a trade of exactly $7.77.", tiers: [[1, "Lucky 777", 'e']] },
+  { metric: 'palindrome', kind: 'humorous', category: 'easter', unit: "palindromes", secret: true, describe: () => "Reach 131 trades or 434 prediction votes.", tiers: [[1, "Palindrome Master", 'r']] },
+  { metric: 'matrixGlitch', kind: 'humorous', category: 'easter', unit: "glitches", secret: true, describe: () => "Tap the same spot 50 times in 5 seconds.", tiers: [[1, "The Matrix Glitch", 'r']] },
+  { metric: 'friday13Wins', kind: 'humorous', category: 'easter', unit: "wins", secret: true, describe: () => "Close a winning trade on a Friday the 13th.", tiers: [[1, "Friday the 13th", 'e']] },
+  { metric: 'preLaunchVisit', kind: 'humorous', category: 'easter', unit: "early visits", secret: true, describe: () => "Have a Kamby account before the official launch (Nov 20, 2026).", tiers: [[1, "The Time Traveler", 'l']] },
+  { metric: 'errorReloads', kind: 'humorous', category: 'easter', unit: "reloads", secret: true, describe: () => "Hit an error screen and reload 3 times.", tiers: [[3, "Error 404", 'c']] },
+  { metric: 'paperHandsSupreme', kind: 'humorous', category: 'easter', unit: "nervous sells", secret: true, describe: () => "Sell in profit by less than 0.5% — pure fear.", tiers: [[1, "Paper Hands Supreme", 'c']] },
+  { metric: 'feedbackClicks', kind: 'humorous', category: 'easter', unit: "feedback", secret: true, describe: () => "Send the Kamby team feedback for the first time.", tiers: [[1, "To the Moon", 'c']] },
+  { metric: 'betaJoined', kind: 'humorous', category: 'easter', unit: "beta", secret: true, describe: () => "Join and trade in the closed test round, before Nov 20, 2026.", tiers: [[1, "Kamby OG", 'm']] },
 ];
 
 function slug(text: string): string {
@@ -431,7 +504,7 @@ export const ACHIEVEMENTS: Achievement[] = LADDERS.flatMap((ladder) =>
       id: slug(name),
       name,
       description: ladder.describe(compact(target, !!ladder.usd), target),
-      category: categoryOf(ladder.kind, rarity),
+      category: ladder.category ?? categoryOf(ladder.kind, rarity),
       rarity,
       metric: ladder.metric,
       target,

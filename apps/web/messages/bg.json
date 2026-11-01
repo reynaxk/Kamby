@@ -1766,6 +1766,12 @@
     "rarity_rare": "Рядка",
     "rarity_epic": "Епична",
     "rarity_legendary": "Легендарна",
-    "rarity_mythic": "Митична"
+    "rarity_mythic": "Митична",
+    "cat_nocturnal": "Нощни лудости",
+    "cat_brain": "Мозък и настроение",
+    "cat_chaos": "Скорост и хаос",
+    "cat_flex": "Общност и фукня",
+    "cat_easter": "Великденски яйца",
+    "feedback": "Изпрати отзив"
   }
 }
