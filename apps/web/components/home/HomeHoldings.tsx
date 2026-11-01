@@ -18,10 +18,19 @@ import { cashtag, formatCompactUsd, formatPercent, formatTokenAmount } from '@/l
 export function HomeHoldings({ bare = false, emptyText }: { bare?: boolean; emptyText?: string } = {}) {
   const t = useTranslations('labels');
   const tT = useTranslations('trade');
+  const tS = useTranslations('start');
   const positions = useMyPositions();
   const { hidden } = useBalanceVisibility();
   if (!positions || positions.length === 0) {
-    return bare && emptyText && positions ? <p className="py-10 text-center font-body text-sm text-ink-400">{emptyText}</p> : null;
+    // Empty profile (2026-11-01): one clear way to the first coin instead of a bare line.
+    return bare && emptyText && positions ? (
+      <div className="flex flex-col items-center gap-3 py-8 text-center">
+        <p className="font-body text-sm text-ink-400">{emptyText}</p>
+        <Link href="/search" className="rounded-full bg-accent px-5 py-2.5 font-display text-sm font-bold text-black active:opacity-80">
+          {tS("tradeCta")}
+        </Link>
+      </div>
+    ) : null;
   }
 
   return (
