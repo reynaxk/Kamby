@@ -13,7 +13,7 @@ export default async function PerpsPage() {
   const blocked = perpsBlockedHere();
   return (
     <div className="kamby-void min-h-screen bg-bg pb-28">
-      <MarketHeader />
+      <MarketHeader search={false} />
       <main className="mx-auto max-w-2xl px-6 py-8 max-md:px-4 max-md:pt-[calc(env(safe-area-inset-top)+1rem)]">
         <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">{t('title')}</h1>
         <p className="mt-1 mb-5 font-body text-sm text-ink-400">{t('sub')}</p>

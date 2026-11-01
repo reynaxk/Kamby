@@ -11,7 +11,7 @@ export const metadata = { title: 'Trade detail — Kamby' };
 export default function TradeDetailPage({ params }: { params: { id: string } }) {
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader />
+      <MarketHeader search={false} />
       <main className="mx-auto max-w-2xl px-6 py-10">
         <Link href="/trades" className="font-mono text-xs text-ink-400 hover:text-ink-900">
           ← Back to your trades

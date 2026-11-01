@@ -10,7 +10,7 @@ export default async function LivePage() {
   const t = await getTranslations('live');
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader />
+      <MarketHeader search={false} />
       <AppBackBar title={t('liveNow')} fallback="/home" />
       <main className="mx-auto max-w-6xl px-4 pb-16 md:px-6 md:pt-6">
         <LiveList />

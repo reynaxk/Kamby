@@ -18,7 +18,7 @@ export default function NotificationsPage() {
   const tU = useTranslations('ui');
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader className="max-md:hidden" />
+      <MarketHeader className="max-md:hidden" search={false} />
       <AppBackBar title={tU('notifications_a274')} fallback="/account" />
       <main className="mx-auto max-w-2xl px-6 py-10 max-md:px-4 max-md:pt-2">
         <h1 className="font-display text-xl font-bold text-ink-900 max-md:hidden">{tU('notifications_a274')}</h1>

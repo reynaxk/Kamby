@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default function LaunchPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader className="max-md:hidden" />
+      <MarketHeader className="max-md:hidden" search={false} />
       <AppBackBar title="Kamby's LaunchPad" fallback="/" />
       <LaunchPad />
     </div>

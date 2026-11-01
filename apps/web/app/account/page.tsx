@@ -22,7 +22,7 @@ export default async function AccountPage() {
   const t = await getTranslations('account');
   return (
     <div className="kamby-void min-h-screen bg-bg">
-      <MarketHeader />
+      <MarketHeader search={false} />
       <SessionBootstrap />
       {/* Phones: the Profile tab as an app screen (sign in, lists, settings, sign out). */}
       <AppProfileMenu />

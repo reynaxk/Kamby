@@ -12,7 +12,7 @@ export default async function DuelsPage() {
   const tD = await getTranslations('duels');
   return (
     <div className="kamby-void min-h-screen bg-bg pb-28">
-      <MarketHeader />
+      <MarketHeader search={false} />
       <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-2">
         <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">{tL('title')}</h1>
         <LeaderTabs active="duels" traders={t('traders')} squads={t('squads')} duels={tD('tab')} />
