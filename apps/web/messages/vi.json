@@ -16,7 +16,9 @@
     "narratives": "Câu chuyện",
     "predictions": "Dự đoán",
     "trenches": "Chiến hào",
-    "trending": "Xu hướng"
+    "trending": "Xu hướng",
+    "hunt": "Săn",
+    "explore": "Khám phá"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -109,7 +111,7 @@
     "trenches": "Mới",
     "bonding": "Bonding",
     "graduated": "Đã tốt nghiệp",
-    "xxxrisk": "Rủi ro cao",
+    "xxxrisk": "Săn",
     "crypto": "Crypto",
     "watchlist": "Theo dõi"
   },
@@ -1784,6 +1786,22 @@
     "title": "Xu hướng",
     "sub": "Những coin nóng nhất trên mọi chuỗi lúc này.",
     "count": "{n} coin",
-    "empty": "Hiện chưa có xu hướng."
+    "empty": "Hiện chưa có xu hướng.",
+    "age": "Tuổi",
+    "txns": "Giao dịch"
+  },
+  "statusBar": {
+    "live": "Trực tiếp",
+    "connecting": "Đang kết nối"
+  },
+  "huntPage": {
+    "title": "Săn",
+    "sub": "Chúc săn may mắn."
+  },
+  "explorePage": {
+    "title": "Khám phá",
+    "sub": "Coin xu hướng trên mọi chuỗi và danh sách theo dõi của bạn.",
+    "trending": "Xu hướng",
+    "watchlist": "Theo dõi"
   }
 }

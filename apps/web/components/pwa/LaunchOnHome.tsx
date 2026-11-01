@@ -20,7 +20,7 @@ export function LaunchOnHome() {
       if (!window.matchMedia('(display-mode: standalone)').matches) return;
       if (sessionStorage.getItem(LAUNCHED_KEY)) return;
       sessionStorage.setItem(LAUNCHED_KEY, '1');
-      if (pathname !== '/trenches' && !new URLSearchParams(window.location.search).has('ref')) router.replace('/trenches');
+      if (pathname !== '/hunt' && !new URLSearchParams(window.location.search).has('ref')) router.replace('/hunt');
     } catch {
       // Storage blocked — just stay where the app opened.
     }

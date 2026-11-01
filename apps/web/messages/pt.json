@@ -16,7 +16,9 @@
     "narratives": "Narrativas",
     "predictions": "Previsões",
     "trenches": "Trenches",
-    "trending": "Em alta"
+    "trending": "Em alta",
+    "hunt": "Hunt",
+    "explore": "Explorar"
   },
   "install": {
     "title": "Baixe o app Kamby",
@@ -109,7 +111,7 @@
     "trenches": "Novos",
     "bonding": "Bonding",
     "graduated": "Graduados",
-    "xxxrisk": "Alto risco",
+    "xxxrisk": "Hunt",
     "crypto": "Cripto",
     "watchlist": "Watchlist"
   },
@@ -1784,6 +1786,22 @@
     "title": "Em alta",
     "sub": "As moedas mais quentes de cada rede agora.",
     "count": "{n} moedas",
-    "empty": "Nada em alta agora."
+    "empty": "Nada em alta agora.",
+    "age": "Idade",
+    "txns": "Txns"
+  },
+  "statusBar": {
+    "live": "Ao vivo",
+    "connecting": "Conectando"
+  },
+  "huntPage": {
+    "title": "Hunt",
+    "sub": "Boa sorte na caçada."
+  },
+  "explorePage": {
+    "title": "Explorar",
+    "sub": "Moedas em alta em toda rede e sua watchlist.",
+    "trending": "Em alta",
+    "watchlist": "Watchlist"
   }
 }

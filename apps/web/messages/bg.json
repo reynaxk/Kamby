@@ -16,7 +16,9 @@
     "narratives": "Наративи",
     "predictions": "Прогнози",
     "trenches": "Trenches",
-    "trending": "Trending"
+    "trending": "Trending",
+    "hunt": "Hunt",
+    "explore": "Explore"
   },
   "install": {
     "title": "Вземи приложението Kamby",
@@ -109,7 +111,7 @@
     "trenches": "Нови",
     "bonding": "Бондинг",
     "graduated": "Завършили",
-    "xxxrisk": "Висок риск",
+    "xxxrisk": "Hunt",
     "crypto": "Крипто",
     "watchlist": "Любими"
   },
@@ -1784,6 +1786,22 @@
     "title": "Trending",
     "sub": "Най-горещите монети на всяка верига в момента.",
     "count": "{n} монети",
-    "empty": "В момента няма нищо в Trending."
+    "empty": "В момента няма нищо в Trending.",
+    "age": "Възраст",
+    "txns": "Сделки"
+  },
+  "statusBar": {
+    "live": "На живо",
+    "connecting": "Свързване"
+  },
+  "huntPage": {
+    "title": "Hunt",
+    "sub": "Успех на лова."
+  },
+  "explorePage": {
+    "title": "Explore",
+    "sub": "Монетите в тренд на всяка верига и твоят watchlist.",
+    "trending": "Trending",
+    "watchlist": "Watchlist"
   }
 }

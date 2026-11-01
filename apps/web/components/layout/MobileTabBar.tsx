@@ -8,8 +8,8 @@ import { useDmUnread } from '@/lib/dm-client';
 
 const TABS = [
   // Trenches and Trending replaced Home and Search (2026-11-01); search sits at the top of both.
-  { href: '/trenches', label: 'trenches', match: ['/trenches'], icon: FlameIcon },
-  { href: '/trending', label: 'trending', match: ['/trending', '/search'], icon: TrendIcon },
+  { href: '/hunt', label: 'hunt', match: ['/hunt'], icon: FlameIcon },
+  { href: '/explore', label: 'explore', match: ['/explore', '/search'], icon: TrendIcon },
   // Private messages, Instagram-style, one tap away (2026-10-17).
   { href: '/messages', label: 'messages', match: ['/messages'], icon: ChatIcon },
   { href: '/leaderboard', label: 'leaders', match: ['/leaderboard', '/trader'], icon: TrophyIcon },

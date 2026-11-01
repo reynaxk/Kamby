@@ -19,7 +19,7 @@ export default async function NewsPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader className="max-md:hidden" search={false} />
-      <AppBackBar title={t('title')} fallback="/trenches" />
+      <AppBackBar title={t('title')} fallback="/hunt" />
       <main className="mx-auto max-w-[1400px] px-6 py-8 max-md:px-4 max-md:pt-2">
         <NewsFeed large grid />
       </main>

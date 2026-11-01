@@ -130,7 +130,7 @@ export function MobileCoinScreen({
         <button
           type="button"
           aria-label={tU('back_0557')}
-          onClick={() => (window.history.length > 1 ? router.back() : router.push('/trenches'))}
+          onClick={() => (window.history.length > 1 ? router.back() : router.push('/hunt'))}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-600 active:bg-white/10"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

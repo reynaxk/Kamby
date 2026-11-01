@@ -781,6 +781,11 @@ body:has(.kamby-void) {
     --ticker-h: 2rem;
   }
 }
+/* Computers: the status strip (DesktopStatusBar, 2026-11-01) takes the ticker's place. */
+@media (min-width: 1024px) {
+  html.kamby-ticker-on { --ticker-h: 0px; }
+  html.kamby-statusbar-on { --ticker-h: 2.25rem; }
+}
 
 /* Duel cheers rise and fade from a corner (components/duels/DuelArena.tsx). */
 @keyframes kamby-cheer-float {

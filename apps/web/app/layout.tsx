@@ -12,6 +12,7 @@ import { WhatsNew } from '@/components/home/WhatsNew';
 import { NewsToaster } from '@/components/news/NewsToaster';
 import { InstallApp } from '@/components/pwa/InstallApp';
 import { AchievementBeacon } from '@/components/achievements/AchievementBeacon';
+import { DesktopStatusBar } from '@/components/layout/DesktopStatusBar';
 import { MobileTabBar } from '@/components/layout/MobileTabBar';
 import { AppFrame, DesktopSideNav, NAV_GATE_SCRIPT } from '@/components/layout/DesktopSideNav';
 import { CallProvider } from '@/components/calls/CallProvider';
@@ -115,6 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
           </AppFrame>
           <TickerBar />
+          <DesktopStatusBar />
           <MobileTabBar />
           </div>
           </CallProvider>

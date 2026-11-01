@@ -11,7 +11,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Kamby',
     description: 'The social terminal for trading — USDC only, no gas.',
     id: '/',
-    start_url: '/trenches',
+    start_url: '/hunt',
     scope: '/',
     display: 'standalone',
     // Opening Kamby again (icon, shortcut, notification) reuses the open app instead of a second copy.
@@ -31,7 +31,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     // Long-press the home-screen icon (2026-11-01): straight to the main screens.
     shortcuts: [
-      { name: 'Trending', url: '/trending', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
+      { name: 'Explore', url: '/explore', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
       { name: 'Predictions', url: '/predictions', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
       { name: 'News', url: '/news', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
       { name: 'Messages', url: '/messages', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },

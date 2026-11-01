@@ -16,7 +16,9 @@
     "narratives": "ナラティブ",
     "predictions": "予想",
     "trenches": "トレンチ",
-    "trending": "トレンド"
+    "trending": "トレンド",
+    "hunt": "ハント",
+    "explore": "探す"
   },
   "install": {
     "title": "Kamby アプリを入手",
@@ -109,7 +111,7 @@
     "trenches": "新着",
     "bonding": "ボンディング",
     "graduated": "卒業",
-    "xxxrisk": "高リスク",
+    "xxxrisk": "ハント",
     "crypto": "暗号資産",
     "watchlist": "ウォッチ"
   },
@@ -1784,6 +1786,22 @@
     "title": "トレンド",
     "sub": "今すべてのチェーンで最も熱いコイン。",
     "count": "{n} コイン",
-    "empty": "今はトレンドがありません。"
+    "empty": "今はトレンドがありません。",
+    "age": "経過",
+    "txns": "取引"
+  },
+  "statusBar": {
+    "live": "ライブ",
+    "connecting": "接続中"
+  },
+  "huntPage": {
+    "title": "ハント",
+    "sub": "良い狩りを。"
+  },
+  "explorePage": {
+    "title": "探す",
+    "sub": "全チェーンのトレンドコインとウォッチリスト。",
+    "trending": "トレンド",
+    "watchlist": "ウォッチリスト"
   }
 }

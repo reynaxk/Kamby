@@ -509,7 +509,7 @@ function XxxRiskCard({
     >
       <Link
         href={evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`}
-        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-2 p-3"
+        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 p-2.5"
       >
         <span className="row-span-2 flex flex-col items-center gap-1">
           <span
@@ -523,7 +523,7 @@ function XxxRiskCard({
               src={token.imageUrl}
               seed={token.mintAddress}
               label={token.symbol ?? token.name}
-              className="!rounded-[16px] h-[60px] w-[60px] border-[2.5px] border-surface text-base"
+              className="!rounded-[16px] h-[72px] w-[72px] border-[2.5px] border-surface text-lg"
             />
             {pad && (
               <span
@@ -609,9 +609,12 @@ function XxxRiskCard({
             <span className="mr-0.5 font-body text-[0.6rem] font-bold text-ink-400">{t('mc')}</span>
             {money(token.marketCapUsd)}
           </span>
-          <span className="mt-1 font-mono text-[0.7rem] font-semibold tabular-nums text-ink-600">
+          {/* Volume and liquidity on one line (2026-11-01, GMGN-style). */}
+          <span className="mt-1 font-mono text-[0.68rem] font-semibold tabular-nums text-ink-600">
             <span className="mr-0.5 text-ink-400">{t('v')}</span>
             {money(token.volume5mUsd)}
+            <span className="ml-1.5 mr-0.5 text-ink-400">L</span>
+            {money(token.liquidityUsd)}
           </span>
         </span>
 

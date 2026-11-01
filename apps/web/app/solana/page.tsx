@@ -8,7 +8,6 @@ import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { HoldersPanel } from '@/components/terminal/HoldersPanel';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
-import { CoinRail } from '@/components/discovery/CoinRail';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchLaunchedToken, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
@@ -162,14 +161,11 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
         <main
           className={cn(
             'mx-auto grid grid-cols-1 gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]',
-            feeds ? 'max-w-[1500px] xl:grid-cols-[320px_minmax(0,1fr)_380px]' : 'max-w-6xl',
+            // GMGN-style (2026-11-01): no coin list on the left any more (Trenches / Trending do that) —
+            // the chart gets the room.
+            feeds ? 'max-w-[1600px]' : 'max-w-6xl',
           )}
         >
-          {feeds && (
-            <aside className="hidden h-[calc(100vh-7rem)] xl:sticky xl:top-4 xl:block">
-              <CoinRail initial={feeds} selectedKey={`solana:${market.tokenAddress}`} />
-            </aside>
-          )}
           <section key={market.tokenAddress} className="min-w-0">
             {isSol ? (
               <h1 className="font-display text-xl font-bold text-ink-900">{tU('tradeOnSolana_e8eb')}</h1>
@@ -202,13 +198,13 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             )}
             <WidgetBoundary name="news-line" className="mt-3"><NewsTickerLine chainIdentifier="solana" tokenAddress={market.tokenAddress} className="mt-3" /></WidgetBoundary>
             {!isSol && <WidgetBoundary name="stats" className="mt-3"><TokenStatsStrip source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" /></WidgetBoundary>}
-            <WidgetBoundary name="chart" className="mt-3 h-[360px] sm:h-[400px]">
+            <WidgetBoundary name="chart" className="mt-3 h-[360px] sm:h-[400px] lg:h-[520px]">
               <TokenChartCard
                 source={{ kind: 'solana', mint: market.tokenAddress }}
                 initialTimeframe={timeframe}
                 initialCandles={candles}
                 timeframes={SOLANA_TIMEFRAMES}
-                className="mt-3 h-[360px] sm:h-[400px]"
+                className="mt-3 h-[360px] sm:h-[400px] lg:h-[520px]"
               />
             </WidgetBoundary>
             <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">

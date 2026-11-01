@@ -108,7 +108,7 @@ export default async function LeaderboardPage({
               </svg>
             </span>
             <h2 className="min-w-0 flex-1 font-display text-sm font-bold text-white">{t('beFirst')}</h2>
-            <Link href="/trending" className="shrink-0 rounded-xl bg-accent px-4 py-2 font-display text-xs font-bold text-accent-ink active:scale-[0.98]">
+            <Link href="/explore" className="shrink-0 rounded-xl bg-accent px-4 py-2 font-display text-xs font-bold text-accent-ink active:scale-[0.98]">
               {t('goTrade')}
             </Link>
           </div>

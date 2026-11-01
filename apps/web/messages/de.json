@@ -16,7 +16,9 @@
     "narratives": "Narrative",
     "predictions": "Prognosen",
     "trenches": "Trenches",
-    "trending": "Trending"
+    "trending": "Trending",
+    "hunt": "Hunt",
+    "explore": "Entdecken"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -109,7 +111,7 @@
     "trenches": "Neu",
     "bonding": "Bonding",
     "graduated": "Graduiert",
-    "xxxrisk": "Hohes Risiko",
+    "xxxrisk": "Hunt",
     "crypto": "Krypto",
     "watchlist": "Watchlist"
   },
@@ -1784,6 +1786,22 @@
     "title": "Trending",
     "sub": "Die heißesten Coins auf jeder Chain gerade.",
     "count": "{n} Coins",
-    "empty": "Gerade nichts im Trend."
+    "empty": "Gerade nichts im Trend.",
+    "age": "Alter",
+    "txns": "Trades"
+  },
+  "statusBar": {
+    "live": "Live",
+    "connecting": "Verbinde"
+  },
+  "huntPage": {
+    "title": "Hunt",
+    "sub": "Viel Glück bei der Jagd."
+  },
+  "explorePage": {
+    "title": "Entdecken",
+    "sub": "Trend-Coins auf jeder Chain und deine Watchlist.",
+    "trending": "Trending",
+    "watchlist": "Watchlist"
   }
 }

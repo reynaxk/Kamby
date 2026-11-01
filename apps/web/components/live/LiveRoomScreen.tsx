@@ -218,7 +218,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
     await reportLive(id).catch(() => undefined);
     setReported(true);
     await viewer?.leave();
-    router.push('/trenches');
+    router.push('/hunt');
   }
 
   // The host's perps, straight from Hyperliquid; a new position becomes a line in this viewer's chat.
@@ -275,7 +275,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
         </span>
         <p className="mt-4 font-display text-xl font-black text-ink-900">{reported ? t('reported') : t('ended')}</p>
         {summary && <LiveSummaryView summary={summary} />}
-        <Link href="/trenches" className="mt-6 rounded-2xl bg-accent px-6 py-3 font-display text-sm font-bold text-black">
+        <Link href="/hunt" className="mt-6 rounded-2xl bg-accent px-6 py-3 font-display text-sm font-bold text-black">
           {t('backHome')}
         </Link>
       </div>
@@ -291,7 +291,7 @@ export function LiveRoomScreen({ id }: { id: string }) {
       <div className="relative flex min-h-0 flex-[1.15] flex-col lg:flex-1 lg:overflow-y-auto lg:px-3 lg:pb-4">
       {/* Top bar */}
       <header className="relative z-10 flex items-center gap-2.5 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.6rem)]">
-        <button type="button" aria-label={t('back')} onClick={() => (window.history.length > 1 ? router.back() : router.push('/trenches'))} className="flex h-10 w-10 items-center justify-center rounded-full text-white/80 active:bg-white/10">
+        <button type="button" aria-label={t('back')} onClick={() => (window.history.length > 1 ? router.back() : router.push('/hunt'))} className="flex h-10 w-10 items-center justify-center rounded-full text-white/80 active:bg-white/10">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="m15 18-6-6 6-6" />
           </svg>

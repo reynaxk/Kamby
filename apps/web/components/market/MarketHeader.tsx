@@ -58,7 +58,7 @@ export function MarketHeader({
         className={`mx-auto flex flex-wrap items-center gap-x-3 gap-y-2 ${wide ? 'py-2.5' : 'py-3 sm:py-4'} ${shellClass}`}
       >
         {/* From lg up the logo and LaunchPad/Perps live in the left menu (DesktopSideNav, 2026-10-30). */}
-        <Link href="/trenches" className={`flex items-center gap-2 ${sideNav ? 'lg:hidden' : ''}`}>
+        <Link href="/hunt" className={`flex items-center gap-2 ${sideNav ? 'lg:hidden' : ''}`}>
           <KambyLogo size={wide ? 'sm' : 'md'} />
         </Link>
         {/* Phones: logo + bell + Sign in share the first row and search gets its own full-width

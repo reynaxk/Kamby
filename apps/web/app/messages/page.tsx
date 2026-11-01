@@ -15,7 +15,7 @@ export default async function MessagesPage() {
     <MessagesShell
       home={
         <div className="pb-28">
-          <AppBackBar title={t('title')} fallback="/trenches" />
+          <AppBackBar title={t('title')} fallback="/hunt" />
           <main className="mx-auto max-w-2xl px-4 pt-2">
             <DmInbox />
           </main>

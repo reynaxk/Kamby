@@ -16,7 +16,9 @@
     "narratives": "Narasi",
     "predictions": "Prediksi",
     "trenches": "Trenches",
-    "trending": "Trending"
+    "trending": "Trending",
+    "hunt": "Hunt",
+    "explore": "Jelajah"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -109,7 +111,7 @@
     "trenches": "Baru",
     "bonding": "Bonding",
     "graduated": "Lulus",
-    "xxxrisk": "Risiko tinggi",
+    "xxxrisk": "Hunt",
     "crypto": "Kripto",
     "watchlist": "Watchlist"
   },
@@ -1784,6 +1786,22 @@
     "title": "Trending",
     "sub": "Koin terpanas di semua chain saat ini.",
     "count": "{n} koin",
-    "empty": "Belum ada yang trending."
+    "empty": "Belum ada yang trending.",
+    "age": "Umur",
+    "txns": "Txns"
+  },
+  "statusBar": {
+    "live": "Live",
+    "connecting": "Menyambung"
+  },
+  "huntPage": {
+    "title": "Hunt",
+    "sub": "Semoga sukses berburu."
+  },
+  "explorePage": {
+    "title": "Jelajah",
+    "sub": "Koin trending di semua chain dan watchlist-mu.",
+    "trending": "Trending",
+    "watchlist": "Watchlist"
   }
 }

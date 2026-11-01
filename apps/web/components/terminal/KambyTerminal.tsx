@@ -11,7 +11,6 @@ import { MarketInfoPanel } from './MarketInfoPanel';
 import { TokenTradersPanel } from '@/components/discovery/TokenTradersPanel';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { DataHub } from './DataHub';
-import { TerminalLeftRail } from './TerminalLeftRail';
 import { TokenMetricsBar } from './TokenMetricsBar';
 import { TradePanelCard } from './TradePanelCard';
 import type { ChartSource, ChartTimeframe } from '@/lib/chart-data';
@@ -193,12 +192,9 @@ export function KambyTerminal({
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-[1600px] p-3">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[260px_1fr_340px]">
-          <div className="hidden lg:block">
-            <div className="sticky top-3 h-[calc(100vh-6rem)]">
-              <TerminalLeftRail />
-            </div>
-          </div>
+        {/* GMGN-style (2026-11-01): chart and trade panel only — the coin list on the left went
+            (Trenches / Trending replace it), so the chart gets the room. */}
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_360px]">
 
           <div className="flex min-w-0 flex-col gap-3">
             <WidgetBoundary name="metrics"><TokenMetricsBar market={market} /></WidgetBoundary>
@@ -206,13 +202,13 @@ export function KambyTerminal({
             {/* The visual hero of the terminal — elevated + a restrained accent glow rather
                 than glass: lightweight-charts renders to a <canvas>, so nothing sits behind
                 this card for a backdrop-blur to reveal. */}
-            <WidgetBoundary name="chart" className="h-[320px]">
+            <WidgetBoundary name="chart" className="h-[320px] lg:h-[500px]">
               <TokenChartCard
                 source={chartSource}
                 initialTimeframe={timeframe}
                 initialCandles={candles}
                 trades={traders.recentLargeTrades}
-                className="h-[320px]"
+                className="h-[320px] lg:h-[500px]"
               />
             </WidgetBoundary>
             <div className="h-[300px]">

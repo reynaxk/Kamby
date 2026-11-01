@@ -16,7 +16,9 @@
     "narratives": "Anlatılar",
     "predictions": "Tahminler",
     "trenches": "Siperler",
-    "trending": "Trend"
+    "trending": "Trend",
+    "hunt": "Av",
+    "explore": "Keşfet"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -109,7 +111,7 @@
     "trenches": "Yeni",
     "bonding": "Bonding",
     "graduated": "Mezun",
-    "xxxrisk": "Yüksek risk",
+    "xxxrisk": "Av",
     "crypto": "Kripto",
     "watchlist": "İzleme"
   },
@@ -1784,6 +1786,22 @@
     "title": "Trend",
     "sub": "Şu an her ağdaki en sıcak coinler.",
     "count": "{n} coin",
-    "empty": "Şu an trend yok."
+    "empty": "Şu an trend yok.",
+    "age": "Yaş",
+    "txns": "İşlem"
+  },
+  "statusBar": {
+    "live": "Canlı",
+    "connecting": "Bağlanıyor"
+  },
+  "huntPage": {
+    "title": "Av",
+    "sub": "Avın bol olsun."
+  },
+  "explorePage": {
+    "title": "Keşfet",
+    "sub": "Her ağdaki trend coinler ve izleme listen.",
+    "trending": "Trend",
+    "watchlist": "İzleme listesi"
   }
 }

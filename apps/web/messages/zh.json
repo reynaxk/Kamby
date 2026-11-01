@@ -16,7 +16,9 @@
     "narratives": "叙事",
     "predictions": "预测",
     "trenches": "战壕",
-    "trending": "趋势"
+    "trending": "趋势",
+    "hunt": "狩猎",
+    "explore": "探索"
   },
   "install": {
     "title": "获取 Kamby 应用",
@@ -109,7 +111,7 @@
     "trenches": "新币",
     "bonding": "联合曲线",
     "graduated": "已毕业",
-    "xxxrisk": "高风险",
+    "xxxrisk": "狩猎",
     "crypto": "主流币",
     "watchlist": "自选"
   },
@@ -1784,6 +1786,22 @@
     "title": "趋势",
     "sub": "此刻每条链上最热的代币。",
     "count": "{n} 个代币",
-    "empty": "当前没有趋势代币。"
+    "empty": "当前没有趋势代币。",
+    "age": "时长",
+    "txns": "交易"
+  },
+  "statusBar": {
+    "live": "实时",
+    "connecting": "连接中"
+  },
+  "huntPage": {
+    "title": "狩猎",
+    "sub": "祝狩猎顺利。"
+  },
+  "explorePage": {
+    "title": "探索",
+    "sub": "各链的趋势代币和你的自选。",
+    "trending": "趋势",
+    "watchlist": "自选"
   }
 }

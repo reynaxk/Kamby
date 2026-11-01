@@ -35,7 +35,7 @@ export function MessagesShell({ children, home = null }: { children: React.React
       <aside className="fixed bottom-[var(--ticker-h)] left-[var(--nav-w,0px)] top-[var(--top-h,0px)] z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#020203]/70 xl:w-[380px]">
         <div className="flex items-center justify-between px-5 pb-2 pt-5">
           {/* From lg up the logo is in the left menu (DesktopSideNav) — the pane just says Messages. */}
-          <Link href="/trenches" className="flex items-center gap-2 lg:hidden" aria-label="Kamby">
+          <Link href="/hunt" className="flex items-center gap-2 lg:hidden" aria-label="Kamby">
             <KambyLogo size="sm" />
           </Link>
           <span className="font-display text-sm font-bold text-ink-400 lg:text-xl lg:font-extrabold lg:text-ink-900">{t('title')}</span>

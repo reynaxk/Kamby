@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MarketHeader } from './MarketHeader';
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/trenches' }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/hunt' }));
 
 // ConnectWalletButton itself is already independently tested (wagmi/session-dependent) —
 // stubbed here so this file only exercises what actually changed. Captures the props it was
@@ -37,7 +37,7 @@ vi.mock('@/components/account/BalanceVisibilityContext', () => ({
 describe('MarketHeader', () => {
   it('renders the logo as a link back to Discover', () => {
     render(<MarketHeader />);
-    expect(screen.getByRole('link', { name: /kamby/i })).toHaveAttribute('href', '/trenches');
+    expect(screen.getByRole('link', { name: /kamby/i })).toHaveAttribute('href', '/hunt');
   });
 
   // Real removal, 2026-09-22: the top-level text nav (Discover/Trades/Watchlist/

@@ -16,7 +16,9 @@
     "narratives": "Narratifs",
     "predictions": "Prédictions",
     "trenches": "Trenches",
-    "trending": "Tendances"
+    "trending": "Tendances",
+    "hunt": "Hunt",
+    "explore": "Explorer"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -109,7 +111,7 @@
     "trenches": "Nouveaux",
     "bonding": "Bonding",
     "graduated": "Diplômés",
-    "xxxrisk": "Risque élevé",
+    "xxxrisk": "Hunt",
     "crypto": "Crypto",
     "watchlist": "Suivis"
   },
@@ -1784,6 +1786,22 @@
     "title": "Tendances",
     "sub": "Les coins les plus chauds sur chaque chaîne en ce moment.",
     "count": "{n} coins",
-    "empty": "Rien en tendance pour l’instant."
+    "empty": "Rien en tendance pour l’instant.",
+    "age": "Âge",
+    "txns": "Txns"
+  },
+  "statusBar": {
+    "live": "En direct",
+    "connecting": "Connexion"
+  },
+  "huntPage": {
+    "title": "Hunt",
+    "sub": "Bonne chasse."
+  },
+  "explorePage": {
+    "title": "Explorer",
+    "sub": "Les coins tendance sur chaque chaîne et ta watchlist.",
+    "trending": "Tendances",
+    "watchlist": "Watchlist"
   }
 }

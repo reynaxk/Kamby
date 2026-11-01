@@ -33,7 +33,7 @@ const TOKEN_TABS: { id: MarketFeedTab; label: string }[] = [
   { id: 'trenches', label: 'Trenches' },
   { id: 'bonding', label: 'Bonding' },
   { id: 'graduated', label: 'Graduated' },
-  { id: 'xxxrisk', label: 'XXXRisk' },
+  { id: 'xxxrisk', label: 'Hunt' },
   { id: 'crypto', label: 'Crypto' },
 ];
 

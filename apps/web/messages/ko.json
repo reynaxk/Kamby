@@ -16,7 +16,9 @@
     "narratives": "내러티브",
     "predictions": "예측",
     "trenches": "트렌치",
-    "trending": "트렌딩"
+    "trending": "트렌딩",
+    "hunt": "헌트",
+    "explore": "탐색"
   },
   "install": {
     "title": "Kamby 앱 받기",
@@ -109,7 +111,7 @@
     "trenches": "신규",
     "bonding": "본딩",
     "graduated": "졸업",
-    "xxxrisk": "고위험",
+    "xxxrisk": "헌트",
     "crypto": "크립토",
     "watchlist": "관심"
   },
@@ -1784,6 +1786,22 @@
     "title": "트렌딩",
     "sub": "지금 모든 체인에서 가장 뜨거운 코인.",
     "count": "{n}개 코인",
-    "empty": "지금은 트렌딩이 없어요."
+    "empty": "지금은 트렌딩이 없어요.",
+    "age": "경과",
+    "txns": "거래"
+  },
+  "statusBar": {
+    "live": "실시간",
+    "connecting": "연결 중"
+  },
+  "huntPage": {
+    "title": "헌트",
+    "sub": "사냥에 행운을 빌어요."
+  },
+  "explorePage": {
+    "title": "탐색",
+    "sub": "모든 체인의 트렌딩 코인과 관심 목록.",
+    "trending": "트렌딩",
+    "watchlist": "관심 목록"
   }
 }

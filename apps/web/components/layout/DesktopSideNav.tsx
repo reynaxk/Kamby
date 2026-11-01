@@ -48,8 +48,8 @@ export function DesktopSideNav() {
 
   const items: Item[] = [
     // Trenches and Trending replaced Home and Trade (2026-11-01, owner: "like GMGN").
-    { href: '/trenches', label: t('trenches'), match: ['/trenches'], icon: <path d="M12 3c.6 3.8 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1.1-3.8 2.2-4.9.3 1.8 1.3 2.9 2.4 3.1C11.3 9.4 11.4 6 12 3Z" /> },
-    { href: '/trending', label: t('trending'), match: ['/trending', '/market', '/solana', '/search'], icon: <><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></> },
+    { href: '/hunt', label: t('hunt'), match: ['/hunt'], icon: <path d="M12 3c.6 3.8 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1.1-3.8 2.2-4.9.3 1.8 1.3 2.9 2.4 3.1C11.3 9.4 11.4 6 12 3Z" /> },
+    { href: '/explore', label: t('explore'), match: ['/explore', '/market', '/solana', '/search'], icon: <><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></> },
     ...(FEED_ENABLED ? [{ href: '/feed', label: t('feed'), match: ['/feed'], icon: <path d="M4 6h16M4 12h16M4 18h10" /> }] : []),
     { href: '/news', label: t('news'), match: ['/news'], icon: <><path d="M4 5h13v14H6a2 2 0 0 1-2-2z" /><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5" /></> },
     { href: '/narratives', label: t('narratives'), match: ['/narratives'], icon: <path d="M12 3c.6 3.8 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1.1-3.8 2.2-4.9.3 1.8 1.3 2.9 2.4 3.1C11.3 9.4 11.4 6 12 3Z" /> },
@@ -59,7 +59,6 @@ export function DesktopSideNav() {
     { href: '/leaderboard', label: t('leaders'), match: ['/leaderboard', '/trader', '/duels'], icon: <><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></> },
     { href: '/perps', label: t('perps'), match: ['/perps'], icon: <path d="M13 2 4 14h7l-1 8 9-12h-7z" /> },
     { href: '/launch', label: t('launchpad'), match: ['/launch'], icon: <><path d="M5 19c2-6 6-10 14-14-1 8-5 12-11 14" /><path d="m5 19 4-4" /></> },
-    { href: '/watchlist', label: t('watchlist'), match: ['/watchlist'], icon: <path d="m12 3 2.7 6 6.3.6-4.8 4.2 1.4 6.2L12 17l-5.6 3 1.4-6.2L3 9.6 9.3 9z" /> },
     { href: '/account', label: t('profile'), match: ['/account', '/trades', '/notifications', '/referrals'], icon: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></> },
   ];
 
@@ -70,7 +69,7 @@ export function DesktopSideNav() {
       aria-label={t('menu')}
       className="kamby-void sticky top-0 z-50 hidden h-14 items-center gap-1 border-b border-line bg-bg/95 px-4 lg:flex"
     >
-      <Link href="/trenches" className="mr-3 flex shrink-0 items-center" aria-label="Kamby">
+      <Link href="/hunt" className="mr-3 flex shrink-0 items-center" aria-label="Kamby">
         <KambyLogo size="sm" />
       </Link>
       <ul className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">

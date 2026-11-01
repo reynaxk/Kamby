@@ -16,7 +16,9 @@
     "narratives": "Narratives",
     "predictions": "Predictions",
     "trenches": "Trenches",
-    "trending": "Trending"
+    "trending": "Trending",
+    "hunt": "Hunt",
+    "explore": "Explore"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -109,7 +111,7 @@
     "trenches": "Trenches",
     "bonding": "Bonding",
     "graduated": "Graduated",
-    "xxxrisk": "XXXRisk",
+    "xxxrisk": "Hunt",
     "crypto": "Crypto",
     "watchlist": "Watchlist"
   },
@@ -1784,6 +1786,22 @@
     "title": "Trending",
     "sub": "The hottest coins on every chain right now.",
     "count": "{n} coins",
-    "empty": "Nothing trending right now."
+    "empty": "Nothing trending right now.",
+    "age": "Age",
+    "txns": "Txns"
+  },
+  "statusBar": {
+    "live": "Live",
+    "connecting": "Connecting"
+  },
+  "huntPage": {
+    "title": "Hunt",
+    "sub": "Good luck on the hunt."
+  },
+  "explorePage": {
+    "title": "Explore",
+    "sub": "Trending coins on every chain, and your watchlist.",
+    "trending": "Trending",
+    "watchlist": "Watchlist"
   }
 }

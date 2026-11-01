@@ -91,7 +91,7 @@ describe('DiscoverTokenList', () => {
   it('shows the six live feed tabs, defaulting to Trending', () => {
     render(<DiscoverTokenList {...defaultProps} feeds={feeds({ trending: { markets: [fakeMarket({ symbol: 'AAA' })], atIso } })} />);
 
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Trending', 'Trenches', 'Bonding', 'Graduated', 'XXXRisk', 'Crypto']);
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Trending', 'Trenches', 'Bonding', 'Graduated', 'Hunt', 'Crypto']);
     expect(screen.getByRole('tab', { name: 'Trending' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText(/AAA/)).toBeInTheDocument();
   });
