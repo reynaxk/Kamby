@@ -323,13 +323,19 @@ export class XxxRiskService {
   }
 
   /** The last list the stream built (≤10s old) — for page snapshots, never a fresh Jupiter call. */
+  private building: Promise<XxxRiskToken[]> | null = null;
+
+  /** The last build — or, when nobody has the board open (the cache is only kept warm by the live
+   *  stream), a fresh one, so the snapshot (the landing page's live count) isn't empty (2026-11-01). */
   async cached(): Promise<XxxRiskToken[]> {
     try {
       const hit = await this.redis.get(REDIS_KEY);
-      return hit ? (JSON.parse(hit) as XxxRiskToken[]) : [];
+      if (hit) return JSON.parse(hit) as XxxRiskToken[];
     } catch {
-      return [];
+      // built below
     }
+    this.building ??= this.build().finally(() => (this.building = null));
+    return this.building.catch(() => []);
   }
 
   /** The single outbound call per cycle — Jupiter's free token search, up to 100 mints. */
