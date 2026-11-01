@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, createTransferCheckedInstruction, getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { SOLANA_USDC_MINT } from '@kamby/domain';
 import bs58 from 'bs58';
 import { Prisma, prisma } from '@kamby/db';
@@ -113,6 +113,30 @@ export class GasRelayerService {
    *  here. */
   get relayerConnection(): Connection | null {
     return this.connection;
+  }
+
+  /**
+   * Opens a token account for `owner` (2026-11-01: Kamby's wSOL fee account, so SOL trades can
+   * pay their fee into it). Idempotent — a no-op if it already exists. The relayer pays the
+   * one-time rent (~0.002 SOL). Returns the signature, or null when the relayer isn't set up.
+   */
+  async openTokenAccountFor(owner: string, mint: string): Promise<string | null> {
+    if (!this.connection || !this.feePayerKeypair) return null;
+    const payer = this.feePayerKeypair;
+    const ownerKey = new PublicKey(owner);
+    const mintKey = new PublicKey(mint);
+    const ata = getAssociatedTokenAddressSync(mintKey, ownerKey, true);
+    const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+    const message = new TransactionMessage({
+      payerKey: payer.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [createAssociatedTokenAccountIdempotentInstruction(payer.publicKey, ata, ownerKey, mintKey)],
+    }).compileToV0Message();
+    const transaction = new VersionedTransaction(message);
+    transaction.sign([payer]);
+    const signature = await this.connection.sendTransaction(transaction, { skipPreflight: false, maxRetries: 3 });
+    this.logger.info({ owner, mint, ata: ata.toBase58(), signature }, 'Opened a token account (relayer paid the rent)');
+    return signature;
   }
 
   async submitSponsoredTransaction(params: GasRelayerSubmitParams): Promise<GasRelayerSubmitResult> {

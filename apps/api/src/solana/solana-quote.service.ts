@@ -79,6 +79,8 @@ export class SolanaQuoteService {
   private readonly rpcUrl: string | null;
   /** Kamby's wSOL fee account (resolved once): null until known, 'missing' if not created yet. */
   private treasuryWsolAta: string | 'missing' | null = null;
+  /** Opening it is tried once per process — never a loop of paid transactions. */
+  private wsolOpenTried = false;
 
   constructor(
     private readonly jupiter: JupiterQuoteService,
@@ -346,8 +348,16 @@ export class SolanaQuoteService {
       const ata = getAssociatedTokenAddressSync(new PublicKey(WSOL_MINT), new PublicKey(owner), true).toBase58();
       const exists = await connection.getAccountInfo(new PublicKey(ata));
       if (!exists) {
-        if (this.treasuryWsolAta !== 'missing') this.logger.warn({ ata, owner }, 'Kamby wSOL fee account does not exist yet — SOL trades are off until it is created');
+        // First SOL trade: open it once (the relayer pays the rent), then use it from the next quote.
+        if (!this.wsolOpenTried) {
+          this.wsolOpenTried = true;
+          this.logger.warn({ ata, owner }, 'Kamby wSOL fee account missing — opening it');
+          void this.gasRelayer.openTokenAccountFor(owner, WSOL_MINT).catch((error: unknown) => this.logger.error({ err: error }, 'Could not open the wSOL fee account'));
+        }
         this.treasuryWsolAta = 'missing';
+        setTimeout(() => {
+          if (this.treasuryWsolAta === 'missing') this.treasuryWsolAta = null; // look again soon
+        }, 20_000);
         return null;
       }
       this.treasuryWsolAta = ata;
