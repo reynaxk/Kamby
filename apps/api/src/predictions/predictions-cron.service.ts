@@ -241,8 +241,15 @@ export function draftPolls(snapshot: NarrativesSnapshot, news: NewsItem[], block
     if (headlines.length >= 8) break;
   }
 
+  // Staggered: in each round lane j takes coin r - 3j, so neighbours are about different coins.
   const out: Draft[] = [];
-  for (let i = 0; lanes.some((l) => i < l.length); i++) for (const l of lanes) if (l[i]) out.push(l[i]!);
+  const longest = Math.max(0, ...lanes.map((l) => l.length));
+  for (let r = 0; r < longest + 3 * lanes.length; r++) {
+    for (const [j, l] of lanes.entries()) {
+      const d = l[r - 3 * j];
+      if (d) out.push(d);
+    }
+  }
   return out;
 }
 
