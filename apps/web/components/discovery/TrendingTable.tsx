@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { FeedMarket, MarketFeedSnapshot } from '@kamby/domain';
@@ -60,6 +60,9 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
   const [chain, setChain] = useState<string>('all');
   const [win, setWin] = useState<Window>('1h');
   const [sort, setSort] = useState<Sort>('volume');
+  // Ages come from the clock — shown once hydrated, so server and browser render the same text.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const rows = useMemo(() => {
     const seen = new Set<string>();
@@ -149,7 +152,7 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
             const href = hrefOf(m);
             const chainBadge = badgeChainFor(m.chainIdentifier);
             const created = m.windows?.poolCreatedAtMs;
-            const age = created ? formatAge(new Date(created).toISOString()) : null;
+            const age = created && mounted ? formatAge(new Date(created).toISOString()) : null;
             const label = cashtag(m.symbol ?? m.tokenAddress.slice(0, 6));
             const coin = (
               <span className="flex min-w-0 items-center gap-3">
