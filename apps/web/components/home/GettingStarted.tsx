@@ -54,7 +54,8 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
           </span>
           <ChevronDown aria-hidden className={cn('h-4 w-4 shrink-0 text-ink-400 transition-transform', open && 'rotate-180')} />
         </button>
-        {!open && <span className="shrink-0 font-display text-xs font-bold">{next.action}</span>}
+        {/* Phones: the step name gets the room; the action is one tap away inside (2026-11-01). */}
+        {!open && <span className="hidden shrink-0 font-display text-xs font-bold sm:inline">{next.action}</span>}
         <button
           type="button"
           onClick={() => {

@@ -5,6 +5,7 @@ export * from './token-market';
 export * from './env';
 export * from './market';
 export * from './market-feeds';
+export * from './offensive-names';
 export * from './token-info';
 export * from './pair-sanity';
 export * from './wallet';

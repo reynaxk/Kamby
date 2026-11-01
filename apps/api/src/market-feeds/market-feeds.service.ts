@@ -10,6 +10,7 @@ import {
   type MarketFeedSnapshot,
   type MarketSummary,
   type PumpFunTokenSummary,
+  withoutOffensiveCoins,
 } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
 import { catchError, concat, distinctUntilChanged, EMPTY, filter, from, interval, map, merge, type Observable, pairwise, share, shareReplay, switchMap, take, timer } from 'rxjs';
@@ -132,11 +133,11 @@ export class MarketFeedsService {
       this.xxxrisk.cached(),
     ]);
     return {
-      trending: { markets: (await this.livePrices(trendingMarkets(trending))).map((m) => toFeedMarket(m)), atIso },
-      graduated: { ...graduated, atIso },
-      trenches: { tokens: trenches, atIso },
-      bonding: { tokens: bonding, atIso },
-      xxxrisk: { tokens: xxxrisk, atIso },
+      trending: withoutOffensiveCoins({ markets: (await this.livePrices(trendingMarkets(trending))).map((m) => toFeedMarket(m)), atIso }),
+      graduated: withoutOffensiveCoins({ ...graduated, atIso }),
+      trenches: withoutOffensiveCoins({ tokens: trenches, atIso }),
+      bonding: withoutOffensiveCoins({ tokens: bonding, atIso }),
+      xxxrisk: withoutOffensiveCoins({ tokens: xxxrisk, atIso }),
       crypto: { prices: this.cryptoPrices.snapshot(), atIso },
     };
   }
@@ -155,7 +156,7 @@ export class MarketFeedsService {
         filter((prices) => prices.length > 0),
         map((prices) => event('crypto', { prices, atIso: new Date().toISOString() })),
       ),
-      this.realtime.pumpFunEvents$.pipe(map((batch) => event('pumpfun', batch))),
+      this.realtime.pumpFunEvents$.pipe(map((batch) => event('pumpfun', withoutOffensiveCoins(batch)))),
       interval(HEARTBEAT_MS).pipe(map(() => event('heartbeat', { atIso: new Date().toISOString() }))),
     );
   }
@@ -213,6 +214,8 @@ export class MarketFeedsService {
           }),
         ),
       ),
+      // No slur-named coins in any tab (2026-11-01), filtered before the patches are computed.
+      map((raw) => withoutOffensiveCoins(raw)),
       map((data) => ({ data, json: JSON.stringify(data) })),
       distinctUntilChanged((a, b) => a.json === b.json),
       map(({ data }) => ({ ...data, atIso: new Date().toISOString() }) as Snapshots[K]),
