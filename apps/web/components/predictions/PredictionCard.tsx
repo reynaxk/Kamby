@@ -10,6 +10,7 @@ import { useNow } from '@/components/news/useNow';
 import { friendlyError } from '@/lib/friendly-error';
 import { votePrediction } from '@/lib/predictions-client';
 import { marketHref } from '@/lib/solana-links';
+import { PredictionSpark } from './PredictionSpark';
 
 const CATEGORY_STYLE: Record<Prediction['category'], string> = {
   crypto: 'border-[#38BDF8]/30 text-[#7DD3FC]',
@@ -90,6 +91,7 @@ export function PredictionCard({ p, onChange }: { p: Prediction; onChange: (next
         </span>
       </div>
       <h3 className="font-display text-[0.98rem] font-bold leading-snug text-ink-900">{p.title}</h3>
+      {p.coin && <PredictionSpark chainIdentifier={p.coin.chainIdentifier} tokenAddress={p.coin.tokenAddress} thresholdUsd={p.thresholdUsd} />}
 
       {twoWay ? (
         <div className="flex flex-col gap-2">

@@ -27,3 +27,15 @@ describe('token post card', () => {
     expect(sincePosted(2, null)).toBeNull();
   });
 });
+
+import { sparkGeometry } from './PredictionSpark';
+
+describe('prediction mini chart', () => {
+  it('draws the closes and keeps the target line inside the frame', () => {
+    const { path, targetY } = sparkGeometry([1, 2, 3], 4);
+    expect(path.startsWith('M0.0,')).toBe(true);
+    expect(path.split('L')).toHaveLength(3);
+    expect(targetY).toBeCloseTo(4);
+    expect(sparkGeometry([1], null).path).toBe('');
+  });
+});
