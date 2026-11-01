@@ -75,7 +75,7 @@ export default async function LeaderboardPage({
           </div>
           {/* The chain pick sits beside the time range (2026-11-01 tidy pass) instead of on a row of its own. */}
           <div className="flex items-center gap-2">
-          <LeaderboardChainMenu chain={chain} window={window} className="px-0 max-md:px-0" />
+          <LeaderboardChainMenu chain={chain} window={window} className="!px-0" />
           <nav className="inline-flex rounded-lg border border-white/[0.06] bg-white/[0.03] p-1 backdrop-blur-xl max-md:border-0 max-md:bg-transparent max-md:p-0">
             {WINDOWS.map((w) => (
               <Link

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTranslations } from 'next-intl';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@kamby/ui';
 import { useMyUsername } from '@/lib/use-my-username';
 import { FundButton } from '@/components/wallet/FundButton';
@@ -51,7 +52,7 @@ export function GettingStarted({ cash, holding }: { cash: number | null; holding
             <span className="block truncate font-body text-[0.7rem] text-ink-600">{t('title')}</span>
             <span className="block truncate font-display text-sm font-bold text-ink-900">{next.title}</span>
           </span>
-          <span aria-hidden className={cn('text-ink-400 transition-transform', open && 'rotate-180')}>⌄</span>
+          <ChevronDown aria-hidden className={cn('h-4 w-4 shrink-0 text-ink-400 transition-transform', open && 'rotate-180')} />
         </button>
         {!open && <span className="shrink-0 font-display text-xs font-bold">{next.action}</span>}
         <button
