@@ -45,6 +45,7 @@ export class SolanaController {
       amount: body.amount,
       slippageBps: body.slippageBps,
       jitoTipLamports: body.jitoTipLamports,
+      payWith: body.payWith,
     });
   }
 

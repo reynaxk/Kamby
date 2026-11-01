@@ -29,6 +29,11 @@ export class QuoteQueryDto {
   @Matches(/^\d+(\.\d+)?$/, { message: 'amount must be a positive decimal number' })
   amount!: string;
 
+  /** 2026-11-01: 'native' pays with / sells into the chain's own ETH or BNB. Omitted = USDC. */
+  @IsOptional()
+  @IsIn(['usdc', 'native'])
+  payWith?: 'usdc' | 'native';
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()

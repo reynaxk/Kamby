@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { NativePriceService } from '../common/native-price.service';
 import { IdentityModule } from '../identity/identity.module';
 import { GasRelayerService } from './gas-relayer.service';
 import { JupiterQuoteService } from './jupiter-quote.service';
@@ -23,7 +24,7 @@ import { SolanaTransactionService } from './solana-transaction.service';
 @Module({
   imports: [IdentityModule],
   controllers: [SolanaController],
-  providers: [GasRelayerService, JupiterQuoteService, SolanaQuoteService, SolanaTransactionService, SolanaTopupService],
+  providers: [GasRelayerService, JupiterQuoteService, SolanaQuoteService, SolanaTransactionService, SolanaTopupService, NativePriceService],
   // SolanaTransactionService's public getGlobalFeed — SocialModule's own controller hosts
   // the Solana activity routes alongside the EVM ones, same reasoning ActivityService is
   // already exported for DiscoveryModule's reuse (see social.module.ts's own comment): a

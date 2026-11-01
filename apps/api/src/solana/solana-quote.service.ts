@@ -1,6 +1,8 @@
-import { ForbiddenException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Optional, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { NativePriceService } from '../common/native-price.service';
 import { prisma } from '@kamby/db';
 import { MIN_TRADE_MESSAGE, MIN_TRADE_USD, PLATFORM_FEE_FALLBACK_BPS, resolveTierFeeBps, SOLANA_USDC_MINT, TRADING_DEFAULTS, type TradeSide } from '@kamby/domain';
 import { PinoLogger } from 'nestjs-pino';
@@ -25,7 +27,12 @@ export interface CreateSolanaQuoteParams {
   /** See JupiterQuoteService's own doc comment — the user's own wallet pays this, passed
    *  straight through to Jupiter's native jitoTipLamports support. 0/undefined omits it. */
   jitoTipLamports?: number;
+  /** 2026-11-01: 'native' pays with / sells into SOL (amount in lamports for a buy). Omitted = USDC. */
+  payWith?: 'usdc' | 'native';
 }
+
+/** Wrapped SOL — Jupiter wraps and unwraps the wallet's SOL around the swap. */
+export const WSOL_MINT = 'So11111111111111111111111111111111111111112';
 
 export interface SolanaQuoteResult {
   id: string;
@@ -69,14 +76,19 @@ export const JUPITER_MAX_PLATFORM_FEE_BPS = 255;
 export class SolanaQuoteService {
   private readonly treasuryUsdcAta: string | null;
   private readonly gasRelayerTestWalletAddresses: ReadonlySet<string> | null;
+  private readonly rpcUrl: string | null;
+  /** Kamby's wSOL fee account (resolved once): null until known, 'missing' if not created yet. */
+  private treasuryWsolAta: string | 'missing' | null = null;
 
   constructor(
     private readonly jupiter: JupiterQuoteService,
     private readonly gasRelayer: GasRelayerService,
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
+    @Optional() private readonly nativePrice?: NativePriceService,
   ) {
     const solanaConfig = getSolanaConfig((key) => config.get(key, { infer: true }));
+    this.rpcUrl = solanaConfig ? (solanaConfig.rpcUrlFallback ?? solanaConfig.rpcUrl) : null;
     this.treasuryUsdcAta = solanaConfig?.treasuryUsdcAta ?? null;
     this.gasRelayerTestWalletAddresses = solanaConfig?.gasRelayerTestWalletAddresses ?? null;
     this.logger.setContext('SolanaQuoteService');
@@ -90,11 +102,19 @@ export class SolanaQuoteService {
     }
     await this.assertWalletOwnership(params.userId, params.walletAddress);
 
+    // Native-coin trading (2026-11-01): SOL in on a buy, SOL out on a sell; the fee lands in
+    // Kamby's wSOL account, and the wallet pays its own network fee from the same SOL.
+    const isNative = params.payWith === 'native';
+    const dollarMint = isNative ? WSOL_MINT : SOLANA_USDC_MINT;
     const { inputMint, outputMint } = params.side === 'BUY'
-      ? { inputMint: SOLANA_USDC_MINT, outputMint: params.tokenMint }
-      : { inputMint: params.tokenMint, outputMint: SOLANA_USDC_MINT };
+      ? { inputMint: dollarMint, outputMint: params.tokenMint }
+      : { inputMint: params.tokenMint, outputMint: dollarMint };
+    const solUsd = isNative ? ((await this.nativePrice?.usd('SOL')) ?? null) : null;
+    if (isNative && solUsd === null) throw new UnprocessableEntityException('Prices are loading — try again in a moment.');
+    const feeAccount = isNative ? await this.wsolFeeAccount() : this.treasuryUsdcAta;
+    if (feeAccount === null) throw new UnprocessableEntityException('Trading with SOL is being set up — try again soon.');
 
-    const platformFeeBps = await this.resolvePlatformFeeBps(params.side, inputMint, outputMint, params.amount, params.slippageBps);
+    const platformFeeBps = await this.resolvePlatformFeeBps(params.side, inputMint, outputMint, params.amount, params.slippageBps, isNative ? solUsd! : null);
 
     const quote = await this.jupiter.getQuote({
       inputMint,
@@ -103,7 +123,7 @@ export class SolanaQuoteService {
       slippageBps: params.slippageBps,
       userPublicKey: params.walletAddress,
       platformFeeBps,
-      feeAccount: this.treasuryUsdcAta,
+      feeAccount,
       jitoTipLamports: params.jitoTipLamports,
     });
     if (!quote) {
@@ -125,11 +145,13 @@ export class SolanaQuoteService {
         slippageBps: params.slippageBps,
         platformFeeBps: quote.platformFeeBps,
         platformFeeAmount: quote.platformFeeAmountRaw ?? '0',
+        // A SOL trade keeps SOL's USD price at quote time: the P&L ledger values the SOL leg with it.
+        ...(solUsd !== null ? { priceUsd: solUsd } : {}),
         unsignedTx: { base64: quote.unsignedTxBase64 },
         expiresAt,
       },
     });
-    this.logger.info({ quoteId: row.id, side: params.side }, 'solana quote created');
+    this.logger.info({ quoteId: row.id, side: params.side, payWith: isNative ? 'native' : 'usdc' }, 'solana quote created');
 
     return {
       id: row.id,
@@ -311,23 +333,50 @@ export class SolanaQuoteService {
    * EVM uses — see this class's own doc comment for why Solana no longer has its own
    * separate schedule.
    */
-  private async resolvePlatformFeeBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
+  /** Kamby's wSOL token account — the associated account of whoever owns the USDC fee account.
+   *  Jupiter needs it to exist; until it does, SOL trades say they're being set up. */
+  private async wsolFeeAccount(): Promise<string | null> {
+    if (this.treasuryWsolAta && this.treasuryWsolAta !== 'missing') return this.treasuryWsolAta;
+    if (!this.treasuryUsdcAta || !this.rpcUrl) return null;
+    try {
+      const connection = new Connection(this.rpcUrl, 'confirmed');
+      const usdcAccount = await connection.getParsedAccountInfo(new PublicKey(this.treasuryUsdcAta));
+      const owner = (usdcAccount.value?.data as { parsed?: { info?: { owner?: string } } } | undefined)?.parsed?.info?.owner;
+      if (!owner) return null;
+      const ata = getAssociatedTokenAddressSync(new PublicKey(WSOL_MINT), new PublicKey(owner), true).toBase58();
+      const exists = await connection.getAccountInfo(new PublicKey(ata));
+      if (!exists) {
+        if (this.treasuryWsolAta !== 'missing') this.logger.warn({ ata, owner }, 'Kamby wSOL fee account does not exist yet — SOL trades are off until it is created');
+        this.treasuryWsolAta = 'missing';
+        return null;
+      }
+      this.treasuryWsolAta = ata;
+      return ata;
+    } catch (error) {
+      this.logger.warn({ err: error }, 'Could not resolve the wSOL fee account');
+      return null;
+    }
+  }
+
+  private async resolvePlatformFeeBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number, solUsd: number | null = null): Promise<number> {
     // Jupiter's /swap and /swap-instructions take platformFeeBps as a u8: anything above 255
     // fails with a 500 ("out of range integral type conversion") even though /quote accepts it
     // — found 2026-10-04 when the 4% micro tier broke every Solana trade under $10.
-    return Math.min(JUPITER_MAX_PLATFORM_FEE_BPS, await this.resolveTierBps(side, inputMint, outputMint, amount, slippageBps));
+    return Math.min(JUPITER_MAX_PLATFORM_FEE_BPS, await this.resolveTierBps(side, inputMint, outputMint, amount, slippageBps, solUsd));
   }
 
-  private async resolveTierBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number): Promise<number> {
-    // The $2 minimum rides on the same trade-size lookup (USDC in for a buy, USDC out for a sell).
+  private async resolveTierBps(side: TradeSide, inputMint: string, outputMint: string, amount: string, slippageBps: number, solUsd: number | null = null): Promise<number> {
+    // The $2 minimum rides on the same trade-size lookup (USDC in for a buy, USDC out for a sell;
+    // for a SOL trade, lamports at SOL's USD price).
+    const toUsd = (raw: number) => (solUsd !== null ? (raw / 1e9) * solUsd : raw / 10 ** 6);
     if (side === 'BUY') {
-      const tradeSizeUsd = Number(amount) / 10 ** 6;
+      const tradeSizeUsd = toUsd(Number(amount));
       if (tradeSizeUsd < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
       return resolveTierFeeBps(tradeSizeUsd);
     }
     const estimatedOutputRaw = await this.jupiter.getEstimatedOutputRaw({ inputMint, outputMint, amountRaw: amount, slippageBps });
     if (estimatedOutputRaw === null) return PLATFORM_FEE_FALLBACK_BPS;
-    const tradeSizeUsd = Number(estimatedOutputRaw) / 10 ** 6;
+    const tradeSizeUsd = toUsd(Number(estimatedOutputRaw));
     if (tradeSizeUsd < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
     return resolveTierFeeBps(tradeSizeUsd);
   }

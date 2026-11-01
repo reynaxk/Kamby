@@ -101,6 +101,18 @@ export class EvmGasTopupService {
     }
   }
 
+  /** The wallet's own coin (ETH / BNB) on this chain, raw — or null when it can't be read. */
+  async nativeBalance(chainId: number, wallet: string): Promise<bigint | null> {
+    const clients = this.clients.get(chainId);
+    if (!clients) return null;
+    try {
+      return await clients.publicClient.getBalance({ address: wallet as `0x${string}` });
+    } catch (error) {
+      this.logger.warn({ err: error, chainId }, 'Native balance read failed — not blocking the quote');
+      return null;
+    }
+  }
+
   /** Tops the wallet up with a few cents of gas when it holds USDC but almost no native coin.
    *  Returns 'stranded' only when the wallet has no native coin at all and no top-up could be
    *  sent (e.g. Kamby's tank on that chain is empty) — the trade would fail in the wallet, so

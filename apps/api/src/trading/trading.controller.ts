@@ -77,6 +77,7 @@ export class TradingController {
       side: query.side,
       amount: query.amount,
       slippageBps: query.slippageBps,
+      payWith: query.payWith,
     });
     return this.gasRelayer.attachSponsorshipIfEligible(quote, {
       chainId,

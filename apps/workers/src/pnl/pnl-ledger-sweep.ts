@@ -1,5 +1,8 @@
 import { prisma, type Prisma } from '@kamby/db';
 import { computeFifoRealizedPnl, EVM_USDC_BY_CHAIN_ID, SOLANA_USDC_MINT, type OpenLot } from '@kamby/domain';
+
+/** Wrapped SOL — the dollar leg of a SOL trade. */
+const WSOL_MINT = 'So11111111111111111111111111111111111111112';
 import type { Logger } from 'pino';
 
 /** Bounds one sweep tick's DB work — same philosophy as MarketIngestionService's
@@ -204,7 +207,11 @@ export class PnlLedgerSweepService {
     // (skip, mark processed, log) rather than silently mispricing a trade off the wrong
     // leg's raw amount.
     const usdcLeg = row.side === 'BUY' ? row.inputMint : row.outputMint;
-    if (usdcLeg !== SOLANA_USDC_MINT) {
+    // A SOL trade (2026-11-01, native-coin trading): its dollar leg is wSOL, valued at the SOL
+    // price the quote recorded.
+    const solUsd = usdcLeg === WSOL_MINT && row.quote?.priceUsd != null ? Number(row.quote.priceUsd) : null;
+    const legUsd = (raw: string) => (solUsd !== null ? rawToDecimal(raw, 9) * solUsd : rawToDecimal(raw, USDC_DECIMALS));
+    if (usdcLeg !== SOLANA_USDC_MINT && solUsd === null) {
       await prisma.solanaTradeTransaction.update({ where: { id: row.id }, data: { pnlProcessedAt: new Date() } });
       this.logger.error({ transactionId: row.id, side: row.side }, 'pnl sweep: skipped Solana transaction — neither leg is USDC, the guaranteed-anchor invariant this sweep relies on no longer holds');
       return;
@@ -217,7 +224,7 @@ export class PnlLedgerSweepService {
         // What the user really paid: the quote's recorded total (swap + Kamby fee + setup charge)
         // when present — inputAmount alone is only the swapped part, which overstated profit.
         const totalPaidRaw = (row.quote?.unsignedTx as { totalPaidRaw?: unknown } | null | undefined)?.totalPaidRaw;
-        const usdSpent = rawToDecimal(typeof totalPaidRaw === 'string' && /^\d+$/.test(totalPaidRaw) ? totalPaidRaw : row.inputAmount, USDC_DECIMALS);
+        const usdSpent = legUsd(typeof totalPaidRaw === 'string' && /^\d+$/.test(totalPaidRaw) ? totalPaidRaw : row.inputAmount);
         await tx.tokenLot.create({
           data: {
             userId: row.userId,
@@ -231,7 +238,7 @@ export class PnlLedgerSweepService {
           },
         });
       } else {
-        const usdReceived = rawToDecimal(row.expectedOutputAmount, USDC_DECIMALS);
+        const usdReceived = legUsd(row.expectedOutputAmount);
         await this.matchAndRecordSell(tx, {
           userId: row.userId,
           chain: 'SOLANA',
@@ -341,7 +348,7 @@ interface EvmSweepRow {
 
 interface SolanaSweepRow {
   id: string;
-  quote?: { unsignedTx: unknown } | null;
+  quote?: { unsignedTx: unknown; priceUsd?: unknown | null } | null;
   userId: string;
   side: string;
   inputMint: string;

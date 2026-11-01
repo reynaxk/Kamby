@@ -13,6 +13,7 @@ import { EvmGasRelayerService } from './relayer/evm-gas-relayer.service';
 import { EvmRelayerNonceManagerService } from './relayer/evm-relayer-nonce-manager.service';
 import { EvmRelayerWalletService } from './relayer/evm-relayer-wallet.service';
 import { QuoteService } from './quote.service';
+import { NativePriceService } from '../common/native-price.service';
 import { SafetyService } from './safety.service';
 import { TradingController } from './trading.controller';
 import { TransactionService } from './transaction.service';
@@ -36,6 +37,7 @@ import { TransactionService } from './transaction.service';
     EvmGasTopupService,
     FourMemeCurveService,
     QuoteService,
+    NativePriceService,
     SafetyService,
     TransactionService,
     KyberSwapRouter,
@@ -48,6 +50,6 @@ import { TransactionService } from './transaction.service';
     EvmGasRelayerQuoteService,
   ],
   // The bridge (moving a user's USDC between chains) tops up gas the same way trades do.
-  exports: [EvmGasTopupService, SWAP_ROUTER],
+  exports: [EvmGasTopupService, SWAP_ROUTER, NativePriceService],
 })
 export class TradingModule {}

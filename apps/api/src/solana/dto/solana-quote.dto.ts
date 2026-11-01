@@ -25,6 +25,11 @@ export class SolanaQuoteDto {
   @Matches(/^[1-9]\d*$/, { message: 'amount must be a positive integer in raw token units' })
   amount!: string;
 
+  /** 2026-11-01: 'native' pays with / sells into SOL. Omitted = USDC. */
+  @IsOptional()
+  @IsIn(['usdc', 'native'])
+  payWith?: 'usdc' | 'native';
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()

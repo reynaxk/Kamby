@@ -20,6 +20,7 @@ import { formatUnits, parseUnits } from 'viem';
 import { getConfiguredChains, type ConfiguredChain, type Env } from '../config/env';
 import { buildErc20TransferTx } from './erc20-transfer';
 import { EvmGasTopupService } from './evm-gas-topup.service';
+import { NATIVE_SYMBOL_BY_CHAIN_ID, NativePriceService } from '../common/native-price.service';
 import { SWAP_ROUTER } from './router/swap-router.token';
 import type { SwapRouter } from './router/swap-router.interface';
 import { SafetyService, type TradableMarket } from './safety.service';
@@ -34,7 +35,13 @@ export interface CreateQuoteParams {
    *  BUY, the base token for SELL. Never a JS number, see docs/TRADING.md#financial-precision. */
   amount: string;
   slippageBps: number;
+  /** What the trade pays with / sells into (2026-11-01): the chain's own coin (ETH / BNB), or
+   *  USDC as before. Omitted = USDC, so older clients keep working. */
+  payWith?: 'usdc' | 'native';
 }
+
+/** KyberSwap's (and the EVM convention's) address for a chain's own coin. */
+export const NATIVE_TOKEN_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 /**
  * Orchestrates one quote: validates the request, confirms the caller actually owns the
@@ -53,6 +60,7 @@ export class QuoteService {
     config: ConfigService<Env, true>,
     private readonly logger: PinoLogger,
     @Optional() private readonly gasTopup?: EvmGasTopupService,
+    @Optional() private readonly nativePrice?: NativePriceService,
   ) {
     // PLATFORM_FEE_BPS is no longer read here as of 2026-09-16 — the fee is now resolved
     // per-trade from PLATFORM_FEE_TIERS (see resolveAggregatorTierFeeBps below), not a
@@ -144,13 +152,33 @@ export class QuoteService {
     // with (WETH, WBNB, USDT…); the aggregator routes USDC → coin itself. That also puts every
     // trade on the guaranteed-USDC fee path below. Falls back to the pool's own pair token
     // only if this chain's USDC token row is missing.
-    const usdc = await this.chainUsdcToken(listedMarket.chainId, chain.usdcAddress);
-    if (!usdc) this.logger.warn({ chainId: params.chainId }, "chain USDC token row missing — quoting in the pool's own pair token");
-    const market: TradableMarket =
-      usdc && normalizeEvmAddress(listedMarket.token.contractAddress) !== normalizeEvmAddress(usdc.contractAddress)
+    // Native-coin trading (2026-11-01, owner: "different blockchain balances"): pay with — and sell
+    // into — the chain's own ETH / BNB. The user pays the gas from that same balance; no top-up.
+    const isNative = params.payWith === 'native';
+    const nativeSymbol = NATIVE_SYMBOL_BY_CHAIN_ID[params.chainId];
+    const nativeUsd = isNative ? ((await this.nativePrice?.usdForChain(params.chainId)) ?? null) : null;
+    if (isNative && (!nativeSymbol || nativeUsd === null)) {
+      throw new UnprocessableEntityException('Prices are loading — try again in a moment.');
+    }
+    const usdc = isNative ? null : await this.chainUsdcToken(listedMarket.chainId, chain.usdcAddress);
+    if (!isNative && !usdc) this.logger.warn({ chainId: params.chainId }, "chain USDC token row missing — quoting in the pool's own pair token");
+    const market: TradableMarket = isNative
+      ? { ...listedMarket, quoteToken: { ...listedMarket.quoteToken, contractAddress: NATIVE_TOKEN_ADDRESS, symbol: nativeSymbol!, name: nativeSymbol!, decimals: 18, logoUrl: null } }
+      : usdc && normalizeEvmAddress(listedMarket.token.contractAddress) !== normalizeEvmAddress(usdc.contractAddress)
         ? { ...listedMarket, quoteToken: usdc }
         : listedMarket;
+    /** A raw amount of the trade's dollar-side token (USDC or the native coin) in US dollars. */
+    const quoteUsd = (raw: bigint) => Number(formatUnits(raw, market.quoteToken.decimals!)) * (isNative ? nativeUsd! : 1);
     const { inputToken, outputToken } = resolveTokens(market, params.side);
+    if (isNative && params.side === 'BUY') {
+      const spend = parseInputAmount(params.amount, 18);
+      if (quoteUsd(spend) < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
+      const have = await this.gasTopup?.nativeBalance(params.chainId, walletAddress);
+      if (have !== null && have !== undefined && have < spend) {
+        const chainName = params.chainId === 56 ? 'BSC' : params.chainId === 8453 ? 'Base' : params.chainId === 4663 ? 'Robinhood Chain' : 'this chain';
+        throw new UnprocessableEntityException(`Not enough ${nativeSymbol} on ${chainName} — you have ${Number(formatUnits(have, 18)).toFixed(5)} ${nativeSymbol}.`);
+      }
+    }
     // $2 minimum (2026-10-04). A buy's USDC input is its size — checked before any gas is sent.
     if (usdc && params.side === 'BUY' && Number(params.amount) < MIN_TRADE_USD) {
       throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
@@ -168,7 +196,7 @@ export class QuoteService {
       }
     }
     // Kamby pays the gas: a USDC-holding wallet with no ETH/BNB gets a few cents of it first.
-    if (usdc && this.gasTopup) {
+    if (!isNative && usdc && this.gasTopup) {
       const gas = await this.gasTopup.ensureGas(params.chainId, walletAddress, { address: usdc.contractAddress, decimals: usdc.decimals! });
       if (gas === 'stranded') {
         const chainName = params.chainId === 56 ? 'BSC' : params.chainId === 4663 ? 'Robinhood Chain' : params.chainId === 8453 ? 'Base' : 'this chain';
@@ -201,8 +229,8 @@ export class QuoteService {
     // its fee that way). Still USDC on both sides — taken from the USDC going in on a buy and
     // from the USDC coming out on a sell. Falls back to the separate USDC transfer below only
     // when the router can't build the fee in (no KyberSwap route; Velora covers that path).
-    const inSwap = usesGuaranteedUsdcFee && this.feeRecipient
-      ? await this.quoteWithFeeInSwap(params, market, inputToken, outputToken, inputAmountRaw, walletAddress)
+    const inSwap = (usesGuaranteedUsdcFee || isNative) && this.feeRecipient
+      ? await this.quoteWithFeeInSwap(params, market, inputToken, outputToken, inputAmountRaw, walletAddress, quoteUsd)
       : null;
 
     const separateFee = async () => {
@@ -296,7 +324,8 @@ export class QuoteService {
     // The fee always denominates in USDC (market.quoteToken) under the guaranteed flow —
     // for a BUY that's the input token, not the output being purchased, so it must be
     // formatted with the quote token's decimals, not the output token's.
-    const feeDecimals = usesGuaranteedUsdcFee ? market.quoteToken.decimals! : outputToken.decimals!;
+    // A native trade with the fee in the swap takes it in the coin too (input on a buy, output on a sell).
+    const feeDecimals = usesGuaranteedUsdcFee || (isNative && inSwap) ? market.quoteToken.decimals! : outputToken.decimals!;
 
     const priceImpactLevel = classifyPriceImpactBps(routerQuote.priceImpactBps);
     const expiresAt = new Date(Date.now() + TRADING_DEFAULTS.quoteTtlSeconds * 1000);
@@ -377,8 +406,9 @@ export class QuoteService {
     outputToken: { contractAddress: string; decimals: number | null },
     inputAmountRaw: bigint,
     walletAddress: string,
+    /** The dollar-side token (USDC, or ETH / BNB) in US dollars. */
+    quoteUsd: (raw: bigint) => number,
   ) {
-    const usdcDecimals = market.quoteToken.decimals!;
     const ask = (feeBps: number) =>
       this.router.getQuote({
         chainId: params.chainId,
@@ -393,7 +423,7 @@ export class QuoteService {
       });
 
     if (params.side === 'BUY') {
-      const feeBps = resolveTierFeeBps(Number(formatUnits(inputAmountRaw, usdcDecimals)));
+      const feeBps = resolveTierFeeBps(quoteUsd(inputAmountRaw));
       const routerQuote = await ask(feeBps);
       if (!routerQuote?.feeEmbedded) return null;
       const net = BigInt(routerQuote.buyAmountRaw);
@@ -414,7 +444,7 @@ export class QuoteService {
     // The USDC out is net of the fee; gross it back up to size the trade.
     const grossOf = (net: bigint, bps: number) => (net * 10_000n) / BigInt(10_000 - bps);
     let gross = grossOf(BigInt(routerQuote.buyAmountRaw), feeBps);
-    const realBps = resolveTierFeeBps(Number(formatUnits(gross, usdcDecimals)));
+    const realBps = resolveTierFeeBps(quoteUsd(gross));
     if (realBps !== feeBps) {
       const requote = await ask(realBps);
       if (!requote?.feeEmbedded) return null;
@@ -423,7 +453,7 @@ export class QuoteService {
       gross = grossOf(BigInt(routerQuote.buyAmountRaw), feeBps);
     }
     // Hard $2 floor on sells too — owner's call (2026-10-18).
-    if (Number(formatUnits(gross, usdcDecimals)) < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
+    if (quoteUsd(gross) < MIN_TRADE_USD) throw new UnprocessableEntityException(MIN_TRADE_MESSAGE);
     const net = BigInt(routerQuote.buyAmountRaw);
     return {
       routerQuote,
