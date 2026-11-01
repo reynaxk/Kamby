@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ACHIEVEMENTS, ACHIEVEMENTS_BY_ID, type AchievementsDto } from '@kamby/domain';
 import { cn } from '@kamby/ui';
@@ -18,6 +18,7 @@ export function AchievementsShowcase({ own, username, className }: { own: boolea
   const t = useTranslations('achievements');
   const [data, setData] = useState<AchievementsDto | null>(null);
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let live = true;
@@ -28,14 +29,15 @@ export function AchievementsShowcase({ own, username, className }: { own: boolea
     };
   }, [own, username]);
 
+  // Phones and computers each render their own copy of this block; only the visible one opens.
   useEffect(() => {
-    if (!own) return;
+    if (!own || !data || !ref.current || ref.current.offsetParent === null) return;
     try {
       if (new URLSearchParams(window.location.search).get('achievements') === '1') setOpen(true);
     } catch {
       // Cosmetic only.
     }
-  }, [own]);
+  }, [own, data]);
 
   if (!data) return null;
   const unlocked = data.achievements.filter((p) => p.unlocked);
@@ -52,7 +54,7 @@ export function AchievementsShowcase({ own, username, className }: { own: boolea
         .map((a) => a.id);
 
   return (
-    <section className={cn('rounded-3xl border border-white/[0.07] bg-white/[0.02] p-4', className)}>
+    <section ref={ref} className={cn('rounded-3xl border border-white/[0.07] bg-white/[0.02] p-4', className)}>
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="font-display text-base font-black text-white">{t('title')}</p>

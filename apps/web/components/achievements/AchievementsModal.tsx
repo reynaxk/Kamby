@@ -94,7 +94,7 @@ export function AchievementsModal({
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto px-5 pb-3 [scrollbar-width:none]">
+        <div className="flex shrink-0 gap-1.5 overflow-x-auto px-5 pb-3 [scrollbar-width:none]">
           {chips.map((c) => (
             <button
               key={c}
@@ -110,7 +110,7 @@ export function AchievementsModal({
           ))}
         </div>
         {error && <p className="px-5 pb-2 font-body text-xs text-down">{error}</p>}
-        <div className="grid flex-1 grid-cols-1 gap-2.5 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 gap-2.5 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:grid-cols-2 lg:grid-cols-3">
           {list.length === 0 && <p className="col-span-full py-10 text-center font-body text-sm text-white/45">{t('none')}</p>}
           {list.map((a) => {
             const p = byId.get(a.id);

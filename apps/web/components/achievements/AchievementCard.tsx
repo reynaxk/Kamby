@@ -71,9 +71,14 @@ export function AchievementCard({
         <p className={cn('min-w-0 font-display font-black leading-tight', compact ? 'text-sm' : 'text-[0.95rem]', isUnlocked ? 'text-white' : 'text-white/55')}>
           {hidden ? '???' : a.name}
         </p>
-        <span className={cn('shrink-0 font-mono text-[0.58rem] font-bold uppercase tracking-wider', TONE[a.rarity])}>{t(`rarity_${a.rarity}`)}</span>
+        {!compact && <span className={cn('shrink-0 font-mono text-[0.58rem] font-bold uppercase tracking-wider', TONE[a.rarity])}>{t(`rarity_${a.rarity}`)}</span>}
       </div>
-      <p className="mt-0.5 font-mono text-[0.58rem] uppercase tracking-wider text-white/35">{t(`cat_${a.category}`)}</p>
+      {/* Small cards (the profile showcase): just the rarity under the name, so nothing overlaps. */}
+      {compact ? (
+        <p className={cn('mt-1 font-mono text-[0.58rem] font-bold uppercase tracking-wider', TONE[a.rarity])}>{t(`rarity_${a.rarity}`)}</p>
+      ) : (
+        <p className="mt-0.5 font-mono text-[0.58rem] uppercase tracking-wider text-white/35">{t(`cat_${a.category}`)}</p>
+      )}
       {!compact && (
         <p className="mt-2 font-body text-[0.78rem] leading-snug text-white/60">{hidden ? t('lockedSecret') : a.description}</p>
       )}

@@ -7,7 +7,7 @@ import { API_BASE, authedFetch, expectOk } from './session-client';
 /** Achievements & titles (2026-11-01) — see AchievementsService in the API. */
 
 export async function fetchMyAchievements(): Promise<AchievementsDto> {
-  const res = await authedFetch('/v1/achievements/me');
+  const res = await authedFetch('/achievements/me');
   await expectOk(res, 'load your titles');
   return res.json();
 }
@@ -20,7 +20,7 @@ export async function fetchUserAchievements(username: string): Promise<Achieveme
 }
 
 export async function saveTitles(input: { equippedTitleId?: string | null; showcaseTitleIds?: string[] }): Promise<AchievementsDto> {
-  const res = await authedFetch('/v1/achievements/title', {
+  const res = await authedFetch('/achievements/title', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
