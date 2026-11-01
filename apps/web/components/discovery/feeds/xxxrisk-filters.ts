@@ -174,3 +174,41 @@ export function savePresets(list: Preset[]): void {
     // remembered for this visit only
   }
 }
+
+/** A small mark for where a coin launched — on cards and in the filter's launchpad chips. */
+export const LAUNCHPADS: Record<string, { mark: string; name: string; color: string }> = {
+  'pump.fun': { mark: 'P', name: 'Pump.fun', color: '#5BE38F' },
+  'letsbonk.fun': { mark: 'B', name: 'Bonk.fun', color: '#FF8A3D' },
+  'raydium-launchlab': { mark: 'R', name: 'LaunchLab', color: '#8B9BFF' },
+  'met-dbc': { mark: 'M', name: 'Meteora', color: '#F5A524' },
+  Meteora: { mark: 'M', name: 'Meteora', color: '#F5A524' },
+  'bags.fun': { mark: 'B', name: 'Bags', color: '#C084FC' },
+  moonshot: { mark: 'M', name: 'Moonshot', color: '#F0ABFC' },
+  memefun: { mark: 'M', name: 'memefun', color: '#38BDF8' },
+  'boop.fun': { mark: 'B', name: 'Boop', color: '#60A5FA' },
+  heaven: { mark: 'H', name: 'Heaven', color: '#FDE68A' },
+  'jup-studio': { mark: 'J', name: 'Jup Studio', color: '#34D399' },
+  believe: { mark: 'B', name: 'Believe', color: '#A3E635' },
+  'time.fun': { mark: 'T', name: 'time.fun', color: '#FCA5A5' },
+  'cooking.city': { mark: 'C', name: 'Cooking', color: '#FB923C' },
+  dealr: { mark: 'D', name: 'Dealr', color: '#94A3B8' },
+  moonit: { mark: 'M', name: 'Moonit', color: '#E879F9' },
+  // BNB / Base / Robinhood (2026-11-01).
+  'four.meme': { mark: '4', name: 'Four.meme', color: '#F3BA2F' },
+  flap: { mark: 'F', name: 'Flap', color: '#D9F99D' },
+  clanker: { mark: 'C', name: 'Clanker', color: '#A78BFA' },
+  pons: { mark: 'P', name: 'Pons', color: '#CCFF00' },
+  'uniswap-v4': { mark: 'U', name: 'Uniswap v4', color: '#FF66C4' },
+  uniswap: { mark: 'U', name: 'Uniswap', color: '#FF66C4' },
+  pancakeswap: { mark: 'C', name: 'PancakeSwap', color: '#38BDF8' },
+  aerodrome: { mark: 'A', name: 'Aerodrome', color: '#60A5FA' },
+};
+
+/** The chains on the board, for the filter's chain chips. */
+export const BOARD_CHAINS: { id: string; name: string }[] = [
+  { id: 'solana', name: 'Solana' },
+  { id: 'eip155:56', name: 'BNB' },
+  { id: 'eip155:8453', name: 'Base' },
+  { id: 'eip155:4663', name: 'Robinhood' },
+];
+export const launchpadInfo = (id: string) => LAUNCHPADS[id] ?? { mark: id.charAt(0).toUpperCase(), name: id, color: '#94A3B8' };

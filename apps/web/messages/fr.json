@@ -265,7 +265,22 @@
     "feedChip3": "Photos et vidéos",
     "feedChip4": "Likes et réponses",
     "pulseLive": "{count, plural, one {# live} other {# lives}} · {viewers} spectateurs",
-    "pulseNews": "Derniers titres crypto"
+    "pulseNews": "Derniers titres crypto",
+    "navPads": "Launchpads",
+    "lpKicker": "Tous les launchpads",
+    "lpTitle": "Tous les launchpads. Tous les réseaux. Un seul tableau.",
+    "lpBody": "Lancements tout neufs, coins sur le point de bonder et migrations récentes de Pump.fun, Bonk, Meteora, Four.meme, Clanker et plus — avec les filtres des pros : part du dev, snipers, bundlers, réseaux sociaux et plus.",
+    "lpLive": "{coins} coins en direct · {pads} launchpads · {chains} réseaux",
+    "moreKicker": "Plus qu’un terminal",
+    "moreTitle": "Tout le reste que tu cherches",
+    "m1t": "Prédictions",
+    "m1b": "Vote sur ce qui va se passer — prix, actus, élections. Gratuit, juste pour le fun.",
+    "m2t": "Actus",
+    "m2b": "Les titres de CoinDesk, Cointelegraph et plus, avec les coins qu’ils font bouger.",
+    "m3t": "LaunchPad",
+    "m3b": "Lance ton propre coin sur Pump.fun, Clanker ou Four.meme en une minute.",
+    "m4t": "Perps",
+    "m4b": "Long ou short sur les majors avec Hyperliquid, depuis ton USDC."
   },
   "coin": {
     "price": "Prix",

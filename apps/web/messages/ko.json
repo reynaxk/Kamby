@@ -265,7 +265,22 @@
     "feedChip3": "사진·영상",
     "feedChip4": "좋아요·답글",
     "pulseLive": "라이브 {count}개 · {viewers}명 시청 중",
-    "pulseNews": "최신 크립토 헤드라인"
+    "pulseNews": "최신 크립토 헤드라인",
+    "navPads": "런치패드",
+    "lpKicker": "모든 런치패드",
+    "lpTitle": "모든 런치패드. 모든 체인. 하나의 보드.",
+    "lpBody": "Pump.fun, Bonk, Meteora, Four.meme, Clanker 등에서 갓 출시된 코인, 본딩 직전 코인, 막 이전된 코인을 — 개발자 보유, 스나이퍼, 번들러, 소셜 등 프로용 필터와 함께.",
+    "lpLive": "라이브 {coins}개 코인 · 런치패드 {pads}개 · 체인 {chains}개",
+    "moreKicker": "터미널 그 이상",
+    "moreTitle": "그 밖에 찾던 모든 것",
+    "m1t": "예측",
+    "m1b": "다음에 일어날 일에 투표하세요 — 가격, 뉴스, 선거. 무료, 재미로만.",
+    "m2t": "뉴스",
+    "m2b": "CoinDesk, Cointelegraph 등의 헤드라인을 관련 코인과 함께.",
+    "m3t": "LaunchPad",
+    "m3b": "Pump.fun, Clanker, Four.meme에서 약 1분 만에 나만의 코인 출시.",
+    "m4t": "Perps",
+    "m4b": "Hyperliquid로 주요 코인 롱/숏, USDC로 바로."
   },
   "coin": {
     "price": "가격",

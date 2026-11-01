@@ -13,6 +13,7 @@ import { soft } from '@/lib/soft';
 import { LandingTour } from '@/components/landing/LandingTour';
 import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
+import { LaunchpadShowcase, MoreOnKamby } from '@/components/landing/LaunchpadShowcase';
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
 import { getTranslations } from 'next-intl/server';
 
@@ -41,6 +42,7 @@ export default async function LandingPage() {
         signIn={t('signIn')}
         links={[
           { href: '#how', label: t('navHow') },
+          { href: '#launchpads', label: t('navPads') },
           { href: '#live', label: t('navLive') },
           { href: '#feed', label: t('navFeed') },
           { href: '#chat', label: t('navChat') },
@@ -121,6 +123,11 @@ export default async function LandingPage() {
           <LandingTour />
         </section>
 
+        {/* Every launchpad, every chain (2026-11-01) — the board's real coin count right now. */}
+        <section id="launchpads" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+          <LaunchpadShowcase tokens={feeds?.xxxrisk?.tokens ?? []} />
+        </section>
+
         {/* Live trading streams (2026-10-31) */}
         <section id="live" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
           <LiveShowcase
@@ -159,6 +166,11 @@ export default async function LandingPage() {
 
         <section className="mx-auto max-w-6xl px-5 py-20">
           <UnderTheHood />
+        </section>
+
+        {/* Beyond trading (2026-11-01): Predictions, News, LaunchPad, Perps. */}
+        <section className="mx-auto max-w-6xl px-5 py-20">
+          <MoreOnKamby />
         </section>
 
         <section id="faq" className="scroll-mt-20 mx-auto max-w-3xl px-5 py-20">

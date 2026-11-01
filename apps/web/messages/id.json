@@ -265,7 +265,22 @@
     "feedChip3": "Foto & video",
     "feedChip4": "Suka & balasan",
     "pulseLive": "{count} siaran langsung · {viewers} menonton",
-    "pulseNews": "Berita kripto terbaru"
+    "pulseNews": "Berita kripto terbaru",
+    "navPads": "Launchpad",
+    "lpKicker": "Semua launchpad",
+    "lpTitle": "Semua launchpad. Semua jaringan. Satu papan.",
+    "lpBody": "Koin yang baru rilis, hampir bonding, dan baru migrasi dari Pump.fun, Bonk, Meteora, Four.meme, Clanker dan lainnya — dengan filter para pro: kepemilikan dev, sniper, bundler, sosial, dan lainnya.",
+    "lpLive": "{coins} koin live · {pads} launchpad · {chains} jaringan",
+    "moreKicker": "Lebih dari terminal",
+    "moreTitle": "Semua hal lain yang kamu cari",
+    "m1t": "Prediksi",
+    "m1b": "Pilih apa yang terjadi berikutnya — harga, berita, pemilu. Gratis, cuma buat seru-seruan.",
+    "m2t": "Berita",
+    "m2b": "Judul dari CoinDesk, Cointelegraph dan lainnya, ditandai dengan koin yang terdampak.",
+    "m3t": "LaunchPad",
+    "m3b": "Luncurkan koinmu sendiri di Pump.fun, Clanker, atau Four.meme dalam semenit.",
+    "m4t": "Perps",
+    "m4b": "Long atau short koin besar dengan Hyperliquid, langsung dari USDC-mu."
   },
   "coin": {
     "price": "Harga",

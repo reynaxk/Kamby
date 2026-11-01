@@ -265,7 +265,22 @@
     "feedChip3": "照片和视频",
     "feedChip4": "点赞和回复",
     "pulseLive": "{count} 场直播 · {viewers} 人观看",
-    "pulseNews": "最新加密货币头条"
+    "pulseNews": "最新加密货币头条",
+    "navPads": "发射平台",
+    "lpKicker": "所有发射平台",
+    "lpTitle": "所有发射平台。所有链。一个看板。",
+    "lpBody": "来自 Pump.fun、Bonk、Meteora、Four.meme、Clanker 等的新币、即将毕业的币和刚迁移的币 — 配上专业玩家用的筛选：开发者持仓、狙击手、捆绑者、社交账号等。",
+    "lpLive": "实时 {coins} 个币 · {pads} 个发射平台 · {chains} 条链",
+    "moreKicker": "不只是终端",
+    "moreTitle": "你想要的其他一切",
+    "m1t": "预测",
+    "m1b": "投票预测接下来会发生什么 — 价格、新闻、选举。免费，只为好玩。",
+    "m2t": "新闻",
+    "m2b": "来自 CoinDesk、Cointelegraph 等的头条，并标注相关币种。",
+    "m3t": "LaunchPad",
+    "m3b": "大约一分钟在 Pump.fun、Clanker 或 Four.meme 发行你自己的币。",
+    "m4t": "永续合约",
+    "m4b": "用 Hyperliquid 做多或做空主流币，直接用你的 USDC。"
   },
   "coin": {
     "price": "价格",

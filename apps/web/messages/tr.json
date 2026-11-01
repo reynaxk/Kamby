@@ -265,7 +265,22 @@
     "feedChip3": "Fotoğraf ve video",
     "feedChip4": "Beğeni ve yanıtlar",
     "pulseLive": "{count} canlı yayın · {viewers} izleyici",
-    "pulseNews": "Son kripto manşetleri"
+    "pulseNews": "Son kripto manşetleri",
+    "navPads": "Launchpad’ler",
+    "lpKicker": "Tüm launchpad’ler",
+    "lpTitle": "Tüm launchpad’ler. Tüm ağlar. Tek pano.",
+    "lpBody": "Pump.fun, Bonk, Meteora, Four.meme, Clanker ve dahasından yeni çıkan, bonding’e yaklaşan ve yeni taşınan coinler — profilerin filtreleriyle: dev payı, sniper, bundler, sosyal hesaplar ve daha fazlası.",
+    "lpLive": "{coins} coin canlı · {pads} launchpad · {chains} ağ",
+    "moreKicker": "Terminalden fazlası",
+    "moreTitle": "Aradığın diğer her şey",
+    "m1t": "Tahminler",
+    "m1b": "Sırada ne olacağına oy ver — fiyatlar, haberler, seçimler. Ücretsiz, sadece eğlence.",
+    "m2t": "Haberler",
+    "m2b": "CoinDesk, Cointelegraph ve daha fazlasından başlıklar, etkiledikleri coinlerle.",
+    "m3t": "LaunchPad",
+    "m3b": "Kendi coinini Pump.fun, Clanker veya Four.meme’de yaklaşık bir dakikada çıkar.",
+    "m4t": "Perps",
+    "m4b": "Hyperliquid ile büyük coinlerde long ya da short, doğrudan USDC’nden."
   },
   "coin": {
     "price": "Fiyat",

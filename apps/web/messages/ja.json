@@ -265,7 +265,22 @@
     "feedChip3": "写真・動画",
     "feedChip4": "いいね・返信",
     "pulseLive": "ライブ配信 {count} 件 · {viewers} 人が視聴中",
-    "pulseNews": "最新の暗号資産ニュース"
+    "pulseNews": "最新の暗号資産ニュース",
+    "navPads": "ローンチパッド",
+    "lpKicker": "すべてのローンチパッド",
+    "lpTitle": "すべてのローンチパッド。すべてのチェーン。ひとつのボード。",
+    "lpBody": "Pump.fun、Bonk、Meteora、Four.meme、Clanker などの新規コイン、ボンディング直前のコイン、移行直後のコインを — 開発者保有、スナイパー、バンドラー、SNS などプロ向けのフィルター付きで。",
+    "lpLive": "ライブ中 {coins} コイン · {pads} ローンチパッド · {chains} チェーン",
+    "moreKicker": "ターミナル以上",
+    "moreTitle": "ほかにもあるもの",
+    "m1t": "予想",
+    "m1b": "次に何が起きるかに投票 — 価格、ニュース、選挙。無料、ただの遊び。",
+    "m2t": "ニュース",
+    "m2b": "CoinDesk、Cointelegraph などの見出しを、関係するコイン付きで。",
+    "m3t": "LaunchPad",
+    "m3b": "Pump.fun、Clanker、Four.meme で約1分で自分のコインを発行。",
+    "m4t": "Perps",
+    "m4b": "Hyperliquid で主要コインをロング・ショート、USDC からそのまま。"
   },
   "coin": {
     "price": "価格",

@@ -265,7 +265,22 @@
     "feedChip3": "Ảnh và video",
     "feedChip4": "Thích và trả lời",
     "pulseLive": "{count} buổi live · {viewers} người xem",
-    "pulseNews": "Tin crypto mới nhất"
+    "pulseNews": "Tin crypto mới nhất",
+    "navPads": "Launchpad",
+    "lpKicker": "Mọi launchpad",
+    "lpTitle": "Mọi launchpad. Mọi chuỗi. Một bảng.",
+    "lpBody": "Coin vừa ra mắt, sắp bonding và vừa chuyển từ Pump.fun, Bonk, Meteora, Four.meme, Clanker và hơn thế — với bộ lọc của dân chuyên: dev nắm giữ, sniper, bundler, mạng xã hội và nhiều hơn.",
+    "lpLive": "{coins} coin đang live · {pads} launchpad · {chains} chuỗi",
+    "moreKicker": "Hơn cả một terminal",
+    "moreTitle": "Mọi thứ khác bạn tìm kiếm",
+    "m1t": "Dự đoán",
+    "m1b": "Bình chọn điều sắp xảy ra — giá, tin tức, bầu cử. Miễn phí, chỉ để vui.",
+    "m2t": "Tin tức",
+    "m2b": "Tiêu đề từ CoinDesk, Cointelegraph và hơn nữa, gắn với các coin bị ảnh hưởng.",
+    "m3t": "LaunchPad",
+    "m3b": "Ra mắt coin của riêng bạn trên Pump.fun, Clanker hoặc Four.meme trong khoảng một phút.",
+    "m4t": "Perps",
+    "m4b": "Long hoặc short các coin lớn với Hyperliquid, ngay từ USDC của bạn."
   },
   "coin": {
     "price": "Giá",
