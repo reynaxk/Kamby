@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Cette crypto",
     "dismiss": "Fermer",
     "sources": "Titres de {list}. Les articles s’ouvrent sur le site de l’éditeur.",
-    "toastHolding": "Tu la détiens"
+    "toastHolding": "Tu la détiens",
+    "readOn": "Lire sur {source}"
   },
   "narratives": {
     "title": "Narratifs",

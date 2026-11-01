@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Тази монета",
     "dismiss": "Затвори",
     "sources": "Заглавия от {list}. Статиите се отварят в сайта на издателя.",
-    "toastHolding": "Държиш я"
+    "toastHolding": "Държиш я",
+    "readOn": "Прочети в {source}"
   },
   "narratives": {
     "title": "Наративи",

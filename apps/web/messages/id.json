@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Koin ini",
     "dismiss": "Tutup",
     "sources": "Judul dari {list}. Artikel dibuka di situs penerbit.",
-    "toastHolding": "Kamu punya"
+    "toastHolding": "Kamu punya",
+    "readOn": "Baca di {source}"
   },
   "narratives": {
     "title": "Narasi",

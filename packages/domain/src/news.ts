@@ -158,7 +158,7 @@ export function cleanNewsText(html: string | null | undefined): string {
 }
 
 /** A summary for a card: first ~220 characters, cut at a word. */
-export function newsSnippet(text: string, max = 220): string {
+export function newsSnippet(text: string, max = 320): string {
   if (text.length <= max) return text;
   const cut = text.slice(0, max);
   const space = cut.lastIndexOf(' ');

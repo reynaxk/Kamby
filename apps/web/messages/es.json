@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Esta moneda",
     "dismiss": "Cerrar",
     "sources": "Titulares de {list}. Los artículos se abren en el sitio del medio.",
-    "toastHolding": "La tienes"
+    "toastHolding": "La tienes",
+    "readOn": "Leer en {source}"
   },
   "narratives": {
     "title": "Narrativas",

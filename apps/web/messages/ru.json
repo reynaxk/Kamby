@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Эта монета",
     "dismiss": "Закрыть",
     "sources": "Заголовки от {list}. Статьи открываются на сайте издания.",
-    "toastHolding": "У вас есть"
+    "toastHolding": "У вас есть",
+    "readOn": "Читать на {source}"
   },
   "narratives": {
     "title": "Нарративы",

@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Bu coin",
     "dismiss": "Kapat",
     "sources": "{list} manşetleri. Makaleler yayıncının sitesinde açılır.",
-    "toastHolding": "Sende var"
+    "toastHolding": "Sende var",
+    "readOn": "{source} üzerinde oku"
   },
   "narratives": {
     "title": "Anlatılar",

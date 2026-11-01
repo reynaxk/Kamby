@@ -1616,7 +1616,8 @@
     "toastOnScreen": "このコイン",
     "dismiss": "閉じる",
     "sources": "{list} の見出し。記事は各メディアのサイトで開きます。",
-    "toastHolding": "保有中"
+    "toastHolding": "保有中",
+    "readOn": "{source} で読む"
   },
   "narratives": {
     "title": "ナラティブ",

@@ -1616,7 +1616,8 @@
     "toastOnScreen": "이 코인",
     "dismiss": "닫기",
     "sources": "{list}의 헤드라인. 기사는 언론사 사이트에서 열립니다.",
-    "toastHolding": "보유 중"
+    "toastHolding": "보유 중",
+    "readOn": "{source}에서 읽기"
   },
   "narratives": {
     "title": "내러티브",

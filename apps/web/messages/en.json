@@ -1616,7 +1616,8 @@
     "toastOnScreen": "This coin",
     "dismiss": "Dismiss",
     "sources": "Headlines from {list}. Articles open on the publisher’s site.",
-    "toastHolding": "You hold"
+    "toastHolding": "You hold",
+    "readOn": "Read on {source}"
   },
   "narratives": {
     "title": "Narratives",

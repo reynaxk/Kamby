@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Dieser Coin",
     "dismiss": "Schließen",
     "sources": "Schlagzeilen von {list}. Artikel öffnen sich auf der Seite des Verlags.",
-    "toastHolding": "In deinem Besitz"
+    "toastHolding": "In deinem Besitz",
+    "readOn": "Weiterlesen bei {source}"
   },
   "narratives": {
     "title": "Narrative",

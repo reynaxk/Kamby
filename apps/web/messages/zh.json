@@ -1616,7 +1616,8 @@
     "toastOnScreen": "当前币种",
     "dismiss": "关闭",
     "sources": "头条来自 {list}。文章在发布方网站打开。",
-    "toastHolding": "已持有"
+    "toastHolding": "已持有",
+    "readOn": "在 {source} 阅读"
   },
   "narratives": {
     "title": "叙事",

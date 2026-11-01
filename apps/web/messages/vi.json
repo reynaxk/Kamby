@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Coin này",
     "dismiss": "Đóng",
     "sources": "Tiêu đề từ {list}. Bài viết mở trên trang của nhà xuất bản.",
-    "toastHolding": "Bạn đang giữ"
+    "toastHolding": "Bạn đang giữ",
+    "readOn": "Đọc trên {source}"
   },
   "narratives": {
     "title": "Câu chuyện",

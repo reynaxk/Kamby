@@ -1616,7 +1616,8 @@
     "toastOnScreen": "เหรียญนี้",
     "dismiss": "ปิด",
     "sources": "พาดหัวจาก {list} บทความเปิดบนเว็บไซต์ของสำนักข่าว",
-    "toastHolding": "คุณถืออยู่"
+    "toastHolding": "คุณถืออยู่",
+    "readOn": "อ่านที่ {source}"
   },
   "narratives": {
     "title": "เทรนด์",

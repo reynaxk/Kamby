@@ -6,7 +6,7 @@ import { newsSourceById, newsTokenKey, type NewsItem, type NewsToken } from '@ka
 import { useTranslations } from 'next-intl';
 import { useMyCoins } from '@/lib/my-coins';
 import { cn } from '@kamby/ui';
-import { formatRelativeTime } from '@/lib/format';
+import { formatPercent, formatRelativeTime } from '@/lib/format';
 import { marketHref } from '@/lib/solana-links';
 import { useNow } from './useNow';
 
@@ -32,9 +32,14 @@ export function NewsSourceMark({ sourceId, className, large = false }: { sourceI
 
 /** A tagged coin — opens its trading page by contract address, never by symbol (or, with
  *  `onOpen`, opens it in place — the Feed). */
-export function NewsTokenBadge({ token, onNavigate, onOpen }: { token: NewsToken; onNavigate?: () => void; onOpen?: (token: NewsToken) => void }) {
+export function NewsTokenBadge({ token, onNavigate, onOpen, move }: { token: NewsToken; onNavigate?: () => void; onOpen?: (token: NewsToken) => void; move?: number | null }) {
   const href = marketHref(token.chainIdentifier, token.tokenAddress);
-  const label = `$${token.symbol}`;
+  const label = (
+    <>
+      ${token.symbol}
+      {typeof move === 'number' && <span className={cn('ml-1', move >= 0 ? 'text-up' : 'text-down')}>{formatPercent(move)}</span>}
+    </>
+  );
   const className = 'inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[0.7rem] font-semibold text-accent';
   if (onOpen) {
     return (
@@ -59,6 +64,7 @@ export function NewsCard({
   onToken,
   tokenAction,
   large = false,
+  moves,
 }: {
   item: NewsItem;
   compact?: boolean;
@@ -69,6 +75,8 @@ export function NewsCard({
   onToken?: (token: NewsToken) => void;
   /** Something next to each coin tag (the Feed's ⚡ quick buy). */
   tokenAction?: (token: NewsToken) => React.ReactNode;
+  /** Tagged coins' 24h change, by newsTokenKey (the News page). */
+  moves?: Map<string, number>;
 }) {
   const now = useNow();
   const t = useTranslations('news');
@@ -85,17 +93,22 @@ export function NewsCard({
       <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className={cn('font-display font-bold text-ink-900 hover:text-accent', large ? 'text-lg leading-snug max-md:text-[1.05rem]' : 'text-sm leading-snug')}>
         {item.title}
       </a>
-      {!compact && item.summary && <p className={cn('font-body leading-relaxed text-ink-400', large ? 'line-clamp-3 text-[0.95rem] max-md:text-sm' : 'line-clamp-2 text-xs')}>{item.summary}</p>}
+      {!compact && item.summary && <p className={cn('font-body leading-relaxed text-ink-400', large ? 'line-clamp-5 text-[0.92rem] max-md:text-sm' : 'line-clamp-2 text-xs')}>{item.summary}</p>}
       {item.tokens.length > 0 && (
         <div className="flex flex-wrap gap-1.5 pt-0.5">
           {item.tokens.map((token) => (
             <span key={`${token.chainIdentifier}:${token.tokenAddress}`} className="inline-flex items-center gap-1">
-              <NewsTokenBadge token={token} onOpen={onToken} />
+              <NewsTokenBadge token={token} onOpen={onToken} move={moves?.get(newsTokenKey(token.chainIdentifier, token.tokenAddress))} />
               <MineTag kind={mine.held.has(newsTokenKey(token.chainIdentifier, token.tokenAddress)) ? 'held' : mine.watched.has(newsTokenKey(token.chainIdentifier, token.tokenAddress)) ? 'watched' : null} label={t('toastHolding')} />
               {tokenAction?.(token)}
             </span>
           ))}
         </div>
+      )}
+      {large && (
+        <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-auto pt-1 font-display text-xs font-bold text-ink-600 hover:text-accent">
+          {t('readOn', { source: newsSourceById(item.sourceId)?.name ?? item.sourceId })} ↗
+        </a>
       )}
     </article>
   );

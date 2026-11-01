@@ -1616,7 +1616,8 @@
     "toastOnScreen": "Esta moeda",
     "dismiss": "Fechar",
     "sources": "Manchetes de {list}. Os artigos abrem no site do veículo.",
-    "toastHolding": "Você tem"
+    "toastHolding": "Você tem",
+    "readOn": "Ler no {source}"
   },
   "narratives": {
     "title": "Narrativas",
