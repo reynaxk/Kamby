@@ -13,11 +13,13 @@ import { useNow } from './useNow';
 const COIN_FRESH_MS = 24 * 60 * 60_000;
 const BREAKING_FRESH_MS = 3 * 60 * 60_000;
 
-/** Exported for tests. The headline to show: this coin's newest if recent, else breaking news. */
+/** Exported for tests. The headline to show: this coin's newest if recent, else breaking news —
+ *  crypto news only, i.e. tagged with at least one coin (2026-11-01: an election story and an
+ *  FBI one sat on Bonk's and WETH's pages). */
 export function pickTickerItem(coinItems: NewsItem[], allItems: NewsItem[], now: number): NewsItem | null {
   const coin = coinItems[0];
   if (coin && now - Date.parse(coin.publishedAt) <= COIN_FRESH_MS) return coin;
-  const latest = allItems[0];
+  const latest = allItems.find((x) => x.tokens.length > 0);
   if (latest && now - Date.parse(latest.publishedAt) <= BREAKING_FRESH_MS) return latest;
   return null;
 }
@@ -39,10 +41,10 @@ export function NewsTickerLine({ chainIdentifier, tokenAddress, className }: { c
     setAllItems([]);
     void Promise.all([
       fetchNews({ chainIdentifier, tokenAddress, limit: 1 }, controller.signal).then((p) => setCoinItems(p.items)),
-      fetchNews({ limit: 1 }, controller.signal).then((p) => setAllItems(p.items)),
+      fetchNews({ limit: 10 }, controller.signal).then((p) => setAllItems(p.items)),
     ]).catch(() => undefined);
     const unsubscribe = subscribeToNews((item) => {
-      setAllItems([item]);
+      setAllItems((current) => [item, ...current].slice(0, 10));
       if (item.tokens.some((tk) => newsTokenKey(tk.chainIdentifier, tk.tokenAddress) === coinKey)) setCoinItems([item]);
     });
     return () => {

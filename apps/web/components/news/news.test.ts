@@ -33,8 +33,13 @@ describe('toastReason', () => {
 describe('pickTickerItem', () => {
   it("prefers the coin's own recent headline, else breaking news, else nothing", () => {
     expect(pickTickerItem([item('coin', 600, [BONK])], [item('all', 5)], now)?.id).toBe('coin');
-    expect(pickTickerItem([item('coin', 2000, [BONK])], [item('all', 5)], now)?.id).toBe('all');
-    expect(pickTickerItem([], [item('all', 400)], now)).toBeNull();
+    expect(pickTickerItem([item('coin', 2000, [BONK])], [item('all', 5, [ETH])], now)?.id).toBe('all');
+    expect(pickTickerItem([], [item('all', 400, [ETH])], now)).toBeNull();
+  });
+
+  it('skips untagged (non-crypto) headlines for breaking news', () => {
+    expect(pickTickerItem([], [item('politics', 5), item('crypto', 20, [ETH])], now)?.id).toBe('crypto');
+    expect(pickTickerItem([], [item('politics', 5)], now)).toBeNull();
   });
 });
 

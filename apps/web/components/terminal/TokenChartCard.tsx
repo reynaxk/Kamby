@@ -102,7 +102,7 @@ export function TokenChartCard({
   const controls = bare ? (
     // Phones: the widths scroll in their own lane (fading at the edge) and the chart-style switch
     // stays pinned on the right — it used to be pushed half off-screen (2026-10-18).
-    <div className="flex items-center gap-2 px-2">
+    <div className="flex items-center gap-2 px-4">
       <div className="min-w-0 flex-1 overflow-x-auto [mask-image:linear-gradient(90deg,#000_86%,transparent)] [scrollbar-width:none]">
         <InlineTimeframeTabs active={timeframe} onChange={choose} timeframes={timeframes} />
       </div>
