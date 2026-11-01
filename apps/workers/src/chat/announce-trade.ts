@@ -1,6 +1,9 @@
 import { prisma } from '@kamby/db';
 import { chatTokenKey, EVM_USDC_BY_CHAIN_ID, SOLANA_USDC_MINT, TOKEN_CHAT_REALTIME_CHANNEL, type TokenChatEvent } from '@kamby/domain';
 
+const NATIVE_EVM = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+
 interface Publisher {
   publish(channel: string, message: string): Promise<unknown>;
 }
@@ -31,26 +34,37 @@ export async function announceSweptTrade(redis: Publisher, ref: { evmTransaction
           outputToken: true,
           inputAmount: true,
           expectedOutputAmount: true,
-          tokenMarket: { select: { token: { select: { contractAddress: true } } } },
+          tokenMarket: { select: { token: { select: { contractAddress: true, decimals: true } } } },
+          quote: { select: { priceUsd: true } },
           user: { select: AUTHOR_SELECT },
         },
       });
       const usdc = row ? EVM_USDC_BY_CHAIN_ID[row.chainId] : undefined;
-      if (!row || !usdc) return;
+      if (!row) return;
       const usdcLeg = row.side === 'BUY' ? row.inputToken : row.outputToken;
-      if (!usdcLeg || usdcLeg.toLowerCase() !== usdc.address.toLowerCase()) return;
-      const usd = Number(row.side === 'BUY' ? row.inputAmount : row.expectedOutputAmount) / 10 ** usdc.decimals;
+      const paidInUsdc = Boolean(usdc && usdcLeg && usdcLeg.toLowerCase() === usdc.address.toLowerCase());
+      // A native-coin trade (ETH / BNB, 2026-11-01): the coin amount at the quote's coin price.
+      const paidInNative = (usdcLeg ?? '').toLowerCase() === NATIVE_EVM;
+      if (!paidInUsdc && !paidInNative) return;
+      const tokenDecimals = row.tokenMarket.token.decimals ?? 18;
+      const usd = paidInUsdc
+        ? Number(row.side === 'BUY' ? row.inputAmount : row.expectedOutputAmount) / 10 ** usdc!.decimals
+        : (Number(row.side === 'BUY' ? row.expectedOutputAmount : row.inputAmount) / 10 ** tokenDecimals) * Number(row.quote?.priceUsd ?? 0);
       const tokenKey = chatTokenKey(`eip155:${row.chainId}`, row.tokenMarket.token.contractAddress);
       if (tokenKey && usd > 0) event = item(row.id, tokenKey, row.side, usd, row.user);
     } else {
       const row = await prisma.solanaTradeTransaction.findUnique({
         where: { id: ref.solanaTransactionId },
-        select: { id: true, side: true, inputMint: true, outputMint: true, inputAmount: true, expectedOutputAmount: true, user: { select: AUTHOR_SELECT } },
+        select: { id: true, side: true, inputMint: true, outputMint: true, inputAmount: true, expectedOutputAmount: true, quote: { select: { priceUsd: true } }, user: { select: AUTHOR_SELECT } },
       });
       if (!row) return;
       const sell = row.side === 'SELL';
-      if ((sell ? row.outputMint : row.inputMint) !== SOLANA_USDC_MINT) return;
-      const usd = Number(sell ? row.expectedOutputAmount : row.inputAmount) / 1e6;
+      const dollarMint = sell ? row.outputMint : row.inputMint;
+      // A SOL trade (2026-11-01): lamports at the SOL price the quote kept.
+      const solUsd = dollarMint === WSOL_MINT && row.quote?.priceUsd != null ? Number(row.quote.priceUsd) : null;
+      if (dollarMint !== SOLANA_USDC_MINT && solUsd === null) return;
+      const raw = Number(sell ? row.expectedOutputAmount : row.inputAmount);
+      const usd = solUsd !== null ? (raw / 1e9) * solUsd : raw / 1e6;
       const tokenKey = chatTokenKey('solana', sell ? row.inputMint : row.outputMint);
       if (tokenKey && usd > 0) event = item(row.id, tokenKey, row.side, usd, row.user);
     }
