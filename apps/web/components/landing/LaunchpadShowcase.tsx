@@ -35,8 +35,14 @@ export async function LaunchpadShowcase({ tokens }: { tokens: XxxRiskToken[] }) 
   const pads = new Set(tokens.map((x) => x.launchpad ?? 'pump.fun')).size;
   const chains = new Set(tokens.map((x) => x.chainIdentifier ?? 'solana')).size;
   const ranges = ['fR_curve', 'fR_mc', 'fR_dev', 'fR_snipers'] as const;
-  // Real coins from the board right now, the biggest first, as the panel's "results".
-  const top = [...tokens].filter((x) => x.symbol && x.imageUrl).sort((a, b) => b.marketCapUsd - a.marketCapUsd).slice(0, 4);
+  // Real coins from the board right now as the panel's "results": the biggest of each launchpad,
+  // one per ticker, so a run of copycats can't fill the picture.
+  const top: XxxRiskToken[] = [];
+  for (const x of [...tokens].sort((a, b) => b.marketCapUsd - a.marketCapUsd)) {
+    if (!x.symbol || top.length >= 4) continue;
+    if (top.some((y) => (y.launchpad ?? 'pump.fun') === (x.launchpad ?? 'pump.fun') || y.symbol!.toLowerCase() === x.symbol!.toLowerCase())) continue;
+    top.push(x);
+  }
   return (
     <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
       <div>
@@ -74,8 +80,11 @@ export async function LaunchpadShowcase({ tokens }: { tokens: XxxRiskToken[] }) 
               const info = launchpadInfo(x.launchpad ?? 'pump.fun');
               return (
                 <div key={x.mintAddress} className="flex items-center gap-2.5 rounded-2xl border border-white/[0.07] bg-[#0D1016] p-2.5 shadow-xl shadow-black/50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={x.imageUrl!} alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover" loading="lazy" />
+                  {/* The letter shows through when a logo is missing or fails to load. */}
+                  <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/[0.06] font-display text-sm font-black text-white/60">
+                    {x.symbol!.slice(0, 1)}
+                    {x.imageUrl && <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${x.imageUrl}")` }} />}
+                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-display text-sm font-bold text-white">${x.symbol}</span>
                     <span className="mt-0.5 flex items-center gap-1 font-mono text-[0.65rem] text-white/45">
