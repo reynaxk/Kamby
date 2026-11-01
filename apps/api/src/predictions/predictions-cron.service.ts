@@ -317,16 +317,12 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
       select: { dedupeKey: true },
     });
     const asked = new Set(open.map((r) => (r.dedupeKey ? draftStem(r.dedupeKey) : '')));
-    let room = OPEN_AUTO_CAP - open.length;
-    let created = 0;
-    for (const d of draftPolls(snapshot, news, block)) {
-      if (room <= 0) break;
-      if (asked.has(draftStem(d.dedupeKey))) continue;
-      const n = await this.insert(d);
-      created += n;
-      room -= n;
-    }
+    const coinPicks = draftPolls(snapshot, news, block)
+      .filter((d) => !asked.has(draftStem(d.dedupeKey)))
+      .slice(0, Math.max(0, OPEN_AUTO_CAP - open.length));
+
     // Politics and crypto events, topped up to their own caps.
+    const eventLanes: Draft[][] = [];
     for (const category of ['politics', 'crypto'] as const) {
       try {
         const openEvents = await prisma.prediction.findMany({ where: { status: 'ACTIVE', source: 'AUTO_EVENT', category }, select: { id: true, title: true, meta: true, chainIdentifier: true, dedupeKey: true } });
@@ -338,18 +334,26 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
           await prisma.prediction.update({ where: { id: row.id }, data: { chainIdentifier: about.coin.chainIdentifier, tokenAddress: about.coin.tokenAddress, meta } });
         }
         const have = new Set(openEvents.map((r) => r.dedupeKey));
-        let left = EVENT_CAPS[category] - openEvents.length;
-        for (const d of await fetchEventDrafts(category)) {
-          if (left <= 0) break;
-          if (have.has(d.dedupeKey)) continue;
-          const n = await this.insert(d);
-          created += n;
-          left -= n;
-        }
+        eventLanes.push((await fetchEventDrafts(category)).filter((d) => !have.has(d.dedupeKey)).slice(0, Math.max(0, EVENT_CAPS[category] - openEvents.length)));
       } catch (error) {
         this.logger.warn({ err: error, category }, 'Predictions: event questions unavailable');
       }
     }
+
+    // Inserted in the order the list shows them (newest first): one event after every 4 coin
+    // polls, politics and crypto taking turns, so neither kind fills the top of the page.
+    const events: Draft[] = [];
+    for (let i = 0; eventLanes.some((l) => i < l.length); i++) for (const l of eventLanes) if (l[i]) events.push(l[i]!);
+    const mixed: Draft[] = [];
+    let e = 0;
+    for (const [i, d] of coinPicks.entries()) {
+      mixed.push(d);
+      if (i % 4 === 3 && e < events.length) mixed.push(events[e++]!);
+    }
+    mixed.push(...events.slice(e));
+    let created = 0;
+    // Newest-first lists show the last insert on top, so insert the mix back to front.
+    for (const d of mixed.reverse()) created += await this.insert(d);
     await this.redis.set('kamby:pred:last-block', block, 'EX', GENERATE_EVERY_MS / 1000);
     if (created > 0) this.logger.info({ created }, 'Predictions generated');
   }
