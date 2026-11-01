@@ -1,6 +1,7 @@
 'use client';
 
 import { NewsAlertSettings } from '@/components/news/NewsAlertSettings';
+import { InstallAppRow } from '@/components/pwa/InstallApp';
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
@@ -191,6 +192,7 @@ export function AppProfileMenu() {
           <MenuGroup>
             <MenuLink href="/notifications" icon={<Bell />} label={t('menu_notifications')} />
             <MenuLink href="/referrals" icon={<Gift />} label={t('menu_referrals')} />
+            <InstallAppRow />
           </MenuGroup>
           <MenuGroup>
             <div className="flex items-center gap-3 px-4 py-3">

@@ -14,6 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/home',
     scope: '/',
     display: 'standalone',
+    // Opening Kamby again (icon, shortcut, notification) reuses the open app instead of a second copy.
+    launch_handler: { client_mode: ['navigate-existing', 'auto'] },
     orientation: 'portrait',
     background_color: '#020203',
     theme_color: '#020203',
@@ -27,5 +29,12 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/brand/kamby-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
       { src: '/brand/kamby-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
-  };
+    // Long-press the home-screen icon (2026-11-01): straight to the main screens.
+    shortcuts: [
+      { name: 'Trade', url: '/terminal', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
+      { name: 'Predictions', url: '/predictions', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
+      { name: 'News', url: '/news', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
+      { name: 'Messages', url: '/messages', icons: [{ src: '/brand/kamby-maskable-192.png', sizes: '192x192' }] },
+    ],
+  } as MetadataRoute.Manifest;
 }

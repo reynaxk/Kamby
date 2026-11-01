@@ -34,7 +34,9 @@ const jetbrainsMono = JetBrains_Mono({
 // maximumScale 1: iOS Safari zoomed into every small text field on tap and stayed zoomed
 // (owner, 2026-10-13 — "the user gotta zoom out with fingers"). iOS still lets people pinch-zoom
 // for accessibility; it only stops the automatic zoom-on-focus.
-export const viewport: Viewport = { themeColor: '#020203', width: 'device-width', initialScale: 1, maximumScale: 1 };
+// viewportFit cover (2026-11-01): with the translucent iPhone status bar, env(safe-area-inset-*)
+// is only real under `cover` — without it the installed app's top and bottom bars sat wrong.
+export const viewport: Viewport = { themeColor: '#020203', width: 'device-width', initialScale: 1, maximumScale: 1, viewportFit: 'cover' };
 
 /** iPhone screens (CSS px wide, tall, pixel ratio) — keep in step with scripts/gen-logo.cjs. */
 const IPHONE_LAUNCH_SCREENS: [number, number, number][] = [

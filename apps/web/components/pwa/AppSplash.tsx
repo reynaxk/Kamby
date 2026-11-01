@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 
 const SEEN_KEY = 'kamby:splashed';
 // A short beat on the K, like Robinhood's launch — then the app (2026-10-13).
-const MIN_MS = 1000;
-const MAX_MS = 2800;
+// 2026-11-01 (owner: opening felt slow): a quick beat, not a wait.
+const MIN_MS = 350;
+const MAX_MS = 1600;
 /** Fired once by the first screen when its real data is on screen — see markAppReady. */
 export const APP_READY_EVENT = 'kamby:app-ready';
 

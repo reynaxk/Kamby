@@ -468,6 +468,14 @@ body:has(.kamby-void) {
   html {
     touch-action: manipulation;
   }
+  /* Buttons, tabs and links don't pop the text-select / long-press menu like a web page. */
+  button,
+  [role='tab'],
+  nav a {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
 
   *::-webkit-scrollbar {
     display: none;
@@ -861,4 +869,16 @@ body:has(.kamby-void) {
   html[data-nav='mini'] .kamby-side-nav .kamby-nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
   html[data-nav='mini'] .kamby-side-nav .kamby-nav-badge { position: absolute; right: 2px; top: 4px; min-width: 1rem; padding: 0 4px; }
   html[data-nav='mini'] .kamby-side-nav .kamby-nav-chevron { transform: rotate(180deg); transform-origin: 14px 12px; }
+}
+
+/* The installed app (2026-11-01, owner: "feels like a website"): no rubber-band bounce or
+   pull-to-refresh showing the page edge, no image drag ghosts — it holds still like an app. */
+@media (display-mode: standalone) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+  img {
+    -webkit-user-drag: none;
+  }
 }

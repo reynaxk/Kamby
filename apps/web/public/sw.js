@@ -1,11 +1,17 @@
 /*
- * Kamby service worker (PWA, 2026-10-09). Deliberately minimal for a trading app: nothing that
- * matters is ever served from a cache — prices, balances, quotes and pages always come from the
- * network. The only cached file is the offline page, shown when a page can't load at all.
+ * Kamby service worker (PWA, 2026-10-09). Nothing that matters is ever served from a cache —
+ * prices, balances, quotes, API calls and pages always come from the network. Since 2026-11-01
+ * (owner: the app opened slowly) the app's own build files — /_next/static, whose names change
+ * with every deploy so a cached copy can never be stale — are kept after
+ * the first load, so reopening the app doesn't download them again. The offline page shows when
+ * a page can't load at all.
  */
-const CACHE = 'kamby-offline-v4';
+const CACHE = 'kamby-offline-v5';
+const STATIC_CACHE = 'kamby-static-v1';
 // Cloudflare serves /offline.html at /offline (a redirected response can't answer a navigation).
 const OFFLINE_URL = '/offline';
+/** Old builds' files are dropped once the cache holds more than this many. */
+const STATIC_MAX = 400;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.add(OFFLINE_URL)).then(() => self.skipWaiting()));
@@ -15,16 +21,41 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== STATIC_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
 
+function isStaticAsset(url) {
+  return url.origin === self.location.origin && url.pathname.startsWith('/_next/static/');
+}
+
+async function trim(cache) {
+  const keys = await cache.keys();
+  if (keys.length > STATIC_MAX) await Promise.all(keys.slice(0, keys.length - STATIC_MAX).map((k) => cache.delete(k)));
+}
+
 self.addEventListener('fetch', (event) => {
-  // Page loads only: network first, the offline page if there's no connection. Everything
-  // else (API calls, streams, assets) is left to the browser untouched.
-  if (event.request.mode !== 'navigate') return;
-  event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  // Page loads: network first, the offline page if there's no connection.
+  if (req.mode === 'navigate') {
+    event.respondWith(fetch(req).catch(() => caches.match(OFFLINE_URL)));
+    return;
+  }
+  const url = new URL(req.url);
+  if (!isStaticAsset(url)) return; // API calls, streams, other sites: untouched.
+  event.respondWith(
+    caches.open(STATIC_CACHE).then(async (cache) => {
+      const hit = await cache.match(req);
+      if (hit) return hit;
+      const res = await fetch(req);
+      if (res.ok && res.type === 'basic') {
+        cache.put(req, res.clone()).then(() => trim(cache)).catch(() => undefined);
+      }
+      return res;
+    }),
+  );
 });
 
 // Phone notifications (Web Push, 2026-10-11) — sent by apps/workers' push dispatcher as

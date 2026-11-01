@@ -33,6 +33,8 @@ const svgs = {
   maskable: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="${INK}"/>${K(NEON, 0.8)}</svg>`,
   // Notification badge: Android paints only the alpha — a white K.
   badge: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${K('#FFFFFF', 1.25)}</svg>`,
+  // Android's launch screen (2026-11-01): just the K on background_color, like the in-app splash.
+  bare: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${K(NEON, 0.62)}</svg>`,
 };
 
 /** The bare K — the launch screens' mark (no tile), like Robinhood's feather or Phantom's ghost. */
@@ -48,7 +50,7 @@ const outputs = [
   ['tile', 192, 'public/brand/kamby-app-icon-192.png'],
   ['tile', 512, 'public/brand/kamby-app-icon-512.png'],
   ['tile', 1024, 'public/brand/kamby-app-icon-1024.png'],
-  ['tile', 512, 'public/brand/kamby-splash-512.png'],
+  ['bare', 512, 'public/brand/kamby-splash-512.png'],
   ['tile', 512, 'app/icon.png'],
   ['square', 180, 'app/apple-icon.png'],
   ['maskable', 192, 'public/brand/kamby-maskable-192.png'],
@@ -72,7 +74,7 @@ const outputs = [
   const kUrl = 'data:image/svg+xml;base64,' + Buffer.from(BARE_K).toString('base64');
   for (const [w, h, dpr] of IPHONES) {
     const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr });
-    await page.setContent(`<html><body style="margin:0;height:100vh;background:${INK};display:flex;align-items:center;justify-content:center"><img src="${kUrl}" style="width:52vw;height:52vw;display:block"></body></html>`);
+    await page.setContent(`<html><body style="margin:0;height:100vh;background:#020203;display:flex;align-items:center;justify-content:center"><img src="${kUrl}" style="width:52vw;height:52vw;display:block"></body></html>`);
     await page.waitForTimeout(150);
     const out = `public/brand/startup/kamby-${w * dpr}x${h * dpr}.png`;
     await page.screenshot({ path: path.join(web, out) });
