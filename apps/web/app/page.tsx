@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PnlShowcase } from '@/components/landing/PnlShowcase';
 import { ChatShowcase } from '@/components/landing/ChatShowcase';
-import { HeroTrio } from '@/components/landing/HeroTrio';
+import { HeroDevices } from '@/components/landing/HeroDevices';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LiveShowcase } from '@/components/landing/LiveShowcase';
 import { LandingTicker } from '@/components/landing/LandingTicker';
@@ -11,7 +11,7 @@ import { fetchLatestNews, fetchLiveRoomsNow, fetchMarketFeeds } from '@/lib/mark
 import { LandingPulse } from '@/components/landing/LandingPulse';
 import { soft } from '@/lib/soft';
 import { LandingTour } from '@/components/landing/LandingTour';
-import { ChainStrip, HowItWorks, LandingFaq, UnderTheHood } from '@/components/landing/LandingSections';
+import { ChainStrip } from '@/components/landing/LandingSections';
 import { LandingCta } from '@/components/landing/LandingCta';
 import { LaunchpadShowcase, MoreOnKamby } from '@/components/landing/LaunchpadShowcase';
 import { LegalAgreementNote } from '@/components/legal/LegalAgreementNote';
@@ -24,7 +24,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * The landing page (2026-10-17 rewrite, owner: "10/10 aesthetic, ultra-smooth"): an obsidian
+ * The landing page (2026-10-17 rewrite, owner: "10/10 aesthetic, ultra-smooth"; 2026-11-01: a
+ * desktop + iPhone picture in the hero, and How it works / Under the hood / the FAQ removed): an obsidian
  * hero over a neon 3D grid with a live phone beside the pitch (2026-10-30: the feature bento is gone —
  * How it works, the tour and Under the hood already say it), the chats and PnL cards, a short FAQ,
  * and one last call to action (no countdown — owner 2026-10-17). New visitors see this, not the terminal — the buttons open Privy
@@ -41,12 +42,10 @@ export default async function LandingPage() {
       <LandingHeader
         signIn={t('signIn')}
         links={[
-          { href: '#how', label: t('navHow') },
           { href: '#launchpads', label: t('navPads') },
           { href: '#live', label: t('navLive') },
           { href: '#feed', label: t('navFeed') },
           { href: '#chat', label: t('navChat') },
-          { href: '#faq', label: t('navFaq') },
         ]}
       />
       {/* Hero */}
@@ -61,7 +60,7 @@ export default async function LandingPage() {
         </div>
 
 
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 lg:pb-24 lg:pt-12">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-24 pt-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10 lg:pb-24 lg:pt-12">
           <div className="text-center lg:text-left">
             <h1 className="kamby-gate-in kamby-gate-in-2 font-display text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.02] tracking-tight">
               {/* 2026-10-30 owner: "Social Terminal for trading" — the neon part first; each locale keeps its own spacing */}
@@ -101,7 +100,7 @@ export default async function LandingPage() {
             <LegalAgreementNote className="kamby-gate-in kamby-gate-in-4 mt-4 lg:mx-0 lg:justify-start lg:text-left" />
           </div>
           <div className="flex justify-center lg:justify-end">
-            <HeroTrio />
+            <HeroDevices />
           </div>
         </div>
       </section>
@@ -115,9 +114,6 @@ export default async function LandingPage() {
         </div>
         <section className="pb-8">
           <ChainStrip />
-        </section>
-        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
-          <HowItWorks />
         </section>
         <section className="mx-auto max-w-6xl px-5 py-20">
           <LandingTour />
@@ -164,17 +160,9 @@ export default async function LandingPage() {
           />
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-20">
-          <UnderTheHood />
-        </section>
-
         {/* Beyond trading (2026-11-01): Predictions, News, LaunchPad, Perps. */}
         <section className="mx-auto max-w-6xl px-5 py-20">
           <MoreOnKamby />
-        </section>
-
-        <section id="faq" className="scroll-mt-20 mx-auto max-w-3xl px-5 py-20">
-          <LandingFaq />
         </section>
 
         {/* The sign-off (2026-10-30 owner): only the slogan on clean black — no box, no glow, no chain list. */}
