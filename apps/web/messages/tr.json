@@ -1512,7 +1512,8 @@
     "fR_insiders": "Insider",
     "fR_bundlers": "Bundler",
     "fR_devMigrations": "Dev taşınan",
-    "fR_devLaunches": "Dev çıkardığı"
+    "fR_devLaunches": "Dev çıkardığı",
+    "fChains": "Ağlar"
   },
   "you": {
     "holdings": "Varlıklar",

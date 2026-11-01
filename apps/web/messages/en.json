@@ -1512,7 +1512,8 @@
     "fR_insiders": "Insiders",
     "fR_bundlers": "Bundlers",
     "fR_devMigrations": "Dev migrated",
-    "fR_devLaunches": "Dev launched"
+    "fR_devLaunches": "Dev launched",
+    "fChains": "Chains"
   },
   "you": {
     "holdings": "Holdings",

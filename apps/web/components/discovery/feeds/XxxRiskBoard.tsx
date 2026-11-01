@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ChainBadge, badgeChainFor } from '@/components/market/ChainBadge';
+import { marketHref } from '@/lib/solana-links';
 import { useTranslations } from 'next-intl';
 import {
   MIN_TRADE_USD,
@@ -127,6 +130,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   const [paused, setPaused] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const quick = useQuickSolanaBuy(view.quickUsd);
+  const router = useRouter();
   const frozen = useRef<XxxRiskToken[] | null>(null);
   // When each coin launched (ms), and when this screen first saw it — new arrivals animate,
   // the first load doesn't.
@@ -201,12 +205,22 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
       fresh={(firstSeen.current.get(token.mintAddress) ?? 0) - openedAt.current > 1_500}
       quickUsd={view.quickUsd}
       buying={quick.busy === token.mintAddress}
-      onBuy={() =>
-        void quick.buy(
-          token.mintAddress,
-          token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress),
-        )
-      }
+      onBuy={() => {
+        const chain = token.chainIdentifier ?? 'solana';
+        if (chain === 'solana') {
+          void quick.buy(token.mintAddress, token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress));
+          return;
+        }
+        // A BNB/Base/Robinhood coin (2026-11-01): its buy keypad, prefilled — like every EVM ⚡.
+        const href = marketHref(chain, token.mintAddress);
+        if (!href) return;
+        try {
+          window.sessionStorage.setItem('kamby:quick-prefill', JSON.stringify({ address: token.mintAddress, usd: view.quickUsd, at: Date.now() }));
+        } catch {
+          // the keypad just starts empty
+        }
+        router.push(href + (href.includes('?') ? '&' : '?') + 'buy=1');
+      }}
     />
   );
   const empty = (
@@ -478,6 +492,8 @@ function XxxRiskCard({
     token.riskFlags.length === 0 &&
     !((top ?? 0) > 50 || (dev ?? 0) > 20 || [token.snipersPct, token.insidersPct, token.bundlersPct].some((v) => (v ?? 0) > 30));
   const pad = token.launchpad ? launchpadInfo(token.launchpad) : undefined;
+  const evmChain = token.chainIdentifier && token.chainIdentifier !== 'solana' ? token.chainIdentifier : null;
+  const badge = evmChain ? badgeChainFor(evmChain) : null;
   const migrated = token.column === 'migrated';
   const age =
     migrated && token.graduatedAtMs
@@ -492,7 +508,7 @@ function XxxRiskCard({
       )}
     >
       <Link
-        href={`/solana?mint=${encodeURIComponent(token.mintAddress)}`}
+        href={evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`}
         className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-2 p-3"
       >
         <span className="row-span-2 flex flex-col items-center gap-1">
@@ -518,6 +534,7 @@ function XxxRiskCard({
                 {pad.mark}
               </span>
             )}
+            {badge && <ChainBadge chain={badge} className="!-bottom-1 !-left-1 !right-auto h-[18px] w-[18px] ring-[2.5px]" />}
           </span>
           <span className="font-mono text-[0.58rem] text-ink-400">{`${token.mintAddress.slice(0, 4)}…${token.mintAddress.slice(-4)}`}</span>
         </span>

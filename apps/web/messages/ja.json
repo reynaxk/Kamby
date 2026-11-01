@@ -1512,7 +1512,8 @@
     "fR_insiders": "インサイダー",
     "fR_bundlers": "バンドラー",
     "fR_devMigrations": "開発者の移行数",
-    "fR_devLaunches": "開発者の発行数"
+    "fR_devLaunches": "開発者の発行数",
+    "fChains": "チェーン"
   },
   "you": {
     "holdings": "保有",

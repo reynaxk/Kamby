@@ -1512,7 +1512,8 @@
     "fR_insiders": "Инсайдъри",
     "fR_bundlers": "Бъндлъри",
     "fR_devMigrations": "Dev мигрирани",
-    "fR_devLaunches": "Dev пуснати"
+    "fR_devLaunches": "Dev пуснати",
+    "fChains": "Мрежи"
   },
   "you": {
     "holdings": "Позиции",

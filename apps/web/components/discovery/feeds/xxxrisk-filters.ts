@@ -35,6 +35,8 @@ export const TOGGLE_KEYS = ['hasX', 'hasTelegram', 'hasWebsite', 'devUnder20', '
 export type ToggleKey = (typeof TOGGLE_KEYS)[number];
 
 export interface Filters {
+  /** Empty = every chain. */
+  chains: string[];
   /** Empty = every launchpad. */
   launchpads: string[];
   ranges: Partial<Record<RangeKey, Range>>;
@@ -43,7 +45,7 @@ export interface Filters {
 
 export type ColumnFilters = Record<XxxRiskColumn, Filters>;
 
-export const NO_FILTERS: Filters = { launchpads: [], ranges: {}, toggles: {} };
+export const NO_FILTERS: Filters = { chains: [], launchpads: [], ranges: {}, toggles: {} };
 export const NO_COLUMN_FILTERS: ColumnFilters = { new: NO_FILTERS, soon: NO_FILTERS, migrated: NO_FILTERS };
 
 /** How each range is typed and shown: $ amounts accept "10k"; % and counts are plain numbers. */
@@ -107,6 +109,7 @@ export function rangeValue(t: XxxRiskToken, key: RangeKey, ageS: number): number
 /** Exported for tests. Whether a coin passes its column's filters. An unknown number fails a set
  *  range — "at least 50 holders" never lets a coin with no holder count through. */
 export function passes(t: XxxRiskToken, f: Filters, ageS: number): boolean {
+  if (f.chains.length > 0 && !f.chains.includes(t.chainIdentifier ?? 'solana')) return false;
   if (f.launchpads.length > 0 && !f.launchpads.includes(t.launchpad ?? 'pump.fun')) return false;
   for (const key of RANGE_KEYS) {
     const r = f.ranges[key];
@@ -129,6 +132,7 @@ export function passes(t: XxxRiskToken, f: Filters, ageS: number): boolean {
 
 export function activeCount(f: Filters): number {
   return (
+    (f.chains.length > 0 ? 1 : 0) +
     (f.launchpads.length > 0 ? 1 : 0) +
     Object.values(f.ranges).filter((r) => r && (r.min !== null || r.max !== null)).length +
     Object.values(f.toggles).filter(Boolean).length
@@ -139,7 +143,7 @@ export function activeCount(f: Filters): number {
 export function readColumnFilters(raw: unknown): ColumnFilters {
   const ok = (f: unknown): Filters =>
     f && typeof f === 'object' && Array.isArray((f as Filters).launchpads)
-      ? { launchpads: (f as Filters).launchpads.filter((x) => typeof x === 'string'), ranges: { ...(f as Filters).ranges }, toggles: { ...(f as Filters).toggles } }
+      ? { chains: Array.isArray((f as Filters).chains) ? (f as Filters).chains.filter((x) => typeof x === 'string') : [], launchpads: (f as Filters).launchpads.filter((x) => typeof x === 'string'), ranges: { ...(f as Filters).ranges }, toggles: { ...(f as Filters).toggles } }
       : NO_FILTERS;
   const r = (raw ?? {}) as Partial<Record<XxxRiskColumn, unknown>>;
   return { new: ok(r.new), soon: ok(r.soon), migrated: ok(r.migrated) };

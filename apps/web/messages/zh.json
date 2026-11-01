@@ -1512,7 +1512,8 @@
     "fR_insiders": "内部人",
     "fR_bundlers": "捆绑者",
     "fR_devMigrations": "开发者已迁移",
-    "fR_devLaunches": "开发者已发行"
+    "fR_devLaunches": "开发者已发行",
+    "fChains": "链"
   },
   "you": {
     "holdings": "持仓",

@@ -1512,7 +1512,8 @@
     "fR_insiders": "Insider",
     "fR_bundlers": "Bundler",
     "fR_devMigrations": "Dev migrasi",
-    "fR_devLaunches": "Dev rilis"
+    "fR_devLaunches": "Dev rilis",
+    "fChains": "Jaringan"
   },
   "you": {
     "holdings": "Aset",

@@ -1512,7 +1512,8 @@
     "fR_insiders": "อินไซเดอร์",
     "fR_bundlers": "บันเดิลเลอร์",
     "fR_devMigrations": "Dev ย้ายแล้ว",
-    "fR_devLaunches": "Dev เปิดตัว"
+    "fR_devLaunches": "Dev เปิดตัว",
+    "fChains": "เชน"
   },
   "you": {
     "holdings": "ถือครอง",

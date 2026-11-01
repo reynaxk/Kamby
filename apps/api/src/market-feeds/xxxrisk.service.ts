@@ -5,11 +5,15 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import { CryptoPriceService } from './crypto-price.service';
+import { EVM_NETWORKS, evmPoolToken, type GtPool, type GtToken } from './evm-launchpads';
 
 const LAMPORTS = 1e9;
 const PUMP_DECIMALS = 1e6;
 const REDIS_KEY = 'feeds:xxxrisk';
 const REDIS_TTL_SECONDS = 10;
+/** GeckoTerminal's shared rate limit: the EVM pools are fetched at most once a minute. */
+const EVM_REDIS_KEY = 'feeds:xxxrisk:evm';
+const EVM_TTL_SECONDS = 60;
 const GEMS_URL = 'https://datapi.jup.ag/v1/pools/gems';
 /** Per column, after merging — GMGN-style lists that scroll. */
 const PER_COLUMN = 100;
@@ -183,10 +187,10 @@ export class XxxRiskService {
    */
   async build(): Promise<XxxRiskToken[]> {
     const now = Date.now();
-    const [board, own] = await Promise.all([this.board(now), this.ownLaunches(now)]);
+    const [board, own, evm] = await Promise.all([this.board(now), this.ownLaunches(now), this.evmBoard(now)]);
     const seen = new Set<string>();
     const columns: Record<XxxRiskColumn, XxxRiskToken[]> = { new: [], soon: [], migrated: [] };
-    for (const token of [...board, ...own]) {
+    for (const token of [...board, ...own, ...evm]) {
       if (seen.has(token.mintAddress)) continue;
       seen.add(token.mintAddress);
       columns[token.column ?? 'new'].push(token);
@@ -227,6 +231,38 @@ export class XxxRiskService {
         }
       }
     }
+    return out;
+  }
+
+  /** New coins on BNB, Base and Robinhood (2026-11-01) — two pages of each chain's newest pools,
+   *  cached a minute; ages are re-counted from launch time on every build. */
+  private async evmBoard(now: number): Promise<XxxRiskToken[]> {
+    const cached = await this.redis.get(EVM_REDIS_KEY).catch(() => null);
+    if (cached) {
+      try {
+        return (JSON.parse(cached) as XxxRiskToken[]).map((t) => ({ ...t, ageSeconds: Math.max(0, Math.round((now - (t.createdAtMs ?? now)) / 1000)) }));
+      } catch {
+        // rebuilt below
+      }
+    }
+    const lists = await Promise.all(
+      EVM_NETWORKS.flatMap(({ network, chainIdentifier }) =>
+        [1, 2].map(async (page) => {
+          try {
+            const res = await fetch(`https://api.geckoterminal.com/api/v2/networks/${network}/new_pools?include=base_token,dex&page=${page}`, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(6000) });
+            if (!res.ok) return [];
+            const body = (await res.json()) as { data?: GtPool[]; included?: GtToken[] };
+            const tokens = new Map((body.included ?? []).filter((x) => x.type === 'token').map((x) => [x.id, x]));
+            return (body.data ?? []).map((p) => evmPoolToken(p, tokens, chainIdentifier, now)).filter((t): t is XxxRiskToken => t !== null);
+          } catch {
+            return [];
+          }
+        }),
+      ),
+    );
+    const out = lists.flat();
+    if (out.length > 0) await this.redis.set(EVM_REDIS_KEY, JSON.stringify(out), 'EX', EVM_TTL_SECONDS).catch(() => undefined);
+    else this.logger.warn('XXXRisk: no EVM launches this cycle');
     return out;
   }
 

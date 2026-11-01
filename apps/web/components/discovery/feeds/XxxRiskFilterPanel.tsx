@@ -38,7 +38,24 @@ export const LAUNCHPADS: Record<string, { mark: string; name: string; color: str
   'cooking.city': { mark: 'C', name: 'Cooking', color: '#FB923C' },
   dealr: { mark: 'D', name: 'Dealr', color: '#94A3B8' },
   moonit: { mark: 'M', name: 'Moonit', color: '#E879F9' },
+  // BNB / Base / Robinhood (2026-11-01).
+  'four.meme': { mark: '4', name: 'Four.meme', color: '#F3BA2F' },
+  flap: { mark: 'F', name: 'Flap', color: '#D9F99D' },
+  clanker: { mark: 'C', name: 'Clanker', color: '#A78BFA' },
+  pons: { mark: 'P', name: 'Pons', color: '#CCFF00' },
+  'uniswap-v4': { mark: 'U', name: 'Uniswap v4', color: '#FF66C4' },
+  uniswap: { mark: 'U', name: 'Uniswap', color: '#FF66C4' },
+  pancakeswap: { mark: 'C', name: 'PancakeSwap', color: '#38BDF8' },
+  aerodrome: { mark: 'A', name: 'Aerodrome', color: '#60A5FA' },
 };
+
+/** The chains on the board, for the filter's chain chips. */
+export const BOARD_CHAINS: { id: string; name: string }[] = [
+  { id: 'solana', name: 'Solana' },
+  { id: 'eip155:56', name: 'BNB' },
+  { id: 'eip155:8453', name: 'Base' },
+  { id: 'eip155:4663', name: 'Robinhood' },
+];
 export const launchpadInfo = (id: string) => LAUNCHPADS[id] ?? { mark: id.charAt(0).toUpperCase(), name: id, color: '#94A3B8' };
 
 const COLUMN_TABS: { id: XxxRiskColumn; key: 'colNew' | 'colSoon' | 'colMigrated' }[] = [
@@ -131,7 +148,13 @@ export function XxxRiskFilterPanel({
   const col: XxxRiskColumn = tab === 'saved' ? column : tab;
   const f = value[col];
   const set = (patch: Partial<Filters>) => onChange({ ...value, [col]: { ...f, ...patch } });
-  const pads = [...new Set(['pump.fun', 'letsbonk.fun', 'raydium-launchlab', 'met-dbc', 'bags.fun', 'moonshot', ...launchpadsSeen.filter((p) => p !== 'Meteora')])];
+  const pads = [...new Set(['pump.fun', 'letsbonk.fun', 'raydium-launchlab', 'met-dbc', 'bags.fun', 'moonshot', 'four.meme', 'clanker', 'pons', ...launchpadsSeen.filter((p) => p !== 'Meteora')])];
+  const chainOn = (c: string) => f.chains.length === 0 || f.chains.includes(c);
+  const toggleChain = (c: string) => {
+    const current = f.chains.length === 0 ? BOARD_CHAINS.map((x) => x.id) : f.chains;
+    const next = current.includes(c) ? current.filter((x) => x !== c) : [...current, c];
+    set({ chains: next.length === BOARD_CHAINS.length || next.length === 0 ? [] : next });
+  };
   const padOn = (p: string) => f.launchpads.length === 0 || f.launchpads.includes(p);
   const togglePad = (p: string) => {
     // [] = all of them; ['none'] = "Unselect all", waiting for a pick.
@@ -217,6 +240,17 @@ export function XxxRiskFilterPanel({
       ) : (
         <>
           <section>
+            <h3 className="mb-2 font-display text-sm font-bold text-ink-900">{t('fChains')}</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {BOARD_CHAINS.map((c) => (
+                <button key={c.id} type="button" aria-pressed={chainOn(c.id)} onClick={() => toggleChain(c.id)} className={cn('h-8 rounded-full border px-3 font-display text-xs font-bold transition-colors', chainOn(c.id) ? 'border-accent/40 bg-accent/10 text-ink-900' : 'border-white/[0.08] text-ink-400 opacity-60')}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className={section}>
             <div className="mb-2 flex items-center justify-between">
               <h3 className="font-display text-sm font-bold text-ink-900">{t('fLaunchpads')}</h3>
               <button type="button" onClick={() => set({ launchpads: f.launchpads.length === 0 ? ['none'] : [] })} className="rounded-lg bg-white/[0.06] px-2.5 py-1 font-display text-[0.7rem] font-bold text-ink-900">

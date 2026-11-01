@@ -1512,7 +1512,8 @@
     "fR_insiders": "인사이더",
     "fR_bundlers": "번들러",
     "fR_devMigrations": "개발자 마이그레이션",
-    "fR_devLaunches": "개발자 출시"
+    "fR_devLaunches": "개발자 출시",
+    "fChains": "체인"
   },
   "you": {
     "holdings": "보유",

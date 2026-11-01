@@ -28,7 +28,8 @@ describe('launchpad board filters', () => {
     expect(passes(coin({ snipersPct: null }), { ...NO_FILTERS, ranges: { snipers: { min: null, max: 10 } } }, 120)).toBe(false);
     expect(passes(coin(), { ...NO_FILTERS, toggles: { hasX: true } }, 120)).toBe(false);
     expect(passes(coin({ socials: { twitter: 'https://x.com/a' } }), { ...NO_FILTERS, toggles: { hasX: true } }, 120)).toBe(true);
-    expect(activeCount({ launchpads: ['pump.fun'], ranges: { mc: { min: 1, max: null }, liq: { min: null, max: null } }, toggles: { hasX: true, hideMint: false } })).toBe(3);
+    expect(passes(coin({ chainIdentifier: 'eip155:56' }), { ...NO_FILTERS, chains: ['solana'] }, 120)).toBe(false);
+    expect(activeCount({ chains: [], launchpads: ['pump.fun'], ranges: { mc: { min: 1, max: null }, liq: { min: null, max: null } }, toggles: { hasX: true, hideMint: false } })).toBe(3);
   });
 
   it('starts old flat saved views clean', () => {

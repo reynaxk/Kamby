@@ -1512,7 +1512,8 @@
     "fR_insiders": "Инсайдеры",
     "fR_bundlers": "Бандлеры",
     "fR_devMigrations": "Dev мигрировал",
-    "fR_devLaunches": "Dev запустил"
+    "fR_devLaunches": "Dev запустил",
+    "fChains": "Сети"
   },
   "you": {
     "holdings": "Активы",

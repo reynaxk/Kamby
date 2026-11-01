@@ -1512,7 +1512,8 @@
     "fR_insiders": "Insider",
     "fR_bundlers": "Bundler",
     "fR_devMigrations": "Dev migriert",
-    "fR_devLaunches": "Dev gestartet"
+    "fR_devLaunches": "Dev gestartet",
+    "fChains": "Chains"
   },
   "you": {
     "holdings": "Bestände",

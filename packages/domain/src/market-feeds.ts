@@ -54,6 +54,9 @@ export type FeedMarket = MarketSummary & {
  * shown below Kamby's normal safety bar on purpose and labeled as such.
  */
 export interface XxxRiskToken {
+  /** 2026-11-01: BNB/Base/Robinhood launches too ('eip155:…'); missing = 'solana'. For an EVM
+   *  coin `mintAddress` is its token address. */
+  chainIdentifier?: string;
   mintAddress: string;
   symbol: string | null;
   name: string | null;

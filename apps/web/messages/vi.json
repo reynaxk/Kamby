@@ -1512,7 +1512,8 @@
     "fR_insiders": "Insider",
     "fR_bundlers": "Bundler",
     "fR_devMigrations": "Dev đã chuyển",
-    "fR_devLaunches": "Dev đã ra mắt"
+    "fR_devLaunches": "Dev đã ra mắt",
+    "fChains": "Chuỗi"
   },
   "you": {
     "holdings": "Nắm giữ",
