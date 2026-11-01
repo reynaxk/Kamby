@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Lượt thích",
     "kind_FEED_REPLY": "Trả lời",
     "FEED_LIKE": "{actor} đã thích bài của bạn",
-    "FEED_REPLY": "{actor} đã trả lời: {preview}"
+    "FEED_REPLY": "{actor} đã trả lời: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Danh hiệu",
+    "ACHIEVEMENT_UNLOCKED": "Bạn đã mở khóa danh hiệu “{title}”"
   },
   "pulse": {
     "live": "Trực tiếp — trader toàn thế giới",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Đã bình chọn",
     "profileNone": "Chưa có phiếu nào.",
     "profiletheirVote": "Đã chọn {answer}"
+  },
+  "achievements": {
+    "title": "Danh hiệu",
+    "seeAll": "Xem tất cả",
+    "progressOf": "Đã mở {n} / {total}",
+    "close": "Đóng",
+    "all": "Tất cả",
+    "unlocked": "Đã mở",
+    "none": "Chưa có gì.",
+    "wear": "Đeo",
+    "wearing": "Đang đeo",
+    "pin": "Ghim",
+    "pinned": "Đã ghim",
+    "emptyOwn": "Giao dịch, đăng bài và bình chọn để mở danh hiệu đầu tiên.",
+    "nobodyYet": "Chưa ai có",
+    "unlockedBy": "{pct}% trader đã mở ({count})",
+    "lockedSecret": "Đã khóa / Bí mật",
+    "progressHidden": "??? Ẩn tiến độ",
+    "cat_beginner": "Người mới",
+    "cat_personality": "Cá tính",
+    "cat_advanced": "Nâng cao",
+    "cat_elite": "Tinh hoa",
+    "cat_mythic": "Thần thoại",
+    "cat_humorous": "Hài hước",
+    "rarity_common": "Thường",
+    "rarity_rare": "Hiếm",
+    "rarity_epic": "Sử thi",
+    "rarity_legendary": "Huyền thoại",
+    "rarity_mythic": "Thần thoại"
   }
 }

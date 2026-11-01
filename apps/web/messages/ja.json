@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "いいね",
     "kind_FEED_REPLY": "返信",
     "FEED_LIKE": "{actor} があなたの投稿にいいね",
-    "FEED_REPLY": "{actor} が返信：{preview}"
+    "FEED_REPLY": "{actor} が返信：{preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "称号",
+    "ACHIEVEMENT_UNLOCKED": "称号「{title}」を獲得しました"
   },
   "pulse": {
     "live": "ライブ — 世界中のトレーダー",
@@ -1736,5 +1738,34 @@
     "profileVoted": "投票した予想",
     "profileNone": "まだ投票がありません。",
     "profiletheirVote": "{answer} に投票"
+  },
+  "achievements": {
+    "title": "称号",
+    "seeAll": "すべて見る",
+    "progressOf": "{n} / {total} 獲得",
+    "close": "閉じる",
+    "all": "すべて",
+    "unlocked": "獲得済み",
+    "none": "まだ何もありません。",
+    "wear": "付ける",
+    "wearing": "装備中",
+    "pin": "ピン留め",
+    "pinned": "ピン留め済み",
+    "emptyOwn": "トレード・投稿・投票で最初の称号を獲得しよう。",
+    "nobodyYet": "まだ誰も持っていません",
+    "unlockedBy": "トレーダーの{pct}%が獲得（{count}人）",
+    "lockedSecret": "ロック中 / シークレット",
+    "progressHidden": "??? 進捗は非表示",
+    "cat_beginner": "初心者",
+    "cat_personality": "個性",
+    "cat_advanced": "上級",
+    "cat_elite": "エリート",
+    "cat_mythic": "神話",
+    "cat_humorous": "ユーモア",
+    "rarity_common": "コモン",
+    "rarity_rare": "レア",
+    "rarity_epic": "エピック",
+    "rarity_legendary": "レジェンダリー",
+    "rarity_mythic": "ミシック"
   }
 }

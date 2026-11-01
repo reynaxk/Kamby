@@ -55,6 +55,9 @@ export function launchpadOf(dex: string, tokenAddress: string): { launchpad: str
   if (a.endsWith('7777') && (dex.startsWith('pancakeswap') || dex.startsWith('uniswap-v4-bsc'))) return { launchpad: 'flap', column: 'migrated' };
   if (a.endsWith('b07')) return { launchpad: 'clanker', column: 'new' };
   if (dex.startsWith('pons')) return { launchpad: 'pons', column: 'new' };
+  // Virtuals (2026-11-01, "AI Agents"): its bonding curve is new; its Uniswap-style pools are migrated.
+  if (dex === 'virtuals-base') return { launchpad: 'virtuals', column: 'new' };
+  if (dex.startsWith('virtuals')) return { launchpad: 'virtuals', column: 'migrated' };
   if (dex.startsWith('uniswap-v4')) return { launchpad: 'uniswap-v4', column: 'new' };
   if (dex.startsWith('pancakeswap')) return { launchpad: 'pancakeswap', column: 'new' };
   if (dex.startsWith('uniswap')) return { launchpad: 'uniswap', column: 'new' };
@@ -63,7 +66,7 @@ export function launchpadOf(dex: string, tokenAddress: string): { launchpad: str
 }
 
 /** Exported for tests. One new pool as a board card; null when it's too thin, too old or unpriced. */
-export function evmPoolToken(pool: GtPool, tokens: Map<string, GtToken>, chainIdentifier: string, now: number): XxxRiskToken | null {
+export function evmPoolToken(pool: GtPool, tokens: Map<string, GtToken>, chainIdentifier: string, now: number, maxAgeMs = MAX_AGE_MS): XxxRiskToken | null {
   const a = pool.attributes;
   const tokenId = pool.relationships?.base_token?.data?.id;
   const token = tokenId ? tokens.get(tokenId) : undefined;
@@ -72,7 +75,7 @@ export function evmPoolToken(pool: GtPool, tokens: Map<string, GtToken>, chainId
   const created = Date.parse(a.pool_created_at ?? '');
   const liquidityUsd = n(a.reserve_in_usd) ?? 0;
   const marketCapUsd = n(a.market_cap_usd) ?? n(a.fdv_usd) ?? 0;
-  if (!Number.isFinite(created) || now - created > MAX_AGE_MS || liquidityUsd < MIN_LIQUIDITY_USD || marketCapUsd < MIN_MARKET_CAP_USD) return null;
+  if (!Number.isFinite(created) || now - created > maxAgeMs || liquidityUsd < MIN_LIQUIDITY_USD || marketCapUsd < MIN_MARKET_CAP_USD) return null;
   const tx = a.transactions?.m5;
   const { launchpad, column } = launchpadOf(pool.relationships?.dex?.data?.id ?? '', address);
   const image = token?.attributes.image_url;

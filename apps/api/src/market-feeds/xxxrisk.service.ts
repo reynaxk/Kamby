@@ -260,7 +260,21 @@ export class XxxRiskService {
         }),
       ),
     );
-    const out = lists.flat();
+    // Virtuals' AI-agent coins (2026-11-01): its own busiest pools, so they show even when
+    // they're not among the newest pools on Base. A week old at most.
+    const virtuals = await (async () => {
+      try {
+        const res = await fetch('https://api.geckoterminal.com/api/v2/networks/base/dexes/virtuals-base/pools?include=base_token,dex&sort=h24_tx_count_desc', { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(6000) });
+        if (!res.ok) return [];
+        const body = (await res.json()) as { data?: GtPool[]; included?: GtToken[] };
+        const tokens = new Map((body.included ?? []).filter((x) => x.type === 'token').map((x) => [x.id, x]));
+        return (body.data ?? []).map((p) => evmPoolToken(p, tokens, 'eip155:8453', now, 7 * 24 * 3600_000)).filter((t): t is XxxRiskToken => t !== null);
+      } catch {
+        return [];
+      }
+    })();
+    const seen = new Set<string>();
+    const out = [...lists.flat(), ...virtuals].filter((t) => (seen.has(t.mintAddress) ? false : (seen.add(t.mintAddress), true)));
     if (out.length > 0) await this.redis.set(EVM_REDIS_KEY, JSON.stringify(out), 'EX', EVM_TTL_SECONDS).catch(() => undefined);
     else this.logger.warn('XXXRisk: no EVM launches this cycle');
     return out;

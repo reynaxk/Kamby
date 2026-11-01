@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Beğeniler",
     "kind_FEED_REPLY": "Yanıtlar",
     "FEED_LIKE": "{actor} gönderini beğendi",
-    "FEED_REPLY": "{actor} yanıtladı: {preview}"
+    "FEED_REPLY": "{actor} yanıtladı: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Unvanlar",
+    "ACHIEVEMENT_UNLOCKED": "“{title}” unvanını açtın"
   },
   "pulse": {
     "live": "Canlı — dünyanın dört bir yanından trader’lar",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Oyladığı",
     "profileNone": "Henüz oy yok.",
     "profiletheirVote": "{answer} oyladı"
+  },
+  "achievements": {
+    "title": "Unvanlar",
+    "seeAll": "Tümünü gör",
+    "progressOf": "{n} / {total} açıldı",
+    "close": "Kapat",
+    "all": "Tümü",
+    "unlocked": "Açılanlar",
+    "none": "Henüz bir şey yok.",
+    "wear": "Kullan",
+    "wearing": "Kullanılıyor",
+    "pin": "Sabitle",
+    "pinned": "Sabitlendi",
+    "emptyOwn": "İlk unvanını açmak için işlem yap, paylaş ve oy ver.",
+    "nobodyYet": "Henüz kimsede yok",
+    "unlockedBy": "Trader’ların %{pct}’si açtı ({count})",
+    "lockedSecret": "Kilitli / Gizli",
+    "progressHidden": "??? İlerleme gizli",
+    "cat_beginner": "Başlangıç",
+    "cat_personality": "Kişilik",
+    "cat_advanced": "İleri",
+    "cat_elite": "Elit",
+    "cat_mythic": "Efsanevi",
+    "cat_humorous": "Mizah",
+    "rarity_common": "Yaygın",
+    "rarity_rare": "Nadir",
+    "rarity_epic": "Destansı",
+    "rarity_legendary": "Efsane",
+    "rarity_mythic": "Mitik"
   }
 }

@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "ถูกใจ",
     "kind_FEED_REPLY": "ตอบกลับ",
     "FEED_LIKE": "{actor} ถูกใจโพสต์ของคุณ",
-    "FEED_REPLY": "{actor} ตอบกลับ: {preview}"
+    "FEED_REPLY": "{actor} ตอบกลับ: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "ฉายา",
+    "ACHIEVEMENT_UNLOCKED": "คุณปลดล็อกฉายา “{title}”"
   },
   "pulse": {
     "live": "สด — เทรดเดอร์ทั่วโลก",
@@ -1736,5 +1738,34 @@
     "profileVoted": "ที่โหวต",
     "profileNone": "ยังไม่มีโหวต",
     "profiletheirVote": "โหวต {answer}"
+  },
+  "achievements": {
+    "title": "ฉายา",
+    "seeAll": "ดูทั้งหมด",
+    "progressOf": "ปลดล็อก {n} / {total}",
+    "close": "ปิด",
+    "all": "ทั้งหมด",
+    "unlocked": "ปลดล็อกแล้ว",
+    "none": "ยังไม่มีอะไร",
+    "wear": "สวม",
+    "wearing": "กำลังสวม",
+    "pin": "ปักหมุด",
+    "pinned": "ปักหมุดแล้ว",
+    "emptyOwn": "เทรด โพสต์ และโหวตเพื่อปลดล็อกฉายาแรกของคุณ",
+    "nobodyYet": "ยังไม่มีใครได้",
+    "unlockedBy": "ปลดล็อกโดย {pct}% ของเทรดเดอร์ ({count})",
+    "lockedSecret": "ล็อก / ลับ",
+    "progressHidden": "??? ซ่อนความคืบหน้า",
+    "cat_beginner": "มือใหม่",
+    "cat_personality": "บุคลิก",
+    "cat_advanced": "ขั้นสูง",
+    "cat_elite": "อีลีท",
+    "cat_mythic": "ตำนาน",
+    "cat_humorous": "ขำขัน",
+    "rarity_common": "ธรรมดา",
+    "rarity_rare": "หายาก",
+    "rarity_epic": "มหากาพย์",
+    "rarity_legendary": "ระดับตำนาน",
+    "rarity_mythic": "ปรัมปรา"
   }
 }

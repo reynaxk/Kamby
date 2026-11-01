@@ -388,6 +388,12 @@ model User {
   feedLikes               FeedLike[]
   feedReplies             FeedReply[]
   feedReports             FeedReport[]
+  achievements            UserAchievement[]
+
+  /// Titles (2026-11-01): the one worn next to the username, and up to 3 shown on the profile.
+  /// Ids from ACHIEVEMENTS in @kamby/domain; only unlocked ones are accepted.
+  equippedTitleId  String?  @map("equipped_title_id")
+  showcaseTitleIds String[] @default([]) @map("showcase_title_ids")
 
   @@map("users")
 }
@@ -951,6 +957,8 @@ enum NotificationType {
   /// 2026-10-31 — someone liked / replied to the recipient's Feed post.
   FEED_LIKE
   FEED_REPLY
+  /// 2026-11-01 — the recipient unlocked a title.
+  ACHIEVEMENT_UNLOCKED
 }
 
 /// One notification for `user` (the recipient — always resolved from the authenticated
@@ -1688,4 +1696,22 @@ model PredictionVote {
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("prediction_votes")
+}
+
+/// A user's progress on one title (2026-11-01) — see ACHIEVEMENTS in @kamby/domain and
+/// AchievementsService. A row exists once there's any progress; unlockedAt is set once and kept.
+model UserAchievement {
+  userId          String    @map("user_id")
+  achievementId   String    @map("achievement_id")
+  currentProgress Float     @default(0) @map("current_progress")
+  targetValue     Float     @map("target_value")
+  isUnlocked      Boolean   @default(false) @map("is_unlocked")
+  unlockedAt      DateTime? @map("unlocked_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementId])
+  @@index([achievementId, isUnlocked])
+  @@map("user_achievements")
 }

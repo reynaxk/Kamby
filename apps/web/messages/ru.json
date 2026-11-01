@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Лайки",
     "kind_FEED_REPLY": "Ответы",
     "FEED_LIKE": "{actor} лайкнул ваш пост",
-    "FEED_REPLY": "{actor} ответил: {preview}"
+    "FEED_REPLY": "{actor} ответил: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Титулы",
+    "ACHIEVEMENT_UNLOCKED": "Вы получили титул «{title}»"
   },
   "pulse": {
     "live": "Онлайн — трейдеры со всего мира",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Голосовал",
     "profileNone": "Пока нет голосов.",
     "profiletheirVote": "Голос: {answer}"
+  },
+  "achievements": {
+    "title": "Титулы",
+    "seeAll": "Все",
+    "progressOf": "{n} / {total} получено",
+    "close": "Закрыть",
+    "all": "Все",
+    "unlocked": "Получены",
+    "none": "Пока ничего.",
+    "wear": "Надеть",
+    "wearing": "Надет",
+    "pin": "Закрепить",
+    "pinned": "Закреплён",
+    "emptyOwn": "Торгуйте, пишите и голосуйте, чтобы получить первый титул.",
+    "nobodyYet": "Пока ни у кого нет",
+    "unlockedBy": "Есть у {pct}% трейдеров ({count})",
+    "lockedSecret": "Закрыт / Секрет",
+    "progressHidden": "??? Прогресс скрыт",
+    "cat_beginner": "Новичок",
+    "cat_personality": "Характер",
+    "cat_advanced": "Продвинутый",
+    "cat_elite": "Элита",
+    "cat_mythic": "Мифический",
+    "cat_humorous": "Юмор",
+    "rarity_common": "Обычный",
+    "rarity_rare": "Редкий",
+    "rarity_epic": "Эпический",
+    "rarity_legendary": "Легендарный",
+    "rarity_mythic": "Мифический"
   }
 }

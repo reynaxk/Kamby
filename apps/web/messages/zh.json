@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "点赞",
     "kind_FEED_REPLY": "回复",
     "FEED_LIKE": "{actor} 赞了你的帖子",
-    "FEED_REPLY": "{actor} 回复：{preview}"
+    "FEED_REPLY": "{actor} 回复：{preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "称号",
+    "ACHIEVEMENT_UNLOCKED": "你解锁了称号「{title}」"
   },
   "pulse": {
     "live": "实时 — 全球交易者",
@@ -1736,5 +1738,34 @@
     "profileVoted": "投票过",
     "profileNone": "还没有投票。",
     "profiletheirVote": "投了 {answer}"
+  },
+  "achievements": {
+    "title": "称号",
+    "seeAll": "查看全部",
+    "progressOf": "已解锁 {n} / {total}",
+    "close": "关闭",
+    "all": "全部",
+    "unlocked": "已解锁",
+    "none": "这里还没有内容。",
+    "wear": "佩戴",
+    "wearing": "佩戴中",
+    "pin": "置顶",
+    "pinned": "已置顶",
+    "emptyOwn": "交易、发帖和投票来解锁你的第一个称号。",
+    "nobodyYet": "还没有人获得",
+    "unlockedBy": "{pct}% 的交易者已解锁（{count}）",
+    "lockedSecret": "未解锁 / 隐藏",
+    "progressHidden": "??? 进度已隐藏",
+    "cat_beginner": "新手",
+    "cat_personality": "个性",
+    "cat_advanced": "进阶",
+    "cat_elite": "精英",
+    "cat_mythic": "神话",
+    "cat_humorous": "搞笑",
+    "rarity_common": "普通",
+    "rarity_rare": "稀有",
+    "rarity_epic": "史诗",
+    "rarity_legendary": "传说",
+    "rarity_mythic": "神话"
   }
 }

@@ -25,6 +25,7 @@ export * from './launchpad';
 export * from './dm';
 export * from './feed';
 export * from './calls';
+export * from './achievements';
 export * from './stories';
 export * from './live';
 export * from './squads';

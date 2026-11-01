@@ -2,6 +2,7 @@ import { cn } from '@kamby/ui';
 import { truncateAddress } from '@/lib/format';
 import { KambyPfp } from '@/components/social/KambyPfp';
 import { SafeImg } from '@/components/social/SafeImg';
+import { TitleBadge } from '@/components/achievements/TitleBadge';
 
 /**
  * Mirrors TokenIdentity's honesty rule: a real `<img>` when we have one, an initials avatar
@@ -31,7 +32,11 @@ export function TraderIdentity({
         fallback={<KambyPfp seedKey={displayName ?? address} className={dims} />}
       />
       <div className="min-w-0">
-        <div className="truncate font-display text-sm font-semibold text-ink-900">{label}</div>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-display text-sm font-semibold text-ink-900">{label}</span>
+          {/* The title they wear (2026-11-01). */}
+          {displayName && <TitleBadge username={displayName} />}
+        </div>
         {displayName && <div className="truncate font-mono text-xs text-ink-400">{truncateAddress(address)}</div>}
       </div>
     </div>

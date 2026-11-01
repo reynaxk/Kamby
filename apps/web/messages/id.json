@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Suka",
     "kind_FEED_REPLY": "Balasan",
     "FEED_LIKE": "{actor} menyukai postinganmu",
-    "FEED_REPLY": "{actor} membalas: {preview}"
+    "FEED_REPLY": "{actor} membalas: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Gelar",
+    "ACHIEVEMENT_UNLOCKED": "Kamu membuka gelar “{title}”"
   },
   "pulse": {
     "live": "Live — trader dari seluruh dunia",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Dipilih",
     "profileNone": "Belum ada suara.",
     "profiletheirVote": "Memilih {answer}"
+  },
+  "achievements": {
+    "title": "Gelar",
+    "seeAll": "Lihat semua",
+    "progressOf": "{n} / {total} terbuka",
+    "close": "Tutup",
+    "all": "Semua",
+    "unlocked": "Terbuka",
+    "none": "Belum ada apa-apa.",
+    "wear": "Pakai",
+    "wearing": "Dipakai",
+    "pin": "Sematkan",
+    "pinned": "Disematkan",
+    "emptyOwn": "Trading, posting, dan voting untuk membuka gelar pertamamu.",
+    "nobodyYet": "Belum ada yang punya",
+    "unlockedBy": "Dibuka oleh {pct}% trader ({count})",
+    "lockedSecret": "Terkunci / Rahasia",
+    "progressHidden": "??? Progres disembunyikan",
+    "cat_beginner": "Pemula",
+    "cat_personality": "Kepribadian",
+    "cat_advanced": "Lanjutan",
+    "cat_elite": "Elite",
+    "cat_mythic": "Mitos",
+    "cat_humorous": "Lucu",
+    "rarity_common": "Biasa",
+    "rarity_rare": "Langka",
+    "rarity_epic": "Epik",
+    "rarity_legendary": "Legendaris",
+    "rarity_mythic": "Mitos"
   }
 }

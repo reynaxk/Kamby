@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Likes",
     "kind_FEED_REPLY": "Antworten",
     "FEED_LIKE": "{actor} gefällt dein Post",
-    "FEED_REPLY": "{actor} hat geantwortet: {preview}"
+    "FEED_REPLY": "{actor} hat geantwortet: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Titel",
+    "ACHIEVEMENT_UNLOCKED": "Du hast den Titel „{title}“ freigeschaltet"
   },
   "pulse": {
     "live": "Live — Trader aus aller Welt",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Abgestimmt",
     "profileNone": "Noch keine Stimmen.",
     "profiletheirVote": "Gewählt: {answer}"
+  },
+  "achievements": {
+    "title": "Titel",
+    "seeAll": "Alle ansehen",
+    "progressOf": "{n} / {total} freigeschaltet",
+    "close": "Schließen",
+    "all": "Alle",
+    "unlocked": "Freigeschaltet",
+    "none": "Noch nichts hier.",
+    "wear": "Tragen",
+    "wearing": "Getragen",
+    "pin": "Anheften",
+    "pinned": "Angeheftet",
+    "emptyOwn": "Trade, poste und stimme ab, um deinen ersten Titel freizuschalten.",
+    "nobodyYet": "Noch niemand hat ihn",
+    "unlockedBy": "Freigeschaltet von {pct}% der Trader ({count})",
+    "lockedSecret": "Gesperrt / Geheim",
+    "progressHidden": "??? Fortschritt verborgen",
+    "cat_beginner": "Einsteiger",
+    "cat_personality": "Persönlichkeit",
+    "cat_advanced": "Fortgeschritten",
+    "cat_elite": "Elite",
+    "cat_mythic": "Mythisch",
+    "cat_humorous": "Humorvoll",
+    "rarity_common": "Gewöhnlich",
+    "rarity_rare": "Selten",
+    "rarity_epic": "Episch",
+    "rarity_legendary": "Legendär",
+    "rarity_mythic": "Mythisch"
   }
 }

@@ -113,7 +113,7 @@ export function XxxRiskFilterPanel({
   const col: XxxRiskColumn = tab === 'saved' ? column : tab;
   const f = value[col];
   const set = (patch: Partial<Filters>) => onChange({ ...value, [col]: { ...f, ...patch } });
-  const pads = [...new Set(['pump.fun', 'letsbonk.fun', 'raydium-launchlab', 'met-dbc', 'bags.fun', 'moonshot', 'four.meme', 'clanker', 'pons', ...launchpadsSeen.filter((p) => p !== 'Meteora')])];
+  const pads = [...new Set(['pump.fun', 'letsbonk.fun', 'raydium-launchlab', 'met-dbc', 'bags.fun', 'moonshot', 'four.meme', 'clanker', 'virtuals', 'pons', ...launchpadsSeen.filter((p) => p !== 'Meteora')])];
   const chainOn = (c: string) => f.chains.length === 0 || f.chains.includes(c);
   const toggleChain = (c: string) => {
     const current = f.chains.length === 0 ? BOARD_CHAINS.map((x) => x.id) : f.chains;

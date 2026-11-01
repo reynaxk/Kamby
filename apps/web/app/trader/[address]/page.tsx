@@ -21,6 +21,7 @@ import { PnlDays, PnlRunLine, WinRing } from '@/components/social/TraderPnlBits'
 import { Feed } from '@/components/feed/Feed';
 import { ProfileTabs } from '@/components/social/ProfileTabs';
 import { ProfilePredictionsTab } from '@/components/predictions/ProfilePredictionsTab';
+import { AchievementsShowcase } from '@/components/achievements/AchievementsShowcase';
 
 export const revalidate = 15;
 
@@ -135,6 +136,8 @@ export default async function TraderProfilePage({ params }: { params: { address:
             {profile.stats.lastActiveAt && <> · {tL('lastActive', { date: formatDateTime(profile.stats.lastActiveAt) })}</>}
           </p>
         </section>
+
+        {profile.username && <AchievementsShowcase own={false} username={profile.username} className="mt-4 lg:col-start-1" />}
 
         {/* Desktop (2026-10-30 redesign): PnL, track record, more stats and coins in a column on the right. */}
         <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mt-4">

@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Me gusta",
     "kind_FEED_REPLY": "Respuestas",
     "FEED_LIKE": "A {actor} le gustó tu post",
-    "FEED_REPLY": "{actor} respondió: {preview}"
+    "FEED_REPLY": "{actor} respondió: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Títulos",
+    "ACHIEVEMENT_UNLOCKED": "Desbloqueaste el título «{title}»"
   },
   "pulse": {
     "live": "En vivo — traders de todo el mundo",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Votó",
     "profileNone": "Aún no hay votos.",
     "profiletheirVote": "Votó {answer}"
+  },
+  "achievements": {
+    "title": "Títulos",
+    "seeAll": "Ver todos",
+    "progressOf": "{n} / {total} desbloqueados",
+    "close": "Cerrar",
+    "all": "Todos",
+    "unlocked": "Desbloqueados",
+    "none": "Aún no hay nada.",
+    "wear": "Llevar",
+    "wearing": "Lo llevas",
+    "pin": "Fijar",
+    "pinned": "Fijado",
+    "emptyOwn": "Opera, publica y vota para desbloquear tu primer título.",
+    "nobodyYet": "Nadie lo tiene aún",
+    "unlockedBy": "Desbloqueado por el {pct}% de traders ({count})",
+    "lockedSecret": "Bloqueado / Secreto",
+    "progressHidden": "??? Progreso oculto",
+    "cat_beginner": "Principiante",
+    "cat_personality": "Personalidad",
+    "cat_advanced": "Avanzado",
+    "cat_elite": "Élite",
+    "cat_mythic": "Mítico",
+    "cat_humorous": "Humor",
+    "rarity_common": "Común",
+    "rarity_rare": "Raro",
+    "rarity_epic": "Épico",
+    "rarity_legendary": "Legendario",
+    "rarity_mythic": "Mítico"
   }
 }

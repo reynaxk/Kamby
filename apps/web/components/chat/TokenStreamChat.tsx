@@ -1,5 +1,6 @@
 'use client';
 
+import { TitleBadge } from '@/components/achievements/TitleBadge';
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
@@ -447,12 +448,17 @@ const ChatRow = memo(function ChatRow({
   const t = useTranslations('tokenChat');
   const tP = useTranslations('pulse');
   const name = item.author.username ? `@${item.author.username}` : tP('trader');
-  const nameEl = item.author.address ? (
-    <Link href={`/trader/${item.author.address}`} className="font-display font-semibold text-ink-900 hover:text-accent">
-      {name}
-    </Link>
-  ) : (
-    <span className="font-display font-semibold text-ink-900">{name}</span>
+  const nameEl = (
+    <>
+      {item.author.address ? (
+        <Link href={`/trader/${item.author.address}`} className="font-display font-semibold text-ink-900 hover:text-accent">
+          {name}
+        </Link>
+      ) : (
+        <span className="font-display font-semibold text-ink-900">{name}</span>
+      )}
+      <TitleBadge username={item.author.username} className="ml-1" />
+    </>
   );
 
   if (item.kind === 'trade') {

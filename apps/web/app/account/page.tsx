@@ -9,6 +9,7 @@ import { getTranslations } from 'next-intl/server';
 import { AppProfileMenu } from '@/components/account/AppProfileMenu';
 import { PhoneSignedInOnly } from '@/components/account/PhoneSignedInOnly';
 import { SessionBootstrap } from '@/components/account/SessionBootstrap';
+import { AchievementsShowcase } from '@/components/achievements/AchievementsShowcase';
 
 export const metadata = { title: 'Your profile — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
@@ -50,6 +51,7 @@ export default async function AccountPage() {
         </section>
         {/* Settings — the coin ticker, hiding balances, the language (computer; phones have the Profile menu). */}
         <PreferencesCard className="mt-6 max-md:hidden" />
+        <AchievementsShowcase own className="mt-6" />
         <div id="profile" className="mt-6 scroll-mt-20">
           <ProfileEditor />
         </div>

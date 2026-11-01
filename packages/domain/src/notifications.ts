@@ -32,6 +32,7 @@ export const NotificationTypeSchema = z.enum([
   /** 2026-10-31 — someone liked / replied to your Feed post. */
   'FEED_LIKE',
   'FEED_REPLY',
+  'ACHIEVEMENT_UNLOCKED',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -105,6 +106,7 @@ export const NOTIFICATION_PREFERENCE_FIELD: Record<
   LIVE_STARTED: 'follows',
   FEED_LIKE: 'likes',
   FEED_REPLY: 'likes',
+  ACHIEVEMENT_UNLOCKED: 'likes',
 };
 
 /**
@@ -139,6 +141,8 @@ export const NotificationPayloadSchema = z.object({
   callVideo: z.boolean().optional(),
   /** FEED_LIKE / FEED_REPLY: the post (the reply's words go in `preview`). */
   feedPostId: z.string().optional(),
+  /** ACHIEVEMENT_UNLOCKED (2026-11-01): which title; its name goes in `preview`. */
+  achievementId: z.string().optional(),
 });
 export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
 
@@ -240,6 +244,8 @@ export function notificationDeepLink(
     case 'FEED_LIKE':
     case 'FEED_REPLY':
       return '/feed';
+    case 'ACHIEVEMENT_UNLOCKED':
+      return '/account?achievements=1';
   }
 }
 

@@ -25,3 +25,10 @@ describe('EVM launchpads', () => {
     expect(evmPoolToken(pool({ pool_created_at: '2026-10-30T08:00:00Z' }), tokens, 'eip155:56', now)).toBeNull();
   });
 });
+
+describe('launchpadOf: Virtuals', () => {
+  it('reads the bonding curve as new and its later pools as migrated', () => {
+    expect(launchpadOf('virtuals-base', '0x1234567890123456789012345678901234567890')).toEqual({ launchpad: 'virtuals', column: 'new' });
+    expect(launchpadOf('virtuals-unicorn-base', '0x1234567890123456789012345678901234567890')).toEqual({ launchpad: 'virtuals', column: 'migrated' });
+  });
+});

@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "좋아요",
     "kind_FEED_REPLY": "답글",
     "FEED_LIKE": "{actor}님이 게시물을 좋아해요",
-    "FEED_REPLY": "{actor}님의 답글: {preview}"
+    "FEED_REPLY": "{actor}님의 답글: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "칭호",
+    "ACHIEVEMENT_UNLOCKED": "“{title}” 칭호를 획득했어요"
   },
   "pulse": {
     "live": "실시간 — 전 세계 트레이더",
@@ -1736,5 +1738,34 @@
     "profileVoted": "투표함",
     "profileNone": "아직 투표가 없습니다.",
     "profiletheirVote": "{answer}에 투표"
+  },
+  "achievements": {
+    "title": "칭호",
+    "seeAll": "모두 보기",
+    "progressOf": "{n} / {total} 획득",
+    "close": "닫기",
+    "all": "전체",
+    "unlocked": "획득",
+    "none": "아직 없어요.",
+    "wear": "착용",
+    "wearing": "착용 중",
+    "pin": "고정",
+    "pinned": "고정됨",
+    "emptyOwn": "거래하고, 글 쓰고, 투표해서 첫 칭호를 얻으세요.",
+    "nobodyYet": "아직 아무도 없어요",
+    "unlockedBy": "트레이더 {pct}%가 획득 ({count}명)",
+    "lockedSecret": "잠김 / 비밀",
+    "progressHidden": "??? 진행도 숨김",
+    "cat_beginner": "입문",
+    "cat_personality": "개성",
+    "cat_advanced": "고급",
+    "cat_elite": "엘리트",
+    "cat_mythic": "신화",
+    "cat_humorous": "유머",
+    "rarity_common": "일반",
+    "rarity_rare": "희귀",
+    "rarity_epic": "영웅",
+    "rarity_legendary": "전설",
+    "rarity_mythic": "신화"
   }
 }

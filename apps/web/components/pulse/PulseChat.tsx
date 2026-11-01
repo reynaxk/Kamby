@@ -13,6 +13,7 @@ import { ChatUsernameSetup } from '@/components/chat/ChatUsernameSetup';
 import { fetchPulse, postPulse, PULSE_STREAM_URL } from '@/lib/pulse-client';
 import { openResilientEventSource } from '@/lib/resilient-event-source';
 import { useMyUsername } from '@/lib/use-my-username';
+import { TitleBadge } from '@/components/achievements/TitleBadge';
 import type { RealtimeStatus } from '@/lib/social-client';
 
 function ago(iso: string, now: number): string {
@@ -182,6 +183,7 @@ export function PulseChat({ className }: { className?: string }) {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-baseline gap-2">
                       <span className="truncate font-display text-sm font-semibold text-ink-900">{name}</span>
+                      <TitleBadge username={m.author.username} />
                       <span className="shrink-0 font-body text-[0.7rem] text-ink-400">{ago(m.createdAt, now)}</span>
                     </p>
                     <p className="whitespace-pre-wrap break-words font-body text-sm text-ink-700">

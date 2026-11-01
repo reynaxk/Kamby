@@ -1,5 +1,6 @@
 'use client';
 
+import { AchievementsShowcase } from '@/components/achievements/AchievementsShowcase';
 import { NewsAlertSettings } from '@/components/news/NewsAlertSettings';
 import { InstallAppRow } from '@/components/pwa/InstallApp';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -154,6 +155,9 @@ export function AppProfileMenu() {
         <SendButton variant="pill" />
         <SendButton variant="pill" toUser />
       </div>
+
+      {/* Titles (2026-11-01). */}
+      <AchievementsShowcase own username={profile?.username ?? null} className="mt-6" />
 
       <div role="tablist" className="mt-6 flex gap-6 border-b border-white/[0.07]">
         {(['holdings', 'pnl', 'settings'] as const).map((id) => (

@@ -11,6 +11,7 @@ import { cashtag, formatPercent, formatRelativeTime, formatSignedCompactUsd } fr
 import { friendlyError } from '@/lib/friendly-error';
 import { marketHref } from '@/lib/solana-links';
 import { useMyUsername } from '@/lib/use-my-username';
+import { TitleBadge } from '@/components/achievements/TitleBadge';
 import {
   createFeedPost,
   deleteFeedPost,
@@ -411,6 +412,7 @@ function PostCard({ post, onChange }: { post: FeedPost; onChange: (p: FeedPost |
         <span className="flex items-center gap-1.5 truncate font-display text-sm font-bold text-ink-900">
           {name}
           <RankBadge userId={post.author.userId} />
+          <TitleBadge username={post.author.username} />
         </span>
         <span className="block font-body text-xs text-ink-400">{formatRelativeTime(post.createdAt)}</span>
       </span>
@@ -547,6 +549,7 @@ function Replies({ post, onCount }: { post: FeedPost; onCount: (n: number) => vo
               <DmAvatar name={r.author.username} src={r.author.avatarUrl} className="h-7 w-7 shrink-0 text-[0.6rem]" />
               <p className="min-w-0 break-words font-body text-sm text-ink-900/90">
                 <b className="mr-1.5 font-display">{r.author.username ?? '—'}</b>
+                <TitleBadge username={r.author.username} className="mr-1.5" />
                 {r.body}
               </p>
             </li>

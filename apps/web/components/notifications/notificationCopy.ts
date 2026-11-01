@@ -45,6 +45,8 @@ export function notificationCopy(n: NotificationDto, t: Translate): string {
       return t('FEED_LIKE', values);
     case 'FEED_REPLY':
       return t('FEED_REPLY', { ...values, preview: n.preview ?? '' });
+    case 'ACHIEVEMENT_UNLOCKED':
+      return t('ACHIEVEMENT_UNLOCKED', { title: n.preview ?? '' });
   }
 }
 

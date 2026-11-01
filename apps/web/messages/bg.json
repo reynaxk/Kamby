@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Харесвания",
     "kind_FEED_REPLY": "Отговори",
     "FEED_LIKE": "{actor} хареса поста ти",
-    "FEED_REPLY": "{actor} отговори: {preview}"
+    "FEED_REPLY": "{actor} отговори: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Титли",
+    "ACHIEVEMENT_UNLOCKED": "Отключи титлата „{title}“"
   },
   "pulse": {
     "live": "На живо — трейдъри от цял свят",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Гласувал",
     "profileNone": "Още няма гласове.",
     "profiletheirVote": "Гласува: {answer}"
+  },
+  "achievements": {
+    "title": "Титли",
+    "seeAll": "Всички",
+    "progressOf": "{n} / {total} отключени",
+    "close": "Затвори",
+    "all": "Всички",
+    "unlocked": "Отключени",
+    "none": "Още няма нищо.",
+    "wear": "Носи",
+    "wearing": "Носиш я",
+    "pin": "Закачи",
+    "pinned": "Закачена",
+    "emptyOwn": "Търгувай, пиши и гласувай, за да отключиш първата си титла.",
+    "nobodyYet": "Още никой я няма",
+    "unlockedBy": "Отключена от {pct}% от трейдърите ({count})",
+    "lockedSecret": "Заключена / Тайна",
+    "progressHidden": "??? Прогресът е скрит",
+    "cat_beginner": "Начинаещ",
+    "cat_personality": "Характер",
+    "cat_advanced": "Напреднал",
+    "cat_elite": "Елит",
+    "cat_mythic": "Митична",
+    "cat_humorous": "Забавна",
+    "rarity_common": "Обикновена",
+    "rarity_rare": "Рядка",
+    "rarity_epic": "Епична",
+    "rarity_legendary": "Легендарна",
+    "rarity_mythic": "Митична"
   }
 }

@@ -882,3 +882,29 @@ body:has(.kamby-void) {
     -webkit-user-drag: none;
   }
 }
+
+/* Mythic titles (2026-11-01): a slowly moving gold → rainbow edge. A border only, no glow. */
+.kamby-mythic {
+  background: linear-gradient(110deg, #fcd34d, #f472b6, #818cf8, #34d399, #fcd34d);
+  background-size: 300% 100%;
+  animation: kamby-mythic 6s linear infinite;
+}
+.kamby-mythic-text {
+  background: linear-gradient(110deg, #fcd34d, #f472b6, #818cf8, #34d399, #fcd34d);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: kamby-mythic 6s linear infinite;
+}
+@keyframes kamby-mythic {
+  to {
+    background-position: 300% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kamby-mythic,
+  .kamby-mythic-text {
+    animation: none;
+  }
+}

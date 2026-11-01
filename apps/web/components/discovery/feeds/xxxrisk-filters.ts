@@ -198,6 +198,7 @@ export const LAUNCHPADS: Record<string, { mark: string; name: string; color: str
   flap: { mark: 'F', name: 'Flap', color: '#D9F99D' },
   clanker: { mark: 'C', name: 'Clanker', color: '#A78BFA' },
   pons: { mark: 'P', name: 'Pons', color: '#CCFF00' },
+  virtuals: { mark: 'V', name: 'Virtuals · AI', color: '#5EEAD4' },
   'uniswap-v4': { mark: 'U', name: 'Uniswap v4', color: '#FF66C4' },
   uniswap: { mark: 'U', name: 'Uniswap', color: '#FF66C4' },
   pancakeswap: { mark: 'C', name: 'PancakeSwap', color: '#38BDF8' },

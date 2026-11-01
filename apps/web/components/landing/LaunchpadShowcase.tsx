@@ -20,6 +20,7 @@ const PADS: { id: string; chain: string }[] = [
   { id: 'four.meme', chain: 'eip155:56' },
   { id: 'flap', chain: 'eip155:56' },
   { id: 'clanker', chain: 'eip155:8453' },
+  { id: 'virtuals', chain: 'eip155:8453' },
   { id: 'pons', chain: 'eip155:4663' },
 ];
 

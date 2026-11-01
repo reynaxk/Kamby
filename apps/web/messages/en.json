@@ -813,7 +813,9 @@
     "kind_FEED_LIKE": "Likes",
     "kind_FEED_REPLY": "Replies",
     "FEED_LIKE": "{actor} liked your post",
-    "FEED_REPLY": "{actor} replied: {preview}"
+    "FEED_REPLY": "{actor} replied: {preview}",
+    "kind_ACHIEVEMENT_UNLOCKED": "Titles",
+    "ACHIEVEMENT_UNLOCKED": "You unlocked the title “{title}”"
   },
   "pulse": {
     "live": "Live — traders worldwide",
@@ -1736,5 +1738,34 @@
     "profileVoted": "Voted on",
     "profileNone": "No votes yet.",
     "profiletheirVote": "Voted {answer}"
+  },
+  "achievements": {
+    "title": "Titles",
+    "seeAll": "See all",
+    "progressOf": "{n} / {total} unlocked",
+    "close": "Close",
+    "all": "All",
+    "unlocked": "Unlocked",
+    "none": "Nothing here yet.",
+    "wear": "Wear",
+    "wearing": "Wearing",
+    "pin": "Pin",
+    "pinned": "Pinned",
+    "emptyOwn": "Trade, post and vote to unlock your first title.",
+    "nobodyYet": "Nobody has this yet",
+    "unlockedBy": "Unlocked by {pct}% of traders ({count})",
+    "lockedSecret": "Locked / Secret",
+    "progressHidden": "??? Progress hidden",
+    "cat_beginner": "Beginner",
+    "cat_personality": "Personality",
+    "cat_advanced": "Advanced",
+    "cat_elite": "Elite",
+    "cat_mythic": "Mythic",
+    "cat_humorous": "Humorous",
+    "rarity_common": "Common",
+    "rarity_rare": "Rare",
+    "rarity_epic": "Epic",
+    "rarity_legendary": "Legendary",
+    "rarity_mythic": "Mythic"
   }
 }
