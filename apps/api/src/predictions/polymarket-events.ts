@@ -18,6 +18,22 @@ const DECIDED = 0.97;
 /** Kamby's owner is under 18 and this is a social app: no war, violence or death questions. */
 const BLOCKED = /\b(war|strike|attack|invade|invasion|kill|killed|die|dies|death|dead|assassinat\w*|bomb\w*|nuclear|missile|troops|ceasefire|hostage|shoot\w*|terror\w*|sex\w*|porn\w*|drug\w*|arrest\w*|indict\w*|jail|prison)\b/i;
 
+/** Questions about a major get its chart on the card (cbBTC / WETH on Base, SOL, WBNB). */
+const MAJORS: { match: RegExp; symbol: string; chainIdentifier: string; tokenAddress: string }[] = [
+  { match: /\b(bitcoin|btc)\b/i, symbol: 'BTC', chainIdentifier: 'eip155:8453', tokenAddress: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf' },
+  { match: /\b(ethereum|eth)\b/i, symbol: 'ETH', chainIdentifier: 'eip155:8453', tokenAddress: '0x4200000000000000000000000000000000000006' },
+  { match: /\b(solana|sol)\b/i, symbol: 'SOL', chainIdentifier: 'solana', tokenAddress: 'So11111111111111111111111111111111111111112' },
+  { match: /\bbnb\b/i, symbol: 'BNB', chainIdentifier: 'eip155:56', tokenAddress: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c' },
+];
+
+/** Exported for tests. The coin a question is about and its one price line ("above $78,000"), if any. */
+export function eventCoin(question: string): { coin: { chainIdentifier: string; tokenAddress: string }; symbol: string; threshold: number | null } | null {
+  const major = MAJORS.find((m) => m.match.test(question));
+  if (!major) return null;
+  const amounts = [...question.matchAll(/\$([\d,]+(?:\.\d+)?)\s*(k)?\b/gi)].map((m) => Number(m[1]!.replace(/,/g, '')) * (m[2] ? 1000 : 1));
+  return { coin: { chainIdentifier: major.chainIdentifier, tokenAddress: major.tokenAddress }, symbol: major.symbol, threshold: amounts.length === 1 && amounts[0]! > 0 ? amounts[0]! : null };
+}
+
 export interface GammaMarket {
   id: string;
   question: string;
@@ -66,6 +82,7 @@ export function eventDrafts(events: GammaEvent[], category: 'politics' | 'crypto
     if (!pick) continue;
     const title = pick.question.length > PREDICTION_LIMITS.titleMax ? `${pick.question.slice(0, PREDICTION_LIMITS.titleMax - 1).trimEnd()}…` : pick.question;
     const options = parse(pick.outcomes);
+    const about = eventCoin(pick.question);
     out.push({
       title,
       category: category as PredictionCategory,
@@ -73,7 +90,8 @@ export function eventDrafts(events: GammaEvent[], category: 'politics' | 'crypto
       options,
       resolutionType: 'EXTERNAL_EVENT',
       source: 'AUTO_EVENT',
-      meta: { marketId: pick.id },
+      ...(about && { coin: about.coin }),
+      meta: { marketId: pick.id, ...(about && { symbol: about.symbol, ...(about.threshold !== null && { threshold: about.threshold }) }) },
       endsAt: Date.parse(pick.endDate ?? e.endDate ?? ''),
       hours: 0,
       dedupeKey: `event:${pick.id}`,

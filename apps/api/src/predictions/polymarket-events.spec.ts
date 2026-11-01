@@ -1,4 +1,4 @@
-import { eventDrafts, eventOutcome } from './polymarket-events';
+import { eventCoin, eventDrafts, eventOutcome } from './polymarket-events';
 
 const now = Date.parse('2026-11-01T06:00:00Z');
 const market = (id: string, question: string, extra: Record<string, unknown> = {}) => ({
@@ -31,5 +31,11 @@ describe('polymarket events', () => {
   it('resolves only once the market has settled', () => {
     expect(eventOutcome({ id: '1', question: '', outcomes: '[]', closed: false, outcomePrices: '["1","0"]' })).toBeNull();
     expect(eventOutcome({ id: '1', question: '', outcomes: '[]', closed: true, outcomePrices: '["0","1"]' })).toBe(1);
+  });
+
+  it('ties major-coin questions to their chart and price line', () => {
+    expect(eventCoin('Will the price of Bitcoin be above $78,000 on November 7?')).toMatchObject({ symbol: 'BTC', threshold: 78000 });
+    expect(eventCoin('Will Ethereum be between $2,400 and $2,500 on November 3?')).toMatchObject({ symbol: 'ETH', threshold: null });
+    expect(eventCoin('Will Democrats win the House?')).toBeNull();
   });
 });

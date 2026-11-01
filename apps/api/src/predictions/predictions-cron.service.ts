@@ -13,7 +13,7 @@ import type { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { NarrativesService, tokenFromPairs, type NarrativePair } from '../narratives/narratives.service';
 import { REDIS_CLIENT } from '../redis/redis.module';
-import { EVENT_CAPS, fetchEventDrafts, fetchEventOutcome } from './polymarket-events';
+import { EVENT_CAPS, eventCoin, fetchEventDrafts, fetchEventOutcome } from './polymarket-events';
 import { PredictionsService } from './predictions.service';
 
 const GENERATE_EVERY_MS = 2 * 3600_000;
@@ -329,7 +329,14 @@ export class PredictionsCronService implements OnModuleInit, OnModuleDestroy {
     // Politics and crypto events, topped up to their own caps.
     for (const category of ['politics', 'crypto'] as const) {
       try {
-        const openEvents = await prisma.prediction.findMany({ where: { status: 'ACTIVE', source: 'AUTO_EVENT', category }, select: { dedupeKey: true } });
+        const openEvents = await prisma.prediction.findMany({ where: { status: 'ACTIVE', source: 'AUTO_EVENT', category }, select: { id: true, title: true, meta: true, chainIdentifier: true, dedupeKey: true } });
+        // Questions asked before 2026-11-01's coin charts get their coin now.
+        for (const row of openEvents) {
+          const about = row.chainIdentifier ? null : eventCoin(row.title);
+          if (!about) continue;
+          const meta = { ...(row.meta as object), symbol: about.symbol, ...(about.threshold !== null && { threshold: about.threshold }) };
+          await prisma.prediction.update({ where: { id: row.id }, data: { chainIdentifier: about.coin.chainIdentifier, tokenAddress: about.coin.tokenAddress, meta } });
+        }
         const have = new Set(openEvents.map((r) => r.dedupeKey));
         let left = EVENT_CAPS[category] - openEvents.length;
         for (const d of await fetchEventDrafts(category)) {
