@@ -30,14 +30,6 @@ export default async function AccountPage() {
       <PhoneSignedInOnly>
       {/* Phones show all of this inside the Profile screen above (2026-10-28). */}
       <main className="mx-auto max-w-2xl px-6 py-10 max-md:hidden">
-        <div className="flex items-start justify-between gap-4 max-md:hidden">
-          <div>
-            <h1 className="font-display text-xl font-bold text-ink-900">{t('title')}</h1>
-            <p className="mt-1 font-body text-sm text-ink-600">
-              {t('subtitle')}
-            </p>
-          </div>
-        </div>
         <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl border border-line bg-surface p-4 max-md:mt-0 max-md:border-0 max-md:bg-transparent max-md:p-0">
           <h2 id="wallet-heading" className="font-display text-sm font-semibold text-ink-900">{t('wallet')}</h2>
           <p className="mt-1 font-body text-xs text-ink-600">{t('walletSub')}</p>

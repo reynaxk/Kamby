@@ -20,13 +20,8 @@ export default async function NarrativesPage() {
   return (
     <div className="kamby-void min-h-screen bg-bg">
       <MarketHeader className="max-md:hidden" />
-      <AppBackBar title={t('title')} fallback="/hunt" />
+      <AppBackBar fallback="/hunt" />
       <main className="mx-auto max-w-[1560px] px-6 py-8 max-md:px-4 max-md:pt-2">
-        <h1 className="flex items-center gap-2 font-display text-2xl font-extrabold text-ink-900 max-md:hidden">
-          <span aria-hidden>🔥</span>
-          {t('title')}
-        </h1>
-        <p className="mb-5 mt-1 font-body text-sm text-ink-400">{t('subtitle')}</p>
         <WidgetBoundary name="narratives">
           <NarrativesView initial={initial} />
         </WidgetBoundary>

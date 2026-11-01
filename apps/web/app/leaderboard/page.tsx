@@ -65,14 +65,6 @@ export default async function LeaderboardPage({
       <MarketHeader />
       <main className="mx-auto max-w-3xl px-6 py-10 max-md:px-4 max-md:pt-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-ink-900">
-              {t('title')}
-            </h1>
-            <p className="mt-1 max-w-md font-mono text-xs text-ink-400 max-md:hidden">
-              {t('subtitle')}
-            </p>
-          </div>
           {/* The chain pick sits beside the time range (2026-11-01 tidy pass) instead of on a row of its own. */}
           <div className="flex items-center gap-2">
           <LeaderboardChainMenu chain={chain} window={window} className="!px-0" />

@@ -21,12 +21,11 @@ export default async function HuntPage() {
       <div className="hidden md:block">
         <MarketHeader />
       </div>
-      <PageTopBar title={t('title')} />
+      <PageTopBar />
       <p className="px-4 pb-2 font-body text-sm text-ink-400 md:hidden">{t('sub')}</p>
       <main className="mx-auto max-w-[1680px] pb-28 md:px-5 md:pt-4 md:pb-10">
         <div className="mb-3 hidden items-end justify-between gap-4 md:flex">
           <div>
-            <h1 className="font-display text-2xl font-black tracking-tight text-ink-900">{t('title')}</h1>
             <p className="mt-0.5 font-body text-sm text-ink-400">{t('sub')}</p>
           </div>
         </div>

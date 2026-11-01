@@ -18,11 +18,8 @@ export default async function ExplorePage({ searchParams }: { searchParams: { ta
       <div className="hidden md:block">
         <MarketHeader />
       </div>
-      <PageTopBar title={t('title')} />
+      <PageTopBar />
       <main className="mx-auto max-w-[1680px] pb-28 md:px-5 md:pt-4 md:pb-10">
-        <div className="mb-3 hidden md:block">
-          <h1 className="font-display text-2xl font-black tracking-tight text-ink-900">{t('title')}</h1>
-        </div>
         <ExploreView initial={feeds} initialTab={searchParams.tab === 'watchlist' ? 'watchlist' : 'trending'} />
       </main>
     </div>

@@ -207,8 +207,6 @@ export function LaunchPad() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 pb-32 pt-2 md:pt-8">
-      <h1 className="font-display text-3xl font-black tracking-tight text-ink-900 max-md:hidden">{t('title')}</h1>
-      <p className="mt-1 font-body text-sm text-ink-400 max-md:mt-0">{t('subtitle')}</p>
 
       {/* Network → launchpad */}
       <div className="mt-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('network')}>
