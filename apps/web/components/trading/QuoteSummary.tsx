@@ -1,6 +1,7 @@
 import { tradesInChainUsdc, type TradeQuoteDto } from '@kamby/domain';
 import { useTranslations } from 'next-intl';
 import { formatTradeAmount } from '@/lib/format';
+import { isNativeAddress } from '@/lib/native-trading';
 
 /** "$3.00" for a dollar token, "650.16 BRETT" for a coin — always rounded for people. */
 export function tradeAmountLabel(amount: string | number, symbol: string | null): string {
@@ -26,7 +27,8 @@ export function QuoteSummary({ quote }: { quote: TradeQuoteDto }) {
   const feeInUsdc =
     Boolean(quote.feeUnsignedTx) ||
     tradesInChainUsdc(quote.chainId, quote.side, quote.side === 'BUY' ? quote.quoteToken.address : null, quote.side === 'SELL' ? quote.quoteToken.address : null);
-  const feeSymbol = feeInUsdc ? quote.quoteToken.symbol : getSymbol;
+  // A native-coin trade (ETH / BNB, 2026-11-01) takes its fee inside the swap, in that coin.
+  const feeSymbol = feeInUsdc || isNativeAddress(quote.quoteToken.address) ? quote.quoteToken.symbol : getSymbol;
 
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-3">

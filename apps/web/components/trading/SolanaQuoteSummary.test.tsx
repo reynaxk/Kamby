@@ -39,7 +39,7 @@ describe('SolanaQuoteSummary', () => {
   });
 
   it('a SELL: pay in the coin, get dollars', () => {
-    render(<SolanaQuoteSummary quote={baseQuote({ side: 'SELL', inputAmountRaw: '500000000', outputAmountRaw: '9500000' })} tokenSymbol="SOL" tokenDecimals={9} />);
+    render(<SolanaQuoteSummary quote={baseQuote({ side: 'SELL', inputMint: 'So11111111111111111111111111111111111111112', outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', inputAmountRaw: '500000000', outputAmountRaw: '9500000' })} tokenSymbol="SOL" tokenDecimals={9} />);
     expect(screen.getByText('0.50 SOL')).toBeInTheDocument();
     expect(screen.getByText('$9.50')).toBeInTheDocument();
   });
@@ -59,5 +59,13 @@ describe('SolanaQuoteSummary', () => {
     expect(screen.getByText(/high price impact/i)).toBeInTheDocument();
     rerender(<SolanaQuoteSummary quote={baseQuote({ priceImpactBps: 150 })} />);
     expect(screen.queryByText(/price impact/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('SolanaQuoteSummary — SOL trades (native-coin mode)', () => {
+  it('a SOL buy: pays the typed SOL, fee is the tier share of it', () => {
+    render(<SolanaQuoteSummary quote={baseQuote({ side: 'BUY', inputMint: 'So11111111111111111111111111111111111111112', outputMint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', inputAmountRaw: '100000000', outputAmountRaw: '3000000000', platformFeeBps: 200, platformFeeAmountRaw: '999999999' })} tokenSymbol="BONK" tokenDecimals={5} />);
+    expect(screen.getByText('0.10 SOL')).toBeInTheDocument();
+    expect(screen.getByText(/^0.002(0)? SOL$/)).toBeInTheDocument();
   });
 });

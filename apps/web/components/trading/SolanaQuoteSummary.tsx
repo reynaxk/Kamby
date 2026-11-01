@@ -54,6 +54,28 @@ export function SolanaQuoteSummary({
   // buy it's Kamby's own USDC transfer, on a sell Jupiter's fee on the USDC output (2026-10-04).
   // A first buy of a coin also pays its token-account setup — counted in the one Fee line.
   const feeRaw = BigInt(quote.platformFeeBps === 0 ? '0' : (quote.platformFeeAmountRaw ?? '0')) + BigInt(quote.setupFeeAmountRaw ?? '0');
+  // A SOL trade (2026-11-01, native-coin trading): amounts in SOL. A buy pays exactly what was
+  // typed (Kamby's fee comes out of that SOL), so its fee is the tier's share of the input.
+  const WSOL = 'So11111111111111111111111111111111111111112';
+  const solTrade = isBuy ? quote.inputMint === WSOL : quote.outputMint === WSOL;
+  if (solTrade) {
+    const sol = (raw: string | bigint) => tradeAmountLabel(Number(raw) / 1e9, 'SOL');
+    const solFee = isBuy ? (BigInt(quote.inputAmountRaw) * BigInt(quote.platformFeeBps)) / 10_000n : BigInt(quote.platformFeeAmountRaw ?? '0');
+    return (
+      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-3">
+        <dl className="space-y-2 font-body text-sm">
+          <Row label={tTrade('youPay')} value={isBuy ? sol(quote.inputAmountRaw) : tokenDisplay(quote.inputAmountRaw)} numericValue={quote.inputAmountRaw} />
+          <Row label={tL('youGet')} value={isBuy ? tokenDisplay(quote.outputAmountRaw) : sol(quote.outputAmountRaw)} numericValue={quote.outputAmountRaw} strong />
+          <Row label={tL('tradeFee')} value={solFee > 0n ? sol(solFee) : '—'} muted />
+        </dl>
+        {severity === 'high' && (
+          <p className="mt-2.5 rounded-lg bg-down/10 px-2.5 py-2 font-body text-xs text-down">
+            ⚠ High price impact — this trade may move the market by {((quote.priceImpactBps ?? 0) / 100).toFixed(1)}%.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-3">

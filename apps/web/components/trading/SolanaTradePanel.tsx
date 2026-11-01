@@ -168,6 +168,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   // Native-coin trading (2026-11-01): pay with / sell into SOL instead of USDC.
   const payNative = useNativeTrading();
   const payNativeRef = useRef(payNative);
+  // The wallet's SOL, for a SOL buy's balance check (it also pays the network fee).
+  const [solBalanceRaw, setSolBalanceRaw] = useState<bigint | null>(null);
   payNativeRef.current = payNative;
   // The wallet's Solana USDC (raw), from the amount input — a buy above it can't go through
   // (2026-10-11: a $1.77 buy from a $0.81 balance failed three times with a vague error).
@@ -175,6 +177,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
   const tL = useTranslations('labels');
   const dock = dockProp ?? !sheet;
   const [amount, setAmount] = useState('');
+  const solOverBalance = payNative && side === 'BUY' && solBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > solBalanceRaw;
   const overBalance = !payNative && side === 'BUY' && usdcBalanceRaw !== null && /^\d+$/.test(amount) && BigInt(amount) > usdcBalanceRaw;
   // A sell can't be more than you hold (2026-10-18, same fix as the EVM panel).
   const [coinBalanceRaw, setCoinBalanceRaw] = useState<bigint | null>(null);
@@ -679,7 +682,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         </div>
         {side === 'BUY' && payNative ? (
           // A SOL buy: the amount is SOL (lamports), Max keeps 0.01 SOL for fees.
-          <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} />
+          <SolAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} onBalance={setSolBalanceRaw} />
         ) : side === 'BUY' ? (
           <>
             <UsdPresetAmountInput value={amount} onChange={setAmount} walletAddress={wallet.address} hero={sheet} onBalance={setUsdcBalanceRaw} usdBalance={usdBalance} />
@@ -728,10 +731,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className={cn('w-full text-base font-bold uppercase tracking-wide', sheet && 'h-14 rounded-2xl normal-case tracking-normal')}
-          disabled={sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
+          disabled={solOverBalance || sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
         >
-          {sellOverBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
+          {solOverBalance ? tL('notEnoughToken', { symbol: 'SOL' }) : sellOverBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'buyNow' : 'sellNow')}
         </Button>
       </Panel>
 
@@ -761,10 +764,10 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
           className="mt-1.5 w-full text-sm font-bold uppercase tracking-wide"
-          disabled={sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
+          disabled={solOverBalance || sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
         >
-          {sellOverBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
+          {solOverBalance ? tL('notEnoughToken', { symbol: 'SOL' }) : sellOverBalance ? tL('notEnoughToken', { symbol: tokenSymbol ?? '' }) : needsMove || moveBusy ? moveLabel : blockedByBalance ? tL('notEnoughUsdc') : belowMinimum ? tL('minTradeButton') : quoteStatus === 'loading' ? tTrade('gettingQuote') : tTrade(side === 'BUY' ? 'instantBuy' : 'instantSell')}
         </Button>
       </div>
       )}

@@ -32,10 +32,13 @@ export function SolAmountInput({
   value,
   onChange,
   walletAddress,
+  onBalance,
 }: {
   value: string;
   onChange: (value: string) => void;
   walletAddress: string | undefined;
+  /** The wallet's SOL (lamports) once read — the panel blocks a buy above it (2026-11-01). */
+  onBalance?: (lamports: bigint | null) => void;
 }) {
   const tU = useTranslations('ui');
   const tTrade = useTranslations('trade');
@@ -51,7 +54,10 @@ export function SolAmountInput({
       try {
         const owner = new PublicKey(walletAddress!);
         const lamports = await solanaConnection!.getBalance(owner, 'confirmed');
-        if (!cancelled) setSolBalanceLamports(BigInt(lamports));
+        if (!cancelled) {
+          setSolBalanceLamports(BigInt(lamports));
+          onBalance?.(BigInt(lamports));
+        }
       } catch {
         // RPC unreachable — leave the balance unknown, never a fabricated number.
         if (!cancelled) setSolBalanceLamports(null);
