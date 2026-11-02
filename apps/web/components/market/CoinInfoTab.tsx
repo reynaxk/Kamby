@@ -75,7 +75,7 @@ function StatRow({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /** Holder count and how much the 10 biggest hold — the same (cached) endpoint the Holders tab reads. */
-function useHolderSummary(chain: TokenInfoChain, address: string): { count: number | null; top10Pct: number | null } {
+export function useHolderSummary(chain: TokenInfoChain, address: string): { count: number | null; top10Pct: number | null } {
   const [summary, setSummary] = useState<{ count: number | null; top10Pct: number | null }>({ count: null, top10Pct: null });
   useEffect(() => {
     let cancelled = false;

@@ -304,7 +304,10 @@
     "holders": "持有人",
     "liq": "流动性",
     "vol24": "24h 成交量",
-    "txns": "24h 交易"
+    "txns": "24h 交易",
+    "sideTop10": "前10",
+    "sideBuys": "买入",
+    "sideSells": "卖出"
   },
   "fund": {
     "network": "网络",

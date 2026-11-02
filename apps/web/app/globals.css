@@ -560,18 +560,19 @@ body:has(.kamby-void) {
    highlight read as frosted glass on the dark background — and cost nothing while scrolling
    (real backdrop blur stuttered on older Android). No glow. */
 @media (max-width: 767px) {
+  /* Flat, Axiom-style (2026-11-02): one quiet surface and a thin edge — no gradient shine. */
   .kamby-glass {
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.02) 60%);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: none;
   }
 }
 /* Desktop gets the same glass (2026-10-16) — except cards that paint their own md: background. */
 @media (min-width: 768px) {
   .kamby-glass:not([class*='md:bg-']) {
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015) 60%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: none;
   }
 }
 /* Ambient backdrop (owner 2026-10-16: "more glassmorphism"): glass only reads as glass with
@@ -580,10 +581,8 @@ body:has(.kamby-void) {
    animation, nothing per frame — so every translucent card on top picks up depth. */
 .kamby-void.min-h-screen.bg-bg,
 .kamby-void .min-h-screen.bg-bg {
-  background-image:
-    radial-gradient(54rem 32rem at 112% -6%, rgba(72, 88, 255, 0.12), transparent 62%),
-    radial-gradient(34rem 26rem at -14% 6%, rgba(0, 255, 135, 0.05), transparent 60%),
-    radial-gradient(44rem 30rem at 110% 62rem, rgba(72, 88, 255, 0.06), transparent 62%);
+  /* Toned down 2026-11-02 (calmer, Axiom-style): a faint wash, not a coloured glow. */
+  background-image: radial-gradient(54rem 32rem at 112% -6%, rgba(72, 88, 255, 0.05), transparent 62%);
   background-repeat: no-repeat;
 }
 /* Glass cards look like glass (owner 2026-10-16: "looking more like glass"): a light edge that
@@ -598,7 +597,8 @@ body:has(.kamby-void) {
   inset: 0;
   padding: 1px;
   border-radius: inherit;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06) 34%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.12));
+  /* No light-catching rim any more (2026-11-02, flat cards). */
+  background: none;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -607,8 +607,7 @@ body:has(.kamby-void) {
 }
 @media (max-width: 767px) {
   .kamby-glass {
-    border-color: transparent;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+    box-shadow: none;
   }
 }
 

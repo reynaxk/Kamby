@@ -304,7 +304,10 @@
     "holders": "Holders",
     "liq": "Liquidity",
     "vol24": "24h vol",
-    "txns": "Trades 24h"
+    "txns": "Trades 24h",
+    "sideTop10": "Top 10",
+    "sideBuys": "Buys",
+    "sideSells": "Sells"
   },
   "fund": {
     "network": "Network",

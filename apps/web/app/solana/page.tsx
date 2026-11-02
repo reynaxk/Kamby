@@ -6,12 +6,12 @@ import { SolanaTradePanel } from '@/components/trading/SolanaTradePanel';
 import { NewListingBanner } from '@/components/market/NewListingBanner';
 import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
-import { HoldersPanel } from '@/components/terminal/HoldersPanel';
+import { CoinBottomTabs } from '@/components/market/CoinBottomTabs';
+import { CoinSideStats } from '@/components/market/CoinSideStats';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import type { ChartTimeframe } from '@/lib/chart-data';
 import { fetchDiscoverMarkets, fetchLaunchedToken, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
-import { TokenStatsStrip } from '@/components/market/TokenStatsStrip';
 import { CoinHeaderDesktop } from '@/components/market/CoinHeaderDesktop';
 import { getTranslations } from 'next-intl/server';
 import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
@@ -116,7 +116,6 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
   const tU = await getTranslations('ui');
-  const tCoin = await getTranslations('coin');
   const market = await resolveMarket(searchParams.mint);
   const isSol = market === NATIVE_SOL;
   const requested: ChartTimeframe =
@@ -197,7 +196,6 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
               />
             )}
             <WidgetBoundary name="news-line" className="mt-3"><NewsTickerLine chainIdentifier="solana" tokenAddress={market.tokenAddress} className="mt-3" /></WidgetBoundary>
-            {!isSol && <WidgetBoundary name="stats" className="mt-3"><TokenStatsStrip source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" /></WidgetBoundary>}
             <WidgetBoundary name="chart" className="mt-3 h-[360px] sm:h-[400px] lg:h-[520px]">
               <TokenChartCard
                 source={{ kind: 'solana', mint: market.tokenAddress }}
@@ -207,22 +205,26 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 className="mt-3 h-[360px] sm:h-[400px] lg:h-[520px]"
               />
             </WidgetBoundary>
-            <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface">
-              <p className="border-b border-line px-3.5 py-2 font-display text-xs font-bold uppercase tracking-wide text-ink-900">{tCoin('holders')}</p>
-              <WidgetBoundary name="holders" className="rounded-none border-0">
-                <HoldersPanel source={{ kind: 'solana', mint: market.tokenAddress }} />
-              </WidgetBoundary>
-            </div>
+            {/* Trades / Holders full width under the chart (2026-11-02, like GMGN). */}
+            <WidgetBoundary name="coin-tabs" className="mt-3">
+              <CoinBottomTabs source={{ kind: 'solana', mint: market.tokenAddress }} className="mt-3" />
+            </WidgetBoundary>
           </section>
 
           <aside>
-            <div className="rounded-2xl border border-line bg-surface p-4">
+            {/* The coin's numbers above the trade panel (2026-11-02, GMGN + Axiom mix). */}
+            {!isSol && (
+              <WidgetBoundary name="side-stats" className="mb-3">
+                <CoinSideStats source={{ kind: 'solana', mint: market.tokenAddress }} chain="solana" address={market.tokenAddress} className="mb-3" />
+              </WidgetBoundary>
+            )}
+            <div className="rounded-xl border border-white/[0.06] bg-surface p-4">
               <WidgetBoundary name="trade" className="border-0 p-0">
                 <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
               </WidgetBoundary>
             </div>
             {!isSol && (
-              <div className="mt-3 h-[440px] overflow-hidden rounded-2xl border border-line bg-surface">
+              <div className="mt-3 h-[440px] overflow-hidden rounded-xl border border-white/[0.06] bg-surface">
                 <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">
                   <TokenStreamChatLazy chainIdentifier="solana" address={market.tokenAddress} symbol={market.symbol} className="h-full" />
                 </WidgetBoundary>

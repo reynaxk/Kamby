@@ -56,7 +56,7 @@ function loadView(): View {
     if (raw) {
       const v = JSON.parse(raw) as Partial<View> & { filters?: unknown };
       return {
-        sort: v.sort ?? 'new',
+        sort: 'new',
         filters: readColumnFilters(v.filters),
         quickUsd:
           typeof v.quickUsd === 'number' && v.quickUsd > 0 ? v.quickUsd : DEFAULT_VIEW.quickUsd,
@@ -126,7 +126,9 @@ export function XxxRiskBoard(props: { tokens: XxxRiskToken[]; emptyText: string 
 function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: string }) {
   const t = useTranslations('xxxrisk');
   const [view, setView] = useState<View>(DEFAULT_VIEW);
-  const [sheet, setSheet] = useState<'filters' | 'quick' | null>(null);
+  const [sheet, setSheet] = useState<'quick' | null>(null);
+  // Which column's filters are open (2026-11-02: one filter per column).
+  const [filterCol, setFilterCol] = useState<XxxRiskColumn | null>(null);
   const [paused, setPaused] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const quick = useQuickSolanaBuy(view.quickUsd);
@@ -251,16 +253,6 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
             {t('paused')}
           </span>
         )}
-        <div
-          className={cn(
-            'items-center gap-1 rounded-xl bg-white/[0.04] p-0.5',
-            wide ? 'flex' : 'hidden',
-          )}
-          role="group"
-          aria-label={t('sort')}
-        >
-          <SortButtons sort={view.sort} onSort={(sort) => update({ sort })} />
-        </div>
         <div className="ml-auto flex items-center gap-1.5">
           <button
             type="button"
@@ -272,10 +264,11 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
           </button>
           <button
             type="button"
-            onClick={() => setSheet('filters')}
+            onClick={() => setFilterCol(view.column)}
             className={cn(
-              'flex h-8 items-center gap-1.5 rounded-xl border px-2.5 font-display text-xs font-bold transition-colors',
-              count > 0
+              'h-8 items-center gap-1.5 rounded-xl border px-2.5 font-display text-xs font-bold transition-colors',
+              wide ? 'hidden' : 'flex',
+              activeCount(view.filters[view.column]) > 0
                 ? 'border-accent/50 bg-accent/10 text-accent'
                 : 'border-white/10 bg-white/[0.04] text-ink-900 hover:border-white/20',
             )}
@@ -293,8 +286,8 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>
             {t('filters')}
-            {count > 0 && (
-              <span className="rounded-md bg-accent px-1 text-[0.65rem] text-black">{count}</span>
+            {activeCount(view.filters[view.column]) > 0 && (
+              <span className="rounded-md bg-accent px-1 text-[0.65rem] text-black">{activeCount(view.filters[view.column])}</span>
             )}
           </button>
         </div>
@@ -323,16 +316,6 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
               <span className="truncate">{t(c.key)}</span>
             </button>
           ))}
-        </div>
-        <div
-          className={cn(
-            'w-full items-center gap-1 rounded-xl bg-white/[0.04] p-0.5',
-            wide ? 'hidden' : 'flex',
-          )}
-          role="group"
-          aria-label={t('sort')}
-        >
-          <SortButtons sort={view.sort} onSort={(sort) => update({ sort })} />
         </div>
       </div>
 
@@ -373,6 +356,24 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                     <span className="font-mono text-xs tabular-nums text-ink-400">
                       {byColumn[c.id].length}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setFilterCol(c.id)}
+                      className={cn(
+                        'ml-auto flex h-7 items-center gap-1.5 rounded-lg border px-2 font-display text-[0.72rem] font-bold transition-colors',
+                        activeCount(view.filters[c.id]) > 0
+                          ? 'border-accent/50 bg-accent/10 text-accent'
+                          : 'border-white/10 text-ink-600 hover:border-white/20 hover:text-ink-900',
+                      )}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                        <path d="M4 6h16M7 12h10M10 18h4" />
+                      </svg>
+                      {t('filters')}
+                      {activeCount(view.filters[c.id]) > 0 && (
+                        <span className="rounded bg-accent px-1 text-[0.6rem] text-black">{activeCount(view.filters[c.id])}</span>
+                      )}
+                    </button>
                   </header>
                   <div className="kamby-thin-scroll max-h-[calc(100dvh-15rem)] min-h-[24rem] overflow-y-auto">
                     {byColumn[c.id].length === 0 ? (
@@ -389,19 +390,23 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
       )}
 
       <MobileDrawer
-        open={sheet === 'filters'}
-        onClose={() => setSheet(null)}
-        title={t('filters')}
+        open={filterCol !== null}
+        onClose={() => setFilterCol(null)}
+        title={filterCol ? `${t('filters')} · ${t(COLUMNS.find((c) => c.id === filterCol)!.key)}` : t('filters')}
         desktop
       >
-        <XxxRiskFilterPanel
-          value={view.filters}
-          onChange={(filters) => update({ filters })}
-          column={view.column}
-          launchpadsSeen={launchpadsSeen}
-          matching={{ new: byColumn.new.length, soon: byColumn.soon.length, migrated: byColumn.migrated.length }}
-          onDone={() => setSheet(null)}
-        />
+        {filterCol && (
+          <XxxRiskFilterPanel
+            key={filterCol}
+            single
+            value={view.filters}
+            onChange={(filters) => update({ filters })}
+            column={filterCol}
+            launchpadsSeen={launchpadsSeen}
+            matching={{ new: byColumn.new.length, soon: byColumn.soon.length, migrated: byColumn.migrated.length }}
+            onDone={() => setFilterCol(null)}
+          />
+        )}
       </MobileDrawer>
       <MobileDrawer
         open={sheet === 'quick'}
@@ -419,33 +424,6 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   );
 }
 
-function SortButtons({ sort, onSort }: { sort: Sort; onSort: (s: Sort) => void }) {
-  const t = useTranslations('xxxrisk');
-  return (
-    <>
-      {(['new', 'vol', 'mc'] as const).map((s) => (
-        <button
-          key={s}
-          type="button"
-          aria-pressed={sort === s}
-          onClick={() => onSort(s)}
-          className={cn(
-            'h-7 flex-1 rounded-lg px-2.5 font-display text-xs font-bold transition-colors',
-            sort === s ? 'bg-white/[0.1] text-ink-900' : 'text-ink-400 hover:text-ink-900',
-          )}
-        >
-          {t(s === 'new' ? 'sortNew' : s === 'vol' ? 'sortVol' : 'sortMc')}
-        </button>
-      ))}
-    </>
-  );
-}
-
-/**
- * One coin as a GMGN-style row card: a big picture ringed by its curve progress (with where it
- * launched), name and age with socials and holders, market cap and volume on the right, and
- * the holder-risk shares (top 10, dev, snipers, insiders, bundles) underneath, coloured by risk.
- */
 function XxxRiskCard({
   token,
   ageS,

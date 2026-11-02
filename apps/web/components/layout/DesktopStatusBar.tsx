@@ -11,6 +11,13 @@ import { subscribeToMarketFeeds } from '@/lib/market-feeds';
 import type { RealtimeStatus } from '@/lib/social-client';
 import { formatPercent } from '@/lib/format';
 import { showsDesktopSideNav } from './DesktopSideNav';
+import { usePrivy } from '@privy-io/react-auth';
+import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
+import { useAccount } from 'wagmi';
+import { useBalanceVisibility } from '@/components/account/BalanceVisibilityContext';
+import { ChainBadge } from '@/components/market/ChainBadge';
+import { useNativeBalances } from '@/lib/use-native-balances';
+import { useUsdcBalances } from '@/lib/use-usdc-balance';
 
 const MAJORS = ['SOL', 'ETH', 'BNB', 'BTC'] as const;
 
@@ -53,6 +60,7 @@ export function DesktopStatusBar() {
 
   return (
     <div className="kamby-void fixed inset-x-0 bottom-0 z-40 hidden h-9 items-center gap-1 border-t border-line bg-bg/95 px-3 lg:flex">
+      <ChainBalances />
       {links.map((l) => (
         <Link
           key={l.href}
@@ -82,6 +90,7 @@ export function DesktopStatusBar() {
         <span className="flex items-center gap-1.5 border-l border-line pl-4 font-mono text-[0.7rem] text-ink-400">
           <span aria-hidden className={cn('h-1.5 w-1.5 rounded-full', live ? 'bg-up' : 'animate-pulse bg-[#FBBF24]')} />
           {live ? t('live') : t('connecting')}
+          <EdgeLatency />
         </span>
         <Link href="/terms" className="font-mono text-[0.68rem] text-ink-400 hover:text-ink-600">
           Terms
@@ -92,4 +101,51 @@ export function DesktopStatusBar() {
       </div>
     </div>
   );
+}
+
+/** Each chain's money in dollars, Axiom-style (2026-11-02): the coin plus any USDC there. Signed in only. */
+function ChainBalances() {
+  const { authenticated } = usePrivy();
+  const { address } = useAccount();
+  const { wallets } = useSolanaWallets();
+  const natives = useNativeBalances(authenticated ? address : undefined, authenticated ? wallets[0]?.address : undefined);
+  const usdc = useUsdcBalances(authenticated ? address : undefined, authenticated ? wallets[0]?.address : undefined);
+  const { hidden } = useBalanceVisibility();
+  if (!authenticated || natives.totalUsd === null) return null;
+  return (
+    <Link href="/account" className="mr-2 flex h-7 items-center gap-3 rounded-lg border-r border-line pl-1 pr-3 hover:bg-surface">
+      {natives.rows.map((row) => {
+        const value = (row.usd ?? 0) + (usdc[row.chain] ?? 0);
+        return (
+          <span key={row.chain} className={cn('flex items-center gap-1 font-mono text-[0.72rem] tabular-nums', value > 0 ? 'text-ink-900' : 'text-ink-400')}>
+            <ChainBadge chain={row.chain} className="!static !h-3.5 !w-3.5 !ring-0" />
+            <span className={cn(hidden && 'select-none blur-sm')}>${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
+          </span>
+        );
+      })}
+    </Link>
+  );
+}
+
+/** Round trip to Kamby's own edge (a tiny static file, no server work) every 30s — how fast this connection is. */
+function EdgeLatency() {
+  const [ms, setMs] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const ping = () => {
+      if (document.visibilityState !== 'visible') return;
+      const start = performance.now();
+      fetch('/brand/kamby-mark.svg', { method: 'HEAD', cache: 'no-store' })
+        .then(() => !cancelled && setMs(Math.round(performance.now() - start)))
+        .catch(() => undefined);
+    };
+    ping();
+    const timer = setInterval(ping, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+  if (ms === null) return null;
+  return <span className={cn('tabular-nums', ms < 150 ? 'text-up' : ms < 400 ? 'text-[#FBBF24]' : 'text-down')}>{ms} ms</span>;
 }

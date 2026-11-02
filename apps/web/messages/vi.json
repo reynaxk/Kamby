@@ -304,7 +304,10 @@
     "holders": "Holder",
     "liq": "Thanh khoản",
     "vol24": "KL 24h",
-    "txns": "Giao dịch 24h"
+    "txns": "Giao dịch 24h",
+    "sideTop10": "Top 10",
+    "sideBuys": "Mua",
+    "sideSells": "Bán"
   },
   "fund": {
     "network": "Mạng",

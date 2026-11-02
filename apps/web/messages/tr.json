@@ -304,7 +304,10 @@
     "holders": "Sahipler",
     "liq": "Likidite",
     "vol24": "24s hacim",
-    "txns": "24s işlem"
+    "txns": "24s işlem",
+    "sideTop10": "İlk 10",
+    "sideBuys": "Alış",
+    "sideSells": "Satış"
   },
   "fund": {
     "network": "Ağ",

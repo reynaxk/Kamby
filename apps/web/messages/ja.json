@@ -304,7 +304,10 @@
     "holders": "ホルダー",
     "liq": "流動性",
     "vol24": "24h出来高",
-    "txns": "24h取引"
+    "txns": "24h取引",
+    "sideTop10": "上位10",
+    "sideBuys": "買い",
+    "sideSells": "売り"
   },
   "fund": {
     "network": "ネットワーク",

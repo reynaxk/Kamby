@@ -95,6 +95,7 @@ export function XxxRiskFilterPanel({
   launchpadsSeen,
   matching,
   onDone,
+  single = false,
 }: {
   value: ColumnFilters;
   onChange: (next: ColumnFilters) => void;
@@ -103,6 +104,8 @@ export function XxxRiskFilterPanel({
   launchpadsSeen: string[];
   matching: Record<XxxRiskColumn, number>;
   onDone: () => void;
+  /** Opened from one column's own Filter button (2026-11-02): only that column's tab, plus Saved. */
+  single?: boolean;
 }) {
   const t = useTranslations('xxxrisk');
   const [tab, setTab] = useState<XxxRiskColumn | 'saved'>(column);
@@ -134,7 +137,7 @@ export function XxxRiskFilterPanel({
   return (
     <div className="flex flex-col gap-4">
       <div className="-mx-1 flex gap-5 overflow-x-auto border-b border-white/[0.06] px-1 [scrollbar-width:none]">
-        {COLUMN_TABS.map((c) => {
+        {COLUMN_TABS.filter((c) => !single || c.id === column).map((c) => {
           const n = activeCount(value[c.id]);
           return (
             <button key={c.id} type="button" onClick={() => setTab(c.id)} className={tabClass(tab === c.id)}>

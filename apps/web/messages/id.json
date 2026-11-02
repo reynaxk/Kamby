@@ -304,7 +304,10 @@
     "holders": "Holder",
     "liq": "Likuiditas",
     "vol24": "Vol 24j",
-    "txns": "Transaksi 24j"
+    "txns": "Transaksi 24j",
+    "sideTop10": "Top 10",
+    "sideBuys": "Beli",
+    "sideSells": "Jual"
   },
   "fund": {
     "network": "Jaringan",

@@ -304,7 +304,10 @@
     "holders": "홀더",
     "liq": "유동성",
     "vol24": "24h 거래량",
-    "txns": "24h 거래"
+    "txns": "24h 거래",
+    "sideTop10": "상위 10",
+    "sideBuys": "매수",
+    "sideSells": "매도"
   },
   "fund": {
     "network": "네트워크",

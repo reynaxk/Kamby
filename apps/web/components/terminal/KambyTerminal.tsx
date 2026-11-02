@@ -1,6 +1,7 @@
 'use client';
 
 import { CoinInfoTab } from '@/components/market/CoinInfoTab';
+import { CoinSideStats } from '@/components/market/CoinSideStats';
 
 import { useMemo, useState } from 'react';
 import { formatCompactCount } from '@/lib/format';
@@ -222,8 +223,12 @@ export function KambyTerminal({
             {/* Same guard as the old page.tsx layout — decimals are nullable
                 (MarketSummarySchema) until the ingestion worker has resolved them live from
                 the token contract; never pass a null decimals into TradePanel. */}
+            {/* The coin's numbers above the trade panel (2026-11-02, GMGN + Axiom mix). */}
+            <WidgetBoundary name="side-stats">
+              <CoinSideStats source={chartSource} chain={chain === 'bnb' ? 'bnb' : chain === 'robinhood' ? 'robinhood' : 'base'} address={market.tokenAddress} />
+            </WidgetBoundary>
             <WidgetBoundary name="trade">{tradePanel}</WidgetBoundary>
-            <div className="h-[440px] overflow-hidden rounded-2xl border border-line bg-surface">
+            <div className="h-[440px] overflow-hidden rounded-xl border border-white/[0.06] bg-surface">
               <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">
                 <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} className="h-full" />
               </WidgetBoundary>

@@ -9,6 +9,7 @@ import { KambyLogo } from './KambyLogo';
 import { SearchBar } from '@/components/market/SearchBar';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { UsdcBalancePill } from '@/components/wallet/UsdcBalancePill';
+import { WatchlistStrip } from './WatchlistStrip';
 import { FEED_ENABLED } from '@/lib/feed-client';
 
 type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread'; soon?: boolean };
@@ -121,5 +122,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '/';
   // --nav-w: how far fixed side panes (Messages' chat list) start from the left edge.
   // --top-h: how far fixed panes (Messages' chat list) start below the top menu.
-  return <div className={showsDesktopSideNav(pathname) ? 'kamby-app-frame lg:[--top-h:56px]' : undefined}>{children}</div>;
+  const shown = showsDesktopSideNav(pathname);
+  return (
+    <div className={shown ? 'kamby-app-frame lg:[--top-h:56px]' : undefined}>
+      {/* Starred coins under the menu (2026-11-02); it scrolls away with the page. */}
+      {shown && <WatchlistStrip />}
+      {children}
+    </div>
+  );
 }
