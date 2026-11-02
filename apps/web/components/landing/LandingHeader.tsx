@@ -10,7 +10,7 @@ import { LandingCta } from './LandingCta';
  * solid black once you're past it (no blur: it cost frames on phones) — with jump links to the
  * sections and Sign in.
  */
-export function LandingHeader({ links, signIn }: { links: { href: string; label: string }[]; signIn: string }) {
+export function LandingHeader({ links, signIn, start }: { links: { href: string; label: string }[]; signIn: string; start?: string }) {
   const [solid, setSolid] = useState(false);
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 24);
@@ -31,6 +31,8 @@ export function LandingHeader({ links, signIn }: { links: { href: string; label:
             </a>
           ))}
           <LandingCta label={signIn} variant="ghost" className="ml-1 px-4 py-2" />
+          {/* The main way in, always one click away (2026-11-02). */}
+          {start && <LandingCta label={start} variant="neon" className="ml-1 hidden px-4 py-2 sm:inline-flex" />}
         </nav>
       </div>
     </header>

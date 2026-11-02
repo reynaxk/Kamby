@@ -155,12 +155,13 @@ export async function LaunchpadShowcase({ tokens }: { tokens: XxxRiskToken[] }) 
 export async function MoreOnKamby() {
   const t = await getTranslations('landing');
   const tP = await getTranslations('perps');
+  const tNav = await getTranslations('nav');
   const art: ReactNode[] = [<PredictArt key="p" />, <NewsArt key="n" />, <LaunchArt key="l" />, <PerpsArt key="x" long={tP('long')} short={tP('short')} />];
   const tiles = [
     { href: '/predictions', icon: <Target />, title: t('m1t'), body: t('m1b'), color: '#38BDF8' },
     { href: '/news', icon: <Newspaper />, title: t('m2t'), body: t('m2b'), color: '#FACC15' },
     { href: '/launch', icon: <Rocket />, title: t('m3t'), body: t('m3b'), color: '#FF66C4' },
-    { href: '/perps', icon: <Zap />, title: t('m4t'), body: t('m4b'), color: '#00FF87' },
+    { href: '/perps', icon: <Zap />, title: t('m4t'), body: t('m4b'), color: '#00FF87', soon: true },
   ];
   return (
     <div>
@@ -170,19 +171,35 @@ export async function MoreOnKamby() {
       </div>
       <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {tiles.map((x, i) => (
-          <Link key={x.href} href={x.href} className="group flex flex-col gap-3 rounded-[1.5rem] border border-white/[0.07] bg-white/[0.02] p-5 transition-colors hover:border-white/20 hover:bg-white/[0.04]">
+          <Tile key={x.href} href={'soon' in x && x.soon ? null : x.href} className="group flex flex-col gap-3 rounded-[1.5rem] border border-white/[0.07] bg-white/[0.02] p-5 transition-colors hover:border-white/20 hover:bg-white/[0.04]">
             <div aria-hidden className="mb-1 h-28 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#07090D] p-3" style={{ backgroundImage: `radial-gradient(120% 90% at 100% 0%, ${x.color}14, transparent 60%)` }}>
               {art[i]}
             </div>
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl [&>svg]:h-5 [&>svg]:w-5" style={{ backgroundColor: `${x.color}14`, color: x.color }}>
               {x.icon}
             </span>
-            <span className="font-display text-lg font-bold text-white">{x.title}</span>
+            <span className="flex items-center gap-2 font-display text-lg font-bold text-white">
+              {x.title}
+              {'soon' in x && x.soon && <span className="rounded-md bg-white/[0.08] px-1.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wide text-white/60">{tNav('soon')}</span>}
+            </span>
             <span className="font-body text-sm leading-relaxed text-[#94A3B8]">{x.body}</span>
-            <span className="mt-auto font-display text-sm font-bold text-white/60 transition-colors group-hover:text-white">→</span>
-          </Link>
+            {!('soon' in x && x.soon) && <span className="mt-auto font-display text-sm font-bold text-white/60 transition-colors group-hover:text-white">→</span>}
+          </Tile>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** A tile is a link, or a plain card while that part of Kamby is still coming. */
+function Tile({ href, className, children }: { href: string | null; className: string; children: ReactNode }) {
+  return href ? (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <div aria-disabled="true" className={className}>
+      {children}
     </div>
   );
 }

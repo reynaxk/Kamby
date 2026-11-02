@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@kamby/ui';
 
 /** Fast IPFS gateways, best first (measured 2026-10-05: ipfs.io and dweb.link answered 429 to
@@ -47,11 +47,19 @@ export function TokenAvatar({
   const [attempt, setAttempt] = useState(0);
   useEffect(() => setAttempt(0), [src]);
   const current = candidates[attempt];
+  // An image that already failed before React took over the page (server-rendered) never fires
+  // onError — check once mounted, so a broken icon still falls back (2026-11-02, landing page).
+  const img = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    const el = img.current;
+    if (el && el.complete && el.naturalWidth === 0) setAttempt((n) => n + 1);
+  }, [current]);
 
   if (current) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
+        ref={img}
         src={current}
         alt=""
         loading="lazy"

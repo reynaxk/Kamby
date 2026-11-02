@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "Launch your own coin on Pump.fun, Clanker or Four.meme in about a minute.",
     "m4t": "Perps",
-    "m4b": "Go long or short on the majors with Hyperliquid, straight from your USDC."
+    "m4b": "Go long or short on the majors with Hyperliquid, straight from your USDC.",
+    "story1Title": "Buy in one tap.",
+    "story2Title": "Follow the whales.",
+    "story3Title": "Your record. For real."
   },
   "coin": {
     "price": "Price",

@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "Ra mắt coin của riêng bạn trên Pump.fun, Clanker hoặc Four.meme trong khoảng một phút.",
     "m4t": "Perps",
-    "m4b": "Long hoặc short các coin lớn với Hyperliquid, ngay từ USDC của bạn."
+    "m4b": "Long hoặc short các coin lớn với Hyperliquid, ngay từ USDC của bạn.",
+    "story1Title": "Mua chỉ một chạm.",
+    "story2Title": "Theo dấu cá voi.",
+    "story3Title": "Thành tích của bạn. Thật sự."
   },
   "coin": {
     "price": "Giá",

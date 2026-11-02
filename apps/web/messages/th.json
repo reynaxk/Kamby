@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "เปิดตัวเหรียญของคุณเองบน Pump.fun, Clanker หรือ Four.meme ในเวลาประมาณหนึ่งนาที",
     "m4t": "Perps",
-    "m4b": "Long หรือ short เหรียญหลักด้วย Hyperliquid จาก USDC ของคุณ"
+    "m4b": "Long หรือ short เหรียญหลักด้วย Hyperliquid จาก USDC ของคุณ",
+    "story1Title": "ซื้อได้ในแตะเดียว",
+    "story2Title": "ตามรอยวาฬ",
+    "story3Title": "ผลงานของคุณ ของจริง"
   },
   "coin": {
     "price": "ราคา",

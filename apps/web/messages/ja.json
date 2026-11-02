@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "Pump.fun、Clanker、Four.meme で約1分で自分のコインを発行。",
     "m4t": "Perps",
-    "m4b": "Hyperliquid で主要コインをロング・ショート、USDC からそのまま。"
+    "m4b": "Hyperliquid で主要コインをロング・ショート、USDC からそのまま。",
+    "story1Title": "ワンタップで購入。",
+    "story2Title": "クジラを追え。",
+    "story3Title": "あなたの成績。本物の。"
   },
   "coin": {
     "price": "価格",

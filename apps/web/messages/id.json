@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "Luncurkan koinmu sendiri di Pump.fun, Clanker, atau Four.meme dalam semenit.",
     "m4t": "Perps",
-    "m4b": "Long atau short koin besar dengan Hyperliquid, langsung dari USDC-mu."
+    "m4b": "Long atau short koin besar dengan Hyperliquid, langsung dari USDC-mu.",
+    "story1Title": "Beli dengan satu ketuk.",
+    "story2Title": "Ikuti para paus.",
+    "story3Title": "Rekammu. Sungguhan."
   },
   "coin": {
     "price": "Harga",

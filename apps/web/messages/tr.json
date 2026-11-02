@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "Kendi coinini Pump.fun, Clanker veya Four.meme’de yaklaşık bir dakikada çıkar.",
     "m4t": "Perps",
-    "m4b": "Hyperliquid ile büyük coinlerde long ya da short, doğrudan USDC’nden."
+    "m4b": "Hyperliquid ile büyük coinlerde long ya da short, doğrudan USDC’nden.",
+    "story1Title": "Tek dokunuşla al.",
+    "story2Title": "Balinaları takip et.",
+    "story3Title": "Senin kaydın. Gerçek."
   },
   "coin": {
     "price": "Fiyat",

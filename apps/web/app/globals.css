@@ -912,3 +912,49 @@ body:has(.kamby-void) {
     animation: none;
   }
 }
+
+/* Landing scroll motion (2026-11-02, owner: "scrolling animations, slowly introduce Kamby").
+   CSS scroll-driven only — no JS, nothing ever fully hidden: where a browser lacks
+   animation-timeline everything simply sits still. Transform + a light fade, never from 0. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .kl-rise {
+      animation: kl-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+    .kl-rise-slow {
+      animation: kl-rise-slow linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+    /* The hero's product shot: tilted back like a screen on a desk, standing up as you scroll. */
+    .kl-tilt {
+      transform-origin: 50% 0%;
+      animation: kl-tilt linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 70vh;
+    }
+  }
+}
+@keyframes kl-rise {
+  from { transform: translateY(56px); opacity: 0.35; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes kl-rise-slow {
+  from { transform: translateY(96px) scale(0.94); opacity: 0.3; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes kl-tilt {
+  from { transform: perspective(1600px) rotateX(22deg) scale(0.9); }
+  to { transform: perspective(1600px) rotateX(0deg) scale(1); }
+}
+
+/* The hero iPhone drifts gently (2026-11-02). */
+@media (prefers-reduced-motion: no-preference) {
+  .kl-float { animation: kl-float 6s ease-in-out infinite; }
+}
+@keyframes kl-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -10px; }
+}

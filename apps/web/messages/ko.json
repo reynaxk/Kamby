@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "Pump.fun, Clanker, Four.meme에서 약 1분 만에 나만의 코인 출시.",
     "m4t": "Perps",
-    "m4b": "Hyperliquid로 주요 코인 롱/숏, USDC로 바로."
+    "m4b": "Hyperliquid로 주요 코인 롱/숏, USDC로 바로.",
+    "story1Title": "한 번의 탭으로 매수.",
+    "story2Title": "고래를 따라가세요.",
+    "story3Title": "당신의 기록. 진짜로."
   },
   "coin": {
     "price": "가격",

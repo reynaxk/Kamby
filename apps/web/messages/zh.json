@@ -285,7 +285,10 @@
     "m3t": "LaunchPad",
     "m3b": "大约一分钟在 Pump.fun、Clanker 或 Four.meme 发行你自己的币。",
     "m4t": "永续合约",
-    "m4b": "用 Hyperliquid 做多或做空主流币，直接用你的 USDC。"
+    "m4b": "用 Hyperliquid 做多或做空主流币，直接用你的 USDC。",
+    "story1Title": "一键买入。",
+    "story2Title": "跟随巨鲸。",
+    "story3Title": "你的战绩。真实可查。"
   },
   "coin": {
     "price": "价格",
