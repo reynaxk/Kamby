@@ -34,9 +34,9 @@ export function ChainBalancesCard() {
   // Native-coin trading (2026-11-01): one balance per chain, in its own coin.
   if (native) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <div>
         <p className={cn('font-display text-3xl font-extrabold tabular-nums text-ink-900', hidden && 'select-none blur-sm')}>{usd(walletTotal)}</p>
-        <NativeBalancesList className="mt-4" />
+        <NativeBalancesList className="mt-3" />
       </div>
     );
   }

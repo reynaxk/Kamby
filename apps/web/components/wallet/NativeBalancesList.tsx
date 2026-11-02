@@ -28,7 +28,8 @@ export function NativeBalancesList({ className }: { className?: string }) {
       {natives.rows.map((r) => {
         const badge = badgeChainFor(IDENT[r.chain]);
         return (
-          <li key={r.chain} className="flex items-center gap-3 px-4 py-3">
+          // An empty chain is dimmed, so the coins you hold stand out.
+          <li key={r.chain} className={cn('flex items-center gap-3 px-4 py-3', !(r.amount && r.amount > 0) && 'opacity-[0.45]')}>
             {badge && <ChainBadge chain={badge} className="!static !h-7 !w-7 !ring-0" />}
             <span className="min-w-0 flex-1">
               <span className="block font-display text-sm font-bold text-ink-900">{r.symbol}</span>

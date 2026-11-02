@@ -55,7 +55,11 @@ export function ChainBadge({ chain, className }: { chain: BadgeChain; className?
             </linearGradient>
           </defs>
           <circle cx="6" cy="6" r="6" fill="#0B0B12" />
-          <path d="M3.4 3.5h5.4l-0.9 1H2.5Z M2.5 5.5h5.4l0.9 1H3.4Z M3.4 7.5h5.4l-0.9 1H2.5Z" fill="url(#kamby-sol-badge)" />
+          {/* Solid bars, not a shared-id gradient: when the first copy of the badge on a page was
+              hidden (computers render the phone layout too), every other one lost its colour. */}
+          <path d="M3.4 3.5h5.4l-0.9 1H2.5Z" fill="#14F195" />
+          <path d="M2.5 5.5h5.4l0.9 1H3.4Z" fill="#57B4C4" />
+          <path d="M3.4 7.5h5.4l-0.9 1H2.5Z" fill="#9945FF" />
         </svg>
       )}
     </span>
