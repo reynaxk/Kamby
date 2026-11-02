@@ -11,7 +11,7 @@ import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 import { UsdcBalancePill } from '@/components/wallet/UsdcBalancePill';
 import { FEED_ENABLED } from '@/lib/feed-client';
 
-type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread' };
+type Item = { href: string; label: string; match: string[]; icon: React.ReactNode; badge?: 'unread'; soon?: boolean };
 
 const NAV_KEY = 'kamby:nav';
 /** Before first paint: a menu the user folded stays folded (no jump on load). */
@@ -57,7 +57,8 @@ export function DesktopSideNav() {
     { href: '/live', label: t('live'), match: ['/live'], icon: <><rect x="2" y="6" width="14" height="12" rx="2" /><path d="m16 10 6-3v10l-6-3" /></> },
     { href: '/messages', label: tDm('title'), match: ['/messages'], badge: 'unread', icon: <path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5Z" /> },
     { href: '/leaderboard', label: t('leaders'), match: ['/leaderboard', '/trader', '/duels'], icon: <><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4" /></> },
-    { href: '/perps', label: t('perps'), match: ['/perps'], icon: <path d="M13 2 4 14h7l-1 8 9-12h-7z" /> },
+    // Perps is months away (owner 2026-11-02): shown, not clickable, with a "Soon" tag.
+    { href: '/perps', label: t('perps'), match: ['/perps'], soon: true, icon: <path d="M13 2 4 14h7l-1 8 9-12h-7z" /> },
     { href: '/launch', label: t('launchpad'), match: ['/launch'], icon: <><path d="M5 19c2-6 6-10 14-14-1 8-5 12-11 14" /><path d="m5 19 4-4" /></> },
     { href: '/account', label: t('profile'), match: ['/account', '/trades', '/notifications', '/referrals'], icon: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></> },
   ];
@@ -75,6 +76,16 @@ export function DesktopSideNav() {
       <ul className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
         {items.filter((item) => item.href !== '/account').map((item) => {
           const active = item.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
+          if (item.soon) {
+            return (
+              <li key={item.href} className="shrink-0">
+                <span aria-disabled="true" className="flex h-9 cursor-default items-center gap-1.5 px-2.5 font-display text-[0.86rem] font-bold text-ink-400">
+                  {item.label}
+                  <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 font-body text-[0.6rem] font-semibold uppercase tracking-wide text-ink-400">{t('soon')}</span>
+                </span>
+              </li>
+            );
+          }
           return (
             <li key={item.href} className="shrink-0">
               <Link

@@ -31,6 +31,7 @@ import { useMediaQuery, XL_QUERY } from '@/lib/use-media';
  */
 export function PortfolioHeader() {
   const tP = useTranslations('perps');
+  const tNav = useTranslations('nav');
   const t = useTranslations('home');
   const tF = useTranslations('feed');
   const tN = useTranslations('news');
@@ -133,8 +134,17 @@ export function PortfolioHeader() {
           ...(FEED_ENABLED ? [{ href: '/feed', icon: <MessageCircle />, label: tF('title') }] : []),
           { href: '/news', icon: <Newspaper />, label: tN('title') },
           { href: '/launch', icon: <Rocket />, label: 'LaunchPad' },
-          { href: '/perps', icon: <Zap />, label: tP('card') },
-        ].map((l) => (
+          { href: '/perps', icon: <Zap />, label: tP('card'), soon: true },
+        ].map((l) =>
+          'soon' in l && l.soon ? (
+            // Perps is months away (owner 2026-11-02): not clickable, tagged "Soon".
+            <span key={l.href} aria-disabled="true" className="flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-white/[0.02] px-1 opacity-60">
+              <span aria-hidden className="text-ink-400 [&>svg]:h-[18px] [&>svg]:w-[18px]">{l.icon}</span>
+              <span className="max-w-full truncate font-display text-[0.72rem] font-bold tracking-tight text-ink-400">
+                {l.label} · {tNav('soon')}
+              </span>
+            </span>
+          ) : (
           <Link
             key={l.href}
             href={l.href}
@@ -143,7 +153,8 @@ export function PortfolioHeader() {
             <span aria-hidden className="text-accent [&>svg]:h-[18px] [&>svg]:w-[18px]">{l.icon}</span>
             <span className="max-w-full truncate font-display text-[0.72rem] font-bold tracking-tight text-ink-900">{l.label}</span>
           </Link>
-        ))}
+          ),
+        )}
       </div>
     </section>
     {/* First-run checklist (2026-10-31) — goes away once done or closed. */}
