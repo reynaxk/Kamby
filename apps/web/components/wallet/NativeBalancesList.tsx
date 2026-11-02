@@ -11,7 +11,6 @@ import { useUsdcBalances } from '@/lib/use-usdc-balance';
 const NAME: Record<NativeChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BSC', robinhood: 'Robinhood' };
 const IDENT: Record<NativeChain, string> = { solana: 'solana', base: 'eip155:8453', bnb: 'eip155:56', robinhood: 'eip155:4663' };
 const usd = (n: number | null) => `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const coin = (n: number | null) => (n ?? 0).toLocaleString('en-US', { maximumFractionDigits: n !== null && n < 1 ? 5 : 3 });
 
 /**
  * Each chain's balance in its own coin (2026-11-01, native-coin trading): SOL, ETH on Base, BNB on
@@ -36,10 +35,7 @@ export function NativeBalancesList({ className }: { className?: string }) {
               <span className="block font-body text-xs text-ink-400">{NAME[r.chain]}</span>
             </span>
             <span className={cn('text-right', hidden && 'select-none blur-sm')}>
-              <span className="block font-mono text-sm font-semibold tabular-nums text-ink-900">
-                {coin(r.amount)} {r.symbol}
-              </span>
-              <span className="block font-mono text-xs tabular-nums text-ink-400">{usd(r.usd)}</span>
+              <span className="block font-mono text-sm font-semibold tabular-nums text-ink-900">{usd(r.usd)}</span>
             </span>
           </li>
         );

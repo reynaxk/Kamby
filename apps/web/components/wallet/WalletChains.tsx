@@ -15,9 +15,8 @@ import { SendModal } from './SendModal';
 export const CHAIN_NAME: Record<NativeChain, string> = { solana: 'Solana', base: 'Base', bnb: 'BSC', robinhood: 'Robinhood' };
 const PICK_KEY = 'kamby:wallet-chain';
 const usd = (n: number | null) => `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const coin = (n: number | null) => (n ?? 0).toLocaleString('en-US', { maximumFractionDigits: n !== null && n < 1 ? 5 : 3 });
-/** A chip's short amount: 0, <0.001, 0.031, 1.2, 12 — dust never reads as an empty 0. */
-const short = (n: number | null) => (!n ? '0' : n < 0.001 ? '<0.001' : n.toLocaleString('en-US', { maximumFractionDigits: n < 1 ? 3 : n < 100 ? 2 : 0 }));
+/** A chip's dollars, short: $0, $0.05, $4.96, $1.2K. Dollars only — no coin amounts (owner 2026-11-02). */
+const short = (n: number) => (n >= 1000 ? `${(n / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}K` : n > 0 && n < 0.01 ? '<$0.01' : `${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`);
 
 /**
  * The wallet as one chain at a time (2026-11-02, native-coin trading — owner: "similar but not
@@ -83,7 +82,7 @@ export function WalletChains({ className, showTotal = true, actions = true }: { 
               )}
             >
               <ChainBadge chain={r.chain} className="!static !h-4 !w-4 shrink-0 !ring-0" />
-              <span className={cn('truncate', hidden && 'select-none blur-sm')}>{short(r.amount)}</span>
+              <span className={cn('truncate', hidden && 'select-none blur-sm')}>{short((r.usd ?? 0) + (usdc[r.chain] ?? 0))}</span>
             </button>
           );
         })}
@@ -100,12 +99,10 @@ export function WalletChains({ className, showTotal = true, actions = true }: { 
         <div className="flex items-center gap-3 px-4 py-3">
           <ChainBadge chain={chain} className="!static !h-8 !w-8 !ring-0" />
           <span className="min-w-0 flex-1">
-            <span className={cn('block font-mono text-base font-bold tabular-nums text-ink-900', hidden && 'select-none blur-sm')}>
-              {coin(row?.amount ?? null)} {row?.symbol}
-            </span>
+            <span className="block font-display text-sm font-bold text-ink-900">{row?.symbol}</span>
             <span className="block font-body text-xs text-ink-400">{CHAIN_NAME[chain]}</span>
           </span>
-          <span className={cn('font-mono text-sm tabular-nums text-ink-400', hidden && 'select-none blur-sm')}>{usd(row?.usd ?? null)}</span>
+          <span className={cn('font-mono text-sm tabular-nums text-ink-900', hidden && 'select-none blur-sm')}>{usd(row?.usd ?? null)}</span>
         </div>
         {chainUsdc >= 0.01 && (
           <div className="flex items-center gap-3 border-t border-white/[0.05] px-4 py-2.5">
