@@ -261,7 +261,7 @@ function ChainChips({ value, onChange, only }: { value: SendChainOption; onChang
             )}
           >
             <ChainBadge chain={c.slug} className="!static !h-5 !w-5 !ring-0" />
-            {c.name === 'BNB Chain' ? 'BSC' : c.name}
+            {c.name === 'BNB Chain' ? 'BSC' : c.name.replace(' Chain', '')}
           </button>
         );
       })}

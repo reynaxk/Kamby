@@ -16,8 +16,8 @@ export const CHAIN_NAME: Record<NativeChain, string> = { solana: 'Solana', base:
 const PICK_KEY = 'kamby:wallet-chain';
 const usd = (n: number | null) => `$${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const coin = (n: number | null) => (n ?? 0).toLocaleString('en-US', { maximumFractionDigits: n !== null && n < 1 ? 5 : 3 });
-/** A chip's short amount: 0, 0.031, 1.2, 12. */
-const short = (n: number | null) => (!n ? '0' : n.toLocaleString('en-US', { maximumFractionDigits: n < 1 ? 3 : n < 100 ? 2 : 0 }));
+/** A chip's short amount: 0, <0.001, 0.031, 1.2, 12 — dust never reads as an empty 0. */
+const short = (n: number | null) => (!n ? '0' : n < 0.001 ? '<0.001' : n.toLocaleString('en-US', { maximumFractionDigits: n < 1 ? 3 : n < 100 ? 2 : 0 }));
 
 /**
  * The wallet as one chain at a time (2026-11-02, native-coin trading — owner: "similar but not
