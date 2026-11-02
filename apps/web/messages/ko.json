@@ -1547,7 +1547,8 @@
     "fR_bundlers": "번들러",
     "fR_devMigrations": "개발자 마이그레이션",
     "fR_devLaunches": "개발자 출시",
-    "fChains": "체인"
+    "fChains": "체인",
+    "searchColumn": "티커 검색"
   },
   "you": {
     "holdings": "보유",

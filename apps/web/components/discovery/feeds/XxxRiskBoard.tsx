@@ -129,6 +129,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   const [sheet, setSheet] = useState<'quick' | null>(null);
   // Which column's filters are open (2026-11-02: one filter per column).
   const [filterCol, setFilterCol] = useState<XxxRiskColumn | null>(null);
+  const [search, setSearch] = useState<Record<XxxRiskColumn, string>>({ new: '', soon: '', migrated: '' });
   const [paused, setPaused] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const quick = useQuickSolanaBuy(view.quickUsd);
@@ -189,11 +190,15 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
 
   const byColumn = useMemo(() => {
     const out: Record<XxxRiskColumn, XxxRiskToken[]> = { new: [], soon: [], migrated: [] };
-    for (const token of source)
-      if (passes(token, view.filters[token.column ?? 'new'], ageOf(token))) out[token.column ?? 'new'].push(token);
+    for (const token of source) {
+      const col = token.column ?? 'new';
+      const q = search[col].trim().toLowerCase();
+      if (q && !`${token.symbol ?? ''} ${token.name ?? ''} ${token.mintAddress}`.toLowerCase().includes(q)) continue;
+      if (passes(token, view.filters[col], ageOf(token))) out[col].push(token);
+    }
     for (const c of COLUMNS) order(out[c.id], c.id, view.sort, launchedAt.current);
     return out;
-  }, [source, view.filters, view.sort, now]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [source, view.filters, view.sort, now, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const count = activeCount(view.filters.new) + activeCount(view.filters.soon) + activeCount(view.filters.migrated);
   const launchpadsSeen = [...new Set(source.map((x) => x.launchpad ?? 'pump.fun'))];
@@ -258,7 +263,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
             type="button"
             onClick={() => setSheet('quick')}
             aria-label={t('quickAmount')}
-            className="flex h-8 items-center gap-1 rounded-xl border border-accent/40 bg-accent/10 px-2.5 font-display text-xs font-bold tabular-nums text-accent"
+            className={cn("h-8 items-center gap-1 rounded-xl border border-accent/40 bg-accent/10 px-2.5 font-display text-xs font-bold tabular-nums text-accent", wide ? "hidden" : "flex")}
           >
             <Zap className="h-3.5 w-3.5" fill="currentColor" aria-hidden />${view.quickUsd}
           </button>
@@ -328,19 +333,19 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
               {byColumn[view.column].length === 0 ? (
                 empty
               ) : (
-                <ul className={cn('grid gap-2 px-2 pb-3 md:px-3', width >= 720 && 'grid-cols-2')}>
+                <ul className={cn('mx-2 mb-3 overflow-hidden rounded-xl border border-white/[0.07] bg-[#08090C] md:mx-3', width >= 720 && 'grid grid-cols-2')}>
                   {byColumn[view.column].map(card)}
                 </ul>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2 px-3 pb-3" {...hover}>
+            <div className="mx-3 mb-3 grid grid-cols-3 overflow-hidden rounded-xl border border-white/[0.07]" {...hover}>
               {COLUMNS.map((c) => (
                 <section
                   key={c.id}
-                  className="flex min-w-0 flex-col overflow-hidden rounded-[20px] border border-white/[0.07] bg-white/[0.015]"
+                  className="flex min-w-0 flex-col overflow-hidden border-r border-white/[0.07] bg-[#08090C] last:border-r-0"
                 >
-                  <header className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2.5">
+                  <header className="flex h-10 items-center gap-2 border-b border-white/[0.07] bg-[#0A0C0F] px-2.5">
                     <span
                       className={cn(
                         'h-1.5 w-1.5 rounded-full',
@@ -356,11 +361,34 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                     <span className="font-mono text-xs tabular-nums text-ink-400">
                       {byColumn[c.id].length}
                     </span>
+                    {/* Each column's own search and quick amount (2026-11-02, Axiom Pulse-style). */}
+                    <label className="ml-1 flex h-6 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-white/[0.08] px-2 text-ink-400 focus-within:border-white/20">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                      </svg>
+                      <input
+                        value={search[c.id]}
+                        onChange={(e) => setSearch((cur) => ({ ...cur, [c.id]: e.target.value }))}
+                        placeholder={t('searchColumn')}
+                        aria-label={t('searchColumn')}
+                        className="min-w-0 flex-1 bg-transparent font-body text-[0.72rem] text-ink-900 placeholder:text-ink-400 focus:outline-none"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setSheet('quick')}
+                      aria-label={t('quickAmount')}
+                      className="flex h-6 shrink-0 items-center gap-0.5 rounded-md border border-white/[0.08] px-1.5 font-mono text-[0.7rem] font-bold tabular-nums text-accent hover:border-accent/40"
+                    >
+                      <Zap className="h-2.5 w-2.5" fill="currentColor" aria-hidden />
+                      {view.quickUsd}
+                    </button>
                     <button
                       type="button"
                       onClick={() => setFilterCol(c.id)}
                       className={cn(
-                        'ml-auto flex h-7 items-center gap-1.5 rounded-lg border px-2 font-display text-[0.72rem] font-bold transition-colors',
+                        'flex h-6 shrink-0 items-center gap-1 rounded-md border px-1.5 font-display text-[0.7rem] font-bold transition-colors',
                         activeCount(view.filters[c.id]) > 0
                           ? 'border-accent/50 bg-accent/10 text-accent'
                           : 'border-white/10 text-ink-600 hover:border-white/20 hover:text-ink-900',
@@ -369,7 +397,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
                         <path d="M4 6h16M7 12h10M10 18h4" />
                       </svg>
-                      {t('filters')}
+                      <span className="sr-only">{t('filters')}</span>
                       {activeCount(view.filters[c.id]) > 0 && (
                         <span className="rounded bg-accent px-1 text-[0.6rem] text-black">{activeCount(view.filters[c.id])}</span>
                       )}
@@ -379,7 +407,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                     {byColumn[c.id].length === 0 ? (
                       empty
                     ) : (
-                      <ul className="grid gap-1.5 p-1.5">{byColumn[c.id].map(card)}</ul>
+                      <ul>{byColumn[c.id].map(card)}</ul>
                     )}
                   </div>
                 </section>
@@ -470,7 +498,7 @@ function XxxRiskCard({
   return (
     <li
       className={cn(
-        'kamby-xcard relative overflow-hidden rounded-[18px] border border-white/[0.07] bg-surface transition-colors hover:border-white/[0.18] hover:bg-white/[0.03]',
+        'kamby-xcard relative overflow-hidden border-b border-white/[0.05] transition-colors hover:bg-white/[0.025]',
         fresh && 'kamby-card-in',
       )}
     >
@@ -480,7 +508,7 @@ function XxxRiskCard({
       >
         <span className="row-span-2 flex flex-col items-center gap-1">
           <span
-            className="relative rounded-[18px] p-[2.5px]"
+            className="relative rounded-lg p-[2px]"
             style={{
               background: `conic-gradient(${migrated ? '#8B9BFF' : 'rgb(var(--kamby-accent))'} ${curve * 3.6}deg, rgba(255,255,255,0.09) 0deg)`,
             }}
@@ -490,7 +518,7 @@ function XxxRiskCard({
               src={token.imageUrl}
               seed={token.mintAddress}
               label={token.symbol ?? token.name}
-              className="!rounded-[16px] h-[72px] w-[72px] border-[2.5px] border-surface text-lg"
+              className="!rounded-md h-[60px] w-[60px] border-2 border-[#08090C] text-lg"
             />
             {pad && (
               <span
@@ -572,7 +600,7 @@ function XxxRiskCard({
         </span>
 
         <span className="flex flex-col items-end text-right">
-          <span className="font-display text-[1.05rem] font-black leading-none tabular-nums text-ink-900">
+          <span className={cn('font-display text-[1.05rem] font-black leading-none tabular-nums', mcTone(token.marketCapUsd))}>
             <span className="mr-0.5 font-body text-[0.6rem] font-bold text-ink-400">{t('mc')}</span>
             {money(token.marketCapUsd)}
           </span>
@@ -613,7 +641,7 @@ function XxxRiskCard({
         onClick={onBuy}
         disabled={buying}
         aria-label={t('quickBuy', { usd: quickUsd })}
-        className="absolute bottom-2.5 right-2.5 flex h-8 items-center gap-1 rounded-xl border border-accent/40 bg-accent/10 px-2.5 font-display text-[0.78rem] font-extrabold tabular-nums text-accent transition-colors hover:bg-accent hover:text-black active:scale-[0.97] disabled:opacity-60"
+        className="absolute bottom-2.5 right-2.5 flex h-7 items-center gap-1 rounded-full bg-accent px-3 font-mono text-[0.75rem] font-bold tabular-nums text-black transition-transform hover:brightness-110 active:scale-[0.97] disabled:opacity-60"
       >
         {buying ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -624,6 +652,12 @@ function XxxRiskCard({
       </button>
     </li>
   );
+}
+
+/** Bigger coins read warmer at a glance: $100K+ gold, $30K+ blue. */
+function mcTone(mc: number | null | undefined): string {
+  if (mc == null) return 'text-ink-900';
+  return mc >= 100_000 ? 'text-[#F6CF86]' : mc >= 30_000 ? 'text-[#8CCBF6]' : 'text-ink-900';
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -650,13 +684,15 @@ function Pct({
 }) {
   const tone =
     value > bad
-      ? 'bg-down/15 text-down'
+      ? 'border-down/35 text-down'
       : value > warn
-        ? 'bg-amber-400/15 text-amber-300'
-        : 'bg-white/[0.06] text-ink-600';
+        ? 'border-amber-400/35 text-amber-300'
+        : value > 0
+          ? 'border-white/[0.08] text-up'
+          : 'border-white/[0.08] text-ink-400';
   return (
     <span
-      className={cn('rounded-md px-1.5 py-px font-mono text-[0.6rem] font-bold tabular-nums', tone)}
+      className={cn('rounded-full border px-1.5 py-px font-mono text-[0.6rem] font-bold tabular-nums', tone)}
     >
       {label} {value < 1 && value > 0 ? '<1' : Math.round(value)}%
     </span>
@@ -667,8 +703,8 @@ function Badge({ children, bad = false }: { children: React.ReactNode; bad?: boo
   return (
     <span
       className={cn(
-        'rounded-md px-1.5 py-px font-body text-[0.6rem] font-bold',
-        bad ? 'bg-down/15 text-down' : 'bg-up/15 text-up',
+        'rounded-full border px-1.5 py-px font-body text-[0.6rem] font-bold',
+        bad ? 'border-down/35 text-down' : 'border-up/35 text-up',
       )}
     >
       {children}

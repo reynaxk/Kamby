@@ -1547,7 +1547,8 @@
     "fR_bundlers": "Бъндлъри",
     "fR_devMigrations": "Dev мигрирани",
     "fR_devLaunches": "Dev пуснати",
-    "fChains": "Мрежи"
+    "fChains": "Мрежи",
+    "searchColumn": "Търси тикер"
   },
   "you": {
     "holdings": "Позиции",

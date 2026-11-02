@@ -1547,7 +1547,8 @@
     "fR_bundlers": "บันเดิลเลอร์",
     "fR_devMigrations": "Dev ย้ายแล้ว",
     "fR_devLaunches": "Dev เปิดตัว",
-    "fChains": "เชน"
+    "fChains": "เชน",
+    "searchColumn": "ค้นหาตัวย่อ"
   },
   "you": {
     "holdings": "ถือครอง",

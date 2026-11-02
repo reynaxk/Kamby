@@ -1547,7 +1547,8 @@
     "fR_bundlers": "Bundler",
     "fR_devMigrations": "Dev migrasi",
     "fR_devLaunches": "Dev rilis",
-    "fChains": "Jaringan"
+    "fChains": "Jaringan",
+    "searchColumn": "Cari ticker"
   },
   "you": {
     "holdings": "Aset",

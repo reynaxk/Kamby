@@ -1547,7 +1547,8 @@
     "fR_bundlers": "Bundler",
     "fR_devMigrations": "Dev taşınan",
     "fR_devLaunches": "Dev çıkardığı",
-    "fChains": "Ağlar"
+    "fChains": "Ağlar",
+    "searchColumn": "Sembol ara"
   },
   "you": {
     "holdings": "Varlıklar",

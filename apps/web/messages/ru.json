@@ -1547,7 +1547,8 @@
     "fR_bundlers": "Бандлеры",
     "fR_devMigrations": "Dev мигрировал",
     "fR_devLaunches": "Dev запустил",
-    "fChains": "Сети"
+    "fChains": "Сети",
+    "searchColumn": "Поиск тикера"
   },
   "you": {
     "holdings": "Активы",

@@ -1547,7 +1547,8 @@
     "fR_bundlers": "バンドラー",
     "fR_devMigrations": "開発者の移行数",
     "fR_devLaunches": "開発者の発行数",
-    "fChains": "チェーン"
+    "fChains": "チェーン",
+    "searchColumn": "ティッカー検索"
   },
   "you": {
     "holdings": "保有",

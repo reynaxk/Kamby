@@ -1547,7 +1547,8 @@
     "fR_bundlers": "Bundlers",
     "fR_devMigrations": "Dev migrés",
     "fR_devLaunches": "Dev lancés",
-    "fChains": "Réseaux"
+    "fChains": "Réseaux",
+    "searchColumn": "Chercher un ticker"
   },
   "you": {
     "holdings": "Positions",

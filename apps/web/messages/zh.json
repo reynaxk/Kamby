@@ -1547,7 +1547,8 @@
     "fR_bundlers": "捆绑者",
     "fR_devMigrations": "开发者已迁移",
     "fR_devLaunches": "开发者已发行",
-    "fChains": "链"
+    "fChains": "链",
+    "searchColumn": "搜索代码"
   },
   "you": {
     "holdings": "持仓",
