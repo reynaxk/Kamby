@@ -1,14 +1,16 @@
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PerpsBlocked } from '@/components/perps/PerpsBlocked';
 import { PerpsHome } from '@/components/perps/PerpsHome';
-import { perpsBlockedHere } from '@/lib/perps-region';
+import { PERPS_OPEN, perpsBlockedHere } from '@/lib/perps-region';
 
 export const metadata = { title: 'Perps — Kamby' };
 export const dynamic = 'force-dynamic';
 
 /** ⚡ Perps on Hyperliquid (2026-10-21). */
 export default async function PerpsPage() {
+  if (!PERPS_OPEN) redirect('/hunt');
   const t = await getTranslations('perps');
   const blocked = perpsBlockedHere();
   return (

@@ -1,8 +1,9 @@
+import { redirect } from 'next/navigation';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PerpsBlocked } from '@/components/perps/PerpsBlocked';
 import { PerpsCoinScreen } from '@/components/perps/PerpsCoinScreen';
 import { ToastProvider } from '@/components/terminal/ToastProvider';
-import { perpsBlockedHere } from '@/lib/perps-region';
+import { PERPS_OPEN, perpsBlockedHere } from '@/lib/perps-region';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,7 @@ export function generateMetadata({ params }: { params: { coin: string } }) {
 
 /** ⚡ One perp market (2026-10-21). */
 export default function PerpCoinPage({ params }: { params: { coin: string } }) {
+  if (!PERPS_OPEN) redirect('/hunt');
   const coin = decodeURIComponent(params.coin);
   return (
     <div className="kamby-void min-h-screen bg-bg pb-28">
