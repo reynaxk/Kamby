@@ -100,8 +100,9 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
 
   return (
     <QuickBuyProvider>
-      <div className="flex flex-wrap items-center gap-2 px-4 pb-3 md:px-0">
-        <div className="flex rounded-xl bg-white/[0.04] p-0.5">
+      {/* Phones: one row that scrolls sideways, not two ragged rows (2026-11-02 polish). */}
+      <div className="flex items-center gap-2 overflow-x-auto px-4 pb-3 [scrollbar-width:none] md:flex-wrap md:overflow-visible md:px-0">
+        <div className="flex shrink-0 rounded-xl bg-white/[0.04] p-0.5">
           {WINDOWS.map((w) => (
             <button
               key={w}
@@ -119,7 +120,7 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
             type="button"
             onClick={() => setChain(c.id)}
             className={cn(
-              'flex h-8 items-center gap-1.5 rounded-full px-3 font-display text-xs font-bold transition-colors',
+              'flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 font-display text-xs font-bold transition-colors',
               chain === c.id ? 'bg-accent/10 text-accent ring-1 ring-inset ring-accent/30' : 'bg-white/[0.04] text-ink-600 hover:text-ink-900',
             )}
           >
@@ -127,7 +128,7 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
             {c.label}
           </button>
         ))}
-        <span className="ml-auto font-mono text-[0.68rem] text-ink-400">{t('count', { n: rows.length })}</span>
+        <span className="ml-auto font-mono text-[0.68rem] text-ink-400 max-md:hidden">{t('count', { n: rows.length })}</span>
       </div>
 
       <div className="overflow-x-auto border-y border-white/[0.06] md:rounded-2xl md:border">

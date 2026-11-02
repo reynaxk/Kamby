@@ -586,7 +586,7 @@ export function KambyChart({
           onClick={() => setPickerOpen((open) => !open)}
           aria-haspopup="true"
           aria-expanded={pickerOpen}
-          className="relative rounded-md border border-line bg-surface/90 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-ink-400 hover:text-ink-900 max-md:flex max-md:h-8 max-md:w-8 max-md:items-center max-md:justify-center max-md:rounded-full max-md:border-white/10 max-md:p-0"
+          className="relative rounded-md border border-line bg-surface/90 px-2 py-1 font-body text-xs font-semibold text-ink-400 hover:text-ink-900 max-md:flex max-md:h-8 max-md:w-8 max-md:items-center max-md:justify-center max-md:rounded-full max-md:border-white/10 max-md:p-0"
         >
           <SlidersHorizontal className="h-4 w-4 md:hidden" aria-hidden />
           <span className="max-md:sr-only">

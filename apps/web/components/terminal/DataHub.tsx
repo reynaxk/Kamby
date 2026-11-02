@@ -57,7 +57,7 @@ export function DataHub({ activity, source = null }: { activity: SocialActivity[
             aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={cn(
-              '-mb-px flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-display text-xs font-bold uppercase tracking-wide transition-colors',
+              '-mb-px flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-display text-sm font-bold transition-colors',
               tab === id ? 'border-accent text-ink-900' : 'border-transparent text-ink-400 hover:text-ink-700',
             )}
           >

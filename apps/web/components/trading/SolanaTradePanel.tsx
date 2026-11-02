@@ -618,7 +618,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
-          className="w-full text-base font-bold uppercase tracking-wide"
+          className="w-full text-base font-bold"
           disabled={isExpired || step === 'signing'}
           onClick={() => void handleConfirmAndSign()}
         >
@@ -657,7 +657,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
                   setAmount('');
                 }}
                 className={cn(
-                  'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors',
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-xs font-bold transition-colors',
                   isActive
                     ? s === 'BUY'
                       ? 'bg-up text-black'
@@ -730,7 +730,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
-          className={cn('w-full text-base font-bold uppercase tracking-wide', sheet && 'h-14 rounded-2xl normal-case tracking-normal')}
+          className={cn('w-full text-base font-bold', sheet && 'h-14 rounded-2xl')}
           disabled={solOverBalance || sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
         >
@@ -763,7 +763,7 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
         <Button
           type="button"
           variant={side === 'BUY' ? 'buy' : 'sell'}
-          className="mt-1.5 w-full text-sm font-bold uppercase tracking-wide"
+          className="mt-1.5 w-full text-sm font-bold"
           disabled={solOverBalance || sellOverBalance || quoteStatus !== 'ready' || !quote || blockedByBalance || moveBusy}
           onClick={() => void (needsMove ? handleMoveThenBuy() : handleOneTap())}
         >

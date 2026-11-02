@@ -269,7 +269,7 @@ export function TokenStreamChat({
     <div className={cn('relative flex min-h-0 flex-col overflow-hidden', className)}>
       <div className="flex items-center gap-2 px-3 py-2">
         <span className={cn('h-2 w-2 rounded-full', status === 'live' ? 'animate-pulse bg-accent' : 'bg-ink-400')} aria-hidden />
-        <p className="font-display text-xs font-bold uppercase tracking-wide text-ink-900">{t('title')}</p>
+        <p className="font-display text-sm font-bold text-ink-900">{t('title')}</p>
         {/* Pulse's "live" line says "worldwide" — this room is one coin, so the green dot says it. */}
         {status !== 'live' && <p className="font-body text-[0.7rem] text-ink-400">{tP('connecting')}</p>}
       </div>

@@ -80,7 +80,7 @@ export function SolAmountInput({
   return (
     <div>
       <div className="flex items-center justify-between font-body text-xs text-ink-600">
-        <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'SOL' })}</span>
+        <span>{tTrade('amountOf', { symbol: 'SOL' })}</span>
         {solBalanceLamports !== null && (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />

@@ -319,19 +319,12 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
               aria-selected={view.column === c.id}
               onClick={() => update({ column: c.id })}
               className={cn(
-                'flex h-9 items-center justify-center gap-1.5 rounded-xl font-display text-[0.8rem] font-extrabold transition-colors',
+                'flex h-9 min-w-0 items-center justify-center whitespace-nowrap rounded-xl px-2 font-display text-[0.8rem] font-extrabold transition-colors',
                 view.column === c.id ? 'bg-white/[0.1] text-ink-900' : 'text-ink-400',
               )}
             >
-              {t(c.key)}
-              <span
-                className={cn(
-                  'font-mono text-[0.65rem] tabular-nums',
-                  view.column === c.id ? 'text-accent' : 'text-ink-400',
-                )}
-              >
-                {byColumn[c.id].length}
-              </span>
+              {/* One line, no counts (2026-11-02 polish: 'Almost bonded 100' wrapped onto two lines). */}
+              <span className="truncate">{t(c.key)}</span>
             </button>
           ))}
         </div>

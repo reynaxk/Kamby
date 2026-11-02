@@ -98,7 +98,7 @@ export function UsdPresetAmountInput({
   return (
     <div>
       <div className={cn('flex items-center font-body text-xs text-ink-600', hero ? 'justify-center' : 'justify-between')}>
-        {!hero && <span className="uppercase tracking-wide">{tTrade('amountOf', { symbol: 'USDC' })}</span>}
+        {!hero && <span>{tTrade('amountOf', { symbol: 'USDC' })}</span>}
         {usdBalance ? (
           <span className="inline-flex items-center gap-1">
             <Wallet className="h-3 w-3" />
