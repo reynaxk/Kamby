@@ -195,7 +195,6 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
 
   const count = activeCount(view.filters.new) + activeCount(view.filters.soon) + activeCount(view.filters.migrated);
   const launchpadsSeen = [...new Set(source.map((x) => x.launchpad ?? 'pump.fun'))];
-  const total = byColumn.new.length + byColumn.soon.length + byColumn.migrated.length;
 
   const card = (token: XxxRiskToken) => (
     <XxxRiskCard
@@ -245,19 +244,16 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   return (
     <div ref={root} className="col-span-full">
       <div className="flex flex-wrap items-center gap-2 px-2 py-2 md:px-3">
-        <span className="flex items-center gap-1.5 font-body text-xs font-semibold text-ink-600">
-          <span
-            className={cn(
-              'h-1.5 w-1.5 rounded-full',
-              paused ? 'bg-ink-400' : 'animate-pulse bg-up',
-            )}
-            aria-hidden
-          />
-          {paused ? t('paused') : t('live', { n: total })}
-        </span>
+        {/* No 'Live · 272' counter (owner 2026-11-02); only say so while the board is paused. */}
+        {paused && (
+          <span className="flex items-center gap-1.5 font-body text-xs font-semibold text-ink-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-400" aria-hidden />
+            {t('paused')}
+          </span>
+        )}
         <div
           className={cn(
-            'ml-3 items-center gap-1 rounded-xl bg-white/[0.04] p-0.5',
+            'items-center gap-1 rounded-xl bg-white/[0.04] p-0.5',
             wide ? 'flex' : 'hidden',
           )}
           role="group"
