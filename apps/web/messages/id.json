@@ -329,7 +329,13 @@
     "depositOneNetwork": "Kirim USDC lewat jaringan Base ke alamat ini — masuk ke satu saldo Kamby kamu.",
     "depositCrypto": "Deposit kripto",
     "depositCryptoDetail": "SOL di Solana, ETH di Base atau Robinhood, BNB di BSC — dari wallet lain atau exchange.",
-    "sendOnlyCoin": "Kirim hanya <b>{coin}</b> di <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang."
+    "sendOnlyCoin": "Kirim hanya <b>{coin}</b> di <b>{network}</b> ke alamat ini. Koin atau jaringan lain bisa hilang.",
+    "totalValue": "Nilai total",
+    "tabBuy": "Beli",
+    "addressOf": "Alamat deposit {coin}",
+    "noCoin": "Tidak punya {coin}?",
+    "buyCard": "Beli dengan kartu",
+    "buyCoin": "Beli {coin} dengan kartu"
   },
   "leaderboard": {
     "title": "Peringkat",

@@ -329,7 +329,13 @@
     "depositOneNetwork": "Bu adrese Base ağında USDC gönder — tek Kamby bakiyene düşer.",
     "depositCrypto": "Kripto yatır",
     "depositCryptoDetail": "Solana’da SOL, Base veya Robinhood’da ETH, BSC’de BNB — başka bir cüzdandan ya da borsadan.",
-    "sendOnlyCoin": "Bu adrese yalnızca <b>{network}</b> ağında <b>{coin}</b> gönder. Başka coin veya ağlar kaybolabilir."
+    "sendOnlyCoin": "Bu adrese yalnızca <b>{network}</b> ağında <b>{coin}</b> gönder. Başka coin veya ağlar kaybolabilir.",
+    "totalValue": "Toplam değer",
+    "tabBuy": "Satın al",
+    "addressOf": "{coin} yatırma adresi",
+    "noCoin": "{coin} yok mu?",
+    "buyCard": "Kartla al",
+    "buyCoin": "Kartla {coin} al"
   },
   "leaderboard": {
     "title": "Liderlik tablosu",

@@ -7,7 +7,8 @@ import { useBalanceVisibility } from '@/components/account/BalanceVisibilityCont
 import { useUsdcBalances } from '@/lib/use-usdc-balance';
 import { useTranslations } from 'next-intl';
 import { useNativeTrading } from '@/lib/native-trading';
-import { NativeBalancesList, useWalletTotalUsd } from './NativeBalancesList';
+import { useWalletTotalUsd } from './NativeBalancesList';
+import { WalletChains } from './WalletChains';
 
 
 // $0.00 until a balance is known — never a dash (owner 2026-10-11).
@@ -36,7 +37,7 @@ export function ChainBalancesCard() {
     return (
       <div>
         <p className={cn('font-display text-3xl font-extrabold tabular-nums text-ink-900', hidden && 'select-none blur-sm')}>{usd(walletTotal)}</p>
-        <NativeBalancesList className="mt-3" />
+        <WalletChains showTotal={false} actions={false} className="mt-4" />
       </div>
     );
   }

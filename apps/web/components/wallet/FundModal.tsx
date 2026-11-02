@@ -5,14 +5,15 @@ import { friendlyError } from '@/lib/friendly-error';
 import { useEffect, useMemo, useState } from 'react';
 import { useAddFunds, usePrivy } from '@privy-io/react-auth';
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
-import { Button } from '@kamby/ui';
+import { Button, cn } from '@kamby/ui';
 import { CHAIN_REGISTRY, type EvmChainConfig } from '@kamby/domain';
 import QRCode from 'qrcode';
 import { useAccount } from 'wagmi';
 import { fetchEvmChainConfigs } from '@/lib/market-client';
 import { assetsForChain, SEND_CHAINS, type SendChainOption, type SendChainSlug } from '@/lib/send';
 import { TradeModal } from '../trading/TradeModal';
-import { ChevronRight, CreditCard } from 'lucide-react';
+import { Check, ChevronRight, Copy, CreditCard } from 'lucide-react';
+import { ChainBadge } from '../market/ChainBadge';
 import { ConnectWalletButton } from './ConnectWalletButton';
 import { NetworkPicker } from './NetworkPicker';
 import { DepositGlyph, ModalHeader } from './ModalHeader';
@@ -79,7 +80,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
     chain.kind === 'evm' ? Boolean(evmAddress) && evmChainId === chain.evmChainId : Boolean(solanaWallet);
 
   async function startFunding() {
-    if (!depositAddress || !usdc?.address) return;
+    if (!depositAddress || (!native && !usdc?.address)) return;
     setSubmitting(true);
     setFlowError(null);
     try {
@@ -87,7 +88,7 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         destination: {
           address: depositAddress,
           chain: chain.kind === 'evm' ? CHAIN_REGISTRY[chain.slug === 'bnb' ? 'bnb' : 'base'].identifier : SOLANA_FUND_CHAIN,
-          asset: native ? 'native-currency' : usdc.address,
+          asset: native ? 'native-currency' : usdc!.address!,
         },
         fiat: {},
       });
@@ -116,6 +117,44 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
           <Button type="button" className="w-full" disabled={!ready} onClick={() => login()}>
             {!ready ? tF('loading') : tF('signInToDeposit')}
           </Button>
+        </div>
+      ) : native && step !== 'error' ? (
+        <div className="mt-4 flex flex-col gap-4">
+          <div role="tablist" className="grid grid-cols-2 gap-1 rounded-xl bg-white/[0.04] p-1">
+            {(['deposit', 'buy'] as const).map((id) => {
+              const on = id === 'buy' ? step === 'buy' : step !== 'buy';
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setStep(id)}
+                  className={cn('h-9 rounded-lg font-display text-sm font-bold transition-colors', on ? 'bg-white/[0.09] text-ink-900' : 'text-ink-400 hover:text-ink-900')}
+                >
+                  {id === 'buy' ? tF('tabBuy') : tF('deposit')}
+                </button>
+              );
+            })}
+          </div>
+          <ChainChips value={chain} onChange={setChain} only={step === 'buy' ? CARD_CHAINS : undefined} />
+          {step === 'buy' ? (
+            !isConnectedForChain ? (
+              chain.kind === 'evm' ? (
+                <ConnectWalletButton expectedChainId={chain.evmChainId} block />
+              ) : (
+                <p className="font-body text-sm text-ink-600">{tF('settingUpSolana')}</p>
+              )
+            ) : (
+              <Button type="button" className="w-full" disabled={submitting || !CARD_CHAINS.includes(chain.slug)} onClick={() => void startFunding()}>
+                {submitting ? tF('opening') : tF('buyCoin', { coin })}
+              </Button>
+            )
+          ) : depositAddress ? (
+            <NativeDeposit address={depositAddress} networkName={chain.name} coin={coin} onBuy={CARD_CHAINS.includes(chain.slug) ? () => setStep('buy') : undefined} />
+          ) : (
+            <p className="font-body text-sm text-ink-600">{tF('settingUpChain', { chain: chain.name })}</p>
+          )}
         </div>
       ) : step === 'choose' ? (
         <div className="mt-4 flex flex-col gap-2">
@@ -192,6 +231,96 @@ export function FundModal({ open, onClose, initialChain }: { open: boolean; onCl
         </div>
       )}
     </TradeModal>
+  );
+}
+
+/** Card buys reach Solana, Base and BSC (Privy's on-ramp has no Robinhood Chain). */
+const CARD_CHAINS: SendChainSlug[] = ['solana', 'base', 'bnb'];
+
+/** The networks as a row of chips — the same look as the wallet's chain chips (2026-11-02). */
+function ChainChips({ value, onChange, only }: { value: SendChainOption; onChange: (c: SendChainOption) => void; only?: SendChainSlug[] }) {
+  const chains = SEND_CHAINS.filter((c) => !only || only.includes(c.slug));
+  // Moving to Buy from Robinhood: jump to a chain that card buys reach.
+  useEffect(() => {
+    if (only && !only.includes(value.slug)) onChange(chains[0]!);
+  }, [only, value.slug, onChange, chains]);
+  return (
+    <div role="radiogroup" className={cn('grid gap-1.5', chains.length === 4 ? 'grid-cols-4' : 'grid-cols-3')}>
+      {chains.map((c) => {
+        const on = c.slug === value.slug;
+        return (
+          <button
+            key={c.slug}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(c)}
+            className={cn(
+              'flex h-14 flex-col items-center justify-center gap-1 rounded-xl border font-body text-[0.7rem] font-semibold transition-colors',
+              on ? 'border-accent/50 bg-accent/10 text-ink-900' : 'border-white/[0.07] bg-white/[0.02] text-ink-400 hover:text-ink-900',
+            )}
+          >
+            <ChainBadge chain={c.slug} className="!static !h-5 !w-5 !ring-0" />
+            {c.name === 'BNB Chain' ? 'BSC' : c.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** QR beside the address, one big Copy button, and a way to buy the coin with a card. */
+function NativeDeposit({ address, networkName, coin, onBuy }: { address: string; networkName: string; coin: string; onBuy?: () => void }) {
+  const tF = useTranslations('fund');
+  const [qr, setQr] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(address, { margin: 1, width: 240 })
+      .then((url) => !cancelled && setQr(url))
+      .catch(() => !cancelled && setQr(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [address]);
+  const copy = () =>
+    void navigator.clipboard.writeText(address).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-3">
+        {qr ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a generated data: URL
+          <img src={qr} alt={`QR code for your ${networkName} address`} className="h-28 w-28 shrink-0 rounded-xl bg-white p-1.5" />
+        ) : (
+          <span className="h-28 w-28 shrink-0 rounded-xl bg-white/[0.04]" aria-hidden />
+        )}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="font-body text-xs font-semibold text-ink-400">{tF('addressOf', { coin })}</span>
+          <span className="mt-1 break-all font-mono text-[0.8rem] leading-snug text-ink-900">{address}</span>
+          <button type="button" onClick={copy} aria-label={tF('copyAddress')} className="mt-auto self-end rounded-lg p-1.5 text-ink-400 hover:bg-white/[0.06] hover:text-ink-900">
+            {copied ? <Check className="h-4 w-4 text-up" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+          </button>
+        </div>
+      </div>
+      <p className="font-body text-xs text-ink-400">
+        {tF.rich('sendOnlyCoin', { coin, network: networkName, b: (chunks) => <span className="font-semibold text-ink-900">{chunks}</span> })}
+      </p>
+      {onBuy && (
+        <p className="font-body text-xs text-ink-400">
+          {tF('noCoin', { coin })}{' '}
+          <button type="button" onClick={onBuy} className="font-semibold text-accent hover:underline">
+            {tF('buyCard')}
+          </button>
+        </p>
+      )}
+      <Button type="button" className="w-full" onClick={copy}>
+        {copied ? tF('copied') : tF('copyAddress')}
+      </Button>
+    </div>
   );
 }
 

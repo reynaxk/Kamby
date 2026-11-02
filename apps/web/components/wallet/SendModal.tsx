@@ -34,7 +34,9 @@ import {
   SOLANA_MIN_FEE_LAMPORTS,
   type SendAsset,
   type SendChainOption,
+  type SendChainSlug,
 } from '@/lib/send';
+import { useNativeTrading } from '@/lib/native-trading';
 import { friendlyError } from '@/lib/friendly-error';
 import { Check, Send } from 'lucide-react';
 import { TradeModal } from '../trading/TradeModal';
@@ -169,6 +171,7 @@ export function SendModal({
   toUser = false,
   presetUsername,
   onSent,
+  initialChain,
 }: {
   open: boolean;
   onClose: () => void;
@@ -178,6 +181,8 @@ export function SendModal({
   /** Called with the transfer once it's confirmed — replaces the default recipient notice
    *  (the chat posts the transfer as a message, which notifies them itself). */
   onSent?: (txRef: string, chainSlug: string) => void;
+  /** Start on this chain (the wallet's per-chain Withdraw, 2026-11-02). */
+  initialChain?: SendChainSlug;
 }) {
   const tL = useTranslations('labels');
   const tU = useTranslations('ui');
@@ -190,8 +195,13 @@ export function SendModal({
   const { signAndSendTransaction } = useSignAndSendTransaction();
 
   const [chain, setChain] = useState<SendChainOption>(SEND_CHAINS[1]!); // Base
+  useEffect(() => {
+    const preset = initialChain ? SEND_CHAINS.find((c) => c.slug === initialChain) : undefined;
+    if (open && preset) setChain(preset);
+  }, [open, initialChain]);
   const [evmChainConfigs, setEvmChainConfigs] = useState<EvmChainConfig[]>([]);
-  const assets = useMemo(() => assetsForChain(chain, evmChainConfigs), [chain, evmChainConfigs]);
+  const native = useNativeTrading();
+  const assets = useMemo(() => assetsForChain(chain, evmChainConfigs, native), [chain, evmChainConfigs, native]);
   const [asset, setAsset] = useState<SendAsset>(assets[0]!);
   // Send a coin you hold (2026-10-21): null = USDC (the default), else that coin on its own chain.
   const positions = useMyPositions();

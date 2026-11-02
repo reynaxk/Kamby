@@ -329,7 +329,13 @@
     "depositOneNetwork": "Прати USDC по мрежата Base на този адрес — влиза в единния ти баланс в Kamby.",
     "depositCrypto": "Депозирай крипто",
     "depositCryptoDetail": "SOL в Solana, ETH в Base или Robinhood, BNB в BSC — от друг портфейл или борса.",
-    "sendOnlyCoin": "Изпращай само <b>{coin}</b> в <b>{network}</b> на този адрес. Други монети или мрежи може да се загубят."
+    "sendOnlyCoin": "Изпращай само <b>{coin}</b> в <b>{network}</b> на този адрес. Други монети или мрежи може да се загубят.",
+    "totalValue": "Обща стойност",
+    "tabBuy": "Купи",
+    "addressOf": "{coin} адрес за депозит",
+    "noCoin": "Нямаш {coin}?",
+    "buyCard": "Купи с карта",
+    "buyCoin": "Купи {coin} с карта"
   },
   "leaderboard": {
     "title": "Класация",

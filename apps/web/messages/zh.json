@@ -329,7 +329,13 @@
     "depositOneNetwork": "通过 Base 网络把 USDC 转到这个地址——会进入你唯一的 Kamby 余额。",
     "depositCrypto": "充值加密货币",
     "depositCryptoDetail": "Solana 上的 SOL、Base 或 Robinhood 上的 ETH、BSC 上的 BNB — 从其他钱包或交易所转入。",
-    "sendOnlyCoin": "此地址只接收 <b>{network}</b> 上的 <b>{coin}</b>。其他币种或网络可能会丢失。"
+    "sendOnlyCoin": "此地址只接收 <b>{network}</b> 上的 <b>{coin}</b>。其他币种或网络可能会丢失。",
+    "totalValue": "总价值",
+    "tabBuy": "购买",
+    "addressOf": "{coin} 充值地址",
+    "noCoin": "没有 {coin}？",
+    "buyCard": "用银行卡购买",
+    "buyCoin": "用银行卡购买 {coin}"
   },
   "leaderboard": {
     "title": "排行榜",

@@ -11,7 +11,8 @@ import { useTranslations } from 'next-intl';
 import { Bell, ChevronRight, Coins, Copy, Eye, Gift, History, LogOut, MessageSquareHeart, Pencil, Star, User } from 'lucide-react';
 import { sendAchievementEvent } from '@/lib/achievements-client';
 import { setNativeTrading, useNativeTrading } from '@/lib/native-trading';
-import { NativeBalancesList, useWalletTotalUsd } from '@/components/wallet/NativeBalancesList';
+import { useWalletTotalUsd } from '@/components/wallet/NativeBalancesList';
+import { WalletChains } from '@/components/wallet/WalletChains';
 import { LEGAL_CONTACT_EMAIL } from '@/lib/legal';
 import { cn } from '@kamby/ui';
 import { fetchMyProfile, type MyProfile } from '@/lib/profile-client';
@@ -164,7 +165,7 @@ export function AppProfileMenu() {
         <SendButton variant="pill" toUser />
       </div>
 
-      {native && <NativeBalancesList className="mt-5" />}
+      {native && <WalletChains showTotal={false} actions={false} className="mt-5" />}
 
       {/* Titles (2026-11-01). */}
       <AchievementsShowcase own username={profile?.username ?? null} className="mt-6" />

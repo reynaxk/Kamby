@@ -329,7 +329,13 @@
     "depositOneNetwork": "Gửi USDC qua mạng Base đến địa chỉ này — tiền vào số dư Kamby duy nhất của bạn.",
     "depositCrypto": "Nạp crypto",
     "depositCryptoDetail": "SOL trên Solana, ETH trên Base hoặc Robinhood, BNB trên BSC — từ ví khác hoặc sàn.",
-    "sendOnlyCoin": "Chỉ gửi <b>{coin}</b> trên <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất."
+    "sendOnlyCoin": "Chỉ gửi <b>{coin}</b> trên <b>{network}</b> đến địa chỉ này. Coin hoặc mạng khác có thể bị mất.",
+    "totalValue": "Tổng giá trị",
+    "tabBuy": "Mua",
+    "addressOf": "Địa chỉ nạp {coin}",
+    "noCoin": "Chưa có {coin}?",
+    "buyCard": "Mua bằng thẻ",
+    "buyCoin": "Mua {coin} bằng thẻ"
   },
   "leaderboard": {
     "title": "Bảng xếp hạng",

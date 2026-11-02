@@ -329,7 +329,13 @@
     "depositOneNetwork": "Envoie de l’USDC sur le réseau Base à cette adresse — il arrive dans ton solde Kamby unique.",
     "depositCrypto": "Déposer des cryptos",
     "depositCryptoDetail": "SOL sur Solana, ETH sur Base ou Robinhood, BNB sur BSC — depuis un autre wallet ou un exchange.",
-    "sendOnlyCoin": "Envoie uniquement du <b>{coin}</b> sur <b>{network}</b> à cette adresse. D’autres coins ou réseaux peuvent être perdus."
+    "sendOnlyCoin": "Envoie uniquement du <b>{coin}</b> sur <b>{network}</b> à cette adresse. D’autres coins ou réseaux peuvent être perdus.",
+    "totalValue": "Valeur totale",
+    "tabBuy": "Acheter",
+    "addressOf": "Adresse de dépôt {coin}",
+    "noCoin": "Pas de {coin} ?",
+    "buyCard": "Acheter par carte",
+    "buyCoin": "Acheter du {coin} par carte"
   },
   "leaderboard": {
     "title": "Classement",

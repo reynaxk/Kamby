@@ -102,13 +102,15 @@ export interface SendAsset {
 /** USDC only (2026-10-13, owner): Kamby users hold only USDC — the ETH/BNB/SOL in a wallet is
  *  Kamby's own gas top-up, never theirs to withdraw. The backend-configured USDC address is
  *  preferred; until that config loads, the same known address the trade panel uses. */
-export function assetsForChain(chain: SendChainOption, evmChainConfigs: EvmChainConfig[]): SendAsset[] {
+export function assetsForChain(chain: SendChainOption, evmChainConfigs: EvmChainConfig[], includeNative = false): SendAsset[] {
+  // Native-coin trading (2026-11-02): the chain's own coin is the user's money now — first.
+  const own: SendAsset[] = includeNative ? [{ kind: 'native', symbol: chain.nativeSymbol, decimals: chain.kind === 'solana' ? 9 : 18 }] : [];
   if (chain.kind === 'solana') {
-    return [{ kind: 'token', symbol: 'USDC', address: SOLANA_USDC_MINT, decimals: 6 }];
+    return [...own, { kind: 'token', symbol: 'USDC', address: SOLANA_USDC_MINT, decimals: 6 }];
   }
   const config = evmChainConfigs.find((c) => c.chainId === chain.evmChainId);
   const address = config?.usdcAddress ?? (chain.evmChainId !== undefined ? USDC_BY_CHAIN_ID[chain.evmChainId]?.address : undefined);
-  return address ? [{ kind: 'token', symbol: 'USDC', address, decimals: null }] : [];
+  return address ? [...own, { kind: 'token', symbol: 'USDC', address, decimals: null }] : own;
 }
 
 /** Layered validation for a typed-or-pasted destination — format regex (@kamby/domain's
