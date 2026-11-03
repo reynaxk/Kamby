@@ -2,6 +2,7 @@
 
 import { CoinInfoTab } from '@/components/market/CoinInfoTab';
 import { CoinSideStats } from '@/components/market/CoinSideStats';
+import { CoinPositionStrip } from '@/components/market/CoinPositionStrip';
 
 import { useMemo, useState } from 'react';
 import { formatCompactCount } from '@/lib/format';
@@ -228,6 +229,7 @@ export function KambyTerminal({
               <CoinSideStats source={chartSource} chain={chain === 'bnb' ? 'bnb' : chain === 'robinhood' ? 'robinhood' : 'base'} address={market.tokenAddress} />
             </WidgetBoundary>
             <WidgetBoundary name="trade">{tradePanel}</WidgetBoundary>
+            <CoinPositionStrip address={market.tokenAddress} />
             <div className="h-[440px] overflow-hidden rounded-xl border border-white/[0.06] bg-surface">
               <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">
                 <TokenStreamChatLazy chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} className="h-full" />

@@ -310,7 +310,16 @@
     "txns": "24h取引",
     "sideTop10": "上位10",
     "sideBuys": "買い",
-    "sideSells": "売り"
+    "sideSells": "売り",
+    "fAll": "すべて",
+    "fWhales": "クジラ",
+    "fYou": "自分",
+    "whaleTag": "クジラ",
+    "youTag": "自分",
+    "noMatchTrades": "まだ該当する取引はありません。",
+    "posInvested": "投資額",
+    "posHolding": "保有",
+    "posPnl": "損益"
   },
   "fund": {
     "network": "ネットワーク",

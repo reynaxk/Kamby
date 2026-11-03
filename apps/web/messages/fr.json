@@ -310,7 +310,16 @@
     "txns": "Trades 24h",
     "sideTop10": "Top 10",
     "sideBuys": "Achats",
-    "sideSells": "Ventes"
+    "sideSells": "Ventes",
+    "fAll": "Tous",
+    "fWhales": "Baleines",
+    "fYou": "Toi",
+    "whaleTag": "BALEINE",
+    "youTag": "TOI",
+    "noMatchTrades": "Pas encore de trades comme ça.",
+    "posInvested": "Investi",
+    "posHolding": "Détenu",
+    "posPnl": "P&L"
   },
   "fund": {
     "network": "Réseau",

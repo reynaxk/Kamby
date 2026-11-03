@@ -310,7 +310,16 @@
     "txns": "24s işlem",
     "sideTop10": "İlk 10",
     "sideBuys": "Alış",
-    "sideSells": "Satış"
+    "sideSells": "Satış",
+    "fAll": "Tümü",
+    "fWhales": "Balinalar",
+    "fYou": "Sen",
+    "whaleTag": "BALİNA",
+    "youTag": "SEN",
+    "noMatchTrades": "Henüz böyle işlem yok.",
+    "posInvested": "Yatırılan",
+    "posHolding": "Elde",
+    "posPnl": "K/Z"
   },
   "fund": {
     "network": "Ağ",

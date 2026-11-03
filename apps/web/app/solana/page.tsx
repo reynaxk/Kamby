@@ -8,6 +8,7 @@ import { cn } from '@kamby/ui';
 import { TokenChartCard } from '@/components/terminal/TokenChartCard';
 import { CoinBottomTabs } from '@/components/market/CoinBottomTabs';
 import { CoinSideStats } from '@/components/market/CoinSideStats';
+import { CoinPositionStrip } from '@/components/market/CoinPositionStrip';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import type { ChartTimeframe } from '@/lib/chart-data';
@@ -223,6 +224,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
                 <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
               </WidgetBoundary>
             </div>
+            {!isSol && <CoinPositionStrip address={market.tokenAddress} className="mt-3" />}
             {!isSol && (
               <div className="mt-3 h-[440px] overflow-hidden rounded-xl border border-white/[0.06] bg-surface">
                 <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">

@@ -310,7 +310,16 @@
     "txns": "เทรด 24ชม.",
     "sideTop10": "10 อันดับแรก",
     "sideBuys": "ซื้อ",
-    "sideSells": "ขาย"
+    "sideSells": "ขาย",
+    "fAll": "ทั้งหมด",
+    "fWhales": "วาฬ",
+    "fYou": "คุณ",
+    "whaleTag": "วาฬ",
+    "youTag": "คุณ",
+    "noMatchTrades": "ยังไม่มีเทรดแบบนี้",
+    "posInvested": "ลงทุน",
+    "posHolding": "ถืออยู่",
+    "posPnl": "กำไร/ขาดทุน"
   },
   "fund": {
     "network": "เครือข่าย",

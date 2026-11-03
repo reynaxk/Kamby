@@ -310,7 +310,16 @@
     "txns": "Transaksi 24j",
     "sideTop10": "Top 10",
     "sideBuys": "Beli",
-    "sideSells": "Jual"
+    "sideSells": "Jual",
+    "fAll": "Semua",
+    "fWhales": "Paus",
+    "fYou": "Kamu",
+    "whaleTag": "PAUS",
+    "youTag": "KAMU",
+    "noMatchTrades": "Belum ada trade seperti itu.",
+    "posInvested": "Modal",
+    "posHolding": "Dipegang",
+    "posPnl": "P&L"
   },
   "fund": {
     "network": "Jaringan",

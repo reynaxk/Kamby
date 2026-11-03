@@ -310,7 +310,16 @@
     "txns": "24h 거래",
     "sideTop10": "상위 10",
     "sideBuys": "매수",
-    "sideSells": "매도"
+    "sideSells": "매도",
+    "fAll": "전체",
+    "fWhales": "고래",
+    "fYou": "나",
+    "whaleTag": "고래",
+    "youTag": "나",
+    "noMatchTrades": "아직 해당 거래가 없어요.",
+    "posInvested": "투자",
+    "posHolding": "보유",
+    "posPnl": "손익"
   },
   "fund": {
     "network": "네트워크",

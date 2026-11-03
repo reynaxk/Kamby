@@ -310,7 +310,16 @@
     "txns": "Giao dịch 24h",
     "sideTop10": "Top 10",
     "sideBuys": "Mua",
-    "sideSells": "Bán"
+    "sideSells": "Bán",
+    "fAll": "Tất cả",
+    "fWhales": "Cá voi",
+    "fYou": "Bạn",
+    "whaleTag": "CÁ VOI",
+    "youTag": "BẠN",
+    "noMatchTrades": "Chưa có giao dịch như vậy.",
+    "posInvested": "Đã đầu tư",
+    "posHolding": "Đang giữ",
+    "posPnl": "Lãi/lỗ"
   },
   "fund": {
     "network": "Mạng",

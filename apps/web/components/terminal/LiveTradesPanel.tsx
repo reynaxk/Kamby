@@ -9,6 +9,8 @@ import { formatCompactUsd, truncateAddress } from '@/lib/format';
 import { ListSkeleton } from '@/components/market/ListSkeleton';
 
 const POLL_MS = 15_000;
+/** A trade this big gets the WHALE tag and passes the Whales filter (2026-11-02). */
+export const WHALE_TRADE_USD = 500;
 const EXPLORER_TX: Record<string, (hash: string) => string> = {
   solana: (h) => `https://solscan.io/tx/${h}`,
   base: (h) => `https://basescan.org/tx/${h}`,
@@ -29,7 +31,17 @@ function ago(ms: number, now: number): string {
  * rate budget, same as the chart's fallback), on the coin's chart pool, every 15s while the
  * tab is visible. New trades slide in at the top; rows already shown never move.
  */
-export function LiveTradesPanel({ source }: { source: ChartSource }) {
+export function LiveTradesPanel({
+  source,
+  filter = 'all',
+  mine = [],
+}: {
+  source: ChartSource;
+  filter?: 'all' | 'whales' | 'you';
+  /** Your own wallet addresses — your trades get the YOU tag and pass the You filter. */
+  mine?: string[];
+}) {
+  const tC = useTranslations('coin');
   const tT = useTranslations('terminal');
   const tU = useTranslations('ui');
   const [trades, setTrades] = useState<GeckoTrade[] | null>(null);
@@ -78,10 +90,14 @@ export function LiveTradesPanel({ source }: { source: ChartSource }) {
     return failed ? <p className="p-4 font-body text-sm text-ink-400">{tU('couldnTLoadActivity_bd85')}</p> : <ListSkeleton label={tU('loading_5f02')} rows={6} avatar={false} />;
   }
   if (trades.length === 0) return <p className="p-4 font-body text-sm text-ink-400">{tU('noTradesYet_ceb3')}</p>;
+  const own = new Set(mine.map((a) => a.toLowerCase()));
+  const isMine = (t: GeckoTrade) => own.has(t.trader.toLowerCase());
+  const shown = trades.filter((t) => (filter === 'whales' ? t.amountUsd >= WHALE_TRADE_USD : filter === 'you' ? isMine(t) : true));
+  if (shown.length === 0) return <p className="p-4 font-body text-sm text-ink-400">{tC('noMatchTrades')}</p>;
 
   return (
     <ul>
-      {trades.map((t) => (
+      {shown.map((t) => (
         <li key={t.txHash} className={cn(fresh.has(t.txHash) && 'animate-[kamby-slide-in_0.4s_ease-out]')}>
           <a href={EXPLORER_TX[network]?.(t.txHash)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-2.5">
             <span
@@ -92,7 +108,14 @@ export function LiveTradesPanel({ source }: { source: ChartSource }) {
             >
               {tT(t.side === 'BUY' ? 'buy' : 'sell')}
             </span>
-            <span className="min-w-0 flex-1 truncate font-body text-sm text-ink-600">{truncateAddress(t.trader)}</span>
+            <span className="flex min-w-0 flex-1 items-center gap-1.5">
+              <span className="truncate font-body text-sm text-ink-600">{truncateAddress(t.trader)}</span>
+              {isMine(t) ? (
+                <span className="shrink-0 rounded bg-accent/15 px-1 font-display text-[0.55rem] font-black text-accent">{tC('youTag')}</span>
+              ) : (
+                t.amountUsd >= WHALE_TRADE_USD && <span className="shrink-0 rounded bg-[#8B9BFF]/15 px-1 font-display text-[0.55rem] font-black text-[#A5B0FF]">{tC('whaleTag')}</span>
+              )}
+            </span>
             <span className={cn('shrink-0 font-body text-sm font-semibold tabular-nums', t.side === 'BUY' ? 'text-up' : 'text-down')}>
               {formatCompactUsd(t.amountUsd)}
             </span>

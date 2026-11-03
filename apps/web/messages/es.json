@@ -310,7 +310,16 @@
     "txns": "Trades 24h",
     "sideTop10": "Top 10",
     "sideBuys": "Compras",
-    "sideSells": "Ventas"
+    "sideSells": "Ventas",
+    "fAll": "Todas",
+    "fWhales": "Ballenas",
+    "fYou": "Tú",
+    "whaleTag": "BALLENA",
+    "youTag": "TÚ",
+    "noMatchTrades": "Aún no hay operaciones así.",
+    "posInvested": "Invertido",
+    "posHolding": "En cartera",
+    "posPnl": "P&L"
   },
   "fund": {
     "network": "Red",

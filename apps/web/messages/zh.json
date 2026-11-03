@@ -310,7 +310,16 @@
     "txns": "24h 交易",
     "sideTop10": "前10",
     "sideBuys": "买入",
-    "sideSells": "卖出"
+    "sideSells": "卖出",
+    "fAll": "全部",
+    "fWhales": "巨鲸",
+    "fYou": "我",
+    "whaleTag": "巨鲸",
+    "youTag": "我",
+    "noMatchTrades": "暂无此类交易。",
+    "posInvested": "投入",
+    "posHolding": "持有",
+    "posPnl": "盈亏"
   },
   "fund": {
     "network": "网络",

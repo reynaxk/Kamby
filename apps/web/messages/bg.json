@@ -310,7 +310,16 @@
     "txns": "Сделки 24ч",
     "sideTop10": "Топ 10",
     "sideBuys": "Покупки",
-    "sideSells": "Продажби"
+    "sideSells": "Продажби",
+    "fAll": "Всички",
+    "fWhales": "Китове",
+    "fYou": "Ти",
+    "whaleTag": "КИТ",
+    "youTag": "ТИ",
+    "noMatchTrades": "Още няма такива сделки.",
+    "posInvested": "Вложено",
+    "posHolding": "Държиш",
+    "posPnl": "P&L"
   },
   "fund": {
     "network": "Мрежа",
