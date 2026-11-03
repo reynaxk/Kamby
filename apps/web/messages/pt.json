@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "Ao vivo",
-    "connecting": "Conectando"
+    "connecting": "Conectando",
+    "following": "Seguindo",
+    "pnl": "P&L",
+    "titles": "Títulos"
   },
   "huntPage": {
     "title": "Hunt",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "Compre e venda com a moeda de cada rede em vez de USDC — você paga a taxa de rede.",
     "on": "Ligado",
     "off": "Desligado"
+  },
+  "huntSide": {
+    "trending": "Em alta",
+    "pulse": "Chat Pulse"
   }
 }

@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "Live",
-    "connecting": "Menyambung"
+    "connecting": "Menyambung",
+    "following": "Diikuti",
+    "pnl": "P&L",
+    "titles": "Gelar"
   },
   "huntPage": {
     "title": "Hunt",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "Beli dan jual dengan koin tiap chain, bukan USDC — kamu bayar biaya jaringan.",
     "on": "Nyala",
     "off": "Mati"
+  },
+  "huntSide": {
+    "trending": "Trending",
+    "pulse": "Chat Pulse"
   }
 }

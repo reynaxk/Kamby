@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "Live",
-    "connecting": "Verbinde"
+    "connecting": "Verbinde",
+    "following": "Gefolgt",
+    "pnl": "P&L",
+    "titles": "Titel"
   },
   "huntPage": {
     "title": "Hunt",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "Kaufe und verkaufe mit dem eigenen Coin jeder Chain statt USDC — du zahlst die Netzwerkgebühr.",
     "on": "An",
     "off": "Aus"
+  },
+  "huntSide": {
+    "trending": "Trending",
+    "pulse": "Pulse-Chat"
   }
 }

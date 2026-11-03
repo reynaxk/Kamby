@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "实时",
-    "connecting": "连接中"
+    "connecting": "连接中",
+    "following": "关注",
+    "pnl": "盈亏",
+    "titles": "称号"
   },
   "huntPage": {
     "title": "狩猎",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "用各链自己的币而不是 USDC 买卖 — 网络费由你支付。",
     "on": "开",
     "off": "关"
+  },
+  "huntSide": {
+    "trending": "热门",
+    "pulse": "Pulse 聊天"
   }
 }

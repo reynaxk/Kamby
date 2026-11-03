@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "실시간",
-    "connecting": "연결 중"
+    "connecting": "연결 중",
+    "following": "팔로잉",
+    "pnl": "손익",
+    "titles": "칭호"
   },
   "huntPage": {
     "title": "헌트",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "USDC 대신 각 체인의 코인으로 사고팔아요 — 네트워크 수수료는 직접 내요.",
     "on": "켜짐",
     "off": "꺼짐"
+  },
+  "huntSide": {
+    "trending": "트렌딩",
+    "pulse": "Pulse 채팅"
   }
 }

@@ -506,7 +506,7 @@ function XxxRiskCard({
     >
       <Link
         href={evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`}
-        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-1.5 p-2.5"
+        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2.5 gap-y-1 px-2.5 py-2"
       >
         <span className="row-span-2 flex flex-col items-center gap-1">
           <span
@@ -520,7 +520,7 @@ function XxxRiskCard({
               src={token.imageUrl}
               seed={token.mintAddress}
               label={token.symbol ?? token.name}
-              className="!rounded-md h-[60px] w-[60px] border-2 border-[#08090C] text-lg"
+              className="!rounded-md h-[52px] w-[52px] border-2 border-[#08090C] text-base"
             />
             {pad && (
               <span
@@ -538,7 +538,7 @@ function XxxRiskCard({
 
         <span className="min-w-0">
           <span className="flex items-baseline gap-1.5">
-            <span className="truncate font-display text-[0.98rem] font-extrabold leading-tight text-ink-900">
+            <span className="truncate font-display text-[0.9rem] font-extrabold leading-tight text-ink-900">
               {label}
             </span>
             <span className="truncate font-body text-[0.72rem] text-ink-400">{token.name}</span>
@@ -602,7 +602,7 @@ function XxxRiskCard({
         </span>
 
         <span className="flex flex-col items-end text-right">
-          <span className={cn('font-display text-[1.05rem] font-black leading-none tabular-nums', mcTone(token.marketCapUsd))}>
+          <span className={cn('font-display text-[0.95rem] font-black leading-none tabular-nums', mcTone(token.marketCapUsd))}>
             <span className="mr-0.5 font-body text-[0.6rem] font-bold text-ink-400">{t('mc')}</span>
             {money(token.marketCapUsd)}
           </span>

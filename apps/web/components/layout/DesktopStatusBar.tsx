@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Bell, History, Star, Wallet } from 'lucide-react';
+import { Award, Bell, History, LineChart, Star, Users, Wallet } from 'lucide-react';
 import type { CryptoPrice, MarketFeedEvents } from '@kamby/domain';
 import { cn } from '@kamby/ui';
 import { subscribeToMarketFeeds } from '@/lib/market-feeds';
@@ -56,6 +56,9 @@ export function DesktopStatusBar() {
     { href: '/trades', label: tL('menu_trades'), icon: <History /> },
     { href: '/explore?tab=watchlist', label: tNav('watchlist'), icon: <Star /> },
     { href: '/notifications', label: tL('menu_notifications'), icon: <Bell /> },
+    { href: '/track', label: t('following'), icon: <Users /> },
+    { href: '/account?tab=pnl', label: t('pnl'), icon: <LineChart /> },
+    { href: '/account?achievements=1', label: t('titles'), icon: <Award /> },
   ];
 
   return (

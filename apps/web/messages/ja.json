@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "ライブ",
-    "connecting": "接続中"
+    "connecting": "接続中",
+    "following": "フォロー中",
+    "pnl": "損益",
+    "titles": "称号"
   },
   "huntPage": {
     "title": "ハント",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "USDC の代わりに各チェーンのコインで売買 — ネットワーク手数料は自分で支払います。",
     "on": "オン",
     "off": "オフ"
+  },
+  "huntSide": {
+    "trending": "トレンド",
+    "pulse": "Pulse チャット"
   }
 }

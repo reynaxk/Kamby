@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "На живо",
-    "connecting": "Свързване"
+    "connecting": "Свързване",
+    "following": "Следвани",
+    "pnl": "P&L",
+    "titles": "Титли"
   },
   "huntPage": {
     "title": "Hunt",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "Купувай и продавай с монетата на всяка верига вместо с USDC — плащаш таксата на мрежата.",
     "on": "Вкл.",
     "off": "Изкл."
+  },
+  "huntSide": {
+    "trending": "Трендинг",
+    "pulse": "Pulse чат"
   }
 }

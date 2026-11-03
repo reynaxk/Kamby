@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "Canlı",
-    "connecting": "Bağlanıyor"
+    "connecting": "Bağlanıyor",
+    "following": "Takip",
+    "pnl": "K/Z",
+    "titles": "Unvanlar"
   },
   "huntPage": {
     "title": "Av",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "USDC yerine her ağın kendi coin’iyle al-sat — ağ ücretini sen ödersin.",
     "on": "Açık",
     "off": "Kapalı"
+  },
+  "huntSide": {
+    "trending": "Trend",
+    "pulse": "Pulse sohbet"
   }
 }

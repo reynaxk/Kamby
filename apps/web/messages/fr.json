@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "En direct",
-    "connecting": "Connexion"
+    "connecting": "Connexion",
+    "following": "Abonnements",
+    "pnl": "P&L",
+    "titles": "Titres"
   },
   "huntPage": {
     "title": "Hunt",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "Achète et vends avec la crypto de chaque chaîne au lieu d’USDC — tu paies les frais réseau.",
     "on": "Oui",
     "off": "Non"
+  },
+  "huntSide": {
+    "trending": "Tendances",
+    "pulse": "Chat Pulse"
   }
 }

@@ -1821,7 +1821,10 @@
   },
   "statusBar": {
     "live": "Trực tiếp",
-    "connecting": "Đang kết nối"
+    "connecting": "Đang kết nối",
+    "following": "Đang theo dõi",
+    "pnl": "Lãi/lỗ",
+    "titles": "Danh hiệu"
   },
   "huntPage": {
     "title": "Săn",
@@ -1838,5 +1841,9 @@
     "payNativeHint": "Mua bán bằng coin của từng chuỗi thay vì USDC — bạn trả phí mạng.",
     "on": "Bật",
     "off": "Tắt"
+  },
+  "huntSide": {
+    "trending": "Xu hướng",
+    "pulse": "Chat Pulse"
   }
 }
