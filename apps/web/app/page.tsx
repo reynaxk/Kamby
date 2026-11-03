@@ -29,7 +29,9 @@ export const metadata: Metadata = {
 export default async function LandingPage() {
   const t = await getTranslations('landing');
   const tw = await getTranslations('whatsNew');
-  const feeds = await soft(fetchMarketFeeds(), null);
+  // Up to 5s for the live coins: the hero is built from them (a slow API otherwise shows the
+  // fallback picture).
+  const feeds = await soft(fetchMarketFeeds(), null, 5000);
   return (
     <div className="kamby-void kamby-landing min-h-screen overflow-x-hidden bg-[#040506] text-white">
       <LandingHeader signIn={t('signIn')} start={t('heroCta')} links={[]} />
