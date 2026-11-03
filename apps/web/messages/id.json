@@ -1834,7 +1834,9 @@
     "title": "Jelajah",
     "sub": "Koin trending di semua chain dan watchlist-mu.",
     "trending": "Trending",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "Pair baru",
+    "live": "Live"
   },
   "nativePay": {
     "payNative": "Trading pakai SOL / ETH / BNB (beta)",

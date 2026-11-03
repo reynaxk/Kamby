@@ -1834,7 +1834,9 @@
     "title": "Khám phá",
     "sub": "Coin xu hướng trên mọi chuỗi và danh sách theo dõi của bạn.",
     "trending": "Xu hướng",
-    "watchlist": "Theo dõi"
+    "watchlist": "Theo dõi",
+    "newpairs": "Cặp mới",
+    "live": "Trực tiếp"
   },
   "nativePay": {
     "payNative": "Giao dịch bằng SOL / ETH / BNB (beta)",

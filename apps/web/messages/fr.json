@@ -1834,7 +1834,9 @@
     "title": "Explorer",
     "sub": "Les coins tendance sur chaque chaîne et ta watchlist.",
     "trending": "Tendances",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "Nouvelles paires",
+    "live": "Live"
   },
   "nativePay": {
     "payNative": "Trader en SOL / ETH / BNB (bêta)",

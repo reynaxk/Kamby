@@ -1834,7 +1834,9 @@
     "title": "Entdecken",
     "sub": "Trend-Coins auf jeder Chain und deine Watchlist.",
     "trending": "Trending",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "Neue Paare",
+    "live": "Live"
   },
   "nativePay": {
     "payNative": "Mit SOL / ETH / BNB handeln (Beta)",

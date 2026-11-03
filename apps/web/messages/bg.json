@@ -1834,7 +1834,9 @@
     "title": "Explore",
     "sub": "Монетите в тренд на всяка верига и твоят watchlist.",
     "trending": "Trending",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "Нови двойки",
+    "live": "На живо"
   },
   "nativePay": {
     "payNative": "Търгувай със SOL / ETH / BNB (бета)",

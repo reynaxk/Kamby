@@ -1834,7 +1834,9 @@
     "title": "Explorar",
     "sub": "Monedas en tendencia en cada red y tu watchlist.",
     "trending": "Tendencias",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "Pares nuevos",
+    "live": "En vivo"
   },
   "nativePay": {
     "payNative": "Operar con SOL / ETH / BNB (beta)",

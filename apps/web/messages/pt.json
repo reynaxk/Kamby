@@ -1834,7 +1834,9 @@
     "title": "Explorar",
     "sub": "Moedas em alta em toda rede e sua watchlist.",
     "trending": "Em alta",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "Novos pares",
+    "live": "Ao vivo"
   },
   "nativePay": {
     "payNative": "Negociar com SOL / ETH / BNB (beta)",

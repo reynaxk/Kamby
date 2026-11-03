@@ -1834,7 +1834,9 @@
     "title": "Keşfet",
     "sub": "Her ağdaki trend coinler ve izleme listen.",
     "trending": "Trend",
-    "watchlist": "İzleme listesi"
+    "watchlist": "İzleme listesi",
+    "newpairs": "Yeni çiftler",
+    "live": "Canlı"
   },
   "nativePay": {
     "payNative": "SOL / ETH / BNB ile işlem (beta)",

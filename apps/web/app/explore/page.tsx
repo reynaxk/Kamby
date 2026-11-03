@@ -9,7 +9,7 @@ import { soft } from '@/lib/soft';
 export const metadata = { title: 'Explore — Kamby' };
 export const dynamic = 'force-dynamic';
 
-/** Explore (2026-11-01, owner): trending coins on every chain and your watchlist, as two tabs. */
+/** Explore (2026-11-01, owner; 2026-11-02 New pairs + Live): trending coins on every chain, the newest pools, live streams and your watchlist. */
 export default async function ExplorePage({ searchParams }: { searchParams: { tab?: string } }) {
   const t = await getTranslations('explorePage');
   const feeds = (await soft(fetchMarketFeeds(), null)) ?? emptyMarketFeeds();
@@ -20,7 +20,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: { ta
       </div>
       <PageTopBar />
       <main className="mx-auto max-w-[1680px] pb-28 md:px-5 md:pt-4 md:pb-10">
-        <ExploreView initial={feeds} initialTab={searchParams.tab === 'watchlist' ? 'watchlist' : 'trending'} />
+        <ExploreView initial={feeds} initialTab={searchParams.tab === 'watchlist' || searchParams.tab === 'live' || searchParams.tab === 'newpairs' ? searchParams.tab : 'trending'} />
       </main>
     </div>
   );

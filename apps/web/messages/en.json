@@ -1834,7 +1834,9 @@
     "title": "Explore",
     "sub": "Trending coins on every chain, and your watchlist.",
     "trending": "Trending",
-    "watchlist": "Watchlist"
+    "watchlist": "Watchlist",
+    "newpairs": "New pairs",
+    "live": "Live"
   },
   "nativePay": {
     "payNative": "Trade with SOL / ETH / BNB (beta)",

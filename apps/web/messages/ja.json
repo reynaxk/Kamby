@@ -1834,7 +1834,9 @@
     "title": "探す",
     "sub": "全チェーンのトレンドコインとウォッチリスト。",
     "trending": "トレンド",
-    "watchlist": "ウォッチリスト"
+    "watchlist": "ウォッチリスト",
+    "newpairs": "新規ペア",
+    "live": "ライブ"
   },
   "nativePay": {
     "payNative": "SOL / ETH / BNB で取引（ベータ）",

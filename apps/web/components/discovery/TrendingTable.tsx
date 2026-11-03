@@ -53,13 +53,13 @@ function Pct({ v, className }: { v: number | null; className?: string }) {
  * the default sort; all four moves stay visible, with the coin's age, liquidity, market cap and
  * 24h trades (buys / sells) — from the same DexScreener pool as its live price. ⚡ on each row.
  */
-export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
+export function TrendingTable({ initial, initialSort = 'volume' }: { initial: MarketFeedSnapshot; initialSort?: Sort }) {
   const t = useTranslations('trendingPage');
   const tCols = useTranslations('coinCols');
   const { feeds } = useMarketFeeds(initial);
   const [chain, setChain] = useState<string>('all');
   const [win, setWin] = useState<Window>('1h');
-  const [sort, setSort] = useState<Sort>('volume');
+  const [sort, setSort] = useState<Sort>(initialSort);
   // Ages come from the clock — shown once hydrated, so server and browser render the same text.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -72,7 +72,8 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
       change: (m) => change(m, win) ?? -Infinity,
       liquidity: (m) => m.liquidityUsd ?? -1,
       txns,
-      age: (m) => -(m.windows?.poolCreatedAtMs ?? 0),
+      // Newest first; a coin without a known pool age goes last, never first (2026-11-02).
+      age: (m) => m.windows?.poolCreatedAtMs ?? -Infinity,
     };
     return feeds.trending.markets
       .filter((m) => {
@@ -81,7 +82,10 @@ export function TrendingTable({ initial }: { initial: MarketFeedSnapshot }) {
         seen.add(k);
         return chain === 'all' || m.chainIdentifier === chain;
       })
-      .sort((a, b) => key[sort](b) - key[sort](a));
+      .sort((a, b) => {
+        const x = key[sort](a), y = key[sort](b);
+        return x === y ? 0 : y > x ? 1 : -1;
+      });
   }, [feeds.trending.markets, chain, sort, win]);
 
   const head = (id: Sort | null, label: string, className?: string) =>

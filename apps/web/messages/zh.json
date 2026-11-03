@@ -1834,7 +1834,9 @@
     "title": "探索",
     "sub": "各链的趋势代币和你的自选。",
     "trending": "趋势",
-    "watchlist": "自选"
+    "watchlist": "自选",
+    "newpairs": "新交易对",
+    "live": "直播"
   },
   "nativePay": {
     "payNative": "使用 SOL / ETH / BNB 交易（测试版）",

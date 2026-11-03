@@ -1834,7 +1834,9 @@
     "title": "탐색",
     "sub": "모든 체인의 트렌딩 코인과 관심 목록.",
     "trending": "트렌딩",
-    "watchlist": "관심 목록"
+    "watchlist": "관심 목록",
+    "newpairs": "신규 페어",
+    "live": "라이브"
   },
   "nativePay": {
     "payNative": "SOL / ETH / BNB로 거래 (베타)",
