@@ -174,7 +174,8 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
 
   if (!paused) frozen.current = null;
   else if (!frozen.current) frozen.current = tokens;
-  const source = paused && frozen.current ? frozen.current : tokens;
+  // A live update can arrive without an address (2026-11-03: it crashed the whole Hunt page) — skip it.
+  const source = (paused && frozen.current ? frozen.current : tokens).filter((x) => typeof x.mintAddress === 'string' && x.mintAddress.length > 0);
 
   for (const token of source) {
     if (!launchedAt.current.has(token.mintAddress))

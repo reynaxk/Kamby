@@ -205,6 +205,10 @@ export function applyFeedList(current: readonly Row[], patch: ListPatch): Row[] 
     const base = byKey.get(key);
     const delta = patch.rows[key];
     if (!base && !delta) return null;
+    // A changed-fields-only row for a coin this browser doesn't have yet (its list was older than
+    // the server's): not a whole row — resync instead of keeping a row with no address (2026-11-03,
+    // it crashed Hunt).
+    if (!base && feedRowKey(delta!) !== key) return null;
     out.push(base ? (delta ? { ...base, ...delta } : base) : delta!);
   }
   return out;

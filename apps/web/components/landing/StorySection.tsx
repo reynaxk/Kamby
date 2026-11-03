@@ -31,7 +31,7 @@ export function StorySection({
         <p className="mx-auto mt-5 max-w-md font-body text-lg leading-relaxed text-[#8B94A3] lg:mx-0">{body}</p>
       </div>
       <div className={cn('kl-rise-slow relative flex justify-center', flip && 'lg:order-1')}>
-        <div className="relative flex min-h-[400px] w-full max-w-[460px] items-center justify-center overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-[#07090C] px-6 sm:min-h-[440px]">
+        <div className="relative flex min-h-[400px] w-full max-w-[460px] items-center justify-center rounded-[1.75rem] border border-white/[0.08] bg-[#07090C] px-6 sm:min-h-[440px]">
           <div className="relative mb-20 mt-4 w-full max-w-[400px]">{art}</div>
         </div>
       </div>

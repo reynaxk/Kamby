@@ -94,7 +94,9 @@ export function priceDirection(value: number | null): PriceDirection {
 }
 
 /** Address -> "0x4200…0006" for compact display; the full value stays in the title attr. */
-export function truncateAddress(address: string): string {
+export function truncateAddress(address: string | null | undefined): string {
+  // Never throw on a missing address — one bad row must not take a page down.
+  if (!address) return '—';
   if (address.length <= 10) return address;
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
