@@ -250,15 +250,16 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   };
 
   return (
-    <div ref={root} className="col-span-full">
-      <div className="flex flex-wrap items-center gap-2 px-2 py-2 md:px-3">
-        {/* No 'Live · 272' counter (owner 2026-11-02); only say so while the board is paused. */}
-        {paused && (
-          <span className="flex items-center gap-1.5 font-body text-xs font-semibold text-ink-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-ink-400" aria-hidden />
-            {t('paused')}
-          </span>
-        )}
+    <div ref={root} className="relative col-span-full">
+      {/* "Paused" floats over the corner — it used to be a line of its own that pushed the whole
+          board down every time the mouse came in (2026-11-03, owner's BUG video). */}
+      {paused && (
+        <span className="pointer-events-none absolute -top-6 right-4 z-10 flex items-center gap-1.5 font-body text-xs font-semibold text-ink-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-ink-400" aria-hidden />
+          {t('paused')}
+        </span>
+      )}
+      <div className={cn('flex-wrap items-center gap-2 px-2 py-2 md:px-3', wide ? 'hidden' : 'flex')}>
         <div className="ml-auto flex items-center gap-1.5">
           <button
             type="button"
@@ -404,7 +405,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                       )}
                     </button>
                   </header>
-                  <div className="kamby-thin-scroll max-h-[calc(100dvh-15rem)] min-h-[24rem] overflow-y-auto">
+                  <div className="kamby-thin-scroll max-h-[calc(100dvh-13rem)] min-h-[24rem] overflow-y-auto [overflow-anchor:none]">
                     {byColumn[c.id].length === 0 ? (
                       empty
                     ) : (
