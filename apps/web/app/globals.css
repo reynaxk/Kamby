@@ -43,7 +43,7 @@
 }
 
 html {
-  background-color: rgb(2 2 3);
+  background-color: rgb(7 8 10);
 }
 body {
   background-color: rgb(var(--kamby-bg));
@@ -53,7 +53,7 @@ body {
 /* Every dark page is dark to the very bottom — the layout's ticker gap below the footer
    showed the light body background as a white strip (landing 10-04, then coin pages). */
 body:has(.kamby-void) {
-  background-color: rgb(2 2 3);
+  background-color: rgb(7 8 10);
 }
 
 /*
@@ -89,19 +89,21 @@ body:has(.kamby-void) {
 /* Kamby Neon (2026-10-12, owner: "interesting and aesthetic", own style — not fomo's): a deep
  * blue-black, the brand's own #00FF87 on every main action (black text on it), juicy up/down.
  * 2026-10-30 (owner: "more dark"): background near pure black, panels a step above it. */
+/* Kamby Prime (2026-11-04, owner: "build it how you would"): neutral graphite instead of
+ * blue-black, hairline borders, softer ink, the brand green kept for actions and gains. */
 .kamby-void {
-  --kamby-bg: 2 2 3;
-  --kamby-surface: 8 9 12;
-  --kamby-surface-raised: 14 15 20;
-  --kamby-line: 23 25 32;
-  --kamby-ink-900: 240 242 248;
-  --kamby-ink-600: 150 155 172;
-  --kamby-ink-400: 98 103 122;
+  --kamby-bg: 7 8 10;
+  --kamby-surface: 11 12 15;
+  --kamby-surface-raised: 18 20 24;
+  --kamby-line: 24 26 31;
+  --kamby-ink-900: 236 238 241;
+  --kamby-ink-600: 150 156 166;
+  --kamby-ink-400: 107 113 124;
   --kamby-accent: 0 255 135;
-  --kamby-accent-ink: 2 10 6;
-  --kamby-up: 0 230 118;
-  --kamby-down: 255 59 105;
-  --kamby-warn: 255 184 0;
+  --kamby-accent-ink: 4 18 10;
+  --kamby-up: 0 230 138;
+  --kamby-down: 255 92 114;
+  --kamby-warn: 242 196 109;
   color-scheme: dark;
 }
 
@@ -456,7 +458,7 @@ body:has(.kamby-void) {
    neither a "code" font nor scrollbar tracks. Desktop keeps the terminal's mono look. */
 @media (max-width: 767px) {
   .font-mono {
-    font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
   }
@@ -957,4 +959,13 @@ body:has(.kamby-void) {
 @keyframes kl-float {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -10px; }
+}
+
+/* Kamby Prime (2026-11-04): Geist reads heavy at 800/900 — every extra-bold and black weight
+ * in the app calms one step, so headings stay confident without shouting. */
+.kamby-void .font-black {
+  font-weight: 700;
+}
+.kamby-void .font-extrabold {
+  font-weight: 650;
 }

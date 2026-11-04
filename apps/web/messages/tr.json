@@ -19,7 +19,10 @@
     "trending": "Trend",
     "hunt": "Av",
     "explore": "Keşfet",
-    "soon": "Yakında"
+    "soon": "Yakında",
+    "track": "Takip",
+    "portfolio": "Portföy",
+    "more": "Daha fazla"
   },
   "install": {
     "title": "Kamby uygulamasını edinin",
@@ -288,7 +291,23 @@
     "m4b": "Hyperliquid ile büyük coinlerde long ya da short, doğrudan USDC’nden.",
     "story1Title": "Tek dokunuşla al.",
     "story2Title": "Balinaları takip et.",
-    "story3Title": "Senin kaydın. Gerçek."
+    "story3Title": "Senin kaydın. Gerçek.",
+    "primeA": "Sıradakini al-sat.",
+    "primeB": "Herkesten önce.",
+    "primeSub": "Solana, Base ve BSC’deki her yeni coin, çıktığı saniyede. Tek bir USDC bakiyesi. Asla gas yok.",
+    "bentoA": "Bir profesyonelin kullandığı her şey.",
+    "bentoB": "İlk gün için yeterince basit.",
+    "b1t": "Her lansman, anında.",
+    "b1b": "Yeni coinler, mezun olmak üzere olanlar ve her launchpad’den taze geçişler yan yana.",
+    "b2t": "Tek dokunuşla al.",
+    "b2b": "Tutarlarını bir kez seç. Sonra her seferinde tek dokunuş.",
+    "b3t": "Sadece USDC.",
+    "b3b": "Ağ ücretlerini Kamby öder. Asla gas almazsın.",
+    "b4t": "Kazanan trader’ları takip et.",
+    "b4b": "Balina işlemleri anında. Dilediğini takip et, her alımını ve satımını gör.",
+    "b5t": "Paylaşmaya değer kazançlar.",
+    "b5b": "Her coin için gerçek K/Z, günlük takvim ve tek dokunuşla paylaşılan kart.",
+    "primeClose": "Bir sonraki şu anda çıkıyor."
   },
   "coin": {
     "price": "Fiyat",

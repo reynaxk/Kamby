@@ -19,7 +19,7 @@ export function FeedShowcase({ kicker, title, body, chips }: { kicker: string; t
           </div>
         </Post>
         <Post who="lunatrades" tone="#5CEFFF" ago="18m" text="Closed $BONK 🔥" className="relative z-20 mt-3 rotate-[1deg] lg:ml-14 lg:rotate-[1.5deg]">
-          <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 p-4" style={{ background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#020203 100%)' }}>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 p-4" style={{ background: 'linear-gradient(165deg,#141B4D 0%,#0A0E26 45%,#07080A 100%)' }}>
             <span className="font-display text-sm font-bold text-white">$BONK</span>
             <p className="mt-2 font-display text-4xl font-black leading-none tracking-tight text-[#00E676]">+236%</p>
             <p className="mt-1 font-mono text-xs font-bold text-[#00E676]">+$118.00</p>

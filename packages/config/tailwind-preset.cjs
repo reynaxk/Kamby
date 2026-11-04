@@ -30,9 +30,9 @@ module.exports = {
         warn: 'rgb(var(--kamby-warn) / <alpha-value>)',
       },
       fontFamily: {
-        display: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
+        display: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
       },
       // Purposeful emphasis only — composed via className at the specific call sites that
       // want it (an active order, the terminal's chart card), never baked into a shared

@@ -62,7 +62,7 @@ export function PortfolioHeader() {
     return (
       <>
       <ScrolledBar />
-      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:mt-6 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#020203] md:px-7 md:py-6">
+      <section className="kamby-rise kamby-glass mt-2 flex items-center justify-between gap-3 rounded-3xl px-4 py-4 md:mt-6 md:border md:border-white/[0.07] md:bg-gradient-to-br md:from-[#0E1430] md:via-[#090C1A] md:to-[#07080A] md:px-7 md:py-6">
         <div>
           <p className="font-display text-2xl font-bold text-ink-900">{t('welcome')}</p>
           <p className="font-body text-sm text-ink-600">{t('welcomeSub')}</p>

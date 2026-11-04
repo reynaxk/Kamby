@@ -13,6 +13,7 @@ import { ShareButton } from '@/components/social/ShareButton';
 import { KambyTerminal } from '@/components/terminal/KambyTerminal';
 import { formatDateTime, formatPrice, truncateAddress } from '@/lib/format';
 import { fetchTokenHistory, fetchTokenOrLookup } from '@/lib/market-api';
+import { RememberCoinTab } from '@/components/layout/RememberCoinTab';
 import { fetchGlobalActivity } from '@/lib/social-api';
 import { EMPTY_TRADERS, fetchTokenTraders } from '@/lib/discovery-api';
 import { soft } from '@/lib/soft';
@@ -94,6 +95,7 @@ export default async function TokenDetailPage({
     // other); the rest of the product still runs the original light/dark palette.
     <div className="kamby-void min-h-screen bg-bg">
       <AutoRefresh intervalSeconds={60} />
+      <RememberCoinTab chainIdentifier={market.chainIdentifier} address={market.tokenAddress} symbol={market.symbol} logoUrl={market.logoUrl} href={`/market/${params.chain}/${params.address}`} />
       <MarketHeader expectedWalletChainId={chainId} className="max-lg:hidden" />
       {/* Phones get the coin's own app screen from KambyTerminal instead of this row. */}
       <div className="mx-auto max-w-[1600px] px-3 pt-3 max-lg:hidden">

@@ -19,7 +19,10 @@
     "trending": "Trending",
     "hunt": "Hunt",
     "explore": "Entdecken",
-    "soon": "Bald"
+    "soon": "Bald",
+    "track": "Tracken",
+    "portfolio": "Portfolio",
+    "more": "Mehr"
   },
   "install": {
     "title": "Hol dir die Kamby-App",
@@ -288,7 +291,23 @@
     "m4b": "Long oder short auf die Majors mit Hyperliquid, direkt aus deinem USDC.",
     "story1Title": "Kaufen mit einem Tipp.",
     "story2Title": "Folge den Walen.",
-    "story3Title": "Deine Bilanz. Echt."
+    "story3Title": "Deine Bilanz. Echt.",
+    "primeA": "Trade, was als Nächstes kommt.",
+    "primeB": "Vor allen anderen.",
+    "primeSub": "Jeder neue Coin auf Solana, Base und BSC in der Sekunde seines Starts. Ein USDC-Guthaben. Nie Gas.",
+    "bentoA": "Alles, was Profis nutzen.",
+    "bentoB": "Einfach genug für den ersten Tag.",
+    "b1t": "Jeder Launch, sofort.",
+    "b1b": "Neue Coins, Coins kurz vor dem Abschluss und frische Migrationen von jedem Launchpad, nebeneinander.",
+    "b2t": "Kaufen mit einem Tipp.",
+    "b2b": "Beträge einmal wählen. Danach ist es jedes Mal ein Tipp.",
+    "b3t": "Nur USDC.",
+    "b3b": "Kamby zahlt die Netzwerkgebühren. Du kaufst nie Gas.",
+    "b4t": "Folge den Tradern, die gewinnen.",
+    "b4b": "Wal-Trades, während sie passieren. Folge jedem und sieh jeden Kauf und Verkauf.",
+    "b5t": "Gewinne, die man zeigt.",
+    "b5b": "Echter P&L für jeden Coin, ein Tageskalender und eine Karte zum Teilen mit einem Tipp.",
+    "primeClose": "Der nächste startet genau jetzt."
   },
   "coin": {
     "price": "Preis",

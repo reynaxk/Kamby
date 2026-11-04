@@ -34,28 +34,29 @@ export function trackRows(items: SocialActivity[], minUsd: number): SocialActivi
  * follow. Each row: who, bought/sold, how much, which coin — tap the coin to trade it, the
  * trader to see their profile.
  */
-export function TrackFeed({ compact = false }: { compact?: boolean }) {
+/** `dock`: Hunt's right-hand panel (Kamby Prime, 2026-11-04) — the full feed, wide screens only. */
+export function TrackFeed({ compact = false, dock = false }: { compact?: boolean; dock?: boolean }) {
   // `compact` is the desktop home's side panel — only mounted (and only streaming) on wide screens.
   const [wide, setWide] = useState(false);
   useEffect(() => {
-    if (!compact) return;
+    if (!compact && !dock) return;
     const mq = window.matchMedia('(min-width: 1280px)');
     const sync = () => setWide(mq.matches);
     sync();
     mq.addEventListener('change', sync);
     return () => mq.removeEventListener('change', sync);
-  }, [compact]);
-  if (compact && !wide) return null;
+  }, [compact, dock]);
+  if ((compact || dock) && !wide) return null;
   return (
     <QuickBuyProvider>
-      <Feed compact={compact} />
+      <Feed compact={compact} dock={dock} />
     </QuickBuyProvider>
   );
 }
 
 const COMPACT_ROWS = 4;
 
-function Feed({ compact }: { compact: boolean }) {
+function Feed({ compact, dock }: { compact: boolean; dock: boolean }) {
   const t = useTranslations('track');
   const { authenticated, login } = usePrivy();
   const [tab, setTab] = useState<Tab>('whales');
@@ -181,7 +182,7 @@ function Feed({ compact }: { compact: boolean }) {
     );
 
   return (
-    <section className="mt-4">
+    <section className={dock ? "px-3 pt-2" : "mt-4"}>
       <div className="flex items-center gap-2">
         <div role="tablist" className="flex gap-5">
           {(['whales', 'following'] as const).map((id) => (

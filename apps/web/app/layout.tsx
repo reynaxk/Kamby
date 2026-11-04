@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { JetBrains_Mono, Manrope } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 // Importing this for its module-level side effect: it validates process.env at import
 // time (see lib/env.ts), and the root layout is the one module every request loads, so
@@ -25,12 +25,6 @@ import { AUTH_GATE_SCRIPT, AuthGate } from '@/components/auth/AuthGate';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
-const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
 
 /** Phone status bar and browser chrome in Kamby's background colour (installed app included). */
 // maximumScale 1: iOS Safari zoomed into every small text field on tap and stayed zoomed
@@ -38,7 +32,12 @@ const jetbrainsMono = JetBrains_Mono({
 // for accessibility; it only stops the automatic zoom-on-focus.
 // viewportFit cover (2026-11-01): with the translucent iPhone status bar, env(safe-area-inset-*)
 // is only real under `cover` — without it the installed app's top and bottom bars sat wrong.
-export const viewport: Viewport = { themeColor: '#020203', width: 'device-width', initialScale: 1, maximumScale: 1, viewportFit: 'cover' };
+export const viewport: Viewport = { themeColor: '#07080A', width: 'device-width', initialScale: 1, maximumScale: 1, viewportFit: 'cover' };
+
+// Kamby Prime (2026-11-04): Geist for everything — calmer, sharper type than Manrope. The
+// variable font files live in app/fonts (SIL Open Font License, see GEIST-LICENSE.txt).
+const GeistSans = localFont({ src: './fonts/Geist-Variable.woff2', variable: '--font-geist-sans', weight: '100 900', display: 'swap' });
+const GeistMono = localFont({ src: './fonts/GeistMono-Variable.woff2', variable: '--font-geist-mono', weight: '100 900', display: 'swap' });
 
 /** iPhone screens (CSS px wide, tall, pixel ratio) — keep in step with scripts/gen-logo.cjs. */
 const IPHONE_LAUNCH_SCREENS: [number, number, number][] = [
@@ -86,7 +85,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable}`} style={{ backgroundColor: '#020203', colorScheme: 'dark' }} suppressHydrationWarning>
+    <html lang={locale} className={`${GeistSans.variable} ${GeistMono.variable}`} style={{ backgroundColor: '#07080A', colorScheme: 'dark' }} suppressHydrationWarning>
       <head>
         {/* Dark from the very first paint (2026-10-13: the app opened on a white page — the
             light :root theme showed until a .kamby-void screen streamed in). */}

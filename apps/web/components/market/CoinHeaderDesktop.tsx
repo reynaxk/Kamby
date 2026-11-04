@@ -48,15 +48,15 @@ export function CoinHeaderDesktop({
   const label = symbol ?? name ?? address.slice(0, 6);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-4 py-3.5">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-[#0A0B0E] px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="relative shrink-0">
-          <TokenAvatar src={logoUrl} seed={address} label={label} className="h-12 w-12 text-base" />
+          <TokenAvatar src={logoUrl} seed={address} label={label} className="!rounded-[10px] h-11 w-11 text-base" />
           {chain && <ChainBadge chain={chain} />}
         </span>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="truncate font-display text-2xl font-black tracking-tight text-ink-900">{cashtag(label)}</h1>
+            <h1 className="truncate text-xl font-semibold tracking-tight text-ink-900">{cashtag(label)}</h1>
             <LaunchpadBadge chain={chainIdentifier} address={address} />
           </div>
           <button
@@ -79,16 +79,16 @@ export function CoinHeaderDesktop({
           </button>
         </div>
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center">
         <Fact label={tC('mcap')} value={formatCompactUsd(marketCapUsd)} />
         {/* Only what's known (2026-10-31 tidy pass) — no lone dash while the stats load. */}
         {stats?.volumeUsd.h24 ? <Fact label={tC('vol24')} value={formatCompactUsd(stats.volumeUsd.h24)} /> : null}
         {stats?.liquidityUsd != null && <Fact label={tC('liq')} value={formatCompactUsd(stats.liquidityUsd)} />}
-        <div className="text-right">
-          <p className="font-display text-2xl font-black tabular-nums leading-none text-ink-900">
+        <div className="ml-2 border-l border-line pl-5 text-right">
+          <p className="font-mono text-[1.4rem] font-medium tabular-nums leading-none tracking-tight text-ink-900">
             <PriceText value={price} flash />
           </p>
-          {change !== null && <p className={cn('mt-1 font-body text-sm font-bold tabular-nums', up ? 'text-up' : 'text-down')}>{formatPercent(change)} · 24h</p>}
+          {change !== null && <p className={cn('mt-1.5 font-mono text-xs tabular-nums', up ? 'text-up' : 'text-down')}>{formatPercent(change)} · 24h</p>}
         </div>
       </div>
     </div>
@@ -97,9 +97,9 @@ export function CoinHeaderDesktop({
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="font-body text-[0.68rem] font-semibold text-ink-400">{label}</p>
-      <p className="font-display text-sm font-bold tabular-nums text-ink-900">{value}</p>
+    <div className="border-l border-line px-5 first:border-l-0">
+      <p className="text-[0.7rem] text-ink-400">{label}</p>
+      <p className="mt-1 font-mono text-[0.86rem] font-medium tabular-nums text-ink-900">{value}</p>
     </div>
   );
 }

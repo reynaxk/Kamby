@@ -2,8 +2,9 @@ import { MarketHeader } from '@/components/market/MarketHeader';
 import { PreferencesCard } from '@/components/account/PreferencesCard';
 import { ProfileEditor } from '@/components/account/ProfileEditor';
 import { PnlHistoryChart } from '@/components/discovery/PnlHistoryChart';
-import { FundButton } from '@/components/wallet/FundButton';
-import { SendButton } from '@/components/wallet/SendButton';
+import { PortfolioTop } from '@/components/account/PortfolioTop';
+import { PnlCalendar } from '@/components/account/PnlCalendar';
+import { HomeHoldings } from '@/components/home/HomeHoldings';
 import { ChainBalancesCard } from '@/components/wallet/ChainBalancesCard';
 import { getTranslations } from 'next-intl/server';
 import { AppProfileMenu } from '@/components/account/AppProfileMenu';
@@ -11,7 +12,7 @@ import { PhoneSignedInOnly } from '@/components/account/PhoneSignedInOnly';
 import { SessionBootstrap } from '@/components/account/SessionBootstrap';
 import { AchievementsShowcase } from '@/components/achievements/AchievementsShowcase';
 
-export const metadata = { title: 'Your profile — Kamby' };
+export const metadata = { title: 'Portfolio — Kamby' };
 // See app/solana/page.tsx's own comment — same wagmi/Privy build-time prerender crash,
 // same fix: this page has no meaningful static version anyway.
 export const dynamic = 'force-dynamic';
@@ -29,26 +30,34 @@ export default async function AccountPage() {
       <AppProfileMenu />
       <PhoneSignedInOnly>
       {/* Phones show all of this inside the Profile screen above (2026-10-28). */}
-      <main className="mx-auto max-w-2xl px-6 py-10 max-md:hidden">
-        <section aria-labelledby="wallet-heading" className="mt-6 rounded-2xl border border-line bg-surface p-4 max-md:mt-0 max-md:border-0 max-md:bg-transparent max-md:p-0">
-          <h2 id="wallet-heading" className="font-display text-sm font-semibold text-ink-900">{t('wallet')}</h2>
-          <div className="mt-4">
-            <ChainBalancesCard />
+      {/* Kamby Prime (2026-11-04): a real Portfolio on computers — the total, P&L and your coins
+          on the left; wallets per chain, the calendar, titles and settings on the right. */}
+      <main className="mx-auto grid max-w-[1360px] grid-cols-1 gap-6 px-6 py-8 max-md:hidden lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          <PortfolioTop />
+          <div className="mt-6">
+            <PnlHistoryChart />
           </div>
-          <div className="mt-4 flex flex-wrap gap-2 max-md:grid max-md:grid-cols-2">
-            <FundButton variant="labeled" />
-            <SendButton variant="labeled" />
+          <section className="mt-6 rounded-xl border border-line bg-[#0A0B0E] p-4">
+            <HomeHoldings bare />
+          </section>
+        </div>
+        <aside className="min-w-0 space-y-4">
+          <section aria-labelledby="wallet-heading" className="rounded-xl border border-line bg-[#0A0B0E] p-4">
+            <h2 id="wallet-heading" className="text-sm font-semibold text-ink-900">{t('wallet')}</h2>
+            <div className="mt-4">
+              <ChainBalancesCard />
+            </div>
+          </section>
+          <section className="rounded-xl border border-line bg-[#0A0B0E] p-4">
+            <PnlCalendar />
+          </section>
+          <AchievementsShowcase own />
+          <PreferencesCard />
+          <div id="profile" className="scroll-mt-20">
+            <ProfileEditor />
           </div>
-        </section>
-        {/* Settings — the coin ticker, hiding balances, the language (computer; phones have the Profile menu). */}
-        <PreferencesCard className="mt-6 max-md:hidden" />
-        <AchievementsShowcase own className="mt-6" />
-        <div id="profile" className="mt-6 scroll-mt-20">
-          <ProfileEditor />
-        </div>
-        <div className="mt-8">
-          <PnlHistoryChart />
-        </div>
+        </aside>
       </main>
       </PhoneSignedInOnly>
     </div>

@@ -19,7 +19,10 @@
     "trending": "Em alta",
     "hunt": "Hunt",
     "explore": "Explorar",
-    "soon": "Em breve"
+    "soon": "Em breve",
+    "track": "Rastrear",
+    "portfolio": "Portfólio",
+    "more": "Mais"
   },
   "install": {
     "title": "Baixe o app Kamby",
@@ -288,7 +291,23 @@
     "m4b": "Long ou short nas principais com Hyperliquid, direto do seu USDC.",
     "story1Title": "Compre com um toque.",
     "story2Title": "Siga as baleias.",
-    "story3Title": "Seu histórico. De verdade."
+    "story3Title": "Seu histórico. De verdade.",
+    "primeA": "Negocie o que vem aí.",
+    "primeB": "Antes de todo mundo.",
+    "primeSub": "Cada moeda nova na Solana, Base e BSC, no segundo em que lança. Um saldo em USDC. Sem gás, nunca.",
+    "bentoA": "Tudo o que um profissional usa.",
+    "bentoB": "Simples o bastante para o primeiro dia.",
+    "b1t": "Cada lançamento, na hora.",
+    "b1b": "Moedas novas, moedas prestes a se formar e migrações recentes de cada launchpad, lado a lado.",
+    "b2t": "Compre com um toque.",
+    "b2b": "Escolha seus valores uma vez. Depois é um toque, sempre.",
+    "b3t": "Só USDC.",
+    "b3b": "A Kamby paga as taxas de rede. Você nunca compra gás.",
+    "b4t": "Siga os traders que ganham.",
+    "b4b": "Trades de baleias ao vivo. Siga quem quiser e veja cada compra e venda.",
+    "b5t": "Ganhos que valem mostrar.",
+    "b5b": "P&L real de cada moeda, um calendário diário e um card para postar com um toque.",
+    "primeClose": "A próxima está lançando agora."
   },
   "coin": {
     "price": "Preço",

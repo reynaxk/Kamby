@@ -19,7 +19,10 @@
     "trending": "Trending",
     "hunt": "Hunt",
     "explore": "Jelajah",
-    "soon": "Segera"
+    "soon": "Segera",
+    "track": "Pantau",
+    "portfolio": "Portofolio",
+    "more": "Lainnya"
   },
   "install": {
     "title": "Dapatkan aplikasi Kamby",
@@ -288,7 +291,23 @@
     "m4b": "Long atau short koin besar dengan Hyperliquid, langsung dari USDC-mu.",
     "story1Title": "Beli dengan satu ketuk.",
     "story2Title": "Ikuti para paus.",
-    "story3Title": "Rekammu. Sungguhan."
+    "story3Title": "Rekammu. Sungguhan.",
+    "primeA": "Trade yang berikutnya.",
+    "primeB": "Sebelum yang lain.",
+    "primeSub": "Setiap koin baru di Solana, Base dan BSC, di detik peluncurannya. Satu saldo USDC. Tanpa gas, selamanya.",
+    "bentoA": "Semua yang dipakai pro.",
+    "bentoB": "Cukup simpel untuk hari pertama.",
+    "b1t": "Setiap peluncuran, seketika.",
+    "b1b": "Koin baru, koin yang hampir lulus dan migrasi baru dari setiap launchpad, berdampingan.",
+    "b2t": "Beli sekali ketuk.",
+    "b2b": "Pilih jumlahmu sekali. Lalu cukup sekali ketuk, setiap kali.",
+    "b3t": "Cukup USDC.",
+    "b3b": "Kamby menanggung biaya jaringan. Kamu tidak pernah membeli gas.",
+    "b4t": "Ikuti trader yang menang.",
+    "b4b": "Trade paus saat terjadi. Ikuti siapa saja dan lihat setiap beli dan jual.",
+    "b5t": "Kemenangan yang layak dibagikan.",
+    "b5b": "P&L nyata untuk setiap koin, kalender harian dan kartu yang bisa dibagikan sekali ketuk.",
+    "primeClose": "Yang berikutnya sedang meluncur sekarang."
   },
   "coin": {
     "price": "Harga",

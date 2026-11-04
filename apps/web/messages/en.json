@@ -19,7 +19,10 @@
     "trending": "Trending",
     "hunt": "Hunt",
     "explore": "Explore",
-    "soon": "Soon"
+    "soon": "Soon",
+    "track": "Track",
+    "portfolio": "Portfolio",
+    "more": "More"
   },
   "install": {
     "title": "Get the Kamby app",
@@ -288,7 +291,23 @@
     "m4b": "Go long or short on the majors with Hyperliquid, straight from your USDC.",
     "story1Title": "Buy in one tap.",
     "story2Title": "Follow the whales.",
-    "story3Title": "Your record. For real."
+    "story3Title": "Your record. For real.",
+    "primeA": "Trade what's next.",
+    "primeB": "Before everyone else.",
+    "primeSub": "Every new coin on Solana, Base and BSC, the second it launches. One USDC balance. No gas, ever.",
+    "bentoA": "Everything a pro uses.",
+    "bentoB": "Simple enough for day one.",
+    "b1t": "Every launch, the second it lands.",
+    "b1b": "New coins, coins about to graduate and fresh migrations from every launchpad, side by side.",
+    "b2t": "Buy in one tap.",
+    "b2b": "Pick your amounts once. Then it's one tap, every time.",
+    "b3t": "Just USDC.",
+    "b3b": "Kamby covers the network fees. You never buy gas.",
+    "b4t": "Follow the traders who win.",
+    "b4b": "Whale trades as they happen. Follow anyone and see every buy and sell.",
+    "b5t": "Your wins, worth sharing.",
+    "b5b": "Real P&L for every coin, a daily calendar and a card you can post in one tap.",
+    "primeClose": "The next one is launching right now."
   },
   "coin": {
     "price": "Price",

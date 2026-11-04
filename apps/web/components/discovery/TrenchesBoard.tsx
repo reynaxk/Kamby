@@ -16,12 +16,12 @@ export function TrenchesBoard({ initial }: { initial: MarketFeedSnapshot }) {
   useEffect(() => setMounted(true), []);
   return (
     <>
-      {/* Wide screens: the trending list and Pulse chat on the left (2026-11-02, the approved canvas). */}
+      {/* Wide screens: the Track / Pulse / Trending dock on the right (Kamby Prime, 2026-11-04). */}
       <div className="flex items-start gap-3">
-        {mounted && <HuntSidePanel trending={feeds.trending?.markets ?? []} />}
         <div className="min-w-0 flex-1">
           {!mounted ? <div className="h-[70vh] rounded-2xl bg-white/[0.02]" /> : <XxxRiskBoard tokens={feeds.xxxrisk?.tokens ?? []} emptyText={tU('nothingInRangeRightNow_ba3c')} />}
         </div>
+        {mounted && <HuntSidePanel trending={feeds.trending?.markets ?? []} />}
       </div>
     </>
   );

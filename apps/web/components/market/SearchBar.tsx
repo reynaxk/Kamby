@@ -55,12 +55,13 @@ export function SearchBar({ defaultValue, screen = false, compact = false, onAct
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // "/" focuses the compact field from anywhere, unless you're typing somewhere else.
+  // "/" or ⌘K / Ctrl+K focuses the compact field from anywhere (⌘K even while typing elsewhere).
   useEffect(() => {
     if (!compact) return;
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement as HTMLElement | null;
-      if (e.key !== '/' || e.metaKey || e.ctrlKey || (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable))) return;
+      const commandK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+      if (!commandK && (e.key !== '/' || e.metaKey || e.ctrlKey || (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)))) return;
       e.preventDefault();
       inputRef.current?.focus();
     };
@@ -341,7 +342,7 @@ export function SearchBar({ defaultValue, screen = false, compact = false, onAct
           className={cn('w-full min-w-0 bg-transparent font-body text-ink-900 placeholder:text-ink-400 focus:outline-none', screen ? 'text-base' : compact ? 'text-[0.8rem]' : 'text-sm')}
         />
         {compact && !value && (
-          <kbd aria-hidden className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-white/15 font-mono text-[0.65rem] text-ink-400">/</kbd>
+          <kbd aria-hidden className="flex h-5 shrink-0 items-center justify-center rounded-md border border-white/15 px-1.5 font-mono text-[0.62rem] text-ink-400">⌘K</kbd>
         )}
         {loading && <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white/15 border-t-accent" aria-hidden />}
         {value ? (

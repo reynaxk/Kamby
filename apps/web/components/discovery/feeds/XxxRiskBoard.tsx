@@ -341,13 +341,13 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
               )}
             </div>
           ) : (
-            <div className="mx-3 mb-3 grid grid-cols-3 overflow-hidden rounded-xl border border-white/[0.07]" {...hover}>
+            <div className="mx-3 mb-3 grid grid-cols-3 gap-3" {...hover}>
               {COLUMNS.map((c) => (
                 <section
                   key={c.id}
-                  className="flex min-w-0 flex-col overflow-hidden border-r border-white/[0.07] bg-[#08090C] last:border-r-0"
+                  className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-[#0A0B0E]"
                 >
-                  <header className="flex h-10 items-center gap-2 border-b border-white/[0.07] bg-[#0A0C0F] px-2.5">
+                  <header className="flex h-10 items-center gap-2 border-b border-line px-3">
                     <span
                       className={cn(
                         'h-1.5 w-1.5 rounded-full',
@@ -359,7 +359,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                       )}
                       aria-hidden
                     />
-                    <h3 className="font-display text-sm font-extrabold text-ink-900">{t(c.key)}</h3>
+                    <h3 className="text-[0.84rem] font-semibold text-ink-900">{t(c.key)}</h3>
                     <span className="font-mono text-xs tabular-nums text-ink-400">
                       {byColumn[c.id].length}
                     </span>
@@ -500,13 +500,13 @@ function XxxRiskCard({
   return (
     <li
       className={cn(
-        'kamby-xcard relative overflow-hidden border-b border-white/[0.05] transition-colors hover:bg-white/[0.025]',
+        'kamby-xcard relative overflow-hidden border-b border-white/[0.04] transition-colors hover:bg-white/[0.02]',
         fresh && 'kamby-card-in',
       )}
     >
       <Link
         href={evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`}
-        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2.5 gap-y-1 px-2.5 py-2"
+        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5"
       >
         <span className="row-span-2 flex flex-col items-center gap-1">
           <span
@@ -538,7 +538,7 @@ function XxxRiskCard({
 
         <span className="min-w-0">
           <span className="flex items-baseline gap-1.5">
-            <span className="truncate font-display text-[0.9rem] font-extrabold leading-tight text-ink-900">
+            <span className="truncate text-[0.88rem] font-semibold leading-tight text-ink-900">
               {label}
             </span>
             <span className="truncate font-body text-[0.72rem] text-ink-400">{token.name}</span>
@@ -602,7 +602,7 @@ function XxxRiskCard({
         </span>
 
         <span className="flex flex-col items-end text-right">
-          <span className={cn('font-display text-[0.95rem] font-black leading-none tabular-nums', mcTone(token.marketCapUsd))}>
+          <span className={cn('font-mono text-[0.9rem] font-medium leading-none tabular-nums', mcTone(token.marketCapUsd))}>
             <span className="mr-0.5 font-body text-[0.6rem] font-bold text-ink-400">{t('mc')}</span>
             {money(token.marketCapUsd)}
           </span>
@@ -643,7 +643,7 @@ function XxxRiskCard({
         onClick={onBuy}
         disabled={buying}
         aria-label={t('quickBuy', { usd: quickUsd })}
-        className="absolute bottom-2.5 right-2.5 flex h-7 items-center gap-1 rounded-full bg-accent px-3 font-mono text-[0.75rem] font-bold tabular-nums text-black transition-transform hover:brightness-110 active:scale-[0.97] disabled:opacity-60"
+        className="absolute bottom-2.5 right-3 flex h-7 items-center gap-1 rounded-lg border border-[#1F3A2C] bg-[#0D1A13] px-2.5 font-mono text-[0.74rem] font-medium tabular-nums text-[#7CF5B9] transition-colors hover:border-accent/50 hover:bg-[#102318] active:scale-[0.97] disabled:opacity-60"
       >
         {buying ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />

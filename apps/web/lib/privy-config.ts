@@ -93,7 +93,7 @@ export const privyConfig = {
   appearance: {
     // Retuned 2026-09-22 alongside globals.css's `.kamby-void` block — kept in sync there,
     // not here, since Privy's modal renders outside our CSS scope and needs a literal hex.
-    theme: '#020203' as const,
+    theme: '#07080A' as const,
     accentColor: '#00FF87' as const,
     logo: 'https://kambesh.com/icon.png',
   },

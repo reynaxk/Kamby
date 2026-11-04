@@ -32,7 +32,7 @@ export function MessagesShell({ children, home = null }: { children: React.React
   if (!wide) return <div className="kamby-void min-h-screen bg-bg">{home ?? children}</div>;
   return (
     <div className="kamby-void min-h-screen bg-bg [--dm-left:calc(var(--nav-w,0px)+340px)] xl:[--dm-left:calc(var(--nav-w,0px)+380px)]">
-      <aside className="fixed bottom-[var(--ticker-h)] left-[var(--nav-w,0px)] top-[var(--top-h,0px)] z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#020203]/70 xl:w-[380px]">
+      <aside className="fixed bottom-[var(--ticker-h)] left-[var(--nav-w,0px)] top-[var(--top-h,0px)] z-30 flex w-[340px] flex-col border-r border-white/[0.06] bg-[#07080A]/70 xl:w-[380px]">
         <div className="flex items-center justify-between px-5 pb-2 pt-5">
           {/* From lg up the logo is in the left menu (DesktopSideNav) — the pane just says Messages. */}
           <Link href="/hunt" className="flex items-center gap-2 lg:hidden" aria-label="Kamby">

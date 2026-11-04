@@ -17,8 +17,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // Opening Kamby again (icon, shortcut, notification) reuses the open app instead of a second copy.
     launch_handler: { client_mode: ['navigate-existing', 'auto'] },
     orientation: 'portrait',
-    background_color: '#020203',
-    theme_color: '#020203',
+    background_color: '#07080A',
+    theme_color: '#07080A',
     categories: ['finance'],
     // Android (2026-10-11, owner's dad's phone showed "K in a box" before the app's own splash):
     // its launch screen draws the `any` icon on background_color, so that one is the bare mark

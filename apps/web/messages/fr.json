@@ -19,7 +19,10 @@
     "trending": "Tendances",
     "hunt": "Hunt",
     "explore": "Explorer",
-    "soon": "Bientôt"
+    "soon": "Bientôt",
+    "track": "Suivi",
+    "portfolio": "Portefeuille",
+    "more": "Plus"
   },
   "install": {
     "title": "Installez l’app Kamby",
@@ -288,7 +291,23 @@
     "m4b": "Long ou short sur les majors avec Hyperliquid, depuis ton USDC.",
     "story1Title": "Achète en un geste.",
     "story2Title": "Suis les baleines.",
-    "story3Title": "Ton bilan. Pour de vrai."
+    "story3Title": "Ton bilan. Pour de vrai.",
+    "primeA": "Tradez ce qui arrive.",
+    "primeB": "Avant tout le monde.",
+    "primeSub": "Chaque nouveau coin sur Solana, Base et BSC, à la seconde de son lancement. Un seul solde en USDC. Jamais de gas.",
+    "bentoA": "Tout ce qu’utilise un pro.",
+    "bentoB": "Assez simple pour le premier jour.",
+    "b1t": "Chaque lancement, à la seconde.",
+    "b1b": "Nouveaux coins, coins sur le point de graduer et migrations fraîches de chaque launchpad, côte à côte.",
+    "b2t": "Achetez en un geste.",
+    "b2b": "Choisissez vos montants une fois. Ensuite, un geste suffit.",
+    "b3t": "Juste de l’USDC.",
+    "b3b": "Kamby paie les frais de réseau. Vous n’achetez jamais de gas.",
+    "b4t": "Suivez les traders qui gagnent.",
+    "b4b": "Les trades des baleines en direct. Suivez qui vous voulez et voyez chaque achat et vente.",
+    "b5t": "Des gains qui valent d’être partagés.",
+    "b5b": "Un vrai P&L par coin, un calendrier quotidien et une carte à publier en un geste.",
+    "primeClose": "Le prochain sort en ce moment."
   },
   "coin": {
     "price": "Prix",

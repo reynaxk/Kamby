@@ -17,6 +17,7 @@ import { fetchDiscoverMarkets, fetchLaunchedToken, fetchMarketFeeds, fetchPumpFu
 import { CoinHeaderDesktop } from '@/components/market/CoinHeaderDesktop';
 import { getTranslations } from 'next-intl/server';
 import { PhoneSwitch } from '@/components/layout/PhoneSwitch';
+import { RememberCoinTab } from '@/components/layout/RememberCoinTab';
 import { soft } from '@/lib/soft';
 import { SolanaCoinApp } from '@/components/market/SolanaCoinApp';
 import { WidgetBoundary } from '@/components/ui-kit/WidgetBoundary';
@@ -183,6 +184,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
   return (
     <ToastProvider>
       <div className="kamby-void min-h-screen bg-bg">
+        {!isSol && <RememberCoinTab chainIdentifier="solana" address={market.tokenAddress} symbol={market.symbol} logoUrl={market.logoUrl} href={`/solana?mint=${market.tokenAddress}`} />}
         <PhoneSwitch
           phone={
             <SolanaCoinApp
@@ -261,18 +263,18 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
           </section>
 
           <aside>
-            {/* The coin's numbers above the trade panel (2026-11-02, GMGN + Axiom mix). */}
-            {!isSol && (
-              <WidgetBoundary name="side-stats" className="mb-3">
-                <CoinSideStats source={{ kind: 'solana', mint: market.tokenAddress }} chain="solana" address={market.tokenAddress} className="mb-3" />
-              </WidgetBoundary>
-            )}
-            <div className="rounded-xl border border-white/[0.06] bg-surface p-4">
+            {/* Kamby Prime (2026-11-04): trade first, then your position, then the coin's numbers. */}
+            <div className="rounded-xl border border-line bg-[#0A0B0E] p-4">
               <WidgetBoundary name="trade" className="border-0 p-0">
                 <SolanaTradePanel key={market.tokenAddress} tokenMint={market.tokenAddress} tokenSymbol={market.symbol} volatile={market.isNewListing || Boolean(market.onBondingCurve)} />
               </WidgetBoundary>
             </div>
             {!isSol && <CoinPositionStrip address={market.tokenAddress} className="mt-3" />}
+            {!isSol && (
+              <WidgetBoundary name="side-stats" className="mt-3">
+                <CoinSideStats source={{ kind: 'solana', mint: market.tokenAddress }} chain="solana" address={market.tokenAddress} className="mt-3" />
+              </WidgetBoundary>
+            )}
             {!isSol && (
               <div className="mt-3 h-[440px] overflow-hidden rounded-xl border border-white/[0.06] bg-surface">
                 <WidgetBoundary name="token-chat" className="h-full rounded-none border-0">

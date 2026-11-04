@@ -19,7 +19,10 @@
     "trending": "Xu hướng",
     "hunt": "Săn",
     "explore": "Khám phá",
-    "soon": "Sắp có"
+    "soon": "Sắp có",
+    "track": "Theo dõi",
+    "portfolio": "Danh mục",
+    "more": "Thêm"
   },
   "install": {
     "title": "Tải ứng dụng Kamby",
@@ -288,7 +291,23 @@
     "m4b": "Long hoặc short các coin lớn với Hyperliquid, ngay từ USDC của bạn.",
     "story1Title": "Mua chỉ một chạm.",
     "story2Title": "Theo dấu cá voi.",
-    "story3Title": "Thành tích của bạn. Thật sự."
+    "story3Title": "Thành tích của bạn. Thật sự.",
+    "primeA": "Giao dịch thứ sắp tới.",
+    "primeB": "Trước tất cả mọi người.",
+    "primeSub": "Mọi đồng coin mới trên Solana, Base và BSC ngay giây ra mắt. Một số dư USDC. Không bao giờ tốn gas.",
+    "bentoA": "Mọi thứ dân chuyên dùng.",
+    "bentoB": "Đủ đơn giản cho ngày đầu tiên.",
+    "b1t": "Mọi lần ra mắt, ngay lập tức.",
+    "b1b": "Coin mới, coin sắp tốt nghiệp và các đợt chuyển mới từ mọi launchpad, cạnh nhau.",
+    "b2t": "Mua chỉ một chạm.",
+    "b2b": "Chọn số tiền một lần. Sau đó mỗi lần chỉ một chạm.",
+    "b3t": "Chỉ USDC.",
+    "b3b": "Kamby trả phí mạng. Bạn không bao giờ phải mua gas.",
+    "b4t": "Theo dõi những trader thắng.",
+    "b4b": "Giao dịch của cá voi ngay khi diễn ra. Theo dõi bất kỳ ai và xem mọi lệnh mua bán.",
+    "b5t": "Chiến thắng đáng khoe.",
+    "b5b": "Lãi/lỗ thật cho từng coin, lịch theo ngày và thẻ đăng chỉ một chạm.",
+    "primeClose": "Đồng tiếp theo đang ra mắt ngay lúc này."
   },
   "coin": {
     "price": "Giá",
