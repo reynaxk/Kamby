@@ -98,28 +98,34 @@ export function LiveTradesPanel({
   return (
     <ul>
       {shown.map((t) => (
-        <li key={t.txHash} className={cn(fresh.has(t.txHash) && 'animate-[kamby-slide-in_0.4s_ease-out]')}>
-          <a href={EXPLORER_TX[network]?.(t.txHash)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-2.5">
+        <li key={t.txHash} className={cn('relative border-b border-white/[0.035]', fresh.has(t.txHash) && 'animate-[kamby-slide-in_0.4s_ease-out]')}>
+          {/* How big the trade was, as a faint bar behind the row (2026-11-04 redesign). */}
+          <span
+            aria-hidden
+            className={cn('pointer-events-none absolute inset-y-1 left-0 rounded-r-md', t.side === 'BUY' ? 'bg-up/[0.08]' : 'bg-down/[0.08]')}
+            style={{ width: `${Math.min(100, Math.max(4, (Math.log10(Math.max(1, t.amountUsd)) / 4.3) * 100))}%` }}
+          />
+          <a href={EXPLORER_TX[network]?.(t.txHash)} target="_blank" rel="noreferrer" className="relative flex h-9 items-center gap-3 px-4 hover:bg-white/[0.02]">
             <span
               className={cn(
-                'w-12 shrink-0 rounded-full py-0.5 text-center font-display text-[0.7rem] font-bold',
-                t.side === 'BUY' ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
+                'w-11 shrink-0 text-left text-[0.74rem] font-semibold',
+                t.side === 'BUY' ? 'text-up' : 'text-down',
               )}
             >
               {tT(t.side === 'BUY' ? 'buy' : 'sell')}
             </span>
             <span className="flex min-w-0 flex-1 items-center gap-1.5">
-              <span className="truncate font-body text-sm text-ink-600">{truncateAddress(t.trader)}</span>
+              <span className="truncate font-mono text-[0.76rem] text-ink-600">{truncateAddress(t.trader)}</span>
               {isMine(t) ? (
-                <span className="shrink-0 rounded bg-accent/15 px-1 font-display text-[0.55rem] font-black text-accent">{tC('youTag')}</span>
+                <span className="shrink-0 rounded-[4px] border border-accent/30 px-1 font-mono text-[0.56rem] font-medium text-accent">{tC('youTag')}</span>
               ) : (
-                t.amountUsd >= WHALE_TRADE_USD && <span className="shrink-0 rounded bg-[#8B9BFF]/15 px-1 font-display text-[0.55rem] font-black text-[#A5B0FF]">{tC('whaleTag')}</span>
+                t.amountUsd >= WHALE_TRADE_USD && <span className="shrink-0 rounded-[4px] border border-[#6BB6FF]/30 px-1 font-mono text-[0.56rem] font-medium text-[#6BB6FF]">{tC('whaleTag')}</span>
               )}
             </span>
-            <span className={cn('shrink-0 font-body text-sm font-semibold tabular-nums', t.side === 'BUY' ? 'text-up' : 'text-down')}>
+            <span className={cn('shrink-0 font-mono text-[0.8rem] font-medium tabular-nums', t.side === 'BUY' ? 'text-up' : 'text-down')}>
               {formatCompactUsd(t.amountUsd)}
             </span>
-            <span className="w-8 shrink-0 text-right font-body text-xs tabular-nums text-ink-400">{ago(t.atMs, now)}</span>
+            <span className="w-8 shrink-0 text-right font-mono text-[0.7rem] tabular-nums text-ink-400">{ago(t.atMs, now)}</span>
           </a>
         </li>
       ))}

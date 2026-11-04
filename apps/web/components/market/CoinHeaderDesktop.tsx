@@ -48,7 +48,7 @@ export function CoinHeaderDesktop({
   const label = symbol ?? name ?? address.slice(0, 6);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-[#0A0B0E] px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-[#0A0B0E] bg-[linear-gradient(100deg,rgba(0,255,135,0.06),transparent_38%)] px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="relative shrink-0">
           <TokenAvatar src={logoUrl} seed={address} label={label} className="!rounded-[10px] h-11 w-11 text-base" />

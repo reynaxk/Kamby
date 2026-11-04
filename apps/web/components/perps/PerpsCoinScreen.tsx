@@ -192,7 +192,7 @@ export function PerpsCoinScreen({ coin }: { coin: string }) {
               key={String(l)}
               type="button"
               onClick={() => setIsLong(l)}
-              className={cn('flex-1 rounded-xl py-2.5 font-display text-sm font-black transition-colors', isLong === l ? (l ? 'bg-up text-black' : 'bg-down text-white') : 'text-ink-400')}
+              className={cn('flex-1 rounded-xl py-2.5 font-display text-sm font-black transition-colors', isLong === l ? (l ? 'bg-accent text-accent-ink shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]' : 'bg-down text-[#1A0507] shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]') : 'text-ink-400')}
             >
               {l ? t('long') : t('short')}
             </button>
@@ -268,7 +268,7 @@ export function PerpsCoinScreen({ coin }: { coin: string }) {
           type="button"
           disabled={authenticated && (busy !== null || !market || !(margin > 0) || tooBig)}
           onClick={() => (authenticated ? void trade() : login())}
-          className={cn('mt-4 h-14 w-full rounded-2xl font-display text-base font-black transition-transform active:scale-[0.98] disabled:opacity-40', isLong ? 'bg-up text-black' : 'bg-down text-white')}
+          className={cn('mt-4 h-14 w-full rounded-2xl font-display text-base font-black transition-transform active:scale-[0.98] disabled:opacity-40', isLong ? 'bg-accent text-accent-ink shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]' : 'bg-down text-[#1A0507] shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]')}
         >
           {busy === 'open' ? t('placing') : tooBig ? t('notEnough') : isLong ? t('openLong', { coin, lev: leverage }) : t('openShort', { coin, lev: leverage })}
         </button>

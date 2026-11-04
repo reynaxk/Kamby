@@ -345,9 +345,10 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
               {COLUMNS.map((c) => (
                 <section
                   key={c.id}
-                  className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-[#0A0B0E]"
+                  className="relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-[#0A0B0E]"
                 >
-                  <header className="flex h-10 items-center gap-2 border-b border-line px-3">
+                  <span aria-hidden className="absolute inset-x-0 top-0 h-0.5" style={{ background: COLUMN_TONE[c.id] }} />
+                  <header className="flex flex-wrap items-center gap-2 border-b border-line bg-gradient-to-b from-white/[0.025] to-transparent px-3 pb-2.5 pt-3">
                     <span
                       className={cn(
                         'h-1.5 w-1.5 rounded-full',
@@ -355,16 +356,17 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                           ? 'bg-accent'
                           : c.id === 'soon'
                             ? 'bg-amber-300'
-                            : 'bg-[#8B9BFF]',
+                            : 'bg-[#6BB6FF]',
                       )}
                       aria-hidden
                     />
-                    <h3 className="text-[0.84rem] font-semibold text-ink-900">{t(c.key)}</h3>
-                    <span className="font-mono text-xs tabular-nums text-ink-400">
+                    <h3 className="text-[0.86rem] font-semibold text-ink-900">{t(c.key)}</h3>
+                    <span className="rounded-md bg-white/[0.05] px-1.5 font-mono text-[0.68rem] tabular-nums text-ink-400">
                       {byColumn[c.id].length}
                     </span>
+                    <span className="basis-full" aria-hidden />
                     {/* Each column's own search and quick amount (2026-11-02, Axiom Pulse-style). */}
-                    <label className="ml-1 flex h-6 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-white/[0.08] px-2 text-ink-400 focus-within:border-white/20">
+                    <label className="flex h-7 min-w-0 flex-1 items-center gap-1.5 rounded-md border border-white/[0.08] bg-black/30 px-2 text-ink-400 focus-within:border-white/20">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
                         <circle cx="11" cy="11" r="7" />
                         <path d="m20 20-3.5-3.5" />
@@ -381,7 +383,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                       type="button"
                       onClick={() => setSheet('quick')}
                       aria-label={t('quickAmount')}
-                      className="flex h-6 shrink-0 items-center gap-0.5 rounded-md border border-white/[0.08] px-1.5 font-mono text-[0.7rem] font-bold tabular-nums text-accent hover:border-accent/40"
+                      className="flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-accent/25 bg-accent/[0.08] px-2 font-mono text-[0.7rem] font-semibold tabular-nums text-accent hover:border-accent/50"
                     >
                       <Zap className="h-2.5 w-2.5" fill="currentColor" aria-hidden />
                       {view.quickUsd}
@@ -390,7 +392,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
                       type="button"
                       onClick={() => setFilterCol(c.id)}
                       className={cn(
-                        'flex h-6 shrink-0 items-center gap-1 rounded-md border px-1.5 font-display text-[0.7rem] font-bold transition-colors',
+                        'flex h-7 shrink-0 items-center gap-1 rounded-md border px-2 font-display text-[0.7rem] font-bold transition-colors',
                         activeCount(view.filters[c.id]) > 0
                           ? 'border-accent/50 bg-accent/10 text-accent'
                           : 'border-white/10 text-ink-600 hover:border-white/20 hover:text-ink-900',
@@ -497,164 +499,138 @@ function XxxRiskCard({
       ? Math.max(0, Math.round((Date.now() - token.graduatedAtMs) / 1000))
       : ageS;
 
+  // Safety chips on one line, most important first (2026-11-04 redesign: rows wrapped to 2–3
+  // lines of chips and every row came out a different height).
+  const chips: React.ReactNode[] = [
+    ...(devFlagOnly ? [<Badge key="fd" bad>{t('flagDev')}</Badge>] : []),
+    ...(topFlagOnly ? [<Badge key="ft" bad>{t('flagTop')}</Badge>] : []),
+    ...flags.map((f) => <Badge key={f} bad>{t(FLAG_KEY[f]!)}</Badge>),
+    ...(top !== null ? [<Pct key="top" label={t('top')} value={top} warn={35} bad={50} />] : []),
+    ...(dev !== null ? [<Pct key="dev" label={t('dev')} value={dev} warn={10} bad={20} />] : []),
+    ...(token.snipersPct != null ? [<Pct key="sn" label={t('snipers')} value={token.snipersPct} warn={10} bad={30} />] : []),
+    ...(token.insidersPct != null ? [<Pct key="in" label={t('insiders')} value={token.insidersPct} warn={10} bad={30} />] : []),
+    ...(token.bundlersPct != null ? [<Pct key="bu" label={t('bundlers')} value={token.bundlersPct} warn={10} bad={30} />] : []),
+  ];
+  const flow = buys !== null && sells !== null && buys + sells > 0 ? Math.round((buys / (buys + sells)) * 100) : null;
+  const ring = migrated ? '#6BB6FF' : curve >= 85 ? '#F5C451' : 'rgb(var(--kamby-accent))';
+
   return (
     <li
       className={cn(
-        'kamby-xcard relative overflow-hidden border-b border-white/[0.04] transition-colors hover:bg-white/[0.02]',
+        'kamby-xcard group relative border-b border-white/[0.04] transition-colors hover:bg-white/[0.025]',
         fresh && 'kamby-card-in',
       )}
     >
       <Link
         href={evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`}
-        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5"
+        className="grid h-[78px] grid-cols-[46px_minmax(0,1fr)_96px] items-center gap-x-2.5 px-3"
       >
-        <span className="row-span-2 flex flex-col items-center gap-1">
-          <span
-            className="relative rounded-lg p-[2px]"
-            style={{
-              background: `conic-gradient(${migrated ? '#8B9BFF' : 'rgb(var(--kamby-accent))'} ${curve * 3.6}deg, rgba(255,255,255,0.09) 0deg)`,
-            }}
-            title={t('curve', { pct: Math.round(curve) })}
-          >
-            <TokenAvatar
-              src={token.imageUrl}
-              seed={token.mintAddress}
-              label={token.symbol ?? token.name}
-              className="!rounded-md h-[52px] w-[52px] border-2 border-[#08090C] text-base"
-            />
-            {pad && (
-              <span
-                className="absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 border-surface bg-black font-display text-[0.6rem] font-black"
-                style={{ color: pad.color }}
-                title={pad.name}
-              >
-                {pad.mark}
-              </span>
-            )}
-            {badge && <ChainBadge chain={badge} className="!-bottom-1 !-left-1 !right-auto h-[18px] w-[18px] ring-[2.5px]" />}
-          </span>
-          <span className="font-mono text-[0.58rem] text-ink-400">{`${token.mintAddress.slice(0, 4)}…${token.mintAddress.slice(-4)}`}</span>
+        <span
+          className="relative h-[46px] w-[46px] rounded-xl p-[2px]"
+          style={{ background: `conic-gradient(${ring} ${curve * 3.6}deg, rgba(255,255,255,0.08) 0deg)` }}
+          title={t('curve', { pct: Math.round(curve) })}
+        >
+          <TokenAvatar
+            src={token.imageUrl}
+            seed={token.mintAddress}
+            label={token.symbol ?? token.name}
+            className="!rounded-[10px] h-[42px] w-[42px] border-2 border-[#0A0B0E] text-base"
+          />
+          {pad && (
+            <span
+              className="absolute -bottom-1 -right-1 flex h-[17px] w-[17px] items-center justify-center rounded-md border-2 border-[#0A0B0E] bg-black text-[0.55rem] font-black"
+              style={{ color: pad.color }}
+              title={pad.name}
+            >
+              {pad.mark}
+            </span>
+          )}
+          {badge && <ChainBadge chain={badge} className="!-bottom-1 !-left-1 !right-auto h-[17px] w-[17px] ring-[2.5px]" />}
         </span>
 
-        <span className="min-w-0">
-          <span className="flex items-baseline gap-1.5">
-            <span className="truncate text-[0.88rem] font-semibold leading-tight text-ink-900">
-              {label}
-            </span>
-            <span className="truncate font-body text-[0.72rem] text-ink-400">{token.name}</span>
-          </span>
-          <span className="mt-1 flex flex-wrap items-center gap-1.5">
-            <span
-              className={cn(
-                'rounded-md px-1.5 py-px font-mono text-[0.66rem] font-bold tabular-nums',
-                ageS < 60 && !migrated
-                  ? 'bg-accent/15 text-accent'
-                  : 'bg-white/[0.06] text-ink-600',
-              )}
-            >
+        <span className="flex min-w-0 flex-col gap-[5px]">
+          <span className="flex min-w-0 items-baseline gap-1.5">
+            <span className="shrink-0 truncate text-[0.86rem] font-semibold leading-tight text-ink-900">{label}</span>
+            <span className="min-w-0 truncate text-[0.72rem] text-ink-400">{token.name}</span>
+            <span className={cn('shrink-0 font-mono text-[0.68rem] font-semibold tabular-nums', ageS < 60 && !migrated ? 'text-accent' : 'text-up')}>
               {ageText(age)}
             </span>
-            {socials.twitter && <SocialDot kind="x" />}
-            {socials.telegram && <SocialDot kind="tg" />}
-            {socials.website && <SocialDot kind="web" />}
-            {token.holders != null && (
-              <span
-                className="flex items-center gap-0.5 font-mono text-[0.68rem] font-semibold tabular-nums text-ink-600"
-                title={t('holders')}
-              >
-                <svg
-                  width="11"
-                  height="11"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  aria-hidden
-                >
-                  <circle cx="9" cy="8" r="3.5" />
-                  <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" />
-                </svg>
-                {token.holders}
+            <span className="ml-auto flex shrink-0 gap-[3px] opacity-80">
+              {socials.twitter && <SocialDot kind="x" />}
+              {socials.telegram && <SocialDot kind="tg" />}
+              {socials.website && <SocialDot kind="web" />}
+            </span>
+          </span>
+          <span className="grid grid-cols-[auto_auto_auto_minmax(0,1fr)] items-center gap-2.5 font-mono text-[0.68rem] tabular-nums text-ink-600">
+            <span className="flex items-center gap-0.5" title={t('holders')}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" />
+              </svg>
+              {token.holders ?? '—'}
+            </span>
+            <span title={t('buysSells')}>
+              {buys !== null && sells !== null ? (
+                <>
+                  <span className="text-up">{buys}</span>
+                  <span className="text-ink-400">/</span>
+                  <span className="text-down">{sells}</span>
+                </>
+              ) : (
+                '—'
+              )}
+            </span>
+            <span className={cn(change === null ? 'text-ink-400' : change >= 0 ? 'text-up' : 'text-down')}>
+              {change === null ? '—' : formatPercent(change)}
+            </span>
+            {flow !== null ? (
+              <span className="block h-1 overflow-hidden rounded-full bg-down/70" title={`${flow}% buys`}>
+                <span className="block h-full rounded-full bg-up" style={{ width: `${flow}%` }} />
               </span>
+            ) : (
+              <span />
             )}
-            {buys !== null && sells !== null && buys + sells > 0 && (
-              <span
-                className="font-mono text-[0.66rem] font-semibold tabular-nums"
-                title={t('buysSells')}
-              >
-                <span className="text-up">{buys}</span>
-                <span className="text-ink-400">/</span>
-                <span className="text-down">{sells}</span>
-              </span>
-            )}
-            {change !== null && (
-              <span
-                className={cn(
-                  'rounded-md px-1.5 py-px font-mono text-[0.62rem] font-bold tabular-nums',
-                  change >= 0 ? 'bg-up/15 text-up' : 'bg-down/15 text-down',
-                )}
-              >
-                {formatPercent(change)}
-              </span>
-            )}
+          </span>
+          {/* Chips that don't fit wrap onto a hidden second line, so none is cut mid-word. */}
+          <span className="flex h-[17px] min-w-0 flex-wrap items-center gap-1 overflow-hidden">
+            {chips.length > 0 ? chips.slice(0, 3) : clean && <Badge>{t('flagClean')}</Badge>}
+            {chips.length > 0 && chips.length <= 3 && clean && <Badge>{t('flagClean')}</Badge>}
+            {token.liquidityUsd != null && <span className="shrink-0 whitespace-nowrap rounded-[5px] border border-white/[0.07] px-1.5 py-px font-mono text-[0.6rem] text-ink-400">L {money(token.liquidityUsd)}</span>}
           </span>
         </span>
 
-        <span className="flex flex-col items-end text-right">
-          <span className={cn('font-mono text-[0.9rem] font-medium leading-none tabular-nums', mcTone(token.marketCapUsd))}>
-            <span className="mr-0.5 font-body text-[0.6rem] font-bold text-ink-400">{t('mc')}</span>
+        <span className="flex h-full flex-col items-end justify-start gap-1 pt-3 text-right">
+          <span className={cn('whitespace-nowrap font-mono text-[0.88rem] font-semibold leading-none tabular-nums', mcTone(token.marketCapUsd))}>
+            <span className="mr-0.5 font-body text-[0.56rem] font-semibold tracking-wide text-ink-400">{t('mc')}</span>
             {money(token.marketCapUsd)}
           </span>
-          {/* Volume and liquidity on one line (2026-11-01, GMGN-style). */}
-          <span className="mt-1 font-mono text-[0.68rem] font-semibold tabular-nums text-ink-600">
-            <span className="mr-0.5 text-ink-400">{t('v')}</span>
-            {money(token.volume5mUsd)}
-            <span className="ml-1.5 mr-0.5 text-ink-400">L</span>
-            {money(token.liquidityUsd)}
+          <span className="whitespace-nowrap font-mono text-[0.62rem] tabular-nums text-ink-400">
+            {t('v')} {money(token.volume5mUsd)}
           </span>
         </span>
-
-        <span className="col-span-2 flex min-w-0 flex-wrap items-center gap-1 pr-[4.6rem]">
-          {top !== null && <Pct label={t('top')} value={top} warn={35} bad={50} />}
-          {dev !== null && <Pct label={t('dev')} value={dev} warn={10} bad={20} />}
-          {token.snipersPct != null && (
-            <Pct label={t('snipers')} value={token.snipersPct} warn={10} bad={30} />
-          )}
-          {token.insidersPct != null && (
-            <Pct label={t('insiders')} value={token.insidersPct} warn={10} bad={30} />
-          )}
-          {token.bundlersPct != null && (
-            <Pct label={t('bundlers')} value={token.bundlersPct} warn={10} bad={30} />
-          )}
-          {devFlagOnly && <Badge bad>{t('flagDev')}</Badge>}
-          {topFlagOnly && <Badge bad>{t('flagTop')}</Badge>}
-          {flags.map((f) => (
-            <Badge key={f} bad>
-              {t(FLAG_KEY[f]!)}
-            </Badge>
-          ))}
-          {clean && <Badge>{t('flagClean')}</Badge>}
-        </span>
       </Link>
+
+      {/* The address only on hover — it took a whole line under every icon. */}
+      <span className="pointer-events-none absolute bottom-[3px] left-3 font-mono text-[0.56rem] text-ink-400 opacity-0 transition-opacity group-hover:opacity-100">
+        {`${token.mintAddress.slice(0, 4)}…${token.mintAddress.slice(-4)}`}
+      </span>
 
       <button
         type="button"
         onClick={onBuy}
         disabled={buying}
         aria-label={t('quickBuy', { usd: quickUsd })}
-        className="absolute bottom-2.5 right-3 flex h-7 items-center gap-1 rounded-lg border border-[#1F3A2C] bg-[#0D1A13] px-2.5 font-mono text-[0.74rem] font-medium tabular-nums text-[#7CF5B9] transition-colors hover:border-accent/50 hover:bg-[#102318] active:scale-[0.97] disabled:opacity-60"
+        className="absolute bottom-2.5 right-3 flex h-[26px] items-center gap-1 rounded-lg bg-accent px-2.5 font-mono text-[0.72rem] font-semibold tabular-nums text-accent-ink shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)] transition hover:brightness-110 active:scale-[0.96] disabled:opacity-60"
       >
-        {buying ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-        ) : (
-          <Zap className="h-3.5 w-3.5" fill="currentColor" aria-hidden />
-        )}
+        {buying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : <Zap className="h-3 w-3" fill="currentColor" aria-hidden />}
         {buying ? t('buyingShort') : `$${quickUsd}`}
       </button>
     </li>
   );
 }
+
+/** Each column's colour: its top edge and the dot by its name. */
+const COLUMN_TONE: Record<string, string> = { new: 'rgb(var(--kamby-accent))', soon: '#F5C451', migrated: '#6BB6FF' };
 
 /** Bigger coins read warmer at a glance: $100K+ gold, $30K+ blue. */
 function mcTone(mc: number | null | undefined): string {
@@ -686,15 +662,15 @@ function Pct({
 }) {
   const tone =
     value > bad
-      ? 'border-down/35 text-down'
+      ? 'border-down/30 bg-down/[0.07] text-down'
       : value > warn
-        ? 'border-amber-400/35 text-amber-300'
+        ? 'border-amber-400/30 bg-amber-400/[0.06] text-amber-300'
         : value > 0
-          ? 'border-white/[0.08] text-up'
-          : 'border-white/[0.08] text-ink-400';
+          ? 'border-white/[0.07] bg-white/[0.02] text-ink-600'
+          : 'border-up/25 bg-up/[0.06] text-up';
   return (
     <span
-      className={cn('rounded-full border px-1.5 py-px font-mono text-[0.6rem] font-bold tabular-nums', tone)}
+      className={cn('shrink-0 whitespace-nowrap rounded-[5px] border px-1.5 py-px font-mono text-[0.6rem] font-medium tabular-nums', tone)}
     >
       {label} {value < 1 && value > 0 ? '<1' : Math.round(value)}%
     </span>
@@ -705,8 +681,8 @@ function Badge({ children, bad = false }: { children: React.ReactNode; bad?: boo
   return (
     <span
       className={cn(
-        'rounded-full border px-1.5 py-px font-body text-[0.6rem] font-bold',
-        bad ? 'border-down/35 text-down' : 'border-up/35 text-up',
+        'shrink-0 whitespace-nowrap rounded-[5px] border px-1.5 py-px font-mono text-[0.6rem] font-medium',
+        bad ? 'border-down/30 bg-down/[0.07] text-down' : 'border-up/25 bg-up/[0.06] text-up',
       )}
     >
       {children}

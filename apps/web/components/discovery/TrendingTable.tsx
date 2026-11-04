@@ -135,8 +135,8 @@ export function TrendingTable({ initial, initialSort = 'volume' }: { initial: Ma
         <span className="ml-auto font-mono text-[0.68rem] text-ink-400 max-md:hidden">{t('count', { n: rows.length })}</span>
       </div>
 
-      <div className="overflow-x-auto border-y border-white/[0.06] md:rounded-2xl md:border">
-        <div className={cn('hidden min-w-[1180px] items-center gap-3 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5 md:grid', GRID)}>
+      <div className="overflow-x-auto border-y border-line bg-[#0A0B0E] md:rounded-xl md:border">
+        <div className={cn('hidden min-w-[1180px] items-center gap-3 border-b border-line bg-white/[0.015] px-4 py-2.5 md:grid', GRID)}>
           <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-400">#</span>
           <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-400">{tCols('coin')}</span>
           {head('age', t('age'))}
@@ -162,12 +162,12 @@ export function TrendingTable({ initial, initialSort = 'volume' }: { initial: Ma
             const coin = (
               <span className="flex min-w-0 items-center gap-3">
                 <span className="relative shrink-0">
-                  <TokenAvatar src={m.logoUrl} seed={m.tokenAddress} label={m.symbol} className="h-12 w-12 rounded-xl text-base" />
+                  <TokenAvatar src={m.logoUrl} seed={m.tokenAddress} label={m.symbol} className="h-10 w-10 !rounded-[10px] text-sm" />
                   {chainBadge && <ChainBadge chain={chainBadge} />}
                 </span>
                 <span className="min-w-0">
                   <span className="flex items-center gap-1.5">
-                    <span className="truncate font-display text-[0.95rem] font-bold text-ink-900">{label}</span>
+                    <span className="truncate text-[0.88rem] font-semibold text-ink-900">{label}</span>
                     {m.listing === 'new' && <span className="rounded bg-accent/10 px-1 font-mono text-[0.55rem] font-bold uppercase text-accent">new</span>}
                   </span>
                   <span className="flex items-center gap-1.5 font-body text-xs text-ink-400">
@@ -185,7 +185,7 @@ export function TrendingTable({ initial, initialSort = 'volume' }: { initial: Ma
             return (
               <li key={`${m.chainIdentifier}:${m.tokenAddress}`} className="border-b border-white/[0.04] last:border-0">
                 {/* Computers: the full GMGN-style row. */}
-                <div className={cn('hidden items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.025] md:grid', GRID)}>
+                <div className={cn('hidden items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.03] md:grid', GRID)}>
                   <span className="font-mono text-xs text-ink-400">{i + 1}</span>
                   {href ? <Link href={href} className="min-w-0">{coin}</Link> : coin}
                   <span className="text-right font-mono text-[0.8rem] text-ink-600">{age ?? '—'}</span>

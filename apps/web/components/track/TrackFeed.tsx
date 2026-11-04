@@ -290,7 +290,7 @@ function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivit
               aria-label={followed ? t('unfollow') : t('follow')}
               className={cn(
                 'absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-bg text-[0.7rem] font-black leading-none',
-                followed ? 'bg-up text-black' : 'bg-accent text-black',
+                followed ? 'bg-accent text-accent-ink shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]' : 'bg-accent text-black',
               )}
             >
               {followed ? '✓' : '+'}

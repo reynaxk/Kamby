@@ -660,8 +660,8 @@ export function SolanaTradePanel({ tokenMint, tokenSymbol, initialSide = 'BUY', 
                   'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-xs font-bold transition-colors',
                   isActive
                     ? s === 'BUY'
-                      ? 'bg-up text-black'
-                      : 'bg-down text-white'
+                      ? 'bg-accent text-accent-ink shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]'
+                      : 'bg-down text-[#1A0507] shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]'
                     : 'bg-surface-raised text-ink-600 hover:text-ink-900',
                 )}
               >

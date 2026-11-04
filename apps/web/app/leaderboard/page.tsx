@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { LeaderboardChainMenu } from '@/components/discovery/LeaderboardChainMenu';
-import { cn, Surface } from '@kamby/ui';
+import { cn } from '@kamby/ui';
 import { SUPPORTED_CHAIN_SLUGS, type LeaderboardChainFilter, type PnlWindow } from '@kamby/domain';
 import { MarketHeader } from '@/components/market/MarketHeader';
 import { PnlValue } from '@/components/social/PnlValue';
@@ -46,6 +46,7 @@ const TOP_RANKS = [
   { tier: 'shark', icon: '🦈', ring: 'bg-warn/15 ring-warn/50', text: 'text-warn' },
   { tier: 'fish', icon: '🐟', ring: 'bg-up/10 ring-up/40', text: 'text-up' },
 ] as const;
+const PODIUM = ['#F2C46D', '#C4CAD4', '#E0A26B'];
 
 export default async function LeaderboardPage({
   searchParams,
@@ -108,18 +109,38 @@ export default async function LeaderboardPage({
           <TrackFeed />
           </>
         ) : (
-          <ol className="mt-8 flex flex-col gap-2 max-md:mt-4 max-md:gap-0">
-            {leaderboard.entries.map((entry, index) => (
+          <>
+          {/* The top three on a podium (2026-11-04 redesign), the rest as rows under it. */}
+          <ol className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 max-md:mt-4">
+            {leaderboard.entries.slice(0, 3).map((entry, index) => (
               <li key={entry.userId}>
-                <Surface variant="glass" className="flex items-center gap-4 p-4 max-md:gap-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-0 max-md:py-3 max-md:shadow-none max-md:backdrop-blur-none">
-                  {index < 3 ? (
-                    <span className="flex w-11 shrink-0 flex-col items-center gap-0.5" aria-label={`#${index + 1}`}>
-                      <span className={cn('flex h-9 w-9 items-center justify-center rounded-full text-lg ring-1', TOP_RANKS[index]!.ring)}>{TOP_RANKS[index]!.icon}</span>
-                      <span className={cn('font-display text-[0.6rem] font-bold uppercase tracking-wide', TOP_RANKS[index]!.text)}>{tL(`tier_${TOP_RANKS[index]!.tier}`)}</span>
-                    </span>
-                  ) : (
-                    <span className="w-11 shrink-0 text-center font-mono text-sm font-semibold tabular-nums text-ink-400">#{index + 1}</span>
-                  )}
+                <Link
+                  href={`/trader/${entry.walletAddress}`}
+                  className="relative flex flex-col gap-4 overflow-hidden rounded-xl border border-line bg-[#0A0B0E] p-4 transition-colors hover:border-white/15"
+                >
+                  <span aria-hidden className="absolute inset-x-0 top-0 h-0.5" style={{ background: PODIUM[index] }} />
+                  <span aria-hidden className="absolute right-4 top-2 font-mono text-4xl font-semibold tracking-tighter opacity-[0.16]" style={{ color: PODIUM[index] }}>#{index + 1}</span>
+                  <span className="flex items-center gap-2">
+                    <span className={cn('flex h-8 w-8 items-center justify-center rounded-full text-base ring-1', TOP_RANKS[index]!.ring)} aria-hidden>{TOP_RANKS[index]!.icon}</span>
+                    <span className={cn('text-[0.64rem] font-semibold uppercase tracking-wide', TOP_RANKS[index]!.text)}>{tL(`tier_${TOP_RANKS[index]!.tier}`)}</span>
+                  </span>
+                  <TraderIdentity address={entry.walletAddress} displayName={entry.username} avatarUrl={entry.avatarUrl} size="sm" />
+                  <span className="flex items-end justify-between gap-2">
+                    <PnlValue usd={entry.realizedPnlUsd} pct={entry.realizedPnlPct} />
+                    <span className="font-mono text-[0.68rem] text-ink-400">{formatCompactUsd(entry.volumeUsd)} vol</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+          {leaderboard.entries.length > 3 && (
+          <ol start={4} className="mt-3 overflow-hidden rounded-xl border border-line bg-[#0A0B0E]">
+            {leaderboard.entries.slice(3).map((entry, i) => {
+              const index = i + 3;
+              return (
+              <li key={entry.userId} className="border-b border-white/[0.04] last:border-0">
+                <div className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-white/[0.025] max-md:gap-3">
+                  <span className="w-9 shrink-0 text-center font-mono text-[0.8rem] tabular-nums text-ink-400">#{index + 1}</span>
                   <Link href={`/trader/${entry.walletAddress}`} className="min-w-0 flex-1">
                     <TraderIdentity
                       address={entry.walletAddress}
@@ -134,10 +155,13 @@ export default async function LeaderboardPage({
                       {formatCompactUsd(entry.volumeUsd)} vol
                     </div>
                   </div>
-                </Surface>
+                </div>
               </li>
-            ))}
+              );
+            })}
           </ol>
+          )}
+          </>
         )}
       </main>
     </div>
