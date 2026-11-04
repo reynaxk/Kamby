@@ -17,7 +17,7 @@ import { Loader2, Zap } from 'lucide-react';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { ToastProvider } from '@/components/terminal/ToastProvider';
-import { cashtag, formatCompactUsd, formatPercent, truncateAddress } from '@/lib/format';
+import { cashtag, formatCompactUsd, formatPercent, truncateAddress, safeName } from '@/lib/format';
 import { useQuickSolanaBuy } from '@/lib/use-quick-solana-buy';
 import { QUICK_AMOUNT_EVENT } from '@/components/trading/QuickBuy';
 import { NO_COLUMN_FILTERS, activeCount, passes, readColumnFilters, type ColumnFilters } from './xxxrisk-filters';
@@ -569,7 +569,7 @@ function XxxRiskCardView({
         <span className="flex min-w-0 flex-col gap-[5px]">
           <span className="flex min-w-0 items-baseline gap-1.5">
             <span className="shrink-0 truncate text-[0.86rem] font-semibold leading-tight text-ink-900">{label}</span>
-            <span className="min-w-0 truncate text-[0.72rem] text-ink-400">{token.name}</span>
+            <span className="min-w-0 truncate text-[0.72rem] text-ink-400">{safeName(token.name)}</span>
             <span className={cn('shrink-0 font-mono text-[0.68rem] font-semibold tabular-nums', ageS < 60 && !migrated ? 'text-accent' : 'text-up')}>
               {ageText(age)}
             </span>

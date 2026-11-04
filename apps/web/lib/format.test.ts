@@ -11,6 +11,8 @@ import {
   truncateAddress,
   formatCompactCount,
   formatTradeAmount,
+  cashtag,
+  safeName,
 } from './format';
 
 describe('formatPrice', () => {
@@ -159,5 +161,13 @@ describe('unit edges (2026-10-31)', () => {
     expect(formatCompactCount(Number.NaN)).toBe('—');
     expect(formatTokenAmount(Number.NaN)).toBe('0');
     expect(formatTradeAmount(Number.POSITIVE_INFINITY)).toBe('0');
+  });
+});
+
+describe('safeName', () => {
+  it('drops the hidden right-to-left override scam coins use to fake a name', () => {
+    expect(safeName('‮RECNUOB')).toBe('RECNUOB');
+    expect(cashtag('‮RECNUOB')).toBe('$RECNUOB');
+    expect(safeName(null)).toBeNull();
   });
 });

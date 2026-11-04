@@ -7,7 +7,7 @@ import { TokenAvatar } from './TokenAvatar';
 import { badgeChainFor, ChainBadge } from './ChainBadge';
 import { LaunchpadBadge } from './LaunchpadBadge';
 import { PriceText } from './PriceText';
-import { cashtag, formatCompactUsd, formatPercent } from '@/lib/format';
+import { cashtag, formatCompactUsd, formatPercent, safeName } from '@/lib/format';
 import { useLivePrice, useTokenStats } from '@/lib/use-live-price';
 import type { ChartSource } from '@/lib/chart-data';
 
@@ -73,7 +73,7 @@ export function CoinHeaderDesktop({
             }
             className="mt-0.5 flex max-w-full items-center gap-1.5 font-body text-xs text-ink-400 hover:text-ink-900"
           >
-            {name && <span className="truncate">{name}</span>}
+            {name && <span className="truncate">{safeName(name)}</span>}
             <span className="font-mono tabular-nums">· {address.slice(0, 4)}…{address.slice(-4)}</span>
             <span className={cn('shrink-0', copied && 'text-accent')}>{copied ? '✓' : '⧉'}</span>
           </button>

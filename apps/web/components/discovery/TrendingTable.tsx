@@ -10,7 +10,7 @@ import { PriceText } from '@/components/market/PriceText';
 import { TokenAvatar } from '@/components/market/TokenAvatar';
 import { QuickBuyButton, QuickBuyProvider } from '@/components/trading/QuickBuy';
 import { useMarketFeeds } from '@/lib/market-feeds';
-import { cashtag, formatAge, formatCompactCount, formatCompactUsd, formatPercent } from '@/lib/format';
+import { cashtag, formatAge, formatCompactCount, formatCompactUsd, formatPercent, safeName } from '@/lib/format';
 import { marketHref, solanaMarketHref } from '@/lib/solana-links';
 
 type Window = '5m' | '1h' | '6h' | '24h';
@@ -171,7 +171,7 @@ export function TrendingTable({ initial, initialSort = 'volume' }: { initial: Ma
                     {m.listing === 'new' && <span className="rounded bg-accent/10 px-1 font-mono text-[0.55rem] font-bold uppercase text-accent">new</span>}
                   </span>
                   <span className="flex items-center gap-1.5 font-body text-xs text-ink-400">
-                    <span className="truncate">{m.name ?? ''}</span>
+                    <span className="truncate">{safeName(m.name) ?? ''}</span>
                     <span className="shrink-0 font-mono text-[0.7rem] text-ink-600 md:hidden">{age}</span>
                   </span>
                   <span className="hidden font-mono text-[0.7rem] tabular-nums text-ink-600 md:block">

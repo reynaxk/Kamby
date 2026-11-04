@@ -141,6 +141,14 @@ export function formatAge(iso: string, now: Date = new Date()): string {
 
 /** "$SYMBOL" for display — some tokens' own symbols already start with "$" (Solana's
  *  "$WIF"), which a plain `$${symbol}` would render as "$$WIF". */
+/** Strips the invisible text-direction characters scam coins put in names (2026-11-04: a coin
+ *  named "\u202eRECNUOB" displayed as "BOUNCER"), so what you read is what the coin is called. */
+export function safeName(text: string): string;
+export function safeName(text: string | null | undefined): string | null;
+export function safeName(text: string | null | undefined): string | null {
+  return text == null ? null : text.replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '');
+}
+
 export function cashtag(symbol: string): string {
-  return `$${symbol.replace(/^\$+/, '')}`;
+  return `$${safeName(symbol).replace(/^\$+/, '')}`;
 }
