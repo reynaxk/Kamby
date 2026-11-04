@@ -67,7 +67,7 @@ const NATIVE_SOL: SolanaTradeTarget = { tokenAddress: 'So11111111111111111111111
  *  3. a coin on the Hunt board (every Solana launchpad, 2026-11-04: letsbonk, LaunchLab, Meteora…
  *     opened the SOL page instead), or one Jupiter routes — both with the new-coin warning.
  *  Anything else falls back to SOL. */
-async function resolveMarket(mint: string | undefined, feeds: MarketFeedSnapshot | null): Promise<SolanaTradeTarget> {
+async function resolveMarket(mint: string | undefined, loadFeeds: () => Promise<MarketFeedSnapshot | null>): Promise<SolanaTradeTarget> {
   if (!mint || mint === NATIVE_SOL.tokenAddress) return NATIVE_SOL;
   const markets = await fetchDiscoverMarkets({ sort: 'score', limit: 5, search: mint });
   const found = markets.find((m) => m.chainIdentifier === 'solana' && m.tokenAddress === mint);
@@ -92,7 +92,8 @@ async function resolveMarket(mint: string | undefined, feeds: MarketFeedSnapshot
   if (launched) {
     return { tokenAddress: mint, symbol: launched.symbol, name: launched.name, logoUrl: launched.imageUrl, isNewListing: true, onBondingCurve: true, priceChange24hPct: null };
   }
-  const hunt = feeds?.xxxrisk?.tokens.find((t) => t.mintAddress === mint);
+  // The Hunt board only for a coin none of the lists above know — it is the heaviest call.
+  const hunt = (await loadFeeds())?.xxxrisk?.tokens.find((t) => t.mintAddress === mint);
   const jup = await jupiterToken(mint);
   if (hunt) {
     return {
@@ -154,7 +155,8 @@ async function jupiterToken(mint: string): Promise<JupiterToken | null> {
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: { mint?: string } }) {
-  const market = await resolveMarket(searchParams.mint, await soft(fetchMarketFeeds(), null));
+  // The title never needs the Hunt board — only the coin lists (2026-11-04: it fetched every feed).
+  const market = await resolveMarket(searchParams.mint, async () => null);
   return { title: market === NATIVE_SOL ? 'Solana — Kamby' : `${market.symbol ?? 'Token'} on Solana — Kamby` };
 }
 
@@ -166,8 +168,7 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
   const tU = await getTranslations('ui');
-  const feeds = await soft(fetchMarketFeeds(), null);
-  const market = await resolveMarket(searchParams.mint, feeds);
+  const market = await resolveMarket(searchParams.mint, () => soft(fetchMarketFeeds(), null));
   const isSol = market === NATIVE_SOL;
   const requested: ChartTimeframe =
     searchParams.timeframe === 'live' || searchParams.timeframe === '10s' ? searchParams.timeframe : isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
@@ -213,7 +214,7 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
             'mx-auto grid grid-cols-1 gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]',
             // GMGN-style (2026-11-01): no coin list on the left any more (Trenches / Trending do that) —
             // the chart gets the room.
-            feeds ? 'max-w-[1600px]' : 'max-w-6xl',
+            'max-w-[1600px]',
           )}
         >
           <section key={market.tokenAddress} className="min-w-0">

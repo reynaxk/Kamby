@@ -504,7 +504,6 @@ function XxxRiskCardView({
   const pad = token.launchpad ? launchpadInfo(token.launchpad) : undefined;
   const evmChain = token.chainIdentifier && token.chainIdentifier !== 'solana' ? token.chainIdentifier : null;
   const badge = evmChain ? badgeChainFor(evmChain) : null;
-  const router = useRouter();
   const href = evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`;
   const migrated = token.column === 'migrated';
   const age =
@@ -536,11 +535,9 @@ function XxxRiskCardView({
     >
       <Link
         href={href}
-        // Hundreds of rows on screen: no prefetch for every one, but the coin page starts loading
-        // the moment the pointer rests on its row (speed pass 2026-11-04).
+        // No prefetch: hundreds of rows, and every prefetch is a full server render of a coin page
+        // (2026-11-04: prefetch-on-hover helped overload the API).
         prefetch={false}
-        onPointerEnter={() => router.prefetch(href)}
-        onFocus={() => router.prefetch(href)}
         className="grid h-[78px] grid-cols-[46px_minmax(0,1fr)_96px] items-center gap-x-2.5 px-3"
       >
         <span
