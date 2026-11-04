@@ -113,6 +113,15 @@ export async function fetchToken(address: string, chainId?: number): Promise<Mar
   return apiGet<MarketSummary>(`/market/tokens/${encodeURIComponent(address)}${suffix}`, 15);
 }
 
+/** A coin's market — and one Kamby doesn't list yet is looked up by its address, the way search
+ *  does (2026-11-04: most Base/BSC coins on the Hunt board opened a 404). */
+export async function fetchTokenOrLookup(address: string, chainId: number): Promise<MarketSummary | null> {
+  const market = await fetchToken(address, chainId);
+  if (market || !/^0x[a-fA-F0-9]{40}$/.test(address)) return market;
+  const found = await fetchSearch(address, 1).catch(() => []);
+  return found.find((m) => m.chainIdentifier === `eip155:${chainId}` && m.tokenAddress.toLowerCase() === address.toLowerCase()) ?? null;
+}
+
 export async function fetchTokenHistory(address: string, timeframe: Timeframe, chainId?: number): Promise<Candle[]> {
   const query = new URLSearchParams({ timeframe });
   if (chainId) query.set('chainId', String(chainId));

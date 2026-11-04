@@ -12,6 +12,7 @@ import { CoinPositionStrip } from '@/components/market/CoinPositionStrip';
 import { MyPositionsPanel } from '@/components/discovery/MyPositionsPanel';
 import { LiveTabTitle } from '@/components/market/LiveTabTitle';
 import type { ChartTimeframe } from '@/lib/chart-data';
+import type { MarketFeedSnapshot } from '@kamby/domain';
 import { fetchDiscoverMarkets, fetchLaunchedToken, fetchMarketFeeds, fetchPumpFunToken, fetchSolanaHistory, SOLANA_CHART_TIMEFRAMES, type SolanaChartTimeframe } from '@/lib/market-api';
 import { CoinHeaderDesktop } from '@/components/market/CoinHeaderDesktop';
 import { getTranslations } from 'next-intl/server';
@@ -62,8 +63,10 @@ const NATIVE_SOL: SolanaTradeTarget = { tokenAddress: 'So11111111111111111111111
  *     its exact mint, not just the top of Discover), or
  *  2. a Pump.fun coin Kamby tracks — graduated, or still on its bonding curve (tradable since
  *     2026-10-03, with the stronger warning).
+ *  3. a coin on the Hunt board (every Solana launchpad, 2026-11-04: letsbonk, LaunchLab, Meteora…
+ *     opened the SOL page instead), or one Jupiter routes — both with the new-coin warning.
  *  Anything else falls back to SOL. */
-async function resolveMarket(mint: string | undefined): Promise<SolanaTradeTarget> {
+async function resolveMarket(mint: string | undefined, feeds: MarketFeedSnapshot | null): Promise<SolanaTradeTarget> {
   if (!mint || mint === NATIVE_SOL.tokenAddress) return NATIVE_SOL;
   const markets = await fetchDiscoverMarkets({ sort: 'score', limit: 5, search: mint });
   const found = markets.find((m) => m.chainIdentifier === 'solana' && m.tokenAddress === mint);
@@ -88,24 +91,69 @@ async function resolveMarket(mint: string | undefined): Promise<SolanaTradeTarge
   if (launched) {
     return { tokenAddress: mint, symbol: launched.symbol, name: launched.name, logoUrl: launched.imageUrl, isNewListing: true, onBondingCurve: true, priceChange24hPct: null };
   }
+  const hunt = feeds?.xxxrisk?.tokens.find((t) => t.mintAddress === mint);
+  const jup = await jupiterToken(mint);
+  if (hunt) {
+    return {
+      tokenAddress: mint,
+      symbol: hunt.symbol,
+      name: hunt.name,
+      logoUrl: hunt.imageUrl ?? jup?.icon ?? null,
+      isNewListing: true,
+      onBondingCurve: hunt.column !== 'migrated',
+      priceChange24hPct: null,
+      marketCapUsd: hunt.marketCapUsd,
+      priceUsd: jup?.usdPrice ?? null,
+    };
+  }
+  if (jup) {
+    return {
+      tokenAddress: mint,
+      symbol: jup.symbol ?? null,
+      name: jup.name ?? null,
+      logoUrl: jup.icon ?? null,
+      isNewListing: true,
+      onBondingCurve: Boolean(jup.launchpad) && !jup.graduatedPool,
+      priceChange24hPct: jup.stats24h?.priceChange ?? null,
+      marketCapUsd: jup.mcap ?? null,
+      priceUsd: jup.usdPrice ?? null,
+    };
+  }
   return NATIVE_SOL;
 }
 
 /** A coin's icon from Jupiter's free token search, when Kamby's listing has none (2026-10-05:
  *  brand-new Pump.fun coins showed initials). Cached an hour; never blocks the page on failure. */
 async function jupiterIcon(mint: string): Promise<string | null> {
+  return (await jupiterToken(mint))?.icon ?? null;
+}
+
+interface JupiterToken {
+  id?: string;
+  symbol?: string;
+  name?: string;
+  icon?: string;
+  usdPrice?: number;
+  mcap?: number;
+  launchpad?: string;
+  graduatedPool?: string;
+  stats24h?: { priceChange?: number };
+}
+
+/** A coin's details from Jupiter's free token search, matched by its exact mint. */
+async function jupiterToken(mint: string): Promise<JupiterToken | null> {
   try {
     const res = await fetch(`https://lite-api.jup.ag/tokens/v2/search?query=${mint}`, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(2500) });
     if (!res.ok) return null;
-    const tokens = (await res.json()) as { id?: string; icon?: string }[];
-    return tokens.find((t) => t.id === mint)?.icon ?? null;
+    const tokens = (await res.json()) as JupiterToken[];
+    return tokens.find((t) => t.id === mint) ?? null;
   } catch {
     return null;
   }
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: { mint?: string } }) {
-  const market = await resolveMarket(searchParams.mint);
+  const market = await resolveMarket(searchParams.mint, await soft(fetchMarketFeeds(), null));
   return { title: market === NATIVE_SOL ? 'Solana — Kamby' : `${market.symbol ?? 'Token'} on Solana — Kamby` };
 }
 
@@ -117,7 +165,8 @@ function isChartTimeframe(value: string | undefined): value is SolanaChartTimefr
 
 export default async function SolanaPage({ searchParams }: { searchParams: { mint?: string; timeframe?: string } }) {
   const tU = await getTranslations('ui');
-  const market = await resolveMarket(searchParams.mint);
+  const feeds = await soft(fetchMarketFeeds(), null);
+  const market = await resolveMarket(searchParams.mint, feeds);
   const isSol = market === NATIVE_SOL;
   const requested: ChartTimeframe =
     searchParams.timeframe === 'live' || searchParams.timeframe === '10s' ? searchParams.timeframe : isChartTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1H';
@@ -130,7 +179,6 @@ export default async function SolanaPage({ searchParams }: { searchParams: { min
     candles = await soft(fetchSolanaHistory(market.tokenAddress, '1m'), []);
   }
   const lastClose = candles.at(-1)?.close ?? null;
-  const feeds = await soft(fetchMarketFeeds(), null);
 
   return (
     <ToastProvider>

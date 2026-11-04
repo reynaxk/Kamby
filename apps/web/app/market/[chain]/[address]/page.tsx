@@ -12,7 +12,7 @@ import { WatchButton } from '@/components/market/WatchButton';
 import { ShareButton } from '@/components/social/ShareButton';
 import { KambyTerminal } from '@/components/terminal/KambyTerminal';
 import { formatDateTime, formatPrice, truncateAddress } from '@/lib/format';
-import { fetchToken, fetchTokenHistory } from '@/lib/market-api';
+import { fetchTokenHistory, fetchTokenOrLookup } from '@/lib/market-api';
 import { fetchGlobalActivity } from '@/lib/social-api';
 import { EMPTY_TRADERS, fetchTokenTraders } from '@/lib/discovery-api';
 import { soft } from '@/lib/soft';
@@ -49,7 +49,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   if (!isChainSlug(params.chain)) return { title: 'Token not found — Kamby' };
   const chainId = CHAIN_REGISTRY[params.chain].numericId;
-  const market = await fetchToken(params.address, chainId);
+  const market = await fetchTokenOrLookup(params.address, chainId);
   if (!market) return { title: 'Token not found — Kamby' };
 
   const name = market.symbol ?? market.name ?? truncateAddress(market.tokenAddress);
@@ -77,7 +77,7 @@ export default async function TokenDetailPage({
   const timeframe: ChartTimeframe =
     searchParams.timeframe === 'live' ? 'live' : isTimeframe(searchParams.timeframe) ? searchParams.timeframe : '1D';
 
-  const market = await fetchToken(params.address, chainId);
+  const market = await fetchTokenOrLookup(params.address, chainId);
   if (!market) notFound();
 
   // In parallel — one after another, the page waited for the sum of all three.
