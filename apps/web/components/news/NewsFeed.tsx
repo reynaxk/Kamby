@@ -115,8 +115,9 @@ export function NewsFeed({ chainIdentifier, tokenAddress, symbol, limit = 20, fi
   return (
     <div className={cn('flex flex-col', large ? 'gap-3' : 'gap-2', className)}>
       <div className={cn(grid ? 'grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'flex flex-col', !grid && (large ? 'gap-3' : 'gap-2'))}>
-        {items.map((item) => (
-          <NewsCard key={item.id} item={item} compact={compact} large={large} moves={large ? moves : undefined} className={grid ? 'h-full' : undefined} />
+        {/* The newest story leads the grid at double size (2026-11-04 redesign). */}
+        {items.map((item, i) => (
+          <NewsCard key={item.id} item={item} compact={compact} large={large} moves={large ? moves : undefined} className={grid ? cn('h-full', i === 0 && 'md:col-span-2 md:row-span-2 bg-[linear-gradient(160deg,rgba(0,255,135,0.05),transparent_50%)]') : undefined} />
         ))}
       </div>
       {!fixed && nextBefore && (

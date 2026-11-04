@@ -271,7 +271,13 @@ function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivit
   const whale = a.amountUsd >= 10_000;
 
   return (
-    <li className="flex items-center gap-3 py-3">
+    <li className="relative isolate flex items-center gap-3 py-3">
+      {/* The trade's size as a faint bar behind the row (2026-11-04 redesign). */}
+      <span
+        aria-hidden
+        className={cn('pointer-events-none absolute inset-y-1.5 -left-3 -z-10 rounded-r-lg', buy ? 'bg-up/[0.06]' : 'bg-down/[0.06]')}
+        style={{ width: `${Math.min(100, Math.max(6, (Math.log10(Math.max(1, a.amountUsd)) / 4.6) * 100))}%` }}
+      />
       {a.trader.address ? (
         <span className="relative shrink-0">
           <Link href={`/trader/${a.trader.address}`} aria-label={who}>
@@ -290,7 +296,7 @@ function TrackRow({ activity: a, followed, onFollow }: { activity: SocialActivit
               aria-label={followed ? t('unfollow') : t('follow')}
               className={cn(
                 'absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-bg text-[0.7rem] font-black leading-none',
-                followed ? 'bg-accent text-accent-ink shadow-[inset_0_-2px_0_rgba(0,0,0,0.18)]' : 'bg-accent text-black',
+                followed ? 'bg-surface-raised text-accent' : 'bg-accent text-accent-ink',
               )}
             >
               {followed ? '✓' : '+'}

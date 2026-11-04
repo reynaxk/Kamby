@@ -83,8 +83,8 @@ export default async function TraderProfilePage({ params }: { params: { address:
         {/* The trader's card (2026-10-15): the midnight PnL-card look — who, follow, and the
             realized PnL big in its own colour, with the faint neon K behind. */}
         <section
-          className="relative mt-4 overflow-hidden rounded-3xl border border-white/[0.07] p-5 max-md:mt-1 md:p-7 lg:col-start-1 lg:row-start-1"
-          style={{ background: 'linear-gradient(165deg,#0E1430 0%,#090C1A 50%,#07080A 100%)' }}
+          className="relative mt-4 overflow-hidden rounded-xl border border-line p-5 max-md:mt-1 md:p-7 lg:col-start-1 lg:row-start-1"
+          style={{ background: 'radial-gradient(120% 140% at 0% 0%, rgba(107,182,255,0.12), transparent 55%), #0A0B0E' }}
         >
           <svg className="pointer-events-none absolute -right-10 -top-10 h-[220px] w-[220px] md:h-[300px] md:w-[300px]" viewBox="0 0 512 512" aria-hidden="true">
             <g fill="none" stroke="#00FF87" strokeWidth="92" strokeLinecap="round" opacity="0.06">
@@ -110,11 +110,11 @@ export default async function TraderProfilePage({ params }: { params: { address:
               <p className="font-body text-xs font-semibold uppercase tracking-wider text-white/50">
                 {tU('realizedPnl_4c8e')} · {headline.window.toUpperCase()}
               </p>
-              <p className={cn('mt-1 font-display text-5xl font-black leading-none tracking-tight tabular-nums', headlineUp ? 'text-up' : 'text-down')}>
+              <p className={cn('mt-2 font-mono text-5xl font-medium leading-none tracking-[-0.04em] tabular-nums', headlineUp ? 'text-up' : 'text-down')}>
                 {formatSignedCompactUsd(headline.realizedPnlUsd)}
               </p>
               {headline.realizedPnlPct !== null && (
-                <p className={cn('mt-1.5 font-body text-lg font-bold tabular-nums', headlineUp ? 'text-up' : 'text-down')}>{formatPercent(headline.realizedPnlPct)}</p>
+                <p className={cn('mt-2 font-mono text-base tabular-nums', headlineUp ? 'text-up' : 'text-down')}>{formatPercent(headline.realizedPnlPct)}</p>
               )}
             </div>
           )}
@@ -310,9 +310,9 @@ function TradeQuality({ trades, t }: { trades: KambyTradeRow[]; t: { title: stri
 
 function Stat({ label, value, title }: { label: string; value: string; title?: string }) {
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5" title={title}>
+    <div className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2.5" title={title}>
       <div className="truncate font-body text-[0.68rem] text-ink-400">{label}</div>
-      <div className="mt-0.5 truncate font-display text-base font-bold tabular-nums text-ink-900">{value}</div>
+      <div className="mt-1 truncate font-mono text-[0.95rem] font-medium tabular-nums text-ink-900">{value}</div>
     </div>
   );
 }
