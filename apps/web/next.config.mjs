@@ -20,6 +20,9 @@ const nextConfig = {
         destination: '/market/base/:address',
         permanent: false,
       },
+      // Short links people type (2026-11-04: both opened a 404).
+      { source: '/track', destination: '/leaderboard/track', permanent: false },
+      { source: '/launchpad', destination: '/launch', permanent: false },
     ];
   },
   // Baseline security headers — none of these existed before (confirmed via a live `curl -I`

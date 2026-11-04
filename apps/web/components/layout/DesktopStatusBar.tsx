@@ -56,7 +56,7 @@ export function DesktopStatusBar() {
     { href: '/trades', label: tL('menu_trades'), icon: <History /> },
     { href: '/explore?tab=watchlist', label: tNav('watchlist'), icon: <Star /> },
     { href: '/notifications', label: tL('menu_notifications'), icon: <Bell /> },
-    { href: '/track', label: t('following'), icon: <Users /> },
+    { href: '/leaderboard/track', label: t('following'), icon: <Users /> },
     { href: '/account?tab=pnl', label: t('pnl'), icon: <LineChart /> },
     { href: '/account?achievements=1', label: t('titles'), icon: <Award /> },
   ];
