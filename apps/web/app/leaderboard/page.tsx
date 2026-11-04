@@ -7,6 +7,7 @@ import { PnlValue } from '@/components/social/PnlValue';
 import { TraderIdentity } from '@/components/social/TraderIdentity';
 import { formatCompactUsd } from '@/lib/format';
 import { fetchLeaderboard } from '@/lib/social-api';
+import { soft } from '@/lib/soft';
 import { TrackFeed } from '@/components/track/TrackFeed';
 import { getTranslations } from 'next-intl/server';
 import { LeaderTabs } from '@/components/squads/LeaderTabs';
@@ -55,7 +56,9 @@ export default async function LeaderboardPage({
 }) {
   const window: PnlWindow = isPnlWindow(searchParams.window) ? searchParams.window : '24h';
   const chain: LeaderboardChainFilter | null = isChainFilter(searchParams.chain) ? searchParams.chain : null;
-  const leaderboard = await fetchLeaderboard(window, 25, chain);
+  // A failed or slow API shows the empty board, never an error page (2026-11-04: an API outage
+  // turned Leaders into "Something went wrong").
+  const leaderboard = await soft(fetchLeaderboard(window, 25, chain), { window, chain, entries: [] });
   const t = await getTranslations('leaderboard');
   const tL = await getTranslations('labels');
   const tS = await getTranslations('squads');

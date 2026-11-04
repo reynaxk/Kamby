@@ -123,6 +123,20 @@ export class MarketFeedsService {
 
   /** Every tab at once — the server-rendered first paint, before the stream connects. */
   async snapshot(): Promise<Snapshots> {
+    // While the live stream has viewers every tab is already built and replayed in memory — serve
+    // that instead of recomputing it from Postgres on every page render (2026-11-04: each
+    // server-rendered visit rebuilt all five tabs, and a burst exhausted the connection pool).
+    const live = await Promise.all([
+      this.replayed(this.trending$),
+      this.replayed(this.graduated$),
+      this.replayed(this.trenches$),
+      this.replayed(this.bonding$),
+      this.replayed(this.xxxrisk$),
+    ]);
+    if (live.every((tab) => tab !== null)) {
+      const [trending, graduated, trenches, bonding, xxxrisk] = live as [Snapshots['trending'], Snapshots['graduated'], Snapshots['trenches'], Snapshots['bonding'], Snapshots['xxxrisk']];
+      return { trending, graduated, trenches, bonding, xxxrisk, crypto: { prices: this.cryptoPrices.snapshot(), atIso: new Date().toISOString() } };
+    }
     const atIso = new Date().toISOString();
     const [trending, graduated, trenches, bonding, xxxrisk] = await Promise.all([
       this.market.discover(discoverQuery()),
@@ -201,6 +215,19 @@ export class MarketFeedsService {
       filter((e): e is MessageEvent => e !== null),
       share(),
     );
+  }
+
+  /** A tab's last built value, only if the shared stream already holds one (it replays it at
+   *  once); null otherwise, without waiting for a build. */
+  private replayed<T>(tab$: Observable<T>): Promise<T | null> {
+    return new Promise((resolve) => {
+      let value: T | null = null;
+      const sub = tab$.subscribe((v) => {
+        value = v;
+      });
+      sub.unsubscribe();
+      resolve(value);
+    });
   }
 
   private sharedTab<K extends keyof Snapshots>(tab: K, build: () => Promise<TabData<K>>): Observable<Snapshots[K]> {
