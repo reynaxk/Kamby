@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChainBadge, badgeChainFor } from '@/components/market/ChainBadge';
@@ -204,6 +204,26 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   const count = activeCount(view.filters.new) + activeCount(view.filters.soon) + activeCount(view.filters.migrated);
   const launchpadsSeen = [...new Set(source.map((x) => x.launchpad ?? 'pump.fun'))];
 
+  const buyToken = (token: XxxRiskToken) => {
+    const chain = token.chainIdentifier ?? 'solana';
+    if (chain === 'solana') {
+      void quick.buy(token.mintAddress, token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress));
+      return;
+    }
+    // A BNB/Base/Robinhood coin (2026-11-01): its buy keypad, prefilled — like every EVM ⚡.
+    const href = marketHref(chain, token.mintAddress);
+    if (!href) return;
+    try {
+      window.sessionStorage.setItem('kamby:quick-prefill', JSON.stringify({ address: token.mintAddress, usd: view.quickUsd, at: Date.now() }));
+    } catch {
+      // the keypad just starts empty
+    }
+    router.push(href + (href.includes('?') ? '&' : '?') + 'buy=1');
+  };
+  // Rows skip re-rendering when nothing they show changed (speed pass 2026-11-04), so a row's
+  // ⚡ always calls the latest handler through this ref instead of the one it was drawn with.
+  const buyRef = useRef(buyToken);
+  buyRef.current = buyToken;
   const card = (token: XxxRiskToken) => (
     <XxxRiskCard
       key={token.mintAddress}
@@ -212,22 +232,7 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
       fresh={(firstSeen.current.get(token.mintAddress) ?? 0) - openedAt.current > 1_500}
       quickUsd={view.quickUsd}
       buying={quick.busy === token.mintAddress}
-      onBuy={() => {
-        const chain = token.chainIdentifier ?? 'solana';
-        if (chain === 'solana') {
-          void quick.buy(token.mintAddress, token.symbol ? cashtag(token.symbol) : truncateAddress(token.mintAddress));
-          return;
-        }
-        // A BNB/Base/Robinhood coin (2026-11-01): its buy keypad, prefilled — like every EVM ⚡.
-        const href = marketHref(chain, token.mintAddress);
-        if (!href) return;
-        try {
-          window.sessionStorage.setItem('kamby:quick-prefill', JSON.stringify({ address: token.mintAddress, usd: view.quickUsd, at: Date.now() }));
-        } catch {
-          // the keypad just starts empty
-        }
-        router.push(href + (href.includes('?') ? '&' : '?') + 'buy=1');
-      }}
+      onBuy={() => buyRef.current(token)}
     />
   );
   const empty = (
@@ -456,7 +461,13 @@ function Board({ tokens, emptyText }: { tokens: XxxRiskToken[]; emptyText: strin
   );
 }
 
-function XxxRiskCard({
+/** Re-renders only when the row would look different: its data, its age as shown, the quick
+ *  amount or its busy state (2026-11-04: ~1,000 DOM changes every 10s on a busy board). */
+const XxxRiskCard = memo(XxxRiskCardView, (a, b) =>
+  a.token === b.token && a.fresh === b.fresh && a.quickUsd === b.quickUsd && a.buying === b.buying && ageText(a.ageS) === ageText(b.ageS),
+);
+
+function XxxRiskCardView({
   token,
   ageS,
   fresh,
@@ -493,6 +504,8 @@ function XxxRiskCard({
   const pad = token.launchpad ? launchpadInfo(token.launchpad) : undefined;
   const evmChain = token.chainIdentifier && token.chainIdentifier !== 'solana' ? token.chainIdentifier : null;
   const badge = evmChain ? badgeChainFor(evmChain) : null;
+  const router = useRouter();
+  const href = evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`;
   const migrated = token.column === 'migrated';
   const age =
     migrated && token.graduatedAtMs
@@ -522,7 +535,12 @@ function XxxRiskCard({
       )}
     >
       <Link
-        href={evmChain ? (marketHref(evmChain, token.mintAddress) ?? '#') : `/solana?mint=${encodeURIComponent(token.mintAddress)}`}
+        href={href}
+        // Hundreds of rows on screen: no prefetch for every one, but the coin page starts loading
+        // the moment the pointer rests on its row (speed pass 2026-11-04).
+        prefetch={false}
+        onPointerEnter={() => router.prefetch(href)}
+        onFocus={() => router.prefetch(href)}
         className="grid h-[78px] grid-cols-[46px_minmax(0,1fr)_96px] items-center gap-x-2.5 px-3"
       >
         <span

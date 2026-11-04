@@ -78,7 +78,8 @@ export function useQuickSolanaBuy(amountUsd: number) {
       toast.update(id, { title: tTrade('toastSubmitted'), description: tTrade('toastWaitingNetwork'), solscanUrl });
       const startedAt = Date.now();
       for (;;) {
-        await new Promise((r) => setTimeout(r, 1_000));
+        // Quick checks while a Solana confirm is likely (~0.4–2s), then calmer (speed pass 2026-11-04).
+        await new Promise((r) => setTimeout(r, Date.now() - startedAt < 10_000 ? 400 : 1_500));
         const latest = await getSolanaTransaction(txId).catch(() => null);
         if (latest?.status === 'CONFIRMED') {
           notifyTradeConfirmed();
